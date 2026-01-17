@@ -81,12 +81,17 @@ model Idea {
 }
 
 model Interview {
-  id        String          @id @default(cuid())
-  status    InterviewStatus @default(IN_PROGRESS)
-  messages  Json // Store conversation history as JSON
-  summary   String?         @db.Text
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  id              String          @id @default(cuid())
+  mode            InterviewMode   @default(LIGHT)
+  status          InterviewStatus @default(IN_PROGRESS)
+  currentTurn     Int             @default(0)
+  maxTurns        Int             @default(5)
+  messages        Json            // Store conversation history as JSON
+  collectedData   Json?           // 31 data points with weights/sources
+  confidenceScore Int             @default(0)
+  summary         String?         @db.Text
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   ideaId String
   idea   Idea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
@@ -96,6 +101,12 @@ model Interview {
   @@index([ideaId])
   @@index([userId])
   @@index([status])
+  @@index([mode])
+}
+
+enum InterviewMode {
+  LIGHT     // Fewer turns, faster completion
+  IN_DEPTH  // More turns, comprehensive data collection
 }
 
 model Research {
@@ -163,6 +174,13 @@ enum DocumentType {
   MARKET_ANALYSIS
   COMPETITOR_ANALYSIS
   EXECUTIVE_SUMMARY
+  WHY_NOW
+  PROOF_SIGNALS
+  KEYWORDS_SEO
+  CUSTOMER_PROFILE
+  VALUE_EQUATION
+  VALUE_LADDER
+  GO_TO_MARKET
 }
 
 enum DocumentStatus {

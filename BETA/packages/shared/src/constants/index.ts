@@ -17,6 +17,16 @@ export const INTERVIEW_STATUS_LABELS: Record<string, string> = {
   ABANDONED: 'Abandoned',
 };
 
+export const INTERVIEW_MODE_LABELS: Record<string, string> = {
+  LIGHT: 'Light Interview',
+  IN_DEPTH: 'In-Depth Interview',
+};
+
+export const INTERVIEW_MODE_DESCRIPTIONS: Record<string, string> = {
+  LIGHT: 'Quick discovery with essential questions',
+  IN_DEPTH: 'Comprehensive discovery covering all aspects',
+};
+
 export const RESEARCH_STATUS_LABELS: Record<string, string> = {
   PENDING: 'Pending',
   IN_PROGRESS: 'In Progress',
@@ -31,6 +41,13 @@ export const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   MARKET_ANALYSIS: 'Market Analysis',
   COMPETITOR_ANALYSIS: 'Competitor Analysis',
   EXECUTIVE_SUMMARY: 'Executive Summary',
+  WHY_NOW: 'Why Now Analysis',
+  PROOF_SIGNALS: 'Proof Signals',
+  KEYWORDS_SEO: 'Keywords & SEO Strategy',
+  CUSTOMER_PROFILE: 'Customer Profile',
+  VALUE_EQUATION: 'Value Equation',
+  VALUE_LADDER: 'Value Ladder',
+  GO_TO_MARKET: 'Go-to-Market Strategy',
 };
 
 // AI configuration
