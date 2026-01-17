@@ -11,12 +11,18 @@
 ### Current Setup (Monorepo)
 ```
 Forge Automation/
-├── packages/
-│   ├── web/           # Next.js 16 web app (future migration target)
-│   ├── mobile/        # Expo React Native app
-│   └── shared/        # Shared TypeScript code
-├── skills/            # n8n-specific Claude skills
-└── CLAUDE.md          # This file
+├── MVP/                    # Application code
+│   ├── packages/
+│   │   ├── web/            # Next.js 16 web app
+│   │   ├── mobile/         # Expo React Native app
+│   │   └── shared/         # Shared TypeScript code
+│   ├── package.json
+│   ├── pnpm-workspace.yaml
+│   └── pnpm-lock.yaml
+├── skills/                 # n8n-specific Claude skills
+├── workflows/              # n8n workflow exports
+├── CLAUDE.md               # This file
+└── README.md
 ```
 
 ### n8n Automation (Cloud Hosted)
@@ -192,6 +198,9 @@ curl -X GET "https://api.n8n.cloud/api/v1/workflows" \
 
 ### Local Development
 ```bash
+# Navigate to MVP folder first
+cd MVP
+
 # Run web dev server
 pnpm dev:web
 
