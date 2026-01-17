@@ -18,13 +18,15 @@ export const INTERVIEW_STATUS_LABELS: Record<string, string> = {
 };
 
 export const INTERVIEW_MODE_LABELS: Record<string, string> = {
+  LIGHTNING: 'Lightning Round',
   LIGHT: 'Light Interview',
   IN_DEPTH: 'In-Depth Interview',
 };
 
 export const INTERVIEW_MODE_DESCRIPTIONS: Record<string, string> = {
+  LIGHTNING: 'No interview - AI generates insights from your idea description',
   LIGHT: 'Quick discovery with essential questions',
-  IN_DEPTH: 'Comprehensive discovery covering all aspects',
+  IN_DEPTH: 'Comprehensive discovery covering all 31 data points',
 };
 
 export const RESEARCH_STATUS_LABELS: Record<string, string> = {
@@ -34,13 +36,63 @@ export const RESEARCH_STATUS_LABELS: Record<string, string> = {
   FAILED: 'Failed',
 };
 
-export const DOCUMENT_TYPE_LABELS: Record<string, string> = {
+// Research pipeline phases (4-6 hour process)
+export const RESEARCH_PHASE_LABELS: Record<string, string> = {
+  QUEUED: 'Queued',
+  QUERY_GENERATION: 'Generating Queries',
+  DATA_COLLECTION: 'Collecting Data',
+  SYNTHESIS: 'Synthesizing Insights',
+  REPORT_GENERATION: 'Generating Reports',
+  COMPLETE: 'Complete',
+};
+
+export const RESEARCH_PHASE_DESCRIPTIONS: Record<string, string> = {
+  QUEUED: 'Your research is queued and will begin shortly',
+  QUERY_GENERATION: 'AI is generating targeted search queries for your business',
+  DATA_COLLECTION: 'Gathering market data, competitor info, and proof signals',
+  SYNTHESIS: 'AI is analyzing and consolidating all research findings',
+  REPORT_GENERATION: 'Creating your personalized business reports',
+  COMPLETE: 'All research and reports are ready',
+};
+
+// Estimated duration per phase (for progress bar calculations)
+export const RESEARCH_PHASE_DURATION_MINUTES: Record<string, number> = {
+  QUEUED: 0,
+  QUERY_GENERATION: 5,
+  DATA_COLLECTION: 180, // 3 hours average
+  SYNTHESIS: 45,
+  REPORT_GENERATION: 90, // 1.5 hours
+  COMPLETE: 0,
+};
+
+// Progress percentage ranges per phase
+export const RESEARCH_PHASE_PROGRESS: Record<string, { start: number; end: number }> = {
+  QUEUED: { start: 0, end: 0 },
+  QUERY_GENERATION: { start: 0, end: 5 },
+  DATA_COLLECTION: { start: 5, end: 60 },
+  SYNTHESIS: { start: 60, end: 80 },
+  REPORT_GENERATION: { start: 80, end: 100 },
+  COMPLETE: { start: 100, end: 100 },
+};
+
+// Subscription tier labels
+export const SUBSCRIPTION_TIER_LABELS: Record<string, string> = {
+  FREE: 'Free',
+  PRO: 'Pro',
+  ENTERPRISE: 'Enterprise',
+};
+
+export const SUBSCRIPTION_TIER_DESCRIPTIONS: Record<string, string> = {
+  FREE: 'Basic reports with core insights',
+  PRO: 'Pro-level reports with enhanced analysis',
+  ENTERPRISE: 'Full reports with all premium features',
+};
+
+// Report type labels (10 report types)
+export const REPORT_TYPE_LABELS: Record<string, string> = {
   BUSINESS_PLAN: 'Business Plan',
   POSITIONING: 'Positioning Statement',
-  PAIN_POINTS: 'Pain Points Analysis',
-  MARKET_ANALYSIS: 'Market Analysis',
-  COMPETITOR_ANALYSIS: 'Competitor Analysis',
-  EXECUTIVE_SUMMARY: 'Executive Summary',
+  COMPETITIVE_ANALYSIS: 'Competitive Analysis',
   WHY_NOW: 'Why Now Analysis',
   PROOF_SIGNALS: 'Proof Signals',
   KEYWORDS_SEO: 'Keywords & SEO Strategy',
@@ -48,6 +100,68 @@ export const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   VALUE_EQUATION: 'Value Equation',
   VALUE_LADDER: 'Value Ladder',
   GO_TO_MARKET: 'Go-to-Market Strategy',
+};
+
+export const REPORT_TYPE_DESCRIPTIONS: Record<string, string> = {
+  BUSINESS_PLAN: 'Comprehensive business plan with market analysis and financials',
+  POSITIONING: 'Brand positioning, messaging framework, and differentiation',
+  COMPETITIVE_ANALYSIS: 'SWOT analysis, competitor profiles, and market positioning',
+  WHY_NOW: 'Market timing analysis and urgency factors',
+  PROOF_SIGNALS: 'Demand validation evidence from research',
+  KEYWORDS_SEO: 'Search strategy and content opportunities',
+  CUSTOMER_PROFILE: 'Detailed persona with demographics and psychographics',
+  VALUE_EQUATION: 'Value proposition breakdown and benefits analysis',
+  VALUE_LADDER: 'Product/service tier strategy and pricing tiers',
+  GO_TO_MARKET: 'Launch timeline, channel strategy, and acquisition plan',
+};
+
+// Report tier labels
+export const REPORT_TIER_LABELS: Record<string, string> = {
+  BASIC: 'Basic',
+  PRO: 'Pro',
+  FULL: 'Full',
+};
+
+export const REPORT_TIER_DESCRIPTIONS: Record<string, string> = {
+  BASIC: 'Core insights and essential analysis',
+  PRO: 'Enhanced analysis with deeper research',
+  FULL: 'Comprehensive report with all premium sections',
+};
+
+// Report status labels
+export const REPORT_STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Draft',
+  GENERATING: 'Generating',
+  COMPLETE: 'Complete',
+  FAILED: 'Failed',
+};
+
+// Report tier determination matrix
+// Maps [InterviewMode][SubscriptionTier] → ReportTier
+export const REPORT_TIER_MATRIX: Record<string, Record<string, string>> = {
+  LIGHTNING: {
+    FREE: 'BASIC',
+    PRO: 'BASIC',
+    ENTERPRISE: 'BASIC',
+  },
+  LIGHT: {
+    FREE: 'BASIC',
+    PRO: 'PRO',
+    ENTERPRISE: 'PRO',
+  },
+  IN_DEPTH: {
+    FREE: 'PRO',
+    PRO: 'FULL',
+    ENTERPRISE: 'FULL',
+  },
+};
+
+// Helper to determine report tier
+export const getReportTier = (
+  interviewMode: string,
+  subscriptionTier: string
+): string => {
+  return REPORT_TIER_MATRIX[interviewMode]?.[subscriptionTier] ?? 'BASIC';
 };
 
 // AI configuration
@@ -71,6 +185,30 @@ export const INTERVIEW_TOPICS = [
 ] as const;
 
 export type InterviewTopic = (typeof INTERVIEW_TOPICS)[number];
+
+// Interview session timeouts and auto-save
+export const INTERVIEW_SESSION = {
+  // Auto-save happens automatically on each message (built into the flow)
+
+  // Session timeout - interview can be resumed within this window
+  resumeWindowMs: 7 * 24 * 60 * 60 * 1000, // 7 days
+
+  // Idle warning - show "still there?" prompt after this
+  idleWarningMs: 10 * 60 * 1000, // 10 minutes
+
+  // Idle timeout - auto-pause interview after this (user can still resume)
+  idleTimeoutMs: 30 * 60 * 1000, // 30 minutes
+
+  // Expiration - mark interview as expired/abandoned after this
+  expirationMs: 30 * 24 * 60 * 60 * 1000, // 30 days
+};
+
+// Resume messages based on time away
+export const INTERVIEW_RESUME_MESSAGES = {
+  short: "Welcome back! Let's continue where we left off.", // < 1 hour
+  medium: "Welcome back! It's been a little while. Let me remind you where we were...", // 1-24 hours
+  long: "Welcome back! It's been a few days. Here's a quick summary of what we've covered so far...", // > 24 hours
+};
 
 // Rate limiting
 export const RATE_LIMITS = {

@@ -1,5 +1,4 @@
-import type { IdeaStatus } from '@prisma/client';
-import { router, publicProcedure, protectedProcedure } from '../trpc';
+import { router, protectedProcedure } from '../trpc';
 import { updateUserSchema } from '@forge/shared';
 
 export const userRouter = router({
@@ -14,6 +13,7 @@ export const userRouter = router({
         email: true,
         name: true,
         image: true,
+        subscription: true,
         createdAt: true,
       },
     });
@@ -33,6 +33,7 @@ export const userRouter = router({
         email: true,
         name: true,
         image: true,
+        subscription: true,
         updatedAt: true,
       },
     });
@@ -44,10 +45,16 @@ export const userRouter = router({
    * Get user statistics
    */
   stats: protectedProcedure.query(async ({ ctx }) => {
-    const [ideasCount, interviewsCount, documentsCount] = await Promise.all([
+    const [ideasCount, interviewsCount, reportsCount, activeResearch] = await Promise.all([
       ctx.prisma.idea.count({ where: { userId: ctx.userId } }),
       ctx.prisma.interview.count({ where: { userId: ctx.userId } }),
-      ctx.prisma.document.count({ where: { userId: ctx.userId } }),
+      ctx.prisma.report.count({ where: { userId: ctx.userId } }),
+      ctx.prisma.research.count({
+        where: {
+          idea: { userId: ctx.userId },
+          status: 'IN_PROGRESS',
+        },
+      }),
     ]);
 
     const ideasByStatus = await ctx.prisma.idea.groupBy({
@@ -56,13 +63,65 @@ export const userRouter = router({
       _count: true,
     });
 
+    const reportsByType = await ctx.prisma.report.groupBy({
+      by: ['type'],
+      where: { userId: ctx.userId },
+      _count: true,
+    });
+
     return {
       totalIdeas: ideasCount,
       totalInterviews: interviewsCount,
-      totalDocuments: documentsCount,
-      ideasByStatus: Object.fromEntries(
-        ideasByStatus.map((s: { status: IdeaStatus; _count: number }) => [s.status, s._count])
-      ),
+      totalReports: reportsCount,
+      activeResearch,
+      ideasByStatus: Object.fromEntries(ideasByStatus.map((s) => [s.status, s._count])),
+      reportsByType: Object.fromEntries(reportsByType.map((r) => [r.type, r._count])),
+    };
+  }),
+
+  /**
+   * Get user subscription details
+   */
+  subscription: protectedProcedure.query(async ({ ctx }) => {
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: ctx.userId },
+      select: {
+        subscription: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    // Return subscription info with feature flags
+    const features = {
+      FREE: {
+        maxIdeas: 3,
+        maxReportsPerIdea: 5,
+        reportTierAccess: ['BASIC'] as const,
+        interviewModes: ['LIGHTNING', 'LIGHT'] as const,
+        prioritySupport: false,
+      },
+      PRO: {
+        maxIdeas: 20,
+        maxReportsPerIdea: 10,
+        reportTierAccess: ['BASIC', 'PRO'] as const,
+        interviewModes: ['LIGHTNING', 'LIGHT', 'IN_DEPTH'] as const,
+        prioritySupport: true,
+      },
+      ENTERPRISE: {
+        maxIdeas: -1, // Unlimited
+        maxReportsPerIdea: 10,
+        reportTierAccess: ['BASIC', 'PRO', 'FULL'] as const,
+        interviewModes: ['LIGHTNING', 'LIGHT', 'IN_DEPTH'] as const,
+        prioritySupport: true,
+      },
+    };
+
+    return {
+      tier: user.subscription,
+      features: features[user.subscription],
     };
   }),
 });

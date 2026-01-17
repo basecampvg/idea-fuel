@@ -1,8 +1,9 @@
-import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 import { prisma } from './db';
 
-// User session type (will be populated by Auth.js)
-interface Session {
+/**
+ * User session type (matches Auth.js session)
+ */
+export interface Session {
   user?: {
     id: string;
     email: string;
@@ -12,6 +13,9 @@ interface Session {
   expires: string;
 }
 
+/**
+ * tRPC context type
+ */
 export interface Context {
   prisma: typeof prisma;
   session: Session | null;
@@ -19,19 +23,32 @@ export interface Context {
 }
 
 /**
- * Creates context for tRPC requests
- * This will be called for each request and provides database access and session info
+ * Options for creating context
  */
-export async function createContext(_opts?: CreateNextContextOptions): Promise<Context> {
-  // TODO: Get session from Auth.js when implemented
-  // const session = await getServerSession(opts?.req, opts?.res, authOptions);
-  const session: Session | null = null;
+export interface CreateContextOptions {
+  session: Session | null;
+}
 
+/**
+ * Creates context for tRPC requests
+ * Session is passed in from the API route handler
+ */
+export function createContext(opts: CreateContextOptions): Context {
   return {
     prisma,
-    session,
-    userId: (session as Session | null)?.user?.id ?? null,
+    session: opts.session,
+    userId: opts.session?.user?.id ?? null,
   };
 }
 
-export type { Session };
+/**
+ * Creates context for internal use (without session)
+ * Useful for background jobs and testing
+ */
+export function createInternalContext(): Context {
+  return {
+    prisma,
+    session: null,
+    userId: null,
+  };
+}

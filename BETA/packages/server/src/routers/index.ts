@@ -2,7 +2,8 @@ import { router } from '../trpc';
 import { userRouter } from './user';
 import { ideaRouter } from './idea';
 import { interviewRouter } from './interview';
-import { documentRouter } from './document';
+import { reportRouter } from './report';
+import { researchRouter } from './research';
 
 /**
  * Main application router
@@ -12,7 +13,8 @@ export const appRouter = router({
   user: userRouter,
   idea: ideaRouter,
   interview: interviewRouter,
-  document: documentRouter,
+  report: reportRouter,
+  research: researchRouter,
 });
 
 // Export type definition for client usage

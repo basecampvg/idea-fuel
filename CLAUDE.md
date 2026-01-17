@@ -4,26 +4,122 @@
 
 **Project Name:** Forge Automation
 **Purpose:** Stabilize existing n8n cloud automation workflows, then migrate to Next.js + BullMQ stack
-**Current Phase:** n8n workflow stabilization
+**Current Phase:** BETA app development (web + mobile)
 
 ## Architecture
 
 ### Current Setup (Monorepo)
 ```
 Forge Automation/
-├── MVP/                    # Application code
+├── BETA/                   # ACTIVE - Current development
 │   ├── packages/
-│   │   ├── web/            # Next.js 16 web app
-│   │   ├── mobile/         # Expo React Native app
+│   │   ├── web/            # Next.js 15 + React 19 web app
+│   │   ├── mobile/         # Expo SDK 52 + React Native mobile app
+│   │   ├── server/         # tRPC + Prisma backend
 │   │   └── shared/         # Shared TypeScript code
-│   ├── package.json
+│   ├── skills/             # Claude skills for BETA development
+│   │   └── frontend-design/ # UI/UX design guidelines
+│   ├── package.json        # Root monorepo config
 │   ├── pnpm-workspace.yaml
-│   └── pnpm-lock.yaml
+│   └── .npmrc              # pnpm configuration
+├── MVP/                    # Legacy - Previous iteration
+│   ├── packages/
+│   │   ├── web/
+│   │   ├── mobile/
+│   │   └── shared/
+│   └── ...
 ├── skills/                 # n8n-specific Claude skills
 ├── workflows/              # n8n workflow exports
 ├── CLAUDE.md               # This file
 └── README.md
 ```
+
+---
+
+## BETA Tech Stack (Active Development)
+
+### Frontend - Web
+| Component | Technology | Version |
+|-----------|------------|---------|
+| Framework | Next.js | 15.x |
+| UI Library | React | 19.x |
+| Styling | Tailwind CSS | 4.x |
+| Type Safety | TypeScript | 5.7+ |
+| API Client | tRPC + React Query | 11.x / 5.x |
+| Auth | Auth.js (NextAuth v5) | 5.0 beta |
+
+### Frontend - Mobile
+| Component | Technology | Version |
+|-----------|------------|---------|
+| Framework | Expo | SDK 52 |
+| UI Library | React Native | 0.76.9 |
+| Styling | NativeWind | 4.x |
+| Type Safety | TypeScript | 5.7+ |
+| API Client | tRPC + React Query | 11.x / 5.x |
+| Auth | expo-auth-session | 6.x |
+| Storage | expo-secure-store | 14.x |
+
+### Backend
+| Component | Technology | Version |
+|-----------|------------|---------|
+| API Layer | tRPC | 11.x |
+| ORM | Prisma | 6.x |
+| Database | PostgreSQL | via Supabase |
+| Auth | Auth.js | 5.0 beta |
+
+### Monorepo Configuration
+- **Package Manager:** pnpm 9.15+
+- **Workspace:** pnpm workspaces
+- **React Version:** 19.x (unified across web + mobile)
+- **TypeScript:** Strict mode, skipLibCheck enabled
+
+### Key Configuration Notes
+1. **React 19 in Mobile:** Using `expo.install.exclude` in package.json to bypass Expo SDK 52's React 18 requirement
+2. **Type Hoisting:** `.npmrc` configured to prevent `@types/react` hoisting conflicts
+3. **Monorepo Paths:** TypeScript path aliases in each package's tsconfig.json
+
+---
+
+## Backend API Structure
+
+### tRPC Routers (packages/server/src/routers/)
+
+| Router | Endpoints | Description |
+|--------|-----------|-------------|
+| `user` | `me`, `update`, `stats`, `subscription` | User profile and stats |
+| `idea` | `list`, `get`, `create`, `update`, `delete`, `startInterview`, `startResearch` | Idea CRUD + workflow triggers |
+| `interview` | `get`, `listByIdea`, `getActive`, `resume`, `addMessage`, `addAssistantMessage`, `complete`, `abandon`, `markExpired`, `heartbeat` | Interview chat management |
+| `report` | `list`, `listByIdea`, `get`, `generate`, `regenerate`, `update`, `delete`, `generateAll` | Report generation and management |
+| `research` | `get`, `getByIdea`, `getProgress`, `start`, `cancel`, `updatePhase`, `markFailed` | Research pipeline tracking |
+
+### Database Models (Prisma)
+
+| Model | Purpose |
+|-------|---------|
+| `User` | User accounts with subscription tiers |
+| `Account` | OAuth provider accounts (Auth.js) |
+| `Session` | User sessions (Auth.js) |
+| `Idea` | Business idea entries |
+| `Interview` | AI interview sessions with message history |
+| `Research` | Background research pipeline state |
+| `Report` | Generated business reports |
+
+### Interview Modes
+- **LIGHTNING** - No interview, AI generates from description only
+- **LIGHT** - Quick discovery, 5 turns max
+- **IN_DEPTH** - Comprehensive, 15 turns max
+
+### Report Tiers (determined by Interview Mode + Subscription)
+- **BASIC** - Core insights (LIGHTNING or FREE+LIGHT)
+- **PRO** - Enhanced analysis (PRO+LIGHT or FREE+IN_DEPTH)
+- **FULL** - Comprehensive (PRO/ENTERPRISE+IN_DEPTH)
+
+### Environment Variables
+See `.env.example` for complete list. Key requirements:
+- `DATABASE_URL` / `DIRECT_URL` - Supabase PostgreSQL
+- `AUTH_SECRET` - Auth.js encryption key
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - Google OAuth
+- `OPENAI_API_KEY` - For AI interview/report generation
 
 ### n8n Automation (Cloud Hosted)
 
@@ -196,19 +292,45 @@ curl -X GET "https://api.n8n.cloud/api/v1/workflows" \
   -H "X-N8N-API-KEY: ${N8N_API_KEY}"
 ```
 
-### Local Development
+### Local Development (BETA)
 ```bash
-# Navigate to MVP folder first
-cd MVP
+# Navigate to BETA folder first
+cd BETA
 
 # Run web dev server
 pnpm dev:web
 
-# Run mobile dev server
+# Run mobile dev server (Expo)
 pnpm dev:mobile
+# Or directly: cd packages/mobile && pnpm dev
+
+# Run all dev servers in parallel
+pnpm dev
 
 # Type check all packages
 pnpm type-check
+
+# Database commands
+pnpm db:generate   # Generate Prisma client
+pnpm db:push       # Push schema to database
+pnpm db:migrate    # Run migrations
+pnpm db:studio     # Open Prisma Studio
+```
+
+### Mobile App (Expo)
+```bash
+cd BETA/packages/mobile
+
+# Start Expo dev server
+pnpm dev
+
+# Platform-specific
+pnpm android   # Start Android
+pnpm ios       # Start iOS
+pnpm web       # Start web version
+
+# Check Expo configuration
+npx expo-doctor
 ```
 
 ---
@@ -289,6 +411,53 @@ pnpm type-check
 
 ## Change Log
 
+### 2026-01-17
+- ✅ **Home Page Redesign** - New dark theme UI for web dashboard
+  - Dark theme with animated gradient background (cycles bright/dark)
+  - Narrow icon-only sidebar (Logo, +, Vault, Discover, Settings, More)
+  - Centered idea input with Forge/Save buttons
+  - Report type indicators (Business Plan, Positioning, etc.)
+  - Pink/magenta accent color scheme
+  - Removed header for cleaner look
+- ✅ **Database Connected** - Supabase PostgreSQL configured
+  - Project: `wvacfynzguprqlzyukzx` (us-west-2)
+  - Tables created and verified
+  - OpenAI API key configured
+- ✅ **Mobile App Complete** - Expo SDK 52 + React Native mobile app
+  - All screens: Dashboard, Ideas, Reports, Settings, Interview chat
+  - tRPC client connecting to shared backend
+  - Google OAuth via expo-auth-session
+  - NativeWind (Tailwind CSS) styling
+  - React 19 with type-checking passing
+- ✅ **React 19 Unified** - Both web and mobile now use React 19
+  - Configured `expo.install.exclude` for React packages
+  - Fixed `.npmrc` to prevent type hoisting conflicts
+  - All type-checks passing across monorepo
+- ✅ **Backend Verification** - Server package fully implemented
+  - Prisma schema complete (User, Idea, Interview, Report, Research)
+  - All tRPC routers implemented (user, idea, interview, report, research)
+  - Auth.js configured with Google OAuth + Prisma adapter
+  - tRPC API routes connected in Next.js
+  - Created `.env.example` with all required environment variables
+  - Prisma client generates successfully
+- ✅ **Database Connected** - Supabase PostgreSQL configured
+  - Project: `wvacfynzguprqlzyukzx` (us-west-2)
+  - Tables created: User, Account, Session, VerificationToken, Interview, Idea, Report, Research
+  - Connection pooling via Transaction pooler (port 6543)
+  - Direct connection for migrations (port 5432)
+  - `.env` configured in both root and packages/server
+
+### 2026-01-16
+- ✅ **BETA Web App Complete** - Next.js 15 + React 19 web application
+  - Dashboard with stats and recent ideas
+  - Ideas CRUD with status management
+  - AI Interview chat interface (real-time)
+  - Reports list with document generation
+  - Settings page with theme toggle
+  - tRPC + React Query for API calls
+  - Auth.js v5 for authentication
+  - Tailwind CSS v4 styling
+
 ### 2026-01-15
 - Created CLAUDE.md for workflow documentation
 - Documented project structure and migration plan
@@ -303,8 +472,33 @@ pnpm type-check
 
 ## Notes for Claude
 
+### CRITICAL: Frontend Design Guidelines
+**ALWAYS reference `BETA/skills/frontend-design/frontend-design.md` before any UI-related work.**
+
+When building or modifying any frontend components, pages, or interfaces (web or mobile):
+1. Read the frontend-design skill file first
+2. Apply its principles: bold aesthetic choices, distinctive typography, cohesive color themes, intentional motion
+3. AVOID generic AI aesthetics (Inter font, purple gradients, predictable layouts)
+4. Commit to a clear design direction and execute with precision
+
+### Active Development (BETA)
+- **Working Directory:** `BETA/` is the active codebase
+- **Monorepo:** pnpm workspaces with 4 packages (web, mobile, server, shared)
+- **React Version:** 19.x across all packages
+- **Type Checking:** Run `pnpm type-check` from BETA root
+
+### Key Files to Know
+- `BETA/packages/web/src/app/` - Next.js App Router pages
+- `BETA/packages/mobile/src/app/` - Expo Router screens
+- `BETA/packages/server/src/routers/` - tRPC API routers
+- `BETA/packages/shared/src/` - Shared types and utilities
+- `BETA/packages/server/prisma/schema.prisma` - Database schema
+
+### n8n Integration
 - **MCP Access:** Use MCP server to fetch workflow data
-- **Priority:** Focus on stabilization before migration
+- **Instance:** https://ideatomation.app.n8n.cloud
 - **Documentation:** Keep this file updated as we discover workflow details
-- **Approach:** Analyze workflows systematically, identify issues, propose fixes
+
+### Legacy
+- `MVP/` contains previous iteration - reference only
 

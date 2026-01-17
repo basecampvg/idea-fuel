@@ -1,7 +1,15 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
-import { createIdeaSchema, updateIdeaSchema, paginationSchema } from '@forge/shared';
+import { createIdeaSchema, updateIdeaSchema, paginationSchema, startInterviewSchema } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
+import { Prisma } from '@prisma/client';
+
+// Default max turns by interview mode
+const MAX_TURNS_BY_MODE = {
+  LIGHTNING: 0, // No interview
+  LIGHT: 5,
+  IN_DEPTH: 15,
+} as const;
 
 export const ideaRouter = router({
   /**
@@ -21,7 +29,14 @@ export const ideaRouter = router({
           _count: {
             select: {
               interviews: true,
-              documents: true,
+              reports: true,
+            },
+          },
+          research: {
+            select: {
+              status: true,
+              currentPhase: true,
+              progress: true,
             },
           },
         },
@@ -41,7 +56,7 @@ export const ideaRouter = router({
   }),
 
   /**
-   * Get a single idea by ID
+   * Get a single idea by ID with all related data
    */
   get: protectedProcedure.input(z.object({ id: z.string().cuid() })).query(async ({ ctx, input }) => {
     const idea = await ctx.prisma.idea.findFirst({
@@ -52,9 +67,27 @@ export const ideaRouter = router({
       include: {
         interviews: {
           orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            mode: true,
+            status: true,
+            currentTurn: true,
+            maxTurns: true,
+            confidenceScore: true,
+            lastActiveAt: true,
+            createdAt: true,
+          },
         },
-        documents: {
+        reports: {
           orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            type: true,
+            tier: true,
+            title: true,
+            status: true,
+            createdAt: true,
+          },
         },
         research: true,
       },
@@ -119,7 +152,7 @@ export const ideaRouter = router({
     }),
 
   /**
-   * Delete an idea
+   * Delete an idea (cascades to interviews, reports, research)
    */
   delete: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
     // Verify ownership
@@ -145,13 +178,14 @@ export const ideaRouter = router({
   }),
 
   /**
-   * Start the interview process for an idea
+   * Start an interview for an idea
+   * Supports LIGHTNING, LIGHT, and IN_DEPTH modes
    */
-  startInterview: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
+  startInterview: protectedProcedure.input(startInterviewSchema).mutation(async ({ ctx, input }) => {
     // Verify ownership
     const idea = await ctx.prisma.idea.findFirst({
       where: {
-        id: input.id,
+        id: input.ideaId,
         userId: ctx.userId,
       },
     });
@@ -163,22 +197,124 @@ export const ideaRouter = router({
       });
     }
 
-    // Create a new interview
+    const mode = input.mode ?? 'LIGHT';
+    const maxTurns = MAX_TURNS_BY_MODE[mode];
+
+    // For LIGHTNING mode, skip interview and go straight to research
+    if (mode === 'LIGHTNING') {
+      // Create a completed interview with no messages
+      const interview = await ctx.prisma.interview.create({
+        data: {
+          ideaId: input.ideaId,
+          userId: ctx.userId,
+          mode: 'LIGHTNING',
+          status: 'COMPLETE',
+          currentTurn: 0,
+          maxTurns: 0,
+          messages: [],
+          collectedData: Prisma.JsonNull, // AI will infer from idea description
+          confidenceScore: 0,
+          summary: 'Lightning mode - insights generated from idea description only.',
+        },
+      });
+
+      // Update idea status to researching
+      await ctx.prisma.idea.update({
+        where: { id: input.ideaId },
+        data: { status: 'RESEARCHING' },
+      });
+
+      return {
+        interview,
+        skipToResearch: true,
+      };
+    }
+
+    // For LIGHT and IN_DEPTH modes, create an active interview
     const interview = await ctx.prisma.interview.create({
       data: {
-        ideaId: input.id,
+        ideaId: input.ideaId,
         userId: ctx.userId,
-        messages: [],
+        mode,
         status: 'IN_PROGRESS',
+        currentTurn: 0,
+        maxTurns,
+        messages: [],
+        lastActiveAt: new Date(),
+      },
+    });
+
+    // Update idea status
+    await ctx.prisma.idea.update({
+      where: { id: input.ideaId },
+      data: { status: 'INTERVIEWING' },
+    });
+
+    return {
+      interview,
+      skipToResearch: false,
+    };
+  }),
+
+  /**
+   * Start research for an idea (after interview completion)
+   */
+  startResearch: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
+    const idea = await ctx.prisma.idea.findFirst({
+      where: {
+        id: input.id,
+        userId: ctx.userId,
+      },
+      include: {
+        interviews: {
+          where: { status: 'COMPLETE' },
+          take: 1,
+        },
+        research: true,
+      },
+    });
+
+    if (!idea) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Idea not found',
+      });
+    }
+
+    // Check if research already exists
+    if (idea.research) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Research already exists for this idea',
+      });
+    }
+
+    // Require at least one completed interview (or LIGHTNING mode)
+    if (idea.interviews.length === 0) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Complete an interview before starting research',
+      });
+    }
+
+    // Create research record
+    const research = await ctx.prisma.research.create({
+      data: {
+        ideaId: input.id,
+        status: 'PENDING',
+        currentPhase: 'QUEUED',
+        progress: 0,
       },
     });
 
     // Update idea status
     await ctx.prisma.idea.update({
       where: { id: input.id },
-      data: { status: 'INTERVIEWING' },
+      data: { status: 'RESEARCHING' },
     });
 
-    return interview;
+    // TODO: Trigger BullMQ job to start research pipeline
+
+    return research;
   }),
 });
