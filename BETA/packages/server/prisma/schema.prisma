@@ -175,6 +175,12 @@ model Research {
   // Action Prompts (pre-generated during REPORT_GENERATION)
   actionPrompts        Json?          // [{ id, title, description, prompt, category }]
 
+  // User Story (AI-generated narrative)
+  userStory            Json?          // { scenario, protagonist, problem, solution, outcome }
+
+  // Social Proof (from Reddit, Facebook, Twitter - MVP: AI-simulated)
+  socialProof          Json?          // { posts[], summary, painPointsValidated[], demandSignals[] }
+
   // Error tracking
   errorMessage         String?        @db.Text
   errorPhase           ResearchPhase?

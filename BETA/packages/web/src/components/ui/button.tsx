@@ -11,28 +11,28 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    'bg-[var(--foreground)] text-[var(--background)] hover:bg-[var(--foreground)]/90 focus-visible:ring-[var(--foreground)]',
+    'bg-foreground text-background hover:bg-foreground/90 focus-visible:ring-foreground',
   secondary:
-    'bg-transparent text-[#a0a0b0] hover:text-white focus-visible:ring-[var(--border)]',
+    'bg-transparent text-muted-foreground hover:text-foreground focus-visible:ring-border',
   outline:
-    'border border-[var(--border)] bg-transparent text-[var(--foreground)] hover:bg-[var(--card-bg)] hover:border-[var(--border-strong)] focus-visible:ring-[var(--border)]',
+    'border border-border bg-transparent text-foreground hover:bg-card hover:border-border/80 focus-visible:ring-border',
   ghost:
-    'text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card-bg)] focus-visible:ring-[var(--border)]',
+    'text-muted-foreground hover:text-foreground hover:bg-card focus-visible:ring-border',
   danger:
-    'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 focus-visible:ring-red-500',
+    'bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 hover:border-destructive/30 focus-visible:ring-destructive',
   accent: `
-    bg-[#e91e8c] text-white font-medium
+    bg-primary text-primary-foreground font-medium
     rounded-full
-    shadow-[0_0_20px_rgba(233,30,140,0.3)]
-    hover:shadow-[0_0_30px_rgba(233,30,140,0.5)]
-    focus-visible:ring-[#e91e8c]
+    shadow-[0_0_20px_hsl(var(--primary)/0.3)]
+    hover:shadow-[0_0_30px_hsl(var(--primary)/0.5)]
+    focus-visible:ring-primary
     disabled:opacity-50 disabled:shadow-none
   `,
   'accent-outline': `
-    border border-[#4ecdc4]/50 text-[#4ecdc4]
+    border border-accent/50 text-accent
     bg-transparent
-    hover:bg-[#4ecdc4]/10 hover:border-[#4ecdc4]/70
-    focus-visible:ring-[#4ecdc4]
+    hover:bg-accent/10 hover:border-accent/70
+    focus-visible:ring-accent
     disabled:opacity-50
   `,
 };

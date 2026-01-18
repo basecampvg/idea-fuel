@@ -10,7 +10,15 @@ import { BusinessFit } from './business-fit';
 import { KeywordChart, type KeywordTrend } from './keyword-chart';
 import { OfferSection, type OfferTier } from './offer-section';
 import { ActionPrompts, type ActionPrompt } from './action-prompts';
-import { ChevronRight, Swords, AlertCircle, Search, MessageSquare, Download, Share2, Trash2 } from 'lucide-react';
+import { UserStory, type UserStoryData } from './user-story';
+import { DownloadsSection } from './download-card';
+import { MarketAnalysis, type MarketAnalysisData } from './market-analysis';
+import { WhyNowSection, type WhyNowData } from './why-now-section';
+import { ProofSignals, type ProofSignalsData } from './proof-signals';
+import { SocialProofSection, type SocialProofData } from './social-proof-section';
+import { CompetitorsSection, type Competitor } from './competitors-section';
+import { PainPointsSection, type PainPoint } from './pain-points-section';
+import { ChevronRight, MessageSquare, Download, Share2, Trash2 } from 'lucide-react';
 
 interface Interview {
   id: string;
@@ -57,10 +65,13 @@ interface Research {
   status: string;
   currentPhase: string;
   progress: number;
-  marketAnalysis?: unknown;
-  competitors?: unknown;
-  painPoints?: unknown;
+  marketAnalysis?: MarketAnalysisData | unknown | null;
+  competitors?: Competitor[] | unknown | null;
+  painPoints?: PainPoint[] | unknown | null;
   keywords?: unknown;
+  positioning?: unknown;
+  whyNow?: WhyNowData | unknown | null;
+  proofSignals?: ProofSignalsData | unknown | null;
   // Dashboard scores
   opportunityScore?: number | null;
   problemScore?: number | null;
@@ -75,6 +86,9 @@ interface Research {
   keywordTrends?: KeywordTrend[] | unknown | null;
   valueLadder?: OfferTier[] | unknown | null;
   actionPrompts?: ActionPrompt[] | unknown | null;
+  // New fields
+  userStory?: UserStoryData | unknown | null;
+  socialProof?: SocialProofData | unknown | null;
 }
 
 interface StatusCompleteProps {
@@ -110,22 +124,22 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
 
   return (
     <div className="space-y-5">
-      {/* Top Row: Chart + Right Column (Scores + BusinessFit) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Left: Keyword Chart */}
-        <KeywordChart keywordTrends={research?.keywordTrends as KeywordTrend[] | null | undefined} />
+      {/* 1. User Story */}
+      <UserStory userStory={research?.userStory as UserStoryData | null | undefined} />
 
-        {/* Right: Scores + Business Fit stacked */}
+      {/* 2. Downloads */}
+      <DownloadsSection ideaId={idea.id} hasResearch={research?.status === 'COMPLETE'} />
+
+      {/* 3. Keyword Chart + Scores/BusinessFit */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <KeywordChart keywordTrends={research?.keywordTrends as KeywordTrend[] | null | undefined} />
         <div className="space-y-5">
-          {/* Opportunity Scores - 2x2 grid */}
           <ScoreCards
             opportunityScore={research?.opportunityScore}
             problemScore={research?.problemScore}
             feasibilityScore={research?.feasibilityScore}
             whyNowScore={research?.whyNowScore}
           />
-
-          {/* Business Fit */}
           <BusinessFit
             revenuePotential={research?.revenuePotential as RevenuePotential | null | undefined}
             executionDifficulty={research?.executionDifficulty as ExecutionDifficulty | null | undefined}
@@ -135,16 +149,31 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
         </div>
       </div>
 
-      {/* Second Row: Offer + Action Prompts side by side */}
+      {/* 4. Offer + Action Prompts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Offer Section */}
         <OfferSection offerTiers={research?.valueLadder as OfferTier[] | null | undefined} ideaTitle={idea.title} />
-
-        {/* Start Building - Action Prompts */}
         <ActionPrompts actionPrompts={research?.actionPrompts as ActionPrompt[] | null | undefined} ideaTitle={idea.title} />
       </div>
 
-      {/* Reports Grid */}
+      {/* 5. Market Analysis */}
+      <MarketAnalysis marketAnalysis={research?.marketAnalysis as MarketAnalysisData | null | undefined} />
+
+      {/* 6. Why Now */}
+      <WhyNowSection whyNow={research?.whyNow as WhyNowData | null | undefined} />
+
+      {/* 7. Proof Signals */}
+      <ProofSignals proofSignals={research?.proofSignals as ProofSignalsData | null | undefined} />
+
+      {/* 8. Social Proof */}
+      <SocialProofSection socialProof={research?.socialProof as SocialProofData | null | undefined} />
+
+      {/* 9. Competitors */}
+      <CompetitorsSection competitors={research?.competitors as Competitor[] | null | undefined} />
+
+      {/* 10. Pain Points */}
+      <PainPointsSection painPoints={research?.painPoints as PainPoint[] | null | undefined} />
+
+      {/* 11. Reports Grid */}
       {reports.length > 0 && (
         <div className="rounded-2xl bg-[#12121a] border border-[#1e1e2a] p-5">
           <div className="flex items-center justify-between mb-4">
@@ -157,64 +186,11 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
-
           <ReportGrid reports={reports} ideaId={idea.id} />
         </div>
       )}
 
-      {/* Research Insights (Condensed) */}
-      {research && (researchStats.competitors > 0 || researchStats.painPoints > 0 || researchStats.keywords > 0) && (
-        <div className="rounded-2xl bg-[#12121a] border border-[#1e1e2a] p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-white">Research Insights</h2>
-            <Link
-              href={`/ideas/${idea.id}/research`}
-              className="flex items-center gap-1 text-sm text-[#00d4ff] hover:opacity-80 transition-opacity"
-            >
-              <span>View Full Research</span>
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-
-          <div className="flex flex-wrap gap-6 text-sm">
-            {researchStats.competitors > 0 && (
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-[#e91e8c]/20 flex items-center justify-center">
-                  <Swords className="w-4 h-4 text-[#e91e8c]" />
-                </div>
-                <div>
-                  <p className="text-white font-medium">{researchStats.competitors}</p>
-                  <p className="text-xs text-[#6a6a7a]">competitors</p>
-                </div>
-              </div>
-            )}
-            {researchStats.painPoints > 0 && (
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-[#f59e0b]/20 flex items-center justify-center">
-                  <AlertCircle className="w-4 h-4 text-[#f59e0b]" />
-                </div>
-                <div>
-                  <p className="text-white font-medium">{researchStats.painPoints}</p>
-                  <p className="text-xs text-[#6a6a7a]">pain points</p>
-                </div>
-              </div>
-            )}
-            {researchStats.keywords > 0 && (
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-[#4ecdc4]/20 flex items-center justify-center">
-                  <Search className="w-4 h-4 text-[#4ecdc4]" />
-                </div>
-                <div>
-                  <p className="text-white font-medium">{researchStats.keywords}</p>
-                  <p className="text-xs text-[#6a6a7a]">keywords</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Interview Summary */}
+      {/* 12. Interview Summary */}
       {completedInterview && (
         <div className="rounded-2xl bg-[#12121a] border border-[#1e1e2a] p-5">
           <div className="flex items-center gap-3 mb-4">
@@ -234,7 +210,6 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
               </div>
             </div>
           </div>
-
           <div className="flex gap-4 mt-4 pt-4 border-t border-[#1e1e2a]">
             <Link
               href={`/ideas/${idea.id}/interview`}
@@ -254,7 +229,7 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
         </div>
       )}
 
-      {/* Actions */}
+      {/* 13. Actions */}
       <div className="rounded-2xl bg-[#12121a] border border-[#1e1e2a] p-5">
         <div className="flex flex-wrap gap-3">
           <button

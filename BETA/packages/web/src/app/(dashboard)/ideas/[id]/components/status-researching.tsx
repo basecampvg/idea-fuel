@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
@@ -70,16 +71,17 @@ function formatTimeAgo(date: Date | null): string {
 }
 
 function estimateTimeRemaining(progress: number): string {
-  // Rough estimate: 4-6 hours total
-  const totalMinutes = 300; // 5 hours average
-  const remainingMinutes = Math.round((1 - progress / 100) * totalMinutes);
-  if (remainingMinutes < 60) return `~${remainingMinutes} minutes`;
-  const hours = Math.round(remainingMinutes / 60);
-  return `~${hours} hour${hours === 1 ? '' : 's'}`;
+  // MVP estimate: ~2-3 minutes total (4 OpenAI calls)
+  const totalSeconds = 180; // 3 minutes average
+  const remainingSeconds = Math.round((1 - progress / 100) * totalSeconds);
+  if (remainingSeconds < 60) return `~${remainingSeconds} seconds`;
+  const minutes = Math.round(remainingSeconds / 60);
+  return `~${minutes} minute${minutes === 1 ? '' : 's'}`;
 }
 
 export function StatusResearching({ idea }: StatusResearchingProps) {
   const router = useRouter();
+  const utils = trpc.useUtils();
   const completedInterview = idea.interviews?.find((i) => i.status === 'COMPLETE');
   const research = idea.research;
 
@@ -88,6 +90,24 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
       router.push(`/ideas/${idea.id}/interview`);
     },
   });
+
+  // Poll for research progress every 3 seconds while in progress
+  useEffect(() => {
+    if (!research || research.status !== 'IN_PROGRESS') return;
+
+    const interval = setInterval(() => {
+      utils.idea.get.invalidate({ id: idea.id });
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [research?.status, idea.id, utils.idea.get]);
+
+  // Redirect to idea page when research completes (will show COMPLETE status)
+  useEffect(() => {
+    if (research?.status === 'COMPLETE') {
+      router.refresh();
+    }
+  }, [research?.status, router]);
 
   if (!research) return null;
 

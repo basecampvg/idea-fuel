@@ -35,8 +35,8 @@ export default function InterviewPage({
   // Find the active (in-progress) interview
   const activeInterview = interviews?.find((i) => i.status === 'IN_PROGRESS');
 
-  // Send message mutation
-  const sendMessage = trpc.interview.addMessage.useMutation({
+  // Chat mutation - sends user message and gets AI response
+  const sendMessage = trpc.interview.chat.useMutation({
     onMutate: () => {
       setIsTyping(true);
     },
@@ -94,10 +94,10 @@ export default function InterviewPage({
 
   if (!activeInterview) {
     return (
-      <div className="mx-auto max-w-2xl space-y-6">
+      <div className="mx-auto max-w-[1120px] space-y-6">
         <Link
           href={`/ideas/${ideaId}`}
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
         >
           <svg className="mr-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -106,7 +106,7 @@ export default function InterviewPage({
         </Link>
         <Card>
           <CardContent className="py-8 text-center">
-            <p className="text-gray-500">No active interview found.</p>
+            <p className="text-muted-foreground">No active interview found.</p>
             <Link href={`/ideas/${ideaId}`}>
               <Button className="mt-4">Go Back to Idea</Button>
             </Link>
@@ -129,25 +129,25 @@ export default function InterviewPage({
         <div>
           <Link
             href={`/ideas/${ideaId}`}
-            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
           >
             <svg className="mr-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back to Idea
           </Link>
-          <h1 className="mt-1 text-xl font-bold text-gray-900">
+          <h1 className="mt-1 text-xl font-bold text-foreground">
             {INTERVIEW_MODE_LABELS[activeInterview.mode]} Interview
           </h1>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               Turn {activeInterview.currentTurn} of {activeInterview.maxTurns}
             </p>
-            <div className="mt-1 h-2 w-32 overflow-hidden rounded-full bg-gray-200">
+            <div className="mt-1 h-2 w-32 overflow-hidden rounded-full bg-muted">
               <div
-                className="h-full bg-blue-600 transition-all"
+                className="h-full bg-primary transition-all"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -178,10 +178,10 @@ export default function InterviewPage({
                 <div
                   className={`max-w-[80%] rounded-lg px-4 py-2 ${
                     message.role === 'user'
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-primary text-primary-foreground'
                       : message.role === 'system'
-                      ? 'bg-gray-100 text-gray-600 italic'
-                      : 'bg-gray-100 text-gray-900'
+                      ? 'bg-muted text-muted-foreground italic'
+                      : 'bg-muted text-foreground'
                   }`}
                 >
                   <p className="whitespace-pre-wrap">{message.content}</p>
@@ -191,11 +191,11 @@ export default function InterviewPage({
 
             {isTyping && (
               <div className="flex justify-start">
-                <div className="rounded-lg bg-gray-100 px-4 py-2">
+                <div className="rounded-lg bg-muted px-4 py-2">
                   <div className="flex space-x-1">
-                    <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" />
-                    <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:0.1s]" />
-                    <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:0.2s]" />
+                    <div className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground" />
+                    <div className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:0.1s]" />
+                    <div className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:0.2s]" />
                   </div>
                 </div>
               </div>
@@ -207,7 +207,7 @@ export default function InterviewPage({
 
         {/* Input */}
         {!isComplete && (
-          <div className="border-t border-gray-200 p-4">
+          <div className="border-t border-border p-4">
             <form onSubmit={handleSubmit} className="flex gap-2">
               <textarea
                 ref={inputRef}
@@ -216,7 +216,7 @@ export default function InterviewPage({
                 onKeyDown={handleKeyDown}
                 placeholder="Type your response..."
                 rows={2}
-                className="flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="flex-1 resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 disabled={sendMessage.isPending}
               />
               <Button
@@ -227,18 +227,18 @@ export default function InterviewPage({
                 Send
               </Button>
             </form>
-            <p className="mt-2 text-xs text-gray-400">
+            <p className="mt-2 text-xs text-muted-foreground">
               Press Enter to send, Shift+Enter for new line
             </p>
           </div>
         )}
 
         {isComplete && (
-          <div className="border-t border-gray-200 bg-green-50 p-4">
+          <div className="border-t border-border bg-success/10 p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-green-800">Interview Complete</p>
-                <p className="text-sm text-green-600">
+                <p className="font-medium text-success">Interview Complete</p>
+                <p className="text-sm text-success/80">
                   Your responses have been recorded. You can now start research.
                 </p>
               </div>

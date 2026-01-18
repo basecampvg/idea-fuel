@@ -1,14 +1,16 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import { createIdeaSchema, updateIdeaSchema, paginationSchema, startInterviewSchema } from '@forge/shared';
+import type { ChatMessage, InterviewMode } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
+import { generateOpeningQuestion } from '../services/interview-ai';
 
 // Default max turns by interview mode
 const MAX_TURNS_BY_MODE = {
-  LIGHTNING: 0, // No interview
-  LIGHT: 5,
-  IN_DEPTH: 15,
+  LIGHTNING: 0,  // No interview - skip to research
+  LIGHT: 10,     // 10 must-have questions
+  IN_DEPTH: 65,  // 60-70 comprehensive questions
 } as const;
 
 export const ideaRouter = router({
@@ -182,6 +184,8 @@ export const ideaRouter = router({
    * Supports LIGHTNING, LIGHT, and IN_DEPTH modes
    */
   startInterview: protectedProcedure.input(startInterviewSchema).mutation(async ({ ctx, input }) => {
+    console.log('[Idea Router] startInterview called with:', { ideaId: input.ideaId, mode: input.mode });
+
     // Verify ownership
     const idea = await ctx.prisma.idea.findFirst({
       where: {
@@ -191,14 +195,17 @@ export const ideaRouter = router({
     });
 
     if (!idea) {
+      console.log('[Idea Router] Idea not found:', input.ideaId);
       throw new TRPCError({
         code: 'NOT_FOUND',
         message: 'Idea not found',
       });
     }
 
+    console.log('[Idea Router] Found idea:', idea.title);
     const mode = input.mode ?? 'LIGHT';
     const maxTurns = MAX_TURNS_BY_MODE[mode];
+    console.log('[Idea Router] Mode:', mode, 'MaxTurns:', maxTurns);
 
     // For LIGHTNING mode, skip interview and go straight to research
     if (mode === 'LIGHTNING') {
@@ -230,7 +237,20 @@ export const ideaRouter = router({
       };
     }
 
-    // For LIGHT and IN_DEPTH modes, create an active interview
+    // For LIGHT and IN_DEPTH modes, create an active interview with opening question
+    // Generate AI opening question
+    console.log('[Idea Router] Generating opening question...');
+    const openingQuestion = await generateOpeningQuestion(idea.title, idea.description, mode as InterviewMode);
+    console.log('[Idea Router] Opening question generated:', openingQuestion.substring(0, 100) + '...');
+
+    // Create opening message
+    const openingMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: 'assistant',
+      content: openingQuestion,
+      timestamp: new Date().toISOString(),
+    };
+
     const interview = await ctx.prisma.interview.create({
       data: {
         ideaId: input.ideaId,
@@ -239,7 +259,7 @@ export const ideaRouter = router({
         status: 'IN_PROGRESS',
         currentTurn: 0,
         maxTurns,
-        messages: [],
+        messages: [openingMessage] as unknown as Prisma.InputJsonValue,
         lastActiveAt: new Date(),
       },
     });

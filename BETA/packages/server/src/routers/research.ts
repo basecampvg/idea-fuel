@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { RESEARCH_PHASE_PROGRESS } from '@forge/shared';
+import type { ChatMessage, InterviewDataPoints } from '@forge/shared';
+import { runResearchPipeline, type ResearchInput } from '../services/research-ai';
 
 export const researchRouter = router({
   /**
@@ -127,6 +129,7 @@ export const researchRouter = router({
         research: true,
         interviews: {
           where: { status: 'COMPLETE' },
+          orderBy: { createdAt: 'desc' },
           take: 1,
         },
       },
@@ -139,29 +142,8 @@ export const researchRouter = router({
       });
     }
 
-    // Check if research already exists
-    if (idea.research) {
-      // If failed, allow restart
-      if (idea.research.status === 'FAILED') {
-        const research = await ctx.prisma.research.update({
-          where: { id: idea.research.id },
-          data: {
-            status: 'PENDING',
-            currentPhase: 'QUEUED',
-            progress: 0,
-            errorMessage: null,
-            errorPhase: null,
-            retryCount: idea.research.retryCount + 1,
-            startedAt: null,
-            completedAt: null,
-          },
-        });
-
-        // TODO: Trigger BullMQ job to restart research pipeline
-
-        return research;
-      }
-
+    // Check if research already exists and is not failed
+    if (idea.research && idea.research.status !== 'FAILED') {
       throw new TRPCError({
         code: 'BAD_REQUEST',
         message: 'Research already exists for this idea',
@@ -176,15 +158,37 @@ export const researchRouter = router({
       });
     }
 
-    // Create research record
-    const research = await ctx.prisma.research.create({
-      data: {
-        ideaId: input.ideaId,
-        status: 'PENDING',
-        currentPhase: 'QUEUED',
-        progress: 0,
-      },
-    });
+    const interview = idea.interviews[0];
+
+    // Create or update research record
+    let research = idea.research;
+    if (research) {
+      // Restart failed research
+      research = await ctx.prisma.research.update({
+        where: { id: research.id },
+        data: {
+          status: 'IN_PROGRESS',
+          currentPhase: 'QUERY_GENERATION',
+          progress: 0,
+          errorMessage: null,
+          errorPhase: null,
+          retryCount: research.retryCount + 1,
+          startedAt: new Date(),
+          completedAt: null,
+        },
+      });
+    } else {
+      // Create new research record
+      research = await ctx.prisma.research.create({
+        data: {
+          ideaId: input.ideaId,
+          status: 'IN_PROGRESS',
+          currentPhase: 'QUERY_GENERATION',
+          progress: 0,
+          startedAt: new Date(),
+        },
+      });
+    }
 
     // Update idea status
     await ctx.prisma.idea.update({
@@ -192,7 +196,86 @@ export const researchRouter = router({
       data: { status: 'RESEARCHING' },
     });
 
-    // TODO: Trigger BullMQ job to start research pipeline
+    // Prepare research input
+    const researchInput: ResearchInput = {
+      ideaTitle: idea.title,
+      ideaDescription: idea.description,
+      interviewData: interview.collectedData as Partial<InterviewDataPoints> | null,
+      interviewMessages: (interview.messages as unknown as ChatMessage[]) || [],
+    };
+
+    // Run pipeline in background (non-blocking for MVP)
+    // In production, this would be a BullMQ job
+    const researchId = research.id;
+    const prisma = ctx.prisma;
+
+    // Run pipeline async without awaiting
+    (async () => {
+      try {
+        const result = await runResearchPipeline(researchInput, async (phase, progress) => {
+          // Update progress in database
+          await prisma.research.update({
+            where: { id: researchId },
+            data: {
+              currentPhase: phase as 'QUEUED' | 'QUERY_GENERATION' | 'DATA_COLLECTION' | 'SYNTHESIS' | 'REPORT_GENERATION' | 'COMPLETE',
+              progress,
+            },
+          });
+        });
+
+        // Save final results
+        await prisma.research.update({
+          where: { id: researchId },
+          data: {
+            status: 'COMPLETE',
+            currentPhase: 'COMPLETE',
+            progress: 100,
+            completedAt: new Date(),
+            generatedQueries: result.queries as object,
+            synthesizedInsights: result.insights as object,
+            marketAnalysis: result.insights.marketAnalysis as object,
+            competitors: result.insights.competitors as object[],
+            painPoints: result.insights.painPoints as object[],
+            positioning: result.insights.positioning as object,
+            whyNow: result.insights.whyNow as object,
+            proofSignals: result.insights.proofSignals as object,
+            keywords: result.insights.keywords as object,
+            opportunityScore: result.scores.opportunityScore,
+            problemScore: result.scores.problemScore,
+            feasibilityScore: result.scores.feasibilityScore,
+            whyNowScore: result.scores.whyNowScore,
+            revenuePotential: result.metrics.revenuePotential as object,
+            executionDifficulty: result.metrics.executionDifficulty as object,
+            gtmClarity: result.metrics.gtmClarity as object,
+            founderFit: result.metrics.founderFit as object,
+            // New fields from extended pipeline
+            userStory: result.userStory as object,
+            keywordTrends: result.keywordTrends as object[],
+            valueLadder: result.valueLadder as object[],
+            actionPrompts: result.actionPrompts as object[],
+            socialProof: result.socialProof as object,
+          },
+        });
+
+        // Update idea status to complete
+        await prisma.idea.update({
+          where: { id: input.ideaId },
+          data: { status: 'COMPLETE' },
+        });
+
+        console.log('[Research] Pipeline completed for idea:', input.ideaId);
+      } catch (error) {
+        console.error('[Research] Pipeline failed:', error);
+        await prisma.research.update({
+          where: { id: researchId },
+          data: {
+            status: 'FAILED',
+            errorMessage: error instanceof Error ? error.message : 'Unknown error',
+            errorPhase: 'SYNTHESIS',
+          },
+        });
+      }
+    })();
 
     return research;
   }),

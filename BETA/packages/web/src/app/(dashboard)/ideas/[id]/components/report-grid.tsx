@@ -2,6 +2,21 @@
 
 import Link from 'next/link';
 import { REPORT_TYPE_LABELS, REPORT_TIER_LABELS, REPORT_STATUS_LABELS } from '@forge/shared';
+import {
+  BarChart3,
+  Target,
+  Swords,
+  Clock,
+  TrendingUp,
+  Search,
+  User,
+  Gem,
+  Signal,
+  Rocket,
+  FileText,
+  Lock,
+  type LucideIcon,
+} from 'lucide-react';
 
 interface Report {
   id: string;
@@ -18,18 +33,18 @@ interface ReportGridProps {
   locked?: boolean;
 }
 
-// Report type icons
-const reportIcons: Record<string, string> = {
-  BUSINESS_PLAN: '📊',
-  POSITIONING: '🎯',
-  COMPETITIVE_ANALYSIS: '⚔️',
-  WHY_NOW: '⏰',
-  PROOF_SIGNALS: '📈',
-  KEYWORDS_SEO: '🔍',
-  CUSTOMER_PROFILE: '👤',
-  VALUE_EQUATION: '💎',
-  VALUE_LADDER: '📶',
-  GO_TO_MARKET: '🚀',
+// Report type icons using Lucide React
+const reportIcons: Record<string, LucideIcon> = {
+  BUSINESS_PLAN: BarChart3,
+  POSITIONING: Target,
+  COMPETITIVE_ANALYSIS: Swords,
+  WHY_NOW: Clock,
+  PROOF_SIGNALS: TrendingUp,
+  KEYWORDS_SEO: Search,
+  CUSTOMER_PROFILE: User,
+  VALUE_EQUATION: Gem,
+  VALUE_LADDER: Signal,
+  GO_TO_MARKET: Rocket,
 };
 
 // All report types for showing locked placeholders
@@ -54,11 +69,11 @@ export function ReportGrid({ reports, ideaId, locked = false }: ReportGridProps)
         {ALL_REPORT_TYPES.map((type) => (
           <div
             key={type}
-            className="p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--border)] opacity-50 cursor-not-allowed"
+            className="p-4 rounded-xl bg-card border border-border opacity-50 cursor-not-allowed"
           >
             <div className="flex flex-col items-center text-center">
-              <span className="text-2xl mb-2">🔒</span>
-              <span className="text-xs font-medium text-[var(--muted-foreground)] line-clamp-2">
+              <Lock className="w-6 h-6 mb-2 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground line-clamp-2">
                 {REPORT_TYPE_LABELS[type] || type}
               </span>
             </div>
@@ -75,7 +90,7 @@ export function ReportGrid({ reports, ideaId, locked = false }: ReportGridProps)
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {ALL_REPORT_TYPES.map((type) => {
         const report = reportsByType.get(type);
-        const icon = reportIcons[type] || '📄';
+        const Icon = reportIcons[type] || FileText;
         const isGenerating = report?.status === 'GENERATING';
         const isComplete = report?.status === 'COMPLETE';
         const isFailed = report?.status === 'FAILED';
@@ -85,14 +100,14 @@ export function ReportGrid({ reports, ideaId, locked = false }: ReportGridProps)
           return (
             <div
               key={type}
-              className="p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--border)] opacity-50"
+              className="p-4 rounded-xl bg-card border border-border opacity-50"
             >
               <div className="flex flex-col items-center text-center">
-                <span className="text-2xl mb-2 grayscale">{icon}</span>
-                <span className="text-xs font-medium text-[var(--muted-foreground)] line-clamp-2">
+                <Icon className="w-6 h-6 mb-2 text-muted-foreground" />
+                <span className="text-xs font-medium text-muted-foreground line-clamp-2">
                   {REPORT_TYPE_LABELS[type] || type}
                 </span>
-                <span className="text-[10px] text-[var(--muted-foreground)]/60 mt-1">
+                <span className="text-[10px] text-muted-foreground/60 mt-1">
                   Not generated
                 </span>
               </div>
@@ -104,14 +119,14 @@ export function ReportGrid({ reports, ideaId, locked = false }: ReportGridProps)
           return (
             <div
               key={type}
-              className="p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--border)] animate-pulse"
+              className="p-4 rounded-xl bg-card border border-border animate-pulse"
             >
               <div className="flex flex-col items-center text-center">
-                <span className="text-2xl mb-2">{icon}</span>
-                <span className="text-xs font-medium text-[var(--foreground)] line-clamp-2">
+                <Icon className="w-6 h-6 mb-2 text-primary" />
+                <span className="text-xs font-medium text-foreground line-clamp-2">
                   {REPORT_TYPE_LABELS[type] || type}
                 </span>
-                <span className="text-[10px] text-blue-400 mt-1">Generating...</span>
+                <span className="text-[10px] text-info mt-1">Generating...</span>
               </div>
             </div>
           );
@@ -121,14 +136,14 @@ export function ReportGrid({ reports, ideaId, locked = false }: ReportGridProps)
           return (
             <div
               key={type}
-              className="p-4 rounded-xl bg-red-500/10 border border-red-500/30"
+              className="p-4 rounded-xl bg-destructive/10 border border-destructive/30"
             >
               <div className="flex flex-col items-center text-center">
-                <span className="text-2xl mb-2">{icon}</span>
-                <span className="text-xs font-medium text-[var(--foreground)] line-clamp-2">
+                <Icon className="w-6 h-6 mb-2 text-destructive" />
+                <span className="text-xs font-medium text-foreground line-clamp-2">
                   {REPORT_TYPE_LABELS[type] || type}
                 </span>
-                <span className="text-[10px] text-red-400 mt-1">Failed</span>
+                <span className="text-[10px] text-destructive mt-1">Failed</span>
               </div>
             </div>
           );
@@ -139,14 +154,14 @@ export function ReportGrid({ reports, ideaId, locked = false }: ReportGridProps)
           <Link
             key={type}
             href={`/reports/${report.id}`}
-            className="p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--border)] hover:border-[var(--accent)]/30 hover:bg-[var(--card-bg-hover)] transition-all group"
+            className="p-4 rounded-xl bg-card border border-border hover:border-accent/30 hover:bg-muted transition-all group"
           >
             <div className="flex flex-col items-center text-center">
-              <span className="text-2xl mb-2 group-hover:scale-110 transition-transform">{icon}</span>
-              <span className="text-xs font-medium text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors line-clamp-2">
+              <Icon className="w-6 h-6 mb-2 text-accent group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-medium text-foreground group-hover:text-accent transition-colors line-clamp-2">
                 {REPORT_TYPE_LABELS[type] || type}
               </span>
-              <span className="text-[10px] text-[var(--muted-foreground)] mt-1">
+              <span className="text-[10px] text-muted-foreground mt-1">
                 {REPORT_TIER_LABELS[report.tier] || report.tier}
               </span>
             </div>

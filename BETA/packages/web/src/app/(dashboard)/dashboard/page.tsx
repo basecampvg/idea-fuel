@@ -1,17 +1,30 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { LoadingScreen } from '@/components/ui/spinner';
+import { Flame, TextQuote, Zap, Bookmark, ArrowUp, TrendingUp, Paperclip, Sparkles, FileText, Target, TrendingUp as TrendUp, DollarSign } from 'lucide-react';
+
+type InterviewMode = 'LIGHTNING' | 'LIGHT' | 'IN_DEPTH';
+
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: string;
+}
+
+// Animation states for question transitions
+type AnimationState = 'entering' | 'visible' | 'exiting';
 
 // Words to cycle through in the typewriter
 const typewriterWords = [
   'business?',
-  'startup idea?',
+  'startup?',
   'side project?',
   'venture?',
-  'big idea?',
+  'idea?',
 ];
 
 // Typewriter component
@@ -22,27 +35,22 @@ function TypewriterText({ words }: { words: string[] }) {
 
   const currentWord = words[currentWordIndex];
 
-  const typeSpeed = 100; // ms per character when typing
-  const deleteSpeed = 60; // ms per character when deleting
-  const pauseAfterWord = 2000; // pause after completing a word
-  const pauseAfterDelete = 300; // pause after deleting before next word
+  const typeSpeed = 100;
+  const deleteSpeed = 60;
+  const pauseAfterWord = 2000;
 
   const tick = useCallback(() => {
     if (!isDeleting) {
-      // Typing
       if (displayText.length < currentWord.length) {
         setDisplayText(currentWord.substring(0, displayText.length + 1));
       } else {
-        // Finished typing, wait then start deleting
         setTimeout(() => setIsDeleting(true), pauseAfterWord);
         return;
       }
     } else {
-      // Deleting
       if (displayText.length > 0) {
         setDisplayText(displayText.substring(0, displayText.length - 1));
       } else {
-        // Finished deleting, move to next word
         setIsDeleting(false);
         setCurrentWordIndex((prev) => (prev + 1) % words.length);
         return;
@@ -56,7 +64,6 @@ function TypewriterText({ words }: { words: string[] }) {
     return () => clearTimeout(timer);
   }, [tick, isDeleting]);
 
-  // Initial delay before starting
   useEffect(() => {
     const initialDelay = setTimeout(() => {
       setDisplayText(currentWord.charAt(0));
@@ -72,36 +79,125 @@ function TypewriterText({ words }: { words: string[] }) {
   );
 }
 
-// Forge flame icon
-function FlameIcon({ className }: { className?: string }) {
+// Question display component - parses and highlights key parts
+function QuestionDisplay({ question }: { question: string }) {
+  // Split the question to highlight the actual question part
+  // Usually questions end with ? and may have context before/after
+  const lines = question.split('\n').filter(line => line.trim());
+
+  // Find the main question (line with ?)
+  const questionLine = lines.find(line => line.includes('?')) || lines[lines.length - 1] || '';
+  const contextLines = lines.filter(line => line !== questionLine);
+
+  // Extract any example text in parentheses from question
+  const questionMatch = questionLine.match(/^(.+?\?)(\s*\(.*\))?$/);
+  const mainQuestion = questionMatch ? questionMatch[1] : questionLine;
+  const example = questionMatch ? questionMatch[2]?.trim() : '';
+
   return (
-    <svg className={className} viewBox="0 0 18 22" fill="none">
-      <path
-        d="M11.015 0.557396C11.015 4.1024 12.884 5.8844 14.494 7.5784C16.034 9.1984 17.5 10.7414 17.5 13.6804C17.5 18.4924 13.747 21.9304 8.935 21.9304C4.122 21.9304 0 18.5094 0 13.6804C0 11.6414 0.962 9.6694 2.509 8.7814C2.814 8.6064 3.181 8.7884 3.312 9.1154C4.313 11.6144 5.547 11.5704 6.187 10.9304C6.575 10.5434 6.657 9.8144 6.183 8.8684C3.778 4.0564 8.046 0.589396 10.383 0.0143957C10.719 -0.0676043 10.998 0.212396 11.015 0.557396ZM8.935 20.4304C12.994 20.4304 16 17.5904 16 13.6804C16 11.3434 14.907 10.1914 13.322 8.5224L13.301 8.4994C11.861 6.9824 10.162 5.1484 9.652 1.9424C8.89694 2.38629 8.2454 2.98634 7.741 3.7024C6.954 4.8464 6.594 6.3354 7.525 8.1974C8.128 9.4024 8.302 10.9374 7.248 11.9914C6.591 12.6484 5.486 13.0914 4.292 12.5774C3.54 12.2534 2.939 11.6224 2.454 10.7874C1.887 11.4934 1.5 12.5274 1.5 13.6804C1.5 17.5274 4.788 20.4304 8.935 20.4304Z"
-        fill="currentColor"
-      />
-    </svg>
+    <div className="space-y-4 max-w-2xl">
+      {/* Context/intro lines */}
+      {contextLines.length > 0 && (
+        <p className="text-lg text-foreground leading-relaxed">
+          {contextLines.map((line, i) => {
+            // Highlight text in bold markers
+            const parts = line.split(/\*\*(.*?)\*\*/g);
+            return (
+              <span key={i}>
+                {parts.map((part, j) =>
+                  j % 2 === 1 ? (
+                    <span key={j} className="text-primary font-semibold">{part}</span>
+                  ) : (
+                    part
+                  )
+                )}
+                {i < contextLines.length - 1 && <br />}
+              </span>
+            );
+          })}
+        </p>
+      )}
+
+      {/* Main question - highlighted */}
+      <p className="text-xl md:text-2xl font-medium leading-relaxed">
+        <span className="text-primary">{mainQuestion}</span>
+        {example && (
+          <span className="text-muted-foreground text-lg"> {example}</span>
+        )}
+      </p>
+    </div>
   );
 }
 
-// Report type indicators (display-only)
-const reportTypes = [
-  { name: 'Business Plan', icon: '📋' },
-  { name: 'Positioning', icon: '🎯' },
-  { name: 'Competitive Analysis', icon: '📊' },
-  { name: 'Financial Forecasting', icon: '💰' },
+// Action button definitions
+interface ActionButton {
+  id: InterviewMode | 'SAVE';
+  icon: React.ReactNode;
+  label: string;
+  description: string;
+}
+
+const actionButtons: ActionButton[] = [
+  {
+    id: 'IN_DEPTH',
+    icon: <Flame className="h-4 w-4" />,
+    label: 'Forge',
+    description: '65 questions - comprehensive analysis',
+  },
+  {
+    id: 'LIGHT',
+    icon: <TextQuote className="h-4 w-4" />,
+    label: 'Light',
+    description: '10 questions - essential insights',
+  },
+  {
+    id: 'LIGHTNING',
+    icon: <Zap className="h-4 w-4" />,
+    label: 'Lightning',
+    description: 'Instant research - no interview',
+  },
+  {
+    id: 'SAVE',
+    icon: <Bookmark className="h-4 w-4" />,
+    label: 'Save',
+    description: 'Save to vault for later',
+  },
 ];
 
-// DEV MODE: Check if we're in development for mock data
+// Report type indicators with icons
+const reportTypes = [
+  { name: 'Business Plan', icon: FileText },
+  { name: 'Positioning', icon: Target },
+  { name: 'Competitive Analysis', icon: TrendUp },
+  { name: 'Financial Model', icon: DollarSign },
+];
+
 const isDev = process.env.NODE_ENV === 'development';
 
 export default function DashboardPage() {
   const router = useRouter();
   const [ideaDescription, setIdeaDescription] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedMode, setSelectedMode] = useState<string>('IN_DEPTH');
+  const [hoveredMode, setHoveredMode] = useState<string | null>(null);
+  const [isExecuting, setIsExecuting] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
 
-  // In dev mode, don't fail if user query fails
+  // Interview state
+  const [interviewActive, setInterviewActive] = useState(false);
+  const [currentIdeaId, setCurrentIdeaId] = useState<string | null>(null);
+  const [currentInterviewId, setCurrentInterviewId] = useState<string | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<string>('');
+  const [ideaTitle, setIdeaTitle] = useState<string>('');
+  const [responseInput, setResponseInput] = useState('');
+  const [isThinking, setIsThinking] = useState(false);
+  const [interviewModeState, setInterviewModeState] = useState<InterviewMode | null>(null);
+  const [currentTurn, setCurrentTurn] = useState(0);
+  const [maxTurns, setMaxTurns] = useState(0);
+  const [confidenceScore, setConfidenceScore] = useState(0);
+  const [animationState, setAnimationState] = useState<AnimationState>('visible');
+
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
   const { data: user, isLoading: userLoading, error: userError } = trpc.user.me.useQuery(
     undefined,
     { retry: isDev ? false : 3 }
@@ -109,69 +205,289 @@ export default function DashboardPage() {
   const createIdea = trpc.idea.create.useMutation();
   const startInterview = trpc.idea.startInterview.useMutation();
   const startResearch = trpc.idea.startResearch.useMutation();
+  const sendMessage = trpc.interview.chat.useMutation();
+  const completeInterview = trpc.interview.complete.useMutation();
 
-  // Show loading only if we're actually loading (not if there's an error in dev)
+  // Focus input when interview becomes active or question changes
+  useEffect(() => {
+    if (interviewActive && animationState === 'visible') {
+      setTimeout(() => inputRef.current?.focus(), 300);
+    }
+  }, [interviewActive, animationState, currentQuestion]);
+
   if (userLoading && !userError) {
     return <LoadingScreen message="Loading..." />;
   }
 
-  // Use mock name in dev if no user
   const firstName = user?.name?.split(' ')[0] || (isDev ? 'Developer' : 'there');
+  const isSubmitting = createIdea.isPending || startInterview.isPending || startResearch.isPending || isExecuting;
+  const canSubmit = ideaDescription.trim().length >= 10;
 
-  // Forge (Lightning Mode) - Save idea and skip straight to research
-  const handleForge = async () => {
-    if (!ideaDescription.trim()) return;
+  // Execute the selected mode
+  const executeSelectedMode = async () => {
+    if (!canSubmit || isSubmitting) return;
 
-    setIsSubmitting(true);
+    setIsExecuting(true);
+
     try {
-      // Create the idea
+      const title = ideaDescription.split('\n')[0].slice(0, 100) || 'Untitled Idea';
+
       const idea = await createIdea.mutateAsync({
-        title: ideaDescription.substring(0, 50) + (ideaDescription.length > 50 ? '...' : ''),
+        title,
         description: ideaDescription,
       });
 
-      // Start Lightning interview (AI-only, no user interaction)
-      await startInterview.mutateAsync({ ideaId: idea.id, mode: 'LIGHTNING' });
+      if (selectedMode === 'SAVE') {
+        router.push(`/ideas/${idea.id}`);
+      } else if (selectedMode === 'LIGHTNING') {
+        await startInterview.mutateAsync({ ideaId: idea.id, mode: 'LIGHTNING' });
+        await startResearch.mutateAsync({ id: idea.id });
+        router.push(`/ideas/${idea.id}`);
+      } else {
+        // LIGHT or IN_DEPTH - start inline interview
+        const result = await startInterview.mutateAsync({
+          ideaId: idea.id,
+          mode: selectedMode as InterviewMode
+        });
 
-      // Start research immediately
-      await startResearch.mutateAsync({ id: idea.id });
+        // Extract first AI message as the current question
+        const messages = result.interview.messages as unknown as ChatMessage[];
+        const firstQuestion = messages?.find(m => m.role === 'assistant')?.content || '';
 
-      // Navigate to the idea page (will show RESEARCHING status)
-      router.push(`/ideas/${idea.id}`);
+        // Switch to interview mode
+        setCurrentIdeaId(idea.id);
+        setCurrentInterviewId(result.interview.id);
+        setIdeaTitle(title);
+        setInterviewModeState(selectedMode as InterviewMode);
+        setMaxTurns(result.interview.maxTurns);
+        setCurrentTurn(result.interview.currentTurn);
+        setCurrentQuestion(firstQuestion);
+        setConfidenceScore(0);
+        setAnimationState('entering');
+        setInterviewActive(true);
+        setIsExecuting(false);
+
+        // Trigger enter animation
+        setTimeout(() => setAnimationState('visible'), 50);
+      }
     } catch (error) {
-      console.error('Failed to forge idea:', error);
-      setIsSubmitting(false);
+      console.error('Failed to process idea:', error);
+      setIsExecuting(false);
     }
   };
 
-  // Save to Vault - Just save the idea without starting anything
-  const handleSave = async () => {
-    if (!ideaDescription.trim()) return;
+  // Handle submitting response
+  const handleSubmitResponse = async () => {
+    if (!responseInput.trim() || !currentInterviewId || sendMessage.isPending) return;
 
-    setIsSubmitting(true);
+    const userResponse = responseInput.trim();
+    setResponseInput('');
+
+    // Start exit animation
+    setAnimationState('exiting');
+    setIsThinking(true);
+
     try {
-      const idea = await createIdea.mutateAsync({
-        title: ideaDescription.substring(0, 50) + (ideaDescription.length > 50 ? '...' : ''),
-        description: ideaDescription,
+      // Wait for exit animation
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      const result = await sendMessage.mutateAsync({
+        interviewId: currentInterviewId,
+        content: userResponse,
       });
-      router.push(`/ideas/${idea.id}`);
+
+      // Update state with new question
+      setCurrentTurn(result.interview.currentTurn);
+
+      // Calculate confidence based on turns completed
+      const newConfidence = Math.min(100, Math.round((result.interview.currentTurn / maxTurns) * 100));
+      setConfidenceScore(newConfidence);
+
+      // Check if interview is complete
+      if (result.interview.status === 'COMPLETE') {
+        setTimeout(() => {
+          router.push(`/ideas/${currentIdeaId}`);
+        }, 500);
+        return;
+      }
+
+      // Set new question and trigger enter animation
+      if (result.assistantMessage) {
+        setCurrentQuestion(result.assistantMessage.content);
+      }
+
+      setAnimationState('entering');
+      setTimeout(() => {
+        setAnimationState('visible');
+        setIsThinking(false);
+      }, 50);
+
     } catch (error) {
-      console.error('Failed to save idea:', error);
-      setIsSubmitting(false);
+      console.error('Failed to send response:', error);
+      setAnimationState('visible');
+      setIsThinking(false);
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmitResponse();
+    }
+  };
+
+  const handleCompleteInterview = async () => {
+    if (!currentInterviewId) return;
+
+    try {
+      await completeInterview.mutateAsync({ id: currentInterviewId });
+      router.push(`/ideas/${currentIdeaId}`);
+    } catch (error) {
+      console.error('Failed to complete interview:', error);
+    }
+  };
+
+  // Get phase label based on progress
+  const getPhaseLabel = () => {
+    if (currentTurn === 0) return 'Starting';
+    if (currentTurn < maxTurns * 0.3) return 'Discovery';
+    if (currentTurn < maxTurns * 0.7) return 'Deep Dive';
+    return 'Wrapping Up';
+  };
+
+  // Interview Mode UI - Single question at a time with animations
+  if (interviewActive) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center px-6 py-8 relative z-10 min-h-[calc(100vh-4rem)]">
+        {/* Top Progress Bar */}
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50">
+          <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-card/80 backdrop-blur-sm border border-border shadow-lg">
+            <TrendingUp className="h-4 w-4 text-accent" />
+            <span className="text-sm text-accent font-medium">Confidence</span>
+            <div className="w-24 h-1.5 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full bg-accent transition-all duration-700 ease-out"
+                style={{ width: `${confidenceScore}%` }}
+              />
+            </div>
+            <span className="text-sm text-muted-foreground">{getPhaseLabel()}</span>
+            <span className="text-sm text-muted-foreground">{currentTurn}/{maxTurns}</span>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="w-full max-w-3xl flex flex-col items-center justify-center flex-1">
+          {/* Idea Title */}
+          <p className="text-muted-foreground text-sm mb-6">
+            {interviewModeState === 'IN_DEPTH' ? 'Forging' : 'Exploring'}: {ideaTitle}
+          </p>
+
+          {/* Question Display - Animated */}
+          <div
+            className={`
+              text-center mb-12 transition-all duration-500 ease-out
+              ${animationState === 'entering' ? 'opacity-0 translate-y-8' : ''}
+              ${animationState === 'visible' ? 'opacity-100 translate-y-0' : ''}
+              ${animationState === 'exiting' ? 'opacity-0 -translate-y-8' : ''}
+            `}
+          >
+            {isThinking ? (
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex space-x-2">
+                  <div className="h-3 w-3 rounded-full bg-primary animate-bounce" />
+                  <div className="h-3 w-3 rounded-full bg-primary animate-bounce [animation-delay:0.15s]" />
+                  <div className="h-3 w-3 rounded-full bg-primary animate-bounce [animation-delay:0.3s]" />
+                </div>
+                <p className="text-muted-foreground">Thinking...</p>
+              </div>
+            ) : (
+              <QuestionDisplay question={currentQuestion} />
+            )}
+          </div>
+
+          {/* Input Area */}
+          <div
+            className={`
+              w-full max-w-2xl transition-all duration-500 ease-out
+              ${animationState === 'entering' ? 'opacity-0 translate-y-4' : ''}
+              ${animationState === 'visible' ? 'opacity-100 translate-y-0' : ''}
+              ${animationState === 'exiting' ? 'opacity-0' : ''}
+            `}
+          >
+            <div className="rounded-2xl bg-card border border-border p-4 shadow-lg">
+              <textarea
+                ref={inputRef}
+                value={responseInput}
+                onChange={(e) => setResponseInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Type your response..."
+                rows={3}
+                className="
+                  w-full bg-transparent text-foreground text-base
+                  placeholder:text-muted-foreground/60
+                  resize-none border-0 focus:outline-none focus:ring-0
+                  min-h-[80px] leading-relaxed
+                "
+                disabled={sendMessage.isPending || isThinking}
+              />
+
+              {/* Input Actions */}
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+                <button
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  title="Attach file"
+                >
+                  <Paperclip className="h-4 w-4" />
+                  <span className="text-sm">Attach</span>
+                </button>
+
+                <div className="flex items-center gap-2">
+                  {currentTurn >= 3 && (
+                    <button
+                      onClick={handleCompleteInterview}
+                      disabled={completeInterview.isPending}
+                      className="px-3 py-1.5 text-sm rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    >
+                      Skip to research
+                    </button>
+                  )}
+
+                  <button
+                    onClick={handleSubmitResponse}
+                    disabled={!responseInput.trim() || sendMessage.isPending || isThinking}
+                    className="
+                      p-2.5 rounded-xl bg-muted text-muted-foreground
+                      hover:bg-primary hover:text-primary-foreground
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      transition-all duration-200
+                    "
+                  >
+                    <ArrowUp className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Normal Dashboard UI
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 relative z-10">
+    <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 relative z-10 min-h-screen">
       {/* Greeting Section */}
-      <div className="text-center mb-12 animate-fade-in-up">
-        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-white mb-4">
-          Hey {firstName}, ready for your next
+      <div className="text-center mb-10 animate-fade-in-up">
+        <p className="text-muted-foreground text-sm font-medium tracking-widest uppercase mb-4">
+          Welcome back, {firstName}
+        </p>
+        <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-5 leading-[1.1]">
+          What's your next
           <br />
           <TypewriterText words={typewriterWords} />
         </h1>
-        <p className="text-[#a0a0b0] text-lg md:text-xl max-w-xl mx-auto leading-relaxed">
-          Transform your ideas into actionable plans, positioning strategies, and competitive analysis.
+        <p className="text-muted-foreground text-base md:text-lg max-w-md mx-auto leading-relaxed">
+          Transform ideas into comprehensive business intelligence.
         </p>
       </div>
 
@@ -179,165 +495,148 @@ export default function DashboardPage() {
       <div className="w-full max-w-2xl animate-fade-in-up" style={{ animationDelay: '100ms' }}>
         <div
           className={`
-            rounded-2xl bg-[#12121a] border p-6 transition-all duration-500
+            relative rounded-2xl bg-card/80 backdrop-blur-sm border transition-all duration-500
             ${isFocused
-              ? 'border-[#3a3a4a] shadow-2xl shadow-black/20'
-              : 'border-[#2a2a38] shadow-lg shadow-black/10'
+              ? 'border-primary/30 shadow-[0_0_40px_hsl(var(--primary)/0.15)]'
+              : 'border-border/60 shadow-xl shadow-black/5'
             }
           `}
         >
-          {/* Textarea */}
-          <div className="relative">
-            <textarea
-              value={ideaDescription}
-              onChange={(e) => setIdeaDescription(e.target.value)}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              placeholder="Describe your business idea..."
-              className="
-                w-full bg-transparent text-white text-base
-                placeholder:text-[#6a6a7a]
-                resize-none border-0 focus:outline-none focus:ring-0
-                min-h-[120px] leading-relaxed
-              "
-              rows={4}
-            />
+          {/* Subtle gradient overlay on focus */}
+          <div
+            className={`
+              absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 via-transparent to-accent/5
+              transition-opacity duration-500 pointer-events-none
+              ${isFocused ? 'opacity-100' : 'opacity-0'}
+            `}
+          />
 
-            {/* Character count hint */}
-            {ideaDescription.length > 0 && (
-              <div className="absolute bottom-0 right-0 text-xs text-[#6a6a7a]">
-                {ideaDescription.length} characters
-              </div>
-            )}
-          </div>
-
-          {/* Divider */}
-          <div className="h-px bg-[#1e1e2a] my-5" />
-
-          {/* Action Row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleForge}
-                disabled={!ideaDescription.trim() || isSubmitting}
-                title="Lightning Mode: Skip interview, go straight to research"
+          <div className="relative p-6">
+            {/* Textarea */}
+            <div className="relative">
+              <textarea
+                value={ideaDescription}
+                onChange={(e) => setIdeaDescription(e.target.value)}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                placeholder="Describe your business idea in a few sentences..."
                 className="
-                  inline-flex items-center gap-2 px-6 py-2.5
-                  bg-[#e91e8c] text-white text-sm font-medium
-                  rounded-full
-                  shadow-[0_0_20px_rgba(233,30,140,0.3)]
-                  hover:shadow-[0_0_30px_rgba(233,30,140,0.5)]
-                  transition-all duration-300
-                  disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed
-                  group
+                  w-full bg-transparent text-foreground text-base md:text-lg
+                  placeholder:text-muted-foreground/50
+                  resize-none border-0 focus:outline-none focus:ring-0
+                  min-h-[100px] leading-relaxed
+                "
+                rows={3}
+                disabled={isSubmitting}
+              />
+            </div>
+
+            {/* Divider */}
+            <div className="h-px bg-border/50 my-4" />
+
+            {/* Action Row */}
+            <div className="flex items-center justify-between gap-3">
+              {/* Mode Selector - icon only */}
+              <div className="flex gap-1 p-1 rounded-xl bg-muted/30 border border-border/50">
+                {actionButtons.map((mode) => {
+                  const isSelected = selectedMode === mode.id;
+                  const isHovered = hoveredMode === mode.id;
+
+                  return (
+                    <div key={mode.id} className="relative">
+                      <button
+                        onClick={() => setSelectedMode(mode.id)}
+                        onMouseEnter={() => setHoveredMode(mode.id)}
+                        onMouseLeave={() => setHoveredMode(null)}
+                        className={`
+                          flex items-center justify-center p-2.5 rounded-lg transition-all
+                          ${isSelected
+                            ? 'bg-primary text-white shadow-sm'
+                            : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted/50'
+                          }
+                        `}
+                      >
+                        {mode.icon}
+                      </button>
+
+                      {/* Tooltip on hover */}
+                      {isHovered && (
+                        <div className="absolute bottom-full left-1/2 z-50 mb-2.5 -translate-x-1/2 whitespace-nowrap pointer-events-none animate-fade-in-up">
+                          <div className="rounded-xl bg-card border border-border px-3 py-2 shadow-xl">
+                            <div className="font-medium text-foreground text-xs">{mode.label}</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">{mode.description}</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Execute Button */}
+              <button
+                onClick={executeSelectedMode}
+                disabled={isSubmitting || !canSubmit}
+                className="
+                  p-2.5 rounded-xl bg-primary text-primary-foreground
+                  shadow-lg shadow-primary/25
+                  hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02]
+                  active:scale-[0.98]
+                  disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:scale-100
+                  transition-all duration-200
                 "
               >
                 {isSubmitting ? (
-                  <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
                 ) : (
-                  <FlameIcon className="w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-110" />
+                  <ArrowUp className="w-5 h-5" />
                 )}
-                Forge
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={!ideaDescription.trim() || isSubmitting}
-                className="
-                  inline-flex items-center gap-2 px-4 py-2.5
-                  text-[#a0a0b0] text-sm font-medium
-                  hover:text-white
-                  transition-colors duration-300
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                "
-              >
-                <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
-                </svg>
-                Save
               </button>
             </div>
 
-            <div className="flex items-center gap-1">
-              {/* Attachment */}
-              <button
-                className="p-2.5 rounded-xl text-[#6a6a7a] hover:text-white hover:bg-[#1a1a24] transition-all duration-300"
-                title="Attach file"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
-                </svg>
-              </button>
-              {/* Microphone */}
-              <button
-                className="p-2.5 rounded-xl text-[#6a6a7a] hover:text-white hover:bg-[#1a1a24] transition-all duration-300"
-                title="Voice input"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
-                </svg>
-              </button>
-            </div>
+            {/* Character hint */}
+            {ideaDescription.length > 0 && ideaDescription.length < 10 && (
+              <p className="text-xs text-muted-foreground/60 mt-3">
+                {10 - ideaDescription.length} more characters needed
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Report Type Indicators - cyan border pills with checkmarks */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mt-8 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-          {reportTypes.map((report, index) => (
-            <div
-              key={report.name}
-              className="
-                flex items-center gap-2 px-4 py-2 rounded-full
-                border border-[#4ecdc4] bg-transparent
-                text-sm text-[#4ecdc4]
-                transition-all duration-300
-                hover:bg-[#4ecdc4]/10
-              "
-              style={{ animationDelay: `${(index + 3) * 50}ms` }}
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
+        {/* Report Types */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-6 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+          <span className="text-xs text-muted-foreground/60 mr-1">Generates:</span>
+          {reportTypes.map((report, index) => {
+            const Icon = report.icon;
+            return (
+              <div
+                key={report.name}
+                className="
+                  inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full
+                  text-xs font-medium
+                  bg-accent/10 text-accent/80
+                  border border-accent/20
+                "
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-              </svg>
-              <span className="font-medium">{report.name}</span>
-            </div>
-          ))}
+                <Icon className="w-3 h-3" />
+                <span>{report.name}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
       {/* Footer */}
-      <div className="mt-auto pt-16 text-center animate-fade-in-up" style={{ animationDelay: '300ms' }}>
-        <button
-          className="
-            inline-flex items-center gap-2 px-5 py-2.5
-            border border-[#4ecdc4]/50 text-[#4ecdc4] text-base
-            rounded-xl bg-transparent
-            hover:bg-[#4ecdc4]/10 hover:border-[#4ecdc4]/70
-            transition-all duration-300
-            mb-5 group
-          "
-        >
-          <svg
-            className="w-5 h-5 transition-transform group-hover:rotate-12"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={1.5}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-          </svg>
-          Refer a friend for credits
-        </button>
-        <p className="text-[#6a6a7a] text-sm tracking-wide">
-          Start with an idea. Build something great.
-        </p>
+      <div className="mt-auto pt-12 text-center animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+        <div className="flex items-center justify-center gap-6 text-sm">
+          <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group">
+            <Sparkles className="w-4 h-4 text-accent group-hover:text-primary transition-colors" />
+            <span>Refer friends for credits</span>
+          </button>
+        </div>
       </div>
     </div>
   );

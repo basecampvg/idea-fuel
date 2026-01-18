@@ -2,7 +2,14 @@ import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { INTERVIEW_SESSION, INTERVIEW_RESUME_MESSAGES } from '@forge/shared';
-import type { ChatMessage } from '@forge/shared';
+import type { ChatMessage, InterviewDataPoints, InterviewMode } from '@forge/shared';
+import {
+  generateNextQuestion,
+  extractDataPoints,
+  mergeCollectedData,
+  generateResumeContext,
+} from '../services/interview-ai';
+import { runResearchPipeline, type ResearchInput } from '../services/research-ai';
 
 export const interviewRouter = router({
   /**
@@ -259,7 +266,135 @@ export const interviewRouter = router({
     }),
 
   /**
+   * Chat endpoint - sends user message and gets AI response
+   * This combines addMessage + AI generation + addAssistantMessage in one call
+   */
+  chat: protectedProcedure
+    .input(
+      z.object({
+        interviewId: z.string().cuid(),
+        content: z.string().min(1).max(10000),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // 1. Get interview with idea context
+      const interview = await ctx.prisma.interview.findFirst({
+        where: {
+          id: input.interviewId,
+          userId: ctx.userId,
+        },
+        include: {
+          idea: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+            },
+          },
+        },
+      });
+
+      if (!interview) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Interview not found',
+        });
+      }
+
+      if (interview.status !== 'IN_PROGRESS') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Interview is not in progress',
+        });
+      }
+
+      if (interview.isExpired) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Interview has expired',
+        });
+      }
+
+      const messages = (interview.messages as unknown as ChatMessage[]) || [];
+      const currentTurn = interview.currentTurn;
+
+      // 2. Add user message
+      const userMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: 'user',
+        content: input.content,
+        timestamp: new Date().toISOString(),
+      };
+      messages.push(userMessage);
+
+      // 3. Build conversation context for data extraction
+      const conversationContext = messages
+        .slice(-6) // Last 3 exchanges
+        .map((m) => `${m.role}: ${m.content}`)
+        .join('\n');
+
+      // 4. Extract data points from user response
+      const existingData = (interview.collectedData as Partial<InterviewDataPoints>) || {};
+      const extractedData = await extractDataPoints(input.content, conversationContext, existingData);
+      const mergedData = mergeCollectedData(existingData, extractedData, currentTurn + 1);
+
+      // 5. Generate AI response
+      const aiResponse = await generateNextQuestion(
+        interview.idea.title,
+        interview.idea.description,
+        interview.mode as InterviewMode,
+        messages,
+        mergedData,
+        currentTurn + 1,
+        interview.maxTurns
+      );
+
+      // 6. Add assistant message
+      const assistantMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: aiResponse,
+        timestamp: new Date().toISOString(),
+      };
+      messages.push(assistantMessage);
+
+      // 7. Generate resume context for future sessions
+      const resumeContext = generateResumeContext(messages, mergedData);
+
+      // 8. Update interview
+      const now = new Date();
+      const updatedInterview = await ctx.prisma.interview.update({
+        where: { id: input.interviewId },
+        data: {
+          messages: messages as unknown as Parameters<typeof ctx.prisma.interview.update>[0]['data']['messages'],
+          collectedData: mergedData as unknown as Parameters<typeof ctx.prisma.interview.update>[0]['data']['collectedData'],
+          currentTurn: currentTurn + 1,
+          lastActiveAt: now,
+          lastMessageAt: now,
+          resumeContext,
+        },
+        include: {
+          idea: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+            },
+          },
+        },
+      });
+
+      return {
+        interview: updatedInterview,
+        userMessage,
+        assistantMessage,
+        extractedData: Object.keys(extractedData),
+      };
+    }),
+
+  /**
    * Complete an interview and generate summary
+   * Automatically starts research pipeline
    */
   complete: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
     const interview = await ctx.prisma.interview.findFirst({
@@ -284,7 +419,6 @@ export const interviewRouter = router({
     const filledFields = Object.values(collectedData).filter((v) => v !== null && v !== undefined).length;
     const confidenceScore = Math.min(100, Math.round((filledFields / 31) * 100));
 
-    // TODO: Generate AI summary of the interview
     const summary = `Interview completed with ${interview.currentTurn} turns. ${filledFields}/31 data points collected.`;
 
     const updatedInterview = await ctx.prisma.interview.update({
@@ -296,11 +430,102 @@ export const interviewRouter = router({
       },
     });
 
-    // Update idea status to researching (ready for next phase)
+    // Update idea status to researching
     await ctx.prisma.idea.update({
       where: { id: interview.ideaId },
       data: { status: 'RESEARCHING' },
     });
+
+    // Create research record and start pipeline
+    const research = await ctx.prisma.research.create({
+      data: {
+        ideaId: interview.ideaId,
+        status: 'IN_PROGRESS',
+        currentPhase: 'QUERY_GENERATION',
+        progress: 0,
+        startedAt: new Date(),
+      },
+    });
+
+    // Prepare research input
+    const researchInput: ResearchInput = {
+      ideaTitle: interview.idea.title,
+      ideaDescription: interview.idea.description,
+      interviewData: interview.collectedData as Partial<InterviewDataPoints> | null,
+      interviewMessages: (interview.messages as unknown as ChatMessage[]) || [],
+    };
+
+    // Run pipeline in background (non-blocking)
+    const researchId = research.id;
+    const ideaId = interview.ideaId;
+    const prisma = ctx.prisma;
+
+    (async () => {
+      try {
+        console.log('[Interview Complete] Starting research pipeline...');
+        const result = await runResearchPipeline(researchInput, async (phase, progress) => {
+          await prisma.research.update({
+            where: { id: researchId },
+            data: {
+              currentPhase: phase as 'QUEUED' | 'QUERY_GENERATION' | 'DATA_COLLECTION' | 'SYNTHESIS' | 'REPORT_GENERATION' | 'COMPLETE',
+              progress,
+            },
+          });
+        });
+
+        // Save final results
+        await prisma.research.update({
+          where: { id: researchId },
+          data: {
+            status: 'COMPLETE',
+            currentPhase: 'COMPLETE',
+            progress: 100,
+            completedAt: new Date(),
+            generatedQueries: result.queries as object,
+            synthesizedInsights: result.insights as object,
+            marketAnalysis: result.insights.marketAnalysis as object,
+            competitors: result.insights.competitors as object[],
+            painPoints: result.insights.painPoints as object[],
+            positioning: result.insights.positioning as object,
+            whyNow: result.insights.whyNow as object,
+            proofSignals: result.insights.proofSignals as object,
+            keywords: result.insights.keywords as object,
+            opportunityScore: result.scores.opportunityScore,
+            problemScore: result.scores.problemScore,
+            feasibilityScore: result.scores.feasibilityScore,
+            whyNowScore: result.scores.whyNowScore,
+            revenuePotential: result.metrics.revenuePotential as object,
+            executionDifficulty: result.metrics.executionDifficulty as object,
+            gtmClarity: result.metrics.gtmClarity as object,
+            founderFit: result.metrics.founderFit as object,
+            // New fields from extended pipeline
+            userStory: result.userStory as object,
+            keywordTrends: result.keywordTrends as object[],
+            valueLadder: result.valueLadder as object[],
+            actionPrompts: result.actionPrompts as object[],
+            socialProof: result.socialProof as object,
+          },
+        });
+
+        // Update idea status to complete
+        await prisma.idea.update({
+          where: { id: ideaId },
+          data: { status: 'COMPLETE' },
+        });
+
+        console.log('[Interview Complete] Research pipeline completed!');
+      } catch (error) {
+        console.error('[Interview Complete] Research pipeline failed:', error);
+        await prisma.research.update({
+          where: { id: researchId },
+          data: {
+            status: 'FAILED',
+            errorMessage: error instanceof Error ? error.message : 'Unknown error',
+            errorPhase: 'SYNTHESIS',
+          },
+        });
+      }
+    })();
 
     return updatedInterview;
   }),
