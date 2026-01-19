@@ -1,13 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
+import { ArrowRight } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LoadingScreen } from '@/components/ui/spinner';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { SUBSCRIPTION_TIER_LABELS, SUBSCRIPTION_TIER_DESCRIPTIONS } from '@forge/shared';
 
 export default function SettingsPage() {
@@ -50,10 +53,10 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1120px] space-y-6">
+    <div className="w-full max-w-[1120px] mx-auto px-6 py-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="mt-1 text-gray-500">Manage your account and preferences</p>
+        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+        <p className="mt-1 text-muted-foreground">Manage your account and preferences</p>
       </div>
 
       {/* Profile */}
@@ -72,13 +75,13 @@ export default function SettingsPage() {
                   className="h-16 w-16 rounded-full"
                 />
               ) : (
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 text-xl font-medium text-blue-600">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-xl font-medium text-primary">
                   {user?.name?.[0] || user?.email?.[0] || 'U'}
                 </div>
               )}
               <div>
-                <p className="font-medium text-gray-900">{user?.name || 'No name set'}</p>
-                <p className="text-sm text-gray-500">{user?.email}</p>
+                <p className="font-medium text-foreground">{user?.name || 'No name set'}</p>
+                <p className="text-sm text-muted-foreground">{user?.email}</p>
               </div>
             </div>
 
@@ -104,6 +107,23 @@ export default function SettingsPage() {
         </form>
       </Card>
 
+      {/* Appearance */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Appearance</CardTitle>
+          <CardDescription>Customize your visual preferences</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-foreground">Theme</p>
+              <p className="text-sm text-muted-foreground">Choose light or dark mode</p>
+            </div>
+            <ThemeToggle />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Subscription */}
       <Card>
         <CardHeader>
@@ -114,7 +134,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <p className="text-lg font-medium text-gray-900">
+                <p className="text-lg font-medium text-foreground">
                   {subscription?.tier ? SUBSCRIPTION_TIER_LABELS[subscription.tier] : 'Free'} Plan
                 </p>
                 <Badge
@@ -129,42 +149,45 @@ export default function SettingsPage() {
                   {subscription?.tier || 'FREE'}
                 </Badge>
               </div>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 {subscription?.tier
                   ? SUBSCRIPTION_TIER_DESCRIPTIONS[subscription.tier]
                   : 'Basic features'}
               </p>
             </div>
-            <Button variant="outline" disabled>
-              Upgrade (Coming Soon)
-            </Button>
+            <Link href="/plans">
+              <Button variant="accent" className="group">
+                View Plans
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
           </div>
 
           {subscription?.features && (
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-lg border border-gray-200 p-3">
-                <p className="text-sm text-gray-500">Ideas Limit</p>
-                <p className="font-medium text-gray-900">
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-sm text-muted-foreground">Ideas Limit</p>
+                <p className="font-medium text-foreground">
                   {subscription.features.maxIdeas === -1
                     ? 'Unlimited'
                     : subscription.features.maxIdeas}
                 </p>
               </div>
-              <div className="rounded-lg border border-gray-200 p-3">
-                <p className="text-sm text-gray-500">Reports per Idea</p>
-                <p className="font-medium text-gray-900">
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-sm text-muted-foreground">Reports per Idea</p>
+                <p className="font-medium text-foreground">
                   {subscription.features.maxReportsPerIdea}
                 </p>
               </div>
-              <div className="rounded-lg border border-gray-200 p-3">
-                <p className="text-sm text-gray-500">Report Tiers</p>
-                <p className="font-medium text-gray-900">
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-sm text-muted-foreground">Report Tiers</p>
+                <p className="font-medium text-foreground">
                   {subscription.features.reportTierAccess.join(', ')}
                 </p>
               </div>
-              <div className="rounded-lg border border-gray-200 p-3">
-                <p className="text-sm text-gray-500">Interview Modes</p>
-                <p className="font-medium text-gray-900">
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-sm text-muted-foreground">Interview Modes</p>
+                <p className="font-medium text-foreground">
                   {subscription.features.interviewModes.join(', ')}
                 </p>
               </div>
@@ -180,10 +203,10 @@ export default function SettingsPage() {
           <CardDescription>Manage your account settings</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+          <div className="flex items-center justify-between rounded-lg border border-border p-4">
             <div>
-              <p className="font-medium text-gray-900">Sign out</p>
-              <p className="text-sm text-gray-500">Sign out of your account on this device</p>
+              <p className="font-medium text-foreground">Sign out</p>
+              <p className="text-sm text-muted-foreground">Sign out of your account on this device</p>
             </div>
             <Button
               variant="outline"
@@ -193,10 +216,10 @@ export default function SettingsPage() {
             </Button>
           </div>
 
-          <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-4">
+          <div className="flex items-center justify-between rounded-lg border border-destructive/20 bg-destructive/5 p-4">
             <div>
-              <p className="font-medium text-red-900">Delete Account</p>
-              <p className="text-sm text-red-700">
+              <p className="font-medium text-destructive">Delete Account</p>
+              <p className="text-sm text-destructive/80">
                 Permanently delete your account and all data
               </p>
             </div>
@@ -210,7 +233,7 @@ export default function SettingsPage() {
       {/* Account Info */}
       <Card>
         <CardContent className="py-4">
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-muted-foreground">
             Member since {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
           </p>
         </CardContent>

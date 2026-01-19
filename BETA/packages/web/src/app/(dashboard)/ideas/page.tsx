@@ -15,6 +15,8 @@ import {
   Clock,
   TrendingUp,
   ArrowRight,
+  Trash2,
+  X,
 } from 'lucide-react';
 
 type IdeaStatus = 'CAPTURED' | 'INTERVIEWING' | 'RESEARCHING' | 'COMPLETE';
@@ -82,7 +84,37 @@ function formatTimeAgo(date: Date): string {
 export default function IdeasPage() {
   const router = useRouter();
   const [filter, setFilter] = useState<IdeaStatus | 'ALL'>('ALL');
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [ideaToDelete, setIdeaToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const utils = trpc.useUtils();
   const { data, isLoading, error } = trpc.idea.list.useQuery({});
+  const deleteMutation = trpc.idea.delete.useMutation({
+    onSuccess: () => {
+      utils.idea.list.invalidate();
+      setDeleteModalOpen(false);
+      setIdeaToDelete(null);
+      setIsDeleting(false);
+    },
+    onError: () => {
+      setIsDeleting(false);
+    },
+  });
+
+  const handleDeleteClick = (e: React.MouseEvent, idea: { id: string; title: string }) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIdeaToDelete(idea);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (ideaToDelete) {
+      setIsDeleting(true);
+      deleteMutation.mutate({ id: ideaToDelete.id });
+    }
+  };
 
   if (isLoading) {
     return <LoadingScreen message="Loading your vault..." />;
@@ -109,7 +141,7 @@ export default function IdeasPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-[1120px] mx-auto px-6 py-8">
+    <div className="w-full space-y-6 max-w-[1120px] mx-auto px-6 py-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -176,15 +208,26 @@ export default function IdeasPage() {
                   cursor-pointer
                 `}
                 >
-                  {/* Status Badge */}
-                  <div
-                    className={`
-                    inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
-                    ${status.bgColor} ${status.color}
-                  `}
-                  >
-                    {status.icon}
-                    <span>{status.label}</span>
+                  {/* Header Row: Status Badge + Delete */}
+                  <div className="flex items-center justify-between">
+                    <div
+                      className={`
+                      inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+                      ${status.bgColor} ${status.color}
+                    `}
+                    >
+                      {status.icon}
+                      <span>{status.label}</span>
+                    </div>
+
+                    {/* Delete Button */}
+                    <button
+                      onClick={(e) => handleDeleteClick(e, { id: idea.id, title: idea.title })}
+                      className="p-1.5 rounded-lg text-muted-foreground/40 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
+                      title="Delete idea"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
 
                   {/* Title */}
@@ -243,6 +286,77 @@ export default function IdeasPage() {
           })}
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => {
+              if (!isDeleting) {
+                setDeleteModalOpen(false);
+                setIdeaToDelete(null);
+              }
+            }}
+          />
+
+          {/* Modal */}
+          <div className="relative bg-card border border-border rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                if (!isDeleting) {
+                  setDeleteModalOpen(false);
+                  setIdeaToDelete(null);
+                }
+              }}
+              className="absolute top-4 right-4 p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+              disabled={isDeleting}
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Icon */}
+            <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
+              <Trash2 className="w-6 h-6 text-red-400" />
+            </div>
+
+            {/* Content */}
+            <h3 className="text-lg font-semibold text-foreground mb-2">Delete Idea</h3>
+            <p className="text-sm text-muted-foreground mb-1">
+              Are you sure you want to delete this idea?
+            </p>
+            <p className="text-sm font-medium text-foreground mb-6 line-clamp-2">
+              "{ideaToDelete?.title}"
+            </p>
+            <p className="text-xs text-muted-foreground/60 mb-6">
+              This action cannot be undone. All associated interviews, research, and reports will also be deleted.
+            </p>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setDeleteModalOpen(false);
+                  setIdeaToDelete(null);
+                }}
+                className="flex-1 px-4 py-2.5 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -284,7 +398,7 @@ function EmptyState({ filter }: { filter: IdeaStatus | 'ALL' }) {
       <p className="text-sm text-muted-foreground/60 mb-6 max-w-sm mx-auto">{description}</p>
       {filter === 'ALL' && (
         <button
-          onClick={() => router.push('/')}
+          onClick={() => router.push('/dashboard')}
           className="
             inline-flex items-center gap-2 px-5 py-2.5
             bg-primary text-primary-foreground text-sm font-medium

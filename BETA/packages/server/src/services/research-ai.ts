@@ -1,6 +1,15 @@
-import { openai } from '../lib/openai';
-import { getResearchKnowledge, getContentGuidelines, KNOWLEDGE } from '@forge/shared';
+import { openai, getAIParams, createResponsesParams } from '../lib/openai';
+import type { SubscriptionTier } from '@prisma/client';
+import { getResearchKnowledge, getContentGuidelines, KNOWLEDGE } from '../lib/knowledge';
 import type { InterviewDataPoints } from '@forge/shared';
+import {
+  getTrendData,
+  compareTrends,
+  batchGetTrendData,
+  isSerpApiConfigured,
+  type TrendData,
+  type TrendComparison,
+} from '../lib/serpapi';
 
 // Model for research tasks
 const RESEARCH_MODEL = 'gpt-5.2';
@@ -64,11 +73,46 @@ export interface SynthesizedInsights {
   };
 }
 
+// Individual score with justification
+export interface ScoreWithJustification {
+  score: number;
+  justification: string;
+  confidence: 'high' | 'medium' | 'low';
+}
+
+// Raw scores from a single AI pass (internal)
+interface RawScorePass {
+  opportunityScore: number;
+  opportunityJustification: string;
+  problemScore: number;
+  problemJustification: string;
+  feasibilityScore: number;
+  feasibilityJustification: string;
+  whyNowScore: number;
+  whyNowJustification: string;
+}
+
+// Final validated scores with justifications and metadata
 export interface ResearchScores {
   opportunityScore: number;
   problemScore: number;
   feasibilityScore: number;
   whyNowScore: number;
+  // Justifications explaining WHY each score was given
+  justifications: {
+    opportunity: ScoreWithJustification;
+    problem: ScoreWithJustification;
+    feasibility: ScoreWithJustification;
+    whyNow: ScoreWithJustification;
+  };
+  // Metadata about scoring reliability
+  metadata: {
+    passCount: number;           // Number of scoring passes run
+    maxDeviation: number;        // Largest deviation between passes
+    averageConfidence: number;   // 0-100, based on pass consistency
+    flagged: boolean;            // True if scores had high variance
+    flagReason?: string;         // Explanation if flagged
+  };
 }
 
 export interface BusinessMetrics {
@@ -154,7 +198,10 @@ export interface SocialProof {
 }
 
 // Phase 1: Generate search queries from interview data
-export async function generateSearchQueries(input: ResearchInput): Promise<GeneratedQueries> {
+export async function generateSearchQueries(
+  input: ResearchInput,
+  tier: SubscriptionTier = 'ENTERPRISE'
+): Promise<GeneratedQueries> {
   const { ideaTitle, ideaDescription, interviewData } = input;
 
   const prompt = `You are a market research expert. Based on the business idea and interview data, generate targeted search queries for comprehensive market research.
@@ -181,14 +228,20 @@ Return a JSON object with this structure:
 
 Generate 3-5 specific, actionable queries per category.`;
 
-  const response = await openai.chat.completions.create({
-    model: RESEARCH_MODEL,
-    messages: [{ role: 'user', content: prompt }],
-    response_format: { type: 'json_object' },
-    max_completion_tokens: 1000,
-  });
+  // Get tier-based AI parameters
+  const aiParams = getAIParams('searchQueries', tier);
 
-  const content = response.choices[0]?.message?.content;
+  // Use Responses API for GPT-5.2 reasoning support
+  const response = await openai.responses.create(
+    createResponsesParams({
+      model: RESEARCH_MODEL,
+      input: prompt,
+      response_format: { type: 'json_object' },
+      max_output_tokens: 1000,
+    }, aiParams)
+  );
+
+  const content = response.output_text;
   if (!content) {
     throw new Error('Failed to generate search queries');
   }
@@ -199,8 +252,10 @@ Generate 3-5 specific, actionable queries per category.`;
 // Phase 2: Synthesize insights from interview data (MVP - no external APIs)
 export async function synthesizeInsights(
   input: ResearchInput,
-  queries: GeneratedQueries
+  queries: GeneratedQueries,
+  tier: SubscriptionTier = 'ENTERPRISE'
 ): Promise<SynthesizedInsights> {
+  console.log('[synthesizeInsights] Starting...');
   const { ideaTitle, ideaDescription, interviewData, interviewMessages } = input;
 
   // Build context from interview
@@ -209,8 +264,12 @@ export async function synthesizeInsights(
     .map((m) => `${m.role}: ${m.content}`)
     .join('\n');
 
+  console.log('[synthesizeInsights] Interview context length:', interviewContext.length);
+
   // Get knowledge-based guardrails
+  console.log('[synthesizeInsights] Getting research knowledge...');
   const researchKnowledge = getResearchKnowledge();
+  console.log('[synthesizeInsights] Research knowledge length:', researchKnowledge.length);
 
   const prompt = `${researchKnowledge}
 
@@ -281,29 +340,77 @@ Synthesize insights and return a JSON object with this exact structure:
 
 Be specific and actionable. Use the interview data to inform your analysis.`;
 
-  const response = await openai.chat.completions.create({
-    model: RESEARCH_MODEL,
-    messages: [{ role: 'user', content: prompt }],
-    response_format: { type: 'json_object' },
-    max_completion_tokens: 3000,
-  });
+  console.log('[synthesizeInsights] Prompt length:', prompt.length);
+  console.log('[synthesizeInsights] Calling OpenAI API with model:', RESEARCH_MODEL);
 
-  const content = response.choices[0]?.message?.content;
-  if (!content) {
-    throw new Error('Failed to synthesize insights');
+  // Get tier-based AI parameters
+  const aiParams = getAIParams('synthesizeInsights', tier);
+  console.log('[synthesizeInsights] Tier:', tier, '| Reasoning:', aiParams.reasoning, '| Verbosity:', aiParams.verbosity);
+
+  // Start a heartbeat to show the API call is in progress
+  const startTime = Date.now();
+  const heartbeat = setInterval(() => {
+    const elapsed = Math.round((Date.now() - startTime) / 1000);
+    console.log(`[synthesizeInsights] Still waiting for API response... (${elapsed}s elapsed)`);
+  }, 10000); // Log every 10 seconds
+
+  try {
+    // Use Responses API for GPT-5.2 reasoning support
+    const response = await openai.responses.create(
+      createResponsesParams({
+        model: RESEARCH_MODEL,
+        input: prompt,
+        response_format: { type: 'json_object' },
+        max_output_tokens: 3000,
+      }, aiParams)
+    );
+
+    clearInterval(heartbeat);
+    const elapsed = Math.round((Date.now() - startTime) / 1000);
+    console.log(`[synthesizeInsights] API response received after ${elapsed}s`);
+    console.log('[synthesizeInsights] Usage:', response.usage);
+
+    const content = response.output_text;
+    if (!content) {
+      console.error('[synthesizeInsights] No content in response');
+      throw new Error('Failed to synthesize insights');
+    }
+
+    console.log('[synthesizeInsights] Content length:', content.length);
+    const parsed = JSON.parse(content) as SynthesizedInsights;
+    console.log('[synthesizeInsights] Successfully parsed response');
+    return parsed;
+  } catch (error) {
+    clearInterval(heartbeat);
+    const elapsed = Math.round((Date.now() - startTime) / 1000);
+    console.error(`[synthesizeInsights] Error after ${elapsed}s:`, error);
+    throw error;
   }
-
-  return JSON.parse(content) as SynthesizedInsights;
 }
 
-// Phase 3: Calculate research scores
-export async function calculateScores(
-  input: ResearchInput,
-  insights: SynthesizedInsights
-): Promise<ResearchScores> {
-  const { ideaTitle, ideaDescription, interviewData } = input;
+// Helper: Clamp score to valid 0-100 range
+function clampScore(score: number): number {
+  if (typeof score !== 'number' || isNaN(score)) return 50; // Default to middle if invalid
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
 
-  // Get scoring criteria from knowledge.json
+// Helper: Calculate standard deviation
+function standardDeviation(values: number[]): number {
+  const n = values.length;
+  if (n === 0) return 0;
+  const mean = values.reduce((a, b) => a + b, 0) / n;
+  const squaredDiffs = values.map(v => Math.pow(v - mean, 2));
+  return Math.sqrt(squaredDiffs.reduce((a, b) => a + b, 0) / n);
+}
+
+// Helper: Run a single scoring pass
+async function runSingleScoringPass(
+  input: ResearchInput,
+  insights: SynthesizedInsights,
+  tier: SubscriptionTier,
+  passNumber: number
+): Promise<RawScorePass> {
+  const { ideaTitle, ideaDescription, interviewData } = input;
   const { scoringCriteria } = KNOWLEDGE.research;
 
   const prompt = `You are evaluating a business idea based on research insights. Score the following dimensions from 0-100.
@@ -333,36 +440,181 @@ ${Object.entries(scoringCriteria.feasibilityScore).map(([range, desc]) => `  ${r
 **Why Now Score (0-100):**
 ${Object.entries(scoringCriteria.whyNowScore).map(([range, desc]) => `  ${range}: ${desc}`).join('\n')}
 
-Return a JSON object:
+IMPORTANT: For each score, you MUST provide a justification explaining:
+1. What specific evidence from the data supports this score
+2. What factors pulled the score up or down
+3. What uncertainties or gaps exist in the data
+
+Return a JSON object with this EXACT structure:
 {
-  "opportunityScore": number,
-  "problemScore": number,
-  "feasibilityScore": number,
-  "whyNowScore": number
+  "opportunityScore": number (0-100),
+  "opportunityJustification": "2-3 sentences explaining why this score",
+  "problemScore": number (0-100),
+  "problemJustification": "2-3 sentences explaining why this score",
+  "feasibilityScore": number (0-100),
+  "feasibilityJustification": "2-3 sentences explaining why this score",
+  "whyNowScore": number (0-100),
+  "whyNowJustification": "2-3 sentences explaining why this score"
 }
 
-Be realistic and data-driven in your scoring. Don't inflate scores - be honest about limitations.`;
+Be realistic and data-driven in your scoring. Don't inflate scores - be honest about limitations.
+This is scoring pass ${passNumber} - evaluate independently without bias.`;
 
-  const response = await openai.chat.completions.create({
-    model: RESEARCH_MODEL,
-    messages: [{ role: 'user', content: prompt }],
-    response_format: { type: 'json_object' },
-    max_completion_tokens: 500,
-  });
+  const aiParams = getAIParams('calculateScores', tier);
 
-  const content = response.choices[0]?.message?.content;
+  const response = await openai.responses.create(
+    createResponsesParams({
+      model: RESEARCH_MODEL,
+      input: prompt,
+      response_format: { type: 'json_object' },
+      max_output_tokens: 1500,
+    }, aiParams)
+  );
+
+  const content = response.output_text;
   if (!content) {
-    throw new Error('Failed to calculate scores');
+    throw new Error(`Failed to calculate scores (pass ${passNumber})`);
   }
 
-  return JSON.parse(content) as ResearchScores;
+  return JSON.parse(content) as RawScorePass;
+}
+
+// Phase 3: Calculate research scores with multi-pass validation
+export async function calculateScores(
+  input: ResearchInput,
+  insights: SynthesizedInsights,
+  tier: SubscriptionTier = 'ENTERPRISE'
+): Promise<ResearchScores> {
+  const PASS_COUNT = 3; // Number of scoring passes
+  const DEVIATION_THRESHOLD = 15; // Flag if any score deviates more than this
+
+  console.log(`[calculateScores] Running ${PASS_COUNT} scoring passes for reliability...`);
+
+  // Run multiple passes in parallel for efficiency
+  const passPromises = Array.from({ length: PASS_COUNT }, (_, i) =>
+    runSingleScoringPass(input, insights, tier, i + 1)
+  );
+
+  const passes = await Promise.all(passPromises);
+  console.log(`[calculateScores] All ${PASS_COUNT} passes complete`);
+
+  // Extract scores from each pass
+  const opportunityScores = passes.map(p => clampScore(p.opportunityScore));
+  const problemScores = passes.map(p => clampScore(p.problemScore));
+  const feasibilityScores = passes.map(p => clampScore(p.feasibilityScore));
+  const whyNowScores = passes.map(p => clampScore(p.whyNowScore));
+
+  // Calculate averages
+  const avgOpportunity = Math.round(opportunityScores.reduce((a, b) => a + b, 0) / PASS_COUNT);
+  const avgProblem = Math.round(problemScores.reduce((a, b) => a + b, 0) / PASS_COUNT);
+  const avgFeasibility = Math.round(feasibilityScores.reduce((a, b) => a + b, 0) / PASS_COUNT);
+  const avgWhyNow = Math.round(whyNowScores.reduce((a, b) => a + b, 0) / PASS_COUNT);
+
+  // Calculate deviations
+  const deviations = [
+    Math.max(...opportunityScores) - Math.min(...opportunityScores),
+    Math.max(...problemScores) - Math.min(...problemScores),
+    Math.max(...feasibilityScores) - Math.min(...feasibilityScores),
+    Math.max(...whyNowScores) - Math.min(...whyNowScores),
+  ];
+  const maxDeviation = Math.max(...deviations);
+
+  // Calculate confidence based on consistency
+  const avgStdDev = (
+    standardDeviation(opportunityScores) +
+    standardDeviation(problemScores) +
+    standardDeviation(feasibilityScores) +
+    standardDeviation(whyNowScores)
+  ) / 4;
+
+  // Lower std dev = higher confidence (0-100 scale)
+  // stdDev of 0 = 100% confidence, stdDev of 20+ = ~50% confidence
+  const averageConfidence = Math.round(Math.max(50, 100 - avgStdDev * 2.5));
+
+  // Determine confidence level for each score based on its specific deviation
+  const getConfidenceLevel = (scores: number[]): 'high' | 'medium' | 'low' => {
+    const dev = Math.max(...scores) - Math.min(...scores);
+    if (dev <= 5) return 'high';
+    if (dev <= 12) return 'medium';
+    return 'low';
+  };
+
+  // Check if flagging is needed
+  const flagged = maxDeviation > DEVIATION_THRESHOLD;
+  const flagReason = flagged
+    ? `Scores varied by up to ${maxDeviation} points between passes, indicating uncertainty. Review justifications carefully.`
+    : undefined;
+
+  if (flagged) {
+    console.warn(`[calculateScores] WARNING: High variance detected (max deviation: ${maxDeviation})`);
+    console.log(`[calculateScores] Opportunity: ${opportunityScores.join(', ')} → avg ${avgOpportunity}`);
+    console.log(`[calculateScores] Problem: ${problemScores.join(', ')} → avg ${avgProblem}`);
+    console.log(`[calculateScores] Feasibility: ${feasibilityScores.join(', ')} → avg ${avgFeasibility}`);
+    console.log(`[calculateScores] WhyNow: ${whyNowScores.join(', ')} → avg ${avgWhyNow}`);
+  }
+
+  // Use the justification from the pass closest to the average for each score
+  const findBestJustification = (scores: number[], avg: number, getJustification: (p: RawScorePass) => string): string => {
+    let minDiff = Infinity;
+    let bestIdx = 0;
+    scores.forEach((score, idx) => {
+      const diff = Math.abs(score - avg);
+      if (diff < minDiff) {
+        minDiff = diff;
+        bestIdx = idx;
+      }
+    });
+    return getJustification(passes[bestIdx]);
+  };
+
+  const result: ResearchScores = {
+    opportunityScore: avgOpportunity,
+    problemScore: avgProblem,
+    feasibilityScore: avgFeasibility,
+    whyNowScore: avgWhyNow,
+    justifications: {
+      opportunity: {
+        score: avgOpportunity,
+        justification: findBestJustification(opportunityScores, avgOpportunity, p => p.opportunityJustification),
+        confidence: getConfidenceLevel(opportunityScores),
+      },
+      problem: {
+        score: avgProblem,
+        justification: findBestJustification(problemScores, avgProblem, p => p.problemJustification),
+        confidence: getConfidenceLevel(problemScores),
+      },
+      feasibility: {
+        score: avgFeasibility,
+        justification: findBestJustification(feasibilityScores, avgFeasibility, p => p.feasibilityJustification),
+        confidence: getConfidenceLevel(feasibilityScores),
+      },
+      whyNow: {
+        score: avgWhyNow,
+        justification: findBestJustification(whyNowScores, avgWhyNow, p => p.whyNowJustification),
+        confidence: getConfidenceLevel(whyNowScores),
+      },
+    },
+    metadata: {
+      passCount: PASS_COUNT,
+      maxDeviation,
+      averageConfidence,
+      flagged,
+      flagReason,
+    },
+  };
+
+  console.log(`[calculateScores] Final scores: O=${avgOpportunity}, P=${avgProblem}, F=${avgFeasibility}, W=${avgWhyNow}`);
+  console.log(`[calculateScores] Confidence: ${averageConfidence}%, Flagged: ${flagged}`);
+
+  return result;
 }
 
 // Phase 4: Calculate business metrics
 export async function calculateBusinessMetrics(
   input: ResearchInput,
   insights: SynthesizedInsights,
-  scores: ResearchScores
+  scores: ResearchScores,
+  tier: SubscriptionTier = 'ENTERPRISE'
 ): Promise<BusinessMetrics> {
   const { ideaTitle, ideaDescription, interviewData } = input;
 
@@ -406,14 +658,20 @@ Evaluate these business metrics and return a JSON object:
 
 Be realistic and consider the founder's background if mentioned in the interview data.`;
 
-  const response = await openai.chat.completions.create({
-    model: RESEARCH_MODEL,
-    messages: [{ role: 'user', content: prompt }],
-    response_format: { type: 'json_object' },
-    max_completion_tokens: 1000,
-  });
+  // Get tier-based AI parameters
+  const aiParams = getAIParams('businessMetrics', tier);
 
-  const content = response.choices[0]?.message?.content;
+  // Use Responses API for GPT-5.2 reasoning support
+  const response = await openai.responses.create(
+    createResponsesParams({
+      model: RESEARCH_MODEL,
+      input: prompt,
+      response_format: { type: 'json_object' },
+      max_output_tokens: 1000,
+    }, aiParams)
+  );
+
+  const content = response.output_text;
   if (!content) {
     throw new Error('Failed to calculate business metrics');
   }
@@ -424,7 +682,8 @@ Be realistic and consider the founder's background if mentioned in the interview
 // Phase 5: Generate user story
 export async function generateUserStory(
   input: ResearchInput,
-  insights: SynthesizedInsights
+  insights: SynthesizedInsights,
+  tier: SubscriptionTier = 'ENTERPRISE'
 ): Promise<UserStory> {
   const { ideaTitle, ideaDescription, interviewData } = input;
 
@@ -448,7 +707,7 @@ BAD EXAMPLE (avoid this): "${userStoryGuidelines.example.bad}"
 
 Create a relatable, specific user story. Return a JSON object:
 {
-  "scenario": "A 2-3 paragraph narrative that tells the full story - the protagonist's situation, their struggle with the problem, discovering and using the solution, and the positive outcome. Make it vivid and relatable.",
+  "scenario": "A concise narrative (MAX 200 WORDS) that tells the full story - the protagonist's situation, their struggle with the problem, discovering and using the solution, and the positive outcome. Make it vivid and relatable but keep it tight.",
   "protagonist": "Who the user is (e.g., 'Sarah, a busy marketing manager at a tech startup')",
   "problem": "The specific pain they experience in 1-2 sentences",
   "solution": "How this product/service solves their problem in 1-2 sentences",
@@ -457,14 +716,20 @@ Create a relatable, specific user story. Return a JSON object:
 
 Make the story feel real and emotionally resonant. Use specific details.`;
 
-  const response = await openai.chat.completions.create({
-    model: RESEARCH_MODEL,
-    messages: [{ role: 'user', content: prompt }],
-    response_format: { type: 'json_object' },
-    max_completion_tokens: 1500,
-  });
+  // Get tier-based AI parameters
+  const aiParams = getAIParams('userStory', tier);
 
-  const content = response.choices[0]?.message?.content;
+  // Use Responses API for GPT-5.2 reasoning support
+  const response = await openai.responses.create(
+    createResponsesParams({
+      model: RESEARCH_MODEL,
+      input: prompt,
+      response_format: { type: 'json_object' },
+      max_output_tokens: 1500,
+    }, aiParams)
+  );
+
+  const content = response.output_text;
   if (!content) {
     throw new Error('Failed to generate user story');
   }
@@ -472,66 +737,200 @@ Make the story feel real and emotionally resonant. Use specific details.`;
   return JSON.parse(content) as UserStory;
 }
 
+// Keyword trends configuration
+const MIN_KEYWORD_VOLUME = 500;    // Minimum volume threshold for keyword trends
+const TARGET_KEYWORD_COUNT = 5;    // Target number of solid results
+const MAX_RETRY_BATCHES = 3;       // Maximum batch attempts to prevent infinite loops
+
 // Phase 6: Generate keyword trends with volume/growth data
+// Uses SerpAPI for real Google Trends data only - no AI fallback
+// Implements retry loop to fetch keywords until TARGET_KEYWORD_COUNT solid results
 export async function generateKeywordTrends(
-  input: ResearchInput,
-  insights: SynthesizedInsights
+  _input: ResearchInput,
+  insights: SynthesizedInsights,
+  _tier: SubscriptionTier = 'ENTERPRISE'
 ): Promise<KeywordTrend[]> {
-  const { ideaTitle, ideaDescription } = input;
-
-  const prompt = `You are a SEO and market research expert. Generate realistic keyword trend data for this business idea.
-
-BUSINESS IDEA: ${ideaTitle}
-${ideaDescription}
-
-KEYWORDS FROM RESEARCH:
-Primary: ${insights.keywords.primary.join(', ')}
-Secondary: ${insights.keywords.secondary.join(', ')}
-Long-tail: ${insights.keywords.longTail.join(', ')}
-
-MARKET ANALYSIS:
-${insights.marketAnalysis.growth}
-
-Generate 3-5 keywords with realistic search volume estimates. Return a JSON object:
-{
-  "keywords": [
-    {
-      "keyword": "the search term",
-      "volume": 12000,
-      "growth": 45,
-      "trend": [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000]
-    }
-  ]
-}
-
-Guidelines:
-- volume: Monthly search volume (100 to 100000 range)
-- growth: Year-over-year growth percentage (-20 to +200)
-- trend: 12 monthly data points showing the search volume progression over the past year
-- Make the numbers realistic for the market size and niche
-- Show growth patterns that match the market analysis`;
-
-  const response = await openai.chat.completions.create({
-    model: RESEARCH_MODEL,
-    messages: [{ role: 'user', content: prompt }],
-    response_format: { type: 'json_object' },
-    max_completion_tokens: 1500,
-  });
-
-  const content = response.choices[0]?.message?.content;
-  if (!content) {
-    throw new Error('Failed to generate keyword trends');
+  if (!isSerpApiConfigured()) {
+    console.log('[Research Pipeline] SerpAPI not configured - skipping keyword trends');
+    return [];
   }
 
-  const result = JSON.parse(content) as { keywords: KeywordTrend[] };
-  return result.keywords;
+  // Build full keyword pool in priority order (primary → secondary → longTail)
+  const allKeywords = [
+    ...insights.keywords.primary,
+    ...insights.keywords.secondary,
+    ...insights.keywords.longTail,
+  ];
+
+  // Remove duplicates while preserving priority order
+  const keywordPool = [...new Set(allKeywords)];
+
+  if (keywordPool.length === 0) {
+    console.log('[Research Pipeline] No keywords available for trend research');
+    return [];
+  }
+
+  const solidResults: KeywordTrend[] = [];
+  const triedKeywords = new Set<string>();
+  let batchCount = 0;
+
+  console.log(
+    `[Research Pipeline] Starting keyword trends loop. Pool: ${keywordPool.length} keywords, Target: ${TARGET_KEYWORD_COUNT}`
+  );
+
+  // Keep fetching batches until we have enough solid results or exhaust options
+  while (solidResults.length < TARGET_KEYWORD_COUNT && batchCount < MAX_RETRY_BATCHES) {
+    batchCount++;
+
+    // Get next batch of untried keywords (fetch a few extra to account for filtering)
+    const batchSize = Math.min(5, TARGET_KEYWORD_COUNT - solidResults.length + 2);
+    const nextBatch = keywordPool.filter((kw) => !triedKeywords.has(kw)).slice(0, batchSize);
+
+    if (nextBatch.length === 0) {
+      console.log('[Research Pipeline] Exhausted all available keywords');
+      break;
+    }
+
+    // Mark keywords as tried
+    nextBatch.forEach((kw) => triedKeywords.add(kw));
+
+    console.log(`[Research Pipeline] Batch ${batchCount}: Trying ${nextBatch.length} keywords...`);
+
+    try {
+      // 5 minute timeout per batch
+      const results = await Promise.race([
+        batchGetTrendData(nextBatch, {
+          geo: 'US',
+          timeRange: 'today 5-y',
+          delayMs: 500,
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('SerpAPI batch timeout')), 300000)
+        ),
+      ]);
+
+      for (const [keyword, result] of results) {
+        if (result instanceof Error) {
+          console.warn(`[Research Pipeline] SerpAPI error for "${keyword}":`, result.message);
+          continue;
+        }
+
+        const trendData = result as TrendData;
+        const timelineValues = trendData.interestOverTime.map((p) => p.value);
+        const trend = timelineValues.length > 0 ? timelineValues : Array(60).fill(50);
+
+        // Calculate growth: compare first year avg vs last year avg
+        const dataLength = trend.length;
+        const yearSize = Math.min(12, Math.floor(dataLength / 2));
+        const firstYear = trend.slice(0, yearSize);
+        const lastYear = trend.slice(-yearSize);
+        const firstAvg = firstYear.reduce((a, b) => a + b, 0) / firstYear.length;
+        const lastAvg = lastYear.reduce((a, b) => a + b, 0) / lastYear.length;
+
+        let growth: number;
+        if (firstAvg > 0) {
+          growth = Math.round(((lastAvg - firstAvg) / firstAvg) * 100);
+        } else if (lastAvg > 0) {
+          growth = 500; // Emerging trend indicator
+        } else {
+          growth = 0;
+        }
+
+        const avgInterest = trendData.averageInterest;
+        const estimatedVolume = estimateSearchVolume(avgInterest, keyword);
+
+        // Only add if meets volume threshold
+        if (estimatedVolume >= MIN_KEYWORD_VOLUME) {
+          solidResults.push({
+            keyword,
+            volume: estimatedVolume,
+            growth,
+            trend: trend.map((v) => Math.round((v / 100) * estimatedVolume)),
+          });
+          console.log(`[Research Pipeline] ✓ "${keyword}" - Volume: ${estimatedVolume}`);
+
+          // Early exit if we've reached our target
+          if (solidResults.length >= TARGET_KEYWORD_COUNT) {
+            break;
+          }
+        } else {
+          console.log(
+            `[Research Pipeline] ✗ "${keyword}" - Volume ${estimatedVolume} below threshold (${MIN_KEYWORD_VOLUME})`
+          );
+        }
+      }
+    } catch (error) {
+      console.error(`[Research Pipeline] Batch ${batchCount} failed:`, error);
+      // Continue to next batch on error
+    }
+  }
+
+  console.log(
+    `[Research Pipeline] Completed with ${solidResults.length} solid results after ${batchCount} batch(es)`
+  );
+  return solidResults;
+}
+
+/**
+ * Interpolate an array of values to exactly 12 points
+ */
+function interpolateTo12Points(values: number[]): number[] {
+  if (values.length === 12) return values;
+  if (values.length === 0) return Array(12).fill(0);
+
+  const result: number[] = [];
+  const step = (values.length - 1) / 11;
+
+  for (let i = 0; i < 12; i++) {
+    const index = i * step;
+    const lowerIndex = Math.floor(index);
+    const upperIndex = Math.ceil(index);
+
+    if (lowerIndex === upperIndex || upperIndex >= values.length) {
+      result.push(values[lowerIndex]);
+    } else {
+      const fraction = index - lowerIndex;
+      result.push(
+        Math.round(values[lowerIndex] * (1 - fraction) + values[upperIndex] * fraction)
+      );
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Estimate monthly search volume from Google Trends interest score (0-100)
+ * This is a rough approximation since Google Trends doesn't provide absolute volumes
+ */
+function estimateSearchVolume(interest: number, keyword: string): number {
+  // Base multiplier - higher interest suggests higher volume
+  // This is a heuristic based on typical keyword volume ranges
+  const wordCount = keyword.split(' ').length;
+
+  // Long-tail keywords (3+ words) typically have lower volume
+  let baseMultiplier: number;
+  if (wordCount >= 4) {
+    baseMultiplier = 100; // Long-tail: 0-10,000
+  } else if (wordCount >= 2) {
+    baseMultiplier = 500; // Mid-tail: 0-50,000
+  } else {
+    baseMultiplier = 2000; // Head terms: 0-200,000
+  }
+
+  // Scale by interest (0-100 from Google Trends)
+  const volume = Math.round((interest / 100) * baseMultiplier * (50 + Math.random() * 50));
+
+  // Ensure minimum volume
+  return Math.max(volume, 100);
 }
 
 // Phase 7: Generate value ladder (offer tiers)
 export async function generateValueLadder(
   input: ResearchInput,
   insights: SynthesizedInsights,
-  metrics: BusinessMetrics
+  metrics: BusinessMetrics,
+  tier: SubscriptionTier = 'ENTERPRISE'
 ): Promise<OfferTier[]> {
   const { ideaTitle, ideaDescription, interviewData } = input;
 
@@ -586,14 +985,20 @@ Create a 3-4 tier value ladder. Return a JSON object:
 
 Make prices realistic for the market and value delivered.`;
 
-  const response = await openai.chat.completions.create({
-    model: RESEARCH_MODEL,
-    messages: [{ role: 'user', content: prompt }],
-    response_format: { type: 'json_object' },
-    max_completion_tokens: 1500,
-  });
+  // Get tier-based AI parameters
+  const aiParams = getAIParams('valueLadder', tier);
 
-  const content = response.choices[0]?.message?.content;
+  // Use Responses API for GPT-5.2 reasoning support
+  const response = await openai.responses.create(
+    createResponsesParams({
+      model: RESEARCH_MODEL,
+      input: prompt,
+      response_format: { type: 'json_object' },
+      max_output_tokens: 1500,
+    }, aiParams)
+  );
+
+  const content = response.output_text;
   if (!content) {
     throw new Error('Failed to generate value ladder');
   }
@@ -605,7 +1010,8 @@ Make prices realistic for the market and value delivered.`;
 // Phase 8: Generate action prompts
 export async function generateActionPrompts(
   input: ResearchInput,
-  insights: SynthesizedInsights
+  insights: SynthesizedInsights,
+  tier: SubscriptionTier = 'ENTERPRISE'
 ): Promise<ActionPrompt[]> {
   const { ideaTitle, ideaDescription } = input;
 
@@ -642,14 +1048,20 @@ Categories: marketing, sales, product, content, strategy
 Fill in the [brackets] with specific details from the business idea.
 Make prompts immediately usable - specific and actionable.`;
 
-  const response = await openai.chat.completions.create({
-    model: RESEARCH_MODEL,
-    messages: [{ role: 'user', content: prompt }],
-    response_format: { type: 'json_object' },
-    max_completion_tokens: 2000,
-  });
+  // Get tier-based AI parameters
+  const aiParams = getAIParams('actionPrompts', tier);
 
-  const content = response.choices[0]?.message?.content;
+  // Use Responses API for GPT-5.2 reasoning support
+  const response = await openai.responses.create(
+    createResponsesParams({
+      model: RESEARCH_MODEL,
+      input: prompt,
+      response_format: { type: 'json_object' },
+      max_output_tokens: 4000,
+    }, aiParams)
+  );
+
+  const content = response.output_text;
   if (!content) {
     throw new Error('Failed to generate action prompts');
   }
@@ -661,7 +1073,8 @@ Make prompts immediately usable - specific and actionable.`;
 // Phase 9: Generate social proof (MVP: AI-simulated)
 export async function generateSocialProof(
   input: ResearchInput,
-  insights: SynthesizedInsights
+  insights: SynthesizedInsights,
+  tier: SubscriptionTier = 'ENTERPRISE'
 ): Promise<SocialProof> {
   const { ideaTitle, ideaDescription } = input;
 
@@ -721,14 +1134,20 @@ Generate 4-6 realistic posts across reddit, twitter, and facebook.
 Make the content sound authentic - including typos, casual language, and real frustrations.
 Dates should be within the last 6 months.`;
 
-  const response = await openai.chat.completions.create({
-    model: RESEARCH_MODEL,
-    messages: [{ role: 'user', content: prompt }],
-    response_format: { type: 'json_object' },
-    max_completion_tokens: 2500,
-  });
+  // Get tier-based AI parameters
+  const aiParams = getAIParams('socialProof', tier);
 
-  const content = response.choices[0]?.message?.content;
+  // Use Responses API for GPT-5.2 reasoning support
+  const response = await openai.responses.create(
+    createResponsesParams({
+      model: RESEARCH_MODEL,
+      input: prompt,
+      response_format: { type: 'json_object' },
+      max_output_tokens: 2500,
+    }, aiParams)
+  );
+
+  const content = response.output_text;
   if (!content) {
     throw new Error('Failed to generate social proof');
   }
@@ -739,7 +1158,8 @@ Dates should be within the last 6 months.`;
 // Main pipeline function - runs all phases
 export async function runResearchPipeline(
   input: ResearchInput,
-  onProgress?: (phase: string, progress: number) => Promise<void>
+  onProgress?: (phase: string, progress: number) => Promise<void>,
+  tier: SubscriptionTier = 'ENTERPRISE'
 ): Promise<{
   queries: GeneratedQueries;
   insights: SynthesizedInsights;
@@ -752,67 +1172,68 @@ export async function runResearchPipeline(
   socialProof: SocialProof;
 }> {
   console.log('[Research Pipeline] Starting for:', input.ideaTitle);
+  console.log('[Research Pipeline] Using tier:', tier);
 
   // Phase 1: Generate queries
   await onProgress?.('QUERY_GENERATION', 5);
   console.log('[Research Pipeline] Phase 1: Generating search queries...');
-  const queries = await generateSearchQueries(input);
+  const queries = await generateSearchQueries(input, tier);
   await onProgress?.('QUERY_GENERATION', 10);
   console.log('[Research Pipeline] Queries generated:', Object.keys(queries).length, 'categories');
 
   // Phase 2: Synthesize insights (MVP - uses interview data, no external APIs)
   await onProgress?.('SYNTHESIS', 15);
   console.log('[Research Pipeline] Phase 2: Synthesizing insights...');
-  const insights = await synthesizeInsights(input, queries);
+  const insights = await synthesizeInsights(input, queries, tier);
   await onProgress?.('SYNTHESIS', 30);
   console.log('[Research Pipeline] Insights synthesized');
 
   // Phase 3: Calculate scores
   await onProgress?.('SYNTHESIS', 35);
   console.log('[Research Pipeline] Phase 3: Calculating scores...');
-  const scores = await calculateScores(input, insights);
+  const scores = await calculateScores(input, insights, tier);
   await onProgress?.('SYNTHESIS', 45);
   console.log('[Research Pipeline] Scores:', scores);
 
   // Phase 4: Calculate business metrics
   await onProgress?.('SYNTHESIS', 50);
   console.log('[Research Pipeline] Phase 4: Calculating business metrics...');
-  const metrics = await calculateBusinessMetrics(input, insights, scores);
+  const metrics = await calculateBusinessMetrics(input, insights, scores, tier);
   await onProgress?.('SYNTHESIS', 55);
   console.log('[Research Pipeline] Metrics calculated');
 
   // Phase 5: Generate user story
   await onProgress?.('REPORT_GENERATION', 60);
   console.log('[Research Pipeline] Phase 5: Generating user story...');
-  const userStory = await generateUserStory(input, insights);
+  const userStory = await generateUserStory(input, insights, tier);
   await onProgress?.('REPORT_GENERATION', 65);
   console.log('[Research Pipeline] User story generated');
 
   // Phase 6: Generate keyword trends
   await onProgress?.('REPORT_GENERATION', 70);
   console.log('[Research Pipeline] Phase 6: Generating keyword trends...');
-  const keywordTrends = await generateKeywordTrends(input, insights);
+  const keywordTrends = await generateKeywordTrends(input, insights, tier);
   await onProgress?.('REPORT_GENERATION', 75);
   console.log('[Research Pipeline] Keyword trends generated:', keywordTrends.length, 'keywords');
 
   // Phase 7: Generate value ladder
   await onProgress?.('REPORT_GENERATION', 80);
   console.log('[Research Pipeline] Phase 7: Generating value ladder...');
-  const valueLadder = await generateValueLadder(input, insights, metrics);
+  const valueLadder = await generateValueLadder(input, insights, metrics, tier);
   await onProgress?.('REPORT_GENERATION', 85);
   console.log('[Research Pipeline] Value ladder generated:', valueLadder.length, 'tiers');
 
   // Phase 8: Generate action prompts
   await onProgress?.('REPORT_GENERATION', 88);
   console.log('[Research Pipeline] Phase 8: Generating action prompts...');
-  const actionPrompts = await generateActionPrompts(input, insights);
+  const actionPrompts = await generateActionPrompts(input, insights, tier);
   await onProgress?.('REPORT_GENERATION', 92);
   console.log('[Research Pipeline] Action prompts generated:', actionPrompts.length, 'prompts');
 
   // Phase 9: Generate social proof
   await onProgress?.('REPORT_GENERATION', 95);
   console.log('[Research Pipeline] Phase 9: Generating social proof...');
-  const socialProof = await generateSocialProof(input, insights);
+  const socialProof = await generateSocialProof(input, insights, tier);
   await onProgress?.('REPORT_GENERATION', 98);
   console.log('[Research Pipeline] Social proof generated:', socialProof.posts.length, 'posts');
 

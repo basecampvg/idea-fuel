@@ -1,0 +1,370 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Forge Automation AI Knowledge Configuration",
+  "description": "Configuration file for AI guardrails, personas, and behavioral rules",
+  "type": "object",
+  "required": ["version", "product", "interview", "research", "contentGuidelines", "socialProof", "prohibitedContent", "brandVoice", "customInstructions"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of the knowledge config"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of last update (YYYY-MM-DD)"
+    },
+    "product": {
+      "type": "object",
+      "description": "Product information and context",
+      "required": ["name", "tagline", "description", "targetUser", "valueProposition"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Product name"
+        },
+        "tagline": {
+          "type": "string",
+          "description": "Short marketing tagline"
+        },
+        "description": {
+          "type": "string",
+          "description": "Full product description"
+        },
+        "targetUser": {
+          "type": "string",
+          "description": "Target user persona"
+        },
+        "valueProposition": {
+          "type": "string",
+          "description": "Core value proposition"
+        }
+      }
+    },
+    "interview": {
+      "type": "object",
+      "description": "Interview AI configuration",
+      "required": ["persona", "priorities", "rules", "guardrails", "closingBehavior"],
+      "properties": {
+        "persona": {
+          "type": "object",
+          "required": ["name", "role", "tone", "avoid"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the AI persona"
+            },
+            "role": {
+              "type": "string",
+              "description": "Role description"
+            },
+            "tone": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Tone characteristics to embody"
+            },
+            "avoid": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Behaviors to avoid"
+            }
+          }
+        },
+        "priorities": {
+          "type": "object",
+          "required": ["highValue", "mediumValue", "alwaysAsk"],
+          "properties": {
+            "highValue": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "High-priority data points to collect"
+            },
+            "mediumValue": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Medium-priority data points"
+            },
+            "alwaysAsk": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Data points to always collect"
+            }
+          }
+        },
+        "rules": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Behavioral rules for the interview"
+        },
+        "guardrails": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Safety guardrails and restrictions"
+        },
+        "closingBehavior": {
+          "type": "object",
+          "required": ["whenToWrapUp", "closingApproach"],
+          "properties": {
+            "whenToWrapUp": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Conditions for ending the interview"
+            },
+            "closingApproach": {
+              "type": "string",
+              "description": "How to close the interview"
+            }
+          }
+        }
+      }
+    },
+    "research": {
+      "type": "object",
+      "description": "Research AI configuration",
+      "required": ["persona", "analysisGuidelines", "scoringCriteria", "guardrails", "reportGuidelines"],
+      "properties": {
+        "persona": {
+          "type": "object",
+          "required": ["name", "role", "tone"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the research AI persona"
+            },
+            "role": {
+              "type": "string",
+              "description": "Role description"
+            },
+            "tone": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Tone characteristics"
+            }
+          }
+        },
+        "analysisGuidelines": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Guidelines for analysis"
+        },
+        "scoringCriteria": {
+          "type": "object",
+          "description": "Criteria for scoring dimensions",
+          "required": ["opportunityScore", "problemScore", "feasibilityScore", "whyNowScore"],
+          "properties": {
+            "opportunityScore": {
+              "type": "object",
+              "additionalProperties": { "type": "string" },
+              "description": "Score ranges and descriptions for opportunity"
+            },
+            "problemScore": {
+              "type": "object",
+              "additionalProperties": { "type": "string" },
+              "description": "Score ranges and descriptions for problem severity"
+            },
+            "feasibilityScore": {
+              "type": "object",
+              "additionalProperties": { "type": "string" },
+              "description": "Score ranges and descriptions for feasibility"
+            },
+            "whyNowScore": {
+              "type": "object",
+              "additionalProperties": { "type": "string" },
+              "description": "Score ranges and descriptions for market timing"
+            }
+          }
+        },
+        "guardrails": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Safety guardrails for research output"
+        },
+        "reportGuidelines": {
+          "type": "object",
+          "required": ["structure", "quality"],
+          "properties": {
+            "structure": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Report structure guidelines"
+            },
+            "quality": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Report quality standards"
+            }
+          }
+        }
+      }
+    },
+    "contentGuidelines": {
+      "type": "object",
+      "description": "Guidelines for specific content types",
+      "properties": {
+        "userStory": {
+          "type": "object",
+          "required": ["requirements", "example"],
+          "properties": {
+            "requirements": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "example": {
+              "type": "object",
+              "required": ["good", "bad"],
+              "properties": {
+                "good": { "type": "string" },
+                "bad": { "type": "string" }
+              }
+            }
+          }
+        },
+        "competitors": {
+          "type": "object",
+          "required": ["requirements"],
+          "properties": {
+            "requirements": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "keywords": {
+          "type": "object",
+          "required": ["requirements"],
+          "properties": {
+            "requirements": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "valueLadder": {
+          "type": "object",
+          "required": ["requirements"],
+          "properties": {
+            "requirements": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "actionPrompts": {
+          "type": "object",
+          "required": ["requirements"],
+          "properties": {
+            "requirements": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "socialProof": {
+      "type": "object",
+      "description": "Social proof generation settings",
+      "required": ["requirements", "disclaimers"],
+      "properties": {
+        "note": {
+          "type": "string",
+          "description": "Internal note about this section"
+        },
+        "requirements": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Requirements for authentic-sounding social proof"
+        },
+        "disclaimers": {
+          "type": "object",
+          "required": ["showInUI", "text"],
+          "properties": {
+            "showInUI": {
+              "type": "boolean",
+              "description": "Whether to show disclaimer in UI"
+            },
+            "text": {
+              "type": "string",
+              "description": "Disclaimer text"
+            }
+          }
+        }
+      }
+    },
+    "prohibitedContent": {
+      "type": "object",
+      "description": "Content that should never be generated",
+      "required": ["topics", "claims"],
+      "properties": {
+        "topics": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Prohibited topics"
+        },
+        "claims": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Prohibited claims"
+        }
+      }
+    },
+    "brandVoice": {
+      "type": "object",
+      "description": "Brand voice and writing style",
+      "required": ["personality", "writingStyle"],
+      "properties": {
+        "personality": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Brand personality traits"
+        },
+        "writingStyle": {
+          "type": "object",
+          "required": ["prefer", "avoid"],
+          "properties": {
+            "prefer": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Preferred writing patterns"
+            },
+            "avoid": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Writing patterns to avoid"
+            }
+          }
+        }
+      }
+    },
+    "customInstructions": {
+      "type": "object",
+      "description": "User-defined custom instructions",
+      "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "Internal comment for users"
+        },
+        "global": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Rules applied to all AI interactions"
+        },
+        "interviewOnly": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Rules only for interview AI"
+        },
+        "researchOnly": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Rules only for research AI"
+        }
+      }
+    }
+  }
+}

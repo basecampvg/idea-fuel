@@ -160,6 +160,10 @@ model Research {
   feasibilityScore     Int?           // Technical/resource feasibility
   whyNowScore          Int?           // Market timing score
 
+  // Score Justifications & Metadata (multi-pass validated scoring)
+  scoreJustifications  Json?          // { opportunity, problem, feasibility, whyNow } with justification text
+  scoreMetadata        Json?          // { passCount, maxDeviation, averageConfidence, flagged, flagReason }
+
   // Business Fit Metrics (computed during SYNTHESIS phase)
   revenuePotential     Json?          // { rating, estimate, confidence }
   executionDifficulty  Json?          // { rating, factors, soloFriendly }

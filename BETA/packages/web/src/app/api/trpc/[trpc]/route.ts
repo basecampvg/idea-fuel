@@ -41,7 +41,36 @@ async function ensureDevUser() {
  * Handles all tRPC endpoints: /api/trpc/*
  */
 const handler = async (req: Request) => {
-  // Get the Auth.js session
+  // In dev mode, skip auth entirely and use mock user immediately
+  // This avoids the Auth.js -> PrismaAdapter -> DB connection which can hang
+  if (DEV_BYPASS_AUTH) {
+    await ensureDevUser();
+
+    const devSession = { user: DEV_USER, expires: new Date(Date.now() + 86400000).toISOString() };
+
+    return fetchRequestHandler({
+      endpoint: '/api/trpc',
+      req,
+      router: appRouter,
+      createContext: () =>
+        createContext({
+          session: {
+            user: {
+              id: DEV_USER.id,
+              email: DEV_USER.email,
+              name: DEV_USER.name,
+              image: DEV_USER.image,
+            },
+            expires: devSession.expires,
+          },
+        }),
+      onError: ({ path, error }) => {
+        console.error(`tRPC error on ${path ?? '<unknown>'}:`, error);
+      },
+    });
+  }
+
+  // Production: Get the Auth.js session
   const session = await auth();
 
   // In dev mode, use mock user if no real session

@@ -5,6 +5,18 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import {
+  FlaskConical,
+  CheckCircle2,
+  FileText,
+  Lock,
+  Check,
+  Search,
+  Database,
+  Sparkles,
+  FileOutput,
+  Clock,
+} from 'lucide-react';
+import {
   INTERVIEW_MODE_LABELS,
   RESEARCH_PHASE_LABELS,
   RESEARCH_PHASE_DESCRIPTIONS,
@@ -43,6 +55,15 @@ const researchPhases = [
   'REPORT_GENERATION',
   'COMPLETE',
 ];
+
+// Phase config with icons and labels
+const phaseConfig: Record<string, { icon: typeof Clock; label: string }> = {
+  QUEUED: { icon: Clock, label: 'Queued' },
+  QUERY_GENERATION: { icon: Search, label: 'Generating Queries' },
+  DATA_COLLECTION: { icon: Database, label: 'Collecting Data' },
+  SYNTHESIS: { icon: Sparkles, label: 'Synthesizing Insights' },
+  REPORT_GENERATION: { icon: FileOutput, label: 'Generating Reports' },
+};
 
 // All 10 report types
 const reportTypes = [
@@ -102,12 +123,13 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
     return () => clearInterval(interval);
   }, [research?.status, idea.id, utils.idea.get]);
 
-  // Redirect to idea page when research completes (will show COMPLETE status)
+  // When research completes, invalidate the query to update the parent page's idea status
   useEffect(() => {
     if (research?.status === 'COMPLETE') {
-      router.refresh();
+      // Invalidate to refetch idea with updated status
+      utils.idea.get.invalidate({ id: idea.id });
     }
-  }, [research?.status, router]);
+  }, [research?.status, idea.id, utils.idea.get]);
 
   if (!research) return null;
 
@@ -116,74 +138,121 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
   return (
     <div className="space-y-6">
       {/* Research Progress Card */}
-      <div className="glass-card p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-xl">🔬</span>
-          <h2 className="text-lg font-medium text-[var(--foreground)]">Research in Progress</h2>
+      <div className="rounded-2xl bg-background border border-border p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+            <FlaskConical className="w-5 h-5 text-blue-400" />
+          </div>
+          <h2 className="text-lg font-semibold text-foreground">Research in Progress</h2>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Current Phase */}
           <div>
-            <p className="text-base font-medium text-[var(--foreground)]">
+            <p className="text-base font-medium text-foreground">
               {RESEARCH_PHASE_LABELS[research.currentPhase] || research.currentPhase}
             </p>
-            <p className="text-sm text-[var(--muted-foreground)] mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {RESEARCH_PHASE_DESCRIPTIONS[research.currentPhase] || ''}
             </p>
           </div>
 
           {/* Progress Bar */}
           <div className="space-y-2">
-            <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--card-bg)]">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-border">
               <div
-                className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all duration-500"
+                className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
                 style={{ width: `${research.progress}%` }}
               />
             </div>
-            <div className="flex justify-between text-xs text-[var(--muted-foreground)]">
+            <div className="flex justify-between text-xs text-muted-foreground">
               <span>{research.progress}% complete</span>
               <span>Est. {estimateTimeRemaining(research.progress)} remaining</span>
             </div>
           </div>
 
-          {/* Phase Timeline */}
-          <div className="flex items-center justify-between py-2">
+          {/* Subtasks List */}
+          <div className="space-y-2">
             {researchPhases.slice(0, -1).map((phase, index) => {
               const isComplete = index < currentPhaseIndex;
               const isCurrent = index === currentPhaseIndex;
+              const config = phaseConfig[phase];
+              const Icon = config?.icon || Clock;
 
               return (
-                <div key={phase} className="flex items-center">
+                <div
+                  key={phase}
+                  className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
+                    isCurrent
+                      ? 'bg-blue-500/10 border border-blue-500/30'
+                      : isComplete
+                      ? 'bg-emerald-500/5 border border-transparent'
+                      : 'bg-card border border-transparent opacity-50'
+                  }`}
+                >
+                  {/* Status Icon */}
                   <div
-                    className={`w-3 h-3 rounded-full flex items-center justify-center ${
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
                       isComplete
-                        ? 'bg-emerald-500'
+                        ? 'bg-emerald-500/20'
                         : isCurrent
-                        ? 'bg-blue-500 animate-pulse'
-                        : 'bg-[var(--card-bg)] border border-[var(--border)]'
+                        ? 'bg-blue-500/20'
+                        : 'bg-muted'
                     }`}
                   >
-                    {isComplete && (
-                      <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
+                    {isComplete ? (
+                      <Check className="w-4 h-4 text-emerald-400" strokeWidth={3} />
+                    ) : (
+                      <Icon
+                        className={`w-4 h-4 ${
+                          isCurrent ? 'text-blue-400' : 'text-muted-foreground/70'
+                        }`}
+                      />
                     )}
                   </div>
-                  {index < researchPhases.length - 2 && (
-                    <div
-                      className={`w-8 sm:w-12 h-0.5 ${
-                        isComplete ? 'bg-emerald-500' : 'bg-[var(--border)]'
+
+                  {/* Label and Progress */}
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className={`text-sm font-medium ${
+                        isComplete
+                          ? 'text-emerald-400'
+                          : isCurrent
+                          ? 'text-foreground'
+                          : 'text-muted-foreground'
                       }`}
-                    />
-                  )}
+                    >
+                      {config?.label || phase}
+                    </p>
+                    {isCurrent && (
+                      <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-blue-500/20">
+                        <div
+                          className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-300 animate-pulse"
+                          style={{ width: '60%' }}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Status Badge */}
+                  <span
+                    className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${
+                      isComplete
+                        ? 'bg-emerald-500/20 text-emerald-400'
+                        : isCurrent
+                        ? 'bg-blue-500/20 text-blue-400'
+                        : 'text-muted-foreground/70'
+                    }`}
+                  >
+                    {isComplete ? 'Done' : isCurrent ? 'Running' : 'Pending'}
+                  </span>
                 </div>
               );
             })}
           </div>
 
           {/* Time Info */}
-          <p className="text-sm text-[var(--muted-foreground)]">
+          <p className="text-sm text-muted-foreground">
             Started: {formatTimeAgo(research.startedAt)}
           </p>
         </div>
@@ -191,14 +260,16 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
 
       {/* Completed Interview */}
       {completedInterview && (
-        <div className="glass-card p-6">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-xl">✅</span>
-            <h2 className="text-lg font-medium text-[var(--foreground)]">Interview Complete</h2>
+        <div className="rounded-2xl bg-background border border-border p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            </div>
+            <h2 className="text-lg font-semibold text-foreground">Interview Complete</h2>
           </div>
 
-          <div className="flex items-center gap-3 text-sm text-[var(--muted-foreground)]">
-            <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-medium">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-medium">
               {INTERVIEW_MODE_LABELS[completedInterview.mode] || completedInterview.mode}
             </span>
             <span>•</span>
@@ -210,14 +281,14 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
           <div className="flex gap-3 mt-4">
             <Link
               href={`/ideas/${idea.id}/interview`}
-              className="px-4 py-2 text-sm rounded-xl bg-[var(--card-bg)] hover:bg-[var(--card-bg-hover)] border border-[var(--border)] text-[var(--foreground)] transition-colors"
+              className="px-4 py-2 text-sm rounded-xl bg-card hover:bg-muted border border-border text-foreground transition-colors"
             >
               View Interview
             </Link>
             <button
               onClick={() => startInterview.mutate({ ideaId: idea.id, mode: 'IN_DEPTH' })}
               disabled={startInterview.isPending}
-              className="px-4 py-2 text-sm rounded-xl border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card-bg)] transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-sm rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-card transition-colors disabled:opacity-50"
             >
               Start Another
             </button>
@@ -226,22 +297,26 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
       )}
 
       {/* Locked Reports Grid */}
-      <div className="glass-card p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-xl">📄</span>
-          <h2 className="text-lg font-medium text-[var(--foreground)]">Reports</h2>
-          <span className="text-sm text-[var(--muted-foreground)]">({reportTypes.length})</span>
+      <div className="rounded-2xl bg-background border border-border p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 rounded-full bg-[#00d4ff]/20 flex items-center justify-center">
+            <FileText className="w-5 h-5 text-accent" />
+          </div>
+          <h2 className="text-lg font-semibold text-foreground">Reports</h2>
+          <span className="text-sm text-muted-foreground">({reportTypes.length})</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {reportTypes.map((type) => (
             <div
               key={type}
-              className="p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--border)] opacity-50 cursor-not-allowed"
+              className="p-4 rounded-xl bg-card border border-border opacity-60 cursor-not-allowed"
             >
               <div className="flex flex-col items-center text-center">
-                <span className="text-2xl mb-2">🔒</span>
-                <span className="text-xs font-medium text-[var(--muted-foreground)] line-clamp-2">
+                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mb-2">
+                  <Lock className="w-5 h-5 text-amber-500/60" />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground line-clamp-2">
                   {REPORT_TYPE_LABELS[type] || type}
                 </span>
               </div>
@@ -249,7 +324,7 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
           ))}
         </div>
 
-        <p className="text-xs text-[var(--muted-foreground)] mt-4 text-center">
+        <p className="text-xs text-muted-foreground mt-5 text-center">
           Reports will be available when research completes
         </p>
       </div>

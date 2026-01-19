@@ -9,7 +9,8 @@
     "./types": "./src/types/index.ts",
     "./validators": "./src/validators/index.ts",
     "./constants": "./src/constants/index.ts",
-    "./utils": "./src/utils/index.ts"
+    "./utils": "./src/utils/index.ts",
+    "./knowledge": "./src/knowledge/index.ts"
   },
   "scripts": {
     "type-check": "tsc --noEmit",

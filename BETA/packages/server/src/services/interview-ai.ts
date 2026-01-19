@@ -1,5 +1,6 @@
-import { openai, INTERVIEW_MODEL, EXTRACTION_MODEL } from '../lib/openai';
-import { AI_CONFIG, getInterviewKnowledge, KNOWLEDGE } from '@forge/shared';
+import { openai, INTERVIEW_MODEL, EXTRACTION_MODEL, getAIParams, createResponsesParams } from '../lib/openai';
+import type { SubscriptionTier } from '@prisma/client';
+import { getInterviewKnowledge, KNOWLEDGE } from '../lib/knowledge';
 import type { ChatMessage, InterviewMode, InterviewDataPoints, DataPoint } from '@forge/shared';
 
 // Data point field names for extraction
@@ -130,7 +131,8 @@ function getMaxTurnsForMode(mode: InterviewMode): number {
 export async function generateOpeningQuestion(
   ideaTitle: string,
   ideaDescription: string,
-  mode: InterviewMode
+  mode: InterviewMode,
+  tier: SubscriptionTier = 'ENTERPRISE'
 ): Promise<string> {
   const maxTurns = getMaxTurnsForMode(mode);
   const systemPrompt = buildSystemPrompt(
@@ -142,25 +144,31 @@ export async function generateOpeningQuestion(
     null // no collected data yet
   );
 
+  // Get tier-based AI parameters
+  const aiParams = getAIParams('interviewQuestion', tier);
+
   console.log('[Interview AI] Generating opening question for mode:', mode);
   console.log('[Interview AI] Using model:', INTERVIEW_MODEL);
+  console.log('[Interview AI] Tier:', tier, '| Reasoning:', aiParams.reasoning, '| Verbosity:', aiParams.verbosity);
 
   try {
-    const response = await openai.chat.completions.create({
-      model: INTERVIEW_MODEL,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        {
-          role: 'user',
-          content: `Please start the discovery interview. Based on the idea description, ask your first question to understand the core problem and target customer better.`,
-        },
-      ],
-      temperature: AI_CONFIG.temperature,
-      max_completion_tokens: 500,
-    });
+    // Use Responses API for GPT-5.2 reasoning support
+    const response = await openai.responses.create(
+      createResponsesParams({
+        model: INTERVIEW_MODEL,
+        input: [
+          { role: 'system', content: systemPrompt },
+          {
+            role: 'user',
+            content: `Please start the discovery interview. Based on the idea description, ask your first question to understand the core problem and target customer better.`,
+          },
+        ],
+        max_output_tokens: 500,
+      }, aiParams)
+    );
 
     console.log('[Interview AI] OpenAI response received');
-    return response.choices[0]?.message?.content || "Let's start with your business idea. What problem are you trying to solve, and who experiences this problem most acutely?";
+    return response.output_text || "Let's start with your business idea. What problem are you trying to solve, and who experiences this problem most acutely?";
   } catch (error) {
     console.error('[Interview AI] OpenAI API error:', error);
     throw error; // Re-throw to let tRPC handle it
@@ -175,7 +183,8 @@ export async function generateNextQuestion(
   messages: ChatMessage[],
   collectedData: Partial<InterviewDataPoints> | null,
   currentTurn: number,
-  maxTurns: number
+  maxTurns: number,
+  tier: SubscriptionTier = 'ENTERPRISE'
 ): Promise<string> {
   // Build system prompt with full context (confidence, phase, gaps, etc.)
   const systemPrompt = buildSystemPrompt(
@@ -187,30 +196,36 @@ export async function generateNextQuestion(
     collectedData
   );
 
+  // Get tier-based AI parameters
+  const aiParams = getAIParams('interviewQuestion', tier);
+
   // Build conversation history for OpenAI
   const conversationHistory = messages.map((msg) => ({
     role: msg.role as 'user' | 'assistant' | 'system',
     content: msg.content,
   }));
 
-  const response = await openai.chat.completions.create({
-    model: INTERVIEW_MODEL,
-    messages: [
-      { role: 'system', content: systemPrompt },
-      ...conversationHistory,
-    ],
-    temperature: AI_CONFIG.temperature,
-    max_completion_tokens: 500,
-  });
+  // Use Responses API for GPT-5.2 reasoning support
+  const response = await openai.responses.create(
+    createResponsesParams({
+      model: INTERVIEW_MODEL,
+      input: [
+        { role: 'system', content: systemPrompt },
+        ...conversationHistory,
+      ],
+      max_output_tokens: 500,
+    }, aiParams)
+  );
 
-  return response.choices[0]?.message?.content || 'Could you tell me more about that?';
+  return response.output_text || 'Could you tell me more about that?';
 }
 
 // Extract data points from the latest user response
 export async function extractDataPoints(
   userMessage: string,
   conversationContext: string,
-  currentData: Partial<InterviewDataPoints> | null
+  currentData: Partial<InterviewDataPoints> | null,
+  tier: SubscriptionTier = 'ENTERPRISE'
 ): Promise<Partial<Record<keyof InterviewDataPoints, DataPoint>>> {
   const extractionPrompt = `You are a data extraction assistant. Analyze the user's response and extract any business-related information into structured data points.
 
@@ -264,16 +279,21 @@ Available fields to extract:
 
 Only include fields where you can extract clear, specific information. Return an empty object {} if nothing can be extracted.`;
 
-  try {
-    const response = await openai.chat.completions.create({
-      model: EXTRACTION_MODEL,
-      messages: [{ role: 'user', content: extractionPrompt }],
-      temperature: 0.1, // Low temperature for consistent extraction
-      max_completion_tokens: 1000,
-      response_format: { type: 'json_object' },
-    });
+  // Get tier-based AI parameters for data extraction
+  const aiParams = getAIParams('dataExtraction', tier);
 
-    const content = response.choices[0]?.message?.content;
+  try {
+    // Use Responses API for GPT-5.2 reasoning support
+    const response = await openai.responses.create(
+      createResponsesParams({
+        model: EXTRACTION_MODEL,
+        input: extractionPrompt,
+        response_format: { type: 'json_object' },
+        max_output_tokens: 1000,
+      }, aiParams)
+    );
+
+    const content = response.output_text;
     if (!content) return {};
 
     const extracted = JSON.parse(content);

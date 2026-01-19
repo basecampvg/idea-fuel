@@ -44,26 +44,26 @@ interface BusinessFitItemProps {
 
 function BusinessFitItem({ icon, iconColorClass, title, description, value, isLink }: BusinessFitItemProps) {
   return (
-    <div className="flex items-center gap-3 py-3 border-b border-[#1e1e2a] last:border-0">
-      {/* Solid Icon Circle */}
+    <div className="flex items-center gap-3 py-3 border-b border-border last:border-0">
+      {/* Tinted Icon Circle */}
       <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${iconColorClass}`}>
         {icon}
       </div>
 
       {/* Text Column */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-white">{title}</p>
-        <p className="text-xs text-[#6a6a7a] truncate">{description}</p>
+        <p className="text-sm font-medium text-foreground">{title}</p>
+        <p className="text-xs text-muted-foreground truncate">{description}</p>
       </div>
 
       {/* Value OR Link */}
       {isLink ? (
-        <button className="flex items-center gap-1 text-sm text-[#00d4ff] hover:opacity-80 transition-opacity">
+        <button className="flex items-center gap-1 text-sm text-accent hover:opacity-80 transition-opacity">
           <span>Find Out</span>
           <ChevronRight className="w-4 h-4" />
         </button>
       ) : value ? (
-        <span className="text-sm font-semibold text-white shrink-0">{value}</span>
+        <span className="text-sm font-semibold text-foreground shrink-0">{value}</span>
       ) : null}
     </div>
   );
@@ -191,36 +191,36 @@ export function BusinessFit({
   const fit = getFounderFitDisplay(founderFit);
 
   return (
-    <div className="rounded-2xl bg-[#12121a] border border-[#1e1e2a] p-5">
-      <h2 className="text-base font-semibold text-white mb-4">
+    <div className="rounded-2xl bg-background border border-border p-5">
+      <h2 className="text-base font-semibold text-foreground mb-4">
         Business Fit
       </h2>
 
       <div className="space-y-0">
         <BusinessFitItem
           icon={<DollarSign className="w-5 h-5" />}
-          iconColorClass="bg-[#fbbf24] text-[#0a0a0f]"
+          iconColorClass="bg-[#fbbf24]/20 text-[#fbbf24]"
           title="Revenue Potential"
           description={revenue.description}
           value={revenue.value}
         />
         <BusinessFitItem
           icon={<Settings className="w-5 h-5" />}
-          iconColorClass="bg-[#8b5cf6] text-white"
+          iconColorClass="bg-[#8b5cf6]/20 text-[#8b5cf6]"
           title="Execution Difficulty"
           description={execution.description}
           value={execution.value}
         />
         <BusinessFitItem
           icon={<Rocket className="w-5 h-5" />}
-          iconColorClass="bg-[#e91e8c] text-white"
+          iconColorClass="bg-[#e91e8c]/20 text-[#e91e8c]"
           title="Go-To-Market"
           description={gtm.description}
           value={gtm.value}
         />
         <BusinessFitItem
           icon={<Target className="w-5 h-5" />}
-          iconColorClass="bg-[#f97316] text-white"
+          iconColorClass="bg-[#f97316]/20 text-[#f97316]"
           title="Right for You?"
           description={fit.description}
           isLink={true}

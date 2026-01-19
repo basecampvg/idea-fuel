@@ -3,6 +3,7 @@
 import { Fragment, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useEffect, useState } from 'react';
+import { X } from 'lucide-react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -11,6 +12,10 @@ interface ModalProps {
   description?: string;
   children: ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  /** Hide the close button */
+  hideCloseButton?: boolean;
+  /** Hide the header section */
+  hideHeader?: boolean;
 }
 
 const sizeStyles = {
@@ -27,6 +32,8 @@ export function Modal({
   description,
   children,
   size = 'md',
+  hideCloseButton = false,
+  hideHeader = false,
 }: ModalProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -57,11 +64,13 @@ export function Modal({
 
   if (!mounted || !isOpen) return null;
 
+  const showHeader = !hideHeader && (title || description);
+
   return createPortal(
     <Fragment>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 bg-black/50 transition-opacity"
+        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -69,52 +78,42 @@ export function Modal({
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
-          className={`w-full ${sizeStyles[size]} rounded-xl bg-white shadow-xl`}
+          className={`relative w-full ${sizeStyles[size]} rounded-2xl bg-card border border-border shadow-2xl animate-fade-in-up`}
           role="dialog"
           aria-modal="true"
           aria-labelledby={title ? 'modal-title' : undefined}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          {(title || description) && (
-            <div className="border-b border-gray-200 px-6 py-4">
+          {showHeader && (
+            <div className="border-b border-border px-6 py-4">
               {title && (
                 <h2
                   id="modal-title"
-                  className="text-lg font-semibold text-gray-900"
+                  className="text-lg font-semibold text-foreground"
                 >
                   {title}
                 </h2>
               )}
               {description && (
-                <p className="mt-1 text-sm text-gray-500">{description}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{description}</p>
               )}
             </div>
           )}
 
           {/* Content */}
-          <div className="px-6 py-4">{children}</div>
+          <div className={showHeader ? 'px-6 py-4' : 'p-6'}>{children}</div>
 
           {/* Close button */}
-          <button
-            onClick={onClose}
-            className="absolute right-4 top-4 rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500"
-            aria-label="Close"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          {!hideCloseButton && (
+            <button
+              onClick={onClose}
+              className="absolute right-4 top-4 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              aria-label="Close"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+              <X className="h-5 w-5" />
+            </button>
+          )}
         </div>
       </div>
     </Fragment>,

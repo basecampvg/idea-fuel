@@ -61,6 +61,28 @@ interface FounderFit {
   gaps: string[];
 }
 
+// Score justification types (matching backend ResearchScores)
+interface ScoreWithJustification {
+  score: number;
+  justification: string;
+  confidence: 'high' | 'medium' | 'low';
+}
+
+interface ScoreJustifications {
+  opportunity: ScoreWithJustification;
+  problem: ScoreWithJustification;
+  feasibility: ScoreWithJustification;
+  whyNow: ScoreWithJustification;
+}
+
+interface ScoreMetadata {
+  passCount: number;
+  maxDeviation: number;
+  averageConfidence: number;
+  flagged: boolean;
+  flagReason?: string;
+}
+
 interface Research {
   status: string;
   currentPhase: string;
@@ -77,6 +99,9 @@ interface Research {
   problemScore?: number | null;
   feasibilityScore?: number | null;
   whyNowScore?: number | null;
+  // Score justifications and metadata
+  scoreJustifications?: ScoreJustifications | unknown | null;
+  scoreMetadata?: ScoreMetadata | unknown | null;
   // Business fit metrics (Json from Prisma)
   revenuePotential?: RevenuePotential | unknown | null;
   executionDifficulty?: ExecutionDifficulty | unknown | null;
@@ -130,57 +155,60 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
       {/* 2. Downloads */}
       <DownloadsSection ideaId={idea.id} hasResearch={research?.status === 'COMPLETE'} />
 
-      {/* 3. Keyword Chart + Scores/BusinessFit */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <KeywordChart keywordTrends={research?.keywordTrends as KeywordTrend[] | null | undefined} />
-        <div className="space-y-5">
-          <ScoreCards
-            opportunityScore={research?.opportunityScore}
-            problemScore={research?.problemScore}
-            feasibilityScore={research?.feasibilityScore}
-            whyNowScore={research?.whyNowScore}
-          />
-          <BusinessFit
-            revenuePotential={research?.revenuePotential as RevenuePotential | null | undefined}
-            executionDifficulty={research?.executionDifficulty as ExecutionDifficulty | null | undefined}
-            gtmClarity={research?.gtmClarity as GTMClarity | null | undefined}
-            founderFit={research?.founderFit as FounderFit | null | undefined}
-          />
-        </div>
-      </div>
+      {/* 3. Score Cards (single row) */}
+      <ScoreCards
+        opportunityScore={research?.opportunityScore}
+        problemScore={research?.problemScore}
+        feasibilityScore={research?.feasibilityScore}
+        whyNowScore={research?.whyNowScore}
+        scoreJustifications={research?.scoreJustifications as ScoreJustifications | null | undefined}
+        scoreMetadata={research?.scoreMetadata as ScoreMetadata | null | undefined}
+        layout="horizontal"
+      />
 
-      {/* 4. Offer + Action Prompts */}
+      {/* 4. Keyword Chart (full width) */}
+      <KeywordChart keywordTrends={research?.keywordTrends as KeywordTrend[] | null | undefined} />
+
+      {/* 5. Business Fit */}
+      <BusinessFit
+        revenuePotential={research?.revenuePotential as RevenuePotential | null | undefined}
+        executionDifficulty={research?.executionDifficulty as ExecutionDifficulty | null | undefined}
+        gtmClarity={research?.gtmClarity as GTMClarity | null | undefined}
+        founderFit={research?.founderFit as FounderFit | null | undefined}
+      />
+
+      {/* 6. Offer + Action Prompts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <OfferSection offerTiers={research?.valueLadder as OfferTier[] | null | undefined} ideaTitle={idea.title} />
         <ActionPrompts actionPrompts={research?.actionPrompts as ActionPrompt[] | null | undefined} ideaTitle={idea.title} />
       </div>
 
-      {/* 5. Market Analysis */}
+      {/* 7. Market Analysis */}
       <MarketAnalysis marketAnalysis={research?.marketAnalysis as MarketAnalysisData | null | undefined} />
 
-      {/* 6. Why Now */}
+      {/* 8. Why Now */}
       <WhyNowSection whyNow={research?.whyNow as WhyNowData | null | undefined} />
 
-      {/* 7. Proof Signals */}
+      {/* 9. Proof Signals */}
       <ProofSignals proofSignals={research?.proofSignals as ProofSignalsData | null | undefined} />
 
-      {/* 8. Social Proof */}
+      {/* 10. Social Proof */}
       <SocialProofSection socialProof={research?.socialProof as SocialProofData | null | undefined} />
 
-      {/* 9. Competitors */}
+      {/* 11. Competitors */}
       <CompetitorsSection competitors={research?.competitors as Competitor[] | null | undefined} />
 
-      {/* 10. Pain Points */}
+      {/* 12. Pain Points */}
       <PainPointsSection painPoints={research?.painPoints as PainPoint[] | null | undefined} />
 
-      {/* 11. Reports Grid */}
+      {/* 13. Reports Grid */}
       {reports.length > 0 && (
-        <div className="rounded-2xl bg-[#12121a] border border-[#1e1e2a] p-5">
+        <div className="rounded-2xl bg-background border border-border p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-white">Your Reports</h2>
+            <h2 className="text-base font-semibold text-foreground">Your Reports</h2>
             <Link
               href={`/ideas/${idea.id}/reports`}
-              className="flex items-center gap-1 text-sm text-[#00d4ff] hover:opacity-80 transition-opacity"
+              className="flex items-center gap-1 text-sm text-accent hover:opacity-80 transition-opacity"
             >
               <span>View All</span>
               <ChevronRight className="w-4 h-4" />
@@ -190,16 +218,16 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
         </div>
       )}
 
-      {/* 12. Interview Summary */}
+      {/* 14. Interview Summary */}
       {completedInterview && (
-        <div className="rounded-2xl bg-[#12121a] border border-[#1e1e2a] p-5">
+        <div className="rounded-2xl bg-background border border-border p-5">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-[#22c55e]/20 flex items-center justify-center">
               <MessageSquare className="w-5 h-5 text-[#22c55e]" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-white">Interview Summary</h2>
-              <div className="flex items-center gap-2 text-sm text-[#a0a0b0]">
+              <h2 className="text-base font-semibold text-foreground">Interview Summary</h2>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span className="px-2 py-0.5 rounded-full bg-[#22c55e]/20 text-[#22c55e] text-xs font-medium">
                   {INTERVIEW_MODE_LABELS[completedInterview.mode] || completedInterview.mode}
                 </span>
@@ -210,10 +238,10 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
               </div>
             </div>
           </div>
-          <div className="flex gap-4 mt-4 pt-4 border-t border-[#1e1e2a]">
+          <div className="flex gap-4 mt-4 pt-4 border-t border-border">
             <Link
               href={`/ideas/${idea.id}/interview`}
-              className="flex items-center gap-1 text-sm text-[#00d4ff] hover:opacity-80 transition-opacity"
+              className="flex items-center gap-1 text-sm text-accent hover:opacity-80 transition-opacity"
             >
               <span>View Full Interview</span>
               <ChevronRight className="w-4 h-4" />
@@ -221,7 +249,7 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
             <button
               onClick={() => startInterview.mutate({ ideaId: idea.id, mode: 'IN_DEPTH' })}
               disabled={startInterview.isPending}
-              className="text-sm text-[#6a6a7a] hover:text-white transition-colors disabled:opacity-50"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
             >
               Start Another
             </button>
@@ -229,19 +257,19 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
         </div>
       )}
 
-      {/* 13. Actions */}
-      <div className="rounded-2xl bg-[#12121a] border border-[#1e1e2a] p-5">
+      {/* 15. Actions */}
+      <div className="rounded-2xl bg-background border border-border p-5">
         <div className="flex flex-wrap gap-3">
           <button
             disabled
-            className="flex items-center gap-2 px-4 py-2 text-sm rounded-xl bg-[#1a1a24] border border-[#1e1e2a] text-[#6a6a7a] opacity-50 cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 text-sm rounded-xl bg-card border border-border text-muted-foreground opacity-50 cursor-not-allowed"
           >
             <Download className="w-4 h-4" />
             Export All
           </button>
           <button
             disabled
-            className="flex items-center gap-2 px-4 py-2 text-sm rounded-xl bg-[#1a1a24] border border-[#1e1e2a] text-[#6a6a7a] opacity-50 cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 text-sm rounded-xl bg-card border border-border text-muted-foreground opacity-50 cursor-not-allowed"
           >
             <Share2 className="w-4 h-4" />
             Share

@@ -204,6 +204,13 @@ export const researchRouter = router({
       interviewMessages: (interview.messages as unknown as ChatMessage[]) || [],
     };
 
+    // Get user's subscription tier for AI parameters
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: ctx.userId },
+      select: { subscription: true },
+    });
+    const userTier = user?.subscription ?? 'FREE';
+
     // Run pipeline in background (non-blocking for MVP)
     // In production, this would be a BullMQ job
     const researchId = research.id;
@@ -212,6 +219,7 @@ export const researchRouter = router({
     // Run pipeline async without awaiting
     (async () => {
       try {
+        console.log('[Research] Starting pipeline with tier:', userTier);
         const result = await runResearchPipeline(researchInput, async (phase, progress) => {
           // Update progress in database
           await prisma.research.update({
@@ -221,7 +229,7 @@ export const researchRouter = router({
               progress,
             },
           });
-        });
+        }, userTier);
 
         // Save final results
         await prisma.research.update({
@@ -244,6 +252,8 @@ export const researchRouter = router({
             problemScore: result.scores.problemScore,
             feasibilityScore: result.scores.feasibilityScore,
             whyNowScore: result.scores.whyNowScore,
+            scoreJustifications: result.scores.justifications as object,
+            scoreMetadata: result.scores.metadata as object,
             revenuePotential: result.metrics.revenuePotential as object,
             executionDifficulty: result.metrics.executionDifficulty as object,
             gtmClarity: result.metrics.gtmClarity as object,

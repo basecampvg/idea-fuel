@@ -61,7 +61,7 @@ function TierCard({ tier, isLast }: { tier: ValueTier; isLast: boolean }) {
         </div>
 
         {/* Price */}
-        <p className="text-xl font-bold text-white mb-1">{tier.price}</p>
+        <p className="text-xl font-bold text-foreground mb-1">{tier.price}</p>
 
         {/* Name */}
         <h3 className="text-sm font-medium text-zinc-400 mb-3">{tier.name}</h3>
@@ -108,7 +108,7 @@ export function ValueLadder({ valueLadder: rawValueLadder, ideaId }: ValueLadder
   return (
     <div className="rounded-xl bg-[#13131a] border border-[#1f1f2e] p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-white">Value Ladder</h2>
+        <h2 className="text-lg font-semibold text-foreground">Value Ladder</h2>
         <Link
           href={`/ideas/${ideaId}/reports?type=VALUE_LADDER`}
           className="flex items-center gap-1 text-sm text-pink-400 hover:text-pink-300 transition-colors"

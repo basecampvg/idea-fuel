@@ -9,16 +9,10 @@ export default function HomePage() {
         </p>
         <div className="flex gap-4 justify-center">
           <a
-            href="/login"
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            href="/auth/signin"
+            className="px-6 py-3 bg-blue-600 text-foreground rounded-lg hover:bg-blue-700 transition-colors"
           >
             Get Started
-          </a>
-          <a
-            href="/about"
-            className="px-6 py-3 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            Learn More
           </a>
         </div>
       </div>

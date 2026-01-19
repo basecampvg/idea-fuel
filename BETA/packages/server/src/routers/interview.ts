@@ -318,6 +318,13 @@ export const interviewRouter = router({
       const messages = (interview.messages as unknown as ChatMessage[]) || [];
       const currentTurn = interview.currentTurn;
 
+      // Get user's subscription tier for AI parameters
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: ctx.userId },
+        select: { subscription: true },
+      });
+      const tier = user?.subscription ?? 'FREE';
+
       // 2. Add user message
       const userMessage: ChatMessage = {
         id: crypto.randomUUID(),
@@ -335,7 +342,7 @@ export const interviewRouter = router({
 
       // 4. Extract data points from user response
       const existingData = (interview.collectedData as Partial<InterviewDataPoints>) || {};
-      const extractedData = await extractDataPoints(input.content, conversationContext, existingData);
+      const extractedData = await extractDataPoints(input.content, conversationContext, existingData, tier);
       const mergedData = mergeCollectedData(existingData, extractedData, currentTurn + 1);
 
       // 5. Generate AI response
@@ -346,7 +353,8 @@ export const interviewRouter = router({
         messages,
         mergedData,
         currentTurn + 1,
-        interview.maxTurns
+        interview.maxTurns,
+        tier
       );
 
       // 6. Add assistant message
@@ -455,6 +463,13 @@ export const interviewRouter = router({
       interviewMessages: (interview.messages as unknown as ChatMessage[]) || [],
     };
 
+    // Get user's subscription tier for AI parameters
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: ctx.userId },
+      select: { subscription: true },
+    });
+    const userTier = user?.subscription ?? 'FREE';
+
     // Run pipeline in background (non-blocking)
     const researchId = research.id;
     const ideaId = interview.ideaId;
@@ -463,6 +478,7 @@ export const interviewRouter = router({
     (async () => {
       try {
         console.log('[Interview Complete] Starting research pipeline...');
+        console.log('[Interview Complete] Using tier:', userTier);
         const result = await runResearchPipeline(researchInput, async (phase, progress) => {
           await prisma.research.update({
             where: { id: researchId },
@@ -471,7 +487,7 @@ export const interviewRouter = router({
               progress,
             },
           });
-        });
+        }, userTier);
 
         // Save final results
         await prisma.research.update({
@@ -494,6 +510,8 @@ export const interviewRouter = router({
             problemScore: result.scores.problemScore,
             feasibilityScore: result.scores.feasibilityScore,
             whyNowScore: result.scores.whyNowScore,
+            scoreJustifications: result.scores.justifications as object,
+            scoreMetadata: result.scores.metadata as object,
             revenuePotential: result.metrics.revenuePotential as object,
             executionDifficulty: result.metrics.executionDifficulty as object,
             gtmClarity: result.metrics.gtmClarity as object,

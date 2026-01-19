@@ -27,7 +27,7 @@ function SignOutContent() {
         <div className="mt-8 space-y-4">
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-lg shadow-sm bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+            className="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-lg shadow-sm bg-red-600 text-foreground hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
           >
             Sign out
           </button>

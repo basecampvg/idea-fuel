@@ -45,7 +45,7 @@ export default function IdeaDetailPage({
   }
 
   return (
-    <div className="space-y-6 max-w-[1120px] mx-auto">
+    <div className="w-full space-y-6 max-w-[1120px] mx-auto px-6 py-8">
       {/* Header */}
       <IdeaHeader idea={idea} />
 

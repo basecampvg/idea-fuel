@@ -1,7 +1,8 @@
 // AI Knowledge Base
-// This module exports the knowledge.json configuration for use by AI services
+// This module exports the knowledge configuration for use by AI services
 
-import knowledgeJson from '../knowledge.json';
+// Import from TypeScript data file to avoid webpack JSON import issues
+import { KNOWLEDGE_DATA } from './knowledge.data';
 
 // Type definitions for the knowledge structure
 export interface KnowledgeConfig {
@@ -108,7 +109,7 @@ export interface KnowledgeConfig {
 }
 
 // Export the knowledge configuration
-export const KNOWLEDGE: KnowledgeConfig = knowledgeJson as KnowledgeConfig;
+export const KNOWLEDGE: KnowledgeConfig = KNOWLEDGE_DATA;
 
 // Helper: Build interview system prompt additions from knowledge
 export function getInterviewKnowledge(): string {

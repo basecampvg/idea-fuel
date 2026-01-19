@@ -1,9 +1,31 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { IDEA_STATUS_LABELS } from '@forge/shared';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 type IdeaStatus = 'CAPTURED' | 'INTERVIEWING' | 'RESEARCHING' | 'COMPLETE';
+
+// Summarize a long title/description to a shorter display title
+function summarizeTitle(text: string, maxLength: number = 60): string {
+  if (!text) return 'Untitled Idea';
+
+  // Clean up the text - take first line if multiline
+  const firstLine = text.split('\n')[0].trim();
+
+  // If already short enough, return as-is
+  if (firstLine.length <= maxLength) return firstLine;
+
+  // Try to cut at a natural boundary (space, punctuation)
+  const truncated = firstLine.substring(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(' ');
+
+  if (lastSpace > maxLength * 0.6) {
+    return truncated.substring(0, lastSpace) + '...';
+  }
+
+  return truncated + '...';
+}
 
 const statusConfig: Record<IdeaStatus, { label: string; color: string; bgColor: string; icon: React.ReactNode }> = {
   CAPTURED: {
@@ -52,13 +74,20 @@ interface IdeaHeaderProps {
   idea: {
     id: string;
     title: string;
+    description: string | null;
     status: string;
     createdAt: Date;
   };
 }
 
 export function IdeaHeader({ idea }: IdeaHeaderProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const status = statusConfig[idea.status as IdeaStatus] || statusConfig.CAPTURED;
+
+  // Use description as the source for the display title, fall back to title
+  const fullText = idea.description || idea.title;
+  const displayTitle = summarizeTitle(fullText, 65);
+  const hasMoreContent = fullText.length > 65 || (idea.description && idea.description !== idea.title);
 
   return (
     <div>
@@ -72,24 +101,56 @@ export function IdeaHeader({ idea }: IdeaHeaderProps) {
         Back to Vault
       </Link>
 
-      <div className="mt-4 flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold text-foreground">{idea.title}</h1>
-            {/* Status tag - different styling based on status */}
-            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.color}`}>
-              {status.icon}
-              <span>{status.label}</span>
+      <div className="mt-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl font-semibold text-foreground">{displayTitle}</h1>
+              {/* Status tag */}
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.color}`}>
+                {status.icon}
+                <span>{status.label}</span>
+              </div>
             </div>
+            <p className="mt-1.5 text-sm text-muted-foreground/60">
+              Created {new Date(idea.createdAt).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </p>
           </div>
-          <p className="mt-1.5 text-sm text-muted-foreground/60">
-            Created {new Date(idea.createdAt).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-            })}
-          </p>
         </div>
+
+        {/* Expandable full description */}
+        {hasMoreContent && (
+          <div className="mt-4">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronUp className="h-4 w-4" />
+                  <span>Hide full idea</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-4 w-4" />
+                  <span>Show full idea</span>
+                </>
+              )}
+            </button>
+
+            {isExpanded && (
+              <div className="mt-3 p-4 rounded-xl bg-card/50 border border-border">
+                <p className="text-sm text-foreground/80 whitespace-pre-wrap leading-relaxed">
+                  {idea.description || idea.title}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

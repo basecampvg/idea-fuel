@@ -1,6 +1,7 @@
 'use client';
 
 import { Zap, Clock, TrendingUp } from 'lucide-react';
+import { CollapsibleSection } from './collapsible-section';
 
 export interface WhyNowData {
   marketTriggers: string[];
@@ -27,7 +28,7 @@ function UrgencyMeter({ score }: { score: number }) {
 
   return (
     <div className="flex items-center gap-3">
-      <div className="flex-1 h-2 rounded-full bg-[#1e1e2a] overflow-hidden">
+      <div className="flex-1 h-2 rounded-full bg-border overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{ width: `${score}%`, backgroundColor: getColor() }}
@@ -37,7 +38,7 @@ function UrgencyMeter({ score }: { score: number }) {
         <span className="text-sm font-semibold tabular-nums" style={{ color: getColor() }}>
           {score}
         </span>
-        <span className="text-xs text-[#6a6a7a]">{getLabel()}</span>
+        <span className="text-xs text-muted-foreground">{getLabel()}</span>
       </div>
     </div>
   );
@@ -47,18 +48,15 @@ export function WhyNowSection({ whyNow }: WhyNowSectionProps) {
   if (!whyNow) return null;
 
   return (
-    <div className="rounded-2xl bg-[#12121a] border border-[#1e1e2a] p-6">
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-10 h-10 rounded-full bg-[#f59e0b]/20 flex items-center justify-center">
-          <Zap className="w-5 h-5 text-[#f59e0b]" />
-        </div>
-        <h2 className="text-base font-semibold text-white">Why Now?</h2>
-      </div>
-
+    <CollapsibleSection
+      icon={<Zap className="w-5 h-5 text-[#f59e0b]" />}
+      iconBgColor="rgba(245, 158, 11, 0.2)"
+      title="Why Now?"
+    >
       <div className="space-y-5">
         {/* Urgency Score */}
         <div>
-          <p className="text-xs text-[#6a6a7a] uppercase tracking-wider mb-2">Market Urgency</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Market Urgency</p>
           <UrgencyMeter score={whyNow.urgencyScore} />
         </div>
 
@@ -67,11 +65,11 @@ export function WhyNowSection({ whyNow }: WhyNowSectionProps) {
           <div>
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="w-4 h-4 text-[#e91e8c]" />
-              <p className="text-sm font-medium text-white">Market Triggers</p>
+              <p className="text-sm font-medium text-foreground">Market Triggers</p>
             </div>
             <ul className="space-y-2">
               {whyNow.marketTriggers.map((trigger, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-[#a0a0b0]">
+                <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
                   <span className="text-[#e91e8c] mt-0.5">&#8594;</span>
                   <span>{trigger}</span>
                 </li>
@@ -85,11 +83,11 @@ export function WhyNowSection({ whyNow }: WhyNowSectionProps) {
           <div>
             <div className="flex items-center gap-2 mb-3">
               <Clock className="w-4 h-4 text-[#4ecdc4]" />
-              <p className="text-sm font-medium text-white">Timing Factors</p>
+              <p className="text-sm font-medium text-foreground">Timing Factors</p>
             </div>
             <ul className="space-y-2">
               {whyNow.timingFactors.map((factor, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-[#a0a0b0]">
+                <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
                   <span className="text-[#4ecdc4] mt-0.5">&#9679;</span>
                   <span>{factor}</span>
                 </li>
@@ -98,6 +96,6 @@ export function WhyNowSection({ whyNow }: WhyNowSectionProps) {
           </div>
         )}
       </div>
-    </div>
+    </CollapsibleSection>
   );
 }

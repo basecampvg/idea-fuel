@@ -1,6 +1,7 @@
 'use client';
 
 import { TrendingUp, Target, AlertTriangle, Sparkles, BarChart3 } from 'lucide-react';
+import { CollapsibleSection } from './collapsible-section';
 
 export interface MarketAnalysisData {
   size: string;
@@ -18,27 +19,24 @@ export function MarketAnalysis({ marketAnalysis }: MarketAnalysisProps) {
   if (!marketAnalysis) return null;
 
   return (
-    <div className="rounded-2xl bg-[#12121a] border border-[#1e1e2a] p-6">
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-10 h-10 rounded-full bg-[#00d4ff]/20 flex items-center justify-center">
-          <BarChart3 className="w-5 h-5 text-[#00d4ff]" />
-        </div>
-        <h2 className="text-base font-semibold text-white">Market Analysis</h2>
-      </div>
-
+    <CollapsibleSection
+      icon={<BarChart3 className="w-5 h-5 text-accent" />}
+      iconBgColor="rgba(0, 212, 255, 0.2)"
+      title="Market Analysis"
+    >
       <div className="space-y-5">
         {/* Size & Growth */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="p-4 rounded-xl bg-[#1a1a24] border border-[#1e1e2a]">
-            <p className="text-xs text-[#6a6a7a] uppercase tracking-wider mb-1">Market Size</p>
-            <p className="text-sm text-white">{marketAnalysis.size}</p>
+          <div className="p-4 rounded-xl bg-card border border-border">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Market Size</p>
+            <p className="text-sm text-foreground">{marketAnalysis.size}</p>
           </div>
-          <div className="p-4 rounded-xl bg-[#1a1a24] border border-[#1e1e2a]">
+          <div className="p-4 rounded-xl bg-card border border-border">
             <div className="flex items-center gap-2 mb-1">
               <TrendingUp className="w-3 h-3 text-[#22c55e]" />
-              <p className="text-xs text-[#6a6a7a] uppercase tracking-wider">Growth</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Growth</p>
             </div>
-            <p className="text-sm text-white">{marketAnalysis.growth}</p>
+            <p className="text-sm text-foreground">{marketAnalysis.growth}</p>
           </div>
         </div>
 
@@ -47,7 +45,7 @@ export function MarketAnalysis({ marketAnalysis }: MarketAnalysisProps) {
           <div>
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-4 h-4 text-[#8b5cf6]" />
-              <p className="text-sm font-medium text-white">Trends</p>
+              <p className="text-sm font-medium text-foreground">Trends</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {marketAnalysis.trends.map((trend, i) => (
@@ -69,11 +67,11 @@ export function MarketAnalysis({ marketAnalysis }: MarketAnalysisProps) {
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <Target className="w-4 h-4 text-[#22c55e]" />
-                <p className="text-sm font-medium text-white">Opportunities</p>
+                <p className="text-sm font-medium text-foreground">Opportunities</p>
               </div>
               <ul className="space-y-2">
                 {marketAnalysis.opportunities.map((opp, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-[#a0a0b0]">
+                  <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
                     <span className="text-[#22c55e] mt-1">+</span>
                     <span>{opp}</span>
                   </li>
@@ -87,11 +85,11 @@ export function MarketAnalysis({ marketAnalysis }: MarketAnalysisProps) {
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <AlertTriangle className="w-4 h-4 text-[#f59e0b]" />
-                <p className="text-sm font-medium text-white">Threats</p>
+                <p className="text-sm font-medium text-foreground">Threats</p>
               </div>
               <ul className="space-y-2">
                 {marketAnalysis.threats.map((threat, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-[#a0a0b0]">
+                  <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
                     <span className="text-[#f59e0b] mt-1">!</span>
                     <span>{threat}</span>
                   </li>
@@ -101,6 +99,6 @@ export function MarketAnalysis({ marketAnalysis }: MarketAnalysisProps) {
           )}
         </div>
       </div>
-    </div>
+    </CollapsibleSection>
   );
 }

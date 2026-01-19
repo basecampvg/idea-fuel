@@ -120,6 +120,8 @@ See `.env.example` for complete list. Key requirements:
 - `AUTH_SECRET` - Auth.js encryption key
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - Google OAuth
 - `OPENAI_API_KEY` - For AI interview/report generation
+- `OPENAI_USE_GPT52_PARAMS` - Enable GPT-5.2 reasoning/verbosity params (true/false)
+- `SERPAPI_API_KEY` - For Google Trends keyword data
 
 ### n8n Automation (Cloud Hosted)
 
@@ -410,6 +412,19 @@ npx expo-doctor
 ---
 
 ## Change Log
+
+### 2026-01-18
+- ✅ **OpenAI Responses API Migration** - Migrated from Chat Completions to Responses API
+  - All 12 API calls migrated (`interview-ai.ts`: 3, `research-ai.ts`: 9)
+  - Enables GPT-5.2 `reasoning.effort` and `text.verbosity` parameters
+  - Tier-based AI presets (FREE/PRO/ENTERPRISE) for quality scaling
+  - Feature flag: `OPENAI_USE_GPT52_PARAMS` in `.env` (true/false)
+  - Fixed JSON truncation in `generateActionPrompts` (increased to 4000 tokens)
+- ✅ **Environment Variable Loading Fixed** - Monorepo `.env` loading
+  - Web package: Added `dotenv-cli` to load `BETA/.env` via dev script
+  - Server package: Added `--env-file` flag to tsx dev script
+  - Single `.env` file at `BETA/.env` now works for all packages
+- ✅ **OpenAI Package Updated** - Updated to latest version (^6.16.0)
 
 ### 2026-01-17
 - ✅ **Home Page Redesign** - New dark theme UI for web dashboard

@@ -1,6 +1,7 @@
 'use client';
 
 import { MessageCircle, ThumbsUp, MessageSquare, Share2, ArrowUp, ExternalLink } from 'lucide-react';
+import { CollapsibleSection } from './collapsible-section';
 
 export interface SocialProofPost {
   platform: 'reddit' | 'facebook' | 'twitter';
@@ -38,7 +39,7 @@ function PlatformIcon({ platform }: { platform: string }) {
 
   return (
     <div
-      className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
+      className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-foreground"
       style={{ backgroundColor: config.color }}
     >
       {config.label[0]}
@@ -50,8 +51,8 @@ function SentimentBadge({ sentiment }: { sentiment: string }) {
   const config = {
     positive: { bg: 'bg-[#22c55e]/10', text: 'text-[#22c55e]' },
     negative: { bg: 'bg-[#ef4444]/10', text: 'text-[#ef4444]' },
-    neutral: { bg: 'bg-[#6a6a7a]/10', text: 'text-[#6a6a7a]' },
-  }[sentiment] || { bg: 'bg-[#6a6a7a]/10', text: 'text-[#6a6a7a]' };
+    neutral: { bg: 'bg-[#6a6a7a]/10', text: 'text-muted-foreground' },
+  }[sentiment] || { bg: 'bg-[#6a6a7a]/10', text: 'text-muted-foreground' };
 
   return (
     <span className={`px-2 py-0.5 text-xs rounded-full ${config.bg} ${config.text}`}>
@@ -67,22 +68,22 @@ function formatNumber(num: number): string {
 
 function PostCard({ post }: { post: SocialProofPost }) {
   return (
-    <div className="p-4 rounded-xl bg-[#1a1a24] border border-[#1e1e2a]">
+    <div className="p-4 rounded-xl bg-card border border-border">
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex items-center gap-2">
           <PlatformIcon platform={post.platform} />
           <div>
-            <p className="text-xs font-medium text-white">{post.author}</p>
-            <p className="text-xs text-[#6a6a7a]">{post.date}</p>
+            <p className="text-xs font-medium text-foreground">{post.author}</p>
+            <p className="text-xs text-muted-foreground">{post.date}</p>
           </div>
         </div>
         <SentimentBadge sentiment={post.sentiment} />
       </div>
 
-      <p className="text-sm text-[#a0a0b0] mb-3 line-clamp-3">{post.content}</p>
+      <p className="text-sm text-muted-foreground mb-3 line-clamp-3">{post.content}</p>
 
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 text-xs text-[#6a6a7a]">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
           {post.engagement.upvotes !== undefined && (
             <span className="flex items-center gap-1">
               <ArrowUp className="w-3 h-3" />
@@ -112,7 +113,7 @@ function PostCard({ post }: { post: SocialProofPost }) {
           href={post.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs text-[#00d4ff] hover:opacity-80 flex items-center gap-1"
+          className="text-xs text-accent hover:opacity-80 flex items-center gap-1"
         >
           <ExternalLink className="w-3 h-3" />
           View
@@ -126,19 +127,14 @@ export function SocialProofSection({ socialProof }: SocialProofSectionProps) {
   if (!socialProof || socialProof.posts.length === 0) return null;
 
   return (
-    <div className="rounded-2xl bg-[#12121a] border border-[#1e1e2a] p-6">
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-10 h-10 rounded-full bg-[#1da1f2]/20 flex items-center justify-center">
-          <MessageCircle className="w-5 h-5 text-[#1da1f2]" />
-        </div>
-        <div>
-          <h2 className="text-base font-semibold text-white">Social Proof</h2>
-          <p className="text-xs text-[#6a6a7a]">What people are saying online</p>
-        </div>
-      </div>
-
+    <CollapsibleSection
+      icon={<MessageCircle className="w-5 h-5 text-[#1da1f2]" />}
+      iconBgColor="rgba(29, 161, 242, 0.2)"
+      title="Social Proof"
+      subtitle="What people are saying online"
+    >
       {/* Summary */}
-      <p className="text-sm text-[#a0a0b0] mb-5 p-3 rounded-lg bg-[#1a1a24] border-l-2 border-[#1da1f2]">
+      <p className="text-sm text-muted-foreground mb-5 p-3 rounded-lg bg-card border-l-2 border-[#1da1f2]">
         {socialProof.summary}
       </p>
 
@@ -150,10 +146,10 @@ export function SocialProofSection({ socialProof }: SocialProofSectionProps) {
       </div>
 
       {/* Validated Pain Points & Demand Signals */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-[#1e1e2a]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border">
         {socialProof.painPointsValidated.length > 0 && (
           <div>
-            <p className="text-xs text-[#6a6a7a] uppercase tracking-wider mb-2">Pain Points Validated</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Pain Points Validated</p>
             <div className="flex flex-wrap gap-2">
               {socialProof.painPointsValidated.map((point, i) => (
                 <span key={i} className="text-xs px-2 py-1 rounded-full bg-[#22c55e]/10 text-[#22c55e]">
@@ -165,7 +161,7 @@ export function SocialProofSection({ socialProof }: SocialProofSectionProps) {
         )}
         {socialProof.demandSignals.length > 0 && (
           <div>
-            <p className="text-xs text-[#6a6a7a] uppercase tracking-wider mb-2">Demand Signals</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Demand Signals</p>
             <div className="flex flex-wrap gap-2">
               {socialProof.demandSignals.map((signal, i) => (
                 <span key={i} className="text-xs px-2 py-1 rounded-full bg-[#8b5cf6]/10 text-[#8b5cf6]">
@@ -176,6 +172,6 @@ export function SocialProofSection({ socialProof }: SocialProofSectionProps) {
           </div>
         )}
       </div>
-    </div>
+    </CollapsibleSection>
   );
 }

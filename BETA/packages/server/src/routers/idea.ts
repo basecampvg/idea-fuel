@@ -238,9 +238,17 @@ export const ideaRouter = router({
     }
 
     // For LIGHT and IN_DEPTH modes, create an active interview with opening question
+    // Get user's subscription tier for AI parameters
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: ctx.userId },
+      select: { subscription: true },
+    });
+    const tier = user?.subscription ?? 'FREE';
+
     // Generate AI opening question
     console.log('[Idea Router] Generating opening question...');
-    const openingQuestion = await generateOpeningQuestion(idea.title, idea.description, mode as InterviewMode);
+    console.log('[Idea Router] Using tier:', tier);
+    const openingQuestion = await generateOpeningQuestion(idea.title, idea.description, mode as InterviewMode, tier);
     console.log('[Idea Router] Opening question generated:', openingQuestion.substring(0, 100) + '...');
 
     // Create opening message

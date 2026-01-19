@@ -2,61 +2,12 @@
 
 /* Import fonts - Inter for body, Space Grotesk for headings */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
 
 :root {
-  /* ===== HSL COLOR SYSTEM (Matching Lovable Design) ===== */
-
-  /* Core Colors */
-  --background: 222 47% 6%;
-  --foreground: 210 40% 98%;
-  --card: 222 47% 8%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222 47% 8%;
-  --popover-foreground: 210 40% 98%;
-
-  /* Primary (Pink/Magenta) - Forge button, active states */
-  --primary: 326 80% 65%;
-  --primary-foreground: 210 40% 98%;
-
-  /* Secondary (Purple) - Score accents */
-  --secondary: 260 60% 55%;
-  --secondary-foreground: 210 40% 98%;
-
-  /* Accent (Cyan) - Links, report pills */
-  --accent: 200 80% 60%;
-  --accent-foreground: 222 47% 6%;
-
-  /* Muted - Tertiary text */
-  --muted: 222 30% 15%;
-  --muted-foreground: 215 20% 65%;
-
-  /* Borders & Inputs */
-  --border: 222 30% 18%;
-  --input: 222 30% 18%;
-  --ring: 326 80% 65%;
-
-  /* Status Colors */
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 210 40% 98%;
-  --success: 142 76% 36%;
-  --success-foreground: 210 40% 98%;
-  --warning: 38 92% 50%;
-  --warning-foreground: 222 47% 6%;
-  --info: 217 91% 60%;
-  --info-foreground: 210 40% 98%;
-
-  /* Score Colors */
-  --score-opportunity: 142 76% 36%;
-  --score-problem: 326 80% 65%;
-  --score-feasibility: 180 70% 45%;
-  --score-whynow: 260 60% 55%;
-
-  /* Chart Colors */
-  --chart-1: 326 80% 65%;
-  --chart-2: 260 60% 55%;
-  --chart-3: 200 80% 60%;
-  --chart-4: 180 70% 45%;
-  --chart-5: 45 93% 47%;
+  /* ===== SHARED VARIABLES ===== */
 
   /* Aurora Gradient */
   --gradient-aurora: linear-gradient(135deg,
@@ -67,7 +18,7 @@
     hsl(180, 70%, 45%) 100%);
 
   /* Radius */
-  --radius: 0.75rem;
+  --radius: 0.625rem;
 
   /* Typography */
   --font-sans: 'Inter', system-ui, sans-serif;
@@ -79,7 +30,77 @@
   --transition-spring: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* ===== LIGHT THEME ===== */
+/* Base: #d9d9d9 (background), #c4c4c4 (card) */
+
+html.light {
+  /* Core Colors */
+  --background: 0 0% 85%;
+  --foreground: 0 0% 10%;
+  --card: 0 0% 77%;
+  --card-foreground: 0 0% 10%;
+  --popover: 0 0% 85%;
+  --popover-foreground: 0 0% 10%;
+
+  /* Primary (Pink/Magenta) - for buttons and accents */
+  --primary: 326 80% 50%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary (Purple) */
+  --secondary: 260 60% 50%;
+  --secondary-foreground: 0 0% 100%;
+
+  /* Accent (Cyan) - links and highlights */
+  --accent: 200 80% 40%;
+  --accent-foreground: 0 0% 100%;
+
+  /* Muted */
+  --muted: 0 0% 72%;
+  --muted-foreground: 0 0% 35%;
+
+  /* Borders & Inputs - subtle, just a few shades lighter than background */
+  --border: 0 0% 80%;
+  --input: 0 0% 80%;
+  --ring: 326 80% 50%;
+
+  /* Status Colors */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 142 76% 36%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 222 47% 11%;
+  --info: 217 91% 60%;
+  --info-foreground: 0 0% 100%;
+
+  /* Score Colors - remain vibrant */
+  --score-opportunity: 142 70% 35%;
+  --score-problem: 326 75% 45%;
+  --score-feasibility: 180 65% 40%;
+  --score-whynow: 260 55% 50%;
+
+  /* Chart Colors */
+  --chart-1: 326 75% 50%;
+  --chart-2: 260 55% 50%;
+  --chart-3: 200 75% 45%;
+  --chart-4: 180 65% 40%;
+  --chart-5: 45 90% 45%;
+
+  /* Aurora Gradient - lighter version */
+  --gradient-aurora: linear-gradient(135deg,
+    hsl(326, 75%, 60%) 0%,
+    hsl(280, 65%, 55%) 25%,
+    hsl(260, 55%, 50%) 50%,
+    hsl(200, 75%, 55%) 75%,
+    hsl(180, 65%, 50%) 100%);
+}
+
 /* ===== BASE STYLES ===== */
+
+html {
+  /* Prevent layout shift when scrollbar appears/disappears */
+  scrollbar-gutter: stable;
+}
 
 body {
   color: hsl(var(--foreground));
@@ -150,6 +171,19 @@ body {
   animation: aurora-float-3 20s ease-in-out infinite;
   pointer-events: none;
   z-index: 0;
+}
+
+/* Light mode aurora - subtle on gray backgrounds */
+html.light .aurora-orb-1 {
+  background: radial-gradient(circle, hsl(326, 60%, 50%, 0.12) 0%, transparent 70%);
+}
+
+html.light .aurora-orb-2 {
+  background: radial-gradient(circle, hsl(260, 50%, 50%, 0.08) 0%, transparent 70%);
+}
+
+html.light .aurora-orb-3 {
+  background: radial-gradient(circle, hsl(200, 60%, 50%, 0.06) 0%, transparent 70%);
 }
 
 @keyframes aurora-float-1 {
@@ -807,4 +841,121 @@ body {
   font-size: 12px;
   color: hsl(var(--muted-foreground) / 0.7);
   margin-top: 4px;
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+}
+
+/* ===== DARK THEME (Default) ===== */
+/* Base: #11100E (near-black with warm undertone) */
+.dark,
+:root {
+  /* Core Colors */
+  --background: 40 10% 6%;
+  --foreground: 40 5% 90%;
+  --card: 40 8% 10%;
+  --card-foreground: 40 5% 90%;
+  --popover: 40 8% 10%;
+  --popover-foreground: 40 5% 90%;
+
+  /* Primary (Pink/Magenta) - Forge button, active states */
+  --primary: 326 80% 55%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary (Purple) - Score accents */
+  --secondary: 260 60% 55%;
+  --secondary-foreground: 0 0% 100%;
+
+  /* Accent (Cyan) - Links, report pills */
+  --accent: 180 70% 45%;
+  --accent-foreground: 0 0% 100%;
+
+  /* Muted - Tertiary text */
+  --muted: 40 6% 15%;
+  --muted-foreground: 40 5% 55%;
+
+  /* Borders & Inputs - very subtle, barely visible separation */
+  --border: 40 6% 8%;
+  --input: 40 6% 12%;
+  --ring: 326 80% 55%;
+
+  /* Status Colors */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 142 76% 36%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 222 47% 11%;
+  --info: 217 91% 60%;
+  --info-foreground: 0 0% 100%;
+
+  /* Score Colors */
+  --score-opportunity: 142 76% 36%;
+  --score-problem: 326 80% 65%;
+  --score-feasibility: 180 70% 45%;
+  --score-whynow: 260 60% 55%;
+
+  /* Chart Colors */
+  --chart-1: 326 80% 55%;
+  --chart-2: 260 60% 55%;
+  --chart-3: 180 70% 45%;
+  --chart-4: 142 76% 36%;
+  --chart-5: 38 92% 50%;
+
+  /* Sidebar */
+  --sidebar: 40 8% 10%;
+  --sidebar-foreground: 40 5% 90%;
+  --sidebar-primary: 326 80% 55%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 40 6% 15%;
+  --sidebar-accent-foreground: 40 5% 90%;
+  --sidebar-border: 40 6% 8%;
+  --sidebar-ring: 326 80% 55%;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

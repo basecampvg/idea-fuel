@@ -4,3 +4,14 @@
 export { appRouter, type AppRouter } from './routers';
 export { createContext, createInternalContext, type Context, type Session, type CreateContextOptions } from './context';
 export { prisma } from './db';
+
+// External API clients
+export {
+  getTrendData,
+  compareTrends,
+  batchGetTrendData,
+  getTrendingNow,
+  isSerpApiConfigured,
+  type TrendData,
+  type TrendComparison,
+} from './lib/serpapi';

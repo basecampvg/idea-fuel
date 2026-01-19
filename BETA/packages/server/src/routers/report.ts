@@ -4,6 +4,7 @@ import { generateReportSchema, updateReportSchema, paginationSchema } from '@for
 import { getReportTier, REPORT_TYPE_LABELS } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
 import type { ReportType, ReportTier } from '@prisma/client';
+import { generatePDFBuffer, getPDFFilename } from '../lib/pdf';
 
 export const reportRouter = router({
   /**
@@ -310,4 +311,117 @@ export const reportRouter = router({
       message: 'Report generation queued for all 10 report types',
     };
   }),
+
+  /**
+   * Generate PDF for a report
+   * Returns base64-encoded PDF data and filename
+   */
+  downloadPDF: protectedProcedure
+    .input(
+      z.object({
+        ideaId: z.string().cuid(),
+        reportType: z.enum([
+          'BUSINESS_PLAN',
+          'POSITIONING',
+          'COMPETITIVE_ANALYSIS',
+          'WHY_NOW',
+          'PROOF_SIGNALS',
+          'KEYWORDS_SEO',
+          'CUSTOMER_PROFILE',
+          'VALUE_EQUATION',
+          'VALUE_LADDER',
+          'GO_TO_MARKET',
+        ]),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Get idea with research data
+      const idea = await ctx.prisma.idea.findFirst({
+        where: {
+          id: input.ideaId,
+          userId: ctx.userId,
+        },
+        include: {
+          research: true,
+        },
+      });
+
+      if (!idea) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Idea not found',
+        });
+      }
+
+      // Get or create report for this type
+      let report = await ctx.prisma.report.findFirst({
+        where: {
+          ideaId: input.ideaId,
+          type: input.reportType as ReportType,
+          userId: ctx.userId,
+        },
+      });
+
+      // If no report exists, create a basic one
+      if (!report) {
+        const user = await ctx.prisma.user.findUnique({
+          where: { id: ctx.userId },
+          select: { subscription: true },
+        });
+
+        const interviewMode = 'LIGHT'; // Default
+        const reportTier = getReportTier(interviewMode, user?.subscription ?? 'FREE') as ReportTier;
+        const title = REPORT_TYPE_LABELS[input.reportType] ?? input.reportType;
+
+        report = await ctx.prisma.report.create({
+          data: {
+            type: input.reportType as ReportType,
+            tier: reportTier,
+            title,
+            content: JSON.stringify({
+              executiveSummary: idea.description,
+            }),
+            sections: { included: ['summary'], locked: [] },
+            status: 'COMPLETE',
+            ideaId: input.ideaId,
+            userId: ctx.userId,
+          },
+        });
+      }
+
+      // Generate PDF
+      try {
+        const pdfBuffer = await generatePDFBuffer({
+          idea: {
+            id: idea.id,
+            title: idea.title,
+            description: idea.description,
+          },
+          report: {
+            id: report.id,
+            type: report.type as ReportType,
+            tier: report.tier as ReportTier,
+            title: report.title,
+            content: report.content,
+            sections: report.sections,
+          },
+          research: idea.research,
+        });
+
+        const filename = getPDFFilename(idea.title, input.reportType);
+
+        return {
+          success: true,
+          filename,
+          contentType: 'application/pdf',
+          data: pdfBuffer.toString('base64'),
+        };
+      } catch (error) {
+        console.error('PDF generation error:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to generate PDF',
+        });
+      }
+    }),
 });

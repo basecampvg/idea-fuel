@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
+import { useSubscription } from '@/components/subscription/use-subscription';
 import { LoadingScreen } from '@/components/ui/spinner';
-import { Flame, TextQuote, Zap, Bookmark, ArrowUp, TrendingUp, Paperclip, Sparkles, FileText, Target, TrendingUp as TrendUp, DollarSign } from 'lucide-react';
+import { Flame, Feather, Zap, Bookmark, ArrowUp, TrendingUp, Paperclip, Sparkles, FileText, Target, TrendingUp as TrendUp, DollarSign, Lock } from 'lucide-react';
 
 type InterviewMode = 'LIGHTNING' | 'LIGHT' | 'IN_DEPTH';
 
@@ -146,7 +147,7 @@ const actionButtons: ActionButton[] = [
   },
   {
     id: 'LIGHT',
-    icon: <TextQuote className="h-4 w-4" />,
+    icon: <Feather className="h-4 w-4" />,
     label: 'Light',
     description: '10 questions - essential insights',
   },
@@ -176,6 +177,7 @@ const isDev = process.env.NODE_ENV === 'development';
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { canCreateIdea, canAccessMode, showUpgradePrompt, currentIdeaCount, features } = useSubscription();
   const [ideaDescription, setIdeaDescription] = useState('');
   const [selectedMode, setSelectedMode] = useState<string>('IN_DEPTH');
   const [hoveredMode, setHoveredMode] = useState<string | null>(null);
@@ -204,7 +206,7 @@ export default function DashboardPage() {
   );
   const createIdea = trpc.idea.create.useMutation();
   const startInterview = trpc.idea.startInterview.useMutation();
-  const startResearch = trpc.idea.startResearch.useMutation();
+  const startResearch = trpc.research.start.useMutation();
   const sendMessage = trpc.interview.chat.useMutation();
   const completeInterview = trpc.interview.complete.useMutation();
 
@@ -227,6 +229,22 @@ export default function DashboardPage() {
   const executeSelectedMode = async () => {
     if (!canSubmit || isSubmitting) return;
 
+    // Check idea limit
+    if (!canCreateIdea(currentIdeaCount)) {
+      showUpgradePrompt({
+        type: 'idea_limit',
+        currentCount: currentIdeaCount,
+        limit: features.maxIdeas,
+      });
+      return;
+    }
+
+    // Check interview mode access (for IN_DEPTH)
+    if (selectedMode === 'IN_DEPTH' && !canAccessMode('IN_DEPTH')) {
+      showUpgradePrompt({ type: 'interview_mode', mode: 'IN_DEPTH' });
+      return;
+    }
+
     setIsExecuting(true);
 
     try {
@@ -241,7 +259,7 @@ export default function DashboardPage() {
         router.push(`/ideas/${idea.id}`);
       } else if (selectedMode === 'LIGHTNING') {
         await startInterview.mutateAsync({ ideaId: idea.id, mode: 'LIGHTNING' });
-        await startResearch.mutateAsync({ id: idea.id });
+        await startResearch.mutateAsync({ ideaId: idea.id });
         router.push(`/ideas/${idea.id}`);
       } else {
         // LIGHT or IN_DEPTH - start inline interview
@@ -376,7 +394,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Main Content Area */}
-        <div className="w-full max-w-3xl flex flex-col items-center justify-center flex-1">
+        <div className="w-full max-w-[1120px] flex flex-col items-center justify-center flex-1">
           {/* Idea Title */}
           <p className="text-muted-foreground text-sm mb-6">
             {interviewModeState === 'IN_DEPTH' ? 'Forging' : 'Exploring'}: {ideaTitle}
@@ -492,7 +510,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Idea Input Card */}
-      <div className="w-full max-w-2xl animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+      <div className="w-full max-w-[1120px] animate-fade-in-up" style={{ animationDelay: '100ms' }}>
         <div
           className={`
             relative rounded-2xl bg-card/80 backdrop-blur-sm border transition-all duration-500
@@ -541,6 +559,7 @@ export default function DashboardPage() {
                 {actionButtons.map((mode) => {
                   const isSelected = selectedMode === mode.id;
                   const isHovered = hoveredMode === mode.id;
+                  const isLocked = mode.id === 'IN_DEPTH' && !canAccessMode('IN_DEPTH');
 
                   return (
                     <div key={mode.id} className="relative">
@@ -549,21 +568,30 @@ export default function DashboardPage() {
                         onMouseEnter={() => setHoveredMode(mode.id)}
                         onMouseLeave={() => setHoveredMode(null)}
                         className={`
-                          flex items-center justify-center p-2.5 rounded-lg transition-all
+                          flex items-center justify-center p-2.5 rounded-lg transition-all relative
                           ${isSelected
-                            ? 'bg-primary text-white shadow-sm'
+                            ? 'bg-primary text-foreground shadow-sm'
                             : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted/50'
                           }
+                          ${isLocked ? 'opacity-60' : ''}
                         `}
                       >
                         {mode.icon}
+                        {isLocked && (
+                          <Lock className="w-2.5 h-2.5 absolute -top-0.5 -right-0.5 text-primary" />
+                        )}
                       </button>
 
                       {/* Tooltip on hover */}
                       {isHovered && (
                         <div className="absolute bottom-full left-1/2 z-50 mb-2.5 -translate-x-1/2 whitespace-nowrap pointer-events-none animate-fade-in-up">
                           <div className="rounded-xl bg-card border border-border px-3 py-2 shadow-xl">
-                            <div className="font-medium text-foreground text-xs">{mode.label}</div>
+                            <div className="font-medium text-foreground text-xs flex items-center gap-1.5">
+                              {mode.label}
+                              {isLocked && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/20 text-primary">PRO</span>
+                              )}
+                            </div>
                             <div className="text-xs text-muted-foreground mt-0.5">{mode.description}</div>
                           </div>
                         </div>
