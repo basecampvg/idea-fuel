@@ -128,9 +128,10 @@ enum InterviewMode {
   IN_DEPTH  // More turns, comprehensive data collection
 }
 
-// Research model - long-running background job (4-6 hours)
+// Research model - powered by o3-deep-research with web search
 // Triggered after interview completion
-// Phases: QUEUED → QUERY_GENERATION → DATA_COLLECTION → SYNTHESIS → REPORT_GENERATION → COMPLETE
+// NEW 4-Phase Pipeline: QUEUED → DEEP_RESEARCH → SYNTHESIS → SOCIAL_RESEARCH → REPORT_GENERATION → COMPLETE
+// Legacy phases (QUERY_GENERATION, DATA_COLLECTION) kept for backward compatibility
 model Research {
   id                   String         @id @default(cuid())
   status               ResearchStatus @default(PENDING)
@@ -200,14 +201,23 @@ model Research {
   @@index([currentPhase])
 }
 
-// Research pipeline phases (4-6 hour total process)
+// Research pipeline phases
+// NEW 4-Phase Pipeline (5-10 min total with o3-deep-research):
+// - DEEP_RESEARCH: o3-deep-research with web_search (0-40%)
+// - SYNTHESIS: GPT-5.2 structure extraction (40-70%)
+// - SOCIAL_RESEARCH: Domain-filtered social proof search (70-85%)
+// - REPORT_GENERATION: GPT-5.2 creative generation (85-100%)
 enum ResearchPhase {
   QUEUED              // Waiting to start
-  QUERY_GENERATION    // AI generates targeted search queries (~5 min)
-  DATA_COLLECTION     // Tavily, Apify, SerpAPI calls (~2-4 hours, rate-limited)
-  SYNTHESIS           // AI consolidates all research (~30-60 min)
-  REPORT_GENERATION   // Generate all 10 reports (~1-2 hours)
+  // New 4-phase pipeline phases
+  DEEP_RESEARCH       // o3-deep-research with web_search (~5-10 min)
+  SYNTHESIS           // GPT-5.2 extracts structured data (~1 min)
+  SOCIAL_RESEARCH     // Domain-filtered social proof search (~1 min)
+  REPORT_GENERATION   // GPT-5.2 generates creative content (~1 min)
   COMPLETE            // All done
+  // Legacy phases (kept for backward compatibility)
+  QUERY_GENERATION    // [Deprecated] AI generates search queries
+  DATA_COLLECTION     // [Deprecated] External API calls
 }
 
 // Report model - tiered reports based on subscription + interview mode

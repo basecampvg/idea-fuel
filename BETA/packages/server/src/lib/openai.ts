@@ -24,6 +24,9 @@ export const INTERVIEW_MODEL = 'gpt-5.2';
 // Model for data extraction (structured output)
 export const EXTRACTION_MODEL = 'gpt-5.2';
 
+// Model for research synthesis (post-deep-research processing)
+export const RESEARCH_MODEL = 'gpt-5.2';
+
 // GPT-5.2 Parameter Types
 export type ReasoningEffort = 'none' | 'low' | 'medium' | 'high' | 'xhigh';
 export type Verbosity = 'low' | 'medium' | 'high';
@@ -92,6 +95,22 @@ export const AI_PRESETS = {
     FREE: { reasoning: 'none', verbosity: 'high' },
     PRO: { reasoning: 'low', verbosity: 'high' },
     ENTERPRISE: { reasoning: 'medium', verbosity: 'high' },
+  },
+  // New presets for deep research extraction phase
+  extractInsights: {
+    FREE: { reasoning: 'medium', verbosity: 'medium' },
+    PRO: { reasoning: 'high', verbosity: 'high' },
+    ENTERPRISE: { reasoning: 'xhigh', verbosity: 'high' },
+  },
+  extractScores: {
+    FREE: { reasoning: 'high', verbosity: 'low' },
+    PRO: { reasoning: 'high', verbosity: 'low' },
+    ENTERPRISE: { reasoning: 'xhigh', verbosity: 'low' },
+  },
+  extractMetrics: {
+    FREE: { reasoning: 'medium', verbosity: 'medium' },
+    PRO: { reasoning: 'high', verbosity: 'medium' },
+    ENTERPRISE: { reasoning: 'xhigh', verbosity: 'medium' },
   },
 } as const;
 
@@ -179,5 +198,50 @@ export function createGPT52Params(
       text: { verbosity: aiParams.verbosity },
     };
   }
+  return params;
+}
+
+// =============================================================================
+// WEB SEARCH TOOL HELPERS
+// =============================================================================
+
+/**
+ * Creates a web_search tool configuration for the Responses API.
+ * @param domains - Optional array of domains to restrict search (up to 100)
+ * @returns Tool configuration object
+ */
+export function createWebSearchTool(domains?: string[]) {
+  const tool: { type: 'web_search'; filters?: { allowed_domains: string[] } } = {
+    type: 'web_search',
+  };
+
+  if (domains && domains.length > 0) {
+    tool.filters = {
+      allowed_domains: domains.slice(0, 100), // API limit
+    };
+  }
+
+  return tool;
+}
+
+/**
+ * Creates Responses API params with web_search tool enabled.
+ * Used for social proof and supplementary research.
+ */
+export function createResponsesParamsWithWebSearch(
+  baseParams: ResponsesCreateBaseParams & {
+    response_format?: { type: 'json_object' | 'text' };
+  },
+  aiParams: AIParams,
+  domains?: string[]
+): ResponsesCreateParams {
+  const params = createResponsesParams(baseParams, aiParams);
+
+  // Add web_search tool
+  params.tools = [createWebSearchTool(domains)];
+
+  // Include sources in response
+  params.include = ['web_search_call.action.sources'];
+
   return params;
 }

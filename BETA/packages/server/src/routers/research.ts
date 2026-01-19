@@ -161,6 +161,7 @@ export const researchRouter = router({
     const interview = idea.interviews[0];
 
     // Create or update research record
+    // New pipeline starts with DEEP_RESEARCH phase
     let research = idea.research;
     if (research) {
       // Restart failed research
@@ -168,7 +169,7 @@ export const researchRouter = router({
         where: { id: research.id },
         data: {
           status: 'IN_PROGRESS',
-          currentPhase: 'QUERY_GENERATION',
+          currentPhase: 'DEEP_RESEARCH', // New 4-phase pipeline starts here
           progress: 0,
           errorMessage: null,
           errorPhase: null,
@@ -183,7 +184,7 @@ export const researchRouter = router({
         data: {
           ideaId: input.ideaId,
           status: 'IN_PROGRESS',
-          currentPhase: 'QUERY_GENERATION',
+          currentPhase: 'DEEP_RESEARCH', // New 4-phase pipeline starts here
           progress: 0,
           startedAt: new Date(),
         },
@@ -219,13 +220,14 @@ export const researchRouter = router({
     // Run pipeline async without awaiting
     (async () => {
       try {
-        console.log('[Research] Starting pipeline with tier:', userTier);
+        console.log('[Research] Starting NEW 4-phase pipeline with tier:', userTier);
         const result = await runResearchPipeline(researchInput, async (phase, progress) => {
           // Update progress in database
+          // New phases: DEEP_RESEARCH, SYNTHESIS, SOCIAL_RESEARCH, REPORT_GENERATION, COMPLETE
           await prisma.research.update({
             where: { id: researchId },
             data: {
-              currentPhase: phase as 'QUEUED' | 'QUERY_GENERATION' | 'DATA_COLLECTION' | 'SYNTHESIS' | 'REPORT_GENERATION' | 'COMPLETE',
+              currentPhase: phase as 'QUEUED' | 'DEEP_RESEARCH' | 'SYNTHESIS' | 'SOCIAL_RESEARCH' | 'REPORT_GENERATION' | 'COMPLETE',
               progress,
             },
           });
@@ -353,11 +355,15 @@ export const researchRouter = router({
         id: z.string().cuid(),
         phase: z.enum([
           'QUEUED',
-          'QUERY_GENERATION',
-          'DATA_COLLECTION',
+          // New 4-phase pipeline phases
+          'DEEP_RESEARCH',
           'SYNTHESIS',
+          'SOCIAL_RESEARCH',
           'REPORT_GENERATION',
           'COMPLETE',
+          // Legacy phases (for backward compatibility)
+          'QUERY_GENERATION',
+          'DATA_COLLECTION',
         ]),
         progress: z.number().min(0).max(100),
         data: z.record(z.any()).optional(),
@@ -450,11 +456,15 @@ export const researchRouter = router({
         errorMessage: z.string(),
         errorPhase: z.enum([
           'QUEUED',
-          'QUERY_GENERATION',
-          'DATA_COLLECTION',
+          // New 4-phase pipeline phases
+          'DEEP_RESEARCH',
           'SYNTHESIS',
+          'SOCIAL_RESEARCH',
           'REPORT_GENERATION',
           'COMPLETE',
+          // Legacy phases (for backward compatibility)
+          'QUERY_GENERATION',
+          'DATA_COLLECTION',
         ]),
       })
     )

@@ -1,18 +1,24 @@
-import { openai, getAIParams, createResponsesParams } from '../lib/openai';
+import { openai, getAIParams, createResponsesParams, createResponsesParamsWithWebSearch } from '../lib/openai';
 import type { SubscriptionTier } from '@prisma/client';
-import { getResearchKnowledge, getContentGuidelines, KNOWLEDGE } from '../lib/knowledge';
+import { getResearchKnowledge, KNOWLEDGE } from '../lib/knowledge';
 import type { InterviewDataPoints } from '@forge/shared';
 import {
-  getTrendData,
-  compareTrends,
   batchGetTrendData,
   isSerpApiConfigured,
   type TrendData,
-  type TrendComparison,
 } from '../lib/serpapi';
+import {
+  deepResearchClient,
+  DEEP_RESEARCH_MODEL,
+  DEEP_RESEARCH_MODEL_MINI,
+  SEARCH_DOMAINS,
+  createDeepResearchParams,
+  parseDeepResearchResponse,
+  type DeepResearchResult,
+} from '../lib/deep-research';
 
-// Model for research tasks
-const RESEARCH_MODEL = 'gpt-5.2';
+// Model for post-processing tasks (interpreting research, generating reports)
+const REPORT_MODEL = 'gpt-5.2';
 
 // Types for research pipeline
 export interface ResearchInput {
@@ -173,9 +179,9 @@ export interface ActionPrompt {
   category: string;
 }
 
-// Social Proof - from social media (MVP: AI-simulated)
+// Social Proof - from real web search
 export interface SocialProofPost {
-  platform: 'reddit' | 'facebook' | 'twitter';
+  platform: 'reddit' | 'facebook' | 'twitter' | 'hackernews' | 'indiehackers' | 'producthunt' | 'linkedin';
   author: string;
   content: string;
   url: string;
@@ -195,9 +201,680 @@ export interface SocialProof {
   summary: string;
   painPointsValidated: string[];
   demandSignals: string[];
+  sources: string[]; // Real URLs from web search
 }
 
+// Deep Research Output - raw research from o3-deep-research
+export interface DeepResearchOutput {
+  rawReport: string;
+  citations: Array<{ title: string; url: string; snippet?: string }>;
+  sources: string[];
+  searchQueriesUsed: string[];
+}
+
+// =============================================================================
+// PHASE 1: DEEP RESEARCH (o3-deep-research with web_search)
+// =============================================================================
+
+/**
+ * Run deep market research using o3-deep-research model with real web search.
+ * This replaces the old query generation + synthesis phases with a single
+ * comprehensive research call that searches the web for real market data.
+ *
+ * @param input Research input with idea and interview data
+ * @param tier Subscription tier (FREE uses mini model, PRO/ENTERPRISE use full)
+ * @returns Deep research output with raw report and citations
+ */
+export async function runDeepResearch(
+  input: ResearchInput,
+  tier: SubscriptionTier = 'ENTERPRISE'
+): Promise<DeepResearchOutput> {
+  const { ideaTitle, ideaDescription, interviewData, interviewMessages } = input;
+
+  console.log('[Deep Research] Starting comprehensive market research...');
+  console.log('[Deep Research] Tier:', tier);
+
+  // Select model based on tier (FREE uses cheaper mini model)
+  const model = tier === 'FREE' ? DEEP_RESEARCH_MODEL_MINI : DEEP_RESEARCH_MODEL;
+  console.log('[Deep Research] Using model:', model);
+
+  // Build interview context
+  const interviewContext = interviewMessages
+    .filter((m) => m.role !== 'system')
+    .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
+    .join('\n\n');
+
+  // Get knowledge-based research guidelines
+  const researchKnowledge = getResearchKnowledge();
+
+  // System prompt for the research analyst
+  const systemPrompt = `${researchKnowledge}
+
+---
+
+You are a senior market research analyst conducting comprehensive research for a business idea validation.
+Your task is to research the market opportunity, competitive landscape, customer pain points, and timing factors.
+
+## RESEARCH OBJECTIVES
+1. **Market Analysis** - Size the market, identify growth trends, key players, and market dynamics
+2. **Competitive Landscape** - Find direct and indirect competitors, analyze their positioning, strengths, weaknesses
+3. **Customer Pain Points** - Validate the problems being solved, find evidence of real customer frustration
+4. **Why Now** - Identify market triggers, timing factors, and urgency indicators
+5. **Proof Signals** - Find demand indicators, validation opportunities, and risk factors
+
+## OUTPUT REQUIREMENTS
+Provide a comprehensive research report with:
+- Specific data points and statistics with sources
+- Named competitors with their positioning and market share estimates
+- Real examples of customer pain points from forums, reviews, or articles
+- Market timing analysis with supporting evidence
+- Actionable insights for a startup entering this market
+
+Be thorough but focus on actionable intelligence. Cite your sources.`;
+
+  // User query with all context
+  const userQuery = `## BUSINESS IDEA
+**Title:** ${ideaTitle}
+**Description:** ${ideaDescription}
+
+## INTERVIEW INSIGHTS
+The founder has provided the following information through an AI interview:
+
+${JSON.stringify(interviewData, null, 2)}
+
+## INTERVIEW TRANSCRIPT
+${interviewContext}
+
+---
+
+Please conduct comprehensive market research for this business idea. Search for:
+1. Market size and growth data for this industry/niche
+2. Existing competitors and alternatives (both direct and indirect)
+3. Evidence of customer pain points (forum posts, reviews, complaints)
+4. Market timing factors (recent changes, emerging trends, regulatory shifts)
+5. Validation signals (demand indicators, successful similar products)
+
+Provide specific, actionable insights with citations to help validate this business opportunity.`;
+
+  // Create deep research request
+  const researchDomains = [...SEARCH_DOMAINS.market, ...SEARCH_DOMAINS.competitor];
+
+  const startTime = Date.now();
+  const heartbeat = setInterval(() => {
+    const elapsed = Math.round((Date.now() - startTime) / 1000);
+    console.log(`[Deep Research] Still researching... (${elapsed}s elapsed)`);
+  }, 30000); // Log every 30 seconds
+
+  try {
+    const params = createDeepResearchParams({
+      model,
+      systemPrompt,
+      userQuery,
+      domains: researchDomains,
+    });
+
+    console.log('[Deep Research] Calling API with web_search tool...');
+    console.log('[Deep Research] Domains:', researchDomains.length, 'market + competitor domains');
+
+    const response = await deepResearchClient.responses.create(params);
+
+    clearInterval(heartbeat);
+    const elapsed = Math.round((Date.now() - startTime) / 1000);
+    console.log(`[Deep Research] Research complete after ${elapsed}s`);
+
+    // Parse the response to extract report and citations
+    const result = parseDeepResearchResponse(response);
+
+    console.log('[Deep Research] Report length:', result.content.length, 'chars');
+    console.log('[Deep Research] Citations found:', result.citations.length);
+    console.log('[Deep Research] Sources:', result.sources.length);
+
+    return {
+      rawReport: result.content,
+      citations: result.citations,
+      sources: result.sources,
+      searchQueriesUsed: [], // Populated by the model during execution
+    };
+  } catch (error) {
+    clearInterval(heartbeat);
+    const elapsed = Math.round((Date.now() - startTime) / 1000);
+    console.error(`[Deep Research] Error after ${elapsed}s:`, error);
+    throw error;
+  }
+}
+
+// =============================================================================
+// PHASE 2: STRUCTURE EXTRACTION (GPT-5.2 post-processing)
+// =============================================================================
+
+/**
+ * Extract structured insights from deep research report.
+ * Uses GPT-5.2 to parse the raw research into SynthesizedInsights format.
+ */
+export async function extractInsights(
+  deepResearch: DeepResearchOutput,
+  input: ResearchInput,
+  tier: SubscriptionTier = 'ENTERPRISE'
+): Promise<SynthesizedInsights> {
+  console.log('[Extract Insights] Parsing deep research into structured format...');
+
+  const prompt = `You are extracting structured data from a comprehensive market research report.
+
+## ORIGINAL BUSINESS IDEA
+**Title:** ${input.ideaTitle}
+**Description:** ${input.ideaDescription}
+
+## DEEP RESEARCH REPORT
+${deepResearch.rawReport}
+
+## SOURCES CITED
+${deepResearch.citations.map((c, i) => `[${i + 1}] ${c.title}: ${c.url}`).join('\n')}
+
+---
+
+Extract the key insights and return a structured JSON object with this exact format:
+{
+  "marketAnalysis": {
+    "size": "Market size with specific numbers if available (e.g., '$4.2B in 2024, projected $8.1B by 2028')",
+    "growth": "Growth trajectory with CAGR or % if available",
+    "trends": ["trend1", "trend2", "trend3"],
+    "opportunities": ["opportunity1", "opportunity2"],
+    "threats": ["threat1", "threat2"]
+  },
+  "competitors": [
+    {
+      "name": "Actual competitor name from research",
+      "description": "What they do",
+      "strengths": ["strength1", "strength2"],
+      "weaknesses": ["weakness1", "weakness2"],
+      "positioning": "How they position in market"
+    }
+  ],
+  "painPoints": [
+    {
+      "problem": "Specific pain point with evidence",
+      "severity": "high|medium|low",
+      "currentSolutions": ["How people currently solve this"],
+      "gaps": ["What's missing from current solutions"]
+    }
+  ],
+  "positioning": {
+    "uniqueValueProposition": "Clear UVP based on research gaps",
+    "targetAudience": "Specific target description",
+    "differentiators": ["diff1", "diff2"],
+    "messagingPillars": ["pillar1", "pillar2"]
+  },
+  "whyNow": {
+    "marketTriggers": ["Recent market change or event"],
+    "timingFactors": ["Why this is the right time"],
+    "urgencyScore": 0-100
+  },
+  "proofSignals": {
+    "demandIndicators": ["Evidence of demand from research"],
+    "validationOpportunities": ["How to validate further"],
+    "riskFactors": ["Identified risks"]
+  },
+  "keywords": {
+    "primary": ["main keywords from research"],
+    "secondary": ["related keywords"],
+    "longTail": ["long tail phrases"]
+  }
+}
+
+Use ONLY information from the research report. Be specific and cite findings where relevant.`;
+
+  const aiParams = getAIParams('extractInsights', tier);
+
+  const response = await openai.responses.create(
+    createResponsesParams({
+      model: REPORT_MODEL,
+      input: prompt,
+      response_format: { type: 'json_object' },
+      max_output_tokens: 3500,
+    }, aiParams)
+  );
+
+  const content = response.output_text;
+  if (!content) {
+    throw new Error('Failed to extract insights from deep research');
+  }
+
+  console.log('[Extract Insights] Successfully parsed insights');
+  return JSON.parse(content) as SynthesizedInsights;
+}
+
+/**
+ * Calculate research scores from deep research report.
+ * Uses multi-pass validation for reliability.
+ */
+export async function extractScores(
+  deepResearch: DeepResearchOutput,
+  input: ResearchInput,
+  insights: SynthesizedInsights,
+  tier: SubscriptionTier = 'ENTERPRISE'
+): Promise<ResearchScores> {
+  const { scoringCriteria } = KNOWLEDGE.research;
+  const PASS_COUNT = 3;
+  const DEVIATION_THRESHOLD = 15;
+
+  console.log(`[Extract Scores] Running ${PASS_COUNT} scoring passes...`);
+
+  // Run scoring pass
+  const runPass = async (passNumber: number): Promise<RawScorePass> => {
+    const prompt = `You are scoring a business idea based on deep market research.
+
+## BUSINESS IDEA
+**Title:** ${input.ideaTitle}
+**Description:** ${input.ideaDescription}
+
+## RESEARCH FINDINGS
+${deepResearch.rawReport.substring(0, 4000)}... [truncated for scoring]
+
+## STRUCTURED INSIGHTS
+${JSON.stringify(insights, null, 2)}
+
+## SCORING CRITERIA
+
+**Opportunity Score (0-100):**
+${Object.entries(scoringCriteria.opportunityScore).map(([range, desc]) => `  ${range}: ${desc}`).join('\n')}
+
+**Problem Score (0-100):**
+${Object.entries(scoringCriteria.problemScore).map(([range, desc]) => `  ${range}: ${desc}`).join('\n')}
+
+**Feasibility Score (0-100):**
+${Object.entries(scoringCriteria.feasibilityScore).map(([range, desc]) => `  ${range}: ${desc}`).join('\n')}
+
+**Why Now Score (0-100):**
+${Object.entries(scoringCriteria.whyNowScore).map(([range, desc]) => `  ${range}: ${desc}`).join('\n')}
+
+IMPORTANT: Provide justification for each score explaining:
+1. What evidence supports this score
+2. What factors pulled the score up or down
+3. What uncertainties exist
+
+Return JSON:
+{
+  "opportunityScore": number (0-100),
+  "opportunityJustification": "2-3 sentences",
+  "problemScore": number (0-100),
+  "problemJustification": "2-3 sentences",
+  "feasibilityScore": number (0-100),
+  "feasibilityJustification": "2-3 sentences",
+  "whyNowScore": number (0-100),
+  "whyNowJustification": "2-3 sentences"
+}
+
+This is pass ${passNumber} - evaluate independently based on the research data.`;
+
+    const aiParams = getAIParams('extractScores', tier);
+
+    const response = await openai.responses.create(
+      createResponsesParams({
+        model: REPORT_MODEL,
+        input: prompt,
+        response_format: { type: 'json_object' },
+        max_output_tokens: 1500,
+      }, aiParams)
+    );
+
+    const content = response.output_text;
+    if (!content) {
+      throw new Error(`Failed to calculate scores (pass ${passNumber})`);
+    }
+
+    return JSON.parse(content) as RawScorePass;
+  };
+
+  // Run passes in parallel
+  const passes = await Promise.all(
+    Array.from({ length: PASS_COUNT }, (_, i) => runPass(i + 1))
+  );
+
+  // Calculate averages and deviations (reusing existing logic)
+  const opportunityScores = passes.map(p => clampScore(p.opportunityScore));
+  const problemScores = passes.map(p => clampScore(p.problemScore));
+  const feasibilityScores = passes.map(p => clampScore(p.feasibilityScore));
+  const whyNowScores = passes.map(p => clampScore(p.whyNowScore));
+
+  const avgOpportunity = Math.round(opportunityScores.reduce((a, b) => a + b, 0) / PASS_COUNT);
+  const avgProblem = Math.round(problemScores.reduce((a, b) => a + b, 0) / PASS_COUNT);
+  const avgFeasibility = Math.round(feasibilityScores.reduce((a, b) => a + b, 0) / PASS_COUNT);
+  const avgWhyNow = Math.round(whyNowScores.reduce((a, b) => a + b, 0) / PASS_COUNT);
+
+  const deviations = [
+    Math.max(...opportunityScores) - Math.min(...opportunityScores),
+    Math.max(...problemScores) - Math.min(...problemScores),
+    Math.max(...feasibilityScores) - Math.min(...feasibilityScores),
+    Math.max(...whyNowScores) - Math.min(...whyNowScores),
+  ];
+  const maxDeviation = Math.max(...deviations);
+
+  const avgStdDev = (
+    standardDeviation(opportunityScores) +
+    standardDeviation(problemScores) +
+    standardDeviation(feasibilityScores) +
+    standardDeviation(whyNowScores)
+  ) / 4;
+
+  const averageConfidence = Math.round(Math.max(50, 100 - avgStdDev * 2.5));
+
+  const getConfidenceLevel = (scores: number[]): 'high' | 'medium' | 'low' => {
+    const dev = Math.max(...scores) - Math.min(...scores);
+    if (dev <= 5) return 'high';
+    if (dev <= 12) return 'medium';
+    return 'low';
+  };
+
+  const flagged = maxDeviation > DEVIATION_THRESHOLD;
+  const flagReason = flagged
+    ? `Scores varied by up to ${maxDeviation} points between passes.`
+    : undefined;
+
+  const findBestJustification = (
+    scores: number[],
+    avg: number,
+    getJustification: (p: RawScorePass) => string
+  ): string => {
+    let minDiff = Infinity;
+    let bestIdx = 0;
+    scores.forEach((score, idx) => {
+      const diff = Math.abs(score - avg);
+      if (diff < minDiff) {
+        minDiff = diff;
+        bestIdx = idx;
+      }
+    });
+    return getJustification(passes[bestIdx]);
+  };
+
+  console.log(`[Extract Scores] Final: O=${avgOpportunity}, P=${avgProblem}, F=${avgFeasibility}, W=${avgWhyNow}`);
+
+  return {
+    opportunityScore: avgOpportunity,
+    problemScore: avgProblem,
+    feasibilityScore: avgFeasibility,
+    whyNowScore: avgWhyNow,
+    justifications: {
+      opportunity: {
+        score: avgOpportunity,
+        justification: findBestJustification(opportunityScores, avgOpportunity, p => p.opportunityJustification),
+        confidence: getConfidenceLevel(opportunityScores),
+      },
+      problem: {
+        score: avgProblem,
+        justification: findBestJustification(problemScores, avgProblem, p => p.problemJustification),
+        confidence: getConfidenceLevel(problemScores),
+      },
+      feasibility: {
+        score: avgFeasibility,
+        justification: findBestJustification(feasibilityScores, avgFeasibility, p => p.feasibilityJustification),
+        confidence: getConfidenceLevel(feasibilityScores),
+      },
+      whyNow: {
+        score: avgWhyNow,
+        justification: findBestJustification(whyNowScores, avgWhyNow, p => p.whyNowJustification),
+        confidence: getConfidenceLevel(whyNowScores),
+      },
+    },
+    metadata: {
+      passCount: PASS_COUNT,
+      maxDeviation,
+      averageConfidence,
+      flagged,
+      flagReason,
+    },
+  };
+}
+
+/**
+ * Extract business metrics from deep research report.
+ */
+export async function extractBusinessMetrics(
+  deepResearch: DeepResearchOutput,
+  input: ResearchInput,
+  insights: SynthesizedInsights,
+  scores: ResearchScores,
+  tier: SubscriptionTier = 'ENTERPRISE'
+): Promise<BusinessMetrics> {
+  console.log('[Extract Metrics] Calculating business metrics from research...');
+
+  const prompt = `You are evaluating business viability metrics based on deep market research.
+
+## BUSINESS IDEA
+**Title:** ${input.ideaTitle}
+**Description:** ${input.ideaDescription}
+
+## RESEARCH FINDINGS
+${deepResearch.rawReport.substring(0, 3000)}...
+
+## RESEARCH SCORES
+${JSON.stringify(scores, null, 2)}
+
+## MARKET INSIGHTS
+${JSON.stringify(insights.marketAnalysis, null, 2)}
+
+Evaluate business metrics and return JSON:
+{
+  "revenuePotential": {
+    "rating": "high|medium|low",
+    "estimate": "Specific revenue estimate based on market data (e.g., '$10K-50K MRR potential')",
+    "confidence": 0-100
+  },
+  "executionDifficulty": {
+    "rating": "easy|moderate|hard",
+    "factors": ["factor1", "factor2"],
+    "soloFriendly": true|false
+  },
+  "gtmClarity": {
+    "rating": "clear|moderate|unclear",
+    "channels": ["channel1", "channel2"],
+    "confidence": 0-100
+  },
+  "founderFit": {
+    "percentage": 0-100,
+    "strengths": ["strength1"],
+    "gaps": ["gap1"]
+  }
+}
+
+Base estimates on the actual market data from research.`;
+
+  const aiParams = getAIParams('extractMetrics', tier);
+
+  const response = await openai.responses.create(
+    createResponsesParams({
+      model: REPORT_MODEL,
+      input: prompt,
+      response_format: { type: 'json_object' },
+      max_output_tokens: 1000,
+    }, aiParams)
+  );
+
+  const content = response.output_text;
+  if (!content) {
+    throw new Error('Failed to extract business metrics');
+  }
+
+  console.log('[Extract Metrics] Successfully calculated metrics');
+  return JSON.parse(content) as BusinessMetrics;
+}
+
+// =============================================================================
+// PHASE 3: SOCIAL PROOF (o3-deep-research with social domain filtering)
+// =============================================================================
+
+/**
+ * Fetch real social proof using o3-deep-research with web search filtered to social platforms.
+ * Searches Reddit, Twitter, HackerNews, IndieHackers, ProductHunt, LinkedIn
+ * for real discussions about the pain points.
+ *
+ * Uses o3-deep-research (or o4-mini for FREE tier) for comprehensive social proof gathering.
+ */
+export async function fetchSocialProof(
+  input: ResearchInput,
+  insights: SynthesizedInsights,
+  tier: SubscriptionTier = 'ENTERPRISE'
+): Promise<SocialProof> {
+  console.log('[Social Proof] Using o3-deep-research to search social platforms...');
+  console.log('[Social Proof] Tier:', tier);
+  console.log('[Social Proof] Domains:', SEARCH_DOMAINS.social.join(', '));
+
+  // Select model based on tier (same as deep research)
+  const model = tier === 'FREE' ? DEEP_RESEARCH_MODEL_MINI : DEEP_RESEARCH_MODEL;
+  console.log('[Social Proof] Using model:', model);
+
+  const painPointsList = insights.painPoints
+    .map((p) => `- ${p.problem} (${p.severity} severity)`)
+    .join('\n');
+
+  const systemPrompt = `You are a social media researcher specializing in finding real discussions about specific pain points.
+Your task is to search social platforms and find authentic posts where real people discuss problems, frustrations, or needs related to the given business idea.
+
+## SEARCH FOCUS
+- Reddit (r/entrepreneur, r/smallbusiness, r/startups, industry-specific subreddits)
+- Twitter/X (relevant hashtags and discussions)
+- HackerNews (Show HN, Ask HN, comments)
+- IndieHackers (discussions, milestones, problems)
+- ProductHunt (discussions, comments on similar products)
+- LinkedIn (posts, articles, comments)
+
+## OUTPUT REQUIREMENTS
+For each relevant post, capture:
+1. Platform and author username
+2. Actual post content (verbatim where possible)
+3. Direct URL to the post
+4. Engagement metrics (upvotes, likes, comments)
+5. Date posted
+6. Sentiment toward the problem
+7. Relevance score (0-100)
+
+Focus on finding posts that:
+- Express genuine frustration with a problem
+- Ask for solutions or alternatives
+- Discuss workarounds they've tried
+- Validate that the pain point is real
+
+Be thorough in your search. Find 4-10 highly relevant posts.`;
+
+  const userQuery = `## TARGET PAIN POINTS TO VALIDATE
+${painPointsList}
+
+## BUSINESS CONTEXT
+**Business Idea:** ${input.ideaTitle}
+**Description:** ${input.ideaDescription}
+**Target Audience:** ${insights.positioning.targetAudience}
+**Market Size:** ${insights.marketAnalysis.size}
+
+---
+
+Search social media platforms for real posts where people discuss these pain points.
+Find authentic discussions that validate (or invalidate) these problems exist.
+
+Return your findings as JSON:
+{
+  "posts": [
+    {
+      "platform": "reddit|twitter|hackernews|indiehackers|producthunt|linkedin",
+      "author": "username or handle",
+      "content": "The actual post content (100-300 chars, verbatim if possible)",
+      "url": "https://actual-url-to-post",
+      "engagement": { "upvotes": 123, "comments": 45, "likes": 67 },
+      "date": "YYYY-MM-DD",
+      "sentiment": "negative|neutral|positive",
+      "relevanceScore": 0-100
+    }
+  ],
+  "summary": "2-3 sentence summary of what the social proof reveals",
+  "painPointsValidated": ["List of pain points confirmed by real discussions"],
+  "demandSignals": ["Specific demand signals found (e.g., 'people asking for X', 'willing to pay for Y')"]
+}`;
+
+  // Convert readonly array to mutable array for the API call
+  const socialDomains = [...SEARCH_DOMAINS.social];
+
+  const startTime = Date.now();
+  const heartbeat = setInterval(() => {
+    const elapsed = Math.round((Date.now() - startTime) / 1000);
+    console.log(`[Social Proof] Still searching social platforms... (${elapsed}s elapsed)`);
+  }, 15000);
+
+  try {
+    const params = createDeepResearchParams({
+      model,
+      systemPrompt,
+      userQuery,
+      domains: socialDomains,
+      background: false, // Social proof is typically faster, no need for background
+      reasoningSummary: 'auto',
+    });
+
+    const response = await deepResearchClient.responses.create(params);
+
+    clearInterval(heartbeat);
+    const elapsed = Math.round((Date.now() - startTime) / 1000);
+    console.log(`[Social Proof] Search complete after ${elapsed}s`);
+
+    // Parse the response
+    const result = parseDeepResearchResponse(response);
+
+    // Try to extract JSON from the response content
+    let socialProofData: Omit<SocialProof, 'sources'>;
+    try {
+      // The model should return JSON, but might wrap it in markdown
+      const jsonMatch = result.content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        socialProofData = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error('No JSON found in response');
+      }
+    } catch (parseError) {
+      console.warn('[Social Proof] Could not parse JSON from response, using structured extraction');
+      // Fallback: create structure from raw response
+      socialProofData = {
+        posts: [],
+        summary: result.content.substring(0, 500),
+        painPointsValidated: [],
+        demandSignals: [],
+      };
+    }
+
+    console.log('[Social Proof] Found', socialProofData.posts?.length || 0, 'posts');
+    console.log('[Social Proof] Citations:', result.citations.length);
+
+    return {
+      ...socialProofData,
+      posts: socialProofData.posts || [],
+      summary: socialProofData.summary || 'Social proof search completed.',
+      painPointsValidated: socialProofData.painPointsValidated || [],
+      demandSignals: socialProofData.demandSignals || [],
+      sources: result.sources,
+    };
+  } catch (error) {
+    clearInterval(heartbeat);
+    console.error('[Social Proof] Search failed:', error);
+    // Fallback to empty social proof rather than failing the pipeline
+    return {
+      posts: [],
+      summary: 'Social proof search encountered an error. Manual research recommended.',
+      painPointsValidated: [],
+      demandSignals: [],
+      sources: [],
+    };
+  }
+}
+
+// =============================================================================
+// PHASE 4: CREATIVE GENERATION (GPT-5.2 report writing)
+// =============================================================================
+
+// User Story, Value Ladder, Action Prompts - moved below for organization
+
+// =============================================================================
+// LEGACY FUNCTIONS (kept for backward compatibility during migration)
+// =============================================================================
+
 // Phase 1: Generate search queries from interview data
+// @deprecated Use runDeepResearch instead
 export async function generateSearchQueries(
   input: ResearchInput,
   tier: SubscriptionTier = 'ENTERPRISE'
@@ -234,7 +911,7 @@ Generate 3-5 specific, actionable queries per category.`;
   // Use Responses API for GPT-5.2 reasoning support
   const response = await openai.responses.create(
     createResponsesParams({
-      model: RESEARCH_MODEL,
+      model: REPORT_MODEL,
       input: prompt,
       response_format: { type: 'json_object' },
       max_output_tokens: 1000,
@@ -341,7 +1018,7 @@ Synthesize insights and return a JSON object with this exact structure:
 Be specific and actionable. Use the interview data to inform your analysis.`;
 
   console.log('[synthesizeInsights] Prompt length:', prompt.length);
-  console.log('[synthesizeInsights] Calling OpenAI API with model:', RESEARCH_MODEL);
+  console.log('[synthesizeInsights] Calling OpenAI API with model:', REPORT_MODEL);
 
   // Get tier-based AI parameters
   const aiParams = getAIParams('synthesizeInsights', tier);
@@ -358,7 +1035,7 @@ Be specific and actionable. Use the interview data to inform your analysis.`;
     // Use Responses API for GPT-5.2 reasoning support
     const response = await openai.responses.create(
       createResponsesParams({
-        model: RESEARCH_MODEL,
+        model: REPORT_MODEL,
         input: prompt,
         response_format: { type: 'json_object' },
         max_output_tokens: 3000,
@@ -464,7 +1141,7 @@ This is scoring pass ${passNumber} - evaluate independently without bias.`;
 
   const response = await openai.responses.create(
     createResponsesParams({
-      model: RESEARCH_MODEL,
+      model: REPORT_MODEL,
       input: prompt,
       response_format: { type: 'json_object' },
       max_output_tokens: 1500,
@@ -664,7 +1341,7 @@ Be realistic and consider the founder's background if mentioned in the interview
   // Use Responses API for GPT-5.2 reasoning support
   const response = await openai.responses.create(
     createResponsesParams({
-      model: RESEARCH_MODEL,
+      model: REPORT_MODEL,
       input: prompt,
       response_format: { type: 'json_object' },
       max_output_tokens: 1000,
@@ -722,7 +1399,7 @@ Make the story feel real and emotionally resonant. Use specific details.`;
   // Use Responses API for GPT-5.2 reasoning support
   const response = await openai.responses.create(
     createResponsesParams({
-      model: RESEARCH_MODEL,
+      model: REPORT_MODEL,
       input: prompt,
       response_format: { type: 'json_object' },
       max_output_tokens: 1500,
@@ -991,7 +1668,7 @@ Make prices realistic for the market and value delivered.`;
   // Use Responses API for GPT-5.2 reasoning support
   const response = await openai.responses.create(
     createResponsesParams({
-      model: RESEARCH_MODEL,
+      model: REPORT_MODEL,
       input: prompt,
       response_format: { type: 'json_object' },
       max_output_tokens: 1500,
@@ -1054,7 +1731,7 @@ Make prompts immediately usable - specific and actionable.`;
   // Use Responses API for GPT-5.2 reasoning support
   const response = await openai.responses.create(
     createResponsesParams({
-      model: RESEARCH_MODEL,
+      model: REPORT_MODEL,
       input: prompt,
       response_format: { type: 'json_object' },
       max_output_tokens: 4000,
@@ -1140,7 +1817,7 @@ Dates should be within the last 6 months.`;
   // Use Responses API for GPT-5.2 reasoning support
   const response = await openai.responses.create(
     createResponsesParams({
-      model: RESEARCH_MODEL,
+      model: REPORT_MODEL,
       input: prompt,
       response_format: { type: 'json_object' },
       max_output_tokens: 2500,
@@ -1155,7 +1832,22 @@ Dates should be within the last 6 months.`;
   return JSON.parse(content) as SocialProof;
 }
 
-// Main pipeline function - runs all phases
+// =============================================================================
+// MAIN PIPELINE - New 4-Phase Architecture
+// =============================================================================
+
+/**
+ * Main research pipeline with o3-deep-research integration.
+ *
+ * NEW ARCHITECTURE:
+ * - Phase 1 (0-30%): Deep Research - o3-deep-research for market/competitor research
+ * - Phase 2 (30-55%): Social Proof - o3-deep-research with social domain filtering
+ * - Phase 3 (55-80%): Synthesis - GPT-5.2 for structured data extraction
+ * - Phase 4 (80-100%): Creative Generation - GPT-5.2 for report writing
+ *
+ * Both Phase 1 and 2 use o3-deep-research for real web search with citations.
+ * Phase 3 and 4 use GPT-5.2 for reasoning and report generation.
+ */
 export async function runResearchPipeline(
   input: ResearchInput,
   onProgress?: (phase: string, progress: number) => Promise<void>,
@@ -1170,75 +1862,175 @@ export async function runResearchPipeline(
   valueLadder: OfferTier[];
   actionPrompts: ActionPrompt[];
   socialProof: SocialProof;
+  deepResearch?: DeepResearchOutput; // New: raw research data
 }> {
-  console.log('[Research Pipeline] Starting for:', input.ideaTitle);
+  console.log('[Research Pipeline] Starting NEW 4-phase pipeline for:', input.ideaTitle);
   console.log('[Research Pipeline] Using tier:', tier);
+  console.log('[Research Pipeline] o3-deep-research model:', tier === 'FREE' ? DEEP_RESEARCH_MODEL_MINI : DEEP_RESEARCH_MODEL);
+
+  // =========================================================================
+  // PHASE 1: DEEP MARKET RESEARCH (0-30%)
+  // Uses o3-deep-research with web_search for market and competitor research
+  // =========================================================================
+  await onProgress?.('DEEP_RESEARCH', 5);
+  console.log('[Research Pipeline] === PHASE 1: Deep Market Research (o3-deep-research) ===');
+
+  const deepResearch = await runDeepResearch(input, tier);
+  await onProgress?.('DEEP_RESEARCH', 30);
+  console.log('[Research Pipeline] Market research complete:', deepResearch.citations.length, 'citations');
+
+  // =========================================================================
+  // PHASE 2: SOCIAL PROOF RESEARCH (30-55%)
+  // Uses o3-deep-research with web_search filtered to social platforms
+  // =========================================================================
+  await onProgress?.('SOCIAL_RESEARCH', 35);
+  console.log('[Research Pipeline] === PHASE 2: Social Proof Research (o3-deep-research) ===');
+
+  // First extract basic insights from deep research (needed for social proof targeting)
+  const preliminaryInsights = await extractInsights(deepResearch, input, tier);
+  await onProgress?.('SOCIAL_RESEARCH', 40);
+
+  const socialProof = await fetchSocialProof(input, preliminaryInsights, tier);
+  await onProgress?.('SOCIAL_RESEARCH', 55);
+  console.log('[Research Pipeline] Social proof gathered:', socialProof.posts.length, 'posts');
+
+  // =========================================================================
+  // PHASE 3: SYNTHESIS & SCORING (55-80%)
+  // Uses GPT-5.2 for structured data extraction with reasoning
+  // =========================================================================
+  await onProgress?.('SYNTHESIS', 60);
+  console.log('[Research Pipeline] === PHASE 3: Synthesis (GPT-5.2 reasoning) ===');
+
+  // Enrich insights with social proof data
+  const insights = preliminaryInsights;
+
+  // Run scores and metrics in parallel with GPT-5.2 reasoning
+  const [scores, metrics] = await Promise.all([
+    extractScores(deepResearch, input, insights, tier),
+    extractBusinessMetrics(deepResearch, input, insights, { opportunityScore: 0, problemScore: 0, feasibilityScore: 0, whyNowScore: 0, justifications: {} as ResearchScores['justifications'], metadata: {} as ResearchScores['metadata'] }, tier),
+  ]);
+  await onProgress?.('SYNTHESIS', 80);
+  console.log('[Research Pipeline] Scores and metrics calculated with GPT-5.2 reasoning');
+
+  // =========================================================================
+  // PHASE 4: CREATIVE GENERATION (80-100%)
+  // Uses GPT-5.2 for user story, value ladder, action prompts
+  // =========================================================================
+  await onProgress?.('REPORT_GENERATION', 85);
+  console.log('[Research Pipeline] === PHASE 4: Creative Generation (GPT-5.2) ===');
+
+  // Run creative generation in parallel
+  const [userStory, valueLadder, actionPrompts] = await Promise.all([
+    generateUserStory(input, insights, tier),
+    generateValueLadder(input, insights, metrics, tier),
+    generateActionPrompts(input, insights, tier),
+  ]);
+  await onProgress?.('REPORT_GENERATION', 95);
+  console.log('[Research Pipeline] User story, value ladder, action prompts generated');
+
+  // Keyword trends (uses SerpAPI for Google Trends - keep this separate)
+  const keywordTrends = await generateKeywordTrends(input, insights, tier);
+  await onProgress?.('REPORT_GENERATION', 98);
+  console.log('[Research Pipeline] Keyword trends:', keywordTrends.length, 'keywords');
+
+  await onProgress?.('COMPLETE', 100);
+  console.log('[Research Pipeline] === COMPLETE ===');
+
+  // Generate empty queries for backward compatibility
+  // (no longer used in new pipeline but kept for API compatibility)
+  const queries: GeneratedQueries = {
+    marketQueries: [],
+    competitorQueries: [],
+    customerQueries: [],
+    trendQueries: [],
+  };
+
+  return {
+    queries,
+    insights,
+    scores,
+    metrics,
+    userStory,
+    keywordTrends,
+    valueLadder,
+    actionPrompts,
+    socialProof,
+    deepResearch, // Include raw research for debugging/display
+  };
+}
+
+// =============================================================================
+// LEGACY PIPELINE (for fallback if deep research is disabled)
+// =============================================================================
+
+/**
+ * Original 9-phase pipeline using GPT-5.2 only.
+ * @deprecated Use runResearchPipeline which uses o3-deep-research
+ */
+export async function runLegacyResearchPipeline(
+  input: ResearchInput,
+  onProgress?: (phase: string, progress: number) => Promise<void>,
+  tier: SubscriptionTier = 'ENTERPRISE'
+): Promise<{
+  queries: GeneratedQueries;
+  insights: SynthesizedInsights;
+  scores: ResearchScores;
+  metrics: BusinessMetrics;
+  userStory: UserStory;
+  keywordTrends: KeywordTrend[];
+  valueLadder: OfferTier[];
+  actionPrompts: ActionPrompt[];
+  socialProof: SocialProof;
+}> {
+  console.log('[Legacy Pipeline] Starting 9-phase pipeline for:', input.ideaTitle);
+  console.log('[Legacy Pipeline] Using tier:', tier);
 
   // Phase 1: Generate queries
   await onProgress?.('QUERY_GENERATION', 5);
-  console.log('[Research Pipeline] Phase 1: Generating search queries...');
   const queries = await generateSearchQueries(input, tier);
   await onProgress?.('QUERY_GENERATION', 10);
-  console.log('[Research Pipeline] Queries generated:', Object.keys(queries).length, 'categories');
 
-  // Phase 2: Synthesize insights (MVP - uses interview data, no external APIs)
+  // Phase 2: Synthesize insights
   await onProgress?.('SYNTHESIS', 15);
-  console.log('[Research Pipeline] Phase 2: Synthesizing insights...');
   const insights = await synthesizeInsights(input, queries, tier);
   await onProgress?.('SYNTHESIS', 30);
-  console.log('[Research Pipeline] Insights synthesized');
 
   // Phase 3: Calculate scores
   await onProgress?.('SYNTHESIS', 35);
-  console.log('[Research Pipeline] Phase 3: Calculating scores...');
   const scores = await calculateScores(input, insights, tier);
   await onProgress?.('SYNTHESIS', 45);
-  console.log('[Research Pipeline] Scores:', scores);
 
   // Phase 4: Calculate business metrics
   await onProgress?.('SYNTHESIS', 50);
-  console.log('[Research Pipeline] Phase 4: Calculating business metrics...');
   const metrics = await calculateBusinessMetrics(input, insights, scores, tier);
   await onProgress?.('SYNTHESIS', 55);
-  console.log('[Research Pipeline] Metrics calculated');
 
   // Phase 5: Generate user story
   await onProgress?.('REPORT_GENERATION', 60);
-  console.log('[Research Pipeline] Phase 5: Generating user story...');
   const userStory = await generateUserStory(input, insights, tier);
   await onProgress?.('REPORT_GENERATION', 65);
-  console.log('[Research Pipeline] User story generated');
 
   // Phase 6: Generate keyword trends
   await onProgress?.('REPORT_GENERATION', 70);
-  console.log('[Research Pipeline] Phase 6: Generating keyword trends...');
   const keywordTrends = await generateKeywordTrends(input, insights, tier);
   await onProgress?.('REPORT_GENERATION', 75);
-  console.log('[Research Pipeline] Keyword trends generated:', keywordTrends.length, 'keywords');
 
   // Phase 7: Generate value ladder
   await onProgress?.('REPORT_GENERATION', 80);
-  console.log('[Research Pipeline] Phase 7: Generating value ladder...');
   const valueLadder = await generateValueLadder(input, insights, metrics, tier);
   await onProgress?.('REPORT_GENERATION', 85);
-  console.log('[Research Pipeline] Value ladder generated:', valueLadder.length, 'tiers');
 
   // Phase 8: Generate action prompts
   await onProgress?.('REPORT_GENERATION', 88);
-  console.log('[Research Pipeline] Phase 8: Generating action prompts...');
   const actionPrompts = await generateActionPrompts(input, insights, tier);
   await onProgress?.('REPORT_GENERATION', 92);
-  console.log('[Research Pipeline] Action prompts generated:', actionPrompts.length, 'prompts');
 
-  // Phase 9: Generate social proof
+  // Phase 9: Generate social proof (simulated)
   await onProgress?.('REPORT_GENERATION', 95);
-  console.log('[Research Pipeline] Phase 9: Generating social proof...');
   const socialProof = await generateSocialProof(input, insights, tier);
   await onProgress?.('REPORT_GENERATION', 98);
-  console.log('[Research Pipeline] Social proof generated:', socialProof.posts.length, 'posts');
 
   await onProgress?.('COMPLETE', 100);
-  console.log('[Research Pipeline] Complete!');
 
   return {
     queries,
