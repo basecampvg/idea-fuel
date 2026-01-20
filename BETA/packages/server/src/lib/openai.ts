@@ -1,5 +1,9 @@
 import OpenAI from 'openai';
 import type { SubscriptionTier } from '@prisma/client';
+import { configService } from '../services/config';
+
+// Re-export retry utility from deep-research for convenience
+export { withExponentialBackoff, type RetryOptions } from './deep-research';
 
 // Log OpenAI initialization status
 const apiKey = process.env.OPENAI_API_KEY;
@@ -18,14 +22,61 @@ export const openai = new OpenAI({
   maxRetries: 2,   // Retry twice on transient errors
 });
 
-// Default model for interview conversations
+// Default model constants (used as fallbacks when config service not initialized)
 export const INTERVIEW_MODEL = 'gpt-5.2';
-
-// Model for data extraction (structured output)
 export const EXTRACTION_MODEL = 'gpt-5.2';
-
-// Model for research synthesis (post-deep-research processing)
 export const RESEARCH_MODEL = 'gpt-5.2';
+
+// =============================================================================
+// CONFIG-AWARE MODEL GETTERS
+// These functions check the config service first, fall back to defaults
+// =============================================================================
+
+/**
+ * Get the interview model from config or fallback to default
+ */
+export function getInterviewModel(): string {
+  return configService.isInitialized()
+    ? configService.getString('ai.interview.model', INTERVIEW_MODEL)
+    : INTERVIEW_MODEL;
+}
+
+/**
+ * Get the research/synthesis model from config or fallback to default
+ */
+export function getResearchModel(): string {
+  return configService.isInitialized()
+    ? configService.getString('ai.research.model', RESEARCH_MODEL)
+    : RESEARCH_MODEL;
+}
+
+/**
+ * Check if GPT-5.2 reasoning params are enabled (config or env)
+ */
+export function isReasoningEnabled(): boolean {
+  if (configService.isInitialized()) {
+    return configService.getBoolean('ai.params.reasoningEnabled', USE_GPT52_PARAMS);
+  }
+  return USE_GPT52_PARAMS;
+}
+
+/**
+ * Get default temperature from config or fallback
+ */
+export function getDefaultTemperature(): number {
+  return configService.isInitialized()
+    ? configService.getNumber('ai.params.temperature', 0.7)
+    : 0.7;
+}
+
+/**
+ * Get default max tokens from config or fallback
+ */
+export function getDefaultMaxTokens(): number {
+  return configService.isInitialized()
+    ? configService.getNumber('ai.params.maxTokens', 4096)
+    : 4096;
+}
 
 // GPT-5.2 Parameter Types
 export type ReasoningEffort = 'none' | 'low' | 'medium' | 'high' | 'xhigh';
@@ -211,8 +262,8 @@ export function createGPT52Params(
  * @returns Tool configuration object
  */
 export function createWebSearchTool(domains?: string[]) {
-  const tool: { type: 'web_search'; filters?: { allowed_domains: string[] } } = {
-    type: 'web_search',
+  const tool: { type: 'web_search_preview'; filters?: { allowed_domains: string[] } } = {
+    type: 'web_search_preview',
   };
 
   if (domains && domains.length > 0) {

@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#2563eb"
+      "backgroundColor": "#11100E"
     },
     "ios": {
       "supportsTablet": true,
@@ -23,9 +23,10 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#2563eb"
+        "backgroundColor": "#11100E"
       },
-      "package": "com.forge.mobile"
+      "package": "com.forge.mobile",
+      "usesCleartextTraffic": true
     },
     "web": {
       "bundler": "metro",
@@ -39,6 +40,16 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "apiUrl": "http://10.0.0.30:3006",
+      "googleWebClientId": "897374181299-cgmmlpl915mh08sr6i451l1hbqst8ira.apps.googleusercontent.com",
+      "googleIosClientId": "897374181299-74sbbislgbdqrt7opacl3s06f7bn8cv4.apps.googleusercontent.com",
+      "googleAndroidClientId": "",
+      "googleExpoClientId": "897374181299-cgmmlpl915mh08sr6i451l1hbqst8ira.apps.googleusercontent.com",
+      "eas": {
+        "projectId": ""
+      }
     }
   }
 }

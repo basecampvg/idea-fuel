@@ -19,6 +19,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   signInWithGoogle: () => Promise<void>;
+  devLogin: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -108,6 +109,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await promptAsync();
   }, [request, promptAsync]);
 
+  // Dev-only login bypass
+  const devLogin = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/mobile/dev-login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: 'dev@forge.local' }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Dev login failed');
+      }
+
+      const data = await res.json();
+      await secureStorage.setToken(data.token);
+      setUser(data.user);
+    } catch (error) {
+      console.error('Dev login failed:', error);
+      throw error;
+    }
+  }, []);
+
   const signOut = useCallback(async () => {
     try {
       const token = await secureStorage.getToken();
@@ -155,6 +180,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isAuthenticated: !!user,
         signInWithGoogle,
+        devLogin,
         signOut,
         refreshUser,
       }}

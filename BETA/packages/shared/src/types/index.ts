@@ -156,14 +156,17 @@ export interface ChatMessage {
   timestamp: string; // ISO date string for JSON serialization
 }
 
-// Research pipeline phases (4-6 hour total process)
+// Research pipeline phases - New 4-phase pipeline with o3-deep-research
 export type ResearchPhase =
   | 'QUEUED'
+  | 'DEEP_RESEARCH'      // o3-deep-research with web_search (~5-10 min)
+  | 'SOCIAL_RESEARCH'    // Domain-filtered social proof search (~1 min)
+  | 'SYNTHESIS'          // GPT-5.2 extracts structured data (~1 min)
+  | 'REPORT_GENERATION'  // GPT-5.2 generates creative content (~1 min)
+  | 'COMPLETE'
+  // Legacy phases (kept for backward compatibility)
   | 'QUERY_GENERATION'
-  | 'DATA_COLLECTION'
-  | 'SYNTHESIS'
-  | 'REPORT_GENERATION'
-  | 'COMPLETE';
+  | 'DATA_COLLECTION';
 
 // Research model - long-running background job
 export interface Research {

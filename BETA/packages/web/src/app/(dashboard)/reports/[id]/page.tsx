@@ -3,25 +3,10 @@
 import { use } from 'react';
 import Link from 'next/link';
 import { trpc } from '@/lib/trpc/client';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { LoadingScreen } from '@/components/ui/spinner';
-import {
-  REPORT_TYPE_LABELS,
-  REPORT_TYPE_DESCRIPTIONS,
-  REPORT_TIER_LABELS,
-  REPORT_STATUS_LABELS,
-} from '@forge/shared';
-
-type ReportStatus = 'DRAFT' | 'GENERATING' | 'COMPLETE' | 'FAILED';
-
-const statusVariants: Record<ReportStatus, 'default' | 'warning' | 'success' | 'error'> = {
-  DRAFT: 'default',
-  GENERATING: 'warning',
-  COMPLETE: 'success',
-  FAILED: 'error',
-};
+import { REPORT_TIER_LABELS, REPORT_TIER_DESCRIPTIONS } from '@forge/shared';
+import { ReportHeader } from './components/report-header';
+import { ReportContent } from './components/report-content';
 
 export default function ReportDetailPage({
   params,
@@ -38,155 +23,124 @@ export default function ReportDetailPage({
 
   if (error || !report) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-        {error?.message || 'Report not found'}
+      <div className="w-full max-w-[1120px] mx-auto px-6 py-8">
+        <Link
+          href="/ideas"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <svg className="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Vault
+        </Link>
+        <div className="mt-6 glass-card p-6 border-destructive/30">
+          <p className="text-destructive">{error?.message || 'Report not found'}</p>
+        </div>
       </div>
     );
   }
 
-  // Parse content - could be markdown or JSON
-  let contentHtml = report.content;
-  // For now, we'll display as preformatted text
-  // TODO: Add proper markdown rendering
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <Link
-          href="/reports"
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-        >
-          <svg className="mr-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to Reports
-        </Link>
-        <div className="mt-2 flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900">
-                {REPORT_TYPE_LABELS[report.type] || report.type}
-              </h1>
-              <Badge variant={statusVariants[report.status as ReportStatus]}>
-                {REPORT_STATUS_LABELS[report.status] || report.status}
-              </Badge>
-            </div>
-            <p className="mt-1 text-gray-500">
-              {REPORT_TYPE_DESCRIPTIONS[report.type]}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            {report.pdfUrl && (
-              <a href={report.pdfUrl} target="_blank" rel="noopener noreferrer">
-                <Button variant="outline">
-                  <svg
-                    className="mr-2 h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                  Download PDF
-                </Button>
-              </a>
-            )}
-          </div>
+    <div className="w-full space-y-6 max-w-[1120px] mx-auto px-6 py-8">
+      {/* Header with back navigation, title, badges, and download button */}
+      <ReportHeader report={report} />
+
+      {/* Metadata cards */}
+      <div className="grid gap-3 sm:grid-cols-4">
+        {/* Idea link */}
+        <div className="p-4 rounded-xl bg-card border border-border">
+          <p className="text-xs text-muted-foreground mb-1">Source Idea</p>
+          <Link
+            href={`/ideas/${report.ideaId}`}
+            className="text-sm font-medium text-accent hover:text-accent/80 transition-colors line-clamp-1"
+          >
+            {report.idea?.title || 'View Idea'}
+          </Link>
+        </div>
+
+        {/* Tier */}
+        <div className="p-4 rounded-xl bg-card border border-border">
+          <p className="text-xs text-muted-foreground mb-1">Report Tier</p>
+          <p className="text-sm font-medium text-foreground">
+            {REPORT_TIER_LABELS[report.tier] || report.tier}
+          </p>
+          <p className="text-xs text-muted-foreground/60 mt-0.5">
+            {REPORT_TIER_DESCRIPTIONS[report.tier]}
+          </p>
+        </div>
+
+        {/* Version */}
+        <div className="p-4 rounded-xl bg-card border border-border">
+          <p className="text-xs text-muted-foreground mb-1">Version</p>
+          <p className="text-sm font-medium text-foreground">v{report.version}</p>
+        </div>
+
+        {/* Generated date */}
+        <div className="p-4 rounded-xl bg-card border border-border">
+          <p className="text-xs text-muted-foreground mb-1">Generated</p>
+          <p className="text-sm font-medium text-foreground">
+            {new Date(report.createdAt).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            })}
+          </p>
         </div>
       </div>
 
-      {/* Metadata */}
-      <div className="grid gap-4 sm:grid-cols-4">
-        <Card>
-          <CardContent className="py-4">
-            <p className="text-sm text-gray-500">Idea</p>
-            <Link
-              href={`/ideas/${report.ideaId}`}
-              className="font-medium text-blue-600 hover:text-blue-700"
-            >
-              {report.idea?.title || 'View Idea'}
-            </Link>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="py-4">
-            <p className="text-sm text-gray-500">Tier</p>
-            <p className="font-medium text-gray-900">
-              {REPORT_TIER_LABELS[report.tier] || report.tier}
+      {/* Report Status States */}
+      {report.status === 'GENERATING' && (
+        <div className="glass-card p-8">
+          <div className="flex flex-col items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-info/20 flex items-center justify-center mb-4">
+              <div className="w-6 h-6 border-2 border-info border-t-transparent rounded-full animate-spin" />
+            </div>
+            <p className="text-foreground font-medium">Generating Report</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              AI is analyzing your data and creating insights...
             </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="py-4">
-            <p className="text-sm text-gray-500">Version</p>
-            <p className="font-medium text-gray-900">v{report.version}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="py-4">
-            <p className="text-sm text-gray-500">Generated</p>
-            <p className="font-medium text-gray-900">
-              {new Date(report.createdAt).toLocaleDateString()}
+          </div>
+        </div>
+      )}
+
+      {report.status === 'FAILED' && (
+        <div className="glass-card p-6 border-destructive/30">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-medium text-foreground">Report Generation Failed</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Something went wrong while generating this report. Please try regenerating it.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Report Content - only show for COMPLETE status */}
+      {report.status === 'COMPLETE' && (
+        <ReportContent report={report} />
+      )}
+
+      {/* Draft state */}
+      {report.status === 'DRAFT' && (
+        <div className="glass-card p-8">
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <p className="text-foreground font-medium">Report Draft</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              This report hasn't been generated yet.
             </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Report Content */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{report.title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {report.status === 'GENERATING' ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
-              <p className="mt-4 text-gray-500">Generating report...</p>
-            </div>
-          ) : report.status === 'FAILED' ? (
-            <div className="rounded-lg bg-red-50 p-4 text-red-700">
-              <p className="font-medium">Report generation failed</p>
-              <p className="text-sm">Please try generating this report again.</p>
-            </div>
-          ) : (
-            <div className="prose prose-gray max-w-none">
-              {/* TODO: Render markdown properly */}
-              <div className="whitespace-pre-wrap">{report.content}</div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Sections (if available) */}
-      {report.sections && typeof report.sections === 'object' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Report Sections</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {Object.entries(report.sections as Record<string, unknown>).map(
-                ([key, value]) => (
-                  <div
-                    key={key}
-                    className="flex items-center justify-between rounded-lg border border-gray-200 p-3"
-                  >
-                    <span className="text-gray-700">{key.replace(/_/g, ' ')}</span>
-                    <Badge variant={value ? 'success' : 'default'}>
-                      {value ? 'Included' : 'Not included'}
-                    </Badge>
-                  </div>
-                )
-              )}
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

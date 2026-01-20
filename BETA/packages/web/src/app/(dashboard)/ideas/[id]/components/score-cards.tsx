@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Info, AlertTriangle, ChevronDown } from 'lucide-react';
 
 // Tooltip descriptions for each score type
@@ -9,6 +9,14 @@ const scoreTooltips: Record<string, string> = {
   problem: 'Problem severity score measuring how painful the problem is for your target customers.',
   feasibility: 'Execution feasibility based on technical complexity, resources needed, and time to market.',
   whynow: 'Timing score evaluating market conditions, trends, and urgency factors that make now the right time.',
+};
+
+// Border glow colors for expanded state (matching score type)
+const expandedBorderColors: Record<string, string> = {
+  opportunity: 'border-[#22c55e] shadow-[0_0_20px_rgba(34,197,94,0.2)]',
+  problem: 'border-[#e91e8c] shadow-[0_0_20px_rgba(233,30,140,0.2)]',
+  feasibility: 'border-[#14b8a6] shadow-[0_0_20px_rgba(20,184,166,0.2)]',
+  whynow: 'border-[#8b5cf6] shadow-[0_0_20px_rgba(139,92,246,0.2)]',
 };
 
 // Types matching the backend ResearchScores interface
@@ -49,6 +57,8 @@ interface ScoreCardProps {
   colorType: 'opportunity' | 'problem' | 'feasibility' | 'whynow';
   isHighlighted?: boolean;
   justification?: ScoreWithJustification | null;
+  isExpanded: boolean;
+  onToggle: () => void;
 }
 
 function getScoreDescription(score: number | null | undefined, colorType: string): string {
@@ -105,11 +115,17 @@ function getConfidenceLabel(confidence: 'high' | 'medium' | 'low'): string {
   }
 }
 
-function ScoreCard({ label, score, colorType, isHighlighted = false, justification }: ScoreCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+function ScoreCard({ label, score, colorType, isHighlighted = false, justification, isExpanded, onToggle }: ScoreCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const displayScore = score ?? '--';
   const description = getSpecialDescription(colorType, score);
+
+  // Animate progress bar on mount
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Gradient colors for progress bars
   const barGradients: Record<string, string> = {
@@ -122,16 +138,24 @@ function ScoreCard({ label, score, colorType, isHighlighted = false, justificati
   // Calculate progress width (score out of 100)
   const progressWidth = score !== null && score !== undefined ? Math.min(Math.max(score, 0), 100) : 0;
 
-  // Card styling - highlighted for "High Pain"
-  const cardClass = isHighlighted
-    ? 'bg-background border border-[#e91e8c] rounded-xl p-4 shadow-[0_0_20px_rgba(233,30,140,0.2)]'
-    : 'bg-background border border-border rounded-xl p-4';
-
   const hasJustification = justification?.justification;
   const tooltipText = scoreTooltips[colorType];
 
+  // Card styling - expanded gets colored glow, highlighted (high pain) gets pink
+  const getCardClass = () => {
+    const baseClass = 'bg-background border rounded-xl p-4 transition-all duration-300';
+
+    if (isExpanded && hasJustification) {
+      return `${baseClass} ${expandedBorderColors[colorType]}`;
+    }
+    if (isHighlighted) {
+      return `${baseClass} border-[#e91e8c] shadow-[0_0_20px_rgba(233,30,140,0.2)]`;
+    }
+    return `${baseClass} border-border`;
+  };
+
   return (
-    <div className={cardClass}>
+    <div className={getCardClass()}>
       {/* Header: Label + info icon */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1">
@@ -140,12 +164,12 @@ function ScoreCard({ label, score, colorType, isHighlighted = false, justificati
           </span>
           {hasJustification ? (
             <button
-              onClick={() => setIsExpanded(!isExpanded)}
+              onClick={onToggle}
               className="p-0.5 rounded hover:bg-card transition-colors"
               title="Click to see scoring explanation"
             >
               <ChevronDown
-                className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${
+                className={`w-3 h-3 text-muted-foreground transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
                   isExpanded ? 'rotate-180' : ''
                 }`}
               />
@@ -191,31 +215,37 @@ function ScoreCard({ label, score, colorType, isHighlighted = false, justificati
         {description}
       </p>
 
-      {/* Progress bar */}
+      {/* Progress bar with mount animation */}
       <div className="h-[3px] rounded-full mt-3 bg-muted/30 overflow-hidden">
         <div
-          className={`h-full rounded-full bg-gradient-to-r ${barGradients[colorType]} transition-all duration-500 ease-out`}
-          style={{ width: `${progressWidth}%` }}
+          className={`h-full rounded-full bg-gradient-to-r ${barGradients[colorType]} transition-all duration-700 ease-out`}
+          style={{ width: mounted ? `${progressWidth}%` : '0%' }}
         />
       </div>
 
-      {/* Expandable justification */}
+      {/* Expandable justification using CSS grid trick for smooth auto-height */}
       {hasJustification && (
         <div
-          className={`overflow-hidden transition-all duration-200 ${
-            isExpanded ? 'max-h-40 opacity-100 mt-3 pt-3 border-t border-border' : 'max-h-0 opacity-0'
+          className={`grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+            isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
           }`}
         >
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            {justification.justification}
-          </p>
-          <div className="flex items-center gap-1.5 mt-2">
-            <div
-              className={`w-1.5 h-1.5 rounded-full ${getConfidenceColor(justification.confidence)}`}
-            />
-            <span className="text-[10px] text-muted-foreground">
-              {getConfidenceLabel(justification.confidence)}
-            </span>
+          <div className="overflow-hidden">
+            <div className={`pt-3 mt-3 border-t border-border transition-opacity duration-300 ${
+              isExpanded ? 'opacity-100 delay-100' : 'opacity-0'
+            }`}>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {justification.justification}
+              </p>
+              <div className="flex items-center gap-1.5 mt-2">
+                <div
+                  className={`w-1.5 h-1.5 rounded-full ${getConfidenceColor(justification.confidence)}`}
+                />
+                <span className="text-[10px] text-muted-foreground">
+                  {getConfidenceLabel(justification.confidence)}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -232,6 +262,13 @@ export function ScoreCards({
   scoreMetadata,
   layout = 'grid',
 }: ScoreCardsProps) {
+  // Accordion state - only one card expanded at a time
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
+
+  const handleToggle = (cardType: string) => {
+    setExpandedCard(prev => prev === cardType ? null : cardType);
+  };
+
   // Determine if problem score should be highlighted (High Pain effect)
   const isProblemHighlighted = problemScore !== null && problemScore !== undefined && problemScore >= 70;
 
@@ -261,6 +298,8 @@ export function ScoreCards({
           score={opportunityScore}
           colorType="opportunity"
           justification={scoreJustifications?.opportunity}
+          isExpanded={expandedCard === 'opportunity'}
+          onToggle={() => handleToggle('opportunity')}
         />
         <ScoreCard
           label="Problem"
@@ -268,18 +307,24 @@ export function ScoreCards({
           colorType="problem"
           isHighlighted={isProblemHighlighted}
           justification={scoreJustifications?.problem}
+          isExpanded={expandedCard === 'problem'}
+          onToggle={() => handleToggle('problem')}
         />
         <ScoreCard
           label="Feasibility"
           score={feasibilityScore}
           colorType="feasibility"
           justification={scoreJustifications?.feasibility}
+          isExpanded={expandedCard === 'feasibility'}
+          onToggle={() => handleToggle('feasibility')}
         />
         <ScoreCard
           label="Why Now"
           score={whyNowScore}
           colorType="whynow"
           justification={scoreJustifications?.whyNow}
+          isExpanded={expandedCard === 'whynow'}
+          onToggle={() => handleToggle('whynow')}
         />
       </div>
 

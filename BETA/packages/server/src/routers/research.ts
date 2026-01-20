@@ -3,7 +3,18 @@ import { router, protectedProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { RESEARCH_PHASE_PROGRESS } from '@forge/shared';
 import type { ChatMessage, InterviewDataPoints } from '@forge/shared';
-import { runResearchPipeline, type ResearchInput } from '../services/research-ai';
+import {
+  runResearchPipeline,
+  classifyResearchError,
+  logResearchError,
+  SlaTracker,
+  type ResearchInput,
+  type ExistingResearchData,
+  type IntermediateResearchData,
+  type ChunkedResearchData,
+  type ResearchError,
+  type ResearchPhase,
+} from '../services/research-ai';
 
 export const researchRouter = router({
   /**
@@ -212,6 +223,29 @@ export const researchRouter = router({
     });
     const userTier = user?.subscription ?? 'FREE';
 
+    // Build existing research data for resume functionality
+    // This allows the pipeline to skip completed phases (and chunks within phases)
+    const existingResearchData: ExistingResearchData | undefined = idea.research ? {
+      rawDeepResearch: idea.research.rawDeepResearch as ExistingResearchData['rawDeepResearch'],
+      researchChunks: idea.research.researchChunks as ChunkedResearchData | null, // Chunk progress for resume
+      socialProof: idea.research.socialProof as ExistingResearchData['socialProof'],
+      synthesizedInsights: idea.research.synthesizedInsights as ExistingResearchData['synthesizedInsights'],
+      opportunityScore: idea.research.opportunityScore,
+      problemScore: idea.research.problemScore,
+      feasibilityScore: idea.research.feasibilityScore,
+      whyNowScore: idea.research.whyNowScore,
+      scoreJustifications: idea.research.scoreJustifications as ExistingResearchData['scoreJustifications'],
+      scoreMetadata: idea.research.scoreMetadata as ExistingResearchData['scoreMetadata'],
+      revenuePotential: idea.research.revenuePotential as ExistingResearchData['revenuePotential'],
+      executionDifficulty: idea.research.executionDifficulty as ExistingResearchData['executionDifficulty'],
+      gtmClarity: idea.research.gtmClarity as ExistingResearchData['gtmClarity'],
+      founderFit: idea.research.founderFit as ExistingResearchData['founderFit'],
+      userStory: idea.research.userStory as ExistingResearchData['userStory'],
+      valueLadder: idea.research.valueLadder as ExistingResearchData['valueLadder'],
+      actionPrompts: idea.research.actionPrompts as ExistingResearchData['actionPrompts'],
+      keywordTrends: idea.research.keywordTrends as ExistingResearchData['keywordTrends'],
+    } : undefined;
+
     // Run pipeline in background (non-blocking for MVP)
     // In production, this would be a BullMQ job
     const researchId = research.id;
@@ -219,21 +253,109 @@ export const researchRouter = router({
 
     // Run pipeline async without awaiting
     (async () => {
+      // Track current phase for accurate error reporting
+      let currentPhase: 'QUEUED' | 'DEEP_RESEARCH' | 'SYNTHESIS' | 'SOCIAL_RESEARCH' | 'REPORT_GENERATION' | 'COMPLETE' = 'DEEP_RESEARCH';
+      const startTime = Date.now();
+
+      // Initialize SLA tracker for monitoring phase and total execution times
+      const slaTracker = new SlaTracker();
+
       try {
-        console.log('[Research] Starting NEW 4-phase pipeline with tier:', userTier);
-        const result = await runResearchPipeline(researchInput, async (phase, progress) => {
+        const canResume = existingResearchData?.rawDeepResearch;
+        console.log('[Research] Starting NEW 4-phase pipeline with tier:', userTier, canResume ? '(RESUMING)' : '(FRESH START)');
+        const result = await runResearchPipeline(researchInput, async (phase, progress, intermediateData?: IntermediateResearchData) => {
+          // Track phase for error reporting
+          currentPhase = phase as typeof currentPhase;
+
+          // Update SLA tracking when phase changes
+          const researchPhase = phase as ResearchPhase;
+          if (researchPhase && ['DEEP_RESEARCH', 'SOCIAL_RESEARCH', 'SYNTHESIS', 'REPORT_GENERATION'].includes(researchPhase)) {
+            // End previous phase if any
+            slaTracker.endPhase();
+            // Start new phase
+            slaTracker.startPhase(researchPhase);
+          }
+
+          // Check SLAs periodically
+          const totalSla = slaTracker.checkTotalSla();
+          if (!totalSla.ok) {
+            throw new Error(`Total SLA exceeded: pipeline took ${Math.round(totalSla.elapsed/1000)}s (limit: ${Math.round(totalSla.limit/1000)}s)`);
+          }
           // Update progress in database
           // New phases: DEEP_RESEARCH, SYNTHESIS, SOCIAL_RESEARCH, REPORT_GENERATION, COMPLETE
+          const updateData: Record<string, unknown> = {
+            currentPhase: phase as 'QUEUED' | 'DEEP_RESEARCH' | 'SYNTHESIS' | 'SOCIAL_RESEARCH' | 'REPORT_GENERATION' | 'COMPLETE',
+            progress,
+          };
+
+          // Save intermediate data for resume capability
+          // This allows resuming from the last completed phase (or chunk) if the pipeline fails
+          if (intermediateData) {
+            if (intermediateData.deepResearch) {
+              updateData.rawDeepResearch = intermediateData.deepResearch as object;
+
+              // Extract chunk data from deepResearch for granular resume capability
+              // The rawReport contains section markers that indicate which chunks completed
+              const rawReport = intermediateData.deepResearch.rawReport;
+              const chunkResults: Record<string, string> = {};
+
+              // Parse sections from combined report
+              const marketMatch = rawReport.match(/## Market Analysis\n\n([\s\S]*?)(?=\n\n---\n\n|$)/);
+              if (marketMatch) chunkResults.market = marketMatch[1].trim();
+
+              const competitorMatch = rawReport.match(/## Competitor Analysis\n\n([\s\S]*?)(?=\n\n---\n\n|$)/);
+              if (competitorMatch) chunkResults.competitors = competitorMatch[1].trim();
+
+              const painpointsMatch = rawReport.match(/## Customer Pain Points\n\n([\s\S]*?)(?=\n\n---\n\n|$)/);
+              if (painpointsMatch) chunkResults.painpoints = painpointsMatch[1].trim();
+
+              const timingMatch = rawReport.match(/## Timing & Validation\n\n([\s\S]*?)(?=\n\n---\n\n|$)/);
+              if (timingMatch) chunkResults.timing = timingMatch[1].trim();
+
+              // Save chunk progress for resume
+              if (Object.keys(chunkResults).length > 0) {
+                updateData.researchChunks = {
+                  chunkResults,
+                  citations: intermediateData.deepResearch.citations,
+                  sources: intermediateData.deepResearch.sources,
+                } as object;
+                console.log('[Research] Saved researchChunks for resume capability:', Object.keys(chunkResults).join(', '));
+              }
+            }
+            if (intermediateData.socialProof) {
+              updateData.socialProof = intermediateData.socialProof as object;
+              console.log('[Research] Saved socialProof for resume capability');
+            }
+            if (intermediateData.insights) {
+              updateData.synthesizedInsights = intermediateData.insights as object;
+              console.log('[Research] Saved synthesizedInsights for resume capability');
+            }
+            if (intermediateData.scores) {
+              updateData.opportunityScore = intermediateData.scores.opportunityScore;
+              updateData.problemScore = intermediateData.scores.problemScore;
+              updateData.feasibilityScore = intermediateData.scores.feasibilityScore;
+              updateData.whyNowScore = intermediateData.scores.whyNowScore;
+              updateData.scoreJustifications = intermediateData.scores.justifications as object;
+              updateData.scoreMetadata = intermediateData.scores.metadata as object;
+              console.log('[Research] Saved scores for resume capability');
+            }
+            if (intermediateData.metrics) {
+              updateData.revenuePotential = intermediateData.metrics.revenuePotential as object;
+              updateData.executionDifficulty = intermediateData.metrics.executionDifficulty as object;
+              updateData.gtmClarity = intermediateData.metrics.gtmClarity as object;
+              updateData.founderFit = intermediateData.metrics.founderFit as object;
+              console.log('[Research] Saved metrics for resume capability');
+            }
+          }
+
           await prisma.research.update({
             where: { id: researchId },
-            data: {
-              currentPhase: phase as 'QUEUED' | 'DEEP_RESEARCH' | 'SYNTHESIS' | 'SOCIAL_RESEARCH' | 'REPORT_GENERATION' | 'COMPLETE',
-              progress,
-            },
+            data: updateData,
           });
-        }, userTier);
+        }, userTier, existingResearchData);
 
         // Save final results
+        // Include rawDeepResearch for resume capability (allows skipping Phase 1 on restart)
         await prisma.research.update({
           where: { id: researchId },
           data: {
@@ -266,6 +388,8 @@ export const researchRouter = router({
             valueLadder: result.valueLadder as object[],
             actionPrompts: result.actionPrompts as object[],
             socialProof: result.socialProof as object,
+            // Raw deep research output for resume capability
+            rawDeepResearch: result.deepResearch as object,
           },
         });
 
@@ -277,15 +401,35 @@ export const researchRouter = router({
 
         console.log('[Research] Pipeline completed for idea:', input.ideaId);
       } catch (error) {
-        console.error('[Research] Pipeline failed:', error);
+        const duration = Date.now() - startTime;
+
+        // Classify the error for better handling and logging
+        const classifiedError = classifyResearchError(error, currentPhase, duration);
+        logResearchError(classifiedError);
+
+        // Store detailed error info in database
+        const errorDetails = {
+          type: classifiedError.type,
+          retryable: classifiedError.retryable,
+          elapsed: classifiedError.elapsed,
+          ...(classifiedError.type === 'rate_limit' && { retryAfterMs: classifiedError.retryAfterMs }),
+          ...(classifiedError.type === 'transient' && { statusCode: classifiedError.statusCode }),
+          ...(classifiedError.type === 'parse_error' && { rawResponsePreview: classifiedError.rawResponse.substring(0, 500) }),
+        };
+
         await prisma.research.update({
           where: { id: researchId },
           data: {
             status: 'FAILED',
-            errorMessage: error instanceof Error ? error.message : 'Unknown error',
-            errorPhase: 'SYNTHESIS',
+            errorMessage: `[${classifiedError.type}] ${classifiedError.message}`,
+            errorPhase: currentPhase,
+            // Store structured error info in a JSON field if available
+            // errorDetails: errorDetails, // Uncomment if you add this field to schema
           },
         });
+
+        // Log additional context for debugging
+        console.error('[Research] Classified error:', JSON.stringify(errorDetails, null, 2));
       }
     })();
 
@@ -445,6 +589,59 @@ export const researchRouter = router({
 
       return updatedResearch;
     }),
+
+  /**
+   * Reset stuck research (allows restarting interrupted/stuck research)
+   * This marks the research as FAILED so it can be restarted via the start endpoint
+   */
+  reset: protectedProcedure.input(z.object({ ideaId: z.string().cuid() })).mutation(async ({ ctx, input }) => {
+    const idea = await ctx.prisma.idea.findFirst({
+      where: {
+        id: input.ideaId,
+        userId: ctx.userId,
+      },
+      include: {
+        research: true,
+      },
+    });
+
+    if (!idea) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Idea not found',
+      });
+    }
+
+    if (!idea.research) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'No research found for this idea',
+      });
+    }
+
+    // Only allow reset for IN_PROGRESS or PENDING research (stuck states)
+    if (idea.research.status === 'COMPLETE') {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Cannot reset completed research. Use delete and restart instead.',
+      });
+    }
+
+    // Mark research as failed so it can be restarted
+    // Keep idea status as RESEARCHING so user stays on same page and sees failed state
+    const updatedResearch = await ctx.prisma.research.update({
+      where: { id: idea.research.id },
+      data: {
+        status: 'FAILED',
+        errorMessage: 'Research reset by user (interrupted or stuck)',
+        errorPhase: idea.research.currentPhase,
+      },
+    });
+
+    console.log('[Research] Reset stuck research for idea:', input.ideaId, 'was at phase:', idea.research.currentPhase);
+
+    return updatedResearch;
+  }),
 
   /**
    * Mark research as failed (called by BullMQ workers on error)

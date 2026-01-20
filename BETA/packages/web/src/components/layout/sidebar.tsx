@@ -15,6 +15,7 @@ import {
   MessageSquare,
   FileText,
   MoreHorizontal,
+  Shield,
 } from 'lucide-react';
 
 // Status configuration with semantic colors
@@ -46,6 +47,7 @@ const mainNav = [
 ];
 
 const bottomNav = [
+  { name: 'Admin', href: '/admin', icon: Shield },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

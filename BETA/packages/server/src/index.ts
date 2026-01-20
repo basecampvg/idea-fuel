@@ -15,3 +15,6 @@ export {
   type TrendData,
   type TrendComparison,
 } from './lib/serpapi';
+
+// Config service for runtime configuration
+export { configService, DEFAULT_CONFIGS, type ConfigDefinition } from './services/config';

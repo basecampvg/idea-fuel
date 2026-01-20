@@ -1,7 +1,8 @@
 import Constants from 'expo-constants';
 
 // API URL - points to Next.js backend
-export const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3000';
+// Use your machine's local IP for physical device testing, localhost for simulators
+export const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://10.0.0.30:3006';
 
 // Auth configuration
 export const AUTH_CONFIG = {

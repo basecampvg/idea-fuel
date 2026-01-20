@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { SessionProvider } from 'next-auth/react';
 import { TRPCProvider } from '@/lib/trpc/provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
+import { AnalyticsScripts } from '@/components/analytics/analytics-scripts';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -19,7 +20,10 @@ export default function RootLayout({
       <body className="antialiased" suppressHydrationWarning>
         <ThemeProvider>
           <SessionProvider>
-            <TRPCProvider>{children}</TRPCProvider>
+            <TRPCProvider>
+              {children}
+              <AnalyticsScripts />
+            </TRPCProvider>
           </SessionProvider>
         </ThemeProvider>
       </body>

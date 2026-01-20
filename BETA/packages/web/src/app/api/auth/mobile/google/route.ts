@@ -1,0 +1,132 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@forge/server';
+import { randomBytes } from 'crypto';
+
+/**
+ * POST /api/auth/mobile/google
+ * Exchange a Google OAuth access token for a session token
+ *
+ * This endpoint is called by the mobile app after successful Google OAuth.
+ * It verifies the Google token, creates/updates the user, and returns a session token.
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const { token } = await request.json();
+
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Missing Google token' },
+        { status: 400 }
+      );
+    }
+
+    // Verify the Google token by fetching user info
+    const googleUserInfoResponse = await fetch(
+      'https://www.googleapis.com/oauth2/v3/userinfo',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!googleUserInfoResponse.ok) {
+      return NextResponse.json(
+        { error: 'Invalid Google token' },
+        { status: 401 }
+      );
+    }
+
+    const googleUser = await googleUserInfoResponse.json();
+
+    if (!googleUser.email) {
+      return NextResponse.json(
+        { error: 'Email not available from Google' },
+        { status: 400 }
+      );
+    }
+
+    // Find or create user
+    let user = await prisma.user.findUnique({
+      where: { email: googleUser.email },
+    });
+
+    if (!user) {
+      // Create new user
+      user = await prisma.user.create({
+        data: {
+          email: googleUser.email,
+          name: googleUser.name || null,
+          image: googleUser.picture || null,
+        },
+      });
+    } else {
+      // Update user info if changed
+      if (user.name !== googleUser.name || user.image !== googleUser.picture) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            name: googleUser.name || user.name,
+            image: googleUser.picture || user.image,
+          },
+        });
+      }
+    }
+
+    // Create or update Google account link
+    const existingAccount = await prisma.account.findFirst({
+      where: {
+        userId: user.id,
+        provider: 'google',
+      },
+    });
+
+    if (!existingAccount) {
+      await prisma.account.create({
+        data: {
+          userId: user.id,
+          type: 'oauth',
+          provider: 'google',
+          providerAccountId: googleUser.sub,
+          access_token: token,
+        },
+      });
+    } else {
+      await prisma.account.update({
+        where: { id: existingAccount.id },
+        data: {
+          access_token: token,
+        },
+      });
+    }
+
+    // Generate a session token for mobile
+    const sessionToken = randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
+    // Create session in database
+    await prisma.session.create({
+      data: {
+        sessionToken,
+        userId: user.id,
+        expires,
+      },
+    });
+
+    return NextResponse.json({
+      token: sessionToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        image: user.image,
+      },
+    });
+  } catch (error) {
+    console.error('Mobile Google auth error:', error);
+    return NextResponse.json(
+      { error: 'Authentication failed' },
+      { status: 500 }
+    );
+  }
+}

@@ -1,4 +1,5 @@
-import { openai, getAIParams, createResponsesParams, createResponsesParamsWithWebSearch } from '../lib/openai';
+import { openai, getAIParams, createResponsesParams, createResponsesParamsWithWebSearch, withExponentialBackoff } from '../lib/openai';
+import { configService } from './config';
 import type { SubscriptionTier } from '@prisma/client';
 import { getResearchKnowledge, KNOWLEDGE } from '../lib/knowledge';
 import type { InterviewDataPoints } from '@forge/shared';
@@ -14,7 +15,12 @@ import {
   SEARCH_DOMAINS,
   createDeepResearchParams,
   parseDeepResearchResponse,
+  runDeepResearchWithPolling,
+  startBackgroundResearch,
+  pollForCompletion,
   type DeepResearchResult,
+  type PollOptions,
+  type ResponseStatus,
 } from '../lib/deep-research';
 
 // Model for post-processing tasks (interpreting research, generating reports)
@@ -300,10 +306,6 @@ Provide specific, actionable insights with citations to help validate this busin
   const researchDomains = [...SEARCH_DOMAINS.market, ...SEARCH_DOMAINS.competitor];
 
   const startTime = Date.now();
-  const heartbeat = setInterval(() => {
-    const elapsed = Math.round((Date.now() - startTime) / 1000);
-    console.log(`[Deep Research] Still researching... (${elapsed}s elapsed)`);
-  }, 30000); // Log every 30 seconds
 
   try {
     const params = createDeepResearchParams({
@@ -311,20 +313,36 @@ Provide specific, actionable insights with citations to help validate this busin
       systemPrompt,
       userQuery,
       domains: researchDomains,
+      background: true, // Use background mode per best practices
     });
 
-    console.log('[Deep Research] Calling API with web_search tool...');
+    console.log('[Deep Research] Starting background research request...');
     console.log('[Deep Research] Domains:', researchDomains.length, 'market + competitor domains');
 
-    const response = await deepResearchClient.responses.create(params);
+    // Use background mode with polling (recommended for deep research)
+    // This avoids long-lived connections that can timeout
+    // Note: o3-deep-research can take 30-60+ minutes for comprehensive research
+    const result = await withExponentialBackoff(
+      () => runDeepResearchWithPolling(params, {
+        pollIntervalMs: 15000, // Poll every 15 seconds
+        maxWaitMs: 3600000, // 60 minute timeout for single research (o3 can be slow)
+        onProgress: (status: ResponseStatus, elapsed: number) => {
+          console.log(`[Deep Research] Status: ${status} (${Math.round(elapsed/1000)}s elapsed)`);
+        },
+        onLog: (msg: string) => console.log(msg),
+      }),
+      {
+        maxAttempts: 3, // Retry the whole background+polling process
+        initialDelayMs: 10000,
+        maxDelayMs: 120000,
+        onRetry: (attempt, error, delayMs) => {
+          console.warn(`[Deep Research] Retry ${attempt}/3 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+        }
+      }
+    );
 
-    clearInterval(heartbeat);
     const elapsed = Math.round((Date.now() - startTime) / 1000);
     console.log(`[Deep Research] Research complete after ${elapsed}s`);
-
-    // Parse the response to extract report and citations
-    const result = parseDeepResearchResponse(response);
-
     console.log('[Deep Research] Report length:', result.content.length, 'chars');
     console.log('[Deep Research] Citations found:', result.citations.length);
     console.log('[Deep Research] Sources:', result.sources.length);
@@ -333,13 +351,844 @@ Provide specific, actionable insights with citations to help validate this busin
       rawReport: result.content,
       citations: result.citations,
       sources: result.sources,
-      searchQueriesUsed: [], // Populated by the model during execution
+      searchQueriesUsed: result.searchQueries || [],
     };
   } catch (error) {
-    clearInterval(heartbeat);
     const elapsed = Math.round((Date.now() - startTime) / 1000);
     console.error(`[Deep Research] Error after ${elapsed}s:`, error);
     throw error;
+  }
+}
+
+// =============================================================================
+// CHUNKED DEEP RESEARCH (Avoids rate limits by breaking into smaller calls)
+// =============================================================================
+
+// Chunk configuration for sequential research
+const RESEARCH_CHUNKS = [
+  {
+    id: 'market',
+    name: 'Market Analysis',
+    progressStart: 5,
+    progressEnd: 12,
+    focus: 'Market size, growth rate, trends, dynamics, and industry analysis',
+    getDomains: () => [...SEARCH_DOMAINS.market],
+  },
+  {
+    id: 'competitors',
+    name: 'Competitor Research',
+    progressStart: 12,
+    progressEnd: 19,
+    focus: 'Direct and indirect competitors, their positioning, strengths, weaknesses, and market share',
+    getDomains: () => [...SEARCH_DOMAINS.competitor, ...SEARCH_DOMAINS.startup],
+  },
+  {
+    id: 'painpoints',
+    name: 'Customer Pain Points',
+    progressStart: 19,
+    progressEnd: 25,
+    focus: 'Evidence of customer pain points from forums, reviews, social media, and discussions',
+    getDomains: () => [...SEARCH_DOMAINS.social],
+  },
+  {
+    id: 'timing',
+    name: 'Timing & Validation',
+    progressStart: 25,
+    progressEnd: 30,
+    focus: 'Market timing factors, why now indicators, recent changes, and validation signals',
+    getDomains: () => [...SEARCH_DOMAINS.market],
+  },
+] as const;
+
+// Delay between chunks to allow rate limit recovery (2 minutes)
+const INTER_CHUNK_DELAY_MS = 120000;
+
+// Type for chunk results stored in database
+export interface ChunkedResearchData {
+  chunkResults: Record<string, string>;
+  citations: Array<{ title: string; url: string; snippet?: string }>;
+  sources: string[];
+}
+
+// Progress callback type for chunked research (matches IntermediateResearchData)
+export type ChunkedProgressCallback = (
+  phase: string,
+  progress: number,
+  intermediateData?: IntermediateResearchData
+) => Promise<void>;
+
+/**
+ * Run chunked deep research - breaks large research into smaller sequential calls.
+ * This avoids the 200k TPM rate limit by making 4 focused calls with delays between them.
+ *
+ * @param input Research input with idea and interview data
+ * @param tier Subscription tier (FREE uses mini model, PRO/ENTERPRISE use full)
+ * @param onProgress Progress callback for UI updates and intermediate saves
+ * @param existingChunks Previously completed chunks for resume support
+ * @returns Deep research output with raw report and citations
+ */
+export async function runChunkedDeepResearch(
+  input: ResearchInput,
+  tier: SubscriptionTier = 'ENTERPRISE',
+  onProgress?: ChunkedProgressCallback,
+  existingChunks?: ChunkedResearchData
+): Promise<DeepResearchOutput> {
+  const { ideaTitle, ideaDescription, interviewData, interviewMessages } = input;
+
+  console.log('[Chunked Research] Starting chunked market research...');
+  console.log('[Chunked Research] Tier:', tier);
+  console.log('[Chunked Research] Chunks:', RESEARCH_CHUNKS.length);
+
+  // Select model based on tier (FREE uses cheaper mini model)
+  const model = tier === 'FREE' ? DEEP_RESEARCH_MODEL_MINI : DEEP_RESEARCH_MODEL;
+  console.log('[Chunked Research] Using model:', model);
+
+  // Initialize results from existing data or empty
+  const results: Record<string, string> = existingChunks?.chunkResults ? { ...existingChunks.chunkResults } : {};
+  const allCitations: Array<{ title: string; url: string; snippet?: string }> = existingChunks?.citations ? [...existingChunks.citations] : [];
+  const allSources: string[] = existingChunks?.sources ? [...existingChunks.sources] : [];
+
+  // Check for existing chunks to resume from
+  const completedChunks = Object.keys(results);
+  if (completedChunks.length > 0) {
+    console.log('[Chunked Research] RESUME MODE - Found', completedChunks.length, 'completed chunks:', completedChunks.join(', '));
+  }
+
+  // Build interview context once (shared across chunks)
+  const interviewContext = interviewMessages
+    .filter((m) => m.role !== 'system')
+    .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
+    .join('\n\n');
+
+  // Process each chunk sequentially
+  for (let i = 0; i < RESEARCH_CHUNKS.length; i++) {
+    const chunk = RESEARCH_CHUNKS[i];
+
+    // Skip if chunk already completed (resume support)
+    if (results[chunk.id]) {
+      console.log(`[Chunked Research] Skipping ${chunk.name} (already completed)`);
+      await onProgress?.('DEEP_RESEARCH', chunk.progressEnd);
+      continue;
+    }
+
+    console.log(`[Chunked Research] === Starting: ${chunk.name} ===`);
+    await onProgress?.('DEEP_RESEARCH', chunk.progressStart);
+
+    // Run focused research for this chunk
+    const startTime = Date.now();
+    const heartbeat = setInterval(() => {
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      console.log(`[Chunked Research] [${chunk.name}] Still researching... (${elapsed}s elapsed)`);
+    }, 15000);
+
+    try {
+      const chunkResult = await runSingleResearchChunk(
+        ideaTitle,
+        ideaDescription,
+        interviewData,
+        interviewContext,
+        chunk,
+        model
+      );
+
+      clearInterval(heartbeat);
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      console.log(`[Chunked Research] [${chunk.name}] Complete after ${elapsed}s - ${chunkResult.content.length} chars`);
+
+      // Accumulate results
+      results[chunk.id] = chunkResult.content;
+      allCitations.push(...chunkResult.citations);
+      allSources.push(...chunkResult.sources);
+
+      // Save intermediate progress for resume (passes combined results so far)
+      // Format as IntermediateResearchData with deepResearch field
+      await onProgress?.('DEEP_RESEARCH', chunk.progressEnd, {
+        deepResearch: {
+          rawReport: combineChunkResults(results),
+          citations: allCitations,
+          sources: [...new Set(allSources)],
+          searchQueriesUsed: [],
+        },
+      });
+
+      // Delay before next chunk (skip after last chunk)
+      if (i < RESEARCH_CHUNKS.length - 1) {
+        console.log(`[Chunked Research] Waiting ${INTER_CHUNK_DELAY_MS / 1000}s before next chunk (rate limit recovery)...`);
+        await sleep(INTER_CHUNK_DELAY_MS);
+      }
+    } catch (error) {
+      clearInterval(heartbeat);
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      console.error(`[Chunked Research] [${chunk.name}] Error after ${elapsed}s:`, error);
+      throw error;
+    }
+  }
+
+  console.log('[Chunked Research] === All chunks complete ===');
+  console.log('[Chunked Research] Total citations:', allCitations.length);
+  console.log('[Chunked Research] Unique sources:', [...new Set(allSources)].length);
+
+  return {
+    rawReport: combineChunkResults(results),
+    citations: allCitations,
+    sources: [...new Set(allSources)],
+    searchQueriesUsed: [],
+  };
+}
+
+/**
+ * Run a single focused research chunk
+ */
+async function runSingleResearchChunk(
+  ideaTitle: string,
+  ideaDescription: string,
+  interviewData: Partial<InterviewDataPoints> | null,
+  interviewContext: string,
+  chunk: typeof RESEARCH_CHUNKS[number],
+  model: string
+): Promise<DeepResearchResult> {
+  const systemPrompt = `You are a market research analyst conducting focused research.
+
+## YOUR SPECIFIC TASK
+Research ONLY: ${chunk.focus}
+
+## GUIDELINES
+- Be thorough but focused on this specific research area
+- Cite your sources with URLs
+- Provide specific data points, statistics, and named examples
+- Keep your response focused and under 2000 words
+- Do not cover other research areas - stay focused on your assigned task`;
+
+  const userQuery = `## BUSINESS IDEA
+**Title:** ${ideaTitle}
+**Description:** ${ideaDescription}
+
+## FOUNDER CONTEXT
+${interviewData ? JSON.stringify(interviewData, null, 2) : 'No additional context provided.'}
+
+## INTERVIEW CONTEXT
+${interviewContext || 'No interview transcript available.'}
+
+---
+
+## RESEARCH FOCUS: ${chunk.name.toUpperCase()}
+${chunk.focus}
+
+Provide specific, actionable insights with citations. Focus only on this research area.`;
+
+  const params = createDeepResearchParams({
+    model,
+    systemPrompt,
+    userQuery,
+    domains: chunk.getDomains(),
+    background: true, // Use background mode per best practices
+    reasoningSummary: 'auto',
+  });
+
+  console.log(`[Chunked Research] [${chunk.name}] Starting background request with ${chunk.getDomains().length} domains...`);
+
+  // Use background mode with polling for chunked research
+  // Note: o3-deep-research can take 30-60+ minutes even for focused chunks
+  const result = await withExponentialBackoff(
+    () => runDeepResearchWithPolling(params, {
+      pollIntervalMs: 15000, // Poll every 15 seconds
+      maxWaitMs: 3600000, // 60 minute timeout per chunk (o3 can be slow)
+      onProgress: (status: ResponseStatus, elapsed: number) => {
+        console.log(`[Chunked Research] [${chunk.name}] Status: ${status} (${Math.round(elapsed/1000)}s elapsed)`);
+      },
+      onLog: (msg: string) => console.log(msg.replace('[', `[Chunked Research] [${chunk.name}] [`)),
+    }),
+    {
+      maxAttempts: 3,
+      initialDelayMs: 5000,
+      maxDelayMs: 120000,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[Chunked Research] [${chunk.name}] Retry ${attempt}/3 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+      }
+    }
+  );
+  return result;
+}
+
+/**
+ * Combine chunk results into a single formatted report
+ */
+function combineChunkResults(results: Record<string, string>): string {
+  const sections: string[] = [];
+
+  if (results.market) {
+    sections.push(`## Market Analysis\n\n${results.market}`);
+  }
+  if (results.competitors) {
+    sections.push(`## Competitor Analysis\n\n${results.competitors}`);
+  }
+  if (results.painpoints) {
+    sections.push(`## Customer Pain Points\n\n${results.painpoints}`);
+  }
+  if (results.timing) {
+    sections.push(`## Timing & Validation\n\n${results.timing}`);
+  }
+
+  return sections.join('\n\n---\n\n');
+}
+
+/**
+ * Sleep helper for delays between chunks
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// =============================================================================
+// RESPONSE PARSING UTILITIES
+// =============================================================================
+
+/**
+ * Unified response content extractor for OpenAI Responses API.
+ * Handles both standard Responses API format (output_text) and
+ * deep research format (output[] array with message objects).
+ *
+ * @param response - The raw API response object
+ * @returns The extracted text content, or null if not found
+ */
+function extractResponseContent(response: unknown): string | null {
+  if (!response || typeof response !== 'object') {
+    return null;
+  }
+
+  const resp = response as Record<string, unknown>;
+
+  // Try output_text first (standard Responses API format)
+  if (resp.output_text && typeof resp.output_text === 'string') {
+    return resp.output_text;
+  }
+
+  // Try output array (deep research / background mode format)
+  if (Array.isArray(resp.output)) {
+    // Find the message output in the array
+    const messageOutput = resp.output.find(
+      (item: unknown) =>
+        item &&
+        typeof item === 'object' &&
+        (item as Record<string, unknown>).type === 'message'
+    ) as Record<string, unknown> | undefined;
+
+    if (messageOutput?.content && Array.isArray(messageOutput.content)) {
+      const textContent = messageOutput.content[0] as Record<string, unknown> | undefined;
+      if (textContent?.text && typeof textContent.text === 'string') {
+        return textContent.text;
+      }
+    }
+  }
+
+  // Try choices array (legacy Chat Completions format, just in case)
+  if (Array.isArray(resp.choices) && resp.choices.length > 0) {
+    const choice = resp.choices[0] as Record<string, unknown>;
+    const message = choice.message as Record<string, unknown> | undefined;
+    if (message?.content && typeof message.content === 'string') {
+      return message.content;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Validates that JSON content appears complete (not truncated).
+ * Checks that the content ends with a closing brace or bracket.
+ * Throws ResponseParseError if truncation is detected.
+ */
+function validateJsonCompleteness(content: string, context: string): void {
+  const trimmed = content.trim();
+  if (!trimmed.endsWith('}') && !trimmed.endsWith(']')) {
+    const lastChars = trimmed.slice(-100);
+    console.error(`[${context}] JSON appears truncated. Last 100 chars: ${lastChars}`);
+    throw new ResponseParseError(
+      `JSON appears truncated in ${context} (ends with: "${trimmed.slice(-50)}")`,
+      { truncated: true, lastChars, contentLength: content.length }
+    );
+  }
+}
+
+/**
+ * Get response status for logging and error handling.
+ */
+function getResponseStatus(response: unknown): string {
+  if (!response || typeof response !== 'object') {
+    return 'unknown';
+  }
+  const resp = response as Record<string, unknown>;
+  return typeof resp.status === 'string' ? resp.status : 'unknown';
+}
+
+/**
+ * Custom error class for response parsing failures.
+ * Includes the raw response for debugging.
+ */
+export class ResponseParseError extends Error {
+  public readonly rawResponse: string;
+  public readonly responseStatus: string;
+
+  constructor(message: string, response: unknown) {
+    super(message);
+    this.name = 'ResponseParseError';
+    this.responseStatus = getResponseStatus(response);
+    this.rawResponse = JSON.stringify(response, null, 2).substring(0, 3000);
+  }
+}
+
+// =============================================================================
+// DISCRIMINATED ERROR TYPES
+// =============================================================================
+
+/**
+ * Research error types for discriminated handling
+ */
+export type ResearchErrorType =
+  | 'timeout'
+  | 'rate_limit'
+  | 'transient'
+  | 'api_error'
+  | 'parse_error'
+  | 'sla_exceeded'
+  | 'unknown';
+
+/**
+ * Base interface for all research errors
+ */
+export interface ResearchErrorInfo {
+  type: ResearchErrorType;
+  message: string;
+  phase: string;
+  elapsed: number;
+  retryable: boolean;
+}
+
+/**
+ * Timeout error - operation took too long
+ */
+export interface TimeoutError extends ResearchErrorInfo {
+  type: 'timeout';
+  timeoutMs: number;
+}
+
+/**
+ * Rate limit error - hit API rate limits
+ */
+export interface RateLimitError extends ResearchErrorInfo {
+  type: 'rate_limit';
+  retryAfterMs: number;
+}
+
+/**
+ * Transient error - temporary failure (5XX, network issues)
+ */
+export interface TransientError extends ResearchErrorInfo {
+  type: 'transient';
+  statusCode: number;
+  attempt: number;
+  maxAttempts: number;
+}
+
+/**
+ * API error - explicit error from OpenAI API
+ */
+export interface ApiError extends ResearchErrorInfo {
+  type: 'api_error';
+  apiErrorCode?: string;
+  apiErrorMessage?: string;
+}
+
+/**
+ * Parse error - failed to parse response content
+ */
+export interface ParseError extends ResearchErrorInfo {
+  type: 'parse_error';
+  rawResponse: string;
+}
+
+/**
+ * SLA exceeded error - phase or total SLA timeout
+ */
+export interface SlaExceededError extends ResearchErrorInfo {
+  type: 'sla_exceeded';
+  slaMs: number;
+  actualMs: number;
+}
+
+/**
+ * Union type of all specific error types
+ */
+export type ResearchError =
+  | TimeoutError
+  | RateLimitError
+  | TransientError
+  | ApiError
+  | ParseError
+  | SlaExceededError
+  | (ResearchErrorInfo & { type: 'unknown' });
+
+/**
+ * Classify an error into a discriminated error type.
+ *
+ * @param error - The raw error to classify
+ * @param phase - Current research phase
+ * @param elapsed - Time elapsed in milliseconds
+ * @returns Classified error info
+ */
+export function classifyResearchError(
+  error: unknown,
+  phase: string,
+  elapsed: number
+): ResearchError {
+  const baseInfo = {
+    phase,
+    elapsed,
+    message: error instanceof Error ? error.message : String(error),
+  };
+
+  // Check for timeout errors
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase();
+
+    if (msg.includes('timeout') || msg.includes('timed out')) {
+      return {
+        ...baseInfo,
+        type: 'timeout',
+        timeoutMs: elapsed,
+        retryable: true,
+      };
+    }
+
+    if (msg.includes('polling timeout')) {
+      return {
+        ...baseInfo,
+        type: 'sla_exceeded',
+        slaMs: elapsed,
+        actualMs: elapsed,
+        retryable: true,
+      };
+    }
+
+    if (msg.includes('rate limit') || msg.includes('too many requests')) {
+      // Try to extract retry-after
+      const match = msg.match(/(\d+)\s*(seconds?|ms)/i);
+      const retryAfterMs = match
+        ? parseInt(match[1]) * (match[2].toLowerCase().startsWith('s') ? 1000 : 1)
+        : 60000;
+
+      return {
+        ...baseInfo,
+        type: 'rate_limit',
+        retryAfterMs,
+        retryable: true,
+      };
+    }
+  }
+
+  // Check for OpenAI API errors with status codes
+  if (error && typeof error === 'object') {
+    const err = error as Record<string, unknown>;
+    const status = (err.status || err.statusCode) as number | undefined;
+
+    if (status) {
+      // Rate limit (429)
+      if (status === 429) {
+        const retryAfter = err.headers
+          ? ((err.headers as Record<string, unknown>)['retry-after'] as string)
+          : null;
+
+        return {
+          ...baseInfo,
+          type: 'rate_limit',
+          retryAfterMs: retryAfter ? parseInt(retryAfter) * 1000 : 60000,
+          retryable: true,
+        };
+      }
+
+      // Transient errors (5XX)
+      if (status >= 500 && status < 600) {
+        return {
+          ...baseInfo,
+          type: 'transient',
+          statusCode: status,
+          attempt: 1,
+          maxAttempts: 3,
+          retryable: true,
+        };
+      }
+
+      // Client errors (4XX except 429)
+      if (status >= 400 && status < 500) {
+        return {
+          ...baseInfo,
+          type: 'api_error',
+          apiErrorCode: err.code as string | undefined,
+          apiErrorMessage: err.message as string | undefined,
+          retryable: false,
+        };
+      }
+    }
+
+    // Check for error field in response
+    if (err.error && typeof err.error === 'object') {
+      const apiErr = err.error as Record<string, unknown>;
+      return {
+        ...baseInfo,
+        type: 'api_error',
+        apiErrorCode: apiErr.code as string | undefined,
+        apiErrorMessage: apiErr.message as string | undefined,
+        retryable: false,
+      };
+    }
+  }
+
+  // Check for parse errors
+  if (error instanceof ResponseParseError) {
+    return {
+      ...baseInfo,
+      type: 'parse_error',
+      rawResponse: error.rawResponse,
+      retryable: false,
+    };
+  }
+
+  // Unknown error
+  return {
+    ...baseInfo,
+    type: 'unknown',
+    retryable: false,
+  };
+}
+
+/**
+ * Log a classified research error with appropriate severity
+ */
+export function logResearchError(error: ResearchError): void {
+  const prefix = `[Research Error] [${error.phase}]`;
+
+  switch (error.type) {
+    case 'timeout':
+      console.error(`${prefix} Timeout after ${Math.round(error.elapsed/1000)}s (limit: ${Math.round(error.timeoutMs/1000)}s)`);
+      break;
+    case 'rate_limit':
+      console.warn(`${prefix} Rate limited. Retry after ${Math.round(error.retryAfterMs/1000)}s`);
+      break;
+    case 'transient':
+      console.warn(`${prefix} Transient error (${error.statusCode}). Attempt ${error.attempt}/${error.maxAttempts}`);
+      break;
+    case 'api_error':
+      console.error(`${prefix} API error: ${error.apiErrorMessage || error.message}`);
+      break;
+    case 'parse_error':
+      console.error(`${prefix} Parse error: ${error.message}`);
+      console.debug(`${prefix} Raw response: ${error.rawResponse.substring(0, 500)}...`);
+      break;
+    case 'sla_exceeded':
+      console.error(`${prefix} SLA exceeded: ${Math.round(error.actualMs/1000)}s > ${Math.round(error.slaMs/1000)}s`);
+      break;
+    default:
+      console.error(`${prefix} Unknown error: ${error.message}`);
+  }
+}
+
+// =============================================================================
+// SLA MANAGEMENT
+// =============================================================================
+
+/**
+ * Research phase names
+ */
+export type ResearchPhase =
+  | 'DEEP_RESEARCH'
+  | 'SOCIAL_RESEARCH'
+  | 'SYNTHESIS'
+  | 'REPORT_GENERATION';
+
+/**
+ * SLA configuration for each phase
+ */
+export interface SlaConfig {
+  deepResearch: number;
+  socialResearch: number;
+  synthesis: number;
+  reportGeneration: number;
+  total: number;
+}
+
+/**
+ * Get SLA configuration from config service or defaults
+ */
+export function getSlaConfig(): SlaConfig {
+  if (configService.isInitialized()) {
+    return {
+      deepResearch: configService.getNumber('research.sla.deepResearch', 1800000),
+      socialResearch: configService.getNumber('research.sla.socialResearch', 900000),
+      synthesis: configService.getNumber('research.sla.synthesis', 300000),
+      reportGeneration: configService.getNumber('research.sla.reportGeneration', 300000),
+      total: configService.getNumber('research.sla.total', 2700000),
+    };
+  }
+
+  // Default SLAs per best practices (45 minutes total)
+  return {
+    deepResearch: 1800000,    // 30 minutes
+    socialResearch: 900000,   // 15 minutes
+    synthesis: 300000,        // 5 minutes
+    reportGeneration: 300000, // 5 minutes
+    total: 2700000,           // 45 minutes total
+  };
+}
+
+/**
+ * Get SLA for a specific phase
+ */
+export function getPhaseSla(phase: ResearchPhase): number {
+  const config = getSlaConfig();
+  switch (phase) {
+    case 'DEEP_RESEARCH':
+      return config.deepResearch;
+    case 'SOCIAL_RESEARCH':
+      return config.socialResearch;
+    case 'SYNTHESIS':
+      return config.synthesis;
+    case 'REPORT_GENERATION':
+      return config.reportGeneration;
+    default:
+      return config.total;
+  }
+}
+
+/**
+ * SLA tracker for monitoring phase and total execution times
+ */
+export class SlaTracker {
+  private readonly startTime: number;
+  private readonly slaConfig: SlaConfig;
+  private readonly phaseStartTimes: Map<ResearchPhase, number> = new Map();
+  private currentPhase: ResearchPhase | null = null;
+
+  constructor() {
+    this.startTime = Date.now();
+    this.slaConfig = getSlaConfig();
+  }
+
+  /**
+   * Start tracking a new phase
+   */
+  startPhase(phase: ResearchPhase): void {
+    this.currentPhase = phase;
+    this.phaseStartTimes.set(phase, Date.now());
+    console.log(`[SLA] Starting phase: ${phase} (limit: ${Math.round(this.slaConfig[this.getConfigKey(phase)]/60000)} min)`);
+  }
+
+  /**
+   * Check if current phase is within SLA
+   */
+  checkPhaseSla(): { ok: boolean; elapsed: number; limit: number; remaining: number } {
+    if (!this.currentPhase) {
+      return { ok: true, elapsed: 0, limit: 0, remaining: 0 };
+    }
+
+    const phaseStart = this.phaseStartTimes.get(this.currentPhase) || this.startTime;
+    const elapsed = Date.now() - phaseStart;
+    const limit = this.slaConfig[this.getConfigKey(this.currentPhase)];
+    const remaining = Math.max(0, limit - elapsed);
+
+    return {
+      ok: elapsed <= limit,
+      elapsed,
+      limit,
+      remaining,
+    };
+  }
+
+  /**
+   * Check if total execution is within SLA
+   */
+  checkTotalSla(): { ok: boolean; elapsed: number; limit: number; remaining: number } {
+    const elapsed = Date.now() - this.startTime;
+    const limit = this.slaConfig.total;
+    const remaining = Math.max(0, limit - elapsed);
+
+    return {
+      ok: elapsed <= limit,
+      elapsed,
+      limit,
+      remaining,
+    };
+  }
+
+  /**
+   * Get total elapsed time
+   */
+  getTotalElapsed(): number {
+    return Date.now() - this.startTime;
+  }
+
+  /**
+   * Get phase elapsed time
+   */
+  getPhaseElapsed(phase?: ResearchPhase): number {
+    const p = phase || this.currentPhase;
+    if (!p) return 0;
+
+    const start = this.phaseStartTimes.get(p);
+    return start ? Date.now() - start : 0;
+  }
+
+  /**
+   * End current phase and log timing
+   */
+  endPhase(): void {
+    if (!this.currentPhase) return;
+
+    const elapsed = this.getPhaseElapsed();
+    const limit = this.slaConfig[this.getConfigKey(this.currentPhase)];
+    const status = elapsed <= limit ? 'OK' : 'EXCEEDED';
+
+    console.log(`[SLA] Completed phase: ${this.currentPhase} in ${Math.round(elapsed/1000)}s (limit: ${Math.round(limit/1000)}s) [${status}]`);
+    this.currentPhase = null;
+  }
+
+  /**
+   * Throw an error if SLA is exceeded
+   */
+  assertPhaseSla(): void {
+    const check = this.checkPhaseSla();
+    if (!check.ok && this.currentPhase) {
+      throw new Error(
+        `Phase SLA exceeded: ${this.currentPhase} took ${Math.round(check.elapsed/1000)}s (limit: ${Math.round(check.limit/1000)}s)`
+      );
+    }
+  }
+
+  /**
+   * Throw an error if total SLA is exceeded
+   */
+  assertTotalSla(): void {
+    const check = this.checkTotalSla();
+    if (!check.ok) {
+      throw new Error(
+        `Total SLA exceeded: Pipeline took ${Math.round(check.elapsed/1000)}s (limit: ${Math.round(check.limit/1000)}s)`
+      );
+    }
+  }
+
+  /**
+   * Get config key for phase
+   */
+  private getConfigKey(phase: ResearchPhase): keyof Omit<SlaConfig, 'total'> {
+    switch (phase) {
+      case 'DEEP_RESEARCH':
+        return 'deepResearch';
+      case 'SOCIAL_RESEARCH':
+        return 'socialResearch';
+      case 'SYNTHESIS':
+        return 'synthesis';
+      case 'REPORT_GENERATION':
+        return 'reportGeneration';
+    }
   }
 }
 
@@ -425,22 +1274,69 @@ Use ONLY information from the research report. Be specific and cite findings whe
 
   const aiParams = getAIParams('extractInsights', tier);
 
-  const response = await openai.responses.create(
-    createResponsesParams({
-      model: REPORT_MODEL,
-      input: prompt,
-      response_format: { type: 'json_object' },
-      max_output_tokens: 3500,
-    }, aiParams)
+  console.log('[Extract Insights] Calling OpenAI with model:', REPORT_MODEL);
+  console.log('[Extract Insights] Prompt length:', prompt.length, 'chars');
+
+  // Use exponential backoff for transient errors (5 attempts for extraction calls)
+  const response = await withExponentialBackoff(
+    () => openai.responses.create(
+      createResponsesParams({
+        model: REPORT_MODEL,
+        input: prompt,
+        response_format: { type: 'json_object' },
+        max_output_tokens: 25000, // Increased from 3500 to prevent truncation
+      }, aiParams)
+    ),
+    {
+      maxAttempts: 5,
+      initialDelayMs: 2000,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[Extract Insights] Retry ${attempt}/5 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+      }
+    }
   );
 
-  const content = response.output_text;
-  if (!content) {
-    throw new Error('Failed to extract insights from deep research');
+  // Debug logging
+  const responseStatus = getResponseStatus(response);
+  console.log('[Extract Insights] Response received, status:', responseStatus);
+  console.log('[Extract Insights] Response keys:', Object.keys(response));
+
+  // Check for incomplete status (may have partial content)
+  if (responseStatus === 'incomplete') {
+    console.warn('[Extract Insights] Response marked incomplete - may have partial content');
   }
 
-  console.log('[Extract Insights] Successfully parsed insights');
-  return JSON.parse(content) as SynthesizedInsights;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const responseAny = response as any;
+
+  // Log usage info for monitoring
+  if (responseAny.usage) {
+    console.log('[Extract Insights] Usage:', JSON.stringify(responseAny.usage));
+  }
+  if (responseAny.error) {
+    console.error('[Extract Insights] Response error:', responseAny.error);
+  }
+
+  // Use unified content extractor (handles both output_text and output[] array formats)
+  const content = extractResponseContent(response);
+
+  if (!content) {
+    throw new ResponseParseError(
+      `Failed to extract insights: no content found in response (status: ${responseStatus})`,
+      response
+    );
+  }
+
+  console.log('[Extract Insights] Successfully extracted content, length:', content.length);
+
+  try {
+    return JSON.parse(content) as SynthesizedInsights;
+  } catch (parseError) {
+    throw new ResponseParseError(
+      `Failed to parse insights JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
+      response
+    );
+  }
 }
 
 /**
@@ -457,7 +1353,17 @@ export async function extractScores(
   const PASS_COUNT = 3;
   const DEVIATION_THRESHOLD = 15;
 
+  // Defensive check for malformed deep research data
+  if (!deepResearch?.rawReport) {
+    console.error('[Extract Scores] Missing rawReport in deepResearch');
+    throw new Error('Failed to extract scores: missing research data (rawReport is empty)');
+  }
+
   console.log(`[Extract Scores] Running ${PASS_COUNT} scoring passes...`);
+  console.log('[Extract Scores] Research report length:', deepResearch.rawReport.length);
+
+  // Pre-compute snippet to avoid repeated substring calls
+  const researchSnippet = deepResearch.rawReport.substring(0, 4000);
 
   // Run scoring pass
   const runPass = async (passNumber: number): Promise<RawScorePass> => {
@@ -468,7 +1374,7 @@ export async function extractScores(
 **Description:** ${input.ideaDescription}
 
 ## RESEARCH FINDINGS
-${deepResearch.rawReport.substring(0, 4000)}... [truncated for scoring]
+${researchSnippet}... [truncated for scoring]
 
 ## STRUCTURED INSIGHTS
 ${JSON.stringify(insights, null, 2)}
@@ -508,18 +1414,30 @@ This is pass ${passNumber} - evaluate independently based on the research data.`
 
     const aiParams = getAIParams('extractScores', tier);
 
-    const response = await openai.responses.create(
-      createResponsesParams({
-        model: REPORT_MODEL,
-        input: prompt,
-        response_format: { type: 'json_object' },
-        max_output_tokens: 1500,
-      }, aiParams)
+    // Use exponential backoff for transient errors
+    const response = await withExponentialBackoff(
+      () => openai.responses.create(
+        createResponsesParams({
+          model: REPORT_MODEL,
+          input: prompt,
+          response_format: { type: 'json_object' },
+          max_output_tokens: 2000,
+        }, aiParams)
+      ),
+      {
+        maxAttempts: 3,
+        initialDelayMs: 2000,
+        onRetry: (attempt, error, delayMs) => {
+          console.warn(`[Extract Scores] Pass ${passNumber} retry ${attempt}/3 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+        }
+      }
     );
 
-    const content = response.output_text;
+    // Use unified content extractor (handles both output_text and output[] array formats)
+    const content = extractResponseContent(response);
     if (!content) {
-      throw new Error(`Failed to calculate scores (pass ${passNumber})`);
+      const responseStatus = getResponseStatus(response);
+      throw new Error(`Failed to calculate scores (pass ${passNumber}): no content (status: ${responseStatus})`);
     }
 
     return JSON.parse(content) as RawScorePass;
@@ -638,6 +1556,15 @@ export async function extractBusinessMetrics(
 ): Promise<BusinessMetrics> {
   console.log('[Extract Metrics] Calculating business metrics from research...');
 
+  // Defensive check for malformed deep research data
+  if (!deepResearch?.rawReport) {
+    console.error('[Extract Metrics] Missing rawReport in deepResearch');
+    throw new Error('Failed to extract business metrics: missing research data (rawReport is empty)');
+  }
+
+  const researchSnippet = deepResearch.rawReport.substring(0, 3000);
+  console.log('[Extract Metrics] Research snippet length:', researchSnippet.length);
+
   const prompt = `You are evaluating business viability metrics based on deep market research.
 
 ## BUSINESS IDEA
@@ -645,7 +1572,7 @@ export async function extractBusinessMetrics(
 **Description:** ${input.ideaDescription}
 
 ## RESEARCH FINDINGS
-${deepResearch.rawReport.substring(0, 3000)}...
+${researchSnippet}...
 
 ## RESEARCH SCORES
 ${JSON.stringify(scores, null, 2)}
@@ -681,18 +1608,31 @@ Base estimates on the actual market data from research.`;
 
   const aiParams = getAIParams('extractMetrics', tier);
 
-  const response = await openai.responses.create(
-    createResponsesParams({
-      model: REPORT_MODEL,
-      input: prompt,
-      response_format: { type: 'json_object' },
-      max_output_tokens: 1000,
-    }, aiParams)
+  // Use exponential backoff for transient errors
+  const response = await withExponentialBackoff(
+    () => openai.responses.create(
+      createResponsesParams({
+        model: REPORT_MODEL,
+        input: prompt,
+        response_format: { type: 'json_object' },
+        max_output_tokens: 2000,
+      }, aiParams)
+    ),
+    {
+      maxAttempts: 3,
+      initialDelayMs: 2000,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[Extract Metrics] Retry ${attempt}/3 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+      }
+    }
   );
 
-  const content = response.output_text;
+  // Use unified content extractor (handles both output_text and output[] array formats)
+  const content = extractResponseContent(response);
   if (!content) {
-    throw new Error('Failed to extract business metrics');
+    const responseStatus = getResponseStatus(response);
+    console.error('[Extract Metrics] Empty response:', responseStatus);
+    throw new Error(`Failed to extract business metrics: no content found in response (status: ${responseStatus})`);
   }
 
   console.log('[Extract Metrics] Successfully calculated metrics');
@@ -709,10 +1649,14 @@ Base estimates on the actual market data from research.`;
  * for real discussions about the pain points.
  *
  * Uses o3-deep-research (or o4-mini for FREE tier) for comprehensive social proof gathering.
+ *
+ * NOTE: This function takes raw deepResearch output instead of pre-extracted insights.
+ * The o3 model will identify pain points directly from the research report.
+ * This allows Phase 2 to be purely o3-based with no GPT-5.2 calls.
  */
 export async function fetchSocialProof(
   input: ResearchInput,
-  insights: SynthesizedInsights,
+  deepResearch: DeepResearchOutput,
   tier: SubscriptionTier = 'ENTERPRISE'
 ): Promise<SocialProof> {
   console.log('[Social Proof] Using o3-deep-research to search social platforms...');
@@ -723,12 +1667,17 @@ export async function fetchSocialProof(
   const model = tier === 'FREE' ? DEEP_RESEARCH_MODEL_MINI : DEEP_RESEARCH_MODEL;
   console.log('[Social Proof] Using model:', model);
 
-  const painPointsList = insights.painPoints
-    .map((p) => `- ${p.problem} (${p.severity} severity)`)
-    .join('\n');
+  // Pass raw research report - o3 will identify pain points itself
+  // This avoids needing to call extractInsights (GPT-5.2) before social proof
+  const researchContext = deepResearch.rawReport.substring(0, 8000);
 
   const systemPrompt = `You are a social media researcher specializing in finding real discussions about specific pain points.
 Your task is to search social platforms and find authentic posts where real people discuss problems, frustrations, or needs related to the given business idea.
+
+## MARKET RESEARCH CONTEXT
+The following is a deep market research report. First, identify the key pain points and target audience from this research, then search for social proof validating these pain points.
+
+${researchContext}
 
 ## SEARCH FOCUS
 - Reddit (r/entrepreneur, r/smallbusiness, r/startups, industry-specific subreddits)
@@ -756,18 +1705,13 @@ Focus on finding posts that:
 
 Be thorough in your search. Find 4-10 highly relevant posts.`;
 
-  const userQuery = `## TARGET PAIN POINTS TO VALIDATE
-${painPointsList}
-
-## BUSINESS CONTEXT
-**Business Idea:** ${input.ideaTitle}
+  const userQuery = `## BUSINESS IDEA
+**Title:** ${input.ideaTitle}
 **Description:** ${input.ideaDescription}
-**Target Audience:** ${insights.positioning.targetAudience}
-**Market Size:** ${insights.marketAnalysis.size}
 
 ---
 
-Search social media platforms for real posts where people discuss these pain points.
+Based on the market research context provided, identify the key pain points and target audience, then search social media platforms for real posts where people discuss these pain points.
 Find authentic discussions that validate (or invalidate) these problems exist.
 
 Return your findings as JSON:
@@ -793,10 +1737,6 @@ Return your findings as JSON:
   const socialDomains = [...SEARCH_DOMAINS.social];
 
   const startTime = Date.now();
-  const heartbeat = setInterval(() => {
-    const elapsed = Math.round((Date.now() - startTime) / 1000);
-    console.log(`[Social Proof] Still searching social platforms... (${elapsed}s elapsed)`);
-  }, 15000);
 
   try {
     const params = createDeepResearchParams({
@@ -804,18 +1744,25 @@ Return your findings as JSON:
       systemPrompt,
       userQuery,
       domains: socialDomains,
-      background: false, // Social proof is typically faster, no need for background
+      background: true, // Use background mode to avoid HTTP timeouts
       reasoningSummary: 'auto',
     });
 
-    const response = await deepResearchClient.responses.create(params);
+    // Use background mode + polling (same as deep research) to avoid timeout issues
+    // Social proof uses o3-deep-research which can take several minutes
+    const result = await runDeepResearchWithPolling(params, {
+      pollIntervalMs: 10000, // 10 second intervals
+      maxWaitMs: 900000, // 15 minute SLA for social proof
+      onLog: (message) => console.log(`[Social Proof] ${message}`),
+      onProgress: (status, elapsed) => {
+        if (elapsed > 0 && elapsed % 30000 < 10000) { // Log every ~30 seconds
+          console.log(`[Social Proof] Status: ${status} (${Math.round(elapsed/1000)}s elapsed)`);
+        }
+      },
+    });
 
-    clearInterval(heartbeat);
     const elapsed = Math.round((Date.now() - startTime) / 1000);
     console.log(`[Social Proof] Search complete after ${elapsed}s`);
-
-    // Parse the response
-    const result = parseDeepResearchResponse(response);
 
     // Try to extract JSON from the response content
     let socialProofData: Omit<SocialProof, 'sources'>;
@@ -850,7 +1797,6 @@ Return your findings as JSON:
       sources: result.sources,
     };
   } catch (error) {
-    clearInterval(heartbeat);
     console.error('[Social Proof] Search failed:', error);
     // Fallback to empty social proof rather than failing the pipeline
     return {
@@ -908,22 +1854,41 @@ Generate 3-5 specific, actionable queries per category.`;
   // Get tier-based AI parameters
   const aiParams = getAIParams('searchQueries', tier);
 
-  // Use Responses API for GPT-5.2 reasoning support
-  const response = await openai.responses.create(
-    createResponsesParams({
-      model: REPORT_MODEL,
-      input: prompt,
-      response_format: { type: 'json_object' },
-      max_output_tokens: 1000,
-    }, aiParams)
+  // Use Responses API with exponential backoff for transient errors
+  const response = await withExponentialBackoff(
+    () => openai.responses.create(
+      createResponsesParams({
+        model: REPORT_MODEL,
+        input: prompt,
+        response_format: { type: 'json_object' },
+        max_output_tokens: 2000,
+      }, aiParams)
+    ),
+    {
+      maxAttempts: 5,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[generateSearchQueries] Retry ${attempt}/5 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+      }
+    }
   );
 
-  const content = response.output_text;
+  // Use unified content extractor (handles both output_text and output[] array formats)
+  const content = extractResponseContent(response);
   if (!content) {
-    throw new Error('Failed to generate search queries');
+    throw new ResponseParseError('Failed to generate search queries: no content in response', response);
   }
 
-  return JSON.parse(content) as GeneratedQueries;
+  // Validate JSON completeness before parsing
+  validateJsonCompleteness(content, 'generateSearchQueries');
+
+  try {
+    return JSON.parse(content) as GeneratedQueries;
+  } catch (parseError) {
+    throw new ResponseParseError(
+      `Failed to parse search queries JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
+      response
+    );
+  }
 }
 
 // Phase 2: Synthesize insights from interview data (MVP - no external APIs)
@@ -1032,14 +1997,22 @@ Be specific and actionable. Use the interview data to inform your analysis.`;
   }, 10000); // Log every 10 seconds
 
   try {
-    // Use Responses API for GPT-5.2 reasoning support
-    const response = await openai.responses.create(
-      createResponsesParams({
-        model: REPORT_MODEL,
-        input: prompt,
-        response_format: { type: 'json_object' },
-        max_output_tokens: 3000,
-      }, aiParams)
+    // Use Responses API with exponential backoff for transient errors
+    const response = await withExponentialBackoff(
+      () => openai.responses.create(
+        createResponsesParams({
+          model: REPORT_MODEL,
+          input: prompt,
+          response_format: { type: 'json_object' },
+          max_output_tokens: 15000, // Increased from 3000 to prevent truncation
+        }, aiParams)
+      ),
+      {
+        maxAttempts: 5,
+        onRetry: (attempt, error, delayMs) => {
+          console.warn(`[synthesizeInsights] Retry ${attempt}/5 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+        }
+      }
     );
 
     clearInterval(heartbeat);
@@ -1047,16 +2020,28 @@ Be specific and actionable. Use the interview data to inform your analysis.`;
     console.log(`[synthesizeInsights] API response received after ${elapsed}s`);
     console.log('[synthesizeInsights] Usage:', response.usage);
 
-    const content = response.output_text;
+    // Use unified content extractor for robust response handling
+    const content = extractResponseContent(response);
     if (!content) {
       console.error('[synthesizeInsights] No content in response');
-      throw new Error('Failed to synthesize insights');
+      throw new ResponseParseError('Failed to synthesize insights: no content in response', response);
     }
 
     console.log('[synthesizeInsights] Content length:', content.length);
-    const parsed = JSON.parse(content) as SynthesizedInsights;
-    console.log('[synthesizeInsights] Successfully parsed response');
-    return parsed;
+
+    // Validate JSON completeness before parsing
+    validateJsonCompleteness(content, 'synthesizeInsights');
+
+    try {
+      const parsed = JSON.parse(content) as SynthesizedInsights;
+      console.log('[synthesizeInsights] Successfully parsed response');
+      return parsed;
+    } catch (parseError) {
+      throw new ResponseParseError(
+        `Failed to parse synthesize insights JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
+        response
+      );
+    }
   } catch (error) {
     clearInterval(heartbeat);
     const elapsed = Math.round((Date.now() - startTime) / 1000);
@@ -1139,19 +2124,32 @@ This is scoring pass ${passNumber} - evaluate independently without bias.`;
 
   const aiParams = getAIParams('calculateScores', tier);
 
-  const response = await openai.responses.create(
-    createResponsesParams({
-      model: REPORT_MODEL,
-      input: prompt,
-      response_format: { type: 'json_object' },
-      max_output_tokens: 1500,
-    }, aiParams)
+  // Use exponential backoff for transient errors
+  const response = await withExponentialBackoff(
+    () => openai.responses.create(
+      createResponsesParams({
+        model: REPORT_MODEL,
+        input: prompt,
+        response_format: { type: 'json_object' },
+        max_output_tokens: 4000, // Increased from 1500 - scoring needs room for 4 detailed justifications
+      }, aiParams)
+    ),
+    {
+      maxAttempts: 5,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[calculateScores] Pass ${passNumber} retry ${attempt}/5 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+      }
+    }
   );
 
-  const content = response.output_text;
+  // Use unified content extractor
+  const content = extractResponseContent(response);
   if (!content) {
-    throw new Error(`Failed to calculate scores (pass ${passNumber})`);
+    throw new ResponseParseError(`Failed to calculate scores (pass ${passNumber})`, response);
   }
+
+  // Validate JSON completeness before parsing to catch truncation
+  validateJsonCompleteness(content, `calculateScores pass ${passNumber}`);
 
   return JSON.parse(content) as RawScorePass;
 }
@@ -1338,22 +2336,41 @@ Be realistic and consider the founder's background if mentioned in the interview
   // Get tier-based AI parameters
   const aiParams = getAIParams('businessMetrics', tier);
 
-  // Use Responses API for GPT-5.2 reasoning support
-  const response = await openai.responses.create(
-    createResponsesParams({
-      model: REPORT_MODEL,
-      input: prompt,
-      response_format: { type: 'json_object' },
-      max_output_tokens: 1000,
-    }, aiParams)
+  // Use Responses API with exponential backoff for transient errors
+  const response = await withExponentialBackoff(
+    () => openai.responses.create(
+      createResponsesParams({
+        model: REPORT_MODEL,
+        input: prompt,
+        response_format: { type: 'json_object' },
+        max_output_tokens: 2000,
+      }, aiParams)
+    ),
+    {
+      maxAttempts: 5,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[calculateBusinessMetrics] Retry ${attempt}/5 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+      }
+    }
   );
 
-  const content = response.output_text;
+  // Use unified content extractor (handles both output_text and output[] array formats)
+  const content = extractResponseContent(response);
   if (!content) {
-    throw new Error('Failed to calculate business metrics');
+    throw new ResponseParseError('Failed to calculate business metrics: no content in response', response);
   }
 
-  return JSON.parse(content) as BusinessMetrics;
+  // Validate JSON completeness before parsing
+  validateJsonCompleteness(content, 'calculateBusinessMetrics');
+
+  try {
+    return JSON.parse(content) as BusinessMetrics;
+  } catch (parseError) {
+    throw new ResponseParseError(
+      `Failed to parse business metrics JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
+      response
+    );
+  }
 }
 
 // Phase 5: Generate user story
@@ -1396,22 +2413,41 @@ Make the story feel real and emotionally resonant. Use specific details.`;
   // Get tier-based AI parameters
   const aiParams = getAIParams('userStory', tier);
 
-  // Use Responses API for GPT-5.2 reasoning support
-  const response = await openai.responses.create(
-    createResponsesParams({
-      model: REPORT_MODEL,
-      input: prompt,
-      response_format: { type: 'json_object' },
-      max_output_tokens: 1500,
-    }, aiParams)
+  // Use Responses API with exponential backoff for transient errors
+  const response = await withExponentialBackoff(
+    () => openai.responses.create(
+      createResponsesParams({
+        model: REPORT_MODEL,
+        input: prompt,
+        response_format: { type: 'json_object' },
+        max_output_tokens: 2500,
+      }, aiParams)
+    ),
+    {
+      maxAttempts: 5,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[generateUserStory] Retry ${attempt}/5 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+      }
+    }
   );
 
-  const content = response.output_text;
+  // Use unified content extractor (handles both output_text and output[] array formats)
+  const content = extractResponseContent(response);
   if (!content) {
-    throw new Error('Failed to generate user story');
+    throw new ResponseParseError('Failed to generate user story: no content in response', response);
   }
 
-  return JSON.parse(content) as UserStory;
+  // Validate JSON completeness before parsing
+  validateJsonCompleteness(content, 'generateUserStory');
+
+  try {
+    return JSON.parse(content) as UserStory;
+  } catch (parseError) {
+    throw new ResponseParseError(
+      `Failed to parse user story JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
+      response
+    );
+  }
 }
 
 // Keyword trends configuration
@@ -1665,23 +2701,42 @@ Make prices realistic for the market and value delivered.`;
   // Get tier-based AI parameters
   const aiParams = getAIParams('valueLadder', tier);
 
-  // Use Responses API for GPT-5.2 reasoning support
-  const response = await openai.responses.create(
-    createResponsesParams({
-      model: REPORT_MODEL,
-      input: prompt,
-      response_format: { type: 'json_object' },
-      max_output_tokens: 1500,
-    }, aiParams)
+  // Use Responses API with exponential backoff for transient errors
+  const response = await withExponentialBackoff(
+    () => openai.responses.create(
+      createResponsesParams({
+        model: REPORT_MODEL,
+        input: prompt,
+        response_format: { type: 'json_object' },
+        max_output_tokens: 2500,
+      }, aiParams)
+    ),
+    {
+      maxAttempts: 5,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[generateValueLadder] Retry ${attempt}/5 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+      }
+    }
   );
 
-  const content = response.output_text;
+  // Use unified content extractor (handles both output_text and output[] array formats)
+  const content = extractResponseContent(response);
   if (!content) {
-    throw new Error('Failed to generate value ladder');
+    throw new ResponseParseError('Failed to generate value ladder: no content in response', response);
   }
 
-  const result = JSON.parse(content) as { tiers: OfferTier[] };
-  return result.tiers;
+  // Validate JSON completeness before parsing
+  validateJsonCompleteness(content, 'generateValueLadder');
+
+  try {
+    const result = JSON.parse(content) as { tiers: OfferTier[] };
+    return result.tiers;
+  } catch (parseError) {
+    throw new ResponseParseError(
+      `Failed to parse value ladder JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
+      response
+    );
+  }
 }
 
 // Phase 8: Generate action prompts
@@ -1728,23 +2783,42 @@ Make prompts immediately usable - specific and actionable.`;
   // Get tier-based AI parameters
   const aiParams = getAIParams('actionPrompts', tier);
 
-  // Use Responses API for GPT-5.2 reasoning support
-  const response = await openai.responses.create(
-    createResponsesParams({
-      model: REPORT_MODEL,
-      input: prompt,
-      response_format: { type: 'json_object' },
-      max_output_tokens: 4000,
-    }, aiParams)
+  // Use Responses API with exponential backoff for transient errors
+  const response = await withExponentialBackoff(
+    () => openai.responses.create(
+      createResponsesParams({
+        model: REPORT_MODEL,
+        input: prompt,
+        response_format: { type: 'json_object' },
+        max_output_tokens: 5000,
+      }, aiParams)
+    ),
+    {
+      maxAttempts: 5,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[generateActionPrompts] Retry ${attempt}/5 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+      }
+    }
   );
 
-  const content = response.output_text;
+  // Use unified content extractor (handles both output_text and output[] array formats)
+  const content = extractResponseContent(response);
   if (!content) {
-    throw new Error('Failed to generate action prompts');
+    throw new ResponseParseError('Failed to generate action prompts: no content in response', response);
   }
 
-  const result = JSON.parse(content) as { prompts: ActionPrompt[] };
-  return result.prompts;
+  // Validate JSON completeness before parsing
+  validateJsonCompleteness(content, 'generateActionPrompts');
+
+  try {
+    const result = JSON.parse(content) as { prompts: ActionPrompt[] };
+    return result.prompts;
+  } catch (parseError) {
+    throw new ResponseParseError(
+      `Failed to parse action prompts JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
+      response
+    );
+  }
 }
 
 // Phase 9: Generate social proof (MVP: AI-simulated)
@@ -1814,22 +2888,41 @@ Dates should be within the last 6 months.`;
   // Get tier-based AI parameters
   const aiParams = getAIParams('socialProof', tier);
 
-  // Use Responses API for GPT-5.2 reasoning support
-  const response = await openai.responses.create(
-    createResponsesParams({
-      model: REPORT_MODEL,
-      input: prompt,
-      response_format: { type: 'json_object' },
-      max_output_tokens: 2500,
-    }, aiParams)
+  // Use Responses API with exponential backoff for transient errors
+  const response = await withExponentialBackoff(
+    () => openai.responses.create(
+      createResponsesParams({
+        model: REPORT_MODEL,
+        input: prompt,
+        response_format: { type: 'json_object' },
+        max_output_tokens: 3000,
+      }, aiParams)
+    ),
+    {
+      maxAttempts: 5,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[generateSocialProof] Retry ${attempt}/5 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+      }
+    }
   );
 
-  const content = response.output_text;
+  // Use unified content extractor (handles both output_text and output[] array formats)
+  const content = extractResponseContent(response);
   if (!content) {
-    throw new Error('Failed to generate social proof');
+    throw new ResponseParseError('Failed to generate social proof: no content in response', response);
   }
 
-  return JSON.parse(content) as SocialProof;
+  // Validate JSON completeness before parsing
+  validateJsonCompleteness(content, 'generateSocialProof');
+
+  try {
+    return JSON.parse(content) as SocialProof;
+  } catch (parseError) {
+    throw new ResponseParseError(
+      `Failed to parse social proof JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
+      response
+    );
+  }
 }
 
 // =============================================================================
@@ -1848,10 +2941,43 @@ Dates should be within the last 6 months.`;
  * Both Phase 1 and 2 use o3-deep-research for real web search with citations.
  * Phase 3 and 4 use GPT-5.2 for reasoning and report generation.
  */
+// Existing research data for resume functionality
+export interface ExistingResearchData {
+  rawDeepResearch?: DeepResearchOutput | null;
+  researchChunks?: ChunkedResearchData | null; // NEW: for chunked research resume
+  socialProof?: SocialProof | null;
+  synthesizedInsights?: SynthesizedInsights | null;
+  opportunityScore?: number | null;
+  problemScore?: number | null;
+  feasibilityScore?: number | null;
+  whyNowScore?: number | null;
+  scoreJustifications?: ResearchScores['justifications'] | null;
+  scoreMetadata?: ResearchScores['metadata'] | null;
+  revenuePotential?: BusinessMetrics['revenuePotential'] | null;
+  executionDifficulty?: BusinessMetrics['executionDifficulty'] | null;
+  gtmClarity?: BusinessMetrics['gtmClarity'] | null;
+  founderFit?: BusinessMetrics['founderFit'] | null;
+  userStory?: UserStory | null;
+  valueLadder?: OfferTier[] | null;
+  actionPrompts?: ActionPrompt[] | null;
+  keywordTrends?: KeywordTrend[] | null;
+}
+
+// Intermediate data that can be saved during pipeline execution for resume capability
+export interface IntermediateResearchData {
+  deepResearch?: DeepResearchOutput;
+  researchChunks?: ChunkedResearchData; // Chunk progress within DEEP_RESEARCH phase
+  socialProof?: SocialProof;
+  insights?: SynthesizedInsights;
+  scores?: ResearchScores;
+  metrics?: BusinessMetrics;
+}
+
 export async function runResearchPipeline(
   input: ResearchInput,
-  onProgress?: (phase: string, progress: number) => Promise<void>,
-  tier: SubscriptionTier = 'ENTERPRISE'
+  onProgress?: (phase: string, progress: number, intermediateData?: IntermediateResearchData) => Promise<void>,
+  tier: SubscriptionTier = 'ENTERPRISE',
+  existingResearch?: ExistingResearchData // NEW: for resume functionality
 ): Promise<{
   queries: GeneratedQueries;
   insights: SynthesizedInsights;
@@ -1868,70 +2994,157 @@ export async function runResearchPipeline(
   console.log('[Research Pipeline] Using tier:', tier);
   console.log('[Research Pipeline] o3-deep-research model:', tier === 'FREE' ? DEEP_RESEARCH_MODEL_MINI : DEEP_RESEARCH_MODEL);
 
+  // Check for resume data
+  // Phase 1: Deep market research (o3-deep-research)
+  const hasPhase1 = existingResearch?.rawDeepResearch?.rawReport;
+  // Phase 2: Social proof research (o3-deep-research) - NO GPT-5.2 calls
+  const hasPhase2 = existingResearch?.socialProof?.posts;
+  // Phase 3: ALL GPT-5.2 extraction (insights + scores + metrics)
+  const hasPhase3 = existingResearch?.synthesizedInsights && existingResearch?.opportunityScore != null;
+  // Phase 4: Creative generation (user story, value ladder, action prompts)
+  const hasPhase4 = existingResearch?.userStory != null;
+
+  if (hasPhase1 || hasPhase2 || hasPhase3 || hasPhase4) {
+    console.log('[Research Pipeline] RESUME MODE - Existing data detected');
+    console.log('[Research Pipeline] Phase 1 (deepResearch - o3):', hasPhase1 ? 'SKIP' : 'RUN');
+    console.log('[Research Pipeline] Phase 2 (socialProof - o3):', hasPhase2 ? 'SKIP' : 'RUN');
+    console.log('[Research Pipeline] Phase 3 (extraction - GPT-5.2):', hasPhase3 ? 'SKIP' : 'RUN');
+    console.log('[Research Pipeline] Phase 4 (generation - GPT-5.2):', hasPhase4 ? 'SKIP' : 'RUN');
+  }
+
   // =========================================================================
   // PHASE 1: DEEP MARKET RESEARCH (0-30%)
-  // Uses o3-deep-research with web_search for market and competitor research
+  // Uses CHUNKED o3-deep-research to avoid rate limits
+  // Each chunk covers: Market Analysis, Competitors, Pain Points, Timing
   // =========================================================================
-  await onProgress?.('DEEP_RESEARCH', 5);
-  console.log('[Research Pipeline] === PHASE 1: Deep Market Research (o3-deep-research) ===');
+  let deepResearch: DeepResearchOutput;
 
-  const deepResearch = await runDeepResearch(input, tier);
-  await onProgress?.('DEEP_RESEARCH', 30);
-  console.log('[Research Pipeline] Market research complete:', deepResearch.citations.length, 'citations');
+  if (hasPhase1 && existingResearch?.rawDeepResearch) {
+    console.log('[Research Pipeline] === PHASE 1: SKIPPED (resuming from existing data) ===');
+    deepResearch = existingResearch.rawDeepResearch;
+    await onProgress?.('DEEP_RESEARCH', 30);
+  } else {
+    await onProgress?.('DEEP_RESEARCH', 5);
+    console.log('[Research Pipeline] === PHASE 1: Chunked Deep Research (o3-deep-research) ===');
+
+    // Use chunked research to avoid 200k TPM rate limit
+    // Each chunk is ~40-50k tokens with 60s delay between chunks
+    deepResearch = await runChunkedDeepResearch(
+      input,
+      tier,
+      onProgress, // Progress callback handles intermediate saves
+      existingResearch?.researchChunks || undefined // Resume from existing chunks
+    );
+
+    // Final save with complete deep research data
+    await onProgress?.('DEEP_RESEARCH', 30, { deepResearch });
+    console.log('[Research Pipeline] Chunked research complete:', deepResearch.citations.length, 'citations');
+  }
 
   // =========================================================================
   // PHASE 2: SOCIAL PROOF RESEARCH (30-55%)
-  // Uses o3-deep-research with web_search filtered to social platforms
+  // Uses o3-deep-research ONLY - no GPT-5.2 calls
+  // o3 will identify pain points directly from the raw research report
   // =========================================================================
-  await onProgress?.('SOCIAL_RESEARCH', 35);
-  console.log('[Research Pipeline] === PHASE 2: Social Proof Research (o3-deep-research) ===');
+  let socialProof: SocialProof;
 
-  // First extract basic insights from deep research (needed for social proof targeting)
-  const preliminaryInsights = await extractInsights(deepResearch, input, tier);
-  await onProgress?.('SOCIAL_RESEARCH', 40);
+  if (hasPhase2 && existingResearch?.socialProof) {
+    console.log('[Research Pipeline] === PHASE 2: SKIPPED (resuming from existing data) ===');
+    socialProof = existingResearch.socialProof;
+    await onProgress?.('SOCIAL_RESEARCH', 55);
+  } else {
+    await onProgress?.('SOCIAL_RESEARCH', 35);
+    console.log('[Research Pipeline] === PHASE 2: Social Proof Research (o3-deep-research) ===');
 
-  const socialProof = await fetchSocialProof(input, preliminaryInsights, tier);
-  await onProgress?.('SOCIAL_RESEARCH', 55);
-  console.log('[Research Pipeline] Social proof gathered:', socialProof.posts.length, 'posts');
+    // Pass raw deep research - o3 will identify pain points itself
+    // This keeps Phase 2 purely o3-based with no GPT-5.2 calls
+    socialProof = await fetchSocialProof(input, deepResearch, tier);
+    await onProgress?.('SOCIAL_RESEARCH', 55, { socialProof });
+    console.log('[Research Pipeline] Social proof gathered:', socialProof.posts.length, 'posts');
+  }
 
   // =========================================================================
   // PHASE 3: SYNTHESIS & SCORING (55-80%)
-  // Uses GPT-5.2 for structured data extraction with reasoning
+  // ALL GPT-5.2 extraction happens here AFTER all o3 research is complete
+  // This includes extractInsights which was previously in Phase 2
   // =========================================================================
-  await onProgress?.('SYNTHESIS', 60);
-  console.log('[Research Pipeline] === PHASE 3: Synthesis (GPT-5.2 reasoning) ===');
+  let insights: SynthesizedInsights;
+  let scores: ResearchScores;
+  let metrics: BusinessMetrics;
 
-  // Enrich insights with social proof data
-  const insights = preliminaryInsights;
+  if (hasPhase3 && existingResearch?.synthesizedInsights && existingResearch?.opportunityScore != null && existingResearch?.scoreJustifications && existingResearch?.revenuePotential) {
+    console.log('[Research Pipeline] === PHASE 3: SKIPPED (resuming from existing data) ===');
+    insights = existingResearch.synthesizedInsights;
+    scores = {
+      opportunityScore: existingResearch.opportunityScore!,
+      problemScore: existingResearch.problemScore!,
+      feasibilityScore: existingResearch.feasibilityScore!,
+      whyNowScore: existingResearch.whyNowScore!,
+      justifications: existingResearch.scoreJustifications,
+      metadata: existingResearch.scoreMetadata || { passCount: 0, maxDeviation: 0, averageConfidence: 0, flagged: false },
+    };
+    metrics = {
+      revenuePotential: existingResearch.revenuePotential,
+      executionDifficulty: existingResearch.executionDifficulty || { rating: 'moderate' as const, factors: [], soloFriendly: false },
+      gtmClarity: existingResearch.gtmClarity || { rating: 'moderate' as const, channels: [], confidence: 0 },
+      founderFit: existingResearch.founderFit || { percentage: 0, strengths: [], gaps: [] },
+    };
+    await onProgress?.('SYNTHESIS', 80);
+  } else {
+    await onProgress?.('SYNTHESIS', 58);
+    console.log('[Research Pipeline] === PHASE 3: Extraction & Synthesis (GPT-5.2) ===');
 
-  // Run scores and metrics in parallel with GPT-5.2 reasoning
-  const [scores, metrics] = await Promise.all([
-    extractScores(deepResearch, input, insights, tier),
-    extractBusinessMetrics(deepResearch, input, insights, { opportunityScore: 0, problemScore: 0, feasibilityScore: 0, whyNowScore: 0, justifications: {} as ResearchScores['justifications'], metadata: {} as ResearchScores['metadata'] }, tier),
-  ]);
-  await onProgress?.('SYNTHESIS', 80);
-  console.log('[Research Pipeline] Scores and metrics calculated with GPT-5.2 reasoning');
+    // Step 1: Extract structured insights from raw deep research (moved from Phase 2)
+    console.log('[Research Pipeline] Extracting insights from deep research...');
+    insights = await extractInsights(deepResearch, input, tier);
+    await onProgress?.('SYNTHESIS', 65, { insights });
+    console.log('[Research Pipeline] Insights extracted successfully');
+
+    // Step 2: Run scores and metrics in parallel with GPT-5.2 reasoning
+    console.log('[Research Pipeline] Calculating scores and metrics...');
+    [scores, metrics] = await Promise.all([
+      extractScores(deepResearch, input, insights, tier),
+      extractBusinessMetrics(deepResearch, input, insights, { opportunityScore: 0, problemScore: 0, feasibilityScore: 0, whyNowScore: 0, justifications: {} as ResearchScores['justifications'], metadata: {} as ResearchScores['metadata'] }, tier),
+    ]);
+    // Pass all extraction results for immediate persistence (enables resume if Phase 4 fails)
+    await onProgress?.('SYNTHESIS', 80, { insights, scores, metrics });
+    console.log('[Research Pipeline] Scores and metrics calculated with GPT-5.2 reasoning');
+  }
 
   // =========================================================================
   // PHASE 4: CREATIVE GENERATION (80-100%)
   // Uses GPT-5.2 for user story, value ladder, action prompts
   // =========================================================================
-  await onProgress?.('REPORT_GENERATION', 85);
-  console.log('[Research Pipeline] === PHASE 4: Creative Generation (GPT-5.2) ===');
+  let userStory: UserStory;
+  let valueLadder: OfferTier[];
+  let actionPrompts: ActionPrompt[];
+  let keywordTrends: KeywordTrend[];
 
-  // Run creative generation in parallel
-  const [userStory, valueLadder, actionPrompts] = await Promise.all([
-    generateUserStory(input, insights, tier),
-    generateValueLadder(input, insights, metrics, tier),
-    generateActionPrompts(input, insights, tier),
-  ]);
-  await onProgress?.('REPORT_GENERATION', 95);
-  console.log('[Research Pipeline] User story, value ladder, action prompts generated');
+  if (hasPhase4 && existingResearch?.userStory && existingResearch?.valueLadder && existingResearch?.actionPrompts) {
+    console.log('[Research Pipeline] === PHASE 4: SKIPPED (resuming from existing data) ===');
+    userStory = existingResearch.userStory;
+    valueLadder = existingResearch.valueLadder;
+    actionPrompts = existingResearch.actionPrompts;
+    keywordTrends = existingResearch.keywordTrends || [];
+    await onProgress?.('REPORT_GENERATION', 98);
+  } else {
+    await onProgress?.('REPORT_GENERATION', 85);
+    console.log('[Research Pipeline] === PHASE 4: Creative Generation (GPT-5.2) ===');
 
-  // Keyword trends (uses SerpAPI for Google Trends - keep this separate)
-  const keywordTrends = await generateKeywordTrends(input, insights, tier);
-  await onProgress?.('REPORT_GENERATION', 98);
-  console.log('[Research Pipeline] Keyword trends:', keywordTrends.length, 'keywords');
+    // Run creative generation in parallel
+    [userStory, valueLadder, actionPrompts] = await Promise.all([
+      generateUserStory(input, insights, tier),
+      generateValueLadder(input, insights, metrics, tier),
+      generateActionPrompts(input, insights, tier),
+    ]);
+    await onProgress?.('REPORT_GENERATION', 95);
+    console.log('[Research Pipeline] User story, value ladder, action prompts generated');
+
+    // Keyword trends (uses SerpAPI for Google Trends - keep this separate)
+    keywordTrends = await generateKeywordTrends(input, insights, tier);
+    await onProgress?.('REPORT_GENERATION', 98);
+    console.log('[Research Pipeline] Keyword trends:', keywordTrends.length, 'keywords');
+  }
 
   await onProgress?.('COMPLETE', 100);
   console.log('[Research Pipeline] === COMPLETE ===');

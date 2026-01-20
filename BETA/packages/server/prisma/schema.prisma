@@ -12,14 +12,15 @@ datasource db {
 }
 
 model User {
-  id           String           @id @default(cuid())
-  email        String           @unique
-  name         String?
-  passwordHash String?
-  image        String?
-  subscription SubscriptionTier @default(FREE)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  id            String           @id @default(cuid())
+  email         String           @unique
+  emailVerified DateTime?        // Required for Auth.js
+  name          String?
+  passwordHash  String?
+  image         String?
+  subscription  SubscriptionTier @default(FREE)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 
   ideas      Idea[]
   interviews Interview[]
@@ -144,6 +145,8 @@ model Research {
   // Phase-specific data (populated as each phase completes)
   generatedQueries     Json?          // Search queries generated in Phase 1
   rawData              Json?          // Raw data from APIs (Tavily, Apify, SerpAPI)
+  rawDeepResearch      Json?          // Phase 1 output for resume: { rawReport, citations, sources, searchQueriesUsed }
+  researchChunks       Json?          // Chunked research progress: { market?, competitors?, painpoints?, timing? }
   synthesizedInsights  Json?          // AI-synthesized insights from Phase 3
 
   // Final consolidated research data
@@ -298,4 +301,46 @@ enum ReportStatus {
   GENERATING
   COMPLETE
   FAILED
+}
+
+// =============================================================================
+// ADMIN CONFIGURATION
+// =============================================================================
+
+// Admin configuration storage - allows runtime control of app settings
+model AdminConfig {
+  id          String     @id @default(cuid())
+  key         String     @unique // e.g., "ai.interview.model"
+  value       Json       // Flexible value storage
+  type        ConfigType @default(STRING)
+  category    String     // Grouping: "ai", "research", "interview", "limits", "features", "domains"
+  label       String     // Display name for UI
+  description String?    // Help text
+  options     Json?      // For SELECT type: [{ value, label }]
+  updatedAt   DateTime   @updatedAt
+  updatedBy   String?    // User ID who made the change
+
+  @@index([category])
+}
+
+enum ConfigType {
+  STRING
+  NUMBER
+  BOOLEAN
+  JSON
+  SELECT // For dropdowns with predefined options
+}
+
+// Audit log for config changes - tracks who changed what and when
+model ConfigAuditLog {
+  id        String   @id @default(cuid())
+  configKey String
+  oldValue  Json?
+  newValue  Json
+  changedBy String
+  changedAt DateTime @default(now())
+  reason    String?
+
+  @@index([configKey])
+  @@index([changedAt])
 }

@@ -6,8 +6,9 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui';
 
 export default function SignInScreen() {
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, devLogin } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isDevLoading, setIsDevLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -21,6 +22,21 @@ export default function SignInScreen() {
       );
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDevLogin = async () => {
+    try {
+      setIsDevLoading(true);
+      await devLogin();
+    } catch (error) {
+      Alert.alert(
+        'Dev Login Failed',
+        'Unable to login as dev user. Is the server running?',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsDevLoading(false);
     }
   };
 
@@ -99,6 +115,20 @@ export default function SignInScreen() {
           >
             Continue with Google
           </Button>
+
+          {/* Dev Login - only shown in development */}
+          {__DEV__ && (
+            <Button
+              onPress={handleDevLogin}
+              isLoading={isDevLoading}
+              size="lg"
+              variant="outline"
+              className="mt-4"
+              leftIcon={<Ionicons name="code-slash" size={20} color="#6b7280" />}
+            >
+              Dev Login (Skip OAuth)
+            </Button>
+          )}
 
           <Text className="mt-6 text-center text-xs text-gray-400">
             By continuing, you agree to our Terms of Service and Privacy Policy

@@ -413,6 +413,49 @@ npx expo-doctor
 
 ## Change Log
 
+### 2026-01-20
+- ✅ **Deep Research Best Practices Implementation** - Full 6-phase overhaul
+  - Implemented per `deep-research-BP.md` guidelines for o3-deep-research model
+  - **Phase 1: Background Mode + Polling** (core fix)
+    - Added `runDeepResearchWithPolling()` for background API calls
+    - Added `startBackgroundResearch()` and `pollForCompletion()` utilities
+    - 10-15 second polling interval, 30-45 minute SLAs
+    - Eliminates long-lived connection timeouts
+  - **Phase 2: Token Limits Increased** (prevents truncation)
+    - `extractInsights()`: 3,500 → 25,000 tokens
+    - `synthesizeInsights()`: 3,000 → 15,000 tokens
+    - Deep research chunks: Added 50,000 token default
+  - **Phase 3: Exponential Backoff Retries**
+    - Added `withExponentialBackoff()` utility with jitter
+    - Handles 502/503/504, rate limits, connection resets
+    - 3 attempts for deep research, 5 for extraction calls
+  - **Phase 4: Discriminated Error Handling**
+    - `classifyResearchError()` categorizes errors by type
+    - Types: timeout, rate_limit, transient, api_error, parse_error, sla_exceeded
+    - Enhanced logging with `logResearchError()`
+  - **Phase 5: Response Validation Fix** (root cause)
+    - Added `extractResponseContent()` unified parser
+    - Handles both `output_text` and `output[]` array formats
+    - `ResponseParseError` class with raw response capture
+  - **Phase 6: SLA Management**
+    - `SlaTracker` class for phase/total time tracking
+    - Configurable SLAs via `config.ts` (research.sla.*)
+    - Default: 30min deep research, 15min social, 5min synthesis/reports, 45min total
+  - **Files Modified:**
+    - `packages/server/src/lib/deep-research.ts` - Polling, background mode
+    - `packages/server/src/lib/openai.ts` - Re-exported retry utility
+    - `packages/server/src/services/research-ai.ts` - All extraction/pipeline changes
+    - `packages/server/src/routers/research.ts` - SLA tracking, error classification
+    - `packages/server/src/services/config.ts` - SLA configuration keys
+- 🔧 **Research Pipeline Error Tracking Fix** - Fixed hardcoded `errorPhase` bug
+  - **File:** `packages/server/src/routers/research.ts` (lines 244-384)
+  - Added `currentPhase` variable to track active phase during pipeline execution
+  - Error handler now uses tracked phase instead of hardcoded `'SYNTHESIS'`
+  - Added timing info to error logs (`Pipeline failed at phase: X after Y seconds`)
+- ✅ **Previous Issue RESOLVED:** `extractInsights()` empty `output_text`
+  - Root cause: Response format mismatch + low token limits
+  - Fixed with unified response parser and 25k token limit
+
 ### 2026-01-18
 - ✅ **OpenAI Responses API Migration** - Migrated from Chat Completions to Responses API
   - All 12 API calls migrated (`interview-ai.ts`: 3, `research-ai.ts`: 9)

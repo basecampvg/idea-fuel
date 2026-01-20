@@ -4,6 +4,7 @@ import { ideaRouter } from './idea';
 import { interviewRouter } from './interview';
 import { reportRouter } from './report';
 import { researchRouter } from './research';
+import { adminRouter } from './admin';
 
 /**
  * Main application router
@@ -15,6 +16,7 @@ export const appRouter = router({
   interview: interviewRouter,
   report: reportRouter,
   research: researchRouter,
+  admin: adminRouter,
 });
 
 // Export type definition for client usage

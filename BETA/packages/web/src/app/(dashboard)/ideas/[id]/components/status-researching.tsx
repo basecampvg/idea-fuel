@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
@@ -11,10 +11,13 @@ import {
   Lock,
   Check,
   Search,
-  Database,
+  MessageSquare,
   Sparkles,
   FileOutput,
   Clock,
+  RotateCcw,
+  AlertCircle,
+  PlayCircle,
 } from 'lucide-react';
 import {
   INTERVIEW_MODE_LABELS,
@@ -36,6 +39,12 @@ interface Research {
   currentPhase: string;
   progress: number;
   startedAt: Date | null;
+  errorMessage?: string | null;
+  errorPhase?: string | null;
+  // Fields to detect resume capability
+  rawDeepResearch?: unknown | null;
+  socialProof?: unknown | null;
+  opportunityScore?: number | null;
 }
 
 interface StatusResearchingProps {
@@ -47,10 +56,10 @@ interface StatusResearchingProps {
   };
 }
 
+// New 4-phase pipeline phases (QUEUED removed - research starts directly at DEEP_RESEARCH)
 const researchPhases = [
-  'QUEUED',
-  'QUERY_GENERATION',
-  'DATA_COLLECTION',
+  'DEEP_RESEARCH',
+  'SOCIAL_RESEARCH',
   'SYNTHESIS',
   'REPORT_GENERATION',
   'COMPLETE',
@@ -58,12 +67,31 @@ const researchPhases = [
 
 // Phase config with icons and labels
 const phaseConfig: Record<string, { icon: typeof Clock; label: string }> = {
-  QUEUED: { icon: Clock, label: 'Queued' },
-  QUERY_GENERATION: { icon: Search, label: 'Generating Queries' },
-  DATA_COLLECTION: { icon: Database, label: 'Collecting Data' },
-  SYNTHESIS: { icon: Sparkles, label: 'Synthesizing Insights' },
+  DEEP_RESEARCH: { icon: Search, label: 'Market Research' },
+  SOCIAL_RESEARCH: { icon: MessageSquare, label: 'Social Proof' },
+  SYNTHESIS: { icon: Sparkles, label: 'Analyzing Data' },
   REPORT_GENERATION: { icon: FileOutput, label: 'Generating Reports' },
 };
+
+// Sub-tasks for DEEP_RESEARCH phase - maps to actual chunked research
+// Progress ranges: 5-12% market, 12-19% competitors, 19-25% painpoints, 25-30% timing
+const phaseSubTasks: Record<string, string[]> = {
+  DEEP_RESEARCH: [
+    'Analyzing market size & trends',
+    'Researching competitors',
+    'Gathering customer pain points',
+    'Evaluating timing factors',
+  ],
+};
+
+// Get active subtask based on actual progress (not timer)
+// Maps progress 0-30% to subtask indices 0-3
+function getActiveSubTaskFromProgress(progress: number): number {
+  if (progress < 12) return 0; // Market Analysis (5-12%)
+  if (progress < 19) return 1; // Competitor Research (12-19%)
+  if (progress < 25) return 2; // Customer Pain Points (19-25%)
+  return 3; // Timing & Validation (25-30%)
+}
 
 // All 10 report types
 const reportTypes = [
@@ -92,12 +120,14 @@ function formatTimeAgo(date: Date | null): string {
 }
 
 function estimateTimeRemaining(progress: number): string {
-  // MVP estimate: ~2-3 minutes total (4 OpenAI calls)
-  const totalSeconds = 180; // 3 minutes average
-  const remainingSeconds = Math.round((1 - progress / 100) * totalSeconds);
-  if (remainingSeconds < 60) return `~${remainingSeconds} seconds`;
-  const minutes = Math.round(remainingSeconds / 60);
-  return `~${minutes} minute${minutes === 1 ? '' : 's'}`;
+  // Chunked deep research: ~15-20 minutes for Phase 1 (0-30%)
+  // Phase 2 (social proof): ~5 minutes
+  // Phases 3-4 use GPT-5.2: ~3 minutes each
+  // Total: ~25-30 minutes for comprehensive research
+  const totalMinutes = 25;
+  const remainingMinutes = Math.round((1 - progress / 100) * totalMinutes);
+  if (remainingMinutes <= 1) return '~1 minute';
+  return `~${remainingMinutes} minutes`;
 }
 
 export function StatusResearching({ idea }: StatusResearchingProps) {
@@ -105,10 +135,25 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
   const utils = trpc.useUtils();
   const completedInterview = idea.interviews?.find((i) => i.status === 'COMPLETE');
   const research = idea.research;
+  const [activeSubTask, setActiveSubTask] = useState(0);
 
   const startInterview = trpc.idea.startInterview.useMutation({
     onSuccess: () => {
       router.push(`/ideas/${idea.id}/interview`);
+    },
+  });
+
+  const resetResearch = trpc.research.reset.useMutation({
+    onSuccess: () => {
+      // Invalidate to refetch idea with updated status
+      utils.idea.get.invalidate({ id: idea.id });
+    },
+  });
+
+  const restartResearch = trpc.research.start.useMutation({
+    onSuccess: () => {
+      // Invalidate to refetch idea with updated research status
+      utils.idea.get.invalidate({ id: idea.id });
     },
   });
 
@@ -123,6 +168,19 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
     return () => clearInterval(interval);
   }, [research?.status, idea.id, utils.idea.get]);
 
+  // Calculate active subtask from progress (not timer-based)
+  // This shows checkmarks only when actual chunks complete
+  useEffect(() => {
+    if (research?.currentPhase !== 'DEEP_RESEARCH') {
+      setActiveSubTask(0); // Reset when leaving phase
+      return;
+    }
+
+    // Map progress to subtask index based on chunk completion
+    const newActiveSubTask = getActiveSubTaskFromProgress(research.progress);
+    setActiveSubTask(newActiveSubTask);
+  }, [research?.currentPhase, research?.progress]);
+
   // When research completes, invalidate the query to update the parent page's idea status
   useEffect(() => {
     if (research?.status === 'COMPLETE') {
@@ -134,10 +192,73 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
   if (!research) return null;
 
   const currentPhaseIndex = researchPhases.indexOf(research.currentPhase);
+  const isFailed = research.status === 'FAILED';
 
   return (
     <div className="space-y-6">
-      {/* Research Progress Card */}
+      {/* Research Failed Card */}
+      {isFailed && (() => {
+        // Determine if we can resume (skip completed phases) or need to restart fresh
+        const canResume = Boolean(research.rawDeepResearch);
+        const hasPhase2 = Boolean(research.socialProof);
+        const hasPhase3 = research.opportunityScore != null;
+
+        // Determine what phase we'll resume from
+        let resumeFromPhase = 'Market Research';
+        if (canResume && !hasPhase2) resumeFromPhase = 'Social Proof';
+        else if (hasPhase2 && !hasPhase3) resumeFromPhase = 'Analysis';
+        else if (hasPhase3) resumeFromPhase = 'Report Generation';
+
+        return (
+        <div className="rounded-2xl bg-background border border-red-500/30 p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+              <AlertCircle className="w-5 h-5 text-red-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Research Stopped</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {research.errorMessage || 'Research was interrupted'}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {/* Show where it stopped */}
+            {research.errorPhase && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Stopped at:</span>
+                <span className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 text-xs font-medium">
+                  {phaseConfig[research.errorPhase]?.label || research.errorPhase}
+                </span>
+              </div>
+            )}
+
+            {/* Resume info - show what will be skipped */}
+            {canResume && (
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <p className="text-sm text-emerald-400">
+                  <span className="font-medium">Good news!</span> Previous progress saved. Will resume from {resumeFromPhase}.
+                </p>
+              </div>
+            )}
+
+            {/* Restart/Resume Button */}
+            <button
+              onClick={() => restartResearch.mutate({ ideaId: idea.id })}
+              disabled={restartResearch.isPending}
+              className="flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl font-medium text-white bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 transition-all disabled:opacity-50"
+            >
+              <PlayCircle className={`w-5 h-5 ${restartResearch.isPending ? 'animate-spin' : ''}`} />
+              {restartResearch.isPending ? 'Starting...' : canResume ? 'Resume Research' : 'Restart Research'}
+            </button>
+          </div>
+        </div>
+        );
+      })()}
+
+      {/* Research Progress Card - Only show when IN_PROGRESS */}
+      {!isFailed && (
       <div className="rounded-2xl bg-background border border-border p-6">
         <div className="flex items-center gap-3 mb-5">
           <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
@@ -179,84 +300,142 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
               const config = phaseConfig[phase];
               const Icon = config?.icon || Clock;
 
+              const subTasks = phaseSubTasks[phase];
+              const hasSubTasks = isCurrent && subTasks && subTasks.length > 0;
+
               return (
-                <div
-                  key={phase}
-                  className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
-                    isCurrent
-                      ? 'bg-blue-500/10 border border-blue-500/30'
-                      : isComplete
-                      ? 'bg-emerald-500/5 border border-transparent'
-                      : 'bg-card border border-transparent opacity-50'
-                  }`}
-                >
-                  {/* Status Icon */}
+                <div key={phase} className="space-y-1">
                   <div
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                      isComplete
-                        ? 'bg-emerald-500/20'
-                        : isCurrent
-                        ? 'bg-blue-500/20'
-                        : 'bg-muted'
+                    className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
+                      isCurrent
+                        ? 'bg-blue-500/10 border border-blue-500/30'
+                        : isComplete
+                        ? 'bg-emerald-500/5 border border-transparent'
+                        : 'bg-card border border-transparent opacity-50'
                     }`}
                   >
-                    {isComplete ? (
-                      <Check className="w-4 h-4 text-emerald-400" strokeWidth={3} />
-                    ) : (
-                      <Icon
-                        className={`w-4 h-4 ${
-                          isCurrent ? 'text-blue-400' : 'text-muted-foreground/70'
-                        }`}
-                      />
-                    )}
-                  </div>
-
-                  {/* Label and Progress */}
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className={`text-sm font-medium ${
+                    {/* Status Icon */}
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
                         isComplete
-                          ? 'text-emerald-400'
+                          ? 'bg-emerald-500/20'
                           : isCurrent
-                          ? 'text-foreground'
-                          : 'text-muted-foreground'
+                          ? 'bg-blue-500/20'
+                          : 'bg-muted'
                       }`}
                     >
-                      {config?.label || phase}
-                    </p>
-                    {isCurrent && (
-                      <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-blue-500/20">
-                        <div
-                          className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-300 animate-pulse"
-                          style={{ width: '60%' }}
+                      {isComplete ? (
+                        <Check className="w-4 h-4 text-emerald-400" strokeWidth={3} />
+                      ) : (
+                        <Icon
+                          className={`w-4 h-4 ${
+                            isCurrent ? 'text-blue-400' : 'text-muted-foreground/70'
+                          }`}
                         />
-                      </div>
-                    )}
+                      )}
+                    </div>
+
+                    {/* Label and Progress */}
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={`text-sm font-medium ${
+                          isComplete
+                            ? 'text-emerald-400'
+                            : isCurrent
+                            ? 'text-foreground'
+                            : 'text-muted-foreground'
+                        }`}
+                      >
+                        {config?.label || phase}
+                      </p>
+                      {isCurrent && !hasSubTasks && (
+                        <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-blue-500/20">
+                          <div
+                            className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-300 animate-pulse"
+                            style={{ width: '60%' }}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Status Badge */}
+                    <span
+                      className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${
+                        isComplete
+                          ? 'bg-emerald-500/20 text-emerald-400'
+                          : isCurrent
+                          ? 'bg-blue-500/20 text-blue-400'
+                          : 'text-muted-foreground/70'
+                      }`}
+                    >
+                      {isComplete ? 'Done' : isCurrent ? 'Running' : 'Pending'}
+                    </span>
                   </div>
 
-                  {/* Status Badge */}
-                  <span
-                    className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${
-                      isComplete
-                        ? 'bg-emerald-500/20 text-emerald-400'
-                        : isCurrent
-                        ? 'bg-blue-500/20 text-blue-400'
-                        : 'text-muted-foreground/70'
-                    }`}
-                  >
-                    {isComplete ? 'Done' : isCurrent ? 'Running' : 'Pending'}
-                  </span>
+                  {/* Sub-tasks for long-running phases */}
+                  {hasSubTasks && (
+                    <div className="ml-11 pl-3 border-l-2 border-blue-500/20 space-y-1.5 py-2">
+                      {subTasks.map((subTask, subIndex) => {
+                        const isSubComplete = subIndex < activeSubTask;
+                        const isSubCurrent = subIndex === activeSubTask;
+
+                        return (
+                          <div
+                            key={subTask}
+                            className={`flex items-center gap-2 text-xs transition-all duration-300 ${
+                              isSubCurrent
+                                ? 'text-blue-400'
+                                : isSubComplete
+                                ? 'text-muted-foreground'
+                                : 'text-muted-foreground/50'
+                            }`}
+                          >
+                            {isSubComplete ? (
+                              <Check className="w-3 h-3 text-emerald-400" strokeWidth={3} />
+                            ) : isSubCurrent ? (
+                              <span className="w-3 h-3 flex items-center justify-center">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                              </span>
+                            ) : (
+                              <span className="w-3 h-3 flex items-center justify-center">
+                                <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                              </span>
+                            )}
+                            <span className={isSubCurrent ? 'font-medium' : ''}>
+                              {subTask}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
 
-          {/* Time Info */}
-          <p className="text-sm text-muted-foreground">
-            Started: {formatTimeAgo(research.startedAt)}
-          </p>
+          {/* Time Info and Reset Button */}
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Started: {formatTimeAgo(research.startedAt)}
+            </p>
+            <button
+              onClick={() => {
+                if (confirm('Reset stuck research? This will allow you to restart from the beginning.')) {
+                  resetResearch.mutate({ ideaId: idea.id });
+                }
+              }}
+              disabled={resetResearch.isPending}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-colors disabled:opacity-50"
+              title="Reset if research appears stuck"
+            >
+              <RotateCcw className={`w-3 h-3 ${resetResearch.isPending ? 'animate-spin' : ''}`} />
+              {resetResearch.isPending ? 'Resetting...' : 'Reset'}
+            </button>
+          </div>
         </div>
       </div>
+      )}
 
       {/* Completed Interview */}
       {completedInterview && (

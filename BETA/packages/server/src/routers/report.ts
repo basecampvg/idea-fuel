@@ -391,6 +391,13 @@ export const reportRouter = router({
 
       // Generate PDF
       try {
+        console.log('Generating PDF for:', {
+          ideaId: idea.id,
+          ideaTitle: idea.title,
+          reportType: report.type,
+          reportTier: report.tier,
+        });
+
         const pdfBuffer = await generatePDFBuffer({
           idea: {
             id: idea.id,
@@ -409,6 +416,7 @@ export const reportRouter = router({
         });
 
         const filename = getPDFFilename(idea.title, input.reportType);
+        console.log('PDF generated successfully:', filename, 'Size:', pdfBuffer.length);
 
         return {
           success: true,
@@ -418,9 +426,13 @@ export const reportRouter = router({
         };
       } catch (error) {
         console.error('PDF generation error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorStack = error instanceof Error ? error.stack : '';
+        console.error('Error details:', errorMessage);
+        console.error('Error stack:', errorStack);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to generate PDF',
+          message: `Failed to generate PDF: ${errorMessage}`,
         });
       }
     }),

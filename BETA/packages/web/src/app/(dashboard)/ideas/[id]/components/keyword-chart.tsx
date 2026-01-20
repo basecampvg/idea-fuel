@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ChevronDown } from 'lucide-react';
 import {
   AreaChart,
@@ -15,12 +15,40 @@ import {
 export interface KeywordTrend {
   keyword: string;
   volume: number;
-  growth: number; // percentage
+  growth: number; // percentage (based on full trend data)
   trend: number[]; // Up to 60 data points for chart (5 years monthly)
 }
 
 interface KeywordChartProps {
   keywordTrends?: KeywordTrend[] | null;
+}
+
+type TimeframeOption = {
+  label: string;
+  months: number;
+};
+
+const TIMEFRAME_OPTIONS: TimeframeOption[] = [
+  { label: '12 months', months: 12 },
+  { label: '2 years', months: 24 },
+  { label: '5 years', months: 60 },
+];
+
+// Calculate growth percentage from trend data
+function calculateGrowth(trend: number[]): number {
+  if (!trend || trend.length < 2) return 0;
+
+  // Get first non-zero value for comparison
+  const firstValue = trend.find(v => v > 0) || trend[0];
+  const lastValue = trend[trend.length - 1];
+
+  if (firstValue === 0) {
+    // If starting from 0 and now has value, it's emerging
+    return lastValue > 0 ? 999 : 0;
+  }
+
+  const growth = ((lastValue - firstValue) / firstValue) * 100;
+  return Math.round(growth);
 }
 
 // Generate data with year info for X-axis display and tooltip
@@ -55,8 +83,10 @@ function formatNumber(num: number): string {
 }
 
 export function KeywordChart({ keywordTrends: rawKeywordTrends }: KeywordChartProps) {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isKeywordDropdownOpen, setIsKeywordDropdownOpen] = useState(false);
+  const [isTimeframeDropdownOpen, setIsTimeframeDropdownOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedTimeframe, setSelectedTimeframe] = useState<TimeframeOption>(TIMEFRAME_OPTIONS[2]); // Default to 5 years
 
   // Parse keywordTrends if it's a string (Prisma JSON field)
   let keywordTrends: KeywordTrend[] | null = null;
@@ -80,15 +110,22 @@ export function KeywordChart({ keywordTrends: rawKeywordTrends }: KeywordChartPr
     trend: Array(60).fill(0), // Default to 5 years (60 months)
   };
 
-  // Cap trend data to last 60 months (5 years) for reasonable display
-  const MAX_MONTHS = 60;
-  const trendData = rawKeyword.trend.length > MAX_MONTHS
-    ? rawKeyword.trend.slice(-MAX_MONTHS) // Take most recent data
-    : rawKeyword.trend;
+  // Filter trend data based on selected timeframe
+  const filteredTrend = useMemo(() => {
+    const fullTrend = rawKeyword.trend;
+    const monthsToShow = Math.min(selectedTimeframe.months, fullTrend.length);
+    return fullTrend.slice(-monthsToShow);
+  }, [rawKeyword.trend, selectedTimeframe.months]);
+
+  // Calculate growth based on filtered timeframe
+  const timeframeGrowth = useMemo(() => {
+    return calculateGrowth(filteredTrend);
+  }, [filteredTrend]);
 
   const selectedKeyword = {
     ...rawKeyword,
-    trend: trendData,
+    trend: filteredTrend,
+    growth: timeframeGrowth,
   };
 
   // Generate year labels based on actual data length
@@ -133,38 +170,80 @@ export function KeywordChart({ keywordTrends: rawKeywordTrends }: KeywordChartPr
     <div className="rounded-2xl bg-background border border-border p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        {/* Keyword Dropdown */}
-        <div className="flex items-center gap-2 relative">
-          <span className="text-sm text-muted-foreground">Keyword:</span>
-          <button
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-1 text-sm text-foreground hover:text-muted-foreground transition-colors"
-          >
-            <span>{selectedKeyword.keyword}</span>
-            <ChevronDown className="w-4 h-4" />
-          </button>
+        {/* Left side: Keyword Dropdown + Timeframe Dropdown */}
+        <div className="flex items-center gap-4">
+          {/* Keyword Dropdown */}
+          <div className="flex items-center gap-2 relative">
+            <span className="text-sm text-muted-foreground">Keyword:</span>
+            <button
+              onClick={() => {
+                setIsKeywordDropdownOpen(!isKeywordDropdownOpen);
+                setIsTimeframeDropdownOpen(false);
+              }}
+              className="flex items-center gap-1 text-sm text-foreground hover:text-muted-foreground transition-colors"
+            >
+              <span>{selectedKeyword.keyword}</span>
+              <ChevronDown className="w-4 h-4" />
+            </button>
 
-          {/* Dropdown menu */}
-          {isDropdownOpen && keywordTrends.length > 1 && (
-            <div className="absolute top-full left-0 mt-1 bg-card border border-[#2a2a38] rounded-lg py-1 z-10 min-w-[200px]">
-              {keywordTrends.map((kw, index) => (
-                <button
-                  key={kw.keyword}
-                  className={`w-full px-3 py-2 text-left text-sm transition-colors ${
-                    index === selectedIndex
-                      ? 'text-[#e91e8c] bg-[#22222e]'
-                      : 'text-foreground hover:bg-[#22222e]'
-                  }`}
-                  onClick={() => {
-                    setSelectedIndex(index);
-                    setIsDropdownOpen(false);
-                  }}
-                >
-                  {kw.keyword}
-                </button>
-              ))}
-            </div>
-          )}
+            {/* Keyword Dropdown menu */}
+            {isKeywordDropdownOpen && keywordTrends.length > 1 && (
+              <div className="absolute top-full left-0 mt-1 bg-card border border-[#2a2a38] rounded-lg py-1 z-10 min-w-[200px]">
+                {keywordTrends.map((kw, index) => (
+                  <button
+                    key={kw.keyword}
+                    className={`w-full px-3 py-2 text-left text-sm transition-colors ${
+                      index === selectedIndex
+                        ? 'text-[#e91e8c] bg-[#22222e]'
+                        : 'text-foreground hover:bg-[#22222e]'
+                    }`}
+                    onClick={() => {
+                      setSelectedIndex(index);
+                      setIsKeywordDropdownOpen(false);
+                    }}
+                  >
+                    {kw.keyword}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Timeframe Dropdown */}
+          <div className="flex items-center gap-2 relative">
+            <button
+              onClick={() => {
+                setIsTimeframeDropdownOpen(!isTimeframeDropdownOpen);
+                setIsKeywordDropdownOpen(false);
+              }}
+              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md border border-border hover:border-[#e91e8c]/50"
+            >
+              <span>{selectedTimeframe.label}</span>
+              <ChevronDown className="w-3 h-3" />
+            </button>
+
+            {/* Timeframe Dropdown menu */}
+            {isTimeframeDropdownOpen && (
+              <div className="absolute top-full left-0 mt-1 bg-card border border-[#2a2a38] rounded-lg py-1 z-10 min-w-[120px]">
+                {TIMEFRAME_OPTIONS.map((option) => (
+                  <button
+                    key={option.months}
+                    className={`w-full px-3 py-2 text-left text-sm transition-colors ${
+                      option.months === selectedTimeframe.months
+                        ? 'text-[#e91e8c] bg-[#22222e]'
+                        : 'text-foreground hover:bg-[#22222e]'
+                    }`}
+                    onClick={() => {
+                      setSelectedTimeframe(option);
+                      setIsTimeframeDropdownOpen(false);
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Stats */}
