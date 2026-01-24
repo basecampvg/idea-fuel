@@ -1,14 +1,44 @@
 import React from 'react';
-import { View, Text, ViewProps } from 'react-native';
+import { View, Text, ViewProps, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+
+// Forge Design System Colors
+const colors = {
+  background: '#11100E',
+  card: '#1A1918',
+  cardHover: '#242220',
+  border: '#1F1E1C',
+  foreground: '#E8E4DC',
+  muted: '#8A8680',
+  mutedBg: '#262422',
+};
 
 interface CardProps extends ViewProps {
   children: React.ReactNode;
+  variant?: 'default' | 'elevated' | 'interactive';
 }
 
-export function Card({ children, className, ...props }: CardProps) {
+export function Card({ children, variant = 'default', style, ...props }: CardProps) {
+  const variantStyles: Record<string, ViewStyle> = {
+    default: {},
+    elevated: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    interactive: {
+      // Press states handled by TouchableOpacity wrapper
+    },
+  };
+
   return (
     <View
-      className={`rounded-xl border border-gray-200 bg-white shadow-sm ${className || ''}`}
+      style={[
+        styles.card,
+        variantStyles[variant],
+        style,
+      ]}
       {...props}
     >
       {children}
@@ -20,9 +50,9 @@ interface CardHeaderProps extends ViewProps {
   children: React.ReactNode;
 }
 
-export function CardHeader({ children, className, ...props }: CardHeaderProps) {
+export function CardHeader({ children, style, ...props }: CardHeaderProps) {
   return (
-    <View className={`border-b border-gray-100 px-4 py-3 ${className || ''}`} {...props}>
+    <View style={[styles.cardHeader, style]} {...props}>
       {children}
     </View>
   );
@@ -30,12 +60,12 @@ export function CardHeader({ children, className, ...props }: CardHeaderProps) {
 
 interface CardTitleProps {
   children: React.ReactNode;
-  className?: string;
+  style?: TextStyle;
 }
 
-export function CardTitle({ children, className }: CardTitleProps) {
+export function CardTitle({ children, style }: CardTitleProps) {
   return (
-    <Text className={`text-lg font-semibold text-gray-900 ${className || ''}`}>
+    <Text style={[styles.cardTitle, style]}>
       {children}
     </Text>
   );
@@ -43,12 +73,14 @@ export function CardTitle({ children, className }: CardTitleProps) {
 
 interface CardDescriptionProps {
   children: React.ReactNode;
-  className?: string;
+  style?: TextStyle;
 }
 
-export function CardDescription({ children, className }: CardDescriptionProps) {
+export function CardDescription({ children, style }: CardDescriptionProps) {
   return (
-    <Text className={`mt-0.5 text-sm text-gray-500 ${className || ''}`}>{children}</Text>
+    <Text style={[styles.cardDescription, style]}>
+      {children}
+    </Text>
   );
 }
 
@@ -56,9 +88,9 @@ interface CardContentProps extends ViewProps {
   children: React.ReactNode;
 }
 
-export function CardContent({ children, className, ...props }: CardContentProps) {
+export function CardContent({ children, style, ...props }: CardContentProps) {
   return (
-    <View className={`p-4 ${className || ''}`} {...props}>
+    <View style={[styles.cardContent, style]} {...props}>
       {children}
     </View>
   );
@@ -68,13 +100,45 @@ interface CardFooterProps extends ViewProps {
   children: React.ReactNode;
 }
 
-export function CardFooter({ children, className, ...props }: CardFooterProps) {
+export function CardFooter({ children, style, ...props }: CardFooterProps) {
   return (
-    <View
-      className={`border-t border-gray-100 px-4 py-3 ${className || ''}`}
-      {...props}
-    >
+    <View style={[styles.cardFooter, style]} {...props}>
       {children}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  cardHeader: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.foreground,
+  },
+  cardDescription: {
+    marginTop: 2,
+    fontSize: 14,
+    color: colors.muted,
+  },
+  cardContent: {
+    padding: 16,
+  },
+  cardFooter: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+});

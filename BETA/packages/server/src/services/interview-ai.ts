@@ -2,6 +2,7 @@ import { openai, INTERVIEW_MODEL, EXTRACTION_MODEL, getAIParams, createResponses
 import type { SubscriptionTier } from '@prisma/client';
 import { getInterviewKnowledge, KNOWLEDGE } from '../lib/knowledge';
 import type { ChatMessage, InterviewMode, InterviewDataPoints, DataPoint } from '@forge/shared';
+import { trackUsageFromResponse } from '../lib/token-tracker';
 
 // Data point field names for extraction
 const DATA_POINT_FIELDS = [
@@ -120,7 +121,7 @@ KEY TOPICS TO EXPLORE:
 // Get max turns for a given mode
 function getMaxTurnsForMode(mode: InterviewMode): number {
   const MAX_TURNS = {
-    LIGHTNING: 0,
+    SPARK: 0,
     LIGHT: 10,
     IN_DEPTH: 65,
   } as const;
@@ -168,6 +169,13 @@ export async function generateOpeningQuestion(
     );
 
     console.log('[Interview AI] OpenAI response received');
+
+    // Track token usage (fire-and-forget)
+    trackUsageFromResponse(response, {
+      functionName: 'generateOpeningQuestion',
+      model: INTERVIEW_MODEL,
+    });
+
     return response.output_text || "Let's start with your business idea. What problem are you trying to solve, and who experiences this problem most acutely?";
   } catch (error) {
     console.error('[Interview AI] OpenAI API error:', error);
@@ -216,6 +224,12 @@ export async function generateNextQuestion(
       max_output_tokens: 500,
     }, aiParams)
   );
+
+  // Track token usage (fire-and-forget)
+  trackUsageFromResponse(response, {
+    functionName: 'generateNextQuestion',
+    model: INTERVIEW_MODEL,
+  });
 
   return response.output_text || 'Could you tell me more about that?';
 }
@@ -292,6 +306,12 @@ Only include fields where you can extract clear, specific information. Return an
         max_output_tokens: 1000,
       }, aiParams)
     );
+
+    // Track token usage (fire-and-forget)
+    trackUsageFromResponse(response, {
+      functionName: 'extractDataPoints',
+      model: EXTRACTION_MODEL,
+    });
 
     const content = response.output_text;
     if (!content) return {};

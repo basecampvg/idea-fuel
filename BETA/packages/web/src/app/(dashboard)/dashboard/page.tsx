@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { useSubscription } from '@/components/subscription/use-subscription';
 import { LoadingScreen } from '@/components/ui/spinner';
-import { Flame, Feather, Zap, Bookmark, ArrowUp, TrendingUp, Paperclip, Sparkles, FileText, Target, TrendingUp as TrendUp, DollarSign, Lock } from 'lucide-react';
+import { Flame, Feather, Zap, Bookmark, ArrowUp, TrendingUp, Paperclip, Sparkles, FileText, Target, TrendingUp as TrendUp, DollarSign, Lock, HelpCircle, X } from 'lucide-react';
 
-type InterviewMode = 'LIGHTNING' | 'LIGHT' | 'IN_DEPTH';
+type InterviewMode = 'SPARK' | 'LIGHT' | 'IN_DEPTH';
 
 interface ChatMessage {
   id: string;
@@ -152,10 +152,10 @@ const actionButtons: ActionButton[] = [
     description: '10 questions - essential insights',
   },
   {
-    id: 'LIGHTNING',
-    icon: <Zap className="h-4 w-4" />,
-    label: 'Lightning',
-    description: 'Instant research - no interview',
+    id: 'SPARK',
+    icon: <Sparkles className="h-4 w-4" />,
+    label: 'Spark',
+    description: 'Quick validation - demand & market sizing',
   },
   {
     id: 'SAVE',
@@ -183,6 +183,8 @@ export default function DashboardPage() {
   const [hoveredMode, setHoveredMode] = useState<string | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [showPromptHint, setShowPromptHint] = useState(false);
+  const [promptHintDismissed, setPromptHintDismissed] = useState(false);
 
   // Interview state
   const [interviewActive, setInterviewActive] = useState(false);
@@ -207,6 +209,7 @@ export default function DashboardPage() {
   const createIdea = trpc.idea.create.useMutation();
   const startInterview = trpc.idea.startInterview.useMutation();
   const startResearch = trpc.research.start.useMutation();
+  const startSpark = trpc.research.startSpark.useMutation();
   const sendMessage = trpc.interview.chat.useMutation();
   const completeInterview = trpc.interview.complete.useMutation();
 
@@ -217,12 +220,23 @@ export default function DashboardPage() {
     }
   }, [interviewActive, animationState, currentQuestion]);
 
+  // Auto-show prompt hint for first 5 visits
+  useEffect(() => {
+    const HINT_STORAGE_KEY = 'forge_prompt_hint_views';
+    const viewCount = parseInt(localStorage.getItem(HINT_STORAGE_KEY) || '0', 10);
+
+    if (viewCount < 5) {
+      setShowPromptHint(true);
+      localStorage.setItem(HINT_STORAGE_KEY, String(viewCount + 1));
+    }
+  }, []);
+
   if (userLoading && !userError) {
     return <LoadingScreen message="Loading..." />;
   }
 
   const firstName = user?.name?.split(' ')[0] || (isDev ? 'Developer' : 'there');
-  const isSubmitting = createIdea.isPending || startInterview.isPending || startResearch.isPending || isExecuting;
+  const isSubmitting = createIdea.isPending || startInterview.isPending || startResearch.isPending || startSpark.isPending || isExecuting;
   const canSubmit = ideaDescription.trim().length >= 10;
 
   // Execute the selected mode
@@ -257,9 +271,10 @@ export default function DashboardPage() {
 
       if (selectedMode === 'SAVE') {
         router.push(`/ideas/${idea.id}`);
-      } else if (selectedMode === 'LIGHTNING') {
-        await startInterview.mutateAsync({ ideaId: idea.id, mode: 'LIGHTNING' });
-        await startResearch.mutateAsync({ ideaId: idea.id });
+      } else if (selectedMode === 'SPARK') {
+        // Spark mode - quick validation pipeline
+        await startInterview.mutateAsync({ ideaId: idea.id, mode: 'SPARK' });
+        await startSpark.mutateAsync({ ideaId: idea.id });
         router.push(`/ideas/${idea.id}`);
       } else {
         // LIGHT or IN_DEPTH - start inline interview
@@ -532,6 +547,46 @@ export default function DashboardPage() {
           <div className="relative p-6">
             {/* Textarea */}
             <div className="relative">
+              {/* Prompt hint tooltip */}
+              <div className="absolute top-0 right-0 z-10">
+                <button
+                  type="button"
+                  onMouseEnter={() => !promptHintDismissed && setShowPromptHint(true)}
+                  onMouseLeave={() => !promptHintDismissed && setShowPromptHint(false)}
+                  onClick={() => setShowPromptHint(!showPromptHint)}
+                  className="p-1 text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+                  aria-label="Show prompt structure hint"
+                >
+                  <HelpCircle className="w-4 h-4" />
+                </button>
+
+                {showPromptHint && (
+                  <div className="absolute top-full right-0 z-50 mt-1 w-72 animate-fade-in-up">
+                    <div className="rounded-xl bg-card border border-border px-4 py-3 shadow-xl text-left relative">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowPromptHint(false);
+                          setPromptHintDismissed(true);
+                        }}
+                        className="absolute top-2 right-2 p-1 text-muted-foreground/60 hover:text-foreground transition-colors"
+                        aria-label="Close hint"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                      <div className="font-medium text-foreground text-xs mb-2 pr-6">For best results, include:</div>
+                      <div className="space-y-1.5 text-xs text-muted-foreground">
+                        <p><span className="text-foreground font-medium">Idea:</span> Your core concept</p>
+                        <p><span className="text-foreground font-medium">Problem:</span> What pain point does it solve?</p>
+                        <p><span className="text-foreground font-medium">Core use cases:</span> 2-3 primary ways users would use it</p>
+                        <p><span className="text-foreground font-medium">Target users:</span> Who is this for?</p>
+                        <p><span className="text-foreground font-medium">Business model:</span> How might it make money?</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <textarea
                 value={ideaDescription}
                 onChange={(e) => setIdeaDescription(e.target.value)}
@@ -561,6 +616,14 @@ export default function DashboardPage() {
                   const isHovered = hoveredMode === mode.id;
                   const isLocked = mode.id === 'IN_DEPTH' && !canAccessMode('IN_DEPTH');
 
+                  // Mode-specific colors with transparency
+                  const modeColors: Record<string, string> = {
+                    'IN_DEPTH': 'bg-pink-500/20 text-pink-400 ring-1 ring-pink-500/50',
+                    'LIGHT': 'bg-blue-500/20 text-blue-400 ring-1 ring-blue-500/50',
+                    'SPARK': 'bg-orange-500/20 text-orange-400 ring-1 ring-orange-500/50',
+                    'SAVE': 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/50',
+                  };
+
                   return (
                     <div key={mode.id} className="relative">
                       <button
@@ -570,7 +633,7 @@ export default function DashboardPage() {
                         className={`
                           flex items-center justify-center p-2.5 rounded-lg transition-all relative
                           ${isSelected
-                            ? 'bg-primary text-foreground shadow-sm'
+                            ? modeColors[mode.id] || 'bg-primary text-foreground shadow-sm'
                             : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted/50'
                           }
                           ${isLocked ? 'opacity-60' : ''}
@@ -578,7 +641,7 @@ export default function DashboardPage() {
                       >
                         {mode.icon}
                         {isLocked && (
-                          <Lock className="w-2.5 h-2.5 absolute -top-0.5 -right-0.5 text-primary" />
+                          <Lock className="w-2.5 h-2.5 absolute -top-0.5 -right-0.5 text-pink-500" />
                         )}
                       </button>
 

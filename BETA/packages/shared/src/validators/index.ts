@@ -21,7 +21,8 @@ export type UpdateIdeaInput = z.infer<typeof updateIdeaSchema>;
 // ============================================
 // Interview validators
 // ============================================
-export const interviewModeSchema = z.enum(['LIGHTNING', 'LIGHT', 'IN_DEPTH']);
+export const interviewModeSchema = z.enum(['SPARK', 'LIGHT', 'IN_DEPTH']);
+export const sparkJobStatusSchema = z.enum(['QUEUED', 'RUNNING_KEYWORDS', 'RUNNING_RESEARCH', 'COMPLETE', 'FAILED']);
 export const interviewStatusSchema = z.enum(['IN_PROGRESS', 'COMPLETE', 'ABANDONED']);
 
 export const startInterviewSchema = z.object({
@@ -119,6 +120,105 @@ export const startResearchSchema = z.object({
 export type ResearchStatusInput = z.infer<typeof researchStatusSchema>;
 export type ResearchPhaseInput = z.infer<typeof researchPhaseSchema>;
 export type StartResearchInput = z.infer<typeof startResearchSchema>;
+
+// ============================================
+// Spark validators (quick validation)
+// ============================================
+export const sparkKeywordsSchema = z.object({
+  phrases: z.array(z.string()).min(1).max(10),
+  synonyms: z.array(z.string()),
+  query_plan: z.object({
+    general_search: z.array(z.string()),
+    reddit_search: z.array(z.string()),
+    facebook_groups_search: z.array(z.string()),
+  }),
+});
+
+export const sparkKeywordTrendSchema = z.object({
+  keyword: z.string(),
+  volume: z.number(),
+  growth: z.enum(['rising', 'stable', 'declining']),
+  trend: z.array(z.object({
+    date: z.string(),
+    value: z.number(),
+  })),
+});
+
+export const sparkCompetitorSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  strengths: z.array(z.string()),
+  weaknesses: z.array(z.string()),
+  positioning: z.string(),
+  website: z.string().optional(),
+  pricing_model: z.string().optional(),
+});
+
+export const sparkResultSchema = z.object({
+  idea: z.string(),
+  keywords: sparkKeywordsSchema,
+  trend_signal: z.object({
+    direction: z.enum(['rising', 'flat', 'declining', 'unknown']),
+    evidence: z.array(z.object({
+      claim: z.string(),
+      source_url: z.string(),
+    })),
+  }),
+  reddit: z.object({
+    top_threads: z.array(z.object({
+      title: z.string(),
+      subreddit: z.string(),
+      url: z.string(),
+      signal: z.string(),
+      // Enhanced fields (optional for backward compatibility)
+      upvotes: z.number().optional(),
+      comments: z.number().optional(),
+      posted: z.string().optional(),
+    })),
+    recurring_pains: z.array(z.string()),
+    willingness_to_pay_clues: z.array(z.string()),
+  }),
+  facebook_groups: z.array(z.object({
+    name: z.string(),
+    members: z.string(),
+    privacy: z.enum(['public', 'private', 'unknown']),
+    url: z.string(),
+    fit_score: z.number().min(0).max(3),
+    why_relevant: z.string().optional(),  // Enhanced: explanation of fit
+  })),
+  tam: z.object({
+    currency: z.string(),
+    low: z.number(),
+    base: z.number(),
+    high: z.number(),
+    method: z.string(),
+    assumptions: z.array(z.string()),
+    citations: z.array(z.object({
+      label: z.string(),
+      url: z.string(),
+    })),
+  }),
+  competitors: z.array(sparkCompetitorSchema).optional(),
+  market_gaps: z.array(z.string()).optional(),
+  verdict: z.enum(['proceed', 'watchlist', 'drop']),
+  summary: z.string().optional(),
+  next_experiment: z.object({
+    hypothesis: z.string(),
+    test: z.string(),
+    success_metric: z.string(),
+    timebox: z.string(),
+  }),
+  keyword_trends: z.array(sparkKeywordTrendSchema).optional(),
+});
+
+export const startSparkSchema = z.object({
+  ideaId: z.string().cuid(),
+});
+
+export type SparkJobStatusInput = z.infer<typeof sparkJobStatusSchema>;
+export type SparkKeywordsInput = z.infer<typeof sparkKeywordsSchema>;
+export type SparkResultInput = z.infer<typeof sparkResultSchema>;
+export type StartSparkInput = z.infer<typeof startSparkSchema>;
 
 // ============================================
 // Pagination validator

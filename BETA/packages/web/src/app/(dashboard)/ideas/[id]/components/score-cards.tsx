@@ -49,6 +49,8 @@ interface ScoreCardsProps {
   scoreJustifications?: ScoreJustifications | null;
   scoreMetadata?: ScoreMetadata | null;
   layout?: 'grid' | 'horizontal';
+  title?: string;
+  subtitle?: string;
 }
 
 interface ScoreCardProps {
@@ -261,6 +263,8 @@ export function ScoreCards({
   scoreJustifications,
   scoreMetadata,
   layout = 'grid',
+  title,
+  subtitle,
 }: ScoreCardsProps) {
   // Accordion state - only one card expanded at a time
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -279,6 +283,13 @@ export function ScoreCards({
 
   return (
     <div className="space-y-3">
+      {/* Optional title/subtitle */}
+      {(title || subtitle) && (
+        <div className="mb-1">
+          {title && <h2 className="text-base font-semibold text-foreground">{title}</h2>}
+          {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+        </div>
+      )}
       {/* Warning banner if scores were flagged for high variance */}
       {scoreMetadata?.flagged && (
         <div className="flex items-start gap-2 p-3 rounded-lg bg-[#f59e0b]/10 border border-[#f59e0b]/20">

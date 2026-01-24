@@ -11,6 +11,8 @@ export interface WhyNowData {
 
 interface WhyNowSectionProps {
   whyNow?: WhyNowData | null;
+  title?: string;
+  subtitle?: string;
 }
 
 function UrgencyMeter({ score }: { score: number }) {
@@ -44,14 +46,15 @@ function UrgencyMeter({ score }: { score: number }) {
   );
 }
 
-export function WhyNowSection({ whyNow }: WhyNowSectionProps) {
+export function WhyNowSection({ whyNow, title = 'Why Now?', subtitle }: WhyNowSectionProps) {
   if (!whyNow) return null;
 
   return (
     <CollapsibleSection
       icon={<Zap className="w-5 h-5 text-[#f59e0b]" />}
       iconBgColor="rgba(245, 158, 11, 0.2)"
-      title="Why Now?"
+      title={title}
+      subtitle={subtitle}
     >
       <div className="space-y-5">
         {/* Urgency Score */}

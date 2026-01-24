@@ -12,9 +12,11 @@ export interface UserStoryData {
 
 interface UserStoryProps {
   userStory?: UserStoryData | null;
+  title?: string;
+  subtitle?: string;
 }
 
-export function UserStory({ userStory }: UserStoryProps) {
+export function UserStory({ userStory, title = 'The Story', subtitle }: UserStoryProps) {
   if (!userStory) return null;
 
   return (
@@ -23,7 +25,10 @@ export function UserStory({ userStory }: UserStoryProps) {
         <div className="w-10 h-10 rounded-full bg-[#8b5cf6]/20 flex items-center justify-center">
           <BookOpen className="w-5 h-5 text-[#8b5cf6]" />
         </div>
-        <h2 className="text-base font-semibold text-foreground">The Story</h2>
+        <div>
+          <h2 className="text-base font-semibold text-foreground">{title}</h2>
+          {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+        </div>
       </div>
 
       <div className="space-y-4">

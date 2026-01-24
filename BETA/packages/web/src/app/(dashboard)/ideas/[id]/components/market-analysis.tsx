@@ -13,16 +13,19 @@ export interface MarketAnalysisData {
 
 interface MarketAnalysisProps {
   marketAnalysis?: MarketAnalysisData | null;
+  title?: string;
+  subtitle?: string;
 }
 
-export function MarketAnalysis({ marketAnalysis }: MarketAnalysisProps) {
+export function MarketAnalysis({ marketAnalysis, title = 'Market Analysis', subtitle }: MarketAnalysisProps) {
   if (!marketAnalysis) return null;
 
   return (
     <CollapsibleSection
       icon={<BarChart3 className="w-5 h-5 text-accent" />}
       iconBgColor="rgba(0, 212, 255, 0.2)"
-      title="Market Analysis"
+      title={title}
+      subtitle={subtitle}
     >
       <div className="space-y-5">
         {/* Size & Growth */}

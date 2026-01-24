@@ -21,6 +21,8 @@ export interface KeywordTrend {
 
 interface KeywordChartProps {
   keywordTrends?: KeywordTrend[] | null;
+  title?: string;
+  subtitle?: string;
 }
 
 type TimeframeOption = {
@@ -82,7 +84,7 @@ function formatNumber(num: number): string {
   return num.toString();
 }
 
-export function KeywordChart({ keywordTrends: rawKeywordTrends }: KeywordChartProps) {
+export function KeywordChart({ keywordTrends: rawKeywordTrends, title, subtitle }: KeywordChartProps) {
   const [isKeywordDropdownOpen, setIsKeywordDropdownOpen] = useState(false);
   const [isTimeframeDropdownOpen, setIsTimeframeDropdownOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -168,6 +170,13 @@ export function KeywordChart({ keywordTrends: rawKeywordTrends }: KeywordChartPr
 
   return (
     <div className="rounded-2xl bg-background border border-border p-6">
+      {/* Title/Subtitle */}
+      {(title || subtitle) && (
+        <div className="mb-4">
+          {title && <h2 className="text-base font-semibold text-foreground">{title}</h2>}
+          {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         {/* Left side: Keyword Dropdown + Timeframe Dropdown */}

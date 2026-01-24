@@ -1,34 +1,31 @@
 import React, { useEffect } from 'react';
-import { View, Text, Image } from 'react-native';
+import { View, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuth } from '../contexts/AuthContext';
-import { LoadingScreen } from '../components/ui';
+import { Spinner } from '../components/ui';
 
 export default function SplashScreen() {
   const router = useRouter();
-  const { isLoading, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (!isLoading) {
-      if (isAuthenticated) {
-        router.replace('/(tabs)/dashboard');
-      } else {
-        router.replace('/(auth)/signin');
-      }
-    }
-  }, [isLoading, isAuthenticated, router]);
+    // Skip auth, go straight to dashboard
+    const timer = setTimeout(() => {
+      router.replace('/(tabs)/dashboard');
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [router]);
 
   return (
-    <View className="flex-1 items-center justify-center bg-blue-600">
+    <View className="flex-1 items-center justify-center bg-background">
       <View className="items-center">
-        <View className="mb-4 h-24 w-24 items-center justify-center rounded-3xl bg-white">
-          <Text className="text-4xl font-bold text-blue-600">F</Text>
+        <View className="mb-4 h-24 w-24 items-center justify-center rounded-3xl bg-primary">
+          <Text className="text-4xl font-bold text-white">iL</Text>
         </View>
-        <Text className="text-3xl font-bold text-white">Forge</Text>
-        <Text className="mt-2 text-blue-100">AI-Powered Business Automation</Text>
+        <Text className="text-3xl font-bold text-foreground">ideationLab</Text>
+        <Text className="mt-2 text-muted-foreground">AI-Powered Business Automation</Text>
       </View>
       <View className="absolute bottom-20">
-        <LoadingScreen message="" />
+        <Spinner size="large" />
       </View>
     </View>
   );

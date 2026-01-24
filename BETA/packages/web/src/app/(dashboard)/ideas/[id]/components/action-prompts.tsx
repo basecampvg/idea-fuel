@@ -14,6 +14,8 @@ export interface ActionPrompt {
 interface ActionPromptsProps {
   actionPrompts?: ActionPrompt[] | null;
   ideaTitle: string;
+  title?: string;
+  subtitle?: string;
 }
 
 // Default prompts matching screenshot
@@ -240,7 +242,7 @@ function parseJson<T>(data: T | string | null | undefined): T | null {
   return data as T;
 }
 
-export function ActionPrompts({ actionPrompts: rawActionPrompts, ideaTitle }: ActionPromptsProps) {
+export function ActionPrompts({ actionPrompts: rawActionPrompts, ideaTitle, title = 'Start Building in 1-click', subtitle = 'Turn this idea into your business with pre-built prompts' }: ActionPromptsProps) {
   const [lastCopied, setLastCopied] = useState<string | null>(null);
 
   // Parse actionPrompts if it's a string (Prisma JSON field)
@@ -260,14 +262,16 @@ export function ActionPrompts({ actionPrompts: rawActionPrompts, ideaTitle }: Ac
       <div className="flex items-center gap-2 mb-4">
         <Sparkles className="w-4 h-4 text-[#fbbf24]" />
         <h2 className="text-base font-semibold text-foreground">
-          Start Building in 1-click
+          {title}
         </h2>
       </div>
 
       {/* Subtitle */}
-      <p className="text-xs text-muted-foreground mb-4">
-        Turn this idea into your business with pre-built prompts
-      </p>
+      {subtitle && (
+        <p className="text-xs text-muted-foreground mb-4">
+          {subtitle}
+        </p>
+      )}
 
       {/* Prompt cards */}
       <div className="space-y-2">

@@ -152,9 +152,11 @@ export function DownloadCard({ type, ideaId, status = 'ready' }: DownloadCardPro
 interface DownloadsSectionProps {
   ideaId: string;
   hasResearch?: boolean;
+  title?: string;
+  subtitle?: string;
 }
 
-export function DownloadsSection({ ideaId, hasResearch = true }: DownloadsSectionProps) {
+export function DownloadsSection({ ideaId, hasResearch = true, title = 'Download Reports', subtitle }: DownloadsSectionProps) {
   const status = hasResearch ? 'ready' : 'locked';
 
   return (
@@ -163,7 +165,10 @@ export function DownloadsSection({ ideaId, hasResearch = true }: DownloadsSectio
         <div className="w-10 h-10 rounded-full bg-[#00d4ff]/20 flex items-center justify-center">
           <FileText className="w-5 h-5 text-accent" />
         </div>
-        <h2 className="text-base font-semibold text-foreground">Download Reports</h2>
+        <div>
+          <h2 className="text-base font-semibold text-foreground">{title}</h2>
+          {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

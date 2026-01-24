@@ -510,11 +510,22 @@ export async function pollForCompletion(
       if (status === 'incomplete') {
         // Incomplete responses may have partial content
         onLog(`[Poll] Response incomplete after ${Math.round(elapsed/1000)}s - extracting partial content`);
+        onLog(`[Poll] Response keys: ${Object.keys(response || {}).join(', ')}`);
+        if (response?.output_text) {
+          onLog(`[Poll] Has output_text: ${response.output_text.length} chars`);
+        }
+        if (response?.output) {
+          onLog(`[Poll] Has output array: ${response.output.length} items`);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onLog(`[Poll] Output types: ${response.output.map((o: any) => o.type).join(', ')}`);
+        }
         const result = parseDeepResearchResponse(response);
         if (result.content) {
           onLog(`[Poll] Partial content available: ${result.content.length} chars`);
           return result;
         }
+        // Log more details about why we couldn't extract content
+        onLog(`[Poll] Could not extract content from response. Full response keys: ${JSON.stringify(Object.keys(response || {}))}`);
         throw new Error('Deep research incomplete with no usable content');
       }
 
@@ -755,6 +766,7 @@ export interface DeepResearchResult {
 
 /**
  * Parses a deep research response to extract content, citations, and metadata.
+ * Handles both output_text (direct) and output[] array (structured) formats.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseDeepResearchResponse(response: any): DeepResearchResult {
@@ -765,54 +777,90 @@ export function parseDeepResearchResponse(response: any): DeepResearchResult {
     searchQueries: [],
   };
 
-  if (!response?.output || !Array.isArray(response.output)) {
-    console.warn('[Deep Research] Invalid response structure');
-    return result;
+  // Check for direct output_text field first (Responses API format)
+  if (response?.output_text) {
+    result.content = response.output_text;
+    console.log(`[Deep Research] Found output_text: ${result.content.length} chars`);
   }
 
-  // Find the final message content
-  const messageOutput = response.output.find(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (o: any) => o.type === 'message'
-  );
+  // Check output array structure (alternate format)
+  if (!result.content && response?.output && Array.isArray(response.output)) {
+    // Find the final message content
+    const messageOutput = response.output.find(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (o: any) => o.type === 'message'
+    );
 
-  if (messageOutput?.content?.[0]?.text) {
-    result.content = messageOutput.content[0].text;
+    if (messageOutput?.content?.[0]?.text) {
+      result.content = messageOutput.content[0].text;
+      console.log(`[Deep Research] Found message content: ${result.content.length} chars`);
+    }
 
-    // Extract citations from annotations
-    const annotations = messageOutput.content[0].annotations;
-    if (Array.isArray(annotations)) {
-      result.citations = annotations.map(
+    // Also check for text output type
+    if (!result.content) {
+      const textOutput = response.output.find(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (a: any) => ({
-          title: a.title || 'Unknown',
-          url: a.url || '',
-          snippet: a.snippet,
-          startIndex: a.start_index,
-          endIndex: a.end_index,
-        })
+        (o: any) => o.type === 'text' && o.text
       );
-
-      // Extract unique source URLs
-      result.sources = [...new Set(result.citations.map((c) => c.url).filter(Boolean))];
+      if (textOutput?.text) {
+        result.content = textOutput.text;
+        console.log(`[Deep Research] Found text output: ${result.content.length} chars`);
+      }
     }
   }
 
-  // Extract web search queries that were made
-  result.searchQueries = response.output
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .filter((o: any) => o.type === 'web_search_call')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .map((s: any) => s.action?.query)
-    .filter(Boolean);
+  // Log warning if still no content found
+  if (!result.content) {
+    console.warn('[Deep Research] No content found in response. Keys:', Object.keys(response || {}));
+    if (response?.output) {
+      console.warn('[Deep Research] Output types:', response.output.map((o: any) => o.type));
+    }
+    return result;
+  }
 
-  // Extract reasoning summary if available
-  const reasoningOutput = response.output.find(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (o: any) => o.type === 'reasoning'
-  );
-  if (reasoningOutput?.summary) {
-    result.reasoningSummary = reasoningOutput.summary;
+  // Extract citations and metadata from output array if available
+  if (response?.output && Array.isArray(response.output)) {
+    const messageOutput = response.output.find(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (o: any) => o.type === 'message'
+    );
+
+    if (messageOutput?.content?.[0]) {
+      // Extract citations from annotations
+      const annotations = messageOutput.content[0].annotations;
+      if (Array.isArray(annotations)) {
+        result.citations = annotations.map(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (a: any) => ({
+            title: a.title || 'Unknown',
+            url: a.url || '',
+            snippet: a.snippet,
+            startIndex: a.start_index,
+            endIndex: a.end_index,
+          })
+        );
+
+        // Extract unique source URLs
+        result.sources = [...new Set(result.citations.map((c) => c.url).filter(Boolean))];
+      }
+    }
+
+    // Extract web search queries that were made
+    result.searchQueries = response.output
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .filter((o: any) => o.type === 'web_search_call')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((s: any) => s.action?.query)
+      .filter(Boolean);
+
+    // Extract reasoning summary if available
+    const reasoningOutput = response.output.find(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (o: any) => o.type === 'reasoning'
+    );
+    if (reasoningOutput?.summary) {
+      result.reasoningSummary = reasoningOutput.summary;
+    }
   }
 
   return result;

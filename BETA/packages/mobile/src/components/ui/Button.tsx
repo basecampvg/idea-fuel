@@ -5,10 +5,38 @@ import {
   ActivityIndicator,
   TouchableOpacityProps,
   View,
+  StyleSheet,
+  ViewStyle,
+  TextStyle,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
-type ButtonSize = 'sm' | 'md' | 'lg';
+// Forge Design System Colors
+const colors = {
+  primary: '#E91E8C',
+  secondary: '#8B5CF6',
+  accent: '#14B8A6',
+  destructive: '#EF4444',
+  foreground: '#E8E4DC',
+  muted: '#8A8680',
+  mutedBg: '#262422',
+  border: '#1F1E1C',
+  transparent: 'transparent',
+};
+
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'accent';
+type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
+export type HapticStyle = 'none' | 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error' | 'selection';
+
+// Default haptic feedback for each variant
+const variantHaptics: Record<ButtonVariant, HapticStyle> = {
+  primary: 'medium',
+  secondary: 'medium',
+  accent: 'medium',
+  outline: 'light',
+  ghost: 'light',
+  danger: 'heavy',
+};
 
 interface ButtonProps extends TouchableOpacityProps {
   variant?: ButtonVariant;
@@ -16,46 +44,103 @@ interface ButtonProps extends TouchableOpacityProps {
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  /** Haptic feedback style. Defaults based on variant. Set to 'none' to disable. */
+  haptic?: HapticStyle;
 }
 
-const variantStyles: Record<ButtonVariant, { container: string; text: string }> = {
+interface VariantStyle {
+  container: ViewStyle;
+  text: TextStyle;
+  loader: string;
+}
+
+const variantStyles: Record<ButtonVariant, VariantStyle> = {
   primary: {
-    container: 'bg-blue-600 active:bg-blue-700',
-    text: 'text-white',
+    container: { backgroundColor: colors.primary },
+    text: { color: '#FFFFFF' },
+    loader: '#FFFFFF',
   },
   secondary: {
-    container: 'bg-gray-100 active:bg-gray-200',
-    text: 'text-gray-900',
+    container: { backgroundColor: colors.secondary },
+    text: { color: '#FFFFFF' },
+    loader: '#FFFFFF',
+  },
+  accent: {
+    container: { backgroundColor: colors.accent },
+    text: { color: '#FFFFFF' },
+    loader: '#FFFFFF',
   },
   outline: {
-    container: 'bg-transparent border border-gray-300 active:bg-gray-50',
-    text: 'text-gray-700',
+    container: { backgroundColor: colors.transparent, borderWidth: 1, borderColor: colors.border },
+    text: { color: colors.foreground },
+    loader: colors.foreground,
   },
   ghost: {
-    container: 'bg-transparent active:bg-gray-100',
-    text: 'text-gray-700',
+    container: { backgroundColor: colors.transparent },
+    text: { color: colors.muted },
+    loader: colors.muted,
   },
   danger: {
-    container: 'bg-red-600 active:bg-red-700',
-    text: 'text-white',
+    container: { backgroundColor: colors.destructive },
+    text: { color: '#FFFFFF' },
+    loader: '#FFFFFF',
   },
 };
 
-const sizeStyles: Record<ButtonSize, { container: string; text: string }> = {
+interface SizeStyle {
+  container: ViewStyle;
+  text: TextStyle;
+}
+
+const sizeStyles: Record<ButtonSize, SizeStyle> = {
   sm: {
-    container: 'px-3 py-1.5 rounded-md',
-    text: 'text-sm',
+    container: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+    text: { fontSize: 14 },
   },
   md: {
-    container: 'px-4 py-2 rounded-lg',
-    text: 'text-base',
+    container: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12 },
+    text: { fontSize: 16 },
   },
   lg: {
-    container: 'px-6 py-3 rounded-xl',
-    text: 'text-lg',
+    container: { paddingHorizontal: 24, paddingVertical: 14, borderRadius: 16 },
+    text: { fontSize: 18 },
+  },
+  icon: {
+    container: { padding: 10, borderRadius: 12 },
+    text: { fontSize: 16 },
   },
 };
+
+/** Trigger haptic feedback - can be used standalone outside of Button */
+export function triggerHaptic(style: HapticStyle) {
+  switch (style) {
+    case 'light':
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      break;
+    case 'medium':
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      break;
+    case 'heavy':
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      break;
+    case 'success':
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      break;
+    case 'warning':
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      break;
+    case 'error':
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      break;
+    case 'selection':
+      Haptics.selectionAsync();
+      break;
+    case 'none':
+    default:
+      break;
+  }
+}
 
 export function Button({
   variant = 'primary',
@@ -65,35 +150,72 @@ export function Button({
   rightIcon,
   children,
   disabled,
-  className,
+  style,
+  haptic,
+  onPress,
   ...props
 }: ButtonProps) {
   const isDisabled = disabled || isLoading;
   const variantStyle = variantStyles[variant];
   const sizeStyle = sizeStyles[size];
 
+  // Use explicit haptic prop or fall back to variant default
+  const hapticStyle = haptic ?? variantHaptics[variant];
+
+  const handlePress = (event: any) => {
+    if (hapticStyle !== 'none') {
+      triggerHaptic(hapticStyle);
+    }
+    onPress?.(event);
+  };
+
   return (
     <TouchableOpacity
       disabled={isDisabled}
-      className={`flex-row items-center justify-center ${sizeStyle.container} ${variantStyle.container} ${
-        isDisabled ? 'opacity-50' : ''
-      } ${className || ''}`}
+      onPress={handlePress}
+      style={[
+        styles.base,
+        sizeStyle.container,
+        variantStyle.container,
+        isDisabled && styles.disabled,
+        style,
+      ]}
+      activeOpacity={0.7}
       {...props}
     >
       {isLoading ? (
-        <ActivityIndicator
-          size="small"
-          color={variant === 'primary' || variant === 'danger' ? '#fff' : '#374151'}
-        />
+        <ActivityIndicator size="small" color={variantStyle.loader} />
       ) : (
         <>
-          {leftIcon && <View className="mr-2">{leftIcon}</View>}
-          <Text className={`font-semibold ${sizeStyle.text} ${variantStyle.text}`}>
-            {children}
-          </Text>
-          {rightIcon && <View className="ml-2">{rightIcon}</View>}
+          {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
+          {children && (
+            <Text style={[styles.text, sizeStyle.text, variantStyle.text]}>
+              {children}
+            </Text>
+          )}
+          {rightIcon && <View style={styles.rightIcon}>{rightIcon}</View>}
         </>
       )}
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  base: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  text: {
+    fontWeight: '600',
+  },
+  leftIcon: {
+    marginRight: 8,
+  },
+  rightIcon: {
+    marginLeft: 8,
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+});

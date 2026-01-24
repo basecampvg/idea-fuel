@@ -20,12 +20,12 @@ export const baseStyles = StyleSheet.create({
   page: {
     backgroundColor: '#ffffff',
     padding: 40,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Inter',
   },
   darkPage: {
     backgroundColor: colors.background,
     padding: 40,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Inter',
   },
 
   // Header

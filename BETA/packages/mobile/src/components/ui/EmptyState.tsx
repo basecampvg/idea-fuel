@@ -1,6 +1,15 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
+// Forge Design System Colors
+const colors = {
+  background: '#11100E',
+  foreground: '#E8E4DC',
+  muted: '#8A8680',
+  mutedBg: '#262422',
+  primary: '#E91E8C',
+};
 
 interface EmptyStateProps {
   icon?: keyof typeof Ionicons.glyphMap;
@@ -16,15 +25,50 @@ export function EmptyState({
   action,
 }: EmptyStateProps) {
   return (
-    <View className="items-center justify-center py-12">
-      <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-        <Ionicons name={icon} size={32} color="#9ca3af" />
+    <View style={styles.container}>
+      <View style={styles.iconContainer}>
+        <Ionicons name={icon} size={36} color={colors.muted} />
       </View>
-      <Text className="text-center text-lg font-medium text-gray-900">{title}</Text>
+      <Text style={styles.title}>{title}</Text>
       {description && (
-        <Text className="mt-1 text-center text-gray-500">{description}</Text>
+        <Text style={styles.description}>{description}</Text>
       )}
-      {action && <View className="mt-4">{action}</View>}
+      {action && <View style={styles.actionContainer}>{action}</View>}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+  },
+  iconContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.mutedBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.foreground,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  description: {
+    fontSize: 14,
+    color: colors.muted,
+    textAlign: 'center',
+    maxWidth: 280,
+    lineHeight: 20,
+  },
+  actionContainer: {
+    marginTop: 20,
+  },
+});

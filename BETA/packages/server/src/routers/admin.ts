@@ -183,4 +183,118 @@ export const adminRouter = router({
 
       return { success: true, key, value: !currentValue };
     }),
+
+  // ==========================================================================
+  // TOKEN USAGE ANALYTICS
+  // ==========================================================================
+
+  /**
+   * Get token usage summary for dashboard
+   */
+  tokenUsageSummary: protectedProcedure
+    .input(
+      z.object({
+        days: z.number().min(1).max(90).default(1),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const since = new Date();
+      since.setDate(since.getDate() - input.days);
+      since.setHours(0, 0, 0, 0); // Start of day
+
+      // Total usage
+      const totals = await ctx.prisma.tokenUsage.aggregate({
+        where: { createdAt: { gte: since } },
+        _sum: {
+          inputTokens: true,
+          outputTokens: true,
+          totalTokens: true,
+          costEstimate: true,
+        },
+        _count: true,
+      });
+
+      // By model
+      const byModel = await ctx.prisma.tokenUsage.groupBy({
+        by: ['model'],
+        where: { createdAt: { gte: since } },
+        _sum: { totalTokens: true, costEstimate: true },
+        _count: true,
+        orderBy: { _sum: { totalTokens: 'desc' } },
+      });
+
+      // By function
+      const byFunction = await ctx.prisma.tokenUsage.groupBy({
+        by: ['functionName'],
+        where: { createdAt: { gte: since } },
+        _sum: { totalTokens: true, costEstimate: true },
+        _count: true,
+        orderBy: { _sum: { totalTokens: 'desc' } },
+      });
+
+      return {
+        period: { days: input.days, since: since.toISOString() },
+        totals: {
+          inputTokens: totals._sum.inputTokens ?? 0,
+          outputTokens: totals._sum.outputTokens ?? 0,
+          totalTokens: totals._sum.totalTokens ?? 0,
+          costEstimate: totals._sum.costEstimate ?? 0,
+          callCount: totals._count,
+        },
+        byModel: byModel.map((m) => ({
+          model: m.model,
+          totalTokens: m._sum.totalTokens ?? 0,
+          costEstimate: m._sum.costEstimate ?? 0,
+          callCount: m._count,
+        })),
+        byFunction: byFunction.map((f) => ({
+          functionName: f.functionName,
+          totalTokens: f._sum.totalTokens ?? 0,
+          costEstimate: f._sum.costEstimate ?? 0,
+          callCount: f._count,
+        })),
+      };
+    }),
+
+  /**
+   * Get daily token usage for chart display
+   */
+  tokenUsageChart: protectedProcedure
+    .input(
+      z.object({
+        days: z.number().min(1).max(90).default(30),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const since = new Date();
+      since.setDate(since.getDate() - input.days);
+      since.setHours(0, 0, 0, 0);
+
+      // Raw data grouped by date using Prisma raw query
+      const raw = await ctx.prisma.$queryRaw<
+        Array<{
+          date: Date;
+          totalTokens: bigint;
+          costEstimate: number | null;
+          callCount: bigint;
+        }>
+      >`
+        SELECT
+          DATE("createdAt") as date,
+          SUM("totalTokens") as "totalTokens",
+          SUM("costEstimate") as "costEstimate",
+          COUNT(*) as "callCount"
+        FROM "TokenUsage"
+        WHERE "createdAt" >= ${since}
+        GROUP BY DATE("createdAt")
+        ORDER BY date ASC
+      `;
+
+      return raw.map((r) => ({
+        date: r.date.toISOString().split('T')[0],
+        totalTokens: Number(r.totalTokens),
+        costEstimate: r.costEstimate ?? 0,
+        callCount: Number(r.callCount),
+      }));
+    }),
 });

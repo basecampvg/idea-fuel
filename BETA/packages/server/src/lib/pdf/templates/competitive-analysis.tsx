@@ -61,7 +61,8 @@ function Header({ title, ideaTitle, date }: { title: string; ideaTitle: string; 
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function Section({ title, children }: { title: string; children?: any }) {
   return (
     <View style={baseStyles.section}>
       <Text style={baseStyles.sectionTitle}>{title}</Text>

@@ -8,7 +8,7 @@ import { generateOpeningQuestion } from '../services/interview-ai';
 
 // Default max turns by interview mode
 const MAX_TURNS_BY_MODE = {
-  LIGHTNING: 0,  // No interview - skip to research
+  SPARK: 0,      // Quick validation - no interview, triggers Spark pipeline
   LIGHT: 10,     // 10 must-have questions
   IN_DEPTH: 65,  // 60-70 comprehensive questions
 } as const;
@@ -181,7 +181,7 @@ export const ideaRouter = router({
 
   /**
    * Start an interview for an idea
-   * Supports LIGHTNING, LIGHT, and IN_DEPTH modes
+   * Supports SPARK, LIGHT, and IN_DEPTH modes
    */
   startInterview: protectedProcedure.input(startInterviewSchema).mutation(async ({ ctx, input }) => {
     console.log('[Idea Router] startInterview called with:', { ideaId: input.ideaId, mode: input.mode });
@@ -207,21 +207,21 @@ export const ideaRouter = router({
     const maxTurns = MAX_TURNS_BY_MODE[mode];
     console.log('[Idea Router] Mode:', mode, 'MaxTurns:', maxTurns);
 
-    // For LIGHTNING mode, skip interview and go straight to research
-    if (mode === 'LIGHTNING') {
-      // Create a completed interview with no messages
+    // For SPARK mode, skip interview and trigger Spark quick validation
+    if (mode === 'SPARK') {
+      // Create a completed interview with no messages (for record keeping)
       const interview = await ctx.prisma.interview.create({
         data: {
           ideaId: input.ideaId,
           userId: ctx.userId,
-          mode: 'LIGHTNING',
+          mode: 'SPARK',
           status: 'COMPLETE',
           currentTurn: 0,
           maxTurns: 0,
           messages: [],
-          collectedData: Prisma.JsonNull, // AI will infer from idea description
+          collectedData: Prisma.JsonNull, // Spark validates from idea description
           confidenceScore: 0,
-          summary: 'Lightning mode - insights generated from idea description only.',
+          summary: 'Spark mode - quick validation from idea description.',
         },
       });
 
@@ -234,6 +234,7 @@ export const ideaRouter = router({
       return {
         interview,
         skipToResearch: true,
+        mode: 'SPARK', // Signal to frontend to use Spark pipeline
       };
     }
 
@@ -317,7 +318,7 @@ export const ideaRouter = router({
       });
     }
 
-    // Require at least one completed interview (or LIGHTNING mode)
+    // Require at least one completed interview (or SPARK mode)
     if (idea.interviews.length === 0) {
       throw new TRPCError({
         code: 'BAD_REQUEST',

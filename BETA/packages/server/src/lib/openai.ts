@@ -15,10 +15,11 @@ export const USE_GPT52_PARAMS = process.env.OPENAI_USE_GPT52_PARAMS === 'true';
 console.log('[OpenAI] GPT-5.2 extended params enabled:', USE_GPT52_PARAMS);
 
 // Initialize OpenAI client with API key from environment
-// Set a reasonable timeout (2 minutes) to prevent hanging
+// Set timeout to 10 minutes for GPT-5.2 with extended reasoning (xhigh effort)
+// Note: For very long operations (o3-deep-research), use background mode + polling instead
 export const openai = new OpenAI({
   apiKey,
-  timeout: 120000, // 2 minute timeout
+  timeout: 600000, // 10 minute timeout (was 2 min - too short for xhigh reasoning)
   maxRetries: 2,   // Retry twice on transient errors
 });
 
@@ -163,6 +164,27 @@ export const AI_PRESETS = {
     PRO: { reasoning: 'high', verbosity: 'medium' },
     ENTERPRISE: { reasoning: 'xhigh', verbosity: 'medium' },
   },
+  extractMarketSizing: {
+    // IMPORTANT: For JSON mode, avoid xhigh reasoning - it consumes tokens on hidden reasoning
+    // leaving insufficient budget for visible JSON output, causing status: incomplete
+    FREE: { reasoning: 'medium', verbosity: 'low' },
+    PRO: { reasoning: 'medium', verbosity: 'low' },
+    ENTERPRISE: { reasoning: 'high', verbosity: 'low' },  // Downgraded from xhigh
+  },
+  // Tech stack recommendations preset
+  techStack: {
+    // IMPORTANT: For JSON mode, avoid xhigh reasoning - it consumes tokens on hidden reasoning
+    // leaving insufficient budget for visible JSON output, causing status: incomplete
+    FREE: { reasoning: 'low', verbosity: 'medium' },
+    PRO: { reasoning: 'medium', verbosity: 'medium' },
+    ENTERPRISE: { reasoning: 'high', verbosity: 'medium' },  // Downgraded from xhigh
+  },
+  // Spark enrichment - GPT-5.2 post-processing for quick validation
+  enrichSparkResult: {
+    FREE: { reasoning: 'medium', verbosity: 'medium' },
+    PRO: { reasoning: 'high', verbosity: 'high' },
+    ENTERPRISE: { reasoning: 'high', verbosity: 'high' },
+  },
 } as const;
 
 export type AIPresetKey = keyof typeof AI_PRESETS;
@@ -196,6 +218,14 @@ export interface ResponsesCreateTextParams extends ResponsesCreateBaseParams {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ResponsesCreateParams = any;
 
+/**
+ * Check if a model supports GPT-5.2 extended parameters (reasoning.effort, text.verbosity)
+ * Only GPT-5.x models support these parameters
+ */
+export function modelSupportsGPT52Params(model: string): boolean {
+  return model.startsWith('gpt-5');
+}
+
 // Helper to create Responses API params with optional GPT-5.2 extensions
 // The Responses API supports reasoning.effort and text.verbosity for GPT-5.2
 export function createResponsesParams(
@@ -217,8 +247,19 @@ export function createResponsesParams(
     params.instructions = baseParams.instructions;
   }
 
-  // Only add GPT-5.2 extended params when enabled
-  if (USE_GPT52_PARAMS) {
+  // Check if this model supports GPT-5.2 extended params
+  const supportsExtendedParams = modelSupportsGPT52Params(baseParams.model);
+
+  // Enable 24h extended prompt cache retention for GPT-5.x models
+  // This keeps cached prefixes active for up to 24 hours (vs default 5-10 min)
+  // See: https://platform.openai.com/docs/guides/prompt-caching
+  if (supportsExtendedParams) {
+    params.prompt_cache_retention = '24h';
+  }
+
+  // Only add GPT-5.2 extended params when enabled AND model supports them
+  // Models like gpt-4o-mini don't support reasoning.effort parameter
+  if (USE_GPT52_PARAMS && supportsExtendedParams) {
     params.reasoning = { effort: aiParams.reasoning };
     params.text = {
       format: baseParams.response_format || { type: 'text' },

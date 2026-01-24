@@ -13,6 +13,8 @@ export interface Competitor {
 
 interface CompetitorsSectionProps {
   competitors?: Competitor[] | null;
+  title?: string;
+  subtitle?: string;
 }
 
 function CompetitorCard({ competitor }: { competitor: Competitor }) {
@@ -68,15 +70,18 @@ function CompetitorCard({ competitor }: { competitor: Competitor }) {
   );
 }
 
-export function CompetitorsSection({ competitors }: CompetitorsSectionProps) {
+export function CompetitorsSection({ competitors, title = 'Competitive Landscape', subtitle }: CompetitorsSectionProps) {
   if (!competitors || competitors.length === 0) return null;
+
+  // Use provided subtitle or generate default
+  const displaySubtitle = subtitle || `${competitors.length} competitors identified`;
 
   return (
     <CollapsibleSection
       icon={<Swords className="w-5 h-5 text-[#e91e8c]" />}
       iconBgColor="rgba(233, 30, 140, 0.2)"
-      title="Competitive Landscape"
-      subtitle={`${competitors.length} competitors identified`}
+      title={title}
+      subtitle={displaySubtitle}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {competitors.map((competitor, i) => (

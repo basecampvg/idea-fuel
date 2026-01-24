@@ -11,6 +11,8 @@ export interface OfferTier {
 interface OfferSectionProps {
   offerTiers?: OfferTier[] | null;
   ideaTitle?: string;
+  title?: string;
+  subtitle?: string;
 }
 
 // Default tiers matching screenshot
@@ -91,7 +93,7 @@ function parseJson<T>(data: T | string | null | undefined): T | null {
   return data as T;
 }
 
-export function OfferSection({ offerTiers: rawOfferTiers }: OfferSectionProps) {
+export function OfferSection({ offerTiers: rawOfferTiers, title = 'Offer', subtitle }: OfferSectionProps) {
   // Parse JSON if needed
   const offerTiers = parseJson<OfferTier[]>(rawOfferTiers);
 
@@ -100,9 +102,10 @@ export function OfferSection({ offerTiers: rawOfferTiers }: OfferSectionProps) {
 
   return (
     <div className="rounded-2xl bg-background border border-border p-5">
-      <h2 className="text-base font-semibold text-foreground mb-5">
-        Offer
-      </h2>
+      <div className="mb-5">
+        <h2 className="text-base font-semibold text-foreground">{title}</h2>
+        {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
+      </div>
 
       <div className="space-y-5">
         {tiers.map((tier, index) => (

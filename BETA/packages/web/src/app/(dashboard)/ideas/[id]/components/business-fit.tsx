@@ -31,6 +31,8 @@ interface BusinessFitProps {
   executionDifficulty?: ExecutionDifficulty | null;
   gtmClarity?: GTMClarity | null;
   founderFit?: FounderFit | null;
+  title?: string;
+  subtitle?: string;
 }
 
 interface BusinessFitItemProps {
@@ -178,6 +180,8 @@ export function BusinessFit({
   executionDifficulty: rawExecutionDifficulty,
   gtmClarity: rawGtmClarity,
   founderFit: rawFounderFit,
+  title = 'Business Fit',
+  subtitle,
 }: BusinessFitProps) {
   // Parse JSON fields that might come as strings from Prisma
   const revenuePotential = parseJson<RevenuePotential>(rawRevenuePotential);
@@ -192,9 +196,10 @@ export function BusinessFit({
 
   return (
     <div className="rounded-2xl bg-background border border-border p-5">
-      <h2 className="text-base font-semibold text-foreground mb-4">
-        Business Fit
-      </h2>
+      <div className="mb-4">
+        <h2 className="text-base font-semibold text-foreground">{title}</h2>
+        {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
+      </div>
 
       <div className="space-y-0">
         <BusinessFitItem

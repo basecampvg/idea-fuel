@@ -28,6 +28,8 @@ export interface SocialProofData {
 
 interface SocialProofSectionProps {
   socialProof?: SocialProofData | null;
+  title?: string;
+  subtitle?: string;
 }
 
 function PlatformIcon({ platform }: { platform: string }) {
@@ -123,15 +125,15 @@ function PostCard({ post }: { post: SocialProofPost }) {
   );
 }
 
-export function SocialProofSection({ socialProof }: SocialProofSectionProps) {
+export function SocialProofSection({ socialProof, title = 'Social Proof', subtitle = 'What people are saying online' }: SocialProofSectionProps) {
   if (!socialProof || socialProof.posts.length === 0) return null;
 
   return (
     <CollapsibleSection
       icon={<MessageCircle className="w-5 h-5 text-[#1da1f2]" />}
       iconBgColor="rgba(29, 161, 242, 0.2)"
-      title="Social Proof"
-      subtitle="What people are saying online"
+      title={title}
+      subtitle={subtitle}
     >
       {/* Summary */}
       <p className="text-sm text-muted-foreground mb-5 p-3 rounded-lg bg-card border-l-2 border-[#1da1f2]">

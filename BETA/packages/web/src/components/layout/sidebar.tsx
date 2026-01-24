@@ -7,7 +7,7 @@ import { trpc } from '@/lib/trpc/client';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import {
   Plus,
-  FolderOpen,
+  Archive,
   Compass,
   Settings,
   ChevronRight,
@@ -43,7 +43,7 @@ function LogoFlame({ className }: { className?: string }) {
 // Navigation items
 const mainNav = [
   { name: 'New', href: '/dashboard', icon: Plus, isAction: true },
-  { name: 'Library', href: '/ideas', icon: FolderOpen, hasSubmenu: true },
+  { name: 'Vault', href: '/ideas', icon: Archive, hasSubmenu: true },
 ];
 
 const bottomNav = [
@@ -97,7 +97,7 @@ function LibrarySubmenu({
     >
       {/* Header */}
       <div className="flex items-center justify-between h-14 px-4 border-b border-border">
-        <span className="text-sm font-medium text-[var(--foreground)]">Library</span>
+        <span className="text-sm font-medium text-[var(--foreground)]">Vault</span>
         <button
           onClick={onClose}
           className="p-1.5 rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50 transition-colors"

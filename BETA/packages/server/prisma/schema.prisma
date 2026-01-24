@@ -124,15 +124,30 @@ model Interview {
 }
 
 enum InterviewMode {
-  LIGHTNING // No interview, AI-generated from idea description only
+  SPARK     // Quick validation - demand signals, TAM, keywords, Reddit/FB discovery
   LIGHT     // Fewer turns, faster completion
   IN_DEPTH  // More turns, comprehensive data collection
+}
+
+// Spark job status - for quick validation pipeline
+// Pipeline: QUEUED → RUNNING_KEYWORDS → RUNNING_PARALLEL (Call 2+3) → SYNTHESIZING → COMPLETE
+enum SparkJobStatus {
+  QUEUED
+  RUNNING_KEYWORDS
+  RUNNING_RESEARCH    // Legacy: single deep research call
+  RUNNING_PARALLEL    // New: Both demand + TAM calls running in parallel
+  SYNTHESIZING        // New: GPT-5.2 merging results
+  ENRICHING           // Legacy: kept for backward compatibility
+  COMPLETE
+  PARTIAL_COMPLETE    // New: One call succeeded, one failed
+  FAILED
 }
 
 // Research model - powered by o3-deep-research with web search
 // Triggered after interview completion
 // NEW 4-Phase Pipeline: QUEUED → DEEP_RESEARCH → SYNTHESIS → SOCIAL_RESEARCH → REPORT_GENERATION → COMPLETE
 // Legacy phases (QUERY_GENERATION, DATA_COLLECTION) kept for backward compatibility
+// Spark mode uses simplified 2-step pipeline: keywords → research
 model Research {
   id                   String         @id @default(cuid())
   status               ResearchStatus @default(PENDING)
@@ -189,6 +204,20 @@ model Research {
   // Social Proof (from Reddit, Facebook, Twitter - MVP: AI-simulated)
   socialProof          Json?          // { posts[], summary, painPointsValidated[], demandSignals[] }
 
+  // TAM/SAM/SOM Market Sizing (computed during SYNTHESIS phase)
+  marketSizing         Json?          // { tam, sam, som, segments, assumptions, sources, methodology }
+
+  // Tech Stack Recommendations (computed during REPORT_GENERATION phase)
+  techStack            Json?          // { businessType, layers, estimatedMonthlyCost, summary }
+
+  // Spark mode fields (quick validation - 2-step pipeline)
+  sparkStatus          SparkJobStatus? // Job status for Spark pipeline
+  sparkKeywords        Json?          // { phrases[], synonyms[], query_plan }
+  sparkResult          Json?          // Full Spark validation output (verdict, TAM, reddit, fb_groups, etc.)
+  sparkStartedAt       DateTime?      // When Spark job started
+  sparkCompletedAt     DateTime?      // When Spark job completed
+  sparkError           String?        @db.Text // Error message if Spark failed
+
   // Error tracking
   errorMessage         String?        @db.Text
   errorPhase           ResearchPhase?
@@ -225,7 +254,7 @@ enum ResearchPhase {
 
 // Report model - tiered reports based on subscription + interview mode
 // Tier determination:
-//   LIGHTNING mode → BASIC tier only (any subscription)
+//   SPARK mode → BASIC tier only (any subscription) - quick validation
 //   LIGHT mode + FREE subscription → BASIC tier
 //   LIGHT mode + PRO/ENTERPRISE subscription → PRO tier
 //   IN_DEPTH mode + FREE subscription → PRO tier
@@ -291,7 +320,7 @@ enum ReportType {
 
 // Report tiers - determined by subscription + interview mode blend
 enum ReportTier {
-  BASIC // Core insights only (LIGHTNING mode or FREE+LIGHT)
+  BASIC // Core insights only (SPARK mode or FREE+LIGHT)
   PRO   // Enhanced analysis (PRO+LIGHT or FREE+IN_DEPTH)
   FULL  // Comprehensive with all features (PRO/ENTERPRISE+IN_DEPTH)
 }
@@ -343,4 +372,28 @@ model ConfigAuditLog {
 
   @@index([configKey])
   @@index([changedAt])
+}
+
+// =============================================================================
+// TOKEN USAGE TRACKING
+// =============================================================================
+
+// Track OpenAI API token usage for cost monitoring
+model TokenUsage {
+  id            String   @id @default(cuid())
+  userId        String?  // Nullable for system/background calls
+  ideaId        String?  // Nullable for non-idea-specific calls
+  functionName  String   // e.g., "extractInsights", "generateOpeningQuestion"
+  model         String   // e.g., "gpt-5.2", "o3-deep-research"
+  inputTokens   Int
+  outputTokens  Int
+  totalTokens   Int
+  cachedTokens  Int      @default(0) // Tokens read from prompt cache (billed at 50% discount)
+  costEstimate  Float?   // Estimated cost in USD
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([functionName])
+  @@index([model])
+  @@index([createdAt])
 }

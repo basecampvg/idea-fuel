@@ -69,9 +69,9 @@ export function TierCard({
       included: true,
     },
     {
-      name: 'Lightning Mode',
+      name: 'Spark Mode',
       value: null,
-      included: features.interviewModes.includes('LIGHTNING'),
+      included: features.interviewModes.includes('SPARK'),
     },
     {
       name: 'Light Interview',

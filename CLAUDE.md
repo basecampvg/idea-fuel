@@ -413,6 +413,20 @@ npx expo-doctor
 
 ## Change Log
 
+### 2026-01-22
+- ✅ **Spark Pipeline Model Settings Audit** - Error reduction for o4-mini-deep-research
+  - **Issue:** Spark pipeline missing retry logic, low token limits causing `status: incomplete`
+  - **Changes to `spark-ai.ts`:**
+    - Added `withExponentialBackoff` around `runDeepResearchWithPolling` (3 attempts)
+    - Increased `maxOutputTokens`: 25,000 → 50,000 (matches default)
+    - Changed `reasoningSummary`: `'detailed'` → `'auto'` (balances token budget)
+    - Increased `pollIntervalMs`: 10s → 15s (matches research-ai.ts)
+    - Increased `maxWaitMs`: 30min → 60min (matches research-ai.ts)
+    - Added retry to `repairSparkResult` gpt-4o-mini call (3 attempts)
+    - Added `trackUsageFromResponse` for keyword generation and JSON repair
+  - **Compatibility:** All changes verified against OpenAI docs and existing research-ai.ts patterns
+  - **Plan file:** `~/.claude/plans/glittery-doodling-willow.md`
+
 ### 2026-01-20
 - ✅ **Deep Research Best Practices Implementation** - Full 6-phase overhaul
   - Implemented per `deep-research-BP.md` guidelines for o3-deep-research model
@@ -559,4 +573,50 @@ When building or modifying any frontend components, pages, or interfaces (web or
 
 ### Legacy
 - `MVP/` contains previous iteration - reference only
+
+---
+
+## Post-Change Checklist
+
+**Run this checklist after any significant code changes to catch common issues:**
+
+### Database / Prisma Changes
+If you modified `schema.prisma` (added/changed enums, models, or fields):
+- [ ] Run `pnpm db:push` to sync schema to database (or `pnpm db:migrate` for production)
+- [ ] Run `pnpm db:generate` to regenerate Prisma client
+- [ ] Verify no "invalid input value for enum" errors at runtime
+
+### TypeScript / Types Changes
+If you modified types in `shared/types` or `shared/constants`:
+- [ ] Run `pnpm type-check` from BETA root to verify all packages compile
+- [ ] Check that Prisma types align with shared types (especially enums)
+- [ ] Verify frontend components consuming changed types still work
+
+### API / Router Changes
+If you modified tRPC routers or added new endpoints:
+- [ ] Verify endpoint is accessible from frontend (web and/or mobile)
+- [ ] Check error handling returns appropriate messages
+- [ ] Test with both authenticated and unauthenticated requests (if applicable)
+
+### AI Pipeline Changes
+If you modified interview-ai.ts, research-ai.ts, or spark-ai.ts:
+- [ ] Verify token limits are appropriate (check for truncation)
+- [ ] Confirm retry logic is in place for API calls
+- [ ] Test with a real idea to verify end-to-end flow
+- [ ] Check that progress/status updates work correctly
+
+### Feature Flags / Rollback
+For significant changes:
+- [ ] Add a feature flag at top of file for easy rollback (e.g., `const USE_NEW_PIPELINE = true`)
+- [ ] Keep legacy code path available until change is verified in production
+- [ ] Document the feature flag in the Change Log
+
+### Common Error Patterns
+| Error | Likely Cause | Fix |
+|-------|--------------|-----|
+| `invalid input value for enum "X"` | Prisma schema not synced | `pnpm db:push` |
+| `Type '"X"' is not assignable to type` | Prisma client not regenerated | `pnpm db:generate` |
+| `EPERM: operation not permitted` (Windows) | File locked by VS Code/TS server | Close IDE, retry, or delete `.prisma/client` folder |
+| `output_text is empty` | Token limit too low or response parsing issue | Increase maxOutputTokens, check response format |
+| `status: incomplete` | Deep research timeout or token exhaustion | Add retry logic, increase timeouts |
 

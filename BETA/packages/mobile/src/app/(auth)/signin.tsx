@@ -1,9 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, Image, Alert } from 'react-native';
+import { View, Text, Alert, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui';
+
+// Forge Design System Colors
+const colors = {
+  background: '#11100E',
+  card: '#1A1918',
+  border: '#1F1E1C',
+  primary: '#E91E8C',
+  accent: '#14B8A6',
+  secondary: '#8B5CF6',
+  foreground: '#E8E4DC',
+  muted: '#8A8680',
+};
 
 export default function SignInScreen() {
   const { signInWithGoogle, devLogin } = useAuth();
@@ -41,72 +53,52 @@ export default function SignInScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="flex-1 px-6">
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
-        <View className="mt-12 items-center">
-          <View className="mb-4 h-20 w-20 items-center justify-center rounded-2xl bg-blue-600">
-            <Text className="text-3xl font-bold text-white">F</Text>
+        <View style={styles.header}>
+          {/* Logo */}
+          <View style={styles.logoContainer}>
+            <Ionicons name="flame" size={48} color="#fff" />
           </View>
-          <Text className="text-2xl font-bold text-gray-900">Welcome to Forge</Text>
-          <Text className="mt-2 text-center text-gray-500">
-            AI-powered business automation to validate and grow your ideas
+
+          {/* Title */}
+          <Text style={styles.title}>Welcome to ideationLab</Text>
+          <Text style={styles.subtitle}>
+            Transform your ideas into comprehensive business intelligence
           </Text>
         </View>
 
         {/* Features */}
-        <View className="mt-12 space-y-4">
-          <View className="flex-row items-center">
-            <View className="mr-4 h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-              <Ionicons name="bulb-outline" size={20} color="#2563eb" />
-            </View>
-            <View className="flex-1">
-              <Text className="font-medium text-gray-900">Capture Ideas</Text>
-              <Text className="text-sm text-gray-500">
-                Document and refine your business concepts
-              </Text>
-            </View>
-          </View>
-
-          <View className="flex-row items-center">
-            <View className="mr-4 h-10 w-10 items-center justify-center rounded-full bg-green-100">
-              <Ionicons name="chatbubbles-outline" size={20} color="#16a34a" />
-            </View>
-            <View className="flex-1">
-              <Text className="font-medium text-gray-900">AI Interviews</Text>
-              <Text className="text-sm text-gray-500">
-                Discover insights through guided conversations
-              </Text>
-            </View>
-          </View>
-
-          <View className="flex-row items-center">
-            <View className="mr-4 h-10 w-10 items-center justify-center rounded-full bg-purple-100">
-              <Ionicons name="analytics-outline" size={20} color="#9333ea" />
-            </View>
-            <View className="flex-1">
-              <Text className="font-medium text-gray-900">Market Research</Text>
-              <Text className="text-sm text-gray-500">
-                Get comprehensive competitive analysis
-              </Text>
-            </View>
-          </View>
-
-          <View className="flex-row items-center">
-            <View className="mr-4 h-10 w-10 items-center justify-center rounded-full bg-orange-100">
-              <Ionicons name="document-text-outline" size={20} color="#ea580c" />
-            </View>
-            <View className="flex-1">
-              <Text className="font-medium text-gray-900">Business Reports</Text>
-              <Text className="text-sm text-gray-500">
-                Generate professional documents automatically
-              </Text>
-            </View>
-          </View>
+        <View style={styles.features}>
+          <FeatureRow
+            icon="sparkles-outline"
+            title="AI Interviews"
+            description="Guided discovery conversations"
+            color={colors.primary}
+          />
+          <FeatureRow
+            icon="analytics-outline"
+            title="Market Research"
+            description="Deep competitive analysis"
+            color={colors.accent}
+          />
+          <FeatureRow
+            icon="document-text-outline"
+            title="Business Reports"
+            description="Professional docs, instantly"
+            color={colors.secondary}
+          />
         </View>
 
+        {/* Spacer */}
+        <View style={styles.spacer} />
+
         {/* Sign In Buttons */}
-        <View className="mt-auto mb-8">
+        <View style={styles.buttons}>
           <Button
             onPress={handleGoogleSignIn}
             isLoading={isLoading}
@@ -118,23 +110,140 @@ export default function SignInScreen() {
 
           {/* Dev Login - only shown in development */}
           {__DEV__ && (
-            <Button
-              onPress={handleDevLogin}
-              isLoading={isDevLoading}
-              size="lg"
-              variant="outline"
-              className="mt-4"
-              leftIcon={<Ionicons name="code-slash" size={20} color="#6b7280" />}
-            >
-              Dev Login (Skip OAuth)
-            </Button>
+            <View style={styles.devButtonWrapper}>
+              <Button
+                onPress={handleDevLogin}
+                isLoading={isDevLoading}
+                size="lg"
+                variant="outline"
+                leftIcon={<Ionicons name="code-slash" size={20} color={colors.muted} />}
+              >
+                Dev Login (Skip OAuth)
+              </Button>
+            </View>
           )}
 
-          <Text className="mt-6 text-center text-xs text-gray-400">
-            By continuing, you agree to our Terms of Service and Privacy Policy
+          <Text style={styles.terms}>
+            By continuing, you agree to our{'\n'}Terms of Service and Privacy Policy
           </Text>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
+
+// Feature row component
+function FeatureRow({ icon, title, description, color }: {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  description: string;
+  color: string;
+}) {
+  return (
+    <View style={styles.featureRow}>
+      <View style={[styles.featureIcon, { backgroundColor: `${color}20` }]}>
+        <Ionicons name={icon} size={24} color={color} />
+      </View>
+      <View style={styles.featureText}>
+        <Text style={styles.featureTitle}>{title}</Text>
+        <Text style={styles.featureDescription}>{description}</Text>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingTop: 40,
+    paddingBottom: 24,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  logoContainer: {
+    width: 96,
+    height: 96,
+    borderRadius: 24,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.foreground,
+    textAlign: 'center',
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: colors.muted,
+    textAlign: 'center',
+    marginTop: 12,
+    lineHeight: 24,
+    maxWidth: 280,
+  },
+  features: {
+    gap: 12,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 16,
+  },
+  featureIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  featureText: {
+    flex: 1,
+  },
+  featureTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.foreground,
+  },
+  featureDescription: {
+    fontSize: 14,
+    color: colors.muted,
+    marginTop: 2,
+  },
+  spacer: {
+    flex: 1,
+    minHeight: 40,
+  },
+  buttons: {
+    marginTop: 'auto',
+  },
+  devButtonWrapper: {
+    marginTop: 12,
+  },
+  terms: {
+    fontSize: 12,
+    color: `${colors.muted}99`,
+    textAlign: 'center',
+    marginTop: 24,
+    lineHeight: 18,
+  },
+});

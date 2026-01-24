@@ -21,13 +21,13 @@ export const INTERVIEW_STATUS_LABELS: Record<string, string> = {
 };
 
 export const INTERVIEW_MODE_LABELS: Record<string, string> = {
-  LIGHTNING: 'Lightning Round',
+  SPARK: 'Spark',
   LIGHT: 'Light Interview',
   IN_DEPTH: 'In-Depth Interview',
 };
 
 export const INTERVIEW_MODE_DESCRIPTIONS: Record<string, string> = {
-  LIGHTNING: 'No interview - AI generates insights from your idea description',
+  SPARK: 'Quick validation - demand signals & market sizing',
   LIGHT: 'Quick discovery with essential questions',
   IN_DEPTH: 'Comprehensive discovery covering all 31 data points',
 };
@@ -100,6 +100,57 @@ export const RESEARCH_PHASE_PROGRESS: Record<string, { start: number; end: numbe
   DATA_COLLECTION: { start: 5, end: 60 },
 };
 
+// Spark job status labels (quick validation pipeline)
+export const SPARK_STATUS_LABELS: Record<string, string> = {
+  QUEUED: 'Queued',
+  RUNNING_KEYWORDS: 'Generating Keywords',
+  RUNNING_RESEARCH: 'Researching',           // Legacy
+  RUNNING_PARALLEL: 'Researching',           // New: parallel execution
+  SYNTHESIZING: 'Analyzing Results',         // New: GPT-5.2 synthesis
+  ENRICHING: 'Enriching',                    // Legacy
+  COMPLETE: 'Complete',
+  PARTIAL_COMPLETE: 'Partial Complete',      // New: one call succeeded
+  FAILED: 'Failed',
+};
+
+export const SPARK_STATUS_DESCRIPTIONS: Record<string, string> = {
+  QUEUED: 'Your validation is queued and will begin shortly',
+  RUNNING_KEYWORDS: 'AI is generating keyword phrases and search queries',
+  RUNNING_RESEARCH: 'Searching Reddit, Facebook Groups, and calculating market size',  // Legacy
+  RUNNING_PARALLEL: 'Searching community signals and estimating market size',          // New
+  SYNTHESIZING: 'AI is analyzing findings and generating verdict',                     // New
+  ENRICHING: 'Enriching results with deeper analysis',                                 // Legacy
+  COMPLETE: 'Quick validation complete',
+  PARTIAL_COMPLETE: 'Validation complete with partial data',                           // New
+  FAILED: 'Validation failed - please try again',
+};
+
+// Spark progress percentage ranges
+export const SPARK_STATUS_PROGRESS: Record<string, { start: number; end: number }> = {
+  QUEUED: { start: 0, end: 0 },
+  RUNNING_KEYWORDS: { start: 0, end: 10 },
+  RUNNING_RESEARCH: { start: 10, end: 90 },   // Legacy: single call
+  RUNNING_PARALLEL: { start: 10, end: 75 },   // New: parallel calls (demand + TAM)
+  SYNTHESIZING: { start: 75, end: 95 },       // New: GPT-5.2 synthesis
+  ENRICHING: { start: 90, end: 95 },          // Legacy
+  COMPLETE: { start: 100, end: 100 },
+  PARTIAL_COMPLETE: { start: 90, end: 90 },   // New: partial success
+  FAILED: { start: 0, end: 0 },
+};
+
+// Spark verdict labels and colors
+export const SPARK_VERDICT_LABELS: Record<string, string> = {
+  proceed: 'Proceed',
+  watchlist: 'Watchlist',
+  drop: 'Drop',
+};
+
+export const SPARK_VERDICT_DESCRIPTIONS: Record<string, string> = {
+  proceed: 'Strong signals - worth pursuing further',
+  watchlist: 'Mixed signals - monitor for changes',
+  drop: 'Weak signals - consider pivoting',
+};
+
 // Subscription tier labels
 export const SUBSCRIPTION_TIER_LABELS: Record<string, string> = {
   FREE: 'Free',
@@ -164,7 +215,7 @@ export const REPORT_STATUS_LABELS: Record<string, string> = {
 // Report tier determination matrix
 // Maps [InterviewMode][SubscriptionTier] → ReportTier
 export const REPORT_TIER_MATRIX: Record<string, Record<string, string>> = {
-  LIGHTNING: {
+  SPARK: {
     FREE: 'BASIC',
     PRO: 'BASIC',
     ENTERPRISE: 'BASIC',

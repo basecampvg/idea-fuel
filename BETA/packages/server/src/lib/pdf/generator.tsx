@@ -1,3 +1,6 @@
+// Import fonts first to ensure they're registered before any PDF rendering
+import './fonts';
+
 import type { ReactElement } from 'react';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { BusinessPlanPDF } from './templates/business-plan';
@@ -297,10 +300,22 @@ export async function generatePDFBuffer(options: GeneratePDFOptions): Promise<Bu
     }
   }
 
-  // Render to buffer - cast to any to work around typing issue with @react-pdf/renderer
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const buffer = await renderToBuffer(pdfDocument as any);
-  return Buffer.from(buffer);
+  try {
+    // Render to buffer - cast to any to work around typing issue with @react-pdf/renderer
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const buffer = await renderToBuffer(pdfDocument as any);
+    return Buffer.from(buffer);
+  } catch (error) {
+    // Log detailed error for debugging
+    console.error('PDF generation error:', {
+      reportType: report.type,
+      ideaId: idea.id,
+      error: error instanceof Error ? error.message : error,
+    });
+    throw new Error(
+      `Failed to generate PDF: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
 }
 
 /**

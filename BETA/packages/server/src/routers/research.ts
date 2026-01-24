@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 import { router, protectedProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
-import { RESEARCH_PHASE_PROGRESS } from '@forge/shared';
-import type { ChatMessage, InterviewDataPoints } from '@forge/shared';
+import { RESEARCH_PHASE_PROGRESS, SPARK_STATUS_PROGRESS } from '@forge/shared';
+import type { ChatMessage, InterviewDataPoints, SparkJobStatus } from '@forge/shared';
 import {
   runResearchPipeline,
   classifyResearchError,
@@ -15,6 +16,7 @@ import {
   type ResearchError,
   type ResearchPhase,
 } from '../services/research-ai';
+import { runSparkPipeline } from '../services/spark-ai';
 
 export const researchRouter = router({
   /**
@@ -240,10 +242,12 @@ export const researchRouter = router({
       executionDifficulty: idea.research.executionDifficulty as ExistingResearchData['executionDifficulty'],
       gtmClarity: idea.research.gtmClarity as ExistingResearchData['gtmClarity'],
       founderFit: idea.research.founderFit as ExistingResearchData['founderFit'],
+      marketSizing: idea.research.marketSizing as ExistingResearchData['marketSizing'],
       userStory: idea.research.userStory as ExistingResearchData['userStory'],
       valueLadder: idea.research.valueLadder as ExistingResearchData['valueLadder'],
       actionPrompts: idea.research.actionPrompts as ExistingResearchData['actionPrompts'],
       keywordTrends: idea.research.keywordTrends as ExistingResearchData['keywordTrends'],
+      techStack: idea.research.techStack as ExistingResearchData['techStack'],
     } : undefined;
 
     // Run pipeline in background (non-blocking for MVP)
@@ -276,10 +280,10 @@ export const researchRouter = router({
             slaTracker.startPhase(researchPhase);
           }
 
-          // Check SLAs periodically
+          // Check SLAs periodically - warn but don't fail (soft limit)
           const totalSla = slaTracker.checkTotalSla();
           if (!totalSla.ok) {
-            throw new Error(`Total SLA exceeded: pipeline took ${Math.round(totalSla.elapsed/1000)}s (limit: ${Math.round(totalSla.limit/1000)}s)`);
+            console.warn(`[SLA Warning] Total SLA exceeded: pipeline took ${Math.round(totalSla.elapsed/1000)}s (limit: ${Math.round(totalSla.limit/1000)}s). Continuing execution.`);
           }
           // Update progress in database
           // New phases: DEEP_RESEARCH, SYNTHESIS, SOCIAL_RESEARCH, REPORT_GENERATION, COMPLETE
@@ -346,6 +350,10 @@ export const researchRouter = router({
               updateData.founderFit = intermediateData.metrics.founderFit as object;
               console.log('[Research] Saved metrics for resume capability');
             }
+            if (intermediateData.marketSizing) {
+              updateData.marketSizing = intermediateData.marketSizing as object;
+              console.log('[Research] Saved market sizing (TAM/SAM/SOM) for resume capability');
+            }
           }
 
           await prisma.research.update({
@@ -382,12 +390,14 @@ export const researchRouter = router({
             executionDifficulty: result.metrics.executionDifficulty as object,
             gtmClarity: result.metrics.gtmClarity as object,
             founderFit: result.metrics.founderFit as object,
+            marketSizing: result.marketSizing as object,
             // New fields from extended pipeline
             userStory: result.userStory as object,
             keywordTrends: result.keywordTrends as object[],
             valueLadder: result.valueLadder as object[],
             actionPrompts: result.actionPrompts as object[],
             socialProof: result.socialProof as object,
+            techStack: result.techStack as object,
             // Raw deep research output for resume capability
             rawDeepResearch: result.deepResearch as object,
           },
@@ -689,5 +699,247 @@ export const researchRouter = router({
       });
 
       return updatedResearch;
+    }),
+
+  // =============================================================================
+  // SPARK PROCEDURES (Quick Validation)
+  // =============================================================================
+
+  /**
+   * Start Spark validation for an idea
+   * Creates a Research record and triggers the 2-step Spark pipeline
+   */
+  startSpark: protectedProcedure
+    .input(z.object({ ideaId: z.string().cuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const idea = await ctx.prisma.idea.findFirst({
+        where: {
+          id: input.ideaId,
+          userId: ctx.userId,
+        },
+        include: {
+          research: true,
+        },
+      });
+
+      if (!idea) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Idea not found',
+        });
+      }
+
+      // Check if there's already a Spark job running
+      const runningStatuses = ['QUEUED', 'RUNNING_KEYWORDS', 'RUNNING_RESEARCH', 'RUNNING_PARALLEL', 'SYNTHESIZING'];
+      if (idea.research?.sparkStatus && runningStatuses.includes(idea.research.sparkStatus)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Spark validation already in progress',
+        });
+      }
+
+      // Create or update research record for Spark
+      let research;
+      if (idea.research) {
+        research = await ctx.prisma.research.update({
+          where: { id: idea.research.id },
+          data: {
+            sparkStatus: 'QUEUED',
+            sparkKeywords: Prisma.DbNull,
+            sparkResult: Prisma.DbNull,
+            sparkStartedAt: new Date(),
+            sparkCompletedAt: null,
+            sparkError: null,
+          },
+        });
+      } else {
+        research = await ctx.prisma.research.create({
+          data: {
+            ideaId: input.ideaId,
+            status: 'IN_PROGRESS',
+            currentPhase: 'QUEUED',
+            progress: 0,
+            sparkStatus: 'QUEUED',
+            sparkStartedAt: new Date(),
+          },
+        });
+      }
+
+      // Update idea status
+      await ctx.prisma.idea.update({
+        where: { id: input.ideaId },
+        data: { status: 'RESEARCHING' },
+      });
+
+      // Run Spark pipeline asynchronously (fire and forget)
+      (async () => {
+        try {
+          console.log('[Spark] Starting pipeline for idea:', input.ideaId);
+
+          const result = await runSparkPipeline(idea.description, {
+            onStatusChange: async (status: SparkJobStatus) => {
+              await ctx.prisma.research.update({
+                where: { id: research.id },
+                data: {
+                  sparkStatus: status,
+                  progress: SPARK_STATUS_PROGRESS[status]?.start || 0,
+                },
+              });
+            },
+            includeTrends: true,
+          });
+
+          // Save successful result
+          // Note: sparkStatus is already set by onStatusChange (COMPLETE or PARTIAL_COMPLETE)
+          // We fetch the current status to preserve it
+          const currentResearch = await ctx.prisma.research.findUnique({
+            where: { id: research.id },
+            select: { sparkStatus: true },
+          });
+
+          await ctx.prisma.research.update({
+            where: { id: research.id },
+            data: {
+              // Preserve the status set by the pipeline (COMPLETE or PARTIAL_COMPLETE)
+              sparkStatus: currentResearch?.sparkStatus || 'COMPLETE',
+              sparkResult: result as unknown as Parameters<typeof ctx.prisma.research.update>[0]['data']['sparkResult'],
+              sparkKeywords: result.keywords as unknown as Parameters<typeof ctx.prisma.research.update>[0]['data']['sparkKeywords'],
+              sparkCompletedAt: new Date(),
+              progress: currentResearch?.sparkStatus === 'PARTIAL_COMPLETE' ? 90 : 100,
+              status: 'COMPLETE', // Research overall is complete even if partial
+            },
+          });
+
+          // Update idea status
+          await ctx.prisma.idea.update({
+            where: { id: input.ideaId },
+            data: { status: 'COMPLETE' },
+          });
+
+          console.log('[Spark] Pipeline complete for idea:', input.ideaId);
+        } catch (error) {
+          console.error('[Spark] Pipeline failed for idea:', input.ideaId, error);
+
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+          await ctx.prisma.research.update({
+            where: { id: research.id },
+            data: {
+              sparkStatus: 'FAILED',
+              sparkError: errorMessage,
+              status: 'FAILED',
+              errorMessage: `Spark validation failed: ${errorMessage}`,
+            },
+          });
+        }
+      })();
+
+      return { jobId: research.id };
+    }),
+
+  /**
+   * Get Spark job status and result
+   */
+  getSparkStatus: protectedProcedure
+    .input(z.object({ jobId: z.string().cuid() }))
+    .query(async ({ ctx, input }) => {
+      const research = await ctx.prisma.research.findFirst({
+        where: {
+          id: input.jobId,
+        },
+        include: {
+          idea: {
+            select: {
+              userId: true,
+              title: true,
+              description: true,
+            },
+          },
+        },
+      });
+
+      if (!research) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Research not found',
+        });
+      }
+
+      if (research.idea.userId !== ctx.userId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Access denied',
+        });
+      }
+
+      return {
+        jobId: research.id,
+        ideaTitle: research.idea.title,
+        sparkStatus: research.sparkStatus,
+        sparkResult: research.sparkResult,
+        sparkKeywords: research.sparkKeywords,
+        sparkError: research.sparkError,
+        sparkStartedAt: research.sparkStartedAt,
+        sparkCompletedAt: research.sparkCompletedAt,
+        progress: research.progress,
+      };
+    }),
+
+  /**
+   * Poll Spark job progress (lightweight endpoint for polling)
+   */
+  pollSpark: protectedProcedure
+    .input(z.object({ jobId: z.string().cuid() }))
+    .query(async ({ ctx, input }) => {
+      const research = await ctx.prisma.research.findFirst({
+        where: {
+          id: input.jobId,
+        },
+        select: {
+          id: true,
+          sparkStatus: true,
+          progress: true,
+          sparkError: true,
+          sparkStartedAt: true,
+          sparkCompletedAt: true,
+          idea: {
+            select: {
+              userId: true,
+            },
+          },
+        },
+      });
+
+      if (!research) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Research not found',
+        });
+      }
+
+      if (research.idea.userId !== ctx.userId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Access denied',
+        });
+      }
+
+      // Calculate progress based on status
+      const statusProgress = research.sparkStatus
+        ? SPARK_STATUS_PROGRESS[research.sparkStatus] || { start: 0, end: 0 }
+        : { start: 0, end: 0 };
+
+      return {
+        jobId: research.id,
+        status: research.sparkStatus,
+        progress: research.progress,
+        statusProgress,
+        error: research.sparkError,
+        startedAt: research.sparkStartedAt,
+        completedAt: research.sparkCompletedAt,
+        isComplete: research.sparkStatus === 'COMPLETE' || research.sparkStatus === 'PARTIAL_COMPLETE',
+        isPartial: research.sparkStatus === 'PARTIAL_COMPLETE',
+        isFailed: research.sparkStatus === 'FAILED',
+      };
     }),
 });

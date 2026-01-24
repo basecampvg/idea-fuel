@@ -12,13 +12,18 @@ import { OfferSection, type OfferTier } from './offer-section';
 import { ActionPrompts, type ActionPrompt } from './action-prompts';
 import { UserStory, type UserStoryData } from './user-story';
 import { DownloadsSection } from './download-card';
+import { MarketSizing } from './market-sizing';
+import type { MarketSizingData } from '@forge/shared';
 import { MarketAnalysis, type MarketAnalysisData } from './market-analysis';
 import { WhyNowSection, type WhyNowData } from './why-now-section';
 import { ProofSignals, type ProofSignalsData } from './proof-signals';
 import { SocialProofSection, type SocialProofData } from './social-proof-section';
 import { CompetitorsSection, type Competitor } from './competitors-section';
 import { PainPointsSection, type PainPoint } from './pain-points-section';
+import { TechStackSection } from './tech-stack-section';
+import type { TechStackData } from '@forge/shared';
 import { ChevronRight, MessageSquare, Download, Share2, Trash2 } from 'lucide-react';
+import { useDashboardConfig } from '@/hooks/use-dashboard-config';
 
 interface Interview {
   id: string;
@@ -114,6 +119,8 @@ interface Research {
   // New fields
   userStory?: UserStoryData | unknown | null;
   socialProof?: SocialProofData | unknown | null;
+  marketSizing?: MarketSizingData | unknown | null;
+  techStack?: TechStackData | unknown | null;
 }
 
 interface StatusCompleteProps {
@@ -130,6 +137,7 @@ interface StatusCompleteProps {
 
 export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompleteProps) {
   const router = useRouter();
+  const panes = useDashboardConfig();
   const completedInterview = idea.interviews?.find((i) => i.status === 'COMPLETE');
   const reports = idea.reports || [];
   const research = idea.research;
@@ -150,58 +158,155 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
   return (
     <div className="space-y-5">
       {/* 1. User Story */}
-      <UserStory userStory={research?.userStory as UserStoryData | null | undefined} />
+      {panes.userStory.visible && (
+        <UserStory
+          userStory={research?.userStory as UserStoryData | null | undefined}
+          title={panes.userStory.title}
+          subtitle={panes.userStory.subtitle}
+        />
+      )}
 
       {/* 2. Downloads */}
-      <DownloadsSection ideaId={idea.id} hasResearch={research?.status === 'COMPLETE'} />
+      {panes.downloads.visible && (
+        <DownloadsSection
+          ideaId={idea.id}
+          hasResearch={research?.status === 'COMPLETE'}
+          title={panes.downloads.title}
+          subtitle={panes.downloads.subtitle}
+        />
+      )}
 
       {/* 3. Score Cards (single row) */}
-      <ScoreCards
-        opportunityScore={research?.opportunityScore}
-        problemScore={research?.problemScore}
-        feasibilityScore={research?.feasibilityScore}
-        whyNowScore={research?.whyNowScore}
-        scoreJustifications={research?.scoreJustifications as ScoreJustifications | null | undefined}
-        scoreMetadata={research?.scoreMetadata as ScoreMetadata | null | undefined}
-        layout="horizontal"
-      />
+      {panes.scoreCards.visible && (
+        <ScoreCards
+          opportunityScore={research?.opportunityScore}
+          problemScore={research?.problemScore}
+          feasibilityScore={research?.feasibilityScore}
+          whyNowScore={research?.whyNowScore}
+          scoreJustifications={research?.scoreJustifications as ScoreJustifications | null | undefined}
+          scoreMetadata={research?.scoreMetadata as ScoreMetadata | null | undefined}
+          layout="horizontal"
+          title={panes.scoreCards.title}
+          subtitle={panes.scoreCards.subtitle}
+        />
+      )}
 
-      {/* 4. Keyword Chart (full width) */}
-      <KeywordChart keywordTrends={research?.keywordTrends as KeywordTrend[] | null | undefined} />
+      {/* 4. Market Sizing (TAM/SAM/SOM) */}
+      {panes.marketSizing.visible && (
+        <MarketSizing
+          marketSizing={research?.marketSizing as MarketSizingData | null | undefined}
+          title={panes.marketSizing.title}
+          subtitle={panes.marketSizing.subtitle}
+        />
+      )}
 
-      {/* 5. Business Fit */}
-      <BusinessFit
-        revenuePotential={research?.revenuePotential as RevenuePotential | null | undefined}
-        executionDifficulty={research?.executionDifficulty as ExecutionDifficulty | null | undefined}
-        gtmClarity={research?.gtmClarity as GTMClarity | null | undefined}
-        founderFit={research?.founderFit as FounderFit | null | undefined}
-      />
+      {/* 5. Keyword Chart (full width) */}
+      {panes.keywordChart.visible && (
+        <KeywordChart
+          keywordTrends={research?.keywordTrends as KeywordTrend[] | null | undefined}
+          title={panes.keywordChart.title}
+          subtitle={panes.keywordChart.subtitle}
+        />
+      )}
 
-      {/* 6. Offer + Action Prompts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <OfferSection offerTiers={research?.valueLadder as OfferTier[] | null | undefined} ideaTitle={idea.title} />
-        <ActionPrompts actionPrompts={research?.actionPrompts as ActionPrompt[] | null | undefined} ideaTitle={idea.title} />
-      </div>
+      {/* 6. Business Fit */}
+      {panes.businessFit.visible && (
+        <BusinessFit
+          revenuePotential={research?.revenuePotential as RevenuePotential | null | undefined}
+          executionDifficulty={research?.executionDifficulty as ExecutionDifficulty | null | undefined}
+          gtmClarity={research?.gtmClarity as GTMClarity | null | undefined}
+          founderFit={research?.founderFit as FounderFit | null | undefined}
+          title={panes.businessFit.title}
+          subtitle={panes.businessFit.subtitle}
+        />
+      )}
 
-      {/* 7. Market Analysis */}
-      <MarketAnalysis marketAnalysis={research?.marketAnalysis as MarketAnalysisData | null | undefined} />
+      {/* 7. Tech Stack */}
+      {panes.techStack.visible && (
+        <TechStackSection
+          techStack={research?.techStack as TechStackData | null | undefined}
+          title={panes.techStack.title}
+          subtitle={panes.techStack.subtitle}
+        />
+      )}
 
-      {/* 8. Why Now */}
-      <WhyNowSection whyNow={research?.whyNow as WhyNowData | null | undefined} />
+      {/* 8. Offer + Action Prompts */}
+      {(panes.offerSection.visible || panes.actionPrompts.visible) && (
+        <div className={`grid grid-cols-1 ${panes.offerSection.visible && panes.actionPrompts.visible ? 'lg:grid-cols-2' : ''} gap-5`}>
+          {panes.offerSection.visible && (
+            <OfferSection
+              offerTiers={research?.valueLadder as OfferTier[] | null | undefined}
+              ideaTitle={idea.title}
+              title={panes.offerSection.title}
+              subtitle={panes.offerSection.subtitle}
+            />
+          )}
+          {panes.actionPrompts.visible && (
+            <ActionPrompts
+              actionPrompts={research?.actionPrompts as ActionPrompt[] | null | undefined}
+              ideaTitle={idea.title}
+              title={panes.actionPrompts.title}
+              subtitle={panes.actionPrompts.subtitle}
+            />
+          )}
+        </div>
+      )}
 
-      {/* 9. Proof Signals */}
-      <ProofSignals proofSignals={research?.proofSignals as ProofSignalsData | null | undefined} />
+      {/* 8. Market Analysis */}
+      {panes.marketAnalysis.visible && (
+        <MarketAnalysis
+          marketAnalysis={research?.marketAnalysis as MarketAnalysisData | null | undefined}
+          title={panes.marketAnalysis.title}
+          subtitle={panes.marketAnalysis.subtitle}
+        />
+      )}
 
-      {/* 10. Social Proof */}
-      <SocialProofSection socialProof={research?.socialProof as SocialProofData | null | undefined} />
+      {/* 9. Why Now */}
+      {panes.whyNow.visible && (
+        <WhyNowSection
+          whyNow={research?.whyNow as WhyNowData | null | undefined}
+          title={panes.whyNow.title}
+          subtitle={panes.whyNow.subtitle}
+        />
+      )}
 
-      {/* 11. Competitors */}
-      <CompetitorsSection competitors={research?.competitors as Competitor[] | null | undefined} />
+      {/* 10. Proof Signals */}
+      {panes.proofSignals.visible && (
+        <ProofSignals
+          proofSignals={research?.proofSignals as ProofSignalsData | null | undefined}
+          title={panes.proofSignals.title}
+          subtitle={panes.proofSignals.subtitle}
+        />
+      )}
 
-      {/* 12. Pain Points */}
-      <PainPointsSection painPoints={research?.painPoints as PainPoint[] | null | undefined} />
+      {/* 11. Social Proof */}
+      {panes.socialProof.visible && (
+        <SocialProofSection
+          socialProof={research?.socialProof as SocialProofData | null | undefined}
+          title={panes.socialProof.title}
+          subtitle={panes.socialProof.subtitle}
+        />
+      )}
 
-      {/* 13. Reports Grid */}
+      {/* 12. Competitors */}
+      {panes.competitors.visible && (
+        <CompetitorsSection
+          competitors={research?.competitors as Competitor[] | null | undefined}
+          title={panes.competitors.title}
+          subtitle={panes.competitors.subtitle}
+        />
+      )}
+
+      {/* 13. Pain Points */}
+      {panes.painPoints.visible && (
+        <PainPointsSection
+          painPoints={research?.painPoints as PainPoint[] | null | undefined}
+          title={panes.painPoints.title}
+          subtitle={panes.painPoints.subtitle}
+        />
+      )}
+
+      {/* 14. Reports Grid */}
       {reports.length > 0 && (
         <div className="rounded-2xl bg-background border border-border p-5">
           <div className="flex items-center justify-between mb-4">
@@ -218,7 +323,7 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
         </div>
       )}
 
-      {/* 14. Interview Summary */}
+      {/* 15. Interview Summary */}
       {completedInterview && (
         <div className="rounded-2xl bg-background border border-border p-5">
           <div className="flex items-center gap-3 mb-4">
@@ -257,7 +362,7 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
         </div>
       )}
 
-      {/* 15. Actions */}
+      {/* 16. Actions */}
       <div className="rounded-2xl bg-background border border-border p-5">
         <div className="flex flex-wrap gap-3">
           <button

@@ -100,21 +100,21 @@ export const userRouter = router({
         maxIdeas: 3,
         maxReportsPerIdea: 5,
         reportTierAccess: ['BASIC'] as const,
-        interviewModes: ['LIGHTNING', 'LIGHT'] as const,
+        interviewModes: ['SPARK', 'LIGHT'] as const,
         prioritySupport: false,
       },
       PRO: {
         maxIdeas: 20,
         maxReportsPerIdea: 10,
         reportTierAccess: ['BASIC', 'PRO'] as const,
-        interviewModes: ['LIGHTNING', 'LIGHT', 'IN_DEPTH'] as const,
+        interviewModes: ['SPARK', 'LIGHT', 'IN_DEPTH'] as const,
         prioritySupport: true,
       },
       ENTERPRISE: {
         maxIdeas: -1, // Unlimited
         maxReportsPerIdea: 10,
         reportTierAccess: ['BASIC', 'PRO', 'FULL'] as const,
-        interviewModes: ['LIGHTNING', 'LIGHT', 'IN_DEPTH'] as const,
+        interviewModes: ['SPARK', 'LIGHT', 'IN_DEPTH'] as const,
         prioritySupport: true,
       },
     };

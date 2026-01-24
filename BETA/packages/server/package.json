@@ -9,6 +9,9 @@
     "build": "tsc",
     "type-check": "tsc --noEmit",
     "lint": "eslint src/",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "prisma": "prisma",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
@@ -20,7 +23,6 @@
     "@prisma/client": "^6.2.0",
     "@react-pdf/renderer": "^4.3.2",
     "@trpc/server": "^11.0.0-rc.682",
-    "@types/react": "^19.2.8",
     "openai": "^6.16.0",
     "react": "^19.0.0",
     "superjson": "^2.2.2",
@@ -28,8 +30,11 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
+    "@types/react": "19.1.0",
+    "@vitest/coverage-v8": "^2.1.0",
     "prisma": "^6.2.0",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.0"
   }
 }

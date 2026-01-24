@@ -1,11 +1,24 @@
 import React from 'react';
 import { Tabs, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingScreen } from '../../components/ui';
 
+// Forge Design System Colors
+const colors = {
+  background: '#11100E',
+  card: '#1A1918',
+  border: '#1F1E1C',
+  foreground: '#E8E4DC',
+  muted: '#8A8680',
+  primary: '#E91E8C',
+  accent: '#14B8A6',
+};
+
 export default function TabsLayout() {
   const { isLoading, isAuthenticated } = useAuth();
+  const insets = useSafeAreaInsets();
 
   if (isLoading) {
     return <LoadingScreen message="Loading..." />;
@@ -15,39 +28,57 @@ export default function TabsLayout() {
     return <Redirect href="/(auth)/signin" />;
   }
 
+  // Calculate tab bar height with safe area
+  const tabBarHeight = 52 + insets.bottom;
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#2563eb',
-        tabBarInactiveTintColor: '#9ca3af',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.muted,
         tabBarStyle: {
-          backgroundColor: '#fff',
-          borderTopColor: '#e5e7eb',
+          backgroundColor: colors.card,
+          borderTopColor: colors.border,
+          borderTopWidth: 1,
+          paddingTop: 4,
+          paddingBottom: insets.bottom + 4,
+          height: tabBarHeight,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '500',
         },
         headerStyle: {
-          backgroundColor: '#fff',
+          backgroundColor: colors.background,
+          borderBottomWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
         },
-        headerTintColor: '#111827',
+        headerTintColor: colors.foreground,
         headerTitleStyle: {
           fontWeight: '600',
+          fontSize: 18,
         },
+        headerShadowVisible: false,
       }}
     >
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: 'Dashboard',
+          title: 'Forge',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+            <Ionicons name="flame" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="ideas"
         options={{
-          title: 'Ideas',
+          title: 'Vault',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="bulb-outline" size={size} color={color} />
+            <Ionicons name="archive-outline" size={size} color={color} />
           ),
         }}
       />

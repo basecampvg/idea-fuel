@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { trpc } from '@/lib/trpc/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -22,6 +22,12 @@ import {
   Check,
   X,
   BarChart3,
+  LayoutGrid,
+  Eye,
+  EyeOff,
+  DollarSign,
+  Zap,
+  Activity,
 } from 'lucide-react';
 
 type ConfigValue = string | number | boolean | string[];
@@ -35,6 +41,335 @@ interface ConfigItem {
   options?: Array<{ value: string; label: string }>;
 }
 
+// Dashboard pane grouping
+interface PaneConfig {
+  visible: ConfigItem;
+  title: ConfigItem;
+  subtitle: ConfigItem;
+}
+
+// Human-readable pane names
+const PANE_DISPLAY_NAMES: Record<string, string> = {
+  userStory: 'User Story',
+  downloads: 'Downloads',
+  scoreCards: 'Score Cards',
+  keywordChart: 'Keyword Chart',
+  businessFit: 'Business Fit',
+  offerSection: 'Offer Section',
+  actionPrompts: 'Action Prompts',
+  marketAnalysis: 'Market Analysis',
+  whyNow: 'Why Now',
+  proofSignals: 'Proof Signals',
+  socialProof: 'Social Proof',
+  competitors: 'Competitors',
+  painPoints: 'Pain Points',
+};
+
+// Group dashboard configs by pane name
+function groupDashboardPaneConfigs(configs: ConfigItem[]): [string, PaneConfig][] {
+  const panes: Record<string, Partial<PaneConfig>> = {};
+
+  for (const config of configs) {
+    // Parse: dashboard.panes.scoreCards -> scoreCards
+    // Parse: dashboard.panes.scoreCards.title -> scoreCards
+    const match = config.key.match(/^dashboard\.panes\.(\w+)(\.(\w+))?$/);
+    if (match) {
+      const paneName = match[1];
+      const subKey = match[3]; // title, subtitle, or undefined
+
+      if (!panes[paneName]) {
+        panes[paneName] = {};
+      }
+
+      if (!subKey) {
+        panes[paneName].visible = config;
+      } else if (subKey === 'title') {
+        panes[paneName].title = config;
+      } else if (subKey === 'subtitle') {
+        panes[paneName].subtitle = config;
+      }
+    }
+  }
+
+  // Filter to only complete pane configs and return as entries
+  return Object.entries(panes).filter(
+    ([, pane]) => pane.visible && pane.title && pane.subtitle
+  ) as [string, PaneConfig][];
+}
+
+// Dashboard Pane Card Component
+interface DashboardPaneCardProps {
+  paneName: string;
+  config: PaneConfig;
+  onSave: (key: string, value: ConfigValue) => void;
+  isSaving: boolean;
+}
+
+function DashboardPaneCard({ paneName, config, onSave, isSaving }: DashboardPaneCardProps) {
+  const [titleValue, setTitleValue] = useState(String(config.title.value || ''));
+  const [subtitleValue, setSubtitleValue] = useState(String(config.subtitle.value || ''));
+  const [titleDirty, setTitleDirty] = useState(false);
+  const [subtitleDirty, setSubtitleDirty] = useState(false);
+
+  const isVisible = config.visible.value === true || config.visible.value === 'true';
+  const displayName = PANE_DISPLAY_NAMES[paneName] || paneName;
+
+  // Sync local state with config changes
+  useEffect(() => {
+    setTitleValue(String(config.title.value || ''));
+    setSubtitleValue(String(config.subtitle.value || ''));
+  }, [config.title.value, config.subtitle.value]);
+
+  const handleToggleVisibility = useCallback(() => {
+    onSave(config.visible.key, !isVisible);
+  }, [config.visible.key, isVisible, onSave]);
+
+  const handleTitleBlur = useCallback(() => {
+    if (titleDirty && titleValue !== config.title.value) {
+      onSave(config.title.key, titleValue);
+      setTitleDirty(false);
+    }
+  }, [titleDirty, titleValue, config.title.key, config.title.value, onSave]);
+
+  const handleSubtitleBlur = useCallback(() => {
+    if (subtitleDirty && subtitleValue !== config.subtitle.value) {
+      onSave(config.subtitle.key, subtitleValue);
+      setSubtitleDirty(false);
+    }
+  }, [subtitleDirty, subtitleValue, config.subtitle.key, config.subtitle.value, onSave]);
+
+  return (
+    <div className={`rounded-xl border transition-all duration-200 ${
+      isVisible
+        ? 'border-border bg-background'
+        : 'border-border/50 bg-muted/30 opacity-60'
+    }`}>
+      {/* Header with pane name and visibility toggle */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+        <div className="flex items-center gap-2">
+          {isVisible ? (
+            <Eye className="w-4 h-4 text-primary" />
+          ) : (
+            <EyeOff className="w-4 h-4 text-muted-foreground" />
+          )}
+          <span className="font-medium text-foreground">{displayName}</span>
+        </div>
+        <button
+          onClick={handleToggleVisibility}
+          disabled={isSaving}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            isVisible ? 'bg-primary' : 'bg-muted'
+          } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+              isVisible ? 'translate-x-6' : 'translate-x-1'
+            }`}
+          />
+        </button>
+      </div>
+
+      {/* Content with title and subtitle inputs */}
+      <div className="p-4 space-y-4">
+        {/* Title field */}
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+            Title
+          </label>
+          <Input
+            value={titleValue}
+            onChange={(e) => {
+              setTitleValue(e.target.value);
+              setTitleDirty(true);
+            }}
+            onBlur={handleTitleBlur}
+            placeholder="Enter title..."
+            className="h-9"
+            disabled={isSaving}
+          />
+        </div>
+
+        {/* Subtitle field */}
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+            Subtitle <span className="text-muted-foreground/60">(optional)</span>
+          </label>
+          <Input
+            value={subtitleValue}
+            onChange={(e) => {
+              setSubtitleValue(e.target.value);
+              setSubtitleDirty(true);
+            }}
+            onBlur={handleSubtitleBlur}
+            placeholder="Enter subtitle..."
+            className="h-9"
+            disabled={isSaving}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Token Usage Analytics Component
+function TokenUsageAnalytics() {
+  const [days, setDays] = useState<1 | 7 | 30>(1);
+
+  const { data: summary, isLoading: summaryLoading } = trpc.admin.tokenUsageSummary.useQuery({ days });
+
+  if (summaryLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Period selector */}
+      <div className="flex gap-2">
+        <Button
+          variant={days === 1 ? 'primary' : 'outline'}
+          size="sm"
+          onClick={() => setDays(1)}
+        >
+          Today
+        </Button>
+        <Button
+          variant={days === 7 ? 'primary' : 'outline'}
+          size="sm"
+          onClick={() => setDays(7)}
+        >
+          Last 7 days
+        </Button>
+        <Button
+          variant={days === 30 ? 'primary' : 'outline'}
+          size="sm"
+          onClick={() => setDays(30)}
+        >
+          Last 30 days
+        </Button>
+      </div>
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Total Tokens
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">
+              {(summary?.totals.totalTokens ?? 0).toLocaleString()}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Est. Cost
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">
+              ${(summary?.totals.costEstimate ?? 0).toFixed(2)}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              API Calls
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">
+              {(summary?.totals.callCount ?? 0).toLocaleString()}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">Avg Tokens/Call</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">
+              {summary?.totals.callCount
+                ? Math.round(summary.totals.totalTokens / summary.totals.callCount).toLocaleString()
+                : 0}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* By Model breakdown */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Usage by Model</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {summary?.byModel && summary.byModel.length > 0 ? (
+            <div className="space-y-3">
+              {summary.byModel.map((m) => (
+                <div
+                  key={m.model}
+                  className="flex justify-between items-center py-2 border-b border-border last:border-0"
+                >
+                  <span className="font-mono text-sm">{m.model}</span>
+                  <div className="text-right space-x-4">
+                    <span className="text-muted-foreground">
+                      {m.totalTokens.toLocaleString()} tokens
+                    </span>
+                    <span className="font-medium">${(m.costEstimate ?? 0).toFixed(2)}</span>
+                    <Badge variant="info">{m.callCount} calls</Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">No usage data yet.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* By Function breakdown */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Usage by Function</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {summary?.byFunction && summary.byFunction.length > 0 ? (
+            <div className="space-y-3">
+              {summary.byFunction.map((f) => (
+                <div
+                  key={f.functionName}
+                  className="flex justify-between items-center py-2 border-b border-border last:border-0"
+                >
+                  <span className="font-mono text-sm">{f.functionName}</span>
+                  <div className="text-right space-x-4">
+                    <Badge variant="info">{f.callCount} calls</Badge>
+                    <span className="text-muted-foreground">
+                      {f.totalTokens.toLocaleString()} tokens
+                    </span>
+                    <span className="font-medium">${(f.costEstimate ?? 0).toFixed(2)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">No usage data yet.</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   ai: <Cpu className="h-4 w-4" />,
   interview: <MessageSquare className="h-4 w-4" />,
@@ -43,6 +378,7 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   features: <ToggleLeft className="h-4 w-4" />,
   domains: <Globe className="h-4 w-4" />,
   analytics: <BarChart3 className="h-4 w-4" />,
+  dashboard: <LayoutGrid className="h-4 w-4" />,
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -53,6 +389,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   features: 'Feature Flags',
   domains: 'Search Domains',
   analytics: 'Analytics & Tracking',
+  dashboard: 'Dashboard Panes',
 };
 
 export default function AdminPage() {
@@ -107,7 +444,7 @@ export default function AdminPage() {
     return <LoadingScreen message="Loading admin configuration..." />;
   }
 
-  const currentConfigs = configs?.[activeCategory] || [];
+  const currentConfigs = (configs?.[activeCategory] || []) as ConfigItem[];
 
   const handleSave = (key: string, type: string) => {
     let parsedValue: ConfigValue = editValue;
@@ -288,8 +625,8 @@ export default function AdminPage() {
               const configKey = toggle.key === 'deepResearch.enabled'
                 ? 'ai.deepResearch.enabled'
                 : `features.${toggle.key}`;
-              const isEnabled = configs?.ai?.find((c: ConfigItem) => c.key === configKey)?.value === true
-                || configs?.features?.find((c: ConfigItem) => c.key === configKey)?.value === true;
+              const isEnabled = (configs?.ai as ConfigItem[] | undefined)?.find((c) => c.key === configKey)?.value === true
+                || (configs?.features as ConfigItem[] | undefined)?.find((c) => c.key === configKey)?.value === true;
 
               return (
                 <button
@@ -328,7 +665,7 @@ export default function AdminPage() {
           >
             {CATEGORY_ICONS[cat.id]}
             {CATEGORY_LABELS[cat.id] || cat.label}
-            <Badge variant="secondary" className="ml-1">
+            <Badge variant="info" className="ml-1">
               {cat.count}
             </Badge>
           </button>
@@ -357,23 +694,40 @@ export default function AdminPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {currentConfigs.map((item: ConfigItem) => (
-              <div
-                key={item.key}
-                className="flex items-center justify-between rounded-lg border border-border p-4"
-              >
-                <div className="flex-1">
-                  <p className="font-medium text-foreground">{item.label}</p>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
-                  <code className="text-xs text-muted-foreground">{item.key}</code>
+          {/* Special rendering for Analytics category - Token Usage */}
+          {activeCategory === 'analytics' ? (
+            <TokenUsageAnalytics />
+          ) : activeCategory === 'dashboard' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {groupDashboardPaneConfigs(currentConfigs).map(([paneName, paneConfig]) => (
+                <DashboardPaneCard
+                  key={paneName}
+                  paneName={paneName}
+                  config={paneConfig}
+                  onSave={(key, value) => setConfig.mutate({ key, value })}
+                  isSaving={setConfig.isPending}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {currentConfigs.map((item: ConfigItem) => (
+                <div
+                  key={item.key}
+                  className="flex items-center justify-between rounded-lg border border-border p-4"
+                >
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground">{item.label}</p>
+                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                    <code className="text-xs text-muted-foreground">{item.key}</code>
+                  </div>
+                  <div className="ml-4">
+                    {renderConfigValue(item)}
+                  </div>
                 </div>
-                <div className="ml-4">
-                  {renderConfigValue(item)}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

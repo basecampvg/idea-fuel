@@ -11,9 +11,11 @@ export interface ProofSignalsData {
 
 interface ProofSignalsProps {
   proofSignals?: ProofSignalsData | null;
+  title?: string;
+  subtitle?: string;
 }
 
-export function ProofSignals({ proofSignals }: ProofSignalsProps) {
+export function ProofSignals({ proofSignals, title = 'Proof Signals', subtitle }: ProofSignalsProps) {
   if (!proofSignals) return null;
 
   const hasContent =
@@ -27,7 +29,8 @@ export function ProofSignals({ proofSignals }: ProofSignalsProps) {
     <CollapsibleSection
       icon={<Signal className="w-5 h-5 text-[#4ecdc4]" />}
       iconBgColor="rgba(78, 205, 196, 0.2)"
-      title="Proof Signals"
+      title={title}
+      subtitle={subtitle}
     >
       <div className="space-y-5">
         {/* Demand Indicators */}

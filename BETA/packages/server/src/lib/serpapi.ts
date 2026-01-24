@@ -120,6 +120,47 @@ export interface TrendComparison {
 // Configuration
 const SERPAPI_BASE_URL = 'https://serpapi.com/search';
 
+/**
+ * Parse SerpAPI date format to ISO string
+ * Handles formats like: "Jan 2025", "Jan 8 – 14, 2023", "2025-01"
+ */
+function parseSerpApiDate(dateStr: string): string {
+  // Try ISO format first (already valid)
+  if (/^\d{4}-\d{2}/.test(dateStr)) {
+    return dateStr;
+  }
+
+  // Handle "Month Year" format (e.g., "Jan 2025")
+  const monthYearMatch = dateStr.match(/^([A-Za-z]+)\s+(\d{4})$/);
+  if (monthYearMatch) {
+    const [, month, year] = monthYearMatch;
+    const monthIndex = new Date(`${month} 1, 2000`).getMonth();
+    return `${year}-${String(monthIndex + 1).padStart(2, '0')}-01`;
+  }
+
+  // Handle date range format (e.g., "Jan 8 – 14, 2023") - use start date
+  const rangeMatch = dateStr.match(/^([A-Za-z]+)\s+(\d+)\s*[–-]/);
+  if (rangeMatch) {
+    const yearMatch = dateStr.match(/(\d{4})/);
+    if (yearMatch) {
+      const [, month, day] = rangeMatch;
+      const year = yearMatch[1];
+      const monthIndex = new Date(`${month} 1, 2000`).getMonth();
+      return `${year}-${String(monthIndex + 1).padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+  }
+
+  // Fallback: try native parsing
+  const parsed = new Date(dateStr);
+  if (!isNaN(parsed.getTime())) {
+    return parsed.toISOString().split('T')[0];
+  }
+
+  // Last resort: return current date
+  console.warn(`[SerpAPI] Could not parse date: "${dateStr}"`);
+  return new Date().toISOString().split('T')[0];
+}
+
 interface SerpApiConfig {
   apiKey: string;
   timeout?: number;
@@ -193,9 +234,9 @@ export async function getTrendData(
     throw new Error(`SerpAPI error: ${data.error}`);
   }
 
-  // Parse interest over time
+  // Parse interest over time (normalize dates to ISO format)
   const interestOverTime = (data.interest_over_time?.timeline_data || []).map((point) => ({
-    date: point.date,
+    date: parseSerpApiDate(point.date),
     value: point.values[0]?.extracted_value || 0,
   }));
 
@@ -389,9 +430,9 @@ export async function compareTrends(
     throw new Error(`SerpAPI error: ${data.error}`);
   }
 
-  // Parse timeline data
+  // Parse timeline data (normalize dates to ISO format)
   const timelineData = (data.interest_over_time?.timeline_data || []).map((point) => ({
-    date: point.date,
+    date: parseSerpApiDate(point.date),
     values: point.values.map((v) => ({
       keyword: v.query,
       value: v.extracted_value,
@@ -578,14 +619,14 @@ export async function batchGetTrendData(
 
       // Process each keyword's data from the combined response
       for (const keyword of batch) {
-        // Extract this keyword's values from the timeline
+        // Extract this keyword's values from the timeline (normalize dates to ISO format)
         const interestOverTime = timelineData.map((point) => {
           // Find this keyword's value in the values array
           const keywordValue = point.values.find(
             (v) => v.query.toLowerCase() === keyword.toLowerCase()
           );
           return {
-            date: point.date,
+            date: parseSerpApiDate(point.date),
             value: keywordValue?.extracted_value || 0,
           };
         });

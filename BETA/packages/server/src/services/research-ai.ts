@@ -1,8 +1,9 @@
-import { openai, getAIParams, createResponsesParams, createResponsesParamsWithWebSearch, withExponentialBackoff } from '../lib/openai';
+import { openai, getAIParams, createResponsesParams, createResponsesParamsWithWebSearch, withExponentialBackoff, type ReasoningEffort, type AIParams } from '../lib/openai';
 import { configService } from './config';
 import type { SubscriptionTier } from '@prisma/client';
 import { getResearchKnowledge, KNOWLEDGE } from '../lib/knowledge';
-import type { InterviewDataPoints } from '@forge/shared';
+import type { InterviewDataPoints, MarketSizingData, MarketMetric, MarketSegmentBreakdown, MarketAssumption, MarketSource, TechStackData, TechRecommendation, CostBreakdown, BusinessType } from '@forge/shared';
+import { trackUsageFromResponse } from '../lib/token-tracker';
 import {
   batchGetTrendData,
   isSerpApiConfigured,
@@ -370,33 +371,41 @@ const RESEARCH_CHUNKS = [
     id: 'market',
     name: 'Market Analysis',
     progressStart: 5,
-    progressEnd: 12,
+    progressEnd: 10,
     focus: 'Market size, growth rate, trends, dynamics, and industry analysis',
     getDomains: () => [...SEARCH_DOMAINS.market],
   },
   {
     id: 'competitors',
     name: 'Competitor Research',
-    progressStart: 12,
-    progressEnd: 19,
+    progressStart: 10,
+    progressEnd: 15,
     focus: 'Direct and indirect competitors, their positioning, strengths, weaknesses, and market share',
     getDomains: () => [...SEARCH_DOMAINS.competitor, ...SEARCH_DOMAINS.startup],
   },
   {
     id: 'painpoints',
     name: 'Customer Pain Points',
-    progressStart: 19,
-    progressEnd: 25,
+    progressStart: 15,
+    progressEnd: 20,
     focus: 'Evidence of customer pain points from forums, reviews, social media, and discussions',
     getDomains: () => [...SEARCH_DOMAINS.social],
   },
   {
     id: 'timing',
     name: 'Timing & Validation',
-    progressStart: 25,
-    progressEnd: 30,
+    progressStart: 20,
+    progressEnd: 25,
     focus: 'Market timing factors, why now indicators, recent changes, and validation signals',
     getDomains: () => [...SEARCH_DOMAINS.market],
+  },
+  {
+    id: 'marketsizing',
+    name: 'Market Sizing (TAM/SAM/SOM)',
+    progressStart: 25,
+    progressEnd: 30,
+    focus: 'TAM (Total Addressable Market), SAM (Serviceable Available Market), SOM (Serviceable Obtainable Market) with specific dollar figures, growth rates (CAGR), industry analyst reports, market research firm data, and comparable company market shares for benchmarking',
+    getDomains: () => [...SEARCH_DOMAINS.market, 'statista.com', 'ibisworld.com', 'grandviewresearch.com', 'marketsandmarkets.com', 'fortunebusinessinsights.com', 'mordorintelligence.com', 'precedenceresearch.com'],
   },
 ] as const;
 
@@ -653,6 +662,7 @@ function sleep(ms: number): Promise<void> {
  */
 function extractResponseContent(response: unknown): string | null {
   if (!response || typeof response !== 'object') {
+    console.warn('[extractResponseContent] Response is null or not an object');
     return null;
   }
 
@@ -665,19 +675,37 @@ function extractResponseContent(response: unknown): string | null {
 
   // Try output array (deep research / background mode format)
   if (Array.isArray(resp.output)) {
-    // Find the message output in the array
-    const messageOutput = resp.output.find(
-      (item: unknown) =>
-        item &&
-        typeof item === 'object' &&
-        (item as Record<string, unknown>).type === 'message'
-    ) as Record<string, unknown> | undefined;
+    const textParts: string[] = [];
 
-    if (messageOutput?.content && Array.isArray(messageOutput.content)) {
-      const textContent = messageOutput.content[0] as Record<string, unknown> | undefined;
-      if (textContent?.text && typeof textContent.text === 'string') {
-        return textContent.text;
+    for (const item of resp.output) {
+      if (!item || typeof item !== 'object') continue;
+      const outputItem = item as Record<string, unknown>;
+
+      // Handle type: 'message' with content array
+      if (outputItem.type === 'message' && Array.isArray(outputItem.content)) {
+        for (const contentItem of outputItem.content) {
+          if (contentItem && typeof contentItem === 'object') {
+            const ci = contentItem as Record<string, unknown>;
+            // Handle type: 'output_text' content items
+            if (ci.type === 'output_text' && typeof ci.text === 'string') {
+              textParts.push(ci.text);
+            }
+            // Handle plain text content items (no type field, just text)
+            else if (ci.text && typeof ci.text === 'string') {
+              textParts.push(ci.text);
+            }
+          }
+        }
       }
+
+      // Handle direct text field on output items
+      if (outputItem.text && typeof outputItem.text === 'string') {
+        textParts.push(outputItem.text);
+      }
+    }
+
+    if (textParts.length > 0) {
+      return textParts.join('\n');
     }
   }
 
@@ -690,7 +718,224 @@ function extractResponseContent(response: unknown): string | null {
     }
   }
 
+  // Log the response structure for debugging if nothing matched
+  console.error('[extractResponseContent] Failed to extract content. Response structure:');
+  console.error('  Keys:', Object.keys(resp));
+  console.error('  status:', resp.status);
+  console.error('  Has output_text:', !!resp.output_text);
+  console.error('  Has output array:', Array.isArray(resp.output));
+  if (Array.isArray(resp.output)) {
+    console.error('  Output array length:', resp.output.length);
+    console.error('  Output item types:', resp.output.map((item: unknown) =>
+      item && typeof item === 'object' ? (item as Record<string, unknown>).type : typeof item
+    ));
+  }
+
   return null;
+}
+
+// =============================================================================
+// RESILIENT RESPONSE PARSING (for handling status: incomplete)
+// =============================================================================
+
+/**
+ * Token usage structure from OpenAI API
+ */
+interface TokenUsage {
+  input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
+}
+
+/**
+ * Parsed response payload with all relevant metadata
+ */
+interface ParsedResponsePayload {
+  rawText: string | null;
+  status: string;
+  usage: TokenUsage | null;
+  incompleteDetails: unknown | null;
+  responseId: string | null;
+}
+
+/**
+ * Resilient response parser that extracts text from all possible locations
+ * in a Responses API payload. Handles incomplete responses gracefully.
+ *
+ * Traverses:
+ * 1. output_text (standard Responses API)
+ * 2. output[] array with message/text items (deep research/background mode)
+ * 3. choices[] array (legacy Chat Completions fallback)
+ *
+ * @param response - Raw API response
+ * @returns Parsed payload with rawText, status, usage, and incompleteDetails
+ */
+function parseResponsesAPIPayload(response: unknown): ParsedResponsePayload {
+  if (!response || typeof response !== 'object') {
+    return { rawText: null, status: 'invalid', usage: null, incompleteDetails: null, responseId: null };
+  }
+
+  const resp = response as Record<string, unknown>;
+  const status = typeof resp.status === 'string' ? resp.status : 'unknown';
+  const usage = resp.usage as TokenUsage | null;
+  const incompleteDetails = resp.incomplete_details ?? null;
+  const responseId = typeof resp.id === 'string' ? resp.id : null;
+
+  // Collect all text from possible locations
+  const textParts: string[] = [];
+
+  // 1. Try output_text (standard Responses API format)
+  if (resp.output_text && typeof resp.output_text === 'string') {
+    textParts.push(resp.output_text);
+  }
+
+  // 2. Try output array (iterate ALL items for resilience)
+  if (Array.isArray(resp.output)) {
+    for (const item of resp.output) {
+      if (!item || typeof item !== 'object') continue;
+      const outputItem = item as Record<string, unknown>;
+
+      // Message-type items with content array
+      if (outputItem.type === 'message' && Array.isArray(outputItem.content)) {
+        for (const contentItem of outputItem.content) {
+          if (contentItem && typeof contentItem === 'object') {
+            const ci = contentItem as Record<string, unknown>;
+            if (ci.text && typeof ci.text === 'string') {
+              textParts.push(ci.text);
+            }
+          }
+        }
+      }
+
+      // Direct text field on output items
+      if (outputItem.text && typeof outputItem.text === 'string') {
+        textParts.push(outputItem.text);
+      }
+    }
+  }
+
+  // 3. Fallback: choices array (legacy Chat Completions format)
+  if (textParts.length === 0 && Array.isArray(resp.choices)) {
+    for (const choice of resp.choices) {
+      const c = choice as Record<string, unknown>;
+      const message = c.message as Record<string, unknown> | undefined;
+      if (message?.content && typeof message.content === 'string') {
+        textParts.push(message.content);
+      }
+    }
+  }
+
+  const rawText = textParts.length > 0 ? textParts.join('\n') : null;
+  return { rawText, status, usage, incompleteDetails, responseId };
+}
+
+/**
+ * Attempt to isolate JSON from text that may have preamble/postamble.
+ * Uses bracket-balanced parsing to find the first complete JSON object.
+ *
+ * Handles:
+ * - Markdown code fences (```json ... ```)
+ * - Preamble text before JSON
+ * - Trailing text after JSON (e.g., model explanations)
+ * - Properly ignores braces inside string values
+ *
+ * @param text - Raw text that may contain JSON
+ * @returns Isolated JSON string or null if no valid JSON object found
+ */
+function isolateJson(text: string): string | null {
+  // Strip common markdown wrappers first
+  let cleaned = text.trim();
+
+  // Remove markdown code fences (```json ... ``` or ``` ... ```)
+  const fenceMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenceMatch) {
+    cleaned = fenceMatch[1].trim();
+  }
+
+  // Find first opening brace
+  const firstBrace = cleaned.indexOf('{');
+  if (firstBrace === -1) return null;
+
+  // Use bracket counting to find matching closing brace
+  // This correctly handles nested objects and braces inside strings
+  let depth = 0;
+  let inString = false;
+  let escapeNext = false;
+
+  for (let i = firstBrace; i < cleaned.length; i++) {
+    const char = cleaned[i];
+
+    if (escapeNext) {
+      escapeNext = false;
+      continue;
+    }
+
+    if (char === '\\' && inString) {
+      escapeNext = true;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (char === '{') depth++;
+    else if (char === '}') {
+      depth--;
+      if (depth === 0) {
+        // Found the matching closing brace for the first JSON object
+        return cleaned.slice(firstBrace, i + 1);
+      }
+    }
+  }
+
+  // No complete JSON object found (unclosed braces)
+  // Fall back to old behavior for partial recovery
+  const lastBrace = cleaned.lastIndexOf('}');
+  if (lastBrace > firstBrace) {
+    console.warn('[isolateJson] Bracket matching failed, falling back to lastIndexOf');
+    return cleaned.slice(firstBrace, lastBrace + 1);
+  }
+
+  return null;
+}
+
+/**
+ * Result type for safe JSON parsing
+ */
+type SafeJsonResult<T> =
+  | { ok: true; data: T; isolated: boolean }
+  | { ok: false; reason: string };
+
+/**
+ * Safe JSON parse with isolation fallback.
+ * First attempts direct parse, then tries JSON isolation if that fails.
+ *
+ * @param text - Text to parse as JSON
+ * @returns Parsed object or error reason
+ */
+function safeJsonParse<T>(text: string): SafeJsonResult<T> {
+  // First try direct parse
+  try {
+    const data = JSON.parse(text) as T;
+    return { ok: true, data, isolated: false };
+  } catch (directError) {
+    // Try JSON isolation
+    const isolated = isolateJson(text);
+    if (isolated) {
+      try {
+        const data = JSON.parse(isolated) as T;
+        console.log('[safeJsonParse] Successfully parsed after JSON isolation');
+        return { ok: true, data, isolated: true };
+      } catch (isolatedError) {
+        return { ok: false, reason: `JSON parse failed after isolation: ${isolatedError instanceof Error ? isolatedError.message : isolatedError}` };
+      }
+    }
+    return { ok: false, reason: `JSON parse failed: ${directError instanceof Error ? directError.message : directError}` };
+  }
 }
 
 /**
@@ -1301,6 +1546,12 @@ Use ONLY information from the research report. Be specific and cite findings whe
   console.log('[Extract Insights] Response received, status:', responseStatus);
   console.log('[Extract Insights] Response keys:', Object.keys(response));
 
+  // Track token usage (fire-and-forget)
+  trackUsageFromResponse(response, {
+    functionName: 'extractInsights',
+    model: REPORT_MODEL,
+  });
+
   // Check for incomplete status (may have partial content)
   if (responseStatus === 'incomplete') {
     console.warn('[Extract Insights] Response marked incomplete - may have partial content');
@@ -1330,6 +1581,7 @@ Use ONLY information from the research report. Be specific and cite findings whe
   console.log('[Extract Insights] Successfully extracted content, length:', content.length);
 
   try {
+    validateJsonCompleteness(content, 'extractInsights');
     return JSON.parse(content) as SynthesizedInsights;
   } catch (parseError) {
     throw new ResponseParseError(
@@ -1421,7 +1673,7 @@ This is pass ${passNumber} - evaluate independently based on the research data.`
           model: REPORT_MODEL,
           input: prompt,
           response_format: { type: 'json_object' },
-          max_output_tokens: 2000,
+          max_output_tokens: 8000, // Increased from 4000 for buffer
         }, aiParams)
       ),
       {
@@ -1433,6 +1685,12 @@ This is pass ${passNumber} - evaluate independently based on the research data.`
       }
     );
 
+    // Track token usage (fire-and-forget)
+    trackUsageFromResponse(response, {
+      functionName: 'extractScores',
+      model: REPORT_MODEL,
+    });
+
     // Use unified content extractor (handles both output_text and output[] array formats)
     const content = extractResponseContent(response);
     if (!content) {
@@ -1440,6 +1698,7 @@ This is pass ${passNumber} - evaluate independently based on the research data.`
       throw new Error(`Failed to calculate scores (pass ${passNumber}): no content (status: ${responseStatus})`);
     }
 
+    validateJsonCompleteness(content, `extractScores pass ${passNumber}`);
     return JSON.parse(content) as RawScorePass;
   };
 
@@ -1615,7 +1874,7 @@ Base estimates on the actual market data from research.`;
         model: REPORT_MODEL,
         input: prompt,
         response_format: { type: 'json_object' },
-        max_output_tokens: 2000,
+        max_output_tokens: 8000, // Increased from 4000 for buffer
       }, aiParams)
     ),
     {
@@ -1627,6 +1886,12 @@ Base estimates on the actual market data from research.`;
     }
   );
 
+  // Track token usage (fire-and-forget)
+  trackUsageFromResponse(response, {
+    functionName: 'extractBusinessMetrics',
+    model: REPORT_MODEL,
+  });
+
   // Use unified content extractor (handles both output_text and output[] array formats)
   const content = extractResponseContent(response);
   if (!content) {
@@ -1636,7 +1901,504 @@ Base estimates on the actual market data from research.`;
   }
 
   console.log('[Extract Metrics] Successfully calculated metrics');
+  validateJsonCompleteness(content, 'extractBusinessMetrics');
   return JSON.parse(content) as BusinessMetrics;
+}
+
+// =============================================================================
+// MARKET SIZING EXTRACTION (with retry handling for status: incomplete)
+// =============================================================================
+
+// Token limit constants for market sizing
+const MARKET_SIZING_BASE_TOKENS = 12000;  // Base: 12k (up from 8k)
+const MARKET_SIZING_MAX_TOKENS = 25000;   // Maximum: 25k cap
+
+// Reasoning effort downgrade map for retries
+const REASONING_DOWNGRADE: Record<ReasoningEffort, ReasoningEffort> = {
+  'xhigh': 'high',
+  'high': 'medium',
+  'medium': 'medium',
+  'low': 'low',
+  'none': 'none',
+};
+
+/**
+ * Calculate adaptive max_output_tokens based on input size and reasoning effort.
+ * Larger inputs and higher reasoning need more output headroom.
+ */
+function calculateAdaptiveTokenLimit(
+  inputLength: number,
+  reasoning: ReasoningEffort
+): number {
+  // Estimate input tokens (rough: 4 chars per token)
+  const estimatedInputTokens = Math.ceil(inputLength / 4);
+
+  // Base: 12000 tokens
+  let limit = MARKET_SIZING_BASE_TOKENS;
+
+  // If input is large, bump up
+  if (estimatedInputTokens > 2500) {
+    limit = 16000;
+  }
+
+  // If using xhigh reasoning, need even more headroom
+  if (reasoning === 'xhigh') {
+    limit = Math.max(limit, 18000);
+  }
+
+  return Math.min(limit, MARKET_SIZING_MAX_TOKENS);
+}
+
+/**
+ * Validates MarketSizingData structure and values.
+ * Returns array of validation errors (empty if valid).
+ *
+ * Checks:
+ * - Required top-level keys exist
+ * - tam/sam/som have required fields with correct types
+ * - Confidence values are valid enums
+ * - Values are in millions USD (warns if too large)
+ * - Arrays are non-empty
+ */
+function validateMarketSizingData(data: unknown): string[] {
+  const errors: string[] = [];
+
+  if (!data || typeof data !== 'object') {
+    return ['Data is not an object'];
+  }
+
+  const d = data as Record<string, unknown>;
+
+  // Required top-level keys
+  const requiredKeys = ['tam', 'sam', 'som', 'segments', 'assumptions', 'sources', 'methodology'];
+  for (const key of requiredKeys) {
+    if (!(key in d)) {
+      errors.push(`Missing required key: ${key}`);
+    }
+  }
+
+  // Validate tam/sam/som structure
+  for (const marketKey of ['tam', 'sam', 'som'] as const) {
+    const metric = d[marketKey] as Record<string, unknown> | undefined;
+    if (metric) {
+      if (typeof metric.value !== 'number') {
+        errors.push(`${marketKey}.value must be a number`);
+      } else if (metric.value > 1000000) {
+        // Value should be in millions; >1M millions = trillions (likely error)
+        errors.push(`${marketKey}.value=${metric.value} seems too large (should be millions USD, not raw dollars)`);
+      }
+      if (typeof metric.formattedValue !== 'string') {
+        errors.push(`${marketKey}.formattedValue must be a string`);
+      }
+      if (typeof metric.growthRate !== 'number') {
+        errors.push(`${marketKey}.growthRate must be a number`);
+      }
+      if (!['high', 'medium', 'low'].includes(metric.confidence as string)) {
+        errors.push(`${marketKey}.confidence must be high|medium|low`);
+      }
+      if (typeof metric.timeframe !== 'string') {
+        errors.push(`${marketKey}.timeframe must be a string`);
+      }
+    }
+  }
+
+  // Validate arrays
+  if (Array.isArray(d.segments)) {
+    if (d.segments.length === 0) {
+      errors.push('segments array is empty');
+    }
+  }
+
+  if (Array.isArray(d.assumptions)) {
+    if (d.assumptions.length === 0) {
+      errors.push('assumptions array is empty');
+    }
+    for (const assumption of d.assumptions) {
+      const a = assumption as Record<string, unknown>;
+      if (!['tam', 'sam', 'som'].includes(a.level as string)) {
+        errors.push('assumption.level must be tam|sam|som');
+        break; // Only report once
+      }
+    }
+  }
+
+  if (Array.isArray(d.sources)) {
+    if (d.sources.length === 0) {
+      errors.push('sources array is empty');
+    }
+  }
+
+  if (typeof d.methodology !== 'string' || d.methodology.length === 0) {
+    errors.push('methodology must be a non-empty string');
+  }
+
+  return errors;
+}
+
+/**
+ * Log telemetry for market sizing extraction call.
+ * Logs all relevant diagnostic info for debugging incomplete responses.
+ */
+function logMarketSizingTelemetry(
+  attempt: number,
+  maxAttempts: number,
+  responseId: string | null,
+  status: string,
+  usage: TokenUsage | null,
+  maxOutputTokens: number,
+  reasoning: ReasoningEffort,
+  rawTextLength: number,
+  parseSuccess: boolean,
+  failureReason?: string,
+  incompleteDetails?: unknown
+): void {
+  console.log('[Extract Market Sizing] === TELEMETRY ===');
+  console.log(`  Attempt: ${attempt}/${maxAttempts}`);
+  console.log(`  Response ID: ${responseId ?? 'N/A'}`);
+  console.log(`  Status: ${status}`);
+  if (usage) {
+    console.log(`  Usage: input=${usage.input_tokens}, output=${usage.output_tokens}, total=${usage.total_tokens}`);
+    if (usage.output_tokens === maxOutputTokens) {
+      console.warn('  WARNING: output_tokens equals max_output_tokens (may indicate truncation)');
+    }
+  }
+  console.log(`  Config: max_output_tokens=${maxOutputTokens}, reasoning=${reasoning}`);
+  console.log(`  Raw text length: ${rawTextLength}`);
+  console.log(`  Parse success: ${parseSuccess}`);
+  if (failureReason) {
+    console.log(`  Failure reason: ${failureReason}`);
+  }
+  if (incompleteDetails) {
+    console.log(`  Incomplete details: ${JSON.stringify(incompleteDetails)}`);
+  }
+  console.log('[Extract Market Sizing] === END TELEMETRY ===');
+}
+
+/**
+ * Build the constrained prompt for market sizing.
+ * Enforces exact counts and length limits to prevent unbounded JSON growth.
+ * Tightens constraints on retries to reduce output size.
+ */
+function buildMarketSizingPrompt(
+  input: ResearchInput,
+  researchSnippet: string,
+  marketSizingChunk: string,
+  insightsJson: string,
+  retryAttempt: number
+): string {
+  // Tighter constraints on retry 2 (0-indexed: retry 2 = attempt 2)
+  const isLastRetry = retryAttempt >= 2;
+  const segmentCount = isLastRetry ? 2 : 3;
+  const geoCount = isLastRetry ? 2 : 3;
+  const assumptionCount = isLastRetry ? 6 : 9;
+  const sourceCount = isLastRetry ? 4 : 6;
+  const descriptionWords = isLastRetry ? 12 : 20;
+  const methodologySentences = isLastRetry ? 1 : 2;
+
+  // On retries, add strict instruction to return only JSON
+  const retryNote = retryAttempt > 0
+    ? '\n\nCRITICAL: Return ONLY the JSON object. No preamble, no explanation, no markdown code blocks.\n'
+    : '';
+
+  // Truncate inputs more aggressively on retries
+  const snippetLimit = isLastRetry ? 4000 : 5000;
+  const chunkLimit = isLastRetry ? 2000 : 2500;
+  const insightsLimit = isLastRetry ? 1500 : 2000;
+
+  return `You are a market analyst calculating TAM/SAM/SOM market sizing.${retryNote}
+
+## DEFINITIONS
+- **TAM:** Total market demand globally
+- **SAM:** Segment of TAM within your reach
+- **SOM:** Portion of SAM you can realistically capture in 3-5 years
+
+## BUSINESS IDEA
+**Title:** ${input.ideaTitle}
+**Description:** ${input.ideaDescription}
+
+## RESEARCH DATA
+${researchSnippet.substring(0, snippetLimit)}
+${marketSizingChunk ? `\n## MARKET SIZING DATA\n${marketSizingChunk.substring(0, chunkLimit)}` : ''}
+
+## MARKET INSIGHTS
+${insightsJson.substring(0, insightsLimit)}
+
+## OUTPUT REQUIREMENTS (STRICT - FOLLOW EXACTLY)
+Return JSON with:
+- segments: EXACTLY ${segmentCount} items (description max ${descriptionWords} words each)
+- geographicBreakdown: EXACTLY ${geoCount} items (notes max ${descriptionWords} words each)
+- assumptions: EXACTLY ${assumptionCount} items (${assumptionCount / 3} per level: tam/sam/som)
+- sources: MAX ${sourceCount} items
+- methodology: MAX ${methodologySentences} sentence(s)
+- All values in millions USD (e.g., 4200 for $4.2B, 850 for $850M)
+- You may derive SAM/SOM using stated assumptions; mark as reliability: "estimate"
+
+## JSON FORMAT
+{
+  "tam": { "value": <millions>, "formattedValue": "$X.XB", "growthRate": <CAGR>, "confidence": "high|medium|low", "timeframe": "YYYY-YYYY" },
+  "sam": { "value": <millions>, "formattedValue": "$XM", "growthRate": <CAGR>, "confidence": "high|medium|low", "timeframe": "YYYY-YYYY" },
+  "som": { "value": <millions>, "formattedValue": "$XM", "growthRate": <CAGR>, "confidence": "high|medium|low", "timeframe": "YYYY-YYYY" },
+  "segments": [{ "name": "", "tamContribution": <pct>, "samContribution": <pct>, "somContribution": <pct>, "description": "" }],
+  "geographicBreakdown": [{ "region": "", "percentage": <pct>, "notes": "" }],
+  "assumptions": [{ "level": "tam|sam|som", "assumption": "", "impact": "high|medium|low" }],
+  "sources": [{ "title": "", "url": "", "date": "", "reliability": "primary|secondary|estimate" }],
+  "methodology": ""
+}
+
+IMPORTANT:
+- Use ONLY data from the research findings. Do not fabricate numbers.
+- Be conservative with SOM estimates - most startups capture <1% of SAM in early years.
+- If specific data is unavailable, use "estimate" reliability and note assumptions.`;
+}
+
+/**
+ * Extract TAM/SAM/SOM market sizing from deep research report.
+ * Uses GPT-5.2 with retry handling for incomplete responses.
+ *
+ * Implements:
+ * - Adaptive token limits based on input size
+ * - Reasoning downgrade for JSON mode (xhigh -> high)
+ * - 3 retry attempts with progressive adjustment
+ * - JSON isolation fallback for wrapped responses
+ * - Structured validation before accepting
+ */
+export async function extractMarketSizing(
+  deepResearch: DeepResearchOutput,
+  input: ResearchInput,
+  insights: SynthesizedInsights,
+  tier: SubscriptionTier = 'ENTERPRISE'
+): Promise<MarketSizingData> {
+  console.log('[Extract Market Sizing] Starting extraction with tier:', tier);
+
+  // Defensive check for malformed deep research data
+  if (!deepResearch?.rawReport) {
+    console.error('[Extract Market Sizing] Missing rawReport in deepResearch');
+    throw new Error('Failed to extract market sizing: missing research data (rawReport is empty)');
+  }
+
+  // Prepare inputs
+  const researchSnippet = deepResearch.rawReport;
+  const marketSizingChunk = (deepResearch as DeepResearchOutput & { chunkResults?: Record<string, string> })
+    ?.chunkResults?.marketsizing || '';
+  const insightsJson = JSON.stringify(insights.marketAnalysis, null, 2);
+
+  console.log('[Extract Market Sizing] Research snippet length:', researchSnippet.length);
+  console.log('[Extract Market Sizing] Has dedicated market sizing chunk:', marketSizingChunk.length > 0);
+
+  // Get base AI params (already downgraded from xhigh in presets)
+  const baseAiParams = getAIParams('extractMarketSizing', tier);
+
+  // For JSON mode, ensure we don't use xhigh (extra safety)
+  let currentReasoning: ReasoningEffort = baseAiParams.reasoning === 'xhigh' ? 'high' : baseAiParams.reasoning;
+
+  // Calculate prompt length for adaptive tokens
+  const promptLength = researchSnippet.length + marketSizingChunk.length + insightsJson.length;
+  let currentMaxTokens = calculateAdaptiveTokenLimit(promptLength, currentReasoning);
+
+  // Warn if original params would have been risky
+  if (baseAiParams.reasoning === 'xhigh') {
+    console.warn('[Extract Market Sizing] WARNING: xhigh reasoning auto-downgraded to high for JSON mode');
+  }
+
+  const MAX_RETRIES = 2; // Total 3 attempts (0, 1, 2)
+  let lastError: string | null = null;
+  let lastRawText: string | null = null;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    // Build prompt with constraints (tighter on later retries)
+    const prompt = buildMarketSizingPrompt(input, researchSnippet, marketSizingChunk, insightsJson, attempt);
+
+    const aiParams: AIParams = {
+      reasoning: currentReasoning,
+      verbosity: baseAiParams.verbosity,
+    };
+
+    console.log(`[Extract Market Sizing] Attempt ${attempt + 1}/${MAX_RETRIES + 1}: max_tokens=${currentMaxTokens}, reasoning=${currentReasoning}`);
+
+    try {
+      // API call with exponential backoff for transient errors
+      const response = await withExponentialBackoff(
+        () => openai.responses.create(
+          createResponsesParams({
+            model: REPORT_MODEL,
+            input: prompt,
+            response_format: { type: 'json_object' },
+            max_output_tokens: currentMaxTokens,
+          }, aiParams)
+        ),
+        {
+          maxAttempts: 2, // Inner retry for transient errors only
+          initialDelayMs: 2000,
+          onRetry: (retryAttempt, error, delayMs) => {
+            console.warn(`[Extract Market Sizing] Transient retry ${retryAttempt}/2 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+          }
+        }
+      );
+
+      // Track token usage (fire-and-forget)
+      trackUsageFromResponse(response, {
+        functionName: 'extractMarketSizing',
+        model: REPORT_MODEL,
+      });
+
+      // Parse response using resilient parser
+      const parsed = parseResponsesAPIPayload(response);
+
+      // Log telemetry for every attempt
+      logMarketSizingTelemetry(
+        attempt + 1,
+        MAX_RETRIES + 1,
+        parsed.responseId,
+        parsed.status,
+        parsed.usage,
+        currentMaxTokens,
+        currentReasoning,
+        parsed.rawText?.length ?? 0,
+        false, // Will update after parse attempt
+        undefined,
+        parsed.incompleteDetails
+      );
+
+      // Check 1: Incomplete status
+      if (parsed.status === 'incomplete') {
+        console.warn('[Extract Market Sizing] INCOMPLETE response detected');
+        console.warn('[Extract Market Sizing] This usually means output_tokens hit max_output_tokens limit');
+        lastError = 'incomplete_response';
+        lastRawText = parsed.rawText;
+
+        // Retry with adjusted params
+        if (attempt < MAX_RETRIES) {
+          currentMaxTokens = Math.min(Math.ceil(currentMaxTokens * 1.5), MARKET_SIZING_MAX_TOKENS);
+          currentReasoning = REASONING_DOWNGRADE[currentReasoning];
+          console.log(`[Extract Market Sizing] Adjusting for retry: max_tokens=${currentMaxTokens}, reasoning=${currentReasoning}`);
+          continue;
+        }
+      }
+
+      // Check 2: Empty content
+      if (!parsed.rawText || parsed.rawText.trim().length === 0) {
+        console.warn('[Extract Market Sizing] Empty response content');
+        lastError = 'empty_content';
+        lastRawText = null;
+
+        if (attempt < MAX_RETRIES) {
+          currentMaxTokens = Math.min(Math.ceil(currentMaxTokens * 1.5), MARKET_SIZING_MAX_TOKENS);
+          currentReasoning = REASONING_DOWNGRADE[currentReasoning];
+          console.log(`[Extract Market Sizing] Adjusting for retry: max_tokens=${currentMaxTokens}, reasoning=${currentReasoning}`);
+          continue;
+        }
+      }
+
+      // Check 3: JSON parse (with isolation fallback)
+      const parseResult = safeJsonParse<MarketSizingData>(parsed.rawText!);
+      if (parseResult.ok === false) {
+        const failReason = parseResult.reason;
+        console.warn('[Extract Market Sizing] JSON parse failed:', failReason);
+
+        // Enhanced diagnostic logging to debug parse failures
+        console.error('[Extract Market Sizing] === PARSE FAILURE DIAGNOSTICS ===');
+        console.error('  Total length:', parsed.rawText?.length);
+        console.error('  First 300 chars:', parsed.rawText?.substring(0, 300));
+        console.error('  Last 300 chars:', parsed.rawText?.slice(-300));
+        // Check for common issues
+        const rawText = parsed.rawText || '';
+        const firstBrace = rawText.indexOf('{');
+        const lastBrace = rawText.lastIndexOf('}');
+        console.error('  First { at:', firstBrace);
+        console.error('  Last } at:', lastBrace);
+        if (lastBrace > 0 && lastBrace < rawText.length - 1) {
+          console.error('  Text after last }:', rawText.slice(lastBrace + 1, lastBrace + 101));
+        }
+        console.error('[Extract Market Sizing] === END DIAGNOSTICS ===');
+
+        lastError = `json_parse_error: ${failReason}`;
+        lastRawText = parsed.rawText;
+
+        if (attempt < MAX_RETRIES) {
+          currentMaxTokens = Math.min(Math.ceil(currentMaxTokens * 1.5), MARKET_SIZING_MAX_TOKENS);
+          currentReasoning = REASONING_DOWNGRADE[currentReasoning];
+          console.log(`[Extract Market Sizing] Adjusting for retry: max_tokens=${currentMaxTokens}, reasoning=${currentReasoning}`);
+          continue;
+        }
+      } else {
+        // JSON parsed successfully - now validate structure
+        if (parseResult.isolated) {
+          console.log('[Extract Market Sizing] Note: JSON was isolated from surrounding text');
+        }
+
+        const validationErrors = validateMarketSizingData(parseResult.data);
+        if (validationErrors.length > 0) {
+          console.warn('[Extract Market Sizing] Validation errors:', validationErrors);
+
+          // Only retry on critical errors (missing required keys)
+          const criticalErrors = validationErrors.filter(e => e.startsWith('Missing required key'));
+          if (criticalErrors.length > 0 && attempt < MAX_RETRIES) {
+            lastError = `validation_error: ${criticalErrors.join(', ')}`;
+            lastRawText = parsed.rawText;
+            currentMaxTokens = Math.min(Math.ceil(currentMaxTokens * 1.5), MARKET_SIZING_MAX_TOKENS);
+            currentReasoning = REASONING_DOWNGRADE[currentReasoning];
+            console.log(`[Extract Market Sizing] Adjusting for retry: max_tokens=${currentMaxTokens}, reasoning=${currentReasoning}`);
+            continue;
+          }
+
+          // Non-critical validation warnings: log but proceed
+          if (criticalErrors.length === 0) {
+            console.warn('[Extract Market Sizing] Proceeding despite non-critical validation warnings');
+          }
+        }
+
+        // SUCCESS!
+        console.log('[Extract Market Sizing] Success on attempt', attempt + 1);
+        console.log('[Extract Market Sizing] TAM:', parseResult.data.tam?.formattedValue,
+                    'SAM:', parseResult.data.sam?.formattedValue,
+                    'SOM:', parseResult.data.som?.formattedValue);
+
+        // Log final success telemetry
+        logMarketSizingTelemetry(
+          attempt + 1,
+          MAX_RETRIES + 1,
+          parsed.responseId,
+          parsed.status,
+          parsed.usage,
+          currentMaxTokens,
+          currentReasoning,
+          parsed.rawText?.length ?? 0,
+          true,
+          undefined,
+          undefined
+        );
+
+        return {
+          ...parseResult.data,
+          lastUpdated: new Date().toISOString(),
+        };
+      }
+
+    } catch (error) {
+      // API-level error (not caught by withExponentialBackoff)
+      console.error('[Extract Market Sizing] API error on attempt', attempt + 1, ':', error instanceof Error ? error.message : error);
+      lastError = error instanceof Error ? error.message : 'unknown_api_error';
+
+      if (attempt < MAX_RETRIES) {
+        currentMaxTokens = Math.min(Math.ceil(currentMaxTokens * 1.5), MARKET_SIZING_MAX_TOKENS);
+        currentReasoning = REASONING_DOWNGRADE[currentReasoning];
+        console.log(`[Extract Market Sizing] Adjusting for retry after error: max_tokens=${currentMaxTokens}, reasoning=${currentReasoning}`);
+        continue;
+      }
+
+      // Re-throw on final attempt
+      throw error;
+    }
+  }
+
+  // All retries exhausted - throw descriptive error
+  console.error('[Extract Market Sizing] All retries exhausted');
+  console.error('[Extract Market Sizing] Last error:', lastError);
+  if (lastRawText) {
+    console.error('[Extract Market Sizing] Last raw text preview (first 500 chars):', lastRawText.substring(0, 500));
+  }
+
+  throw new Error(`Failed to extract market sizing after ${MAX_RETRIES + 1} attempts. Last error: ${lastError}. Check logs for diagnostics.`);
 }
 
 // =============================================================================
@@ -1763,19 +2525,31 @@ Return your findings as JSON:
 
     const elapsed = Math.round((Date.now() - startTime) / 1000);
     console.log(`[Social Proof] Search complete after ${elapsed}s`);
+    console.log(`[Social Proof] Raw content length: ${result.content?.length || 0} chars`);
+    console.log(`[Social Proof] Raw content preview: ${result.content?.substring(0, 500) || 'EMPTY'}`);
 
     // Try to extract JSON from the response content
     let socialProofData: Omit<SocialProof, 'sources'>;
     try {
       // The model should return JSON, but might wrap it in markdown
-      const jsonMatch = result.content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        socialProofData = JSON.parse(jsonMatch[0]);
+      // Use non-greedy match to get the first complete JSON object
+      const jsonMatch = result.content.match(/\{[\s\S]*?\}(?=\s*$|\s*```|\s*\n\n)/);
+      if (!jsonMatch) {
+        // Fallback: try greedy match for single JSON object
+        const greedyMatch = result.content.match(/\{[\s\S]*\}/);
+        if (greedyMatch) {
+          console.log(`[Social Proof] Using greedy JSON match (${greedyMatch[0].length} chars)`);
+          socialProofData = JSON.parse(greedyMatch[0]);
+        } else {
+          throw new Error('No JSON found in response');
+        }
       } else {
-        throw new Error('No JSON found in response');
+        console.log(`[Social Proof] JSON extracted (${jsonMatch[0].length} chars)`);
+        socialProofData = JSON.parse(jsonMatch[0]);
       }
     } catch (parseError) {
-      console.warn('[Social Proof] Could not parse JSON from response, using structured extraction');
+      console.warn('[Social Proof] Could not parse JSON from response:', parseError instanceof Error ? parseError.message : parseError);
+      console.warn('[Social Proof] Full response content:', result.content);
       // Fallback: create structure from raw response
       socialProofData = {
         posts: [],
@@ -1861,7 +2635,7 @@ Generate 3-5 specific, actionable queries per category.`;
         model: REPORT_MODEL,
         input: prompt,
         response_format: { type: 'json_object' },
-        max_output_tokens: 2000,
+        max_output_tokens: 8000, // Increased from 4000 for buffer
       }, aiParams)
     ),
     {
@@ -1871,6 +2645,12 @@ Generate 3-5 specific, actionable queries per category.`;
       }
     }
   );
+
+  // Track token usage (fire-and-forget)
+  trackUsageFromResponse(response, {
+    functionName: 'generateSearchQueries',
+    model: REPORT_MODEL,
+  });
 
   // Use unified content extractor (handles both output_text and output[] array formats)
   const content = extractResponseContent(response);
@@ -2020,6 +2800,12 @@ Be specific and actionable. Use the interview data to inform your analysis.`;
     console.log(`[synthesizeInsights] API response received after ${elapsed}s`);
     console.log('[synthesizeInsights] Usage:', response.usage);
 
+    // Track token usage (fire-and-forget)
+    trackUsageFromResponse(response, {
+      functionName: 'synthesizeInsights',
+      model: REPORT_MODEL,
+    });
+
     // Use unified content extractor for robust response handling
     const content = extractResponseContent(response);
     if (!content) {
@@ -2131,7 +2917,7 @@ This is scoring pass ${passNumber} - evaluate independently without bias.`;
         model: REPORT_MODEL,
         input: prompt,
         response_format: { type: 'json_object' },
-        max_output_tokens: 4000, // Increased from 1500 - scoring needs room for 4 detailed justifications
+        max_output_tokens: 8000, // Increased from 4000 for buffer
       }, aiParams)
     ),
     {
@@ -2141,6 +2927,12 @@ This is scoring pass ${passNumber} - evaluate independently without bias.`;
       }
     }
   );
+
+  // Track token usage (fire-and-forget)
+  trackUsageFromResponse(response, {
+    functionName: 'calculateScores',
+    model: REPORT_MODEL,
+  });
 
   // Use unified content extractor
   const content = extractResponseContent(response);
@@ -2343,7 +3135,7 @@ Be realistic and consider the founder's background if mentioned in the interview
         model: REPORT_MODEL,
         input: prompt,
         response_format: { type: 'json_object' },
-        max_output_tokens: 2000,
+        max_output_tokens: 8000, // Increased from 4000 for buffer
       }, aiParams)
     ),
     {
@@ -2353,6 +3145,12 @@ Be realistic and consider the founder's background if mentioned in the interview
       }
     }
   );
+
+  // Track token usage (fire-and-forget)
+  trackUsageFromResponse(response, {
+    functionName: 'calculateBusinessMetrics',
+    model: REPORT_MODEL,
+  });
 
   // Use unified content extractor (handles both output_text and output[] array formats)
   const content = extractResponseContent(response);
@@ -2420,7 +3218,7 @@ Make the story feel real and emotionally resonant. Use specific details.`;
         model: REPORT_MODEL,
         input: prompt,
         response_format: { type: 'json_object' },
-        max_output_tokens: 2500,
+        max_output_tokens: 8000, // Increased from 2500 - GPT-5.2 reasoning consumes tokens before content
       }, aiParams)
     ),
     {
@@ -2430,6 +3228,12 @@ Make the story feel real and emotionally resonant. Use specific details.`;
       }
     }
   );
+
+  // Track token usage (fire-and-forget)
+  trackUsageFromResponse(response, {
+    functionName: 'generateUserStory',
+    model: REPORT_MODEL,
+  });
 
   // Use unified content extractor (handles both output_text and output[] array formats)
   const content = extractResponseContent(response);
@@ -2708,7 +3512,7 @@ Make prices realistic for the market and value delivered.`;
         model: REPORT_MODEL,
         input: prompt,
         response_format: { type: 'json_object' },
-        max_output_tokens: 2500,
+        max_output_tokens: 8000, // Increased from 2500 - GPT-5.2 reasoning consumes tokens before content
       }, aiParams)
     ),
     {
@@ -2718,6 +3522,12 @@ Make prices realistic for the market and value delivered.`;
       }
     }
   );
+
+  // Track token usage (fire-and-forget)
+  trackUsageFromResponse(response, {
+    functionName: 'generateValueLadder',
+    model: REPORT_MODEL,
+  });
 
   // Use unified content extractor (handles both output_text and output[] array formats)
   const content = extractResponseContent(response);
@@ -2790,7 +3600,7 @@ Make prompts immediately usable - specific and actionable.`;
         model: REPORT_MODEL,
         input: prompt,
         response_format: { type: 'json_object' },
-        max_output_tokens: 5000,
+        max_output_tokens: 8000, // Increased from 5000 - GPT-5.2 reasoning consumes tokens before content
       }, aiParams)
     ),
     {
@@ -2800,6 +3610,12 @@ Make prompts immediately usable - specific and actionable.`;
       }
     }
   );
+
+  // Track token usage (fire-and-forget)
+  trackUsageFromResponse(response, {
+    functionName: 'generateActionPrompts',
+    model: REPORT_MODEL,
+  });
 
   // Use unified content extractor (handles both output_text and output[] array formats)
   const content = extractResponseContent(response);
@@ -2895,7 +3711,7 @@ Dates should be within the last 6 months.`;
         model: REPORT_MODEL,
         input: prompt,
         response_format: { type: 'json_object' },
-        max_output_tokens: 3000,
+        max_output_tokens: 8000, // Increased from 3000 - GPT-5.2 reasoning consumes tokens before content
       }, aiParams)
     ),
     {
@@ -2905,6 +3721,12 @@ Dates should be within the last 6 months.`;
       }
     }
   );
+
+  // Track token usage (fire-and-forget)
+  trackUsageFromResponse(response, {
+    functionName: 'generateSocialProof',
+    model: REPORT_MODEL,
+  });
 
   // Use unified content extractor (handles both output_text and output[] array formats)
   const content = extractResponseContent(response);
@@ -2920,6 +3742,206 @@ Dates should be within the last 6 months.`;
   } catch (parseError) {
     throw new ResponseParseError(
       `Failed to parse social proof JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
+      response
+    );
+  }
+}
+
+// Phase 10: Generate Tech Stack Recommendations
+export async function generateTechStack(
+  input: ResearchInput,
+  insights: SynthesizedInsights,
+  tier: SubscriptionTier = 'ENTERPRISE'
+): Promise<TechStackData> {
+  const { ideaTitle, ideaDescription, interviewData } = input;
+
+  // Extract relevant interview data for tech stack inference
+  const solutionDescription = interviewData?.solution_description?.value || '';
+  const solutionFeatures = interviewData?.solution_key_features?.value || '';
+  const revenueModel = interviewData?.revenue_model?.value || '';
+  const pricingStrategy = interviewData?.pricing_strategy?.value || '';
+  const gtmChannels = interviewData?.gtm_channels?.value || '';
+
+  const prompt = `You are a senior technical architect advising startups on their technology stack. Analyze this business idea and provide detailed tech stack recommendations.
+
+BUSINESS IDEA: ${ideaTitle}
+${ideaDescription}
+
+SOLUTION DETAILS:
+- Description: ${solutionDescription}
+- Key Features: ${solutionFeatures}
+- Revenue Model: ${revenueModel}
+- Pricing: ${pricingStrategy}
+- GTM Channels: ${gtmChannels}
+
+MARKET CONTEXT:
+- Target Audience: ${insights.positioning.targetAudience}
+- Value Proposition: ${insights.positioning.uniqueValueProposition}
+- Competitors: ${insights.competitors.slice(0, 3).map(c => c.name).join(', ')}
+
+BUSINESS TYPE CLASSIFICATION:
+First, determine the business type from these categories:
+- "saas": Web apps, mobile apps, APIs, developer tools, B2B software
+- "ecommerce": Online stores, marketplaces, subscription boxes, D2C brands
+- "service": Consulting, agencies, freelance platforms, professional services
+- "content": Blogs, newsletters, podcasts, video platforms, media companies
+
+Return a comprehensive JSON object with tech stack recommendations:
+{
+  "businessType": "saas" | "ecommerce" | "service" | "content",
+  "businessTypeConfidence": "high" | "medium" | "low",
+  "businessTypeReasoning": "Brief explanation of why this business type was selected",
+
+  "layers": {
+    "frontend": [
+      {
+        "name": "Next.js",
+        "category": "Framework",
+        "purpose": "Full-stack React framework with SSR/SSG for fast loading and SEO",
+        "alternatives": ["Remix", "Nuxt.js", "SvelteKit"],
+        "complexity": "medium",
+        "monthlyEstimate": "$0",
+        "learnMoreUrl": "https://nextjs.org"
+      }
+    ],
+    "backend": [
+      {
+        "name": "Node.js + tRPC",
+        "category": "API Layer",
+        "purpose": "Type-safe API with end-to-end TypeScript",
+        "alternatives": ["Express", "Fastify", "NestJS"],
+        "complexity": "medium",
+        "monthlyEstimate": "$0"
+      }
+    ],
+    "database": [
+      {
+        "name": "PostgreSQL",
+        "category": "Primary Database",
+        "purpose": "Reliable relational database for structured data",
+        "alternatives": ["MySQL", "PlanetScale"],
+        "complexity": "medium",
+        "monthlyEstimate": "$0-25"
+      }
+    ],
+    "hosting": [
+      {
+        "name": "Vercel",
+        "category": "Frontend Hosting",
+        "purpose": "Optimized for Next.js with global CDN",
+        "alternatives": ["Netlify", "Cloudflare Pages"],
+        "complexity": "low",
+        "monthlyEstimate": "$0-20"
+      }
+    ],
+    "devops": [
+      {
+        "name": "GitHub Actions",
+        "category": "CI/CD",
+        "purpose": "Automated testing and deployment",
+        "alternatives": ["GitLab CI", "CircleCI"],
+        "complexity": "low",
+        "monthlyEstimate": "$0"
+      }
+    ],
+    "thirdParty": [
+      {
+        "name": "Stripe",
+        "category": "Payments",
+        "purpose": "Handle subscriptions and one-time payments",
+        "alternatives": ["Paddle", "LemonSqueezy"],
+        "complexity": "medium",
+        "monthlyEstimate": "2.9% + $0.30/txn"
+      }
+    ]
+  },
+
+  "estimatedMonthlyCost": {
+    "min": 0,
+    "max": 150,
+    "breakdown": [
+      { "category": "Hosting", "item": "Vercel Pro", "estimate": "$0-20" },
+      { "category": "Database", "item": "Supabase/Railway", "estimate": "$0-25" },
+      { "category": "Email", "item": "Resend/SendGrid", "estimate": "$0-20" },
+      { "category": "Monitoring", "item": "Sentry", "estimate": "$0-26" }
+    ]
+  },
+
+  "scalabilityNotes": "This stack scales horizontally. Start with free tiers, upgrade as you grow. Database is typically the first bottleneck - add read replicas when needed.",
+
+  "securityConsiderations": [
+    "Use environment variables for all secrets",
+    "Implement rate limiting on API endpoints",
+    "Set up HTTPS and secure headers",
+    "Regular dependency updates for security patches"
+  ],
+
+  "summary": "A concise 2-3 sentence summary of why this tech stack is ideal for this business."
+}
+
+IMPORTANT GUIDELINES:
+1. Tailor recommendations to the SPECIFIC business type and requirements
+2. For SaaS: Focus on scalability, authentication, real-time features
+3. For E-commerce: Focus on payments, inventory, shipping integrations
+4. For Service: Focus on booking, CRM, invoicing, client portals
+5. For Content: Focus on CMS, SEO, email marketing, analytics
+6. Include REALISTIC cost estimates (many tools have free tiers)
+7. Consider solo founder or small team capabilities
+8. Prioritize proven, well-documented technologies
+9. Include both open-source and paid options where relevant`;
+
+  // Get tier-based AI parameters
+  const aiParams = getAIParams('techStack', tier);
+
+  // Use Responses API with exponential backoff for transient errors
+  const response = await withExponentialBackoff(
+    () => openai.responses.create(
+      createResponsesParams({
+        model: REPORT_MODEL,
+        input: prompt,
+        response_format: { type: 'json_object' },
+        max_output_tokens: 20000, // Increased from 8000 - GPT-5.2 reasoning consumes significant tokens before content
+      }, aiParams)
+    ),
+    {
+      maxAttempts: 5,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[generateTechStack] Retry ${attempt}/5 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+      }
+    }
+  );
+
+  // Track token usage (fire-and-forget)
+  trackUsageFromResponse(response, {
+    functionName: 'generateTechStack',
+    model: REPORT_MODEL,
+  });
+
+  // Check for incomplete response (e.g., model ran out of tokens during reasoning)
+  const resp = response as unknown as Record<string, unknown>;
+  if (resp.status === 'incomplete') {
+    const details = resp.incomplete_details as Record<string, unknown> | undefined;
+    const reason = details?.reason || 'unknown';
+    throw new ResponseParseError(
+      `Failed to generate tech stack: response incomplete (reason: ${reason}). Model may have exhausted tokens during reasoning.`,
+      response
+    );
+  }
+
+  // Use unified content extractor (handles both output_text and output[] array formats)
+  const content = extractResponseContent(response);
+  if (!content) {
+    throw new ResponseParseError('Failed to generate tech stack: no content in response', response);
+  }
+
+  // Validate JSON completeness before parsing
+  validateJsonCompleteness(content, 'generateTechStack');
+
+  try {
+    return JSON.parse(content) as TechStackData;
+  } catch (parseError) {
+    throw new ResponseParseError(
+      `Failed to parse tech stack JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
       response
     );
   }
@@ -2957,10 +3979,12 @@ export interface ExistingResearchData {
   executionDifficulty?: BusinessMetrics['executionDifficulty'] | null;
   gtmClarity?: BusinessMetrics['gtmClarity'] | null;
   founderFit?: BusinessMetrics['founderFit'] | null;
+  marketSizing?: MarketSizingData | null; // TAM/SAM/SOM market sizing
   userStory?: UserStory | null;
   valueLadder?: OfferTier[] | null;
   actionPrompts?: ActionPrompt[] | null;
   keywordTrends?: KeywordTrend[] | null;
+  techStack?: TechStackData | null; // Tech stack recommendations
 }
 
 // Intermediate data that can be saved during pipeline execution for resume capability
@@ -2971,6 +3995,7 @@ export interface IntermediateResearchData {
   insights?: SynthesizedInsights;
   scores?: ResearchScores;
   metrics?: BusinessMetrics;
+  marketSizing?: MarketSizingData; // TAM/SAM/SOM market sizing
 }
 
 export async function runResearchPipeline(
@@ -2983,11 +4008,13 @@ export async function runResearchPipeline(
   insights: SynthesizedInsights;
   scores: ResearchScores;
   metrics: BusinessMetrics;
+  marketSizing: MarketSizingData;
   userStory: UserStory;
   keywordTrends: KeywordTrend[];
   valueLadder: OfferTier[];
   actionPrompts: ActionPrompt[];
   socialProof: SocialProof;
+  techStack: TechStackData; // Tech stack recommendations
   deepResearch?: DeepResearchOutput; // New: raw research data
 }> {
   console.log('[Research Pipeline] Starting NEW 4-phase pipeline for:', input.ideaTitle);
@@ -3071,8 +4098,9 @@ export async function runResearchPipeline(
   let insights: SynthesizedInsights;
   let scores: ResearchScores;
   let metrics: BusinessMetrics;
+  let marketSizing: MarketSizingData;
 
-  if (hasPhase3 && existingResearch?.synthesizedInsights && existingResearch?.opportunityScore != null && existingResearch?.scoreJustifications && existingResearch?.revenuePotential) {
+  if (hasPhase3 && existingResearch?.synthesizedInsights && existingResearch?.opportunityScore != null && existingResearch?.scoreJustifications && existingResearch?.revenuePotential && existingResearch?.marketSizing) {
     console.log('[Research Pipeline] === PHASE 3: SKIPPED (resuming from existing data) ===');
     insights = existingResearch.synthesizedInsights;
     scores = {
@@ -3089,6 +4117,7 @@ export async function runResearchPipeline(
       gtmClarity: existingResearch.gtmClarity || { rating: 'moderate' as const, channels: [], confidence: 0 },
       founderFit: existingResearch.founderFit || { percentage: 0, strengths: [], gaps: [] },
     };
+    marketSizing = existingResearch.marketSizing;
     await onProgress?.('SYNTHESIS', 80);
   } else {
     await onProgress?.('SYNTHESIS', 58);
@@ -3100,45 +4129,49 @@ export async function runResearchPipeline(
     await onProgress?.('SYNTHESIS', 65, { insights });
     console.log('[Research Pipeline] Insights extracted successfully');
 
-    // Step 2: Run scores and metrics in parallel with GPT-5.2 reasoning
-    console.log('[Research Pipeline] Calculating scores and metrics...');
-    [scores, metrics] = await Promise.all([
+    // Step 2: Run scores, metrics, and market sizing in parallel with GPT-5.2 reasoning
+    console.log('[Research Pipeline] Calculating scores, metrics, and market sizing...');
+    [scores, metrics, marketSizing] = await Promise.all([
       extractScores(deepResearch, input, insights, tier),
       extractBusinessMetrics(deepResearch, input, insights, { opportunityScore: 0, problemScore: 0, feasibilityScore: 0, whyNowScore: 0, justifications: {} as ResearchScores['justifications'], metadata: {} as ResearchScores['metadata'] }, tier),
+      extractMarketSizing(deepResearch, input, insights, tier),
     ]);
     // Pass all extraction results for immediate persistence (enables resume if Phase 4 fails)
-    await onProgress?.('SYNTHESIS', 80, { insights, scores, metrics });
-    console.log('[Research Pipeline] Scores and metrics calculated with GPT-5.2 reasoning');
+    await onProgress?.('SYNTHESIS', 80, { insights, scores, metrics, marketSizing });
+    console.log('[Research Pipeline] Scores, metrics, and market sizing calculated with GPT-5.2 reasoning');
   }
 
   // =========================================================================
   // PHASE 4: CREATIVE GENERATION (80-100%)
-  // Uses GPT-5.2 for user story, value ladder, action prompts
+  // Uses GPT-5.2 for user story, value ladder, action prompts, tech stack
   // =========================================================================
   let userStory: UserStory;
   let valueLadder: OfferTier[];
   let actionPrompts: ActionPrompt[];
   let keywordTrends: KeywordTrend[];
+  let techStack: TechStackData;
 
-  if (hasPhase4 && existingResearch?.userStory && existingResearch?.valueLadder && existingResearch?.actionPrompts) {
+  if (hasPhase4 && existingResearch?.userStory && existingResearch?.valueLadder && existingResearch?.actionPrompts && existingResearch?.techStack) {
     console.log('[Research Pipeline] === PHASE 4: SKIPPED (resuming from existing data) ===');
     userStory = existingResearch.userStory;
     valueLadder = existingResearch.valueLadder;
     actionPrompts = existingResearch.actionPrompts;
     keywordTrends = existingResearch.keywordTrends || [];
+    techStack = existingResearch.techStack;
     await onProgress?.('REPORT_GENERATION', 98);
   } else {
     await onProgress?.('REPORT_GENERATION', 85);
     console.log('[Research Pipeline] === PHASE 4: Creative Generation (GPT-5.2) ===');
 
     // Run creative generation in parallel
-    [userStory, valueLadder, actionPrompts] = await Promise.all([
+    [userStory, valueLadder, actionPrompts, techStack] = await Promise.all([
       generateUserStory(input, insights, tier),
       generateValueLadder(input, insights, metrics, tier),
       generateActionPrompts(input, insights, tier),
+      generateTechStack(input, insights, tier),
     ]);
     await onProgress?.('REPORT_GENERATION', 95);
-    console.log('[Research Pipeline] User story, value ladder, action prompts generated');
+    console.log('[Research Pipeline] User story, value ladder, action prompts, tech stack generated');
 
     // Keyword trends (uses SerpAPI for Google Trends - keep this separate)
     keywordTrends = await generateKeywordTrends(input, insights, tier);
@@ -3163,11 +4196,13 @@ export async function runResearchPipeline(
     insights,
     scores,
     metrics,
+    marketSizing,
     userStory,
     keywordTrends,
     valueLadder,
     actionPrompts,
     socialProof,
+    techStack,
     deepResearch, // Include raw research for debugging/display
   };
 }

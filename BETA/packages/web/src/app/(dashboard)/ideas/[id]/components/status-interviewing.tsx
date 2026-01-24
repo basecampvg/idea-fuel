@@ -13,7 +13,7 @@ import {
   Target,
   Microscope,
   Feather,
-  Zap,
+  Sparkles,
   Lock,
   FileText,
   BarChart3,
@@ -74,9 +74,9 @@ function getModeConfig(mode: string) {
       glowColor: 'shadow-[#4ecdc4]/20',
     };
   }
-  // LIGHTNING
+  // SPARK
   return {
-    Icon: Zap,
+    Icon: Sparkles,
     color: '#f59e0b',
     bgColor: 'bg-[#f59e0b]/20',
     borderColor: 'border-[#f59e0b]/30',

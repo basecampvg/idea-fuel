@@ -5,10 +5,23 @@ export type IdeaStatus = 'CAPTURED' | 'INTERVIEWING' | 'RESEARCHING' | 'COMPLETE
 export type InterviewStatus = 'IN_PROGRESS' | 'COMPLETE' | 'ABANDONED';
 
 // Interview modes - determines depth of discovery
-// LIGHTNING: No interview, AI generates from idea description only
+// SPARK: Quick validation - demand signals, TAM, keywords, Reddit/FB discovery
 // LIGHT: Quick discovery with essential questions
 // IN_DEPTH: Comprehensive discovery covering all 31 data points
-export type InterviewMode = 'LIGHTNING' | 'LIGHT' | 'IN_DEPTH';
+export type InterviewMode = 'SPARK' | 'LIGHT' | 'IN_DEPTH';
+
+// Spark job status for quick validation pipeline
+// Pipeline: QUEUED → RUNNING_KEYWORDS → RUNNING_PARALLEL (Call 2+3) → SYNTHESIZING → COMPLETE
+export type SparkJobStatus =
+  | 'QUEUED'
+  | 'RUNNING_KEYWORDS'
+  | 'RUNNING_RESEARCH'    // Legacy: single deep research call
+  | 'RUNNING_PARALLEL'    // New: Both demand + TAM calls running in parallel
+  | 'SYNTHESIZING'        // New: GPT-5.2 merging results
+  | 'ENRICHING'           // Legacy: kept for backward compatibility
+  | 'COMPLETE'
+  | 'FAILED'
+  | 'PARTIAL_COMPLETE';   // New: One call succeeded, one failed
 
 export type ResearchStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETE' | 'FAILED';
 
@@ -29,7 +42,7 @@ export type ReportType =
   | 'GO_TO_MARKET';
 
 // Report tiers - determined by subscription + interview mode blend
-// LIGHTNING mode → BASIC tier only (any subscription)
+// SPARK mode → BASIC tier only (any subscription) - quick validation
 // LIGHT mode + FREE subscription → BASIC tier
 // LIGHT mode + PRO/ENTERPRISE subscription → PRO tier
 // IN_DEPTH mode + FREE subscription → PRO tier
@@ -377,3 +390,208 @@ export type DetermineReportTier = (
   interviewMode: InterviewMode,
   subscriptionTier: SubscriptionTier
 ) => ReportTier;
+
+// =============================================================================
+// TAM/SAM/SOM Market Sizing Data
+// =============================================================================
+
+export interface MarketSizingData {
+  tam: MarketMetric;
+  sam: MarketMetric;
+  som: MarketMetric;
+  segments: MarketSegmentBreakdown[];
+  geographicBreakdown?: GeographicBreakdown[];
+  assumptions: MarketAssumption[];
+  sources: MarketSource[];
+  methodology: string;
+  lastUpdated: string; // ISO date
+}
+
+export interface MarketMetric {
+  value: number;           // Dollar value in millions
+  formattedValue: string;  // e.g., "$4.2B"
+  growthRate: number;      // CAGR percentage
+  confidence: 'high' | 'medium' | 'low';
+  timeframe: string;       // e.g., "2024-2028"
+}
+
+export interface MarketSegmentBreakdown {
+  name: string;
+  tamContribution: number;  // Percentage of TAM
+  samContribution: number;  // Percentage of SAM
+  somContribution: number;  // Percentage of SOM
+  description: string;
+}
+
+export interface GeographicBreakdown {
+  region: string;
+  percentage: number;
+  notes?: string;
+}
+
+export interface MarketAssumption {
+  level: 'tam' | 'sam' | 'som';
+  assumption: string;
+  impact: 'high' | 'medium' | 'low';
+}
+
+export interface MarketSource {
+  title: string;
+  url: string;
+  date?: string;
+  reliability: 'primary' | 'secondary' | 'estimate';
+}
+
+// =============================================================================
+// Tech Stack Recommendations
+// =============================================================================
+
+export type BusinessType = 'saas' | 'ecommerce' | 'service' | 'content';
+
+export interface TechStackData {
+  businessType: BusinessType;
+  businessTypeConfidence: 'high' | 'medium' | 'low';
+  businessTypeReasoning: string;
+
+  layers: {
+    frontend: TechRecommendation[];
+    backend: TechRecommendation[];
+    database: TechRecommendation[];
+    hosting: TechRecommendation[];
+    devops: TechRecommendation[];
+    thirdParty: TechRecommendation[];
+  };
+
+  estimatedMonthlyCost: {
+    min: number;
+    max: number;
+    breakdown: CostBreakdown[];
+  };
+
+  scalabilityNotes: string;
+  securityConsiderations: string[];
+  summary: string;
+}
+
+export interface TechRecommendation {
+  name: string;
+  category: string;
+  purpose: string;
+  alternatives: string[];
+  complexity: 'low' | 'medium' | 'high';
+  monthlyEstimate?: string;
+  learnMoreUrl?: string;
+}
+
+export interface CostBreakdown {
+  category: string;
+  item: string;
+  estimate: string;
+}
+
+// =============================================================================
+// Spark Quick Validation Types
+// =============================================================================
+
+// Keywords generated in Step A (gpt-4o-mini)
+export interface SparkKeywords {
+  phrases: string[];      // 6 keyword phrases
+  synonyms: string[];     // 10-20 synonym terms
+  query_plan: {
+    general_search: string[];
+    reddit_search: string[];
+    facebook_groups_search: string[];
+  };
+}
+
+// Evidence for trend signal
+export interface SparkTrendEvidence {
+  claim: string;
+  source_url: string;
+}
+
+// Reddit thread from search
+export interface SparkRedditThread {
+  title: string;
+  subreddit: string;
+  url: string;
+  signal: string;  // Demand signal description
+  // Enhanced fields (optional for backward compatibility)
+  upvotes?: number;
+  comments?: number;
+  posted?: string;  // e.g., "2 months ago"
+}
+
+// Reddit section of Spark result
+export interface SparkRedditData {
+  top_threads: SparkRedditThread[];
+  recurring_pains: string[];
+  willingness_to_pay_clues: string[];
+}
+
+// Facebook group from search
+export interface SparkFacebookGroup {
+  name: string;
+  members: string;  // e.g., "12.5K members"
+  privacy: 'public' | 'private' | 'unknown';
+  url: string;
+  fit_score: number;  // 0-3 topical alignment + size + activity
+  why_relevant?: string;  // Enhanced: explanation of why this group fits
+}
+
+// TAM estimate with assumptions
+export interface SparkTAM {
+  currency: string;  // "USD"
+  low: number;
+  base: number;
+  high: number;
+  method: string;  // "topdown+bottomup"
+  assumptions: string[];
+  citations: Array<{ label: string; url: string }>;
+}
+
+// Next experiment suggestion
+export interface SparkNextExperiment {
+  hypothesis: string;
+  test: string;
+  success_metric: string;
+  timebox: string;
+}
+
+// Keyword trend data from Google Trends (SerpAPI)
+export interface SparkKeywordTrend {
+  keyword: string;
+  volume: number;  // Average interest (0-100 normalized)
+  growth: 'rising' | 'stable' | 'declining';
+  trend: Array<{ date: string; value: number }>;  // Timeseries data
+}
+
+// Competitor from competitive landscape research
+export interface SparkCompetitor {
+  name: string;
+  description: string;
+  strengths: string[];
+  weaknesses: string[];
+  positioning: string;
+  website?: string;
+  pricing_model?: string;
+}
+
+// Full Spark result from Step B (o4-mini-deep-research)
+export interface SparkResult {
+  idea: string;
+  keywords: SparkKeywords;
+  trend_signal: {
+    direction: 'rising' | 'flat' | 'declining' | 'unknown';
+    evidence: SparkTrendEvidence[];
+  };
+  reddit: SparkRedditData;
+  facebook_groups: SparkFacebookGroup[];
+  tam: SparkTAM;
+  competitors?: SparkCompetitor[];  // Optional competitive landscape data
+  market_gaps?: string[];  // Market opportunities from competitor analysis
+  verdict: 'proceed' | 'watchlist' | 'drop';
+  summary?: string;  // AI-generated 2-4 sentence findings summary
+  next_experiment: SparkNextExperiment;
+  keyword_trends?: SparkKeywordTrend[];  // Optional Google Trends data
+}

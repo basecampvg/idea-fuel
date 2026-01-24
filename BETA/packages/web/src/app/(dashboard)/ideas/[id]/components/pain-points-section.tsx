@@ -12,6 +12,8 @@ export interface PainPoint {
 
 interface PainPointsSectionProps {
   painPoints?: PainPoint[] | null;
+  title?: string;
+  subtitle?: string;
 }
 
 function SeverityBadge({ severity }: { severity: string }) {
@@ -66,7 +68,7 @@ function PainPointCard({ painPoint }: { painPoint: PainPoint }) {
   );
 }
 
-export function PainPointsSection({ painPoints }: PainPointsSectionProps) {
+export function PainPointsSection({ painPoints, title = 'Pain Points', subtitle }: PainPointsSectionProps) {
   if (!painPoints || painPoints.length === 0) return null;
 
   // Sort by severity (high first)
@@ -75,12 +77,15 @@ export function PainPointsSection({ painPoints }: PainPointsSectionProps) {
     return (order[a.severity] ?? 3) - (order[b.severity] ?? 3);
   });
 
+  // Use provided subtitle or generate default
+  const displaySubtitle = subtitle || `${painPoints.length} problems identified`;
+
   return (
     <CollapsibleSection
       icon={<AlertCircle className="w-5 h-5 text-[#f59e0b]" />}
       iconBgColor="rgba(245, 158, 11, 0.2)"
-      title="Pain Points"
-      subtitle={`${painPoints.length} problems identified`}
+      title={title}
+      subtitle={displaySubtitle}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {sortedPainPoints.map((painPoint, i) => (
