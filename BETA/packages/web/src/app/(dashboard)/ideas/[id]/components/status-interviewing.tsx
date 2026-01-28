@@ -59,28 +59,28 @@ function getModeConfig(mode: string) {
   if (mode === 'IN_DEPTH') {
     return {
       Icon: Microscope,
-      color: '#e91e8c',
-      bgColor: 'bg-[#e91e8c]/20',
-      borderColor: 'border-[#e91e8c]/30',
-      glowColor: 'shadow-[#e91e8c]/20',
+      color: 'hsl(160, 84%, 44%)',
+      bgColor: 'bg-primary/20',
+      borderColor: 'border-primary/30',
+      glowColor: 'shadow-primary/20',
     };
   }
   if (mode === 'LIGHT') {
     return {
       Icon: Feather,
-      color: '#4ecdc4',
-      bgColor: 'bg-[#4ecdc4]/20',
-      borderColor: 'border-[#4ecdc4]/30',
-      glowColor: 'shadow-[#4ecdc4]/20',
+      color: 'hsl(160, 60%, 55%)',
+      bgColor: 'bg-primary/20',
+      borderColor: 'border-primary/30',
+      glowColor: 'shadow-primary/20',
     };
   }
   // SPARK
   return {
     Icon: Sparkles,
-    color: '#f59e0b',
-    bgColor: 'bg-[#f59e0b]/20',
-    borderColor: 'border-[#f59e0b]/30',
-    glowColor: 'shadow-[#f59e0b]/20',
+    color: 'hsl(160, 84%, 44%)',
+    bgColor: 'bg-primary/20',
+    borderColor: 'border-primary/30',
+    glowColor: 'shadow-primary/20',
   };
 }
 
@@ -139,7 +139,7 @@ export function StatusInterviewing({ idea }: StatusInterviewingProps) {
 
             {/* Turn counter badge */}
             <div className="text-right">
-              <div className="text-2xl font-bold text-foreground tabular-nums">
+              <div className="text-2xl font-semibold text-foreground tabular-nums">
                 {activeInterview.currentTurn}
                 <span className="text-muted-foreground text-lg">/{activeInterview.maxTurns}</span>
               </div>
@@ -213,8 +213,8 @@ export function StatusInterviewing({ idea }: StatusInterviewingProps) {
           className="w-full flex items-center justify-between p-5 text-left hover:bg-card/50 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#e91e8c]/20 flex items-center justify-center">
-              <Lightbulb className="w-5 h-5 text-[#e91e8c]" />
+            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+              <Lightbulb className="w-5 h-5 text-primary" />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-foreground">Your Idea</h3>
@@ -244,7 +244,7 @@ export function StatusInterviewing({ idea }: StatusInterviewingProps) {
       {/* Coming Next - Locked Features */}
       <div className="rounded-2xl bg-background border border-border p-5">
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-full bg-[#6a6a7a]/20 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
             <Lock className="w-4 h-4 text-muted-foreground" />
           </div>
           <div>
@@ -256,10 +256,10 @@ export function StatusInterviewing({ idea }: StatusInterviewingProps) {
         {/* Locked features preview */}
         <div className="grid grid-cols-2 gap-3">
           {[
-            { icon: BarChart3, label: 'Market Research', color: '#22c55e' },
-            { icon: Users, label: 'Competitor Analysis', color: '#4ecdc4' },
-            { icon: TrendingUp, label: 'Opportunity Scores', color: '#8b5cf6' },
-            { icon: FileText, label: 'Business Reports', color: '#f59e0b' },
+            { icon: BarChart3, label: 'Market Research', color: 'hsl(160, 84%, 44%)' },
+            { icon: Users, label: 'Competitor Analysis', color: 'hsl(160, 60%, 55%)' },
+            { icon: TrendingUp, label: 'Opportunity Scores', color: 'hsl(160, 50%, 60%)' },
+            { icon: FileText, label: 'Business Reports', color: 'hsl(160, 40%, 65%)' },
           ].map((feature) => (
             <div
               key={feature.label}

@@ -10,6 +10,7 @@ import {
   generateResumeContext,
 } from '../services/interview-ai';
 import { runResearchPipeline, type ResearchInput } from '../services/research-ai';
+import { logAuditAsync, formatResource } from '../lib/audit';
 
 export const interviewRouter = router({
   /**
@@ -129,6 +130,16 @@ export const interviewRouter = router({
       resumeMessage = INTERVIEW_RESUME_MESSAGES.medium;
     } else {
       resumeMessage = INTERVIEW_RESUME_MESSAGES.long;
+    }
+
+    // Audit log - resume interview (only if actually resuming)
+    if (canResume) {
+      logAuditAsync({
+        userId: ctx.userId,
+        action: 'INTERVIEW_RESUME',
+        resource: formatResource('interview', interview.id),
+        metadata: { ideaId: interview.ideaId, timeSinceLastActive },
+      });
     }
 
     return {
@@ -425,9 +436,10 @@ export const interviewRouter = router({
     // Calculate confidence score based on collected data
     const collectedData = (interview.collectedData as Record<string, unknown>) || {};
     const filledFields = Object.values(collectedData).filter((v) => v !== null && v !== undefined).length;
-    const confidenceScore = Math.min(100, Math.round((filledFields / 31) * 100));
+    const totalFields = 42; // Updated: 31 original + 11 new fields
+    const confidenceScore = Math.min(100, Math.round((filledFields / totalFields) * 100));
 
-    const summary = `Interview completed with ${interview.currentTurn} turns. ${filledFields}/31 data points collected.`;
+    const summary = `Interview completed with ${interview.currentTurn} turns. ${filledFields}/${totalFields} data points collected.`;
 
     const updatedInterview = await ctx.prisma.interview.update({
       where: { id: input.id },
@@ -436,6 +448,14 @@ export const interviewRouter = router({
         summary,
         confidenceScore,
       },
+    });
+
+    // Audit log - complete interview
+    logAuditAsync({
+      userId: ctx.userId,
+      action: 'INTERVIEW_COMPLETE',
+      resource: formatResource('interview', interview.id),
+      metadata: { ideaId: interview.ideaId, confidenceScore, turnsUsed: interview.currentTurn },
     });
 
     // Update idea status to researching
@@ -506,21 +526,25 @@ export const interviewRouter = router({
             whyNow: result.insights.whyNow as object,
             proofSignals: result.insights.proofSignals as object,
             keywords: result.insights.keywords as object,
-            opportunityScore: result.scores.opportunityScore,
-            problemScore: result.scores.problemScore,
-            feasibilityScore: result.scores.feasibilityScore,
-            whyNowScore: result.scores.whyNowScore,
-            scoreJustifications: result.scores.justifications as object,
-            scoreMetadata: result.scores.metadata as object,
-            revenuePotential: result.metrics.revenuePotential as object,
-            executionDifficulty: result.metrics.executionDifficulty as object,
-            gtmClarity: result.metrics.gtmClarity as object,
-            founderFit: result.metrics.founderFit as object,
+            ...(result.scores ? {
+              opportunityScore: result.scores.opportunityScore,
+              problemScore: result.scores.problemScore,
+              feasibilityScore: result.scores.feasibilityScore,
+              whyNowScore: result.scores.whyNowScore,
+              scoreJustifications: result.scores.justifications as object,
+              scoreMetadata: result.scores.metadata as object,
+            } : {}),
+            ...(result.metrics ? {
+              revenuePotential: result.metrics.revenuePotential as object,
+              executionDifficulty: result.metrics.executionDifficulty as object,
+              gtmClarity: result.metrics.gtmClarity as object,
+              founderFit: result.metrics.founderFit as object,
+            } : {}),
             // New fields from extended pipeline
-            userStory: result.userStory as object,
+            ...(result.userStory ? { userStory: result.userStory as object } : {}),
             keywordTrends: result.keywordTrends as object[],
-            valueLadder: result.valueLadder as object[],
-            actionPrompts: result.actionPrompts as object[],
+            ...(result.valueLadder ? { valueLadder: result.valueLadder as object[] } : {}),
+            ...(result.actionPrompts ? { actionPrompts: result.actionPrompts as object[] } : {}),
             socialProof: result.socialProof as object,
           },
         });
@@ -569,6 +593,14 @@ export const interviewRouter = router({
     const updatedInterview = await ctx.prisma.interview.update({
       where: { id: input.id },
       data: { status: 'ABANDONED' },
+    });
+
+    // Audit log - abandon interview
+    logAuditAsync({
+      userId: ctx.userId,
+      action: 'INTERVIEW_ABANDON',
+      resource: formatResource('interview', interview.id),
+      metadata: { ideaId: interview.ideaId, turnsCompleted: interview.currentTurn },
     });
 
     // Revert idea status to captured

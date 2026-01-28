@@ -9,13 +9,11 @@
 :root {
   /* ===== SHARED VARIABLES ===== */
 
-  /* Aurora Gradient */
-  --gradient-aurora: linear-gradient(135deg,
-    hsl(326, 80%, 55%) 0%,
-    hsl(280, 70%, 50%) 25%,
-    hsl(260, 60%, 45%) 50%,
-    hsl(200, 80%, 50%) 75%,
-    hsl(180, 70%, 45%) 100%);
+  /* Accent Gradient */
+  --gradient-accent: linear-gradient(135deg,
+    hsl(160, 84%, 44%) 0%,
+    hsl(160, 60%, 55%) 50%,
+    hsl(160, 40%, 65%) 100%);
 
   /* Radius */
   --radius: 0.625rem;
@@ -42,16 +40,16 @@ html.light {
   --popover: 0 0% 85%;
   --popover-foreground: 0 0% 10%;
 
-  /* Primary (Pink/Magenta) - for buttons and accents */
-  --primary: 326 80% 50%;
+  /* Primary (Mint Green) - for buttons and accents */
+  --primary: 160 84% 39%;
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary (Purple) */
-  --secondary: 260 60% 50%;
+  /* Secondary (Muted Mint) */
+  --secondary: 160 30% 25%;
   --secondary-foreground: 0 0% 100%;
 
-  /* Accent (Cyan) - links and highlights */
-  --accent: 200 80% 40%;
+  /* Accent (Light Mint) - links and highlights */
+  --accent: 160 60% 45%;
   --accent-foreground: 0 0% 100%;
 
   /* Muted */
@@ -61,7 +59,7 @@ html.light {
   /* Borders & Inputs - subtle, just a few shades lighter than background */
   --border: 0 0% 80%;
   --input: 0 0% 80%;
-  --ring: 326 80% 50%;
+  --ring: 160 84% 39%;
 
   /* Status Colors */
   --destructive: 0 84% 60%;
@@ -80,19 +78,17 @@ html.light {
   --score-whynow: 260 55% 50%;
 
   /* Chart Colors */
-  --chart-1: 326 75% 50%;
+  --chart-1: 160 84% 39%;
   --chart-2: 260 55% 50%;
   --chart-3: 200 75% 45%;
   --chart-4: 180 65% 40%;
   --chart-5: 45 90% 45%;
 
-  /* Aurora Gradient - lighter version */
-  --gradient-aurora: linear-gradient(135deg,
-    hsl(326, 75%, 60%) 0%,
-    hsl(280, 65%, 55%) 25%,
-    hsl(260, 55%, 50%) 50%,
-    hsl(200, 75%, 55%) 75%,
-    hsl(180, 65%, 50%) 100%);
+  /* Accent Gradient - lighter version */
+  --gradient-accent: linear-gradient(135deg,
+    hsl(160, 70%, 50%) 0%,
+    hsl(160, 50%, 60%) 50%,
+    hsl(160, 35%, 70%) 100%);
 }
 
 /* ===== BASE STYLES ===== */
@@ -111,120 +107,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ===== AURORA BACKGROUND ===== */
+/* ===== BACKGROUND ===== */
 
 .aurora-background {
   position: relative;
-  background: hsl(var(--background));
-  overflow: hidden;
-}
-
-.aurora-background::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Aurora gradient orbs */
-.aurora-orb-1 {
-  position: fixed;
-  width: 600px;
-  height: 600px;
-  top: -200px;
-  right: -100px;
-  background: radial-gradient(circle, hsl(326, 80%, 50%, 0.15) 0%, transparent 70%);
-  border-radius: 50%;
-  filter: blur(60px);
-  animation: aurora-float-1 25s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.aurora-orb-2 {
-  position: fixed;
-  width: 500px;
-  height: 500px;
-  top: 30%;
-  left: -150px;
-  background: radial-gradient(circle, hsl(260, 70%, 50%, 0.12) 0%, transparent 70%);
-  border-radius: 50%;
-  filter: blur(60px);
-  animation: aurora-float-2 30s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.aurora-orb-3 {
-  position: fixed;
-  width: 450px;
-  height: 450px;
-  bottom: -100px;
-  right: 20%;
-  background: radial-gradient(circle, hsl(200, 80%, 50%, 0.1) 0%, transparent 70%);
-  border-radius: 50%;
-  filter: blur(60px);
-  animation: aurora-float-3 20s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Light mode aurora - subtle on gray backgrounds */
-html.light .aurora-orb-1 {
-  background: radial-gradient(circle, hsl(326, 60%, 50%, 0.12) 0%, transparent 70%);
-}
-
-html.light .aurora-orb-2 {
-  background: radial-gradient(circle, hsl(260, 50%, 50%, 0.08) 0%, transparent 70%);
-}
-
-html.light .aurora-orb-3 {
-  background: radial-gradient(circle, hsl(200, 60%, 50%, 0.06) 0%, transparent 70%);
-}
-
-@keyframes aurora-float-1 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.6;
-  }
-  33% {
-    transform: translate(-50px, 80px) scale(1.1);
-    opacity: 0.8;
-  }
-  66% {
-    transform: translate(30px, -40px) scale(0.95);
-    opacity: 0.5;
-  }
-}
-
-@keyframes aurora-float-2 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.5;
-  }
-  50% {
-    transform: translate(80px, -60px) scale(1.15);
-    opacity: 0.7;
-  }
-}
-
-@keyframes aurora-float-3 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.4;
-  }
-  25% {
-    transform: translate(-40px, -30px) scale(1.05);
-    opacity: 0.6;
-  }
-  75% {
-    transform: translate(60px, 20px) scale(0.9);
-    opacity: 0.5;
-  }
+  background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(40 8% 12%) 100%);
+  min-height: 100vh;
 }
 
 /* Legacy gradient classes for backwards compatibility */
@@ -528,7 +416,7 @@ html.light .aurora-orb-3 {
 }
 
 .icon-circle-orange {
-  background: hsl(25 95% 53%);
+  background: hsl(var(--primary) / 0.5);
   color: white;
 }
 
@@ -592,8 +480,8 @@ html.light .aurora-orb-3 {
 }
 
 .score-value {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 600;
   color: hsl(var(--foreground));
   font-variant-numeric: tabular-nums;
 }
@@ -604,7 +492,7 @@ html.light .aurora-orb-3 {
 }
 
 .score-header {
-  font-size: 11px;
+  font-size: 12px;
   color: hsl(var(--muted-foreground) / 0.7);
   display: flex;
   align-items: center;
@@ -617,10 +505,10 @@ html.light .aurora-orb-3 {
   margin-top: 12px;
 }
 
-.score-underline-green { background: hsl(var(--score-opportunity)); }
-.score-underline-pink { background: hsl(var(--score-problem)); }
-.score-underline-teal { background: hsl(var(--score-feasibility)); }
-.score-underline-purple { background: hsl(var(--score-whynow)); }
+.score-underline-green { background: hsl(var(--primary)); }
+.score-underline-red { background: hsl(var(--primary) / 0.8); }
+.score-underline-teal { background: hsl(var(--primary) / 0.7); }
+.score-underline-purple { background: hsl(var(--primary) / 0.6); }
 
 /* ===== COLORED DOTS ===== */
 
@@ -699,29 +587,6 @@ html.light .aurora-orb-3 {
   margin-left: 2px;
 }
 
-/* Aurora animation for background gradient orbs */
-@keyframes aurora-shift {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  25% {
-    transform: translate(10%, -10%) scale(1.05);
-  }
-  50% {
-    transform: translate(-5%, 5%) scale(0.95);
-  }
-  75% {
-    transform: translate(-10%, -5%) scale(1.02);
-  }
-}
-
-.aurora-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.4;
-  animation: aurora-shift 20s ease-in-out infinite;
-}
 
 .stagger-1 { animation-delay: 50ms; }
 .stagger-2 { animation-delay: 100ms; }
@@ -732,7 +597,7 @@ html.light .aurora-orb-3 {
 /* ===== TEXT UTILITIES ===== */
 
 .text-gradient {
-  background: var(--gradient-aurora);
+  background: var(--gradient-accent);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -896,16 +761,16 @@ html.light .aurora-orb-3 {
   --popover: 40 8% 10%;
   --popover-foreground: 40 5% 90%;
 
-  /* Primary (Pink/Magenta) - Forge button, active states */
-  --primary: 326 80% 55%;
+  /* Primary (Mint Green) - Forge button, active states */
+  --primary: 160 84% 44%;
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary (Purple) - Score accents */
-  --secondary: 260 60% 55%;
+  /* Secondary (Muted Mint) */
+  --secondary: 160 30% 25%;
   --secondary-foreground: 0 0% 100%;
 
-  /* Accent (Cyan) - Links, report pills */
-  --accent: 180 70% 45%;
+  /* Accent (Light Mint) - Links, report pills */
+  --accent: 160 60% 55%;
   --accent-foreground: 0 0% 100%;
 
   /* Muted - Tertiary text */
@@ -915,7 +780,7 @@ html.light .aurora-orb-3 {
   /* Borders & Inputs - very subtle, barely visible separation */
   --border: 40 6% 8%;
   --input: 40 6% 12%;
-  --ring: 326 80% 55%;
+  --ring: 160 84% 44%;
 
   /* Status Colors */
   --destructive: 0 84% 60%;
@@ -929,12 +794,12 @@ html.light .aurora-orb-3 {
 
   /* Score Colors */
   --score-opportunity: 142 76% 36%;
-  --score-problem: 326 80% 65%;
+  --score-problem: 350 80% 60%;
   --score-feasibility: 180 70% 45%;
   --score-whynow: 260 60% 55%;
 
   /* Chart Colors */
-  --chart-1: 326 80% 55%;
+  --chart-1: 160 84% 44%;
   --chart-2: 260 60% 55%;
   --chart-3: 180 70% 45%;
   --chart-4: 142 76% 36%;
@@ -943,12 +808,12 @@ html.light .aurora-orb-3 {
   /* Sidebar */
   --sidebar: 40 8% 10%;
   --sidebar-foreground: 40 5% 90%;
-  --sidebar-primary: 326 80% 55%;
+  --sidebar-primary: 160 84% 44%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 40 6% 15%;
   --sidebar-accent-foreground: 40 5% 90%;
   --sidebar-border: 40 6% 8%;
-  --sidebar-ring: 326 80% 55%;
+  --sidebar-ring: 160 84% 44%;
 }
 
 @layer base {

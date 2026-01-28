@@ -11,7 +11,9 @@ import { StatusResearching } from './components/status-researching';
 import { StatusComplete } from './components/status-complete';
 import { SparkResults } from './components/spark-results';
 import { SparkProgress } from './components/spark-progress';
-import type { SparkResult } from '@forge/shared';
+import { NextStepPromotion } from './components/next-step-promotion';
+import type { SparkResult, InterviewMode } from '@forge/shared';
+import { getResearchJourneyState } from '@forge/shared';
 
 // Check if research is a Spark validation (has sparkStatus or sparkResult)
 function isSparkResearch(research: unknown): boolean {
@@ -55,10 +57,20 @@ export default function IdeaDetailPage({
     },
   });
 
+  const startInterview = trpc.idea.startInterview.useMutation({
+    onSuccess: () => {
+      router.push(`/ideas/${id}/interview`);
+    },
+  });
+
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this idea? This cannot be undone.')) {
       deleteIdea.mutate({ id });
     }
+  };
+
+  const handleStartMode = (mode: InterviewMode) => {
+    startInterview.mutate({ ideaId: id, mode });
   };
 
   const handleSparkComplete = () => {
@@ -83,6 +95,19 @@ export default function IdeaDetailPage({
   const sparkMode = isSparkResearch(idea.research);
   const sparkComplete = sparkMode && isSparkComplete(idea.research);
 
+  // Compute journey state for next step promotion
+  const activeInterview = idea.interviews?.find((i: { status: string }) => i.status === 'IN_PROGRESS');
+  const completedInterview = idea.interviews?.find((i: { status: string }) => i.status === 'COMPLETE');
+  const journeyState = getResearchJourneyState({
+    idea: { status: idea.status },
+    interview: completedInterview || activeInterview || null,
+    research: idea.research ? {
+      sparkStatus: (idea.research as { sparkStatus?: string }).sparkStatus as import('@forge/shared').SparkJobStatus | null,
+      sparkResult: (idea.research as { sparkResult?: unknown }).sparkResult,
+      status: (idea.research as { status: string }).status as import('@forge/shared').ResearchStatus,
+    } : null,
+  });
+
   return (
     <div className="w-full space-y-6 max-w-[1120px] mx-auto px-6 py-8">
       {/* Header */}
@@ -105,9 +130,17 @@ export default function IdeaDetailPage({
         <StatusResearching idea={idea} />
       )}
 
-      {/* Spark complete - show Spark results */}
+      {/* Spark complete - show Spark results with upgrade banner */}
       {idea.status === 'COMPLETE' && sparkComplete && idea.research && (
         <>
+          {/* Next Step Promotion Banner */}
+          <NextStepPromotion
+            ideaId={idea.id}
+            journeyState={journeyState}
+            onStartMode={handleStartMode}
+            isStarting={startInterview.isPending}
+          />
+
           <SparkResults
             result={(idea.research as unknown as { sparkResult: SparkResult }).sparkResult}
             ideaTitle={idea.title}

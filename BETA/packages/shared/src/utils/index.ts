@@ -1,5 +1,17 @@
 // Shared utility functions
 
+// Re-export research journey utilities
+export {
+  getResearchJourneyState,
+  getAvailableUpgrades,
+  willReplaceResearch,
+  getReplaceMessage,
+  MODE_CONFIG,
+  type JourneyState,
+  type ResearchStateInput,
+  type ModeConfig,
+} from './research-journey';
+
 /**
  * Format a date for display
  */

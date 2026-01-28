@@ -162,11 +162,11 @@ export function DownloadsSection({ ideaId, hasResearch = true, title = 'Download
   return (
     <div className="rounded-2xl bg-background border border-border p-5">
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-full bg-[#00d4ff]/20 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
           <FileText className="w-5 h-5 text-accent" />
         </div>
         <div>
-          <h2 className="text-base font-semibold text-foreground">{title}</h2>
+          <h2 className="text-sm font-semibold text-foreground">{title}</h2>
           {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
         </div>
       </div>

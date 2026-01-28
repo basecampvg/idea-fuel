@@ -22,8 +22,12 @@ import { CompetitorsSection, type Competitor } from './competitors-section';
 import { PainPointsSection, type PainPoint } from './pain-points-section';
 import { TechStackSection } from './tech-stack-section';
 import type { TechStackData } from '@forge/shared';
-import { ChevronRight, MessageSquare, Download, Share2, Trash2 } from 'lucide-react';
+import { ChevronRight, MessageSquare, Download, Share2, Trash2, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
 import { useDashboardConfig } from '@/hooks/use-dashboard-config';
+import { NextStepPromotion } from './next-step-promotion';
+import { BusinessPlanSection } from './business-plan-section';
+import { getResearchJourneyState, type InterviewMode } from '@forge/shared';
 
 interface Interview {
   id: string;
@@ -89,6 +93,7 @@ interface ScoreMetadata {
 }
 
 interface Research {
+  id: string;
   status: string;
   currentPhase: string;
   progress: number;
@@ -142,11 +147,46 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
   const reports = idea.reports || [];
   const research = idea.research;
 
+  const utils = trpc.useUtils();
+  const [backfillResult, setBackfillResult] = useState<{ backfilled: string[]; failed: string[]; message: string } | null>(null);
+
   const startInterview = trpc.idea.startInterview.useMutation({
     onSuccess: () => {
       router.push(`/ideas/${idea.id}/interview`);
     },
   });
+
+  const backfill = trpc.research.backfill.useMutation({
+    onSuccess: (data) => {
+      setBackfillResult(data);
+      utils.idea.get.invalidate({ id: idea.id });
+    },
+  });
+
+  // Detect missing research fields that can be backfilled
+  const hasMissingFields = research && research.status === 'COMPLETE' && (
+    !research.marketSizing || !research.techStack || !research.userStory ||
+    !research.valueLadder || !research.actionPrompts ||
+    research.opportunityScore == null || !research.revenuePotential
+  );
+
+  // Calculate journey state for next step promotion
+  const journeyState = getResearchJourneyState({
+    idea: { status: 'COMPLETE' }, // StatusComplete only renders when COMPLETE
+    interview: completedInterview ? {
+      mode: completedInterview.mode as InterviewMode,
+      status: completedInterview.status as 'IN_PROGRESS' | 'COMPLETE' | 'ABANDONED',
+    } : null,
+    research: research ? {
+      sparkStatus: null, // Not Spark mode if we're in StatusComplete
+      sparkResult: null,
+      status: research.status as 'PENDING' | 'IN_PROGRESS' | 'COMPLETE' | 'FAILED',
+    } : null,
+  });
+
+  const handleStartMode = (mode: InterviewMode) => {
+    startInterview.mutate({ ideaId: idea.id, mode });
+  };
 
   // Calculate research stats
   const researchStats = {
@@ -157,6 +197,16 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
 
   return (
     <div className="space-y-5">
+      {/* Next Step Promotion Banner (Light → Forge) */}
+      {journeyState === 'LIGHT_COMPLETE' && (
+        <NextStepPromotion
+          ideaId={idea.id}
+          journeyState={journeyState}
+          onStartMode={handleStartMode}
+          isStarting={startInterview.isPending}
+        />
+      )}
+
       {/* 1. User Story */}
       {panes.userStory.visible && (
         <UserStory
@@ -165,6 +215,11 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
           subtitle={panes.userStory.subtitle}
         />
       )}
+
+      {/* 1b. Business Plan */}
+      <BusinessPlanSection
+        businessPlan={research?.businessPlan as string | null | undefined}
+      />
 
       {/* 2. Downloads */}
       {panes.downloads.visible && (
@@ -310,7 +365,7 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
       {reports.length > 0 && (
         <div className="rounded-2xl bg-background border border-border p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-foreground">Your Reports</h2>
+            <h2 className="text-sm font-semibold text-foreground">Your Reports</h2>
             <Link
               href={`/ideas/${idea.id}/reports`}
               className="flex items-center gap-1 text-sm text-accent hover:opacity-80 transition-opacity"
@@ -327,13 +382,13 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
       {completedInterview && (
         <div className="rounded-2xl bg-background border border-border p-5">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-[#22c55e]/20 flex items-center justify-center">
-              <MessageSquare className="w-5 h-5 text-[#22c55e]" />
+            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+              <MessageSquare className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-foreground">Interview Summary</h2>
+              <h2 className="text-sm font-semibold text-foreground">Interview Summary</h2>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="px-2 py-0.5 rounded-full bg-[#22c55e]/20 text-[#22c55e] text-xs font-medium">
+                <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs font-medium">
                   {INTERVIEW_MODE_LABELS[completedInterview.mode] || completedInterview.mode}
                 </span>
                 <span>•</span>
@@ -362,7 +417,42 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
         </div>
       )}
 
-      {/* 16. Actions */}
+      {/* 16. Backfill missing data */}
+      {hasMissingFields && (
+        <div className="rounded-2xl bg-primary/5 border border-primary/20 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-foreground">Some analysis sections are incomplete</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {[
+                  !research.marketSizing && 'Market Sizing',
+                  !research.techStack && 'Tech Stack',
+                  !research.userStory && 'User Story',
+                  !research.valueLadder && 'Value Ladder',
+                  !research.actionPrompts && 'Action Prompts',
+                  research.opportunityScore == null && 'Scores',
+                  !research.revenuePotential && 'Business Metrics',
+                ].filter(Boolean).join(', ')} missing
+              </p>
+              {backfillResult && (
+                <p className={`text-xs mt-1 ${backfillResult.failed.length > 0 ? 'text-red-400' : 'text-primary'}`}>
+                  {backfillResult.message}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={() => research?.id && backfill.mutate({ researchId: research.id })}
+              disabled={backfill.isPending}
+              className="flex items-center gap-2 px-4 py-2 text-sm rounded-xl bg-primary/10 border border-primary/30 text-primary/50 hover:bg-primary/20 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${backfill.isPending ? 'animate-spin' : ''}`} />
+              {backfill.isPending ? 'Repairing...' : 'Repair Data'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 17. Actions */}
       <div className="rounded-2xl bg-background border border-border p-5">
         <div className="flex flex-wrap gap-3">
           <button
@@ -382,7 +472,7 @@ export function StatusComplete({ idea, onDelete, isDeleting }: StatusCompletePro
           <button
             onClick={onDelete}
             disabled={isDeleting}
-            className="flex items-center gap-2 px-4 py-2 text-sm rounded-xl border border-[#ef4444]/30 text-[#ef4444] hover:bg-[#ef4444]/10 transition-colors disabled:opacity-50 ml-auto"
+            className="flex items-center gap-2 px-4 py-2 text-sm rounded-xl border border-[#ef4444]/30 text-red-400 hover:bg-[#ef4444]/10 transition-colors disabled:opacity-50 ml-auto"
           >
             <Trash2 className="w-4 h-4" />
             {isDeleting ? 'Deleting...' : 'Delete Idea'}

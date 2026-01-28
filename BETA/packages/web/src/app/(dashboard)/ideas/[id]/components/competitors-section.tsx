@@ -34,13 +34,13 @@ function CompetitorCard({ competitor }: { competitor: Competitor }) {
         {competitor.strengths.length > 0 && (
           <div>
             <div className="flex items-center gap-1 mb-2">
-              <ThumbsUp className="w-3 h-3 text-[#22c55e]" />
+              <ThumbsUp className="w-3 h-3 text-primary" />
               <span className="text-xs text-muted-foreground">Strengths</span>
             </div>
             <ul className="space-y-1">
               {competitor.strengths.slice(0, 3).map((strength, i) => (
                 <li key={i} className="text-xs text-muted-foreground flex items-start gap-1">
-                  <span className="text-[#22c55e]">+</span>
+                  <span className="text-primary">+</span>
                   <span className="line-clamp-1">{strength}</span>
                 </li>
               ))}
@@ -78,7 +78,7 @@ export function CompetitorsSection({ competitors, title = 'Competitive Landscape
 
   return (
     <CollapsibleSection
-      icon={<Swords className="w-5 h-5 text-[#e91e8c]" />}
+      icon={<Swords className="w-5 h-5 text-primary" />}
       iconBgColor="rgba(233, 30, 140, 0.2)"
       title={title}
       subtitle={displaySubtitle}

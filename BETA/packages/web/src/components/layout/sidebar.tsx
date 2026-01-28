@@ -22,10 +22,10 @@ import {
 type IdeaStatus = 'CAPTURED' | 'INTERVIEWING' | 'RESEARCHING' | 'COMPLETE';
 
 const statusConfig: Record<IdeaStatus, { label: string; dotColor: string }> = {
-  CAPTURED: { label: 'Draft', dotColor: 'bg-zinc-400' },
-  INTERVIEWING: { label: 'Interview', dotColor: 'bg-amber-400' },
-  RESEARCHING: { label: 'Researching', dotColor: 'bg-blue-400' },
-  COMPLETE: { label: 'Ready', dotColor: 'bg-emerald-400' },
+  CAPTURED: { label: 'Draft', dotColor: 'bg-muted-foreground' },
+  INTERVIEWING: { label: 'Interview', dotColor: 'bg-primary/50' },
+  RESEARCHING: { label: 'Researching', dotColor: 'bg-primary/70' },
+  COMPLETE: { label: 'Ready', dotColor: 'bg-primary' },
 };
 
 // Forge flame logo - simplified
@@ -224,12 +224,12 @@ export function Sidebar() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="group relative flex h-10 w-10 items-center justify-center rounded-lg bg-[#e91e8c] text-white transition-all hover:bg-[#d11a7d] active:scale-95 shadow-[0_0_12px_rgba(233,30,140,0.3)]"
+                  className="group relative flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white transition-all hover:bg-primary/80 active:scale-95 shadow-[0_0_12px_hsl(var(--primary)/0.3)]"
                   title={item.name}
                 >
                   <Icon className="w-5 h-5" strokeWidth={2} />
                   {/* Tooltip */}
-                  <span className="absolute left-full ml-3 px-3 py-1.5 rounded-full bg-[#f5f0e8] dark:bg-[#2a2825] text-[#1a1a18] dark:text-[#e8e4dc] text-xs font-medium opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
+                  <span className="absolute left-full ml-3 px-3 py-1.5 rounded-full bg-card text-foreground text-xs font-medium opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
                     {item.name}
                   </span>
                 </Link>
@@ -258,7 +258,7 @@ export function Sidebar() {
                   )}
                   {/* Tooltip */}
                   {!libraryOpen && (
-                    <span className="absolute left-full ml-3 px-3 py-1.5 rounded-full bg-[#f5f0e8] dark:bg-[#2a2825] text-[#1a1a18] dark:text-[#e8e4dc] text-xs font-medium opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
+                    <span className="absolute left-full ml-3 px-3 py-1.5 rounded-full bg-card text-foreground text-xs font-medium opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
                       {item.name}
                     </span>
                   )}
@@ -285,7 +285,7 @@ export function Sidebar() {
                   <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-[var(--accent)]" />
                 )}
                 {/* Tooltip */}
-                <span className="absolute left-full ml-3 px-3 py-1.5 rounded-full bg-[#f5f0e8] dark:bg-[#2a2825] text-[#1a1a18] dark:text-[#e8e4dc] text-xs font-medium opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
+                <span className="absolute left-full ml-3 px-3 py-1.5 rounded-full bg-card text-foreground text-xs font-medium opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
                   {item.name}
                 </span>
               </Link>
@@ -298,7 +298,7 @@ export function Sidebar() {
           {/* Theme Toggle */}
           <div className="group relative flex h-10 w-10 items-center justify-center">
             <ThemeToggle />
-            <span className="absolute left-full ml-3 px-3 py-1.5 rounded-full bg-[#f5f0e8] dark:bg-[#2a2825] text-[#1a1a18] dark:text-[#e8e4dc] text-xs font-medium opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
+            <span className="absolute left-full ml-3 px-3 py-1.5 rounded-full bg-card text-foreground text-xs font-medium opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
               Theme
             </span>
           </div>
@@ -322,7 +322,7 @@ export function Sidebar() {
               >
                 <Icon className="w-5 h-5" strokeWidth={1.5} />
                 {/* Tooltip */}
-                <span className="absolute left-full ml-3 px-3 py-1.5 rounded-full bg-[#f5f0e8] dark:bg-[#2a2825] text-[#1a1a18] dark:text-[#e8e4dc] text-xs font-medium opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
+                <span className="absolute left-full ml-3 px-3 py-1.5 rounded-full bg-card text-foreground text-xs font-medium opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
                   {item.name}
                 </span>
               </Link>

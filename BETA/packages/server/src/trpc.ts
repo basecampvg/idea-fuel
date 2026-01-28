@@ -49,3 +49,41 @@ const isAuthenticated = middleware(async ({ ctx, next }) => {
  * Protected procedure - requires authentication
  */
 export const protectedProcedure = t.procedure.use(isAuthenticated);
+
+/**
+ * Middleware to check if user is an admin
+ */
+const isAdmin = middleware(async ({ ctx, next }) => {
+  if (!ctx.session?.user || !ctx.userId) {
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'You must be logged in to perform this action',
+    });
+  }
+
+  // Check if user is admin
+  const user = await ctx.prisma.user.findUnique({
+    where: { id: ctx.userId },
+    select: { isAdmin: true },
+  });
+
+  if (!user?.isAdmin) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Admin access required',
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
+      session: ctx.session,
+      userId: ctx.userId,
+    },
+  });
+});
+
+/**
+ * Admin procedure - requires authentication + admin role
+ */
+export const adminProcedure = t.procedure.use(isAdmin);

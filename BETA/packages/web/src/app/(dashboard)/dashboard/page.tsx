@@ -73,7 +73,7 @@ function TypewriterText({ words }: { words: string[] }) {
   }, []);
 
   return (
-    <span className="text-gradient font-bold">
+    <span className="text-gradient font-semibold">
       {displayText}
       <span className="typewriter-cursor">|</span>
     </span>
@@ -99,7 +99,7 @@ function QuestionDisplay({ question }: { question: string }) {
     <div className="space-y-4 max-w-2xl">
       {/* Context/intro lines */}
       {contextLines.length > 0 && (
-        <p className="text-lg text-foreground leading-relaxed">
+        <p className="text-sm text-foreground leading-relaxed">
           {contextLines.map((line, i) => {
             // Highlight text in bold markers
             const parts = line.split(/\*\*(.*?)\*\*/g);
@@ -120,10 +120,10 @@ function QuestionDisplay({ question }: { question: string }) {
       )}
 
       {/* Main question - highlighted */}
-      <p className="text-xl md:text-2xl font-medium leading-relaxed">
+      <p className="text-lg font-medium leading-relaxed">
         <span className="text-primary">{mainQuestion}</span>
         {example && (
-          <span className="text-muted-foreground text-lg"> {example}</span>
+          <span className="text-muted-foreground text-sm"> {example}</span>
         )}
       </p>
     </div>
@@ -456,7 +456,7 @@ export default function DashboardPage() {
                 placeholder="Type your response..."
                 rows={3}
                 className="
-                  w-full bg-transparent text-foreground text-base
+                  w-full bg-transparent text-foreground text-sm
                   placeholder:text-muted-foreground/60
                   resize-none border-0 focus:outline-none focus:ring-0
                   min-h-[80px] leading-relaxed
@@ -514,12 +514,12 @@ export default function DashboardPage() {
         <p className="text-muted-foreground text-sm font-medium tracking-widest uppercase mb-4">
           Welcome back, {firstName}
         </p>
-        <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-5 leading-[1.1]">
+        <h1 className="font-display text-2xl md:text-2xl font-semibold tracking-tight text-foreground mb-5 leading-[1.1]">
           What's your next
           <br />
           <TypewriterText words={typewriterWords} />
         </h1>
-        <p className="text-muted-foreground text-base md:text-lg max-w-md mx-auto leading-relaxed">
+        <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
           Transform ideas into comprehensive business intelligence.
         </p>
       </div>
@@ -594,7 +594,7 @@ export default function DashboardPage() {
                 onBlur={() => setIsFocused(false)}
                 placeholder="Describe your business idea in a few sentences..."
                 className="
-                  w-full bg-transparent text-foreground text-base md:text-lg
+                  w-full bg-transparent text-foreground text-sm
                   placeholder:text-muted-foreground/50
                   resize-none border-0 focus:outline-none focus:ring-0
                   min-h-[100px] leading-relaxed
@@ -618,10 +618,10 @@ export default function DashboardPage() {
 
                   // Mode-specific colors with transparency
                   const modeColors: Record<string, string> = {
-                    'IN_DEPTH': 'bg-pink-500/20 text-pink-400 ring-1 ring-pink-500/50',
-                    'LIGHT': 'bg-blue-500/20 text-blue-400 ring-1 ring-blue-500/50',
-                    'SPARK': 'bg-orange-500/20 text-orange-400 ring-1 ring-orange-500/50',
-                    'SAVE': 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/50',
+                    'IN_DEPTH': 'bg-primary/20 text-primary ring-1 ring-primary/50',
+                    'LIGHT': 'bg-primary/20 text-primary/70 ring-1 ring-primary/50',
+                    'SPARK': 'bg-primary/20 text-primary/50 ring-1 ring-primary/50',
+                    'SAVE': 'bg-primary/20 text-primary ring-1 ring-primary/50',
                   };
 
                   return (
@@ -641,7 +641,7 @@ export default function DashboardPage() {
                       >
                         {mode.icon}
                         {isLocked && (
-                          <Lock className="w-2.5 h-2.5 absolute -top-0.5 -right-0.5 text-pink-500" />
+                          <Lock className="w-2.5 h-2.5 absolute -top-0.5 -right-0.5 text-primary" />
                         )}
                       </button>
 
@@ -652,7 +652,7 @@ export default function DashboardPage() {
                             <div className="font-medium text-foreground text-xs flex items-center gap-1.5">
                               {mode.label}
                               {isLocked && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/20 text-primary">PRO</span>
+                                <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary/20 text-primary">PRO</span>
                               )}
                             </div>
                             <div className="text-xs text-muted-foreground mt-0.5">{mode.description}</div>

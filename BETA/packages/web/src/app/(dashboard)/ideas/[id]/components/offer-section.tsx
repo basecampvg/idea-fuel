@@ -42,10 +42,10 @@ const DEFAULT_TIERS: OfferTier[] = [
 
 // Number circle colors - tinted style (20% opacity background)
 const TIER_COLORS: Record<string, string> = {
-  lead_magnet: 'bg-[#e91e8c]/20 text-[#e91e8c]',
-  frontend: 'bg-[#4ecdc4]/20 text-[#4ecdc4]',
-  core: 'bg-[#8b5cf6]/20 text-[#8b5cf6]',
-  backend: 'bg-[#f97316]/20 text-[#f97316]',
+  lead_magnet: 'bg-primary/20 text-primary',
+  frontend: 'bg-primary/20 text-primary/60',
+  core: 'bg-primary/15 text-primary/50',
+  backend: 'bg-primary/10 text-primary/40',
 };
 
 function OfferTierCard({ tier, index }: { tier: OfferTier; index: number }) {
@@ -61,7 +61,7 @@ function OfferTierCard({ tier, index }: { tier: OfferTier; index: number }) {
       {/* Content */}
       <div className="flex-1 min-w-0">
         {/* Tier label */}
-        <p className="text-[10px] font-medium tracking-[0.1em] text-muted-foreground uppercase mb-1">
+        <p className="text-xs font-medium tracking-[0.1em] text-muted-foreground uppercase mb-1">
           {tier.label}
         </p>
 
@@ -103,7 +103,7 @@ export function OfferSection({ offerTiers: rawOfferTiers, title = 'Offer', subti
   return (
     <div className="rounded-2xl bg-background border border-border p-5">
       <div className="mb-5">
-        <h2 className="text-base font-semibold text-foreground">{title}</h2>
+        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
         {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
       </div>
 

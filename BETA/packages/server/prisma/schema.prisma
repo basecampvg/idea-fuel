@@ -19,6 +19,7 @@ model User {
   passwordHash  String?
   image         String?
   subscription  SubscriptionTier @default(FREE)
+  isAdmin       Boolean          @default(false)
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
@@ -27,6 +28,8 @@ model User {
   reports    Report[]
   accounts   Account[]
   sessions   Session[]
+  auditLogs  AuditLog[]
+  blogPosts  BlogPost[]
 }
 
 enum SubscriptionTier {
@@ -210,6 +213,9 @@ model Research {
   // Tech Stack Recommendations (computed during REPORT_GENERATION phase)
   techStack            Json?          // { businessType, layers, estimatedMonthlyCost, summary }
 
+  // Business Plan (comprehensive investor-ready narrative, generated in BUSINESS_PLAN_GENERATION phase)
+  businessPlan         String?        @db.Text
+
   // Spark mode fields (quick validation - 2-step pipeline)
   sparkStatus          SparkJobStatus? // Job status for Spark pipeline
   sparkKeywords        Json?          // { phrases[], synonyms[], query_plan }
@@ -234,11 +240,12 @@ model Research {
 }
 
 // Research pipeline phases
-// NEW 4-Phase Pipeline (5-10 min total with o3-deep-research):
+// 5-Phase Pipeline:
 // - DEEP_RESEARCH: o3-deep-research with web_search (0-40%)
-// - SYNTHESIS: GPT-5.2 structure extraction (40-70%)
-// - SOCIAL_RESEARCH: Domain-filtered social proof search (70-85%)
-// - REPORT_GENERATION: GPT-5.2 creative generation (85-100%)
+// - SYNTHESIS: GPT-5.2 structure extraction (40-65%)
+// - SOCIAL_RESEARCH: Domain-filtered social proof search (65-80%)
+// - REPORT_GENERATION: GPT-5.2 creative generation (80-90%)
+// - BUSINESS_PLAN_GENERATION: GPT-5.2 comprehensive business plan (90-100%)
 enum ResearchPhase {
   QUEUED              // Waiting to start
   // New 4-phase pipeline phases
@@ -246,6 +253,7 @@ enum ResearchPhase {
   SYNTHESIS           // GPT-5.2 extracts structured data (~1 min)
   SOCIAL_RESEARCH     // Domain-filtered social proof search (~1 min)
   REPORT_GENERATION   // GPT-5.2 generates creative content (~1 min)
+  BUSINESS_PLAN_GENERATION // GPT-5.2 writes comprehensive business plan (~2-3 min)
   COMPLETE            // All done
   // Legacy phases (kept for backward compatibility)
   QUERY_GENERATION    // [Deprecated] AI generates search queries
@@ -396,4 +404,223 @@ model TokenUsage {
   @@index([functionName])
   @@index([model])
   @@index([createdAt])
+}
+
+// =============================================================================
+// AUDIT LOGGING
+// =============================================================================
+
+// General audit log for user actions (access control, compliance)
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String   // e.g., "IDEA_CREATE", "REPORT_VIEW", "INTERVIEW_COMPLETE"
+  resource  String   // e.g., "idea:abc123", "report:xyz789"
+  metadata  Json?    // Additional context (IP, user agent, old/new values)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// =============================================================================
+// BLOG SYSTEM
+// =============================================================================
+
+enum BlogPostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model BlogPost {
+  id          String         @id @default(cuid())
+  slug        String         @unique
+  title       String
+  description String?        @db.Text
+  content     Json           // TipTap JSON format
+  coverImage  String?
+  status      BlogPostStatus @default(DRAFT)
+  publishedAt DateTime?
+  readingTime String?
+  wordCount   Int            @default(0)
+  tags        String[]
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([publishedAt])
+  @@index([authorId])
+}
+
+// =============================================================================
+// DAILY TREND PICK FEATURE
+// =============================================================================
+
+enum DailyRunStatus {
+  SUCCESS
+  PARTIAL
+  FAILED
+}
+
+enum DailyPickStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum AIClassificationTargetType {
+  QUERY
+  CLUSTER
+  WINNER_REPORT
+}
+
+// Daily job execution tracking
+model DailyRun {
+  id         String         @id @default(cuid())
+  dateLocal  String         // "YYYY-MM-DD" in America/Denver
+  startedAt  DateTime
+  finishedAt DateTime?
+  status     DailyRunStatus
+  metrics    Json?          // { candidatesFound, filtered, enriched, clustered, etc. }
+  logsRef    String?        // Optional reference to log storage
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  candidates QueryCandidate[]
+  clusters   Cluster[]
+
+  @@index([dateLocal])
+  @@index([status])
+}
+
+// Individual trending query candidate
+model QueryCandidate {
+  id              String   @id @default(cuid())
+  runId           String
+  query           String
+  normalizedQuery String
+  source          String   // "google_trends", "serpapi", etc.
+  discoveredAt    DateTime
+
+  // Intent filter results
+  filterPassed    Boolean  @default(false)
+  filterPassReason String? // "pattern_match" | "question_phrase" | "problem_phrase" | "fallback"
+  matchedPatterns Json?    // string[] of pattern IDs
+
+  createdAt DateTime @default(now())
+
+  run DailyRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@index([normalizedQuery])
+  @@index([filterPassed])
+}
+
+// Google Trends interest-over-time data (cached)
+model TrendSeries {
+  id        String   @id @default(cuid())
+  query     String
+  geo       String   // "US", "GB", etc.
+  timeframe String   // "90d", "12m", etc.
+  points    Json     // [{ ts: string, value: number }]
+  fetchedAt DateTime
+
+  createdAt DateTime @default(now())
+
+  @@index([query, geo, timeframe])
+  @@index([fetchedAt])
+}
+
+// Google SERP snapshot for purchase signals (cached)
+model SerpSnapshot {
+  id              String   @id @default(cuid())
+  query           String
+  geo             String
+  device          String   @default("desktop")
+
+  adsCount        Int
+  shoppingPresent Boolean
+  topStoriesPresent Boolean
+  topDomains      Json     // string[] top N domains
+  snippetsSample  Json     // [{ title, snippet, url? }]
+  rawFeatures     Json?    // Additional SERP features
+
+  fetchedAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([query, geo])
+  @@index([fetchedAt])
+}
+
+// Query cluster with scoring
+model Cluster {
+  id             String   @id @default(cuid())
+  runId          String
+  title          String
+  canonicalQuery String
+  memberQueries  Json     // string[]
+
+  // Scoring components
+  growthScore        Int
+  purchaseProofScore Int
+  painPointScore     Int
+  newsSpikeRisk      Float
+  combinedScore      Float
+  winnerReason       Json     // string[] explaining why this cluster scored well
+
+  // AI triage results
+  triageIntent     String?  // "problem" | "purchase" | "mixed" | "unclear"
+  triageConfidence Float?
+  triageCategory   String?
+
+  createdAt DateTime @default(now())
+
+  run        DailyRun    @relation(fields: [runId], references: [id], onDelete: Cascade)
+  dailyPicks DailyPick[]
+
+  @@index([runId])
+  @@index([canonicalQuery])
+  @@index([combinedScore])
+}
+
+// AI classification results storage
+model AIClassification {
+  id            String                    @id @default(cuid())
+  targetType    AIClassificationTargetType
+  targetId      String                    // ID of the target (QueryCandidate, Cluster, etc.)
+  model         String                    // "gpt-4o-mini", "gpt-5.2", etc.
+  schemaVersion String                    // Version of the schema used
+  payloadHash   String                    // SHA256 of input payload for deduplication
+  outputJson    Json                      // The AI's structured output
+
+  createdAt DateTime @default(now())
+
+  @@index([targetType, targetId])
+  @@index([payloadHash])
+}
+
+// Daily winner selection
+model DailyPick {
+  id              String          @id @default(cuid())
+  dateLocal       String          // "YYYY-MM-DD"
+  winnerClusterId String
+  revision        Int             @default(1)
+  status          DailyPickStatus @default(ACTIVE)
+  publishedAt     DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  winnerCluster Cluster @relation(fields: [winnerClusterId], references: [id], onDelete: Restrict)
+
+  @@index([dateLocal])
+  @@index([status])
 }

@@ -107,7 +107,7 @@ export function ReportGrid({ reports, ideaId, locked = false }: ReportGridProps)
                 <span className="text-xs font-medium text-muted-foreground line-clamp-2">
                   {REPORT_TYPE_LABELS[type] || type}
                 </span>
-                <span className="text-[10px] text-muted-foreground/60 mt-1">
+                <span className="text-xs text-muted-foreground/60 mt-1">
                   Not generated
                 </span>
               </div>
@@ -126,7 +126,7 @@ export function ReportGrid({ reports, ideaId, locked = false }: ReportGridProps)
                 <span className="text-xs font-medium text-foreground line-clamp-2">
                   {REPORT_TYPE_LABELS[type] || type}
                 </span>
-                <span className="text-[10px] text-info mt-1">Generating...</span>
+                <span className="text-xs text-info mt-1">Generating...</span>
               </div>
             </div>
           );
@@ -143,7 +143,7 @@ export function ReportGrid({ reports, ideaId, locked = false }: ReportGridProps)
                 <span className="text-xs font-medium text-foreground line-clamp-2">
                   {REPORT_TYPE_LABELS[type] || type}
                 </span>
-                <span className="text-[10px] text-destructive mt-1">Failed</span>
+                <span className="text-xs text-destructive mt-1">Failed</span>
               </div>
             </div>
           );
@@ -161,7 +161,7 @@ export function ReportGrid({ reports, ideaId, locked = false }: ReportGridProps)
               <span className="text-xs font-medium text-foreground group-hover:text-accent transition-colors line-clamp-2">
                 {REPORT_TYPE_LABELS[type] || type}
               </span>
-              <span className="text-[10px] text-muted-foreground mt-1">
+              <span className="text-xs text-muted-foreground mt-1">
                 {REPORT_TIER_LABELS[report.tier] || report.tier}
               </span>
             </div>

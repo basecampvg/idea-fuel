@@ -18,10 +18,10 @@ interface PainPointsSectionProps {
 
 function SeverityBadge({ severity }: { severity: string }) {
   const config = {
-    high: { bg: 'bg-[#ef4444]/10', text: 'text-[#ef4444]', border: 'border-[#ef4444]/20' },
-    medium: { bg: 'bg-[#f59e0b]/10', text: 'text-[#f59e0b]', border: 'border-[#f59e0b]/20' },
-    low: { bg: 'bg-[#22c55e]/10', text: 'text-[#22c55e]', border: 'border-[#22c55e]/20' },
-  }[severity] || { bg: 'bg-[#6a6a7a]/10', text: 'text-muted-foreground', border: 'border-[#6a6a7a]/20' };
+    high: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/20' },
+    medium: { bg: 'bg-primary/10', text: 'text-primary/50', border: 'border-primary/20' },
+    low: { bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20' },
+  }[severity] || { bg: 'bg-muted', text: 'text-muted-foreground', border: 'border-border' };
 
   return (
     <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${config.bg} ${config.text} border ${config.border}`}>
@@ -56,7 +56,7 @@ function PainPointCard({ painPoint }: { painPoint: PainPoint }) {
           <p className="text-xs text-muted-foreground mb-1">Solution Gaps</p>
           <ul className="space-y-1">
             {painPoint.gaps.map((gap, i) => (
-              <li key={i} className="text-xs text-[#f59e0b] flex items-start gap-1">
+              <li key={i} className="text-xs text-primary/50 flex items-start gap-1">
                 <span>&#8594;</span>
                 <span>{gap}</span>
               </li>
@@ -82,8 +82,8 @@ export function PainPointsSection({ painPoints, title = 'Pain Points', subtitle 
 
   return (
     <CollapsibleSection
-      icon={<AlertCircle className="w-5 h-5 text-[#f59e0b]" />}
-      iconBgColor="rgba(245, 158, 11, 0.2)"
+      icon={<AlertCircle className="w-5 h-5 text-primary/50" />}
+      iconBgColor="hsla(160, 84%, 44%, 0.2)"
       title={title}
       subtitle={displaySubtitle}
     >

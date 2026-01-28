@@ -4,17 +4,30 @@ import { router, protectedProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { RESEARCH_PHASE_PROGRESS, SPARK_STATUS_PROGRESS } from '@forge/shared';
 import type { ChatMessage, InterviewDataPoints, SparkJobStatus } from '@forge/shared';
+import { logAuditAsync, formatResource } from '../lib/audit';
 import {
   runResearchPipeline,
   classifyResearchError,
   logResearchError,
   SlaTracker,
+  extractInsights,
+  extractScores,
+  extractBusinessMetrics,
+  extractMarketSizing,
+  generateUserStory,
+  generateValueLadder,
+  generateActionPrompts,
+  generateTechStack,
   type ResearchInput,
   type ExistingResearchData,
   type IntermediateResearchData,
   type ChunkedResearchData,
   type ResearchError,
   type ResearchPhase,
+  type SynthesizedInsights,
+  type ResearchScores,
+  type BusinessMetrics,
+  type DeepResearchOutput,
 } from '../services/research-ai';
 import { runSparkPipeline } from '../services/spark-ai';
 
@@ -210,6 +223,14 @@ export const researchRouter = router({
       data: { status: 'RESEARCHING' },
     });
 
+    // Audit log - start research
+    logAuditAsync({
+      userId: ctx.userId,
+      action: 'RESEARCH_START',
+      resource: formatResource('research', research.id),
+      metadata: { ideaId: input.ideaId, isRetry: idea.research?.retryCount ? idea.research.retryCount > 0 : false },
+    });
+
     // Prepare research input
     const researchInput: ResearchInput = {
       ideaTitle: idea.title,
@@ -248,6 +269,7 @@ export const researchRouter = router({
       actionPrompts: idea.research.actionPrompts as ExistingResearchData['actionPrompts'],
       keywordTrends: idea.research.keywordTrends as ExistingResearchData['keywordTrends'],
       techStack: idea.research.techStack as ExistingResearchData['techStack'],
+      businessPlan: idea.research.businessPlan,
     } : undefined;
 
     // Run pipeline in background (non-blocking for MVP)
@@ -380,24 +402,33 @@ export const researchRouter = router({
             whyNow: result.insights.whyNow as object,
             proofSignals: result.insights.proofSignals as object,
             keywords: result.insights.keywords as object,
-            opportunityScore: result.scores.opportunityScore,
-            problemScore: result.scores.problemScore,
-            feasibilityScore: result.scores.feasibilityScore,
-            whyNowScore: result.scores.whyNowScore,
-            scoreJustifications: result.scores.justifications as object,
-            scoreMetadata: result.scores.metadata as object,
-            revenuePotential: result.metrics.revenuePotential as object,
-            executionDifficulty: result.metrics.executionDifficulty as object,
-            gtmClarity: result.metrics.gtmClarity as object,
-            founderFit: result.metrics.founderFit as object,
-            marketSizing: result.marketSizing as object,
-            // New fields from extended pipeline
-            userStory: result.userStory as object,
+            // Scores (nullable - may have failed independently)
+            ...(result.scores ? {
+              opportunityScore: result.scores.opportunityScore,
+              problemScore: result.scores.problemScore,
+              feasibilityScore: result.scores.feasibilityScore,
+              whyNowScore: result.scores.whyNowScore,
+              scoreJustifications: result.scores.justifications as object,
+              scoreMetadata: result.scores.metadata as object,
+            } : {}),
+            // Metrics (nullable)
+            ...(result.metrics ? {
+              revenuePotential: result.metrics.revenuePotential as object,
+              executionDifficulty: result.metrics.executionDifficulty as object,
+              gtmClarity: result.metrics.gtmClarity as object,
+              founderFit: result.metrics.founderFit as object,
+            } : {}),
+            // Market sizing (nullable)
+            ...(result.marketSizing ? { marketSizing: result.marketSizing as object } : {}),
+            // Creative generation fields (nullable)
+            ...(result.userStory ? { userStory: result.userStory as object } : {}),
             keywordTrends: result.keywordTrends as object[],
-            valueLadder: result.valueLadder as object[],
-            actionPrompts: result.actionPrompts as object[],
+            ...(result.valueLadder ? { valueLadder: result.valueLadder as object[] } : {}),
+            ...(result.actionPrompts ? { actionPrompts: result.actionPrompts as object[] } : {}),
             socialProof: result.socialProof as object,
-            techStack: result.techStack as object,
+            ...(result.techStack ? { techStack: result.techStack as object } : {}),
+            // Business plan (nullable - extensive markdown document)
+            ...(result.businessPlan ? { businessPlan: result.businessPlan } : {}),
             // Raw deep research output for resume capability
             rawDeepResearch: result.deepResearch as object,
           },
@@ -494,6 +525,14 @@ export const researchRouter = router({
         errorMessage: 'Research cancelled by user',
         errorPhase: research.currentPhase,
       },
+    });
+
+    // Audit log - cancel research
+    logAuditAsync({
+      userId: ctx.userId,
+      action: 'RESEARCH_CANCEL',
+      resource: formatResource('research', research.id),
+      metadata: { ideaId: research.ideaId, cancelledAtPhase: research.currentPhase },
     });
 
     return updatedResearch;
@@ -771,6 +810,14 @@ export const researchRouter = router({
         data: { status: 'RESEARCHING' },
       });
 
+      // Audit log - start Spark research
+      logAuditAsync({
+        userId: ctx.userId,
+        action: 'RESEARCH_START',
+        resource: formatResource('research', research.id),
+        metadata: { ideaId: input.ideaId, mode: 'SPARK' },
+      });
+
       // Run Spark pipeline asynchronously (fire and forget)
       (async () => {
         try {
@@ -941,5 +988,267 @@ export const researchRouter = router({
         isPartial: research.sparkStatus === 'PARTIAL_COMPLETE',
         isFailed: research.sparkStatus === 'FAILED',
       };
+    }),
+
+  /**
+   * Backfill missing fields on a COMPLETE research without re-running expensive Phase 1/2.
+   * Re-runs only the specific extraction functions whose data is null.
+   */
+  backfill: protectedProcedure
+    .input(z.object({ researchId: z.string().cuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const research = await ctx.prisma.research.findFirst({
+        where: { id: input.researchId },
+        include: {
+          idea: {
+            include: {
+              interviews: {
+                where: { status: 'COMPLETE' },
+                orderBy: { createdAt: 'desc' },
+                take: 1,
+              },
+            },
+          },
+        },
+      });
+
+      if (!research) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Research not found' });
+      }
+      if (research.idea.userId !== ctx.userId) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized' });
+      }
+      if (research.status !== 'COMPLETE') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Research must be COMPLETE to backfill. Use restart for failed research.' });
+      }
+
+      const rawDeepResearch = research.rawDeepResearch as unknown as DeepResearchOutput | null;
+      const hasRawResearch = !!rawDeepResearch?.rawReport;
+
+      // Reconstruct ResearchInput from idea
+      const idea = research.idea;
+      const interview = idea.interviews[0];
+      const researchInput: ResearchInput = {
+        ideaTitle: idea.title,
+        ideaDescription: idea.description || '',
+        interviewData: (interview?.collectedData as unknown as ResearchInput['interviewData']) ?? null,
+        interviewMessages: (interview?.messages as unknown as Array<{ role: string; content: string }>) ?? [],
+      };
+
+      // Get user tier
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: ctx.userId },
+        select: { subscription: true },
+      });
+      const userTier = user?.subscription ?? 'FREE';
+
+      // Determine what's missing
+      const missing: string[] = [];
+      if (!research.synthesizedInsights) missing.push('insights');
+      if (research.opportunityScore == null) missing.push('scores');
+      if (!research.revenuePotential) missing.push('metrics');
+      if (!research.marketSizing) missing.push('marketSizing');
+      if (!research.userStory) missing.push('userStory');
+      if (!research.valueLadder) missing.push('valueLadder');
+      if (!research.actionPrompts) missing.push('actionPrompts');
+      if (!research.techStack) missing.push('techStack');
+
+      if (missing.length === 0) {
+        return { backfilled: [], failed: [], skipped: [], message: 'All fields already populated.' };
+      }
+
+      console.log(`[Backfill] Starting for research ${input.researchId}. Missing: ${missing.join(', ')}`);
+
+      // Step 1: Ensure insights exist (dependency for Phase 4 functions)
+      let insights = research.synthesizedInsights as unknown as SynthesizedInsights | null;
+      if (!insights && hasRawResearch) {
+        try {
+          insights = await extractInsights(rawDeepResearch!, researchInput, userTier);
+          await ctx.prisma.research.update({
+            where: { id: input.researchId },
+            data: { synthesizedInsights: insights as object },
+          });
+          console.log('[Backfill] Extracted missing insights');
+        } catch (err) {
+          console.error('[Backfill] Failed to extract insights:', err instanceof Error ? err.message : err);
+          return { backfilled: [], failed: ['insights', ...missing.filter(m => m !== 'insights')], skipped: [], message: 'Cannot backfill: insights extraction failed (required dependency).' };
+        }
+      } else if (!insights) {
+        console.warn('[Backfill] No insights and no rawDeepResearch — cannot backfill any fields');
+        return { backfilled: [], failed: [], skipped: missing, message: 'Cannot backfill: no raw research data or insights available.' };
+      }
+
+      // Step 2: Build tasks for missing fields
+      const backfilled: string[] = [];
+      const failed: string[] = [];
+      const skipped: string[] = [];
+      if (!missing.includes('insights')) {
+        // Already had insights
+      } else {
+        backfilled.push('insights');
+      }
+
+      // Existing scores/metrics for dependencies
+      let scores = research.opportunityScore != null ? {
+        opportunityScore: research.opportunityScore!,
+        problemScore: research.problemScore!,
+        feasibilityScore: research.feasibilityScore!,
+        whyNowScore: research.whyNowScore!,
+        justifications: research.scoreJustifications as unknown as ResearchScores['justifications'],
+        metadata: (research.scoreMetadata || { passCount: 0, maxDeviation: 0, averageConfidence: 0, flagged: false }) as ResearchScores['metadata'],
+      } as ResearchScores : null;
+
+      let metrics = research.revenuePotential ? {
+        revenuePotential: research.revenuePotential,
+        executionDifficulty: research.executionDifficulty || { rating: 'moderate' as const, factors: [], soloFriendly: false },
+        gtmClarity: research.gtmClarity || { rating: 'moderate' as const, channels: [], confidence: 0 },
+        founderFit: research.founderFit || { percentage: 0, strengths: [], gaps: [] },
+      } as BusinessMetrics : null;
+
+      // Phase 3 backfills (require rawDeepResearch)
+      type BackfillTask = { name: string; run: () => Promise<void> };
+      const tasks: BackfillTask[] = [];
+      const needsRawResearch = ['scores', 'metrics', 'marketSizing'];
+      if (!hasRawResearch) {
+        const phase3Missing = missing.filter(m => needsRawResearch.includes(m));
+        if (phase3Missing.length > 0) {
+          skipped.push(...phase3Missing);
+          console.warn(`[Backfill] Skipping ${phase3Missing.join(', ')} — no rawDeepResearch available`);
+        }
+      }
+
+      if (missing.includes('scores') && hasRawResearch) {
+        tasks.push({
+          name: 'scores',
+          run: async () => {
+            scores = await extractScores(rawDeepResearch!, researchInput, insights!, userTier);
+            await ctx.prisma.research.update({
+              where: { id: input.researchId },
+              data: {
+                opportunityScore: scores.opportunityScore,
+                problemScore: scores.problemScore,
+                feasibilityScore: scores.feasibilityScore,
+                whyNowScore: scores.whyNowScore,
+                scoreJustifications: scores.justifications as object,
+                scoreMetadata: scores.metadata as object,
+              },
+            });
+          },
+        });
+      }
+
+      if (missing.includes('metrics') && hasRawResearch) {
+        tasks.push({
+          name: 'metrics',
+          run: async () => {
+            const placeholderScores = scores ?? {
+              opportunityScore: 0, problemScore: 0, feasibilityScore: 0, whyNowScore: 0,
+              justifications: {} as ResearchScores['justifications'],
+              metadata: {} as ResearchScores['metadata'],
+            };
+            metrics = await extractBusinessMetrics(rawDeepResearch!, researchInput, insights!, placeholderScores, userTier);
+            await ctx.prisma.research.update({
+              where: { id: input.researchId },
+              data: {
+                revenuePotential: metrics.revenuePotential as object,
+                executionDifficulty: metrics.executionDifficulty as object,
+                gtmClarity: metrics.gtmClarity as object,
+                founderFit: metrics.founderFit as object,
+              },
+            });
+          },
+        });
+      }
+
+      if (missing.includes('marketSizing') && hasRawResearch) {
+        tasks.push({
+          name: 'marketSizing',
+          run: async () => {
+            const ms = await extractMarketSizing(rawDeepResearch!, researchInput, insights!, userTier);
+            await ctx.prisma.research.update({
+              where: { id: input.researchId },
+              data: { marketSizing: ms as object },
+            });
+          },
+        });
+      }
+
+      // Phase 4 backfills
+      if (missing.includes('userStory')) {
+        tasks.push({
+          name: 'userStory',
+          run: async () => {
+            const us = await generateUserStory(researchInput, insights!, userTier);
+            await ctx.prisma.research.update({
+              where: { id: input.researchId },
+              data: { userStory: us as object },
+            });
+          },
+        });
+      }
+
+      if (missing.includes('valueLadder')) {
+        tasks.push({
+          name: 'valueLadder',
+          run: async () => {
+            const fallbackMetrics: BusinessMetrics = {
+              revenuePotential: { rating: 'medium' as const, estimate: 'Unknown', confidence: 0 },
+              executionDifficulty: { rating: 'moderate' as const, factors: [], soloFriendly: false },
+              gtmClarity: { rating: 'moderate' as const, channels: [], confidence: 0 },
+              founderFit: { percentage: 0, strengths: [], gaps: [] },
+            };
+            const vl = await generateValueLadder(researchInput, insights!, metrics ?? fallbackMetrics, userTier);
+            await ctx.prisma.research.update({
+              where: { id: input.researchId },
+              data: { valueLadder: vl as object[] },
+            });
+          },
+        });
+      }
+
+      if (missing.includes('actionPrompts')) {
+        tasks.push({
+          name: 'actionPrompts',
+          run: async () => {
+            const ap = await generateActionPrompts(researchInput, insights!, userTier);
+            await ctx.prisma.research.update({
+              where: { id: input.researchId },
+              data: { actionPrompts: ap as object[] },
+            });
+          },
+        });
+      }
+
+      if (missing.includes('techStack')) {
+        tasks.push({
+          name: 'techStack',
+          run: async () => {
+            const ts = await generateTechStack(researchInput, insights!, userTier);
+            await ctx.prisma.research.update({
+              where: { id: input.researchId },
+              data: { techStack: ts as object },
+            });
+          },
+        });
+      }
+
+      // Run all tasks in parallel with allSettled
+      const results = await Promise.allSettled(tasks.map(t => t.run()));
+      results.forEach((r, i) => {
+        if (r.status === 'fulfilled') {
+          backfilled.push(tasks[i].name);
+          console.log(`[Backfill] SUCCESS: ${tasks[i].name}`);
+        } else {
+          failed.push(tasks[i].name);
+          console.error(`[Backfill] FAILED: ${tasks[i].name}:`, r.reason instanceof Error ? r.reason.message : r.reason);
+        }
+      });
+
+      const message = failed.length === 0
+        ? `Successfully backfilled ${backfilled.length} field(s).`
+        : `Backfilled ${backfilled.length}, failed ${failed.length}: ${failed.join(', ')}`;
+      console.log(`[Backfill] Complete: ${message}`);
+
+      return { backfilled, failed, skipped, message };
     }),
 });

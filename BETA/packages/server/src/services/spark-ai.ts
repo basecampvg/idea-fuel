@@ -22,6 +22,12 @@ import {
   type ResponseStatus,
 } from '../lib/deep-research';
 import { trackUsageFromResponse } from '../lib/token-tracker';
+import {
+  extractResponseContent,
+  validateJsonCompleteness,
+  isolateJson,
+  ResponseParseError,
+} from './research-ai';
 import { runDemandResearch, type SparkDemandResult } from './spark-demand';
 import { runTamResearch, type SparkTamResult } from './spark-tam';
 import { runCompetitorResearch, type SparkCompetitorResult } from './spark-competitors';
@@ -301,28 +307,65 @@ ${competitorResult ? JSON.stringify(competitorResult, null, 2) : 'UNAVAILABLE - 
     model: SYNTHESIS_MODEL,
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const responseAny = response as any;
-  const content = responseAny.output_text || responseAny.output?.[0]?.content || '';
+  // Use unified content extractor (handles both output_text and output[] array formats)
+  const content = extractResponseContent(response);
 
   if (!content) {
-    throw new Error('Synthesis returned empty content');
+    throw new ResponseParseError('Synthesis returned empty content', response);
   }
 
+  console.log('[Spark] Synthesis response length:', content.length);
+
+  // Validate JSON completeness before parsing
   try {
-    const parsed = JSON.parse(content);
+    validateJsonCompleteness(content, 'synthesizeSparkResults');
+  } catch (truncationError) {
+    console.error('[Spark] Synthesis response appears truncated');
+    throw truncationError;
+  }
 
-    // Ensure keywords are preserved from input
-    const mergedKeywords = {
-      phrases: parsed.keywords?.phrases || keywords.phrases,
-      synonyms: parsed.keywords?.synonyms || keywords.synonyms,
-      query_plan: {
-        general_search: parsed.keywords?.query_plan?.general_search || keywords.query_plan.general_search,
-        reddit_search: parsed.keywords?.query_plan?.reddit_search || keywords.query_plan.reddit_search,
-        facebook_groups_search: parsed.keywords?.query_plan?.facebook_groups_search || keywords.query_plan.facebook_groups_search,
-      },
-    };
+  // Try direct parse first, then isolate JSON if needed (handles markdown code fences)
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(content);
+  } catch (directParseError) {
+    console.log('[Spark] Direct JSON parse failed, attempting isolation...');
+    const isolated = isolateJson(content);
+    if (!isolated) {
+      console.error('[Spark] Failed to isolate JSON from response:', content.slice(0, 500));
+      throw new ResponseParseError('Failed to parse synthesis response: could not isolate JSON', response);
+    }
+    try {
+      parsed = JSON.parse(isolated);
+      console.log('[Spark] Successfully parsed after JSON isolation');
+    } catch (isolatedParseError) {
+      console.error('[Spark] JSON parse failed after isolation:', isolatedParseError);
+      throw new ResponseParseError('Failed to parse synthesis response after isolation', response);
+    }
+  }
 
+  // Ensure keywords are preserved from input
+  const mergedKeywords = {
+    phrases: parsed.keywords && typeof parsed.keywords === 'object' && 'phrases' in parsed.keywords
+      ? (parsed.keywords as Record<string, unknown>).phrases as string[] || keywords.phrases
+      : keywords.phrases,
+    synonyms: parsed.keywords && typeof parsed.keywords === 'object' && 'synonyms' in parsed.keywords
+      ? (parsed.keywords as Record<string, unknown>).synonyms as string[] || keywords.synonyms
+      : keywords.synonyms,
+    query_plan: {
+      general_search: (parsed.keywords as Record<string, unknown>)?.query_plan
+        ? ((parsed.keywords as Record<string, unknown>).query_plan as Record<string, unknown>)?.general_search as string[] || keywords.query_plan.general_search
+        : keywords.query_plan.general_search,
+      reddit_search: (parsed.keywords as Record<string, unknown>)?.query_plan
+        ? ((parsed.keywords as Record<string, unknown>).query_plan as Record<string, unknown>)?.reddit_search as string[] || keywords.query_plan.reddit_search
+        : keywords.query_plan.reddit_search,
+      facebook_groups_search: (parsed.keywords as Record<string, unknown>)?.query_plan
+        ? ((parsed.keywords as Record<string, unknown>).query_plan as Record<string, unknown>)?.facebook_groups_search as string[] || keywords.query_plan.facebook_groups_search
+        : keywords.query_plan.facebook_groups_search,
+    },
+  };
+
+  try {
     // Validate with zod schema
     const validated = sparkResultSchema.parse({
       idea: parsed.idea || ideaDescription,
@@ -353,9 +396,9 @@ ${competitorResult ? JSON.stringify(competitorResult, null, 2) : 'UNAVAILABLE - 
 
     console.log('[Spark] Synthesis complete');
     return validated;
-  } catch (parseError) {
-    console.error('[Spark] Failed to parse synthesis response:', parseError);
-    throw new Error('Failed to parse synthesis response');
+  } catch (validationError) {
+    console.error('[Spark] Zod validation failed:', validationError);
+    throw new ResponseParseError('Failed to validate synthesis response schema', response);
   }
 }
 

@@ -102,7 +102,7 @@ export interface InterviewResumeState {
   resumeMessage: string; // AI greeting for resume
 }
 
-// 31 data points collected during interview
+// 42 data points collected during interview
 export interface InterviewDataPoints {
   // Core Idea
   idea_core: DataPoint;
@@ -115,11 +115,15 @@ export interface InterviewDataPoints {
   customer_hangouts: DataPoint;
   problem_statement: DataPoint;
   problem_severity: DataPoint;
+  problem_trigger: DataPoint;       // What triggers the problem / when it becomes urgent
+  problem_cost: DataPoint;          // Cost of the problem today (time, money, risk)
+  problem_frequency: DataPoint;     // How often the customer feels the pain
 
   // Solution
   solution_description: DataPoint;
   solution_key_features: DataPoint;
   solution_unique_mechanism: DataPoint;
+  solution_mvp: DataPoint;          // Smallest version that delivers core value
 
   // Competition
   competitors_direct: DataPoint;
@@ -131,12 +135,16 @@ export interface InterviewDataPoints {
   revenue_model: DataPoint;
   pricing_strategy: DataPoint;
   price_point: DataPoint;
+  value_metric: DataPoint;          // Per seat, usage, outcome, workflow
+  sales_motion: DataPoint;          // Self-serve, sales-led, product-led, partners
 
   // Go-to-Market
   gtm_channels: DataPoint;
   gtm_first_customers: DataPoint;
   marketing_strategy: DataPoint;
   target_search_terms: DataPoint;
+  beachhead_market: DataPoint;      // Precisely defined SAM / initial segment
+  market_wedge: DataPoint;          // Narrow entry point that expands later
 
   // Why Now / Market Timing
   why_now_triggers: DataPoint;
@@ -152,6 +160,11 @@ export interface InterviewDataPoints {
   funding_stage: DataPoint;
   existing_traction: DataPoint;
   validation_done: DataPoint;
+  key_assumptions: DataPoint;       // 3-5 assumptions that must be true
+
+  // Execution & Defensibility
+  execution_risks: DataPoint;       // Biggest risks in next 90 days
+  moat_formation: DataPoint;        // What prevents well-funded competitors from copying
 }
 
 export interface DataPoint {

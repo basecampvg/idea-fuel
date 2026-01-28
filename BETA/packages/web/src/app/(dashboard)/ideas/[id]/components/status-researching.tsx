@@ -236,8 +236,8 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
 
             {/* Resume info - show what will be skipped */}
             {canResume && (
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                <p className="text-sm text-emerald-400">
+              <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
+                <p className="text-sm text-primary">
                   <span className="font-medium">Good news!</span> Previous progress saved. Will resume from {resumeFromPhase}.
                 </p>
               </div>
@@ -247,7 +247,7 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
             <button
               onClick={() => restartResearch.mutate({ ideaId: idea.id })}
               disabled={restartResearch.isPending}
-              className="flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl font-medium text-white bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 transition-all disabled:opacity-50"
+              className="flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl font-medium text-white bg-gradient-to-r from-primary to-primary/70 hover:from-primary/90 hover:to-primary/60 transition-all disabled:opacity-50"
             >
               <PlayCircle className={`w-5 h-5 ${restartResearch.isPending ? 'animate-spin' : ''}`} />
               {restartResearch.isPending ? 'Starting...' : canResume ? 'Resume Research' : 'Restart Research'}
@@ -261,8 +261,8 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
       {!isFailed && (
       <div className="rounded-2xl bg-background border border-border p-6">
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-            <FlaskConical className="w-5 h-5 text-blue-400" />
+          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+            <FlaskConical className="w-5 h-5 text-primary/70" />
           </div>
           <h2 className="text-lg font-semibold text-foreground">Research in Progress</h2>
         </div>
@@ -270,7 +270,7 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
         <div className="space-y-5">
           {/* Current Phase */}
           <div>
-            <p className="text-base font-medium text-foreground">
+            <p className="text-sm font-medium text-foreground">
               {RESEARCH_PHASE_LABELS[research.currentPhase] || research.currentPhase}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
@@ -282,7 +282,7 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
           <div className="space-y-2">
             <div className="h-2 w-full overflow-hidden rounded-full bg-border">
               <div
-                className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                className="h-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-500 shadow-[0_0_10px_hsla(160,84%,44%,0.5)]"
                 style={{ width: `${research.progress}%` }}
               />
             </div>
@@ -308,9 +308,9 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
                   <div
                     className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
                       isCurrent
-                        ? 'bg-blue-500/10 border border-blue-500/30'
+                        ? 'bg-primary/10 border border-primary/30'
                         : isComplete
-                        ? 'bg-emerald-500/5 border border-transparent'
+                        ? 'bg-primary/5 border border-transparent'
                         : 'bg-card border border-transparent opacity-50'
                     }`}
                   >
@@ -318,18 +318,18 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
                     <div
                       className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
                         isComplete
-                          ? 'bg-emerald-500/20'
+                          ? 'bg-primary/20'
                           : isCurrent
-                          ? 'bg-blue-500/20'
+                          ? 'bg-primary/20'
                           : 'bg-muted'
                       }`}
                     >
                       {isComplete ? (
-                        <Check className="w-4 h-4 text-emerald-400" strokeWidth={3} />
+                        <Check className="w-4 h-4 text-primary" strokeWidth={3} />
                       ) : (
                         <Icon
                           className={`w-4 h-4 ${
-                            isCurrent ? 'text-blue-400' : 'text-muted-foreground/70'
+                            isCurrent ? 'text-primary/70' : 'text-muted-foreground/70'
                           }`}
                         />
                       )}
@@ -340,7 +340,7 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
                       <p
                         className={`text-sm font-medium ${
                           isComplete
-                            ? 'text-emerald-400'
+                            ? 'text-primary'
                             : isCurrent
                             ? 'text-foreground'
                             : 'text-muted-foreground'
@@ -349,9 +349,9 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
                         {config?.label || phase}
                       </p>
                       {isCurrent && !hasSubTasks && (
-                        <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-blue-500/20">
+                        <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-primary/20">
                           <div
-                            className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-300 animate-pulse"
+                            className="h-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-300 animate-pulse"
                             style={{ width: '60%' }}
                           />
                         </div>
@@ -362,9 +362,9 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
                     <span
                       className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${
                         isComplete
-                          ? 'bg-emerald-500/20 text-emerald-400'
+                          ? 'bg-primary/20 text-primary'
                           : isCurrent
-                          ? 'bg-blue-500/20 text-blue-400'
+                          ? 'bg-primary/20 text-primary/70'
                           : 'text-muted-foreground/70'
                       }`}
                     >
@@ -374,7 +374,7 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
 
                   {/* Sub-tasks for long-running phases */}
                   {hasSubTasks && (
-                    <div className="ml-11 pl-3 border-l-2 border-blue-500/20 space-y-1.5 py-2">
+                    <div className="ml-11 pl-3 border-l-2 border-primary/20 space-y-1.5 py-2">
                       {subTasks.map((subTask, subIndex) => {
                         const isSubComplete = subIndex < activeSubTask;
                         const isSubCurrent = subIndex === activeSubTask;
@@ -384,17 +384,17 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
                             key={subTask}
                             className={`flex items-center gap-2 text-xs transition-all duration-300 ${
                               isSubCurrent
-                                ? 'text-blue-400'
+                                ? 'text-primary/70'
                                 : isSubComplete
                                 ? 'text-muted-foreground'
                                 : 'text-muted-foreground/50'
                             }`}
                           >
                             {isSubComplete ? (
-                              <Check className="w-3 h-3 text-emerald-400" strokeWidth={3} />
+                              <Check className="w-3 h-3 text-primary" strokeWidth={3} />
                             ) : isSubCurrent ? (
                               <span className="w-3 h-3 flex items-center justify-center">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary/70 animate-pulse" />
                               </span>
                             ) : (
                               <span className="w-3 h-3 flex items-center justify-center">
@@ -426,7 +426,7 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
                 }
               }}
               disabled={resetResearch.isPending}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-primary/30 text-primary/50 hover:bg-primary/10 transition-colors disabled:opacity-50"
               title="Reset if research appears stuck"
             >
               <RotateCcw className={`w-3 h-3 ${resetResearch.isPending ? 'animate-spin' : ''}`} />
@@ -441,14 +441,14 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
       {completedInterview && (
         <div className="rounded-2xl bg-background border border-border p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5 text-primary" />
             </div>
             <h2 className="text-lg font-semibold text-foreground">Interview Complete</h2>
           </div>
 
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-medium">
+            <span className="px-2.5 py-1 rounded-full bg-primary/20 text-primary text-xs font-medium">
               {INTERVIEW_MODE_LABELS[completedInterview.mode] || completedInterview.mode}
             </span>
             <span>•</span>
@@ -478,7 +478,7 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
       {/* Locked Reports Grid */}
       <div className="rounded-2xl bg-background border border-border p-6">
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-full bg-[#00d4ff]/20 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
             <FileText className="w-5 h-5 text-accent" />
           </div>
           <h2 className="text-lg font-semibold text-foreground">Reports</h2>
@@ -493,7 +493,7 @@ export function StatusResearching({ idea }: StatusResearchingProps) {
             >
               <div className="flex flex-col items-center text-center">
                 <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mb-2">
-                  <Lock className="w-5 h-5 text-amber-500/60" />
+                  <Lock className="w-5 h-5 text-primary/50" />
                 </div>
                 <span className="text-xs font-medium text-muted-foreground line-clamp-2">
                   {REPORT_TYPE_LABELS[type] || type}

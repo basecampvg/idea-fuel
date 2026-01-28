@@ -185,6 +185,107 @@ export const adminRouter = router({
     }),
 
   // ==========================================================================
+  // USER AUDIT LOGS
+  // ==========================================================================
+
+  /**
+   * Get user action audit logs (access control, compliance)
+   */
+  userAuditLogs: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string().optional(),
+        action: z.string().optional(),
+        resource: z.string().optional(),
+        limit: z.number().min(1).max(200).default(50),
+        cursor: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const logs = await ctx.prisma.auditLog.findMany({
+        where: {
+          ...(input.userId && { userId: input.userId }),
+          ...(input.action && { action: input.action }),
+          ...(input.resource && { resource: { contains: input.resource } }),
+        },
+        take: input.limit + 1, // Fetch one extra to determine if there's more
+        ...(input.cursor && { cursor: { id: input.cursor }, skip: 1 }),
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      let nextCursor: string | undefined;
+      if (logs.length > input.limit) {
+        const nextItem = logs.pop();
+        nextCursor = nextItem?.id;
+      }
+
+      return {
+        items: logs,
+        nextCursor,
+      };
+    }),
+
+  /**
+   * Get audit log summary by action type
+   */
+  auditLogSummary: protectedProcedure
+    .input(
+      z.object({
+        days: z.number().min(1).max(90).default(7),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const since = new Date();
+      since.setDate(since.getDate() - input.days);
+      since.setHours(0, 0, 0, 0);
+
+      const byAction = await ctx.prisma.auditLog.groupBy({
+        by: ['action'],
+        where: { createdAt: { gte: since } },
+        _count: true,
+        orderBy: { _count: { action: 'desc' } },
+      });
+
+      const byUser = await ctx.prisma.auditLog.groupBy({
+        by: ['userId'],
+        where: { createdAt: { gte: since } },
+        _count: true,
+        orderBy: { _count: { userId: 'desc' } },
+        take: 10, // Top 10 most active users
+      });
+
+      // Get user details for the top users
+      const userIds = byUser.map((u) => u.userId);
+      const users = await ctx.prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true, email: true, name: true },
+      });
+      const userMap = new Map(users.map((u) => [u.id, u]));
+
+      return {
+        period: { days: input.days, since: since.toISOString() },
+        byAction: byAction.map((a) => ({
+          action: a.action,
+          count: a._count,
+        })),
+        byUser: byUser.map((u) => ({
+          userId: u.userId,
+          user: userMap.get(u.userId) ?? null,
+          count: u._count,
+        })),
+      };
+    }),
+
+  // ==========================================================================
   // TOKEN USAGE ANALYTICS
   // ==========================================================================
 

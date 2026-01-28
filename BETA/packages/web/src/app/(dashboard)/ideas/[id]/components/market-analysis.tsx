@@ -36,7 +36,7 @@ export function MarketAnalysis({ marketAnalysis, title = 'Market Analysis', subt
           </div>
           <div className="p-4 rounded-xl bg-card border border-border">
             <div className="flex items-center gap-2 mb-1">
-              <TrendingUp className="w-3 h-3 text-[#22c55e]" />
+              <TrendingUp className="w-3 h-3 text-primary" />
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Growth</p>
             </div>
             <p className="text-sm text-foreground">{marketAnalysis.growth}</p>
@@ -47,14 +47,14 @@ export function MarketAnalysis({ marketAnalysis, title = 'Market Analysis', subt
         {marketAnalysis.trends.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-4 h-4 text-[#8b5cf6]" />
+              <Sparkles className="w-4 h-4 text-accent" />
               <p className="text-sm font-medium text-foreground">Trends</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {marketAnalysis.trends.map((trend, i) => (
                 <span
                   key={i}
-                  className="px-3 py-1.5 text-xs rounded-full bg-[#8b5cf6]/10 text-[#8b5cf6] border border-[#8b5cf6]/20"
+                  className="px-3 py-1.5 text-xs rounded-full bg-accent/10 text-accent border border-accent/20"
                 >
                   {trend}
                 </span>
@@ -69,13 +69,13 @@ export function MarketAnalysis({ marketAnalysis, title = 'Market Analysis', subt
           {marketAnalysis.opportunities.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <Target className="w-4 h-4 text-[#22c55e]" />
+                <Target className="w-4 h-4 text-primary" />
                 <p className="text-sm font-medium text-foreground">Opportunities</p>
               </div>
               <ul className="space-y-2">
                 {marketAnalysis.opportunities.map((opp, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <span className="text-[#22c55e] mt-1">+</span>
+                    <span className="text-primary mt-1">+</span>
                     <span>{opp}</span>
                   </li>
                 ))}
@@ -87,13 +87,13 @@ export function MarketAnalysis({ marketAnalysis, title = 'Market Analysis', subt
           {marketAnalysis.threats.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <AlertTriangle className="w-4 h-4 text-[#f59e0b]" />
+                <AlertTriangle className="w-4 h-4 text-primary/50" />
                 <p className="text-sm font-medium text-foreground">Threats</p>
               </div>
               <ul className="space-y-2">
                 {marketAnalysis.threats.map((threat, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <span className="text-[#f59e0b] mt-1">!</span>
+                    <span className="text-primary/50 mt-1">!</span>
                     <span>{threat}</span>
                   </li>
                 ))}

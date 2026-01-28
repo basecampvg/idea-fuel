@@ -35,8 +35,8 @@ function getStatusConfig(status: string | null) {
     case 'RUNNING_KEYWORDS':
       return {
         Icon: Search,
-        color: 'text-blue-500',
-        bgColor: 'bg-blue-500/10',
+        color: 'text-primary/70',
+        bgColor: 'bg-primary/10',
         animate: true,
       };
     case 'RUNNING_RESEARCH':
@@ -49,8 +49,8 @@ function getStatusConfig(status: string | null) {
     case 'COMPLETE':
       return {
         Icon: CheckCircle2,
-        color: 'text-green-500',
-        bgColor: 'bg-green-500/10',
+        color: 'text-primary',
+        bgColor: 'bg-primary/10',
         animate: false,
       };
     case 'FAILED':
@@ -133,7 +133,7 @@ export function SparkProgress({ jobId, onComplete, onError }: SparkProgressProps
     return (
       <div className="rounded-2xl bg-background border border-border p-6">
         <div className="flex items-center justify-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary/50" />
         </div>
       </div>
     );
@@ -161,8 +161,8 @@ export function SparkProgress({ jobId, onComplete, onError }: SparkProgressProps
     <div className="rounded-2xl bg-background border border-border p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
-          <Sparkles className="w-5 h-5 text-amber-400" />
+        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+          <Sparkles className="w-5 h-5 text-primary/50" />
         </div>
         <div>
           <h2 className="text-lg font-semibold text-foreground">
@@ -178,7 +178,7 @@ export function SparkProgress({ jobId, onComplete, onError }: SparkProgressProps
       <div className="space-y-2">
         <div className="h-2 w-full overflow-hidden rounded-full bg-border">
           <div
-            className="h-full bg-gradient-to-r from-amber-500 to-orange-400 transition-all duration-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"
+            className="h-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-500 shadow-[0_0_10px_hsla(160,84%,44%,0.5)]"
             style={{ width: `${data?.progress ?? 0}%` }}
           />
         </div>
@@ -203,9 +203,9 @@ export function SparkProgress({ jobId, onComplete, onError }: SparkProgressProps
               key={step.status}
               className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
                 isActive
-                  ? 'bg-amber-500/10 border border-amber-500/30'
+                  ? 'bg-primary/10 border border-primary/30'
                   : isComplete
-                  ? 'bg-green-500/5'
+                  ? 'bg-primary/5'
                   : isFailed
                   ? 'bg-red-500/10 border border-red-500/30'
                   : 'bg-muted/30'
@@ -214,9 +214,9 @@ export function SparkProgress({ jobId, onComplete, onError }: SparkProgressProps
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center ${
                   isComplete
-                    ? 'bg-green-500/20 text-green-500'
+                    ? 'bg-primary/20 text-primary'
                     : isActive
-                    ? 'bg-amber-500/20 text-amber-500'
+                    ? 'bg-primary/20 text-primary/50'
                     : isFailed
                     ? 'bg-red-500/20 text-red-500'
                     : 'bg-muted text-muted-foreground'
@@ -240,10 +240,10 @@ export function SparkProgress({ jobId, onComplete, onError }: SparkProgressProps
                 {step.label}
               </span>
               {isActive && (
-                <span className="ml-auto text-xs text-amber-500 font-medium">In Progress</span>
+                <span className="ml-auto text-xs text-primary/50 font-medium">In Progress</span>
               )}
               {isComplete && (
-                <span className="ml-auto text-xs text-green-500 font-medium">Done</span>
+                <span className="ml-auto text-xs text-primary font-medium">Done</span>
               )}
             </div>
           );
@@ -265,10 +265,10 @@ export function SparkProgress({ jobId, onComplete, onError }: SparkProgressProps
 
       {/* Completion Message */}
       {data?.isComplete && (
-        <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
+        <div className="p-4 bg-primary/10 border border-primary/30 rounded-xl">
           <div className="flex items-center gap-3">
-            <CheckCircle2 className="h-5 w-5 text-green-500" />
-            <p className="font-medium text-green-500">Validation Complete!</p>
+            <CheckCircle2 className="h-5 w-5 text-primary" />
+            <p className="font-medium text-primary">Validation Complete!</p>
           </div>
         </div>
       )}

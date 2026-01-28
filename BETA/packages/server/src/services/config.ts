@@ -128,7 +128,7 @@ export const DEFAULT_CONFIGS: ConfigDefinition[] = [
   },
   {
     key: 'interview.maxTurns.inDepth',
-    value: 65,
+    value: 18,
     type: 'NUMBER',
     category: 'interview',
     label: 'Max Turns (In-Depth)',

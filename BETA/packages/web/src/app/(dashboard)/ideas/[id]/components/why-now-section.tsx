@@ -17,9 +17,9 @@ interface WhyNowSectionProps {
 
 function UrgencyMeter({ score }: { score: number }) {
   const getColor = () => {
-    if (score >= 75) return '#22c55e';
-    if (score >= 50) return '#f59e0b';
-    return '#ef4444';
+    if (score >= 75) return 'hsl(160, 84%, 44%)';
+    if (score >= 50) return 'hsl(160, 50%, 60%)';
+    return 'hsl(0, 84%, 60%)';
   };
 
   const getLabel = () => {
@@ -51,8 +51,8 @@ export function WhyNowSection({ whyNow, title = 'Why Now?', subtitle }: WhyNowSe
 
   return (
     <CollapsibleSection
-      icon={<Zap className="w-5 h-5 text-[#f59e0b]" />}
-      iconBgColor="rgba(245, 158, 11, 0.2)"
+      icon={<Zap className="w-5 h-5 text-primary/50" />}
+      iconBgColor="hsla(160, 84%, 44%, 0.2)"
       title={title}
       subtitle={subtitle}
     >
@@ -67,13 +67,13 @@ export function WhyNowSection({ whyNow, title = 'Why Now?', subtitle }: WhyNowSe
         {whyNow.marketTriggers.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="w-4 h-4 text-[#e91e8c]" />
+              <TrendingUp className="w-4 h-4 text-primary" />
               <p className="text-sm font-medium text-foreground">Market Triggers</p>
             </div>
             <ul className="space-y-2">
               {whyNow.marketTriggers.map((trigger, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <span className="text-[#e91e8c] mt-0.5">&#8594;</span>
+                  <span className="text-primary mt-0.5">&#8594;</span>
                   <span>{trigger}</span>
                 </li>
               ))}
@@ -85,13 +85,13 @@ export function WhyNowSection({ whyNow, title = 'Why Now?', subtitle }: WhyNowSe
         {whyNow.timingFactors.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Clock className="w-4 h-4 text-[#4ecdc4]" />
+              <Clock className="w-4 h-4 text-primary/60" />
               <p className="text-sm font-medium text-foreground">Timing Factors</p>
             </div>
             <ul className="space-y-2">
               {whyNow.timingFactors.map((factor, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <span className="text-[#4ecdc4] mt-0.5">&#9679;</span>
+                  <span className="text-primary/60 mt-0.5">&#9679;</span>
                   <span>{factor}</span>
                 </li>
               ))}

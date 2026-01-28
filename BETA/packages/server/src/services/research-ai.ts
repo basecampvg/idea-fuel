@@ -660,7 +660,7 @@ function sleep(ms: number): Promise<void> {
  * @param response - The raw API response object
  * @returns The extracted text content, or null if not found
  */
-function extractResponseContent(response: unknown): string | null {
+export function extractResponseContent(response: unknown): string | null {
   if (!response || typeof response !== 'object') {
     console.warn('[extractResponseContent] Response is null or not an object');
     return null;
@@ -842,7 +842,7 @@ function parseResponsesAPIPayload(response: unknown): ParsedResponsePayload {
  * @param text - Raw text that may contain JSON
  * @returns Isolated JSON string or null if no valid JSON object found
  */
-function isolateJson(text: string): string | null {
+export function isolateJson(text: string): string | null {
   // Strip common markdown wrappers first
   let cleaned = text.trim();
 
@@ -906,7 +906,7 @@ function isolateJson(text: string): string | null {
 /**
  * Result type for safe JSON parsing
  */
-type SafeJsonResult<T> =
+export type SafeJsonResult<T> =
   | { ok: true; data: T; isolated: boolean }
   | { ok: false; reason: string };
 
@@ -917,7 +917,7 @@ type SafeJsonResult<T> =
  * @param text - Text to parse as JSON
  * @returns Parsed object or error reason
  */
-function safeJsonParse<T>(text: string): SafeJsonResult<T> {
+export function safeJsonParse<T>(text: string): SafeJsonResult<T> {
   // First try direct parse
   try {
     const data = JSON.parse(text) as T;
@@ -943,7 +943,7 @@ function safeJsonParse<T>(text: string): SafeJsonResult<T> {
  * Checks that the content ends with a closing brace or bracket.
  * Throws ResponseParseError if truncation is detected.
  */
-function validateJsonCompleteness(content: string, context: string): void {
+export function validateJsonCompleteness(content: string, context: string): void {
   const trimmed = content.trim();
   if (!trimmed.endsWith('}') && !trimmed.endsWith(']')) {
     const lastChars = trimmed.slice(-100);
@@ -3985,6 +3985,210 @@ export interface ExistingResearchData {
   actionPrompts?: ActionPrompt[] | null;
   keywordTrends?: KeywordTrend[] | null;
   techStack?: TechStackData | null; // Tech stack recommendations
+  businessPlan?: string | null;
+}
+
+// =============================================================================
+// PHASE 5: COMPREHENSIVE BUSINESS PLAN GENERATION
+// Uses GPT-5.2 with xhigh reasoning + xhigh verbosity to write an extensive
+// investor-ready business plan in markdown format from all research data.
+// =============================================================================
+
+export async function generateBusinessPlan(
+  input: ResearchInput,
+  insights: SynthesizedInsights,
+  scores: ResearchScores | null,
+  metrics: BusinessMetrics | null,
+  marketSizing: MarketSizingData | null,
+  socialProof: SocialProof | null,
+  userStory: UserStory | null,
+  valueLadder: OfferTier[] | null,
+  techStack: TechStackData | null,
+  deepResearch: DeepResearchOutput | null,
+  tier: SubscriptionTier = 'ENTERPRISE'
+): Promise<string> {
+  const { ideaTitle, ideaDescription, interviewData } = input;
+
+  // Build a comprehensive data dump for the model
+  const dataContext = `
+## RAW DEEP RESEARCH
+${deepResearch?.rawReport ?? 'Not available'}
+
+## CITATIONS & SOURCES
+${deepResearch?.citations ? JSON.stringify(deepResearch.citations, null, 2) : 'Not available'}
+
+## SYNTHESIZED MARKET ANALYSIS
+${JSON.stringify(insights.marketAnalysis, null, 2)}
+
+## COMPETITIVE LANDSCAPE
+${JSON.stringify(insights.competitors, null, 2)}
+
+## CUSTOMER PAIN POINTS
+${JSON.stringify(insights.painPoints, null, 2)}
+
+## POSITIONING & VALUE PROPOSITION
+${JSON.stringify(insights.positioning, null, 2)}
+
+## WHY NOW / MARKET TIMING
+${JSON.stringify(insights.whyNow, null, 2)}
+
+## PROOF SIGNALS & DEMAND INDICATORS
+${JSON.stringify(insights.proofSignals, null, 2)}
+
+## SCORES
+${scores ? JSON.stringify({
+  opportunity: { value: scores.opportunityScore, justification: scores.justifications?.opportunity?.justification, confidence: scores.justifications?.opportunity?.confidence },
+  problem: { value: scores.problemScore, justification: scores.justifications?.problem?.justification, confidence: scores.justifications?.problem?.confidence },
+  feasibility: { value: scores.feasibilityScore, justification: scores.justifications?.feasibility?.justification, confidence: scores.justifications?.feasibility?.confidence },
+  whyNow: { value: scores.whyNowScore, justification: scores.justifications?.whyNow?.justification, confidence: scores.justifications?.whyNow?.confidence },
+}, null, 2) : 'Not available'}
+
+## BUSINESS METRICS
+${metrics ? JSON.stringify(metrics, null, 2) : 'Not available'}
+
+## MARKET SIZING (TAM/SAM/SOM)
+${marketSizing ? JSON.stringify(marketSizing, null, 2) : 'Not available'}
+
+## SOCIAL PROOF & DEMAND VALIDATION
+${socialProof ? JSON.stringify({ summary: socialProof.summary, demandSignals: socialProof.demandSignals, painPointsValidated: socialProof.painPointsValidated, postCount: socialProof.posts?.length }, null, 2) : 'Not available'}
+
+## USER STORY
+${userStory ? JSON.stringify(userStory, null, 2) : 'Not available'}
+
+## VALUE LADDER / PRICING TIERS
+${valueLadder ? JSON.stringify(valueLadder, null, 2) : 'Not available'}
+
+## TECH STACK RECOMMENDATIONS
+${techStack ? JSON.stringify(techStack, null, 2) : 'Not available'}
+
+## INTERVIEW DATA
+${interviewData ? JSON.stringify(interviewData, null, 2) : 'Not available'}
+`;
+
+  const prompt = `You are a senior strategy consultant and business plan writer. Using ALL of the research data provided below, write a comprehensive, investor-ready business plan for the following business idea.
+
+BUSINESS IDEA: ${ideaTitle}
+DESCRIPTION: ${ideaDescription}
+
+=== RESEARCH DATA ===
+${dataContext}
+=== END RESEARCH DATA ===
+
+Write an extensive, detailed business plan in markdown format. This should read as a polished, professional document that could be presented to investors, partners, or used as an internal strategic blueprint. Use specific numbers, data points, and citations from the research wherever possible.
+
+The business plan MUST include ALL of the following sections with substantial depth:
+
+# 1. Executive Summary
+A compelling 2-3 paragraph overview of the entire opportunity. Include the core value proposition, target market size, revenue model, and why this venture will succeed. This should stand alone as a pitch.
+
+# 2. Problem & Solution
+- Clearly articulate the problem with evidence from the research (pain points, social proof, demand signals)
+- Present the solution and explain exactly how it addresses each pain point
+- Include the user story/scenario to make it tangible
+
+# 3. Market Analysis
+- Total Addressable Market (TAM), Serviceable Addressable Market (SAM), Serviceable Obtainable Market (SOM) with dollar figures
+- Market growth rates and projections
+- Key market trends driving opportunity
+- Market segments and their characteristics
+- Include methodology and sources
+
+# 4. Competitive Landscape & Positioning
+- Detailed analysis of each competitor (strengths, weaknesses, positioning)
+- Competitive matrix showing differentiation
+- Unique value proposition and defensible advantages
+- Positioning strategy and messaging pillars
+
+# 5. Business Model & Revenue Strategy
+- Revenue streams and pricing model (reference the value ladder tiers)
+- Unit economics and margin assumptions
+- Customer lifetime value and acquisition cost estimates
+- Monetization roadmap from MVP to scale
+
+# 6. Go-to-Market Strategy
+- Target customer segments and ideal customer profile
+- Customer acquisition channels (ranked by expected ROI)
+- Launch strategy and first 90 days plan
+- Partnership and distribution opportunities
+- Content and brand strategy
+
+# 7. Customer Profile & Pain Points
+- Detailed ideal customer persona
+- Pain point severity analysis with evidence
+- Current solutions and their gaps
+- Customer journey from awareness to purchase
+
+# 8. Financial Projections (3-Year)
+- Year 1, Year 2, Year 3 revenue projections with assumptions
+- Cost structure breakdown (fixed vs variable)
+- Path to profitability timeline
+- Key financial metrics (burn rate, runway, break-even)
+- Sensitivity analysis on key assumptions
+
+# 9. Product & Technology
+- Product roadmap (MVP → V1 → V2)
+- Technology stack recommendations with rationale
+- Build vs buy decisions
+- Estimated development costs and timeline
+- Security and scalability considerations
+
+# 10. Team & Operations
+- Key roles needed and hiring priorities
+- Organizational structure at different stages
+- Advisory board recommendations
+- Operational processes and tools
+
+# 11. Risk Analysis & Mitigation
+- Market risks and mitigation strategies
+- Execution risks and contingencies
+- Competitive risks and defensive moats
+- Regulatory and compliance considerations
+- Technology risks
+
+# 12. Funding Requirements & Use of Proceeds
+- Capital needed by stage (pre-seed, seed, Series A)
+- Detailed allocation of funds
+- Milestones tied to each funding round
+- Cap table assumptions and dilution expectations
+
+# 13. Exit Strategy
+- Potential exit paths (acquisition, IPO, strategic partnership)
+- Comparable exits in the space with valuations
+- Timeline to exit
+- Key value drivers that increase exit multiple
+
+Write with authority and specificity. Every claim should be backed by data from the research. Use markdown formatting with headers, bullet points, bold text, and tables where appropriate. Aim for a comprehensive document that leaves no strategic question unanswered.`;
+
+  const aiParams = getAIParams('businessPlan', tier);
+
+  const response = await withExponentialBackoff(
+    () => openai.responses.create(
+      createResponsesParams({
+        model: REPORT_MODEL,
+        input: prompt,
+        max_output_tokens: 50000,
+      }, aiParams)
+    ),
+    {
+      maxAttempts: 3,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[generateBusinessPlan] Retry ${attempt}/3 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+      }
+    }
+  );
+
+  trackUsageFromResponse(response, {
+    functionName: 'generateBusinessPlan',
+    model: REPORT_MODEL,
+  });
+
+  const content = extractResponseContent(response);
+  if (!content) {
+    throw new ResponseParseError('Failed to generate business plan: no content in response', response);
+  }
+
+  console.log(`[generateBusinessPlan] Generated business plan: ${content.length} characters`);
+  return content;
 }
 
 // Intermediate data that can be saved during pipeline execution for resume capability
@@ -4006,16 +4210,17 @@ export async function runResearchPipeline(
 ): Promise<{
   queries: GeneratedQueries;
   insights: SynthesizedInsights;
-  scores: ResearchScores;
-  metrics: BusinessMetrics;
-  marketSizing: MarketSizingData;
-  userStory: UserStory;
+  scores: ResearchScores | null;
+  metrics: BusinessMetrics | null;
+  marketSizing: MarketSizingData | null;
+  userStory: UserStory | null;
   keywordTrends: KeywordTrend[];
-  valueLadder: OfferTier[];
-  actionPrompts: ActionPrompt[];
+  valueLadder: OfferTier[] | null;
+  actionPrompts: ActionPrompt[] | null;
   socialProof: SocialProof;
-  techStack: TechStackData; // Tech stack recommendations
+  techStack: TechStackData | null;
   deepResearch?: DeepResearchOutput; // New: raw research data
+  businessPlan: string | null;
 }> {
   console.log('[Research Pipeline] Starting NEW 4-phase pipeline for:', input.ideaTitle);
   console.log('[Research Pipeline] Using tier:', tier);
@@ -4030,13 +4235,15 @@ export async function runResearchPipeline(
   const hasPhase3 = existingResearch?.synthesizedInsights && existingResearch?.opportunityScore != null;
   // Phase 4: Creative generation (user story, value ladder, action prompts)
   const hasPhase4 = existingResearch?.userStory != null;
+  const hasPhase5 = existingResearch?.businessPlan != null;
 
-  if (hasPhase1 || hasPhase2 || hasPhase3 || hasPhase4) {
+  if (hasPhase1 || hasPhase2 || hasPhase3 || hasPhase4 || hasPhase5) {
     console.log('[Research Pipeline] RESUME MODE - Existing data detected');
     console.log('[Research Pipeline] Phase 1 (deepResearch - o3):', hasPhase1 ? 'SKIP' : 'RUN');
     console.log('[Research Pipeline] Phase 2 (socialProof - o3):', hasPhase2 ? 'SKIP' : 'RUN');
     console.log('[Research Pipeline] Phase 3 (extraction - GPT-5.2):', hasPhase3 ? 'SKIP' : 'RUN');
     console.log('[Research Pipeline] Phase 4 (generation - GPT-5.2):', hasPhase4 ? 'SKIP' : 'RUN');
+    console.log('[Research Pipeline] Phase 5 (businessPlan - GPT-5.2):', hasPhase5 ? 'SKIP' : 'RUN');
   }
 
   // =========================================================================
@@ -4096,9 +4303,9 @@ export async function runResearchPipeline(
   // This includes extractInsights which was previously in Phase 2
   // =========================================================================
   let insights: SynthesizedInsights;
-  let scores: ResearchScores;
-  let metrics: BusinessMetrics;
-  let marketSizing: MarketSizingData;
+  let scores: ResearchScores | null;
+  let metrics: BusinessMetrics | null;
+  let marketSizing: MarketSizingData | null;
 
   if (hasPhase3 && existingResearch?.synthesizedInsights && existingResearch?.opportunityScore != null && existingResearch?.scoreJustifications && existingResearch?.revenuePotential && existingResearch?.marketSizing) {
     console.log('[Research Pipeline] === PHASE 3: SKIPPED (resuming from existing data) ===');
@@ -4130,26 +4337,37 @@ export async function runResearchPipeline(
     console.log('[Research Pipeline] Insights extracted successfully');
 
     // Step 2: Run scores, metrics, and market sizing in parallel with GPT-5.2 reasoning
+    // Uses Promise.allSettled so individual failures don't lose sibling results
     console.log('[Research Pipeline] Calculating scores, metrics, and market sizing...');
-    [scores, metrics, marketSizing] = await Promise.all([
+    const phase3Results = await Promise.allSettled([
       extractScores(deepResearch, input, insights, tier),
       extractBusinessMetrics(deepResearch, input, insights, { opportunityScore: 0, problemScore: 0, feasibilityScore: 0, whyNowScore: 0, justifications: {} as ResearchScores['justifications'], metadata: {} as ResearchScores['metadata'] }, tier),
       extractMarketSizing(deepResearch, input, insights, tier),
     ]);
+    const phase3Names = ['extractScores', 'extractBusinessMetrics', 'extractMarketSizing'] as const;
+    phase3Results.forEach((r, i) => {
+      if (r.status === 'rejected') {
+        console.error(`[Research Pipeline] Phase 3 FAILED: ${phase3Names[i]}:`, r.reason instanceof Error ? r.reason.message : r.reason);
+      }
+    });
+    scores = phase3Results[0].status === 'fulfilled' ? phase3Results[0].value : null;
+    metrics = phase3Results[1].status === 'fulfilled' ? phase3Results[1].value : null;
+    marketSizing = phase3Results[2].status === 'fulfilled' ? phase3Results[2].value : null;
     // Pass all extraction results for immediate persistence (enables resume if Phase 4 fails)
-    await onProgress?.('SYNTHESIS', 80, { insights, scores, metrics, marketSizing });
-    console.log('[Research Pipeline] Scores, metrics, and market sizing calculated with GPT-5.2 reasoning');
+    await onProgress?.('SYNTHESIS', 80, { insights, scores: scores ?? undefined, metrics: metrics ?? undefined, marketSizing: marketSizing ?? undefined });
+    const phase3Succeeded = phase3Results.filter(r => r.status === 'fulfilled').length;
+    console.log(`[Research Pipeline] Phase 3 complete: ${phase3Succeeded}/3 succeeded`);
   }
 
   // =========================================================================
   // PHASE 4: CREATIVE GENERATION (80-100%)
   // Uses GPT-5.2 for user story, value ladder, action prompts, tech stack
   // =========================================================================
-  let userStory: UserStory;
-  let valueLadder: OfferTier[];
-  let actionPrompts: ActionPrompt[];
+  let userStory: UserStory | null;
+  let valueLadder: OfferTier[] | null;
+  let actionPrompts: ActionPrompt[] | null;
   let keywordTrends: KeywordTrend[];
-  let techStack: TechStackData;
+  let techStack: TechStackData | null;
 
   if (hasPhase4 && existingResearch?.userStory && existingResearch?.valueLadder && existingResearch?.actionPrompts && existingResearch?.techStack) {
     console.log('[Research Pipeline] === PHASE 4: SKIPPED (resuming from existing data) ===');
@@ -4164,19 +4382,79 @@ export async function runResearchPipeline(
     console.log('[Research Pipeline] === PHASE 4: Creative Generation (GPT-5.2) ===');
 
     // Run creative generation in parallel
-    [userStory, valueLadder, actionPrompts, techStack] = await Promise.all([
+    // Uses Promise.allSettled so individual failures don't lose sibling results
+    const fallbackMetrics: BusinessMetrics = {
+      revenuePotential: { rating: 'medium' as const, estimate: 'Unknown', confidence: 0 },
+      executionDifficulty: { rating: 'moderate' as const, factors: [], soloFriendly: false },
+      gtmClarity: { rating: 'moderate' as const, channels: [], confidence: 0 },
+      founderFit: { percentage: 0, strengths: [], gaps: [] },
+    };
+    const phase4Results = await Promise.allSettled([
       generateUserStory(input, insights, tier),
-      generateValueLadder(input, insights, metrics, tier),
+      generateValueLadder(input, insights, metrics ?? fallbackMetrics, tier),
       generateActionPrompts(input, insights, tier),
       generateTechStack(input, insights, tier),
     ]);
+    const phase4Names = ['generateUserStory', 'generateValueLadder', 'generateActionPrompts', 'generateTechStack'] as const;
+    phase4Results.forEach((r, i) => {
+      if (r.status === 'rejected') {
+        console.error(`[Research Pipeline] Phase 4 FAILED: ${phase4Names[i]}:`, r.reason instanceof Error ? r.reason.message : r.reason);
+      }
+    });
+    userStory = phase4Results[0].status === 'fulfilled' ? phase4Results[0].value : null;
+    valueLadder = phase4Results[1].status === 'fulfilled' ? phase4Results[1].value : null;
+    actionPrompts = phase4Results[2].status === 'fulfilled' ? phase4Results[2].value : null;
+    techStack = phase4Results[3].status === 'fulfilled' ? phase4Results[3].value : null;
+    const phase4Succeeded = phase4Results.filter(r => r.status === 'fulfilled').length;
     await onProgress?.('REPORT_GENERATION', 95);
-    console.log('[Research Pipeline] User story, value ladder, action prompts, tech stack generated');
+    console.log(`[Research Pipeline] Phase 4 complete: ${phase4Succeeded}/4 succeeded`);
 
     // Keyword trends (uses SerpAPI for Google Trends - keep this separate)
-    keywordTrends = await generateKeywordTrends(input, insights, tier);
-    await onProgress?.('REPORT_GENERATION', 98);
+    try {
+      keywordTrends = await generateKeywordTrends(input, insights, tier);
+    } catch (err) {
+      console.error('[Research Pipeline] Keyword trends failed:', err instanceof Error ? err.message : err);
+      keywordTrends = [];
+    }
+    await onProgress?.('REPORT_GENERATION', 90);
     console.log('[Research Pipeline] Keyword trends:', keywordTrends.length, 'keywords');
+  }
+
+  // =========================================================================
+  // PHASE 5: BUSINESS PLAN GENERATION (90-100%)
+  // Uses GPT-5.2 with xhigh reasoning + xhigh verbosity to write a
+  // comprehensive investor-ready business plan from all accumulated data
+  // =========================================================================
+  let businessPlan: string | null;
+
+  if (hasPhase5 && existingResearch?.businessPlan) {
+    console.log('[Research Pipeline] === PHASE 5: SKIPPED (resuming from existing data) ===');
+    businessPlan = existingResearch.businessPlan;
+    await onProgress?.('BUSINESS_PLAN_GENERATION', 98);
+  } else {
+    await onProgress?.('BUSINESS_PLAN_GENERATION', 92);
+    console.log('[Research Pipeline] === PHASE 5: Business Plan Generation (GPT-5.2 xhigh) ===');
+
+    try {
+      businessPlan = await generateBusinessPlan(
+        input,
+        insights,
+        scores,
+        metrics,
+        marketSizing,
+        socialProof,
+        userStory,
+        valueLadder,
+        techStack,
+        deepResearch,
+        tier
+      );
+      console.log(`[Research Pipeline] Phase 5 complete: business plan generated (${businessPlan.length} chars)`);
+    } catch (err) {
+      console.error('[Research Pipeline] Phase 5 FAILED: generateBusinessPlan:', err instanceof Error ? err.message : err);
+      businessPlan = null;
+    }
+    await onProgress?.('BUSINESS_PLAN_GENERATION', 98);
   }
 
   await onProgress?.('COMPLETE', 100);
@@ -4204,6 +4482,7 @@ export async function runResearchPipeline(
     socialProof,
     techStack,
     deepResearch, // Include raw research for debugging/display
+    businessPlan,
   };
 }
 

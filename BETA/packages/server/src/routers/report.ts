@@ -5,6 +5,7 @@ import { getReportTier, REPORT_TYPE_LABELS } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
 import type { ReportType, ReportTier } from '@prisma/client';
 import { generatePDFBuffer, getPDFFilename } from '../lib/pdf';
+import { logAuditAsync, formatResource } from '../lib/audit';
 
 export const reportRouter = router({
   /**
@@ -84,6 +85,14 @@ export const reportRouter = router({
         message: 'Report not found',
       });
     }
+
+    // Audit log - view report
+    logAuditAsync({
+      userId: ctx.userId,
+      action: 'REPORT_VIEW',
+      resource: formatResource('report', report.id),
+      metadata: { reportType: report.type, ideaId: report.ideaId },
+    });
 
     return report;
   }),
@@ -182,6 +191,14 @@ export const reportRouter = router({
           locked: reportTier === 'FULL' ? [] : ['advanced-analytics', 'appendix'],
         },
       },
+    });
+
+    // Audit log - generate report
+    logAuditAsync({
+      userId: ctx.userId,
+      action: 'REPORT_GENERATE',
+      resource: formatResource('report', updatedReport.id),
+      metadata: { reportType: input.type, tier: reportTier, ideaId: input.ideaId },
     });
 
     return updatedReport;
@@ -417,6 +434,14 @@ export const reportRouter = router({
 
         const filename = getPDFFilename(idea.title, input.reportType);
         console.log('PDF generated successfully:', filename, 'Size:', pdfBuffer.length);
+
+        // Audit log - download PDF
+        logAuditAsync({
+          userId: ctx.userId,
+          action: 'REPORT_DOWNLOAD',
+          resource: formatResource('report', report.id),
+          metadata: { reportType: input.reportType, ideaId: input.ideaId, filename },
+        });
 
         return {
           success: true,

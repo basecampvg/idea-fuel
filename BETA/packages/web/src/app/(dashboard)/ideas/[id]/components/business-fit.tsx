@@ -197,35 +197,35 @@ export function BusinessFit({
   return (
     <div className="rounded-2xl bg-background border border-border p-5">
       <div className="mb-4">
-        <h2 className="text-base font-semibold text-foreground">{title}</h2>
+        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
         {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
       </div>
 
       <div className="space-y-0">
         <BusinessFitItem
           icon={<DollarSign className="w-5 h-5" />}
-          iconColorClass="bg-[#fbbf24]/20 text-[#fbbf24]"
+          iconColorClass="bg-primary/20 text-primary/50"
           title="Revenue Potential"
           description={revenue.description}
           value={revenue.value}
         />
         <BusinessFitItem
           icon={<Settings className="w-5 h-5" />}
-          iconColorClass="bg-[#8b5cf6]/20 text-[#8b5cf6]"
+          iconColorClass="bg-accent/20 text-accent"
           title="Execution Difficulty"
           description={execution.description}
           value={execution.value}
         />
         <BusinessFitItem
           icon={<Rocket className="w-5 h-5" />}
-          iconColorClass="bg-[#e91e8c]/20 text-[#e91e8c]"
+          iconColorClass="bg-primary/20 text-primary"
           title="Go-To-Market"
           description={gtm.description}
           value={gtm.value}
         />
         <BusinessFitItem
           icon={<Target className="w-5 h-5" />}
-          iconColorClass="bg-[#f97316]/20 text-[#f97316]"
+          iconColorClass="bg-primary/20 text-primary/50"
           title="Right for You?"
           description={fit.description}
           isLink={true}

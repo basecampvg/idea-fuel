@@ -31,7 +31,7 @@ export default function PlansPage() {
 
         {/* Header */}
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-foreground mb-3">Choose Your Plan</h1>
+          <h1 className="text-2xl font-semibold text-foreground mb-3">Choose Your Plan</h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
             Unlock powerful features to validate and grow your business ideas. All plans include
             access to AI-powered interviews and market research.
@@ -58,7 +58,7 @@ export default function PlansPage() {
         {/* Feature Comparison */}
         <div className="rounded-2xl border border-border bg-card overflow-hidden mb-12">
           <div className="p-6 border-b border-border">
-            <h2 className="text-xl font-semibold text-foreground">Feature Comparison</h2>
+            <h2 className="text-lg font-semibold text-foreground">Feature Comparison</h2>
             <p className="text-sm text-muted-foreground mt-1">
               See what's included in each plan
             </p>
@@ -78,8 +78,8 @@ export default function PlansPage() {
         {/* FAQ / Help Section */}
         <div className="rounded-2xl border border-border bg-card p-6">
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-[#4ecdc4]/10 flex items-center justify-center">
-              <HelpCircle className="h-5 w-5 text-[#4ecdc4]" />
+            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <HelpCircle className="h-5 w-5 text-primary/60" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -91,7 +91,7 @@ export default function PlansPage() {
               </p>
               <a
                 href="mailto:support@forgeautomation.com"
-                className="inline-flex items-center text-sm font-medium text-[#4ecdc4] hover:text-[#4ecdc4]/80 transition-colors"
+                className="inline-flex items-center text-sm font-medium text-primary/60 hover:text-primary/60/80 transition-colors"
               >
                 Contact Support
                 <ArrowLeft className="ml-2 h-4 w-4 rotate-180" />

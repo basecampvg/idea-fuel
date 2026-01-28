@@ -35,7 +35,9 @@ import {
   OfferSection,
   TechStackSection,
   SparkResultsSection,
+  NextStepPromotion,
 } from '../../../../components/analysis';
+import { getResearchJourneyState, type InterviewMode } from '@forge/shared';
 
 // Forge Design System Colors
 const colors = {
@@ -444,6 +446,24 @@ export default function IdeaDetailScreen() {
   const isComplete = idea.status === 'COMPLETE';
   const hasResearch = idea.research?.status === 'COMPLETE';
 
+  // Calculate journey state for next step promotion
+  const journeyState = getResearchJourneyState({
+    idea: { status: idea.status },
+    interview: completedInterview ? {
+      mode: completedInterview.mode as InterviewMode,
+      status: completedInterview.status as 'IN_PROGRESS' | 'COMPLETE' | 'ABANDONED',
+    } : null,
+    research: idea.research ? {
+      sparkStatus: (idea.research as any)?.sparkStatus || null,
+      sparkResult: (idea.research as any)?.sparkResult || null,
+      status: idea.research.status as 'PENDING' | 'IN_PROGRESS' | 'COMPLETE' | 'FAILED',
+    } : null,
+  });
+
+  const handleStartMode = (mode: InterviewMode) => {
+    startInterview.mutate({ ideaId: id, mode });
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView
@@ -543,6 +563,14 @@ export default function IdeaDetailScreen() {
         {/* Status: COMPLETE */}
         {isComplete && hasResearch && (
           <>
+            {/* Next Step Promotion Banner */}
+            <NextStepPromotion
+              ideaId={id}
+              journeyState={journeyState}
+              onStartMode={handleStartMode}
+              isStarting={startInterview.isPending}
+            />
+
             {/* Spark Results (for SPARK mode ideas) */}
             {(idea.research as any)?.sparkResult && (
               <SparkResultsSection sparkResult={(idea.research as any).sparkResult} />

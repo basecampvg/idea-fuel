@@ -29,12 +29,12 @@ export function UpgradeModal({ isOpen, onClose, reason, currentTier }: UpgradeMo
     <Modal isOpen={isOpen} onClose={onClose} size="md" hideHeader>
       <div className="text-center">
         {/* Icon */}
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#e91e8c]/20 to-[#8b5cf6]/20">
-          <Lock className="h-7 w-7 text-[#e91e8c]" />
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-accent/20">
+          <Lock className="h-7 w-7 text-primary" />
         </div>
 
         {/* Title */}
-        <h2 className="text-xl font-bold text-foreground mb-2">{content.title}</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-2">{content.title}</h2>
 
         {/* Description */}
         <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
@@ -50,7 +50,7 @@ export function UpgradeModal({ isOpen, onClose, reason, currentTier }: UpgradeMo
         {/* Benefits List */}
         <div className="bg-background/50 rounded-xl border border-border p-4 mb-6">
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="h-4 w-4 text-[#e91e8c]" />
+            <Sparkles className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium text-foreground">
               With {recommendedTierLabel}, you get:
             </span>
@@ -58,7 +58,7 @@ export function UpgradeModal({ isOpen, onClose, reason, currentTier }: UpgradeMo
           <ul className="space-y-2 text-left">
             {content.benefits.map((benefit, index) => (
               <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
-                <Check className="h-4 w-4 text-[#22c55e] mt-0.5 flex-shrink-0" />
+                <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                 <span>{benefit}</span>
               </li>
             ))}

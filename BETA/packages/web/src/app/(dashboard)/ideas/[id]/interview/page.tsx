@@ -55,7 +55,7 @@ function QuestionDisplay({ question }: { question: string }) {
       )}
 
       {/* Main question - highlighted */}
-      <p className="text-xl md:text-2xl font-medium leading-relaxed">
+      <p className="text-lg md:text-2xl font-medium leading-relaxed">
         <span className="text-primary">{mainQuestion}</span>
         {example && (
           <span className="text-muted-foreground text-lg"> {example}</span>

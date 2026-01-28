@@ -135,7 +135,7 @@ export function SparkKeywordChart({
       {/* Title/Subtitle */}
       {(title || subtitle) && (
         <div className="mb-4">
-          {title && <h2 className="text-base font-semibold text-foreground">{title}</h2>}
+          {title && <h2 className="text-sm font-semibold text-foreground">{title}</h2>}
           {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
         </div>
       )}
@@ -157,14 +157,14 @@ export function SparkKeywordChart({
 
             {/* Keyword Dropdown menu */}
             {isKeywordDropdownOpen && trends.length > 1 && (
-              <div className="absolute top-full left-0 mt-1 bg-card border border-[#2a2a38] rounded-lg py-1 z-10 min-w-[200px]">
+              <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg py-1 z-10 min-w-[200px]">
                 {trends.map((kw, index) => (
                   <button
                     key={kw.keyword}
                     className={`w-full px-3 py-2 text-left text-sm transition-colors ${
                       index === selectedIndex
-                        ? 'text-[#e91e8c] bg-[#22222e]'
-                        : 'text-foreground hover:bg-[#22222e]'
+                        ? 'text-primary bg-muted'
+                        : 'text-foreground hover:bg-muted'
                     }`}
                     onClick={() => {
                       setSelectedIndex(index);
@@ -198,9 +198,9 @@ export function SparkKeywordChart({
             <span
               className={`font-semibold tabular-nums ${
                 growth >= 500
-                  ? 'text-[#e91e8c]' // Pink for emerging/new trends
+                  ? 'text-primary' // Pink for emerging/new trends
                   : growth > 0
-                  ? 'text-[#22c55e]' // Green for positive growth
+                  ? 'text-primary' // Green for positive growth
                   : growth < 0
                   ? 'text-[#ef4444]' // Red for negative growth
                   : 'text-muted-foreground' // Gray for no growth
@@ -224,8 +224,8 @@ export function SparkKeywordChart({
             <defs>
               {/* Gradient for area fill */}
               <linearGradient id="sparkPinkGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#e91e8c" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="#e91e8c" stopOpacity={0} />
+                <stop offset="0%" stopColor="hsl(160, 84%, 44%)" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="hsl(160, 84%, 44%)" stopOpacity={0} />
               </linearGradient>
               {/* Glow filter for line */}
               <filter id="sparkGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -243,14 +243,14 @@ export function SparkKeywordChart({
             />
             <XAxis
               dataKey="index"
-              tick={{ fill: '#6a6a7a', fontSize: 10 }}
+              tick={{ fill: 'hsl(40, 5%, 55%)', fontSize: 10 }}
               tickLine={false}
               axisLine={false}
               ticks={tickIndices}
               tickFormatter={(index) => chartData[index]?.year || ''}
             />
             <YAxis
-              tick={{ fill: '#6a6a7a', fontSize: 10 }}
+              tick={{ fill: 'hsl(40, 5%, 55%)', fontSize: 10 }}
               tickLine={false}
               axisLine={false}
               domain={[0, 100]}
@@ -263,14 +263,14 @@ export function SparkKeywordChart({
                 borderRadius: '8px',
                 color: '#ffffff',
               }}
-              labelStyle={{ color: '#a0a0b0' }}
+              labelStyle={{ color: 'hsl(40, 5%, 55%)' }}
               labelFormatter={(index) => chartData[index as number]?.monthYear || ''}
               formatter={(value) => [value, 'Interest']}
             />
             <Area
               type="monotone"
               dataKey="value"
-              stroke="#e91e8c"
+              stroke="hsl(160, 84%, 44%)"
               strokeWidth={2}
               fill="url(#sparkPinkGradient)"
               filter="url(#sparkGlow)"

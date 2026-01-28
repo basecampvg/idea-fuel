@@ -13,10 +13,10 @@ const scoreTooltips: Record<string, string> = {
 
 // Border glow colors for expanded state (matching score type)
 const expandedBorderColors: Record<string, string> = {
-  opportunity: 'border-[#22c55e] shadow-[0_0_20px_rgba(34,197,94,0.2)]',
-  problem: 'border-[#e91e8c] shadow-[0_0_20px_rgba(233,30,140,0.2)]',
-  feasibility: 'border-[#14b8a6] shadow-[0_0_20px_rgba(20,184,166,0.2)]',
-  whynow: 'border-[#8b5cf6] shadow-[0_0_20px_rgba(139,92,246,0.2)]',
+  opportunity: 'border-primary shadow-[0_0_20px_hsl(var(--primary)/0.2)]',
+  problem: 'border-primary/70 shadow-[0_0_20px_hsl(var(--primary)/0.15)]',
+  feasibility: 'border-primary/50 shadow-[0_0_20px_hsl(var(--primary)/0.1)]',
+  whynow: 'border-primary/60 shadow-[0_0_20px_hsl(var(--primary)/0.12)]',
 };
 
 // Types matching the backend ResearchScores interface
@@ -98,11 +98,11 @@ function getSpecialDescription(colorType: string, score: number | null | undefin
 function getConfidenceColor(confidence: 'high' | 'medium' | 'low'): string {
   switch (confidence) {
     case 'high':
-      return 'bg-[#22c55e]';
+      return 'bg-primary';
     case 'medium':
-      return 'bg-[#f59e0b]';
+      return 'bg-primary/50';
     case 'low':
-      return 'bg-[#ef4444]';
+      return 'bg-primary/25';
   }
 }
 
@@ -131,10 +131,10 @@ function ScoreCard({ label, score, colorType, isHighlighted = false, justificati
 
   // Gradient colors for progress bars
   const barGradients: Record<string, string> = {
-    opportunity: 'from-[#16a34a] to-[#4ade80]',  // Green gradient
-    problem: 'from-[#be185d] to-[#f472b6]',      // Pink gradient
-    feasibility: 'from-[#0d9488] to-[#5eead4]',  // Teal gradient
-    whynow: 'from-[#7c3aed] to-[#a78bfa]',       // Purple gradient
+    opportunity: 'from-primary to-primary/60',
+    problem: 'from-primary/80 to-primary/40',
+    feasibility: 'from-primary/70 to-primary/50',
+    whynow: 'from-primary/60 to-primary/30',
   };
 
   // Calculate progress width (score out of 100)
@@ -151,7 +151,7 @@ function ScoreCard({ label, score, colorType, isHighlighted = false, justificati
       return `${baseClass} ${expandedBorderColors[colorType]}`;
     }
     if (isHighlighted) {
-      return `${baseClass} border-[#e91e8c] shadow-[0_0_20px_rgba(233,30,140,0.2)]`;
+      return `${baseClass} border-primary shadow-[0_0_20px_hsl(var(--primary)/0.2)]`;
     }
     return `${baseClass} border-border`;
   };
@@ -161,7 +161,7 @@ function ScoreCard({ label, score, colorType, isHighlighted = false, justificati
       {/* Header: Label + info icon */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1">
-          <span className="text-[11px] text-muted-foreground font-medium">
+          <span className="text-xs text-muted-foreground font-medium">
             {label}
           </span>
           {hasJustification ? (
@@ -208,7 +208,7 @@ function ScoreCard({ label, score, colorType, isHighlighted = false, justificati
       </div>
 
       {/* Score - large number */}
-      <div className="text-[32px] font-bold text-foreground tabular-nums leading-none">
+      <div className="text-2xl font-semibold text-foreground tabular-nums leading-none">
         {displayScore}
       </div>
 
@@ -243,7 +243,7 @@ function ScoreCard({ label, score, colorType, isHighlighted = false, justificati
                 <div
                   className={`w-1.5 h-1.5 rounded-full ${getConfidenceColor(justification.confidence)}`}
                 />
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   {getConfidenceLabel(justification.confidence)}
                 </span>
               </div>
@@ -286,16 +286,16 @@ export function ScoreCards({
       {/* Optional title/subtitle */}
       {(title || subtitle) && (
         <div className="mb-1">
-          {title && <h2 className="text-base font-semibold text-foreground">{title}</h2>}
+          {title && <h2 className="text-sm font-semibold text-foreground">{title}</h2>}
           {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
         </div>
       )}
       {/* Warning banner if scores were flagged for high variance */}
       {scoreMetadata?.flagged && (
-        <div className="flex items-start gap-2 p-3 rounded-lg bg-[#f59e0b]/10 border border-[#f59e0b]/20">
-          <AlertTriangle className="w-4 h-4 text-[#f59e0b] mt-0.5 flex-shrink-0" />
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20">
+          <AlertTriangle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-xs text-[#f59e0b] font-medium">Score Variance Detected</p>
+            <p className="text-xs text-primary font-medium">Score Variance Detected</p>
             <p className="text-xs text-muted-foreground mt-0.5">
               {scoreMetadata.flagReason || 'Scores showed significant variation between analysis passes. Review justifications for context.'}
             </p>
@@ -341,7 +341,7 @@ export function ScoreCards({
 
       {/* Confidence footer */}
       {scoreMetadata && (
-        <div className="flex items-center justify-between text-[10px] text-muted-foreground px-1">
+        <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
           <span>
             Based on {scoreMetadata.passCount} analysis passes
           </span>

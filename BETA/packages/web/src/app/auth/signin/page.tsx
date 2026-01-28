@@ -39,8 +39,8 @@ function SignInContent() {
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#0a0a0a]">
         {/* LightPillar Background */}
         <LightPillar
-          topColor="#29c9ff"
-          bottomColor="#f72289"
+          topColor="hsl(160, 84%, 44%)"
+          bottomColor="hsl(160, 60%, 55%)"
           intensity={0.2}
           rotationSpeed={0.1}
           interactive={false}
@@ -62,7 +62,7 @@ function SignInContent() {
 
         {/* Value Proposition - Bottom Left */}
         <div className="absolute bottom-12 left-8 right-8 z-10">
-          <h2 className="text-2xl md:text-3xl font-semibold text-white leading-tight">
+          <h2 className="text-2xl md:text-2xl font-semibold text-white leading-tight">
             <span className="text-white/60">Turn sparks into</span> validated
             <br />
             business ideas
@@ -78,7 +78,7 @@ function SignInContent() {
         {/* Logo */}
         <div className="p-8 lg:p-12">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#6366f1] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
@@ -175,7 +175,7 @@ function SignInContent() {
             <form onSubmit={handleEmailSignIn} className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-1.5">
-                  Email <span className="text-[#e91e8c]">*</span>
+                  Email <span className="text-primary">*</span>
                 </label>
                 <input
                   id="email"
@@ -183,14 +183,14 @@ function SignInContent() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
-                  className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1] transition-colors"
+                  className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                   required
                 />
               </div>
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-white/80 mb-1.5">
-                  Password <span className="text-[#e91e8c]">*</span>
+                  Password <span className="text-primary">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -198,8 +198,8 @@ function SignInContent() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1] transition-colors pr-10"
+                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                    className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors pr-10"
                     required
                   />
                   <button
@@ -214,7 +214,7 @@ function SignInContent() {
 
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-lg bg-[#6366f1] text-white text-sm font-medium hover:bg-[#5558e3] transition-colors"
+                className="w-full py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-[hsl(160,70%,38%)] transition-colors"
               >
                 Sign in
               </button>
@@ -245,7 +245,7 @@ export default function SignInPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-[#111111]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6366f1]" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </div>
       }
     >

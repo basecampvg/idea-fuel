@@ -36,11 +36,11 @@ interface SparkResultsProps {
 function getTrendConfig(direction: string) {
   switch (direction) {
     case 'rising':
-      return { Icon: TrendingUp, color: 'text-[#22c55e]', bgColor: 'bg-[#22c55e]/20', label: 'Rising' };
+      return { Icon: TrendingUp, color: 'text-primary', bgColor: 'bg-primary/20', label: 'Rising' };
     case 'declining':
       return { Icon: TrendingDown, color: 'text-[#ef4444]', bgColor: 'bg-[#ef4444]/20', label: 'Declining' };
     case 'flat':
-      return { Icon: Minus, color: 'text-[#f59e0b]', bgColor: 'bg-[#f59e0b]/20', label: 'Stable' };
+      return { Icon: Minus, color: 'text-primary/50', bgColor: 'bg-primary/20', label: 'Stable' };
     default:
       return { Icon: HelpCircle, color: 'text-muted-foreground', bgColor: 'bg-muted/20', label: 'Unknown' };
   }
@@ -52,17 +52,17 @@ function getVerdictConfig(verdict: string) {
     case 'proceed':
       return {
         Icon: CheckCircle2,
-        bgColor: 'bg-[#22c55e]/20',
-        borderColor: 'border-[#22c55e]/30',
-        textColor: 'text-[#22c55e]',
+        bgColor: 'bg-primary/20',
+        borderColor: 'border-primary/30',
+        textColor: 'text-primary',
         iconBg: 'rgba(34, 197, 94, 0.2)',
       };
     case 'watchlist':
       return {
         Icon: AlertTriangle,
-        bgColor: 'bg-[#f59e0b]/20',
-        borderColor: 'border-[#f59e0b]/30',
-        textColor: 'text-[#f59e0b]',
+        bgColor: 'bg-primary/20',
+        borderColor: 'border-primary/30',
+        textColor: 'text-primary/50',
         iconBg: 'rgba(245, 158, 11, 0.2)',
       };
     case 'drop':
@@ -95,19 +95,19 @@ function formatNumber(num: number): string {
 // Card styling for TAM levels
 const tamCardStyles = {
   low: {
-    gradient: 'from-[#6a6a7a]/20 to-[#6a6a7a]/5',
-    border: 'border-[#6a6a7a]/30',
-    accent: '#6a6a7a',
+    gradient: 'from-muted to-muted/30',
+    border: 'border-border',
+    accent: 'hsl(40, 5%, 55%)',
   },
   base: {
-    gradient: 'from-[#3b82f6]/20 to-[#3b82f6]/5',
-    border: 'border-[#3b82f6]/30',
-    accent: '#3b82f6',
+    gradient: 'from-primary/20 to-primary/5',
+    border: 'border-primary/30',
+    accent: 'hsl(160, 84%, 44%)',
   },
   high: {
-    gradient: 'from-[#22c55e]/20 to-[#22c55e]/5',
-    border: 'border-[#22c55e]/30',
-    accent: '#22c55e',
+    gradient: 'from-primary/20 to-primary/5',
+    border: 'border-primary/30',
+    accent: 'hsl(160, 84%, 44%)',
   },
 };
 
@@ -129,7 +129,7 @@ function TAMCard({
       <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
         {label}
       </span>
-      <div className={`text-2xl font-bold mt-2 ${type === 'base' ? 'text-[#3b82f6]' : 'text-foreground'}`}>
+      <div className={`text-2xl font-semibold mt-2 ${type === 'base' ? 'text-primary/70' : 'text-foreground'}`}>
         {formatNumber(value)}
       </div>
     </div>
@@ -150,7 +150,7 @@ function SparkPostCard({ thread }: { thread: SparkRedditThread }) {
       <div className="flex items-center justify-between gap-3 mb-2">
         <div className="flex items-center gap-2">
           <div
-            className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
+            className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white"
             style={{ backgroundColor: '#ff4500' }}
           >
             R
@@ -223,10 +223,10 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
             className="w-10 h-10 rounded-full flex items-center justify-center"
             style={{ backgroundColor: 'rgba(245, 158, 11, 0.2)' }}
           >
-            <Sparkles className="w-5 h-5 text-[#f59e0b]" />
+            <Sparkles className="w-5 h-5 text-primary/50" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-foreground">Spark Validation</h2>
+            <h2 className="text-sm font-semibold text-foreground">Spark Validation</h2>
             <p className="text-xs text-muted-foreground">Quick market validation results</p>
           </div>
         </div>
@@ -266,12 +266,12 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
         <div className="flex items-center gap-3 mb-5">
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: trendConfig.bgColor.replace('bg-', '').replace('/20', '') === '[#22c55e]' ? 'rgba(34, 197, 94, 0.2)' : trendConfig.bgColor.replace('bg-', '').replace('/20', '') === '[#ef4444]' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(245, 158, 11, 0.2)' }}
+            style={{ backgroundColor: trendConfig.label === 'Rising' ? 'hsla(160, 84%, 44%, 0.2)' : trendConfig.label === 'Declining' ? 'rgba(239, 68, 68, 0.2)' : 'hsla(160, 84%, 44%, 0.15)' }}
           >
             <trendConfig.Icon className={`w-5 h-5 ${trendConfig.color}`} />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-foreground">Trend Signal</h2>
+            <h2 className="text-sm font-semibold text-foreground">Trend Signal</h2>
             <p className={`text-xs font-medium ${trendConfig.color}`}>{trendConfig.label}</p>
           </div>
         </div>
@@ -311,10 +311,10 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
             className="w-10 h-10 rounded-full flex items-center justify-center"
             style={{ backgroundColor: 'rgba(59, 130, 246, 0.2)' }}
           >
-            <Target className="w-5 h-5 text-[#3b82f6]" />
+            <Target className="w-5 h-5 text-primary/70" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-foreground">Keywords</h2>
+            <h2 className="text-sm font-semibold text-foreground">Keywords</h2>
             <p className="text-xs text-muted-foreground">Target search phrases</p>
           </div>
         </div>
@@ -323,7 +323,7 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
           {result.keywords.phrases.map((phrase, i) => (
             <span
               key={i}
-              className="px-3 py-1.5 text-sm rounded-full bg-[#3b82f6]/10 text-[#3b82f6] border border-[#3b82f6]/20"
+              className="px-3 py-1.5 text-sm rounded-full bg-primary/10 text-primary/70 border border-primary/20"
             >
               {phrase}
             </span>
@@ -342,7 +342,7 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
 
       {/* TAM Range */}
       <CollapsibleSection
-        icon={<PieChart className="w-5 h-5 text-[#22c55e]" />}
+        icon={<PieChart className="w-5 h-5 text-primary" />}
         iconBgColor="rgba(34, 197, 94, 0.2)"
         title="Market Size (TAM)"
         subtitle="Total addressable market estimate"
@@ -378,7 +378,7 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
                     <ul className="space-y-2">
                       {result.tam.assumptions.map((assumption, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <span className="text-[#22c55e]">&bull;</span>
+                          <span className="text-primary">&bull;</span>
                           <span>{assumption}</span>
                         </li>
                       ))}
@@ -414,8 +414,8 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
 
       {/* Reddit Signals */}
       <CollapsibleSection
-        icon={<MessageSquare className="w-5 h-5 text-[#ff4500]" />}
-        iconBgColor="rgba(255, 69, 0, 0.2)"
+        icon={<MessageSquare className="w-5 h-5 text-primary/60" />}
+        iconBgColor="hsla(160, 84%, 44%, 0.2)"
         title="Reddit Signals"
         subtitle="Community discussions and pain points"
       >
@@ -454,7 +454,7 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
                 {result.reddit.willingness_to_pay_clues.map((clue, i) => (
                   <span
                     key={i}
-                    className="px-3 py-1.5 text-xs rounded-full bg-[#22c55e]/10 text-[#22c55e] border border-[#22c55e]/20"
+                    className="px-3 py-1.5 text-xs rounded-full bg-primary/10 text-primary border border-primary/20"
                   >
                     {clue}
                   </span>
@@ -475,8 +475,8 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
 
       {/* Facebook Groups */}
       <CollapsibleSection
-        icon={<Users className="w-5 h-5 text-[#1877f2]" />}
-        iconBgColor="rgba(24, 119, 242, 0.2)"
+        icon={<Users className="w-5 h-5 text-primary/70" />}
+        iconBgColor="hsla(160, 84%, 44%, 0.2)"
         title="Facebook Groups"
         subtitle="Relevant communities to explore"
       >
@@ -507,7 +507,7 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
                         <div
                           key={n}
                           className={`w-2 h-2 rounded-full ${
-                            n <= group.fit_score ? 'bg-[#1877f2]' : 'bg-muted'
+                            n <= group.fit_score ? 'bg-primary/70' : 'bg-muted'
                           }`}
                         />
                       ))}

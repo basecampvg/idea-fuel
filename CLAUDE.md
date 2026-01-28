@@ -413,6 +413,58 @@ npx expo-doctor
 
 ## Change Log
 
+### 2026-01-26 (In Progress)
+- 🔄 **Daily Pick Feature** - Automated trending topic to business idea pipeline
+  - **Concept:** Daily automated pipeline that identifies a single high-potential business idea from trending searches
+  - **New Files:**
+    - `packages/server/src/routers/dailyPick.ts` - Daily pick router
+    - `packages/server/src/lib/clustering.ts` - Topic clustering algorithm
+    - `packages/server/src/lib/intentFormFilter.ts` - Pain-point/question filter
+    - `packages/server/src/lib/normalizeQuery.ts` - Query normalization
+    - `packages/server/src/lib/scoring.ts` - Opportunity scoring
+    - `packages/server/src/lib/winner.ts` - Winner selection logic
+    - `packages/server/src/jobs/` - Background job processing
+    - `packages/shared/src/schemas/` - Validation schemas
+    - `packages/web/src/app/(dashboard)/daily-pick/` - Web UI
+    - `packages/mobile/src/app/(tabs)/daily-pick/` - Mobile UI
+  - **Database Changes:** Added `DailyPick`, `TrendingQuery` models to Prisma schema
+  - **SerpAPI Enhancements:**
+    - Extended `serpapi.ts` with Google Trends Trending Now API
+    - Related Queries (rising) expansion
+    - Intent-form filtering (pain-point phrasing detection)
+    - Category filtering for business/tech/health
+  - **Architecture:** Post-filter + expand via related rising queries + then enrich
+- 📋 **Batch API Plan** - Drafted integration plan for 50% cost reduction
+  - Plan documented in `batch-plan.md`
+  - Two-phase batch submission strategy (Phase 1-2 deep research, Phase 3-4 extraction)
+  - Estimated savings: ~$7.90 per research (50%)
+
+### 2026-01-24
+- ✅ **Spark AI Pipeline** - Rapid market analysis service
+  - **New Services:**
+    - `spark-ai.ts` - Main Spark orchestration (858 lines)
+    - `spark-competitors.ts` - Competitor analysis
+    - `spark-demand.ts` - Demand validation
+    - `spark-tam.ts` - TAM/SAM/SOM market sizing
+  - **Token Tracking:** Added `token-tracker.ts` for usage monitoring
+  - **Testing:** Added vitest configuration and initial tests (`market-sizing.test.ts`)
+- ✅ **Mobile App Overhaul** - Complete UI redesign
+  - Restructured ideas routes with folder-based layout (`/ideas/[id]/`, `/ideas/new`)
+  - New components: `BottomSheet`, `CollapsibleSection`, `GlobalHeader`, `ProgressMeter`
+  - 14 new analysis section components for research results display
+  - Updated tailwind config with custom theme
+  - Sign-in page redesign
+  - Dashboard, reports, settings UI refresh
+- ✅ **Web Enhancements**
+  - Spark progress tracking and results components
+  - Market sizing section with TAM/SAM/SOM visualization
+  - Tech stack section
+  - Enhanced admin page with system diagnostics
+  - Dashboard configuration hook
+- ✅ **PDF Custom Fonts** - Inter font family support for PDF generation
+- ✅ **Research AI Enhancements** - Improved token tracking and extraction
+- ✅ **Shared Types Expansion** - New types for Spark analysis results
+
 ### 2026-01-22
 - ✅ **Spark Pipeline Model Settings Audit** - Error reduction for o4-mini-deep-research
   - **Issue:** Spark pipeline missing retry logic, low token limits causing `status: incomplete`

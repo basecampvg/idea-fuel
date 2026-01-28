@@ -164,6 +164,12 @@ export const AI_PRESETS = {
     PRO: { reasoning: 'high', verbosity: 'medium' },
     ENTERPRISE: { reasoning: 'xhigh', verbosity: 'medium' },
   },
+  businessPlan: {
+    // Plain text output (not JSON) — safe to use xhigh reasoning without truncation risk
+    FREE: { reasoning: 'xhigh', verbosity: 'high' },
+    PRO: { reasoning: 'xhigh', verbosity: 'high' },
+    ENTERPRISE: { reasoning: 'xhigh', verbosity: 'high' },
+  },
   extractMarketSizing: {
     // IMPORTANT: For JSON mode, avoid xhigh reasoning - it consumes tokens on hidden reasoning
     // leaving insufficient budget for visible JSON output, causing status: incomplete
@@ -336,4 +342,209 @@ export function createResponsesParamsWithWebSearch(
   params.include = ['web_search_call.action.sources'];
 
   return params;
+}
+
+// =============================================================================
+// STRUCTURED OUTPUT WITH JSON SCHEMA VALIDATION
+// =============================================================================
+
+import Ajv from 'ajv';
+import { createHash } from 'crypto';
+import * as fs from 'fs';
+import * as path from 'path';
+
+// Initialize AJV for JSON Schema validation
+const ajv = new Ajv({ strict: false, allErrors: true });
+
+// Cache for compiled schemas
+const schemaCache = new Map<string, ReturnType<typeof ajv.compile>>();
+
+/**
+ * Load and compile a JSON schema from file
+ */
+function loadSchema(schemaPath: string): ReturnType<typeof ajv.compile> {
+  if (schemaCache.has(schemaPath)) {
+    return schemaCache.get(schemaPath)!;
+  }
+
+  // Try multiple possible locations for the schema
+  // (handles different execution contexts: Next.js build, direct tsx, etc.)
+  const possiblePaths = [
+    // When running from packages/web or packages/server
+    path.resolve(process.cwd(), '../shared/src/schemas', schemaPath),
+    // When running from BETA root
+    path.resolve(process.cwd(), 'packages/shared/src/schemas', schemaPath),
+    // Original __dirname approach (works in some environments)
+    path.resolve(__dirname, '../../..', 'shared/src/schemas', schemaPath),
+  ];
+
+  let fullPath: string | null = null;
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      fullPath = p;
+      break;
+    }
+  }
+
+  if (!fullPath) {
+    throw new Error(
+      `Schema file not found: ${schemaPath}. Searched paths:\n${possiblePaths.join('\n')}`
+    );
+  }
+
+  const schemaContent = fs.readFileSync(fullPath, 'utf-8');
+  const schema = JSON.parse(schemaContent);
+
+  const validate = ajv.compile(schema);
+  schemaCache.set(schemaPath, validate);
+
+  return validate;
+}
+
+/**
+ * Generate SHA256 hash of payload for deduplication
+ */
+function hashPayload(payload: unknown): string {
+  const str = JSON.stringify(payload);
+  return createHash('sha256').update(str).digest('hex');
+}
+
+export interface RunStructuredOptions<T> {
+  model?: string;
+  schemaPath: string; // Path relative to schemas folder, e.g., 'triage.schema.json'
+  systemPrompt: string;
+  userPayload: unknown;
+  maxRetries?: number;
+  maxOutputTokens?: number;
+  tier?: SubscriptionTier;
+}
+
+export interface RunStructuredResult<T> {
+  output: T;
+  payloadHash: string;
+  model: string;
+  schemaVersion: string;
+}
+
+/**
+ * Run a structured AI call with JSON schema validation
+ *
+ * Features:
+ * - Validates output against JSON schema using AJV
+ * - Retries once on validation failure with stricter prompt
+ * - Returns payload hash for deduplication
+ */
+export async function runStructured<T>(
+  options: RunStructuredOptions<T>
+): Promise<RunStructuredResult<T>> {
+  const {
+    model = 'gpt-4o-mini',
+    schemaPath,
+    systemPrompt,
+    userPayload,
+    maxRetries = 1,
+    maxOutputTokens = 4096,
+    tier = 'FREE',
+  } = options;
+
+  // Load and compile schema
+  const validate = loadSchema(schemaPath);
+
+  // Extract schema version from schema
+  const fullPath = path.resolve(
+    __dirname,
+    '../../..',
+    'shared/src/schemas',
+    schemaPath
+  );
+  const schemaContent = JSON.parse(fs.readFileSync(fullPath, 'utf-8'));
+  const schemaVersion = schemaContent.title || schemaPath;
+
+  // Generate payload hash
+  const payloadHash = hashPayload(userPayload);
+
+  // Build user message
+  const userMessage =
+    typeof userPayload === 'string'
+      ? userPayload
+      : JSON.stringify(userPayload, null, 2);
+
+  let lastError: Error | null = null;
+  let attempts = 0;
+
+  while (attempts <= maxRetries) {
+    attempts++;
+
+    // Build prompt with schema enforcement
+    const enforcePrompt =
+      attempts > 1
+        ? '\n\nCRITICAL: Your previous response failed schema validation. Ensure your response is valid JSON matching the exact schema structure. No extra fields allowed.'
+        : '';
+
+    const aiParams = getAIParams('extractInsights', tier);
+
+    const params = createResponsesParams(
+      {
+        model,
+        input: [
+          { role: 'system', content: systemPrompt + enforcePrompt },
+          { role: 'user', content: userMessage },
+        ],
+        response_format: { type: 'json_object' },
+        max_output_tokens: maxOutputTokens,
+      },
+      aiParams
+    );
+
+    try {
+      // Make API call
+      const response = await openai.responses.create(params);
+
+      // Extract output text
+      const outputText = response.output_text;
+
+      if (!outputText) {
+        throw new Error('Empty response from OpenAI');
+      }
+
+      // Parse JSON
+      let parsed: T;
+      try {
+        parsed = JSON.parse(outputText);
+      } catch (parseError) {
+        throw new Error(`Invalid JSON response: ${parseError}`);
+      }
+
+      // Validate against schema
+      const valid = validate(parsed);
+
+      if (!valid) {
+        const errors = validate.errors
+          ?.map((e) => `${e.instancePath} ${e.message}`)
+          .join('; ');
+        throw new Error(`Schema validation failed: ${errors}`);
+      }
+
+      // Success!
+      return {
+        output: parsed,
+        payloadHash,
+        model,
+        schemaVersion,
+      };
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.warn(
+        `[runStructured] Attempt ${attempts} failed: ${lastError.message}`
+      );
+
+      if (attempts > maxRetries) {
+        break;
+      }
+    }
+  }
+
+  throw new Error(
+    `runStructured failed after ${attempts} attempts: ${lastError?.message}`
+  );
 }

@@ -37,11 +37,11 @@ function PlatformIcon({ platform }: { platform: string }) {
     reddit: { color: '#ff4500', label: 'Reddit' },
     twitter: { color: '#1da1f2', label: 'Twitter' },
     facebook: { color: '#1877f2', label: 'Facebook' },
-  }[platform] || { color: '#6a6a7a', label: platform };
+  }[platform] || { color: 'hsl(160, 84%, 44%)', label: platform };
 
   return (
     <div
-      className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-foreground"
+      className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-foreground"
       style={{ backgroundColor: config.color }}
     >
       {config.label[0]}
@@ -51,10 +51,10 @@ function PlatformIcon({ platform }: { platform: string }) {
 
 function SentimentBadge({ sentiment }: { sentiment: string }) {
   const config = {
-    positive: { bg: 'bg-[#22c55e]/10', text: 'text-[#22c55e]' },
-    negative: { bg: 'bg-[#ef4444]/10', text: 'text-[#ef4444]' },
-    neutral: { bg: 'bg-[#6a6a7a]/10', text: 'text-muted-foreground' },
-  }[sentiment] || { bg: 'bg-[#6a6a7a]/10', text: 'text-muted-foreground' };
+    positive: { bg: 'bg-primary/10', text: 'text-primary' },
+    negative: { bg: 'bg-red-500/10', text: 'text-red-400' },
+    neutral: { bg: 'bg-muted', text: 'text-muted-foreground' },
+  }[sentiment] || { bg: 'bg-muted', text: 'text-muted-foreground' };
 
   return (
     <span className={`px-2 py-0.5 text-xs rounded-full ${config.bg} ${config.text}`}>
@@ -130,13 +130,13 @@ export function SocialProofSection({ socialProof, title = 'Social Proof', subtit
 
   return (
     <CollapsibleSection
-      icon={<MessageCircle className="w-5 h-5 text-[#1da1f2]" />}
+      icon={<MessageCircle className="w-5 h-5 text-primary/60" />}
       iconBgColor="rgba(29, 161, 242, 0.2)"
       title={title}
       subtitle={subtitle}
     >
       {/* Summary */}
-      <p className="text-sm text-muted-foreground mb-5 p-3 rounded-lg bg-card border-l-2 border-[#1da1f2]">
+      <p className="text-sm text-muted-foreground mb-5 p-3 rounded-lg bg-card border-l-2 border-primary/60">
         {socialProof.summary}
       </p>
 
@@ -154,7 +154,7 @@ export function SocialProofSection({ socialProof, title = 'Social Proof', subtit
             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Pain Points Validated</p>
             <div className="flex flex-wrap gap-2">
               {socialProof.painPointsValidated.map((point, i) => (
-                <span key={i} className="text-xs px-2 py-1 rounded-full bg-[#22c55e]/10 text-[#22c55e]">
+                <span key={i} className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
                   {point}
                 </span>
               ))}
@@ -166,7 +166,7 @@ export function SocialProofSection({ socialProof, title = 'Social Proof', subtit
             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Demand Signals</p>
             <div className="flex flex-wrap gap-2">
               {socialProof.demandSignals.map((signal, i) => (
-                <span key={i} className="text-xs px-2 py-1 rounded-full bg-[#8b5cf6]/10 text-[#8b5cf6]">
+                <span key={i} className="text-xs px-2 py-1 rounded-full bg-accent/10 text-accent">
                   {signal}
                 </span>
               ))}

@@ -36,7 +36,7 @@ export function CollapsibleSection({
             {icon}
           </div>
           <div>
-            <h2 className="text-base font-semibold text-foreground">{title}</h2>
+            <h2 className="text-sm font-semibold text-foreground">{title}</h2>
             {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
           </div>
         </div>

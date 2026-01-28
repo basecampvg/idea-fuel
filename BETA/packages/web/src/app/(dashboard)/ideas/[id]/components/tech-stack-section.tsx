@@ -25,27 +25,27 @@ function parseJson<T>(data: T | string | null | undefined): T | null {
 
 // Color mapping for business types
 const BUSINESS_TYPE_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  saas: { bg: 'bg-[#8b5cf6]/20', text: 'text-[#8b5cf6]', label: 'SaaS' },
-  ecommerce: { bg: 'bg-[#f97316]/20', text: 'text-[#f97316]', label: 'E-commerce' },
-  service: { bg: 'bg-[#22c55e]/20', text: 'text-[#22c55e]', label: 'Service' },
-  content: { bg: 'bg-[#e91e8c]/20', text: 'text-[#e91e8c]', label: 'Content' },
+  saas: { bg: 'bg-accent/20', text: 'text-accent', label: 'SaaS' },
+  ecommerce: { bg: 'bg-primary/20', text: 'text-primary/50', label: 'E-commerce' },
+  service: { bg: 'bg-primary/20', text: 'text-primary', label: 'Service' },
+  content: { bg: 'bg-primary/20', text: 'text-primary', label: 'Content' },
 };
 
 // Complexity indicator colors
 const COMPLEXITY_COLORS: Record<string, string> = {
-  low: 'text-[#22c55e]',
-  medium: 'text-[#f59e0b]',
-  high: 'text-[#ef4444]',
+  low: 'text-primary',
+  medium: 'text-primary/50',
+  high: 'text-red-400',
 };
 
 // Layer configuration with icons and colors
 const LAYER_CONFIG: Record<string, { label: string; color: string }> = {
-  frontend: { label: 'Frontend', color: '#00d4ff' },
-  backend: { label: 'Backend', color: '#8b5cf6' },
-  database: { label: 'Database', color: '#22c55e' },
-  hosting: { label: 'Hosting', color: '#f97316' },
-  devops: { label: 'DevOps', color: '#e91e8c' },
-  thirdParty: { label: 'Third-Party', color: '#f59e0b' },
+  frontend: { label: 'Frontend', color: 'hsl(160, 84%, 44%)' },
+  backend: { label: 'Backend', color: 'hsl(160, 60%, 55%)' },
+  database: { label: 'Database', color: 'hsl(160, 84%, 44%)' },
+  hosting: { label: 'Hosting', color: 'hsl(160, 50%, 60%)' },
+  devops: { label: 'DevOps', color: 'hsl(160, 40%, 65%)' },
+  thirdParty: { label: 'Third-Party', color: 'hsl(160, 30%, 70%)' },
 };
 
 function TechItem({ tech }: { tech: TechRecommendation }) {
@@ -96,7 +96,7 @@ function TechItem({ tech }: { tech: TechRecommendation }) {
 }
 
 function TechLayer({ layerKey, techs }: { layerKey: string; techs: TechRecommendation[] }) {
-  const config = LAYER_CONFIG[layerKey] || { label: layerKey, color: '#6b7280' };
+  const config = LAYER_CONFIG[layerKey] || { label: layerKey, color: 'hsl(160, 84%, 44%)' };
 
   if (!techs || techs.length === 0) return null;
 
@@ -148,13 +148,13 @@ export function TechStackSection({
         <div className="flex items-center gap-3">
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: 'rgba(0, 212, 255, 0.2)' }}
+            style={{ backgroundColor: 'hsla(160, 84%, 44%, 0.2)' }}
           >
-            <Server className="w-5 h-5 text-[#00d4ff]" />
+            <Server className="w-5 h-5 text-primary" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold text-foreground">{title}</h2>
+              <h2 className="text-sm font-semibold text-foreground">{title}</h2>
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${businessTypeConfig.bg} ${businessTypeConfig.text}`}>
                 {businessTypeConfig.label}
               </span>

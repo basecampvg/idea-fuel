@@ -113,7 +113,7 @@ function PromptCard({
   return (
     <div
       className={`w-full rounded-xl bg-background border p-4 transition-all text-left ${
-        isExpanded ? 'border-primary/30 bg-card' : 'border-border hover:border-[#3a3a4a] hover:bg-card'
+        isExpanded ? 'border-primary/30 bg-card' : 'border-border hover:border-border hover:bg-card'
       }`}
     >
       {/* Header row - clickable to expand */}
@@ -154,7 +154,7 @@ function PromptCard({
                 className="w-full rounded-lg bg-muted/30 border border-primary/30 p-3 text-xs text-foreground leading-relaxed resize-none focus:outline-none focus:ring-1 focus:ring-primary/50 min-h-[80px] overflow-hidden"
                 autoFocus
               />
-              <p className="text-[10px] text-muted-foreground/60 mt-1.5">
+              <p className="text-xs text-muted-foreground/60 mt-1.5">
                 Edit the prompt above, then copy when ready
               </p>
             </div>
@@ -164,7 +164,7 @@ function PromptCard({
                 {displayPrompt}
               </p>
               {hasBeenEdited && (
-                <p className="text-[10px] text-primary/60 mt-1.5">
+                <p className="text-xs text-primary/60 mt-1.5">
                   ✓ Custom prompt saved
                 </p>
               )}
@@ -178,7 +178,7 @@ function PromptCard({
               onClick={handleCopyClick}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 isCopied
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                  ? 'bg-primary/10 text-primary border border-primary/30'
                   : 'bg-primary/10 text-primary hover:bg-primary/20 border border-primary/30'
               }`}
             >
@@ -260,8 +260,8 @@ export function ActionPrompts({ actionPrompts: rawActionPrompts, ideaTitle, titl
     <div className="rounded-2xl bg-background border border-border p-5">
       {/* Header with star icon */}
       <div className="flex items-center gap-2 mb-4">
-        <Sparkles className="w-4 h-4 text-[#fbbf24]" />
-        <h2 className="text-base font-semibold text-foreground">
+        <Sparkles className="w-4 h-4 text-primary/50" />
+        <h2 className="text-sm font-semibold text-foreground">
           {title}
         </h2>
       </div>
@@ -292,8 +292,8 @@ export function ActionPrompts({ actionPrompts: rawActionPrompts, ideaTitle, titl
 
       {/* Toast notification */}
       {lastCopied && (
-        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-card border border-[#22c55e]/30 px-4 py-3 shadow-lg flex items-center gap-2 animate-fade-in-up">
-          <Check className="w-4 h-4 text-[#22c55e]" />
+        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-card border border-primary/30 px-4 py-3 shadow-lg flex items-center gap-2 animate-fade-in-up">
+          <Check className="w-4 h-4 text-primary" />
           <span className="text-sm text-foreground">Prompt copied to clipboard</span>
         </div>
       )}

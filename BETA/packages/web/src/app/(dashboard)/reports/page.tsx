@@ -60,7 +60,7 @@ export default function ReportsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">Reports</h1>
         <p className="mt-1 text-gray-500">
           View and download your generated business reports
         </p>
@@ -72,8 +72,8 @@ export default function ReportsPage() {
           onClick={() => setTypeFilter('ALL')}
           className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
             typeFilter === 'ALL'
-              ? 'bg-blue-100 text-blue-700'
-              : 'text-gray-600 hover:bg-gray-100'
+              ? 'bg-primary/20 text-primary'
+              : 'text-muted-foreground hover:bg-muted'
           }`}
         >
           All Reports
@@ -84,8 +84,8 @@ export default function ReportsPage() {
             onClick={() => setTypeFilter(type)}
             className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
               typeFilter === type
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-gray-600 hover:bg-gray-100'
+                ? 'bg-primary/20 text-primary'
+                : 'text-muted-foreground hover:bg-muted'
             }`}
           >
             {REPORT_TYPE_LABELS[type]}

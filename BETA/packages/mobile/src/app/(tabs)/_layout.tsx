@@ -92,6 +92,16 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="daily-pick"
+        options={{
+          title: 'Trends',
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="trending-up" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',

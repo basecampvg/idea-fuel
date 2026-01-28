@@ -52,18 +52,18 @@ const statusConfig: Record<
   RESEARCHING: {
     label: 'Researching',
     icon: <Search className="w-4 h-4 animate-pulse" />,
-    color: 'text-blue-400',
-    bgColor: 'bg-blue-500/10',
-    borderColor: 'border-blue-500/30',
-    glowColor: 'shadow-[0_0_20px_rgba(59,130,246,0.15)]',
+    color: 'text-primary/70',
+    bgColor: 'bg-primary/10',
+    borderColor: 'border-primary/30',
+    glowColor: 'shadow-[0_0_20px_hsla(160,84%,44%,0.15)]',
   },
   COMPLETE: {
     label: 'Ready',
     icon: <CheckCircle2 className="w-4 h-4" />,
-    color: 'text-emerald-400',
-    bgColor: 'bg-emerald-500/10',
-    borderColor: 'border-emerald-500/30',
-    glowColor: 'shadow-[0_0_20px_rgba(16,185,129,0.15)]',
+    color: 'text-primary',
+    bgColor: 'bg-primary/10',
+    borderColor: 'border-primary/30',
+    glowColor: 'shadow-[0_0_20px_hsla(160,84%,44%,0.15)]',
   },
 };
 
@@ -231,7 +231,7 @@ export default function IdeasPage() {
                   </div>
 
                   {/* Title */}
-                  <h3 className="mt-3 text-base font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+                  <h3 className="mt-3 text-sm font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
                     {idea.title}
                   </h3>
 
@@ -249,7 +249,7 @@ export default function IdeasPage() {
                       </div>
                       <div className="h-1.5 w-full rounded-full bg-muted/50 overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all duration-500"
+                          className="h-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-500"
                           style={{ width: `${idea.research.progress}%` }}
                         />
                       </div>
@@ -260,7 +260,7 @@ export default function IdeasPage() {
                   {isComplete && idea.research && (
                     <div className="mt-4 flex items-center gap-3">
                       <div className="flex items-center gap-1.5 text-xs">
-                        <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                        <TrendingUp className="w-3.5 h-3.5 text-primary" />
                         <span className="text-muted-foreground/70">Progress:</span>
                         <span className="font-medium text-foreground">
                           {idea.research.progress}%

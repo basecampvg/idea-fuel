@@ -20,11 +20,6 @@ export default async function DashboardLayout({
   return (
     <DashboardProviders>
       <div className="min-h-screen aurora-background">
-        {/* Aurora gradient orbs */}
-        <div className="aurora-orb-1" aria-hidden="true" />
-        <div className="aurora-orb-2" aria-hidden="true" />
-        <div className="aurora-orb-3" aria-hidden="true" />
-
         <Sidebar />
         {/* Main content is truly centered in viewport, sidebar overlays */}
         <main className="min-h-screen flex flex-col relative z-10">

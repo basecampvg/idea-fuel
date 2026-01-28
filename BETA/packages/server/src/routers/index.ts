@@ -5,6 +5,8 @@ import { interviewRouter } from './interview';
 import { reportRouter } from './report';
 import { researchRouter } from './research';
 import { adminRouter } from './admin';
+import { dailyPickRouter } from './dailyPick';
+import { blogRouter } from './blog';
 
 /**
  * Main application router
@@ -17,6 +19,8 @@ export const appRouter = router({
   report: reportRouter,
   research: researchRouter,
   admin: adminRouter,
+  dailyPick: dailyPickRouter,
+  blog: blogRouter,
 });
 
 // Export type definition for client usage

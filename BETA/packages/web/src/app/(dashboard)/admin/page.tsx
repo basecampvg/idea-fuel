@@ -28,6 +28,12 @@ import {
   DollarSign,
   Zap,
   Activity,
+  TrendingUp,
+  Play,
+  Clock,
+  AlertCircle,
+  CheckCircle,
+  ExternalLink,
 } from 'lucide-react';
 
 type ConfigValue = string | number | boolean | string[];
@@ -211,6 +217,230 @@ function DashboardPaneCard({ paneName, config, onSave, isSaving }: DashboardPane
   );
 }
 
+// Daily Pick Control Component
+function DailyPickControl() {
+  const utils = trpc.useUtils();
+  const [isRunning, setIsRunning] = useState(false);
+  const [lastResult, setLastResult] = useState<{
+    status: 'SUCCESS' | 'PARTIAL' | 'FAILED';
+    runId: string;
+    winnerClusterId: string | null;
+    error?: string;
+    metrics?: {
+      candidatesFound: number;
+      candidatesFiltered: number;
+      candidatesEnriched: number;
+      clustersCreated: number;
+      winnerScore: number | null;
+      isLowConfidence: boolean;
+      durationMs: number;
+    };
+  } | null>(null);
+
+  const { data: recentRuns, isLoading: runsLoading } = trpc.dailyPick.listRuns.useQuery({ limit: 5 });
+  const { data: todayPick } = trpc.dailyPick.getToday.useQuery();
+
+  const runJob = trpc.dailyPick.runJob.useMutation({
+    onMutate: () => {
+      setIsRunning(true);
+      setLastResult(null);
+    },
+    onSuccess: (result) => {
+      setIsRunning(false);
+      setLastResult(result);
+      utils.dailyPick.listRuns.invalidate();
+      utils.dailyPick.getToday.invalidate();
+    },
+    onError: (error) => {
+      setIsRunning(false);
+      setLastResult({
+        status: 'FAILED',
+        runId: '',
+        winnerClusterId: null,
+        error: error.message,
+      });
+    },
+  });
+
+  const handleRunJob = () => {
+    if (confirm('Run the Daily Trend Pick job? This may take several minutes.')) {
+      runJob.mutate({});
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Run Control */}
+      <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-background">
+        <div>
+          <h3 className="font-medium text-foreground">Manual Trigger</h3>
+          <p className="text-sm text-muted-foreground">
+            Run the Daily Trend Pick pipeline manually
+          </p>
+        </div>
+        <Button
+          onClick={handleRunJob}
+          disabled={isRunning}
+          isLoading={isRunning}
+          variant="primary"
+        >
+          {isRunning ? (
+            <>Running...</>
+          ) : (
+            <>
+              <Play className="h-4 w-4 mr-2" />
+              Run Job
+            </>
+          )}
+        </Button>
+      </div>
+
+      {/* Last Result */}
+      {lastResult && (
+        <div
+          className={`p-4 rounded-xl border ${
+            lastResult.status === 'SUCCESS'
+              ? 'border-primary/50 bg-primary/10'
+              : lastResult.status === 'PARTIAL'
+              ? 'border-yellow-500/50 bg-yellow-500/10'
+              : 'border-red-500/50 bg-red-500/10'
+          }`}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            {lastResult.status === 'SUCCESS' ? (
+              <CheckCircle className="h-5 w-5 text-primary" />
+            ) : lastResult.status === 'PARTIAL' ? (
+              <AlertCircle className="h-5 w-5 text-yellow-500" />
+            ) : (
+              <AlertCircle className="h-5 w-5 text-red-500" />
+            )}
+            <span className="font-medium">
+              Job {lastResult.status.toLowerCase()}
+            </span>
+          </div>
+          {lastResult.metrics && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Candidates:</span>{' '}
+                {lastResult.metrics.candidatesFound}
+              </div>
+              <div>
+                <span className="text-muted-foreground">Filtered:</span>{' '}
+                {lastResult.metrics.candidatesFiltered}
+              </div>
+              <div>
+                <span className="text-muted-foreground">Clusters:</span>{' '}
+                {lastResult.metrics.clustersCreated}
+              </div>
+              <div>
+                <span className="text-muted-foreground">Duration:</span>{' '}
+                {(lastResult.metrics.durationMs / 1000).toFixed(1)}s
+              </div>
+            </div>
+          )}
+          {lastResult.error && (
+            <p className="text-sm text-red-500 mt-2">{lastResult.error}</p>
+          )}
+        </div>
+      )}
+
+      {/* Today's Pick */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Today&apos;s Pick
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {todayPick ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-foreground">
+                    {todayPick.cluster.title}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {todayPick.cluster.canonicalQuery}
+                  </p>
+                </div>
+                <a
+                  href="/daily-pick"
+                  className="flex items-center gap-1 text-primary hover:underline text-sm"
+                >
+                  View <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+              <div className="flex gap-4 text-sm">
+                <Badge variant="info">
+                  Score: {todayPick.cluster.combinedScore.toFixed(1)}
+                </Badge>
+                <Badge variant="success">
+                  Growth: {todayPick.cluster.growthScore}
+                </Badge>
+                <Badge variant="default">
+                  Purchase: {todayPick.cluster.purchaseProofScore}
+                </Badge>
+              </div>
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              No pick for today yet. Run the job to generate one.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Recent Runs */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Recent Runs
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {runsLoading ? (
+            <div className="flex justify-center py-4">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+            </div>
+          ) : recentRuns && recentRuns.length > 0 ? (
+            <div className="space-y-2">
+              {recentRuns.map((run) => (
+                <div
+                  key={run.id}
+                  className="flex items-center justify-between py-2 border-b border-border last:border-0"
+                >
+                  <div className="flex items-center gap-3">
+                    {run.status === 'SUCCESS' ? (
+                      <CheckCircle className="h-4 w-4 text-primary" />
+                    ) : run.status === 'PARTIAL' ? (
+                      <AlertCircle className="h-4 w-4 text-yellow-500" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                    )}
+                    <div>
+                      <span className="text-sm font-medium">{run.dateLocal}</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        {run._count.candidates} candidates, {run._count.clusters} clusters
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(run.startedAt).toLocaleTimeString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">No runs yet.</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 // Token Usage Analytics Component
 function TokenUsageAnalytics() {
   const [days, setDays] = useState<1 | 7 | 30>(1);
@@ -262,7 +492,7 @@ function TokenUsageAnalytics() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">
+            <p className="text-2xl font-semibold">
               {(summary?.totals.totalTokens ?? 0).toLocaleString()}
             </p>
           </CardContent>
@@ -275,7 +505,7 @@ function TokenUsageAnalytics() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">
+            <p className="text-2xl font-semibold">
               ${(summary?.totals.costEstimate ?? 0).toFixed(2)}
             </p>
           </CardContent>
@@ -288,7 +518,7 @@ function TokenUsageAnalytics() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">
+            <p className="text-2xl font-semibold">
               {(summary?.totals.callCount ?? 0).toLocaleString()}
             </p>
           </CardContent>
@@ -298,7 +528,7 @@ function TokenUsageAnalytics() {
             <CardTitle className="text-sm text-muted-foreground">Avg Tokens/Call</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">
+            <p className="text-2xl font-semibold">
               {summary?.totals.callCount
                 ? Math.round(summary.totals.totalTokens / summary.totals.callCount).toLocaleString()
                 : 0}
@@ -379,6 +609,7 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   domains: <Globe className="h-4 w-4" />,
   analytics: <BarChart3 className="h-4 w-4" />,
   dashboard: <LayoutGrid className="h-4 w-4" />,
+  dailyPick: <TrendingUp className="h-4 w-4" />,
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -390,6 +621,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   domains: 'Search Domains',
   analytics: 'Analytics & Tracking',
   dashboard: 'Dashboard Panes',
+  dailyPick: 'Daily Trend Pick',
 };
 
 export default function AdminPage() {
@@ -581,7 +813,7 @@ export default function AdminPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <h1 className="text-2xl font-semibold text-foreground flex items-center gap-2">
             <Settings className="h-6 w-6" />
             Admin Dashboard
           </h1>
@@ -670,6 +902,18 @@ export default function AdminPage() {
             </Badge>
           </button>
         ))}
+        {/* Daily Pick - special category not from config */}
+        <button
+          onClick={() => setActiveCategory('dailyPick')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg transition-colors whitespace-nowrap ${
+            activeCategory === 'dailyPick'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+          }`}
+        >
+          {CATEGORY_ICONS.dailyPick}
+          {CATEGORY_LABELS.dailyPick}
+        </button>
       </div>
 
       {/* Config Items */}
@@ -709,6 +953,8 @@ export default function AdminPage() {
                 />
               ))}
             </div>
+          ) : activeCategory === 'dailyPick' ? (
+            <DailyPickControl />
           ) : (
             <div className="space-y-4">
               {currentConfigs.map((item: ConfigItem) => (

@@ -55,7 +55,7 @@ export default function SettingsPage() {
   return (
     <div className="w-full max-w-[1120px] mx-auto px-6 py-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
         <p className="mt-1 text-muted-foreground">Manage your account and preferences</p>
       </div>
 
@@ -75,7 +75,7 @@ export default function SettingsPage() {
                   className="h-16 w-16 rounded-full"
                 />
               ) : (
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-xl font-medium text-primary">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-lg font-medium text-primary">
                   {user?.name?.[0] || user?.email?.[0] || 'U'}
                 </div>
               )}

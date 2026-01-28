@@ -5,12 +5,13 @@ import type { ChatMessage, InterviewMode } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
 import { generateOpeningQuestion } from '../services/interview-ai';
+import { logAuditAsync, formatResource } from '../lib/audit';
 
 // Default max turns by interview mode
 const MAX_TURNS_BY_MODE = {
   SPARK: 0,      // Quick validation - no interview, triggers Spark pipeline
-  LIGHT: 10,     // 10 must-have questions
-  IN_DEPTH: 65,  // 60-70 comprehensive questions
+  LIGHT: 10,     // 6 scripted + 2-3 dynamic + close
+  IN_DEPTH: 18,  // 10 scripted + 5-7 dynamic + close
 } as const;
 
 export const ideaRouter = router({
@@ -102,6 +103,13 @@ export const ideaRouter = router({
       });
     }
 
+    // Audit log - view idea
+    logAuditAsync({
+      userId: ctx.userId,
+      action: 'IDEA_VIEW',
+      resource: formatResource('idea', idea.id),
+    });
+
     return idea;
   }),
 
@@ -114,6 +122,14 @@ export const ideaRouter = router({
         ...input,
         userId: ctx.userId,
       },
+    });
+
+    // Audit log - create idea
+    logAuditAsync({
+      userId: ctx.userId,
+      action: 'IDEA_CREATE',
+      resource: formatResource('idea', idea.id),
+      metadata: { title: idea.title },
     });
 
     return idea;
@@ -150,6 +166,14 @@ export const ideaRouter = router({
         data: input.data,
       });
 
+      // Audit log - update idea
+      logAuditAsync({
+        userId: ctx.userId,
+        action: 'IDEA_UPDATE',
+        resource: formatResource('idea', idea.id),
+        metadata: { changes: input.data },
+      });
+
       return idea;
     }),
 
@@ -171,6 +195,14 @@ export const ideaRouter = router({
         message: 'Idea not found',
       });
     }
+
+    // Audit log - delete idea (log before deletion)
+    logAuditAsync({
+      userId: ctx.userId,
+      action: 'IDEA_DELETE',
+      resource: formatResource('idea', input.id),
+      metadata: { title: existing.title },
+    });
 
     await ctx.prisma.idea.delete({
       where: { id: input.id },
@@ -231,6 +263,14 @@ export const ideaRouter = router({
         data: { status: 'RESEARCHING' },
       });
 
+      // Audit log - start Spark interview
+      logAuditAsync({
+        userId: ctx.userId,
+        action: 'INTERVIEW_START',
+        resource: formatResource('interview', interview.id),
+        metadata: { ideaId: input.ideaId, mode: 'SPARK' },
+      });
+
       return {
         interview,
         skipToResearch: true,
@@ -277,6 +317,14 @@ export const ideaRouter = router({
     await ctx.prisma.idea.update({
       where: { id: input.ideaId },
       data: { status: 'INTERVIEWING' },
+    });
+
+    // Audit log - start interview
+    logAuditAsync({
+      userId: ctx.userId,
+      action: 'INTERVIEW_START',
+      resource: formatResource('interview', interview.id),
+      metadata: { ideaId: input.ideaId, mode },
     });
 
     return {
@@ -340,6 +388,14 @@ export const ideaRouter = router({
     await ctx.prisma.idea.update({
       where: { id: input.id },
       data: { status: 'RESEARCHING' },
+    });
+
+    // Audit log - start research
+    logAuditAsync({
+      userId: ctx.userId,
+      action: 'RESEARCH_START',
+      resource: formatResource('research', research.id),
+      metadata: { ideaId: input.id },
     });
 
     // TODO: Trigger BullMQ job to start research pipeline

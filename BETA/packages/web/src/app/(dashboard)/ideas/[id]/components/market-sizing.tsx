@@ -21,11 +21,11 @@ interface MarketSizingProps {
 function getConfidenceColor(confidence: 'high' | 'medium' | 'low'): string {
   switch (confidence) {
     case 'high':
-      return 'bg-[#22c55e]';
+      return 'bg-primary';
     case 'medium':
-      return 'bg-[#f59e0b]';
+      return 'bg-primary/50';
     case 'low':
-      return 'bg-[#ef4444]';
+      return 'bg-red-500';
   }
 }
 
@@ -43,19 +43,19 @@ function getConfidenceLabel(confidence: 'high' | 'medium' | 'low'): string {
 // Card styling for each market level
 const cardStyles: Record<string, { gradient: string; border: string; accent: string }> = {
   tam: {
-    gradient: 'from-[#3b82f6]/20 to-[#3b82f6]/5',
-    border: 'border-[#3b82f6]/30',
-    accent: '#3b82f6',
+    gradient: 'from-primary/20 to-primary/5',
+    border: 'border-primary/30',
+    accent: 'hsl(160, 84%, 44%)',
   },
   sam: {
-    gradient: 'from-[#8b5cf6]/20 to-[#8b5cf6]/5',
-    border: 'border-[#8b5cf6]/30',
-    accent: '#8b5cf6',
+    gradient: 'from-primary/15 to-primary/5',
+    border: 'border-primary/25',
+    accent: 'hsl(160, 60%, 55%)',
   },
   som: {
-    gradient: 'from-[#22c55e]/20 to-[#22c55e]/5',
-    border: 'border-[#22c55e]/30',
-    accent: '#22c55e',
+    gradient: 'from-primary/20 to-primary/5',
+    border: 'border-primary/30',
+    accent: 'hsl(160, 84%, 44%)',
   },
 };
 
@@ -93,11 +93,11 @@ function MarketCard({
       </div>
 
       {/* Value */}
-      <div className="text-2xl font-bold text-foreground mb-1">{metric.formattedValue}</div>
+      <div className="text-2xl font-semibold text-foreground mb-1">{metric.formattedValue}</div>
 
       {/* Growth Rate */}
       <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
-        <TrendingUp className="w-3 h-3 text-[#22c55e]" />
+        <TrendingUp className="w-3 h-3 text-primary" />
         <span>{metric.growthRate}% CAGR</span>
         <span className="text-xs">({metric.timeframe})</span>
       </div>
@@ -115,7 +115,7 @@ function SegmentBar({
   segment: MarketSegmentBreakdown;
   index: number;
 }) {
-  const colors = ['#3b82f6', '#8b5cf6', '#22c55e', '#f59e0b', '#ef4444'];
+  const colors = ['hsl(160, 84%, 44%)', 'hsl(160, 60%, 55%)', 'hsl(160, 40%, 65%)', 'hsl(160, 50%, 60%)', 'hsl(160, 30%, 70%)'];
   const color = colors[index % colors.length];
 
   return (
@@ -133,7 +133,7 @@ function SegmentBar({
           }}
         />
       </div>
-      <p className="text-[10px] text-muted-foreground">{segment.description}</p>
+      <p className="text-xs text-muted-foreground">{segment.description}</p>
     </div>
   );
 }
@@ -153,8 +153,8 @@ export function MarketSizing({
 
   return (
     <CollapsibleSection
-      icon={<PieChart className="w-5 h-5 text-[#3b82f6]" />}
-      iconBgColor="rgba(59, 130, 246, 0.2)"
+      icon={<PieChart className="w-5 h-5 text-primary/70" />}
+      iconBgColor="hsla(160, 84%, 44%, 0.2)"
       title={title}
       subtitle={subtitle}
       defaultCollapsed={false}
@@ -228,30 +228,30 @@ export function MarketSizing({
             {data.assumptions && data.assumptions.length > 0 && (
               <div>
                 <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-[#f59e0b]" />
+                  <AlertCircle className="w-4 h-4 text-primary/50" />
                   Key Assumptions
                 </h4>
                 <ul className="space-y-2">
                   {data.assumptions.map((assumption, i) => (
                     <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
                       <span
-                        className={`font-medium uppercase text-[10px] px-1.5 py-0.5 rounded ${
+                        className={`font-medium uppercase text-xs px-1.5 py-0.5 rounded ${
                           assumption.level === 'tam'
-                            ? 'bg-[#3b82f6]/20 text-[#3b82f6]'
+                            ? 'bg-primary/20 text-primary/70'
                             : assumption.level === 'sam'
-                              ? 'bg-[#8b5cf6]/20 text-[#8b5cf6]'
-                              : 'bg-[#22c55e]/20 text-[#22c55e]'
+                              ? 'bg-accent/20 text-accent'
+                              : 'bg-primary/20 text-primary'
                         }`}
                       >
                         {assumption.level}
                       </span>
                       <span className="flex-1">{assumption.assumption}</span>
                       <span
-                        className={`text-[10px] ${
+                        className={`text-xs ${
                           assumption.impact === 'high'
-                            ? 'text-[#ef4444]'
+                            ? 'text-red-400'
                             : assumption.impact === 'medium'
-                              ? 'text-[#f59e0b]'
+                              ? 'text-primary/50'
                               : 'text-muted-foreground'
                         }`}
                       >
@@ -296,7 +296,7 @@ export function MarketSizing({
 
             {/* Last Updated */}
             {data.lastUpdated && (
-              <p className="text-[10px] text-muted-foreground pt-2 border-t border-border">
+              <p className="text-xs text-muted-foreground pt-2 border-t border-border">
                 Last updated: {new Date(data.lastUpdated).toLocaleDateString()}
               </p>
             )}

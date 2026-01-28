@@ -85,21 +85,21 @@ function ErrorContent() {
               />
             </svg>
           </div>
-          <h1 className="mt-4 text-2xl font-bold text-gray-900">{title}</h1>
+          <h1 className="mt-4 text-2xl font-semibold text-gray-900">{title}</h1>
           <p className="mt-2 text-gray-600">{description}</p>
         </div>
 
         <div className="mt-8 space-y-4">
           <Link
             href="/auth/signin"
-            className="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-lg shadow-sm bg-blue-600 text-foreground hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            className="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-lg shadow-sm bg-primary text-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
           >
             Try again
           </Link>
 
           <Link
             href="/"
-            className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
           >
             Go home
           </Link>
@@ -107,7 +107,7 @@ function ErrorContent() {
 
         <p className="mt-8 text-center text-sm text-gray-500">
           If this problem persists, please{' '}
-          <a href="mailto:support@forgeautomation.com" className="text-blue-600 hover:text-blue-500">
+          <a href="mailto:support@forgeautomation.com" className="text-primary hover:text-primary/80">
             contact support
           </a>
         </p>

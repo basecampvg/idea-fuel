@@ -24,7 +24,7 @@ export function FeatureComparison({ currentTier }: FeatureComparisonProps) {
                 key={tier}
                 className={`
                   p-4 text-center text-sm font-semibold border-b border-border
-                  ${tier === currentTier ? 'text-[#e91e8c] bg-[#e91e8c]/5' : 'text-foreground'}
+                  ${tier === currentTier ? 'text-primary bg-primary/5' : 'text-foreground'}
                 `}
               >
                 {SUBSCRIPTION_TIER_LABELS[tier]}
@@ -56,12 +56,12 @@ export function FeatureComparison({ currentTier }: FeatureComparisonProps) {
                     key={tier}
                     className={`
                       p-4 text-center border-b border-border
-                      ${isHighlighted ? 'bg-[#e91e8c]/5' : ''}
+                      ${isHighlighted ? 'bg-primary/5' : ''}
                     `}
                   >
                     {typeof value === 'boolean' ? (
                       value ? (
-                        <Check className="h-5 w-5 text-[#22c55e] mx-auto" />
+                        <Check className="h-5 w-5 text-primary mx-auto" />
                       ) : (
                         <X className="h-5 w-5 text-muted-foreground/40 mx-auto" />
                       )
@@ -92,13 +92,13 @@ export function FeatureComparisonMobile({ currentTier }: FeatureComparisonProps)
             key={tier}
             className={`
               rounded-xl border p-4
-              ${isCurrentTier ? 'border-[#e91e8c]/40 bg-[#e91e8c]/5' : 'border-border bg-card'}
+              ${isCurrentTier ? 'border-primary/40 bg-primary/5' : 'border-border bg-card'}
             `}
           >
             <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
               {SUBSCRIPTION_TIER_LABELS[tier]}
               {isCurrentTier && (
-                <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-[#e91e8c]/20 text-[#e91e8c]">
+                <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-primary/20 text-primary">
                   Current
                 </span>
               )}
@@ -111,7 +111,7 @@ export function FeatureComparisonMobile({ currentTier }: FeatureComparisonProps)
                 return (
                   <li key={feature.id} className="flex items-center gap-2 text-sm">
                     {included ? (
-                      <Check className="h-4 w-4 text-[#22c55e] flex-shrink-0" />
+                      <Check className="h-4 w-4 text-primary flex-shrink-0" />
                     ) : (
                       <X className="h-4 w-4 text-muted-foreground/40 flex-shrink-0" />
                     )}

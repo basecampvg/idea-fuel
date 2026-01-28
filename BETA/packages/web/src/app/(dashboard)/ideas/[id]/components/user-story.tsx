@@ -22,11 +22,11 @@ export function UserStory({ userStory, title = 'The Story', subtitle }: UserStor
   return (
     <div className="rounded-2xl bg-background border border-border p-6">
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-full bg-[#8b5cf6]/20 flex items-center justify-center">
-          <BookOpen className="w-5 h-5 text-[#8b5cf6]" />
+        <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
+          <BookOpen className="w-5 h-5 text-accent" />
         </div>
         <div>
-          <h2 className="text-base font-semibold text-foreground">{title}</h2>
+          <h2 className="text-sm font-semibold text-foreground">{title}</h2>
           {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
         </div>
       </div>
@@ -53,7 +53,7 @@ export function UserStory({ userStory, title = 'The Story', subtitle }: UserStor
           </div>
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">The Outcome</p>
-            <p className="text-sm text-[#22c55e]">{userStory.outcome}</p>
+            <p className="text-sm text-primary">{userStory.outcome}</p>
           </div>
         </div>
       </div>
