@@ -22,7 +22,17 @@ export type UpdateIdeaInput = z.infer<typeof updateIdeaSchema>;
 // Interview validators
 // ============================================
 export const interviewModeSchema = z.enum(['SPARK', 'LIGHT', 'IN_DEPTH']);
-export const sparkJobStatusSchema = z.enum(['QUEUED', 'RUNNING_KEYWORDS', 'RUNNING_RESEARCH', 'COMPLETE', 'FAILED']);
+export const sparkJobStatusSchema = z.enum([
+  'QUEUED',
+  'RUNNING_KEYWORDS',
+  'RUNNING_RESEARCH',    // Legacy
+  'RUNNING_PARALLEL',    // Parallel deep research
+  'SYNTHESIZING',        // GPT-5.2 merging results
+  'ENRICHING',           // Legacy
+  'COMPLETE',
+  'FAILED',
+  'PARTIAL_COMPLETE',    // One call succeeded, one failed
+]);
 export const interviewStatusSchema = z.enum(['IN_PROGRESS', 'COMPLETE', 'ABANDONED']);
 
 export const startInterviewSchema = z.object({
@@ -122,6 +132,26 @@ export type ResearchPhaseInput = z.infer<typeof researchPhaseSchema>;
 export type StartResearchInput = z.infer<typeof startResearchSchema>;
 
 // ============================================
+// Data quality / confidence scoring validators
+// ============================================
+export const confidenceLevelSchema = z.enum(['high', 'medium', 'low']);
+
+export const sectionQualitySchema = z.object({
+  section: z.string(),
+  confidence: confidenceLevelSchema,
+  queriesRun: z.number(),
+  resultsFound: z.number(),
+  details: z.string(),
+});
+
+export const dataQualityReportSchema = z.object({
+  overall: confidenceLevelSchema,
+  sections: z.array(sectionQualitySchema),
+  summary: z.string(),
+  queriedTopics: z.array(z.string()),
+});
+
+// ============================================
 // Spark validators (quick validation)
 // ============================================
 export const sparkKeywordsSchema = z.object({
@@ -132,6 +162,8 @@ export const sparkKeywordsSchema = z.object({
     reddit_search: z.array(z.string()),
     facebook_groups_search: z.array(z.string()),
   }),
+  expanded_queries: z.array(z.string()).optional(),
+  expansion_notes: z.string().optional(),
 });
 
 export const sparkKeywordTrendSchema = z.object({
@@ -209,6 +241,7 @@ export const sparkResultSchema = z.object({
     timebox: z.string(),
   }),
   keyword_trends: z.array(sparkKeywordTrendSchema).optional(),
+  data_quality: dataQualityReportSchema.optional(),
 });
 
 export const startSparkSchema = z.object({
@@ -229,10 +262,3 @@ export const paginationSchema = z.object({
 });
 
 export type PaginationInput = z.infer<typeof paginationSchema>;
-
-// ============================================
-// Legacy exports for backwards compatibility
-// TODO: Remove after migration complete
-// ============================================
-export const createDocumentSchema = generateReportSchema;
-export type CreateDocumentInput = GenerateReportInput;

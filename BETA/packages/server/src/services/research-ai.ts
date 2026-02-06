@@ -10,6 +10,11 @@ import {
   type TrendData,
 } from '../lib/serpapi';
 import {
+  expandQueries,
+  getExpandedQueryStrings,
+  formatQueriesForPrompt,
+} from '../lib/query-expansion';
+import {
   deepResearchClient,
   DEEP_RESEARCH_MODEL,
   DEEP_RESEARCH_MODEL_MINI,
@@ -469,6 +474,24 @@ export async function runChunkedDeepResearch(
     .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
     .join('\n\n');
 
+  // Run query expansion once (shared across all chunks)
+  const keyPhrases = extractKeyPhrases(ideaTitle, ideaDescription);
+  let expansionContext = '';
+  try {
+    const expansion = await expandQueries(keyPhrases, [], {
+      maxTemplateQueries: 20,
+      maxSerpApiQueries: 8,
+      serpApiEnabled: true,
+    });
+    if (expansion.totalUnique > 0) {
+      const expandedStrings = getExpandedQueryStrings(expansion);
+      expansionContext = formatQueriesForPrompt(expandedStrings, 'ADDITIONAL SEARCH ANGLES');
+      console.log(`[Chunked Research] Query expansion: ${expansion.totalUnique} queries (${expansion.templateCount} template, ${expansion.serpApiCount} SerpAPI) in ${expansion.elapsedMs}ms`);
+    }
+  } catch (err) {
+    console.warn('[Chunked Research] Query expansion failed (non-fatal):', err instanceof Error ? err.message : err);
+  }
+
   // Process each chunk sequentially
   for (let i = 0; i < RESEARCH_CHUNKS.length; i++) {
     const chunk = RESEARCH_CHUNKS[i];
@@ -497,7 +520,8 @@ export async function runChunkedDeepResearch(
         interviewData,
         interviewContext,
         chunk,
-        model
+        model,
+        expansionContext
       );
 
       clearInterval(heartbeat);
@@ -554,7 +578,8 @@ async function runSingleResearchChunk(
   interviewData: Partial<InterviewDataPoints> | null,
   interviewContext: string,
   chunk: typeof RESEARCH_CHUNKS[number],
-  model: string
+  model: string,
+  expansionContext: string = ''
 ): Promise<DeepResearchResult> {
   const systemPrompt = `You are a market research analyst conducting focused research.
 
@@ -583,7 +608,8 @@ ${interviewContext || 'No interview transcript available.'}
 ## RESEARCH FOCUS: ${chunk.name.toUpperCase()}
 ${chunk.focus}
 
-Provide specific, actionable insights with citations. Focus only on this research area.`;
+Provide specific, actionable insights with citations. Focus only on this research area.
+${expansionContext}`;
 
   const params = createDeepResearchParams({
     model,
@@ -2662,13 +2688,65 @@ Generate 3-5 specific, actionable queries per category.`;
   validateJsonCompleteness(content, 'generateSearchQueries');
 
   try {
-    return JSON.parse(content) as GeneratedQueries;
+    const queries = JSON.parse(content) as GeneratedQueries;
+
+    // Expand queries with template patterns for richer coverage
+    const allLlmQueries = [
+      ...queries.marketQueries,
+      ...queries.competitorQueries,
+      ...queries.customerQueries,
+      ...queries.trendQueries,
+    ];
+    const keyPhrases = extractKeyPhrases(ideaTitle, ideaDescription);
+    const expansion = await expandQueries(keyPhrases, allLlmQueries, {
+      maxTemplateQueries: 20,
+      maxSerpApiQueries: 10,
+      serpApiEnabled: true,
+    });
+
+    if (expansion.totalUnique > allLlmQueries.length) {
+      const expandedStrings = getExpandedQueryStrings(expansion);
+      // Distribute expanded queries across categories proportionally
+      const extraPerCategory = Math.ceil((expandedStrings.length - allLlmQueries.length) / 4);
+      const extras = expandedStrings.filter(q => !allLlmQueries.includes(q));
+      queries.marketQueries.push(...extras.slice(0, extraPerCategory));
+      queries.competitorQueries.push(...extras.slice(extraPerCategory, extraPerCategory * 2));
+      queries.customerQueries.push(...extras.slice(extraPerCategory * 2, extraPerCategory * 3));
+      queries.trendQueries.push(...extras.slice(extraPerCategory * 3));
+      console.log(`[generateSearchQueries] Expanded with ${extras.length} additional queries (${expansion.elapsedMs}ms)`);
+    }
+
+    return queries;
   } catch (parseError) {
+    if (parseError instanceof ResponseParseError) throw parseError;
     throw new ResponseParseError(
       `Failed to parse search queries JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
       response
     );
   }
+}
+
+/**
+ * Extract key phrases from idea title and description for query expansion.
+ * Simple heuristic: use the title as primary phrase, plus significant
+ * noun phrases from the description.
+ */
+function extractKeyPhrases(title: string, description: string): string[] {
+  const phrases: string[] = [title.toLowerCase()];
+
+  // Extract meaningful 2-3 word combinations from description
+  const words = description.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 3);
+  const stopWords = new Set(['that', 'this', 'with', 'from', 'they', 'have', 'been', 'will', 'would', 'could', 'should', 'their', 'there', 'about', 'which', 'when', 'what', 'more', 'most', 'some', 'very', 'also', 'than', 'them', 'into', 'only', 'other', 'such', 'each']);
+  const filtered = words.filter(w => !stopWords.has(w));
+
+  // Take up to 3 meaningful words as additional phrases
+  for (let i = 0; i < Math.min(filtered.length - 1, 3); i++) {
+    if (filtered[i + 1]) {
+      phrases.push(`${filtered[i]} ${filtered[i + 1]}`);
+    }
+  }
+
+  return phrases.slice(0, 5); // Max 5 phrases
 }
 
 // Phase 2: Synthesize insights from interview data (MVP - no external APIs)

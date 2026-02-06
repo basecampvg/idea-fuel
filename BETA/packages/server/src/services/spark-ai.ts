@@ -31,11 +31,14 @@ import {
 import { runDemandResearch, type SparkDemandResult } from './spark-demand';
 import { runTamResearch, type SparkTamResult } from './spark-tam';
 import { runCompetitorResearch, type SparkCompetitorResult } from './spark-competitors';
+import { expandQueries, getExpandedQueryStrings, formatQueriesForPrompt } from '../lib/query-expansion';
+import { computeSparkQualityScores, qualityReportToPromptContext } from '../lib/quality-scoring';
 import type {
   SparkKeywords,
   SparkResult,
   SparkJobStatus,
   SparkKeywordTrend,
+  DataQualityReport,
 } from '@forge/shared';
 import { sparkResultSchema } from '@forge/shared';
 
@@ -66,6 +69,13 @@ Your task is to generate a keyword pack for validating a business idea. The outp
    - General web search
    - Reddit-specific searches (site:reddit.com)
    - Facebook Groups discovery (site:facebook.com/groups)
+4. 10-15 expanded search query variations that cover:
+   - How real people discuss this topic (colloquial phrasing, slang, everyday language)
+   - Adjacent problems that indicate demand (what people complain about before finding this solution)
+   - Industry-specific jargon and technical terminology
+   - Question-form queries people type into Google ("how do I...", "why can't I...", "is there a way to...")
+   - Competitor comparison queries ("X vs Y", "alternatives to X")
+5. A brief note explaining the angles covered by your expanded queries
 
 Output ONLY valid JSON matching this exact schema:
 {
@@ -75,15 +85,15 @@ Output ONLY valid JSON matching this exact schema:
     "general_search": ["query1", "query2", ...],
     "reddit_search": ["site:reddit.com query1", ...],
     "facebook_groups_search": ["site:facebook.com/groups query1", ...]
-  }
+  },
+  "expanded_queries": ["colloquial query 1", "adjacent problem query 2", ...],
+  "expansion_notes": "Brief note on angles covered"
 }`;
 
 /**
  * Call 1: Generate keyword pack from idea description
  */
 export async function generateSparkKeywords(ideaDescription: string): Promise<SparkKeywords> {
-  console.log('[Spark] Call 1: Generating keywords with gpt-4o-mini...');
-
   const params = createResponsesParams(
     {
       model: KEYWORD_MODEL,
@@ -91,7 +101,7 @@ export async function generateSparkKeywords(ideaDescription: string): Promise<Sp
         { role: 'system', content: KEYWORD_SYSTEM_PROMPT },
         { role: 'user', content: `Generate a keyword pack for this business idea:\n\n${ideaDescription}` },
       ],
-      max_output_tokens: 2000,
+      max_output_tokens: 3000,
       response_format: { type: 'json_object' },
     },
     { reasoning: 'low', verbosity: 'low' }
@@ -99,12 +109,7 @@ export async function generateSparkKeywords(ideaDescription: string): Promise<Sp
 
   const response = await withExponentialBackoff(
     () => openai.responses.create(params),
-    {
-      maxAttempts: 3,
-      onRetry: (attempt, error) => {
-        console.log(`[Spark] Keyword generation retry ${attempt}:`, error);
-      },
-    }
+    { maxAttempts: 3 }
   );
 
   // Track token usage for keyword generation
@@ -127,9 +132,10 @@ export async function generateSparkKeywords(ideaDescription: string): Promise<Sp
         reddit_search: parsed.query_plan?.reddit_search || [],
         facebook_groups_search: parsed.query_plan?.facebook_groups_search || [],
       },
+      expanded_queries: parsed.expanded_queries || [],
+      expansion_notes: parsed.expansion_notes || '',
     };
   } catch (error) {
-    console.error('[Spark] Failed to parse keyword response:', content);
     throw new Error('Failed to parse keyword generation response');
   }
 }
@@ -245,8 +251,6 @@ async function synthesizeSparkResults(
   competitorResult: SparkCompetitorResult | null,
   dataQualityContext: string
 ): Promise<SparkResult> {
-  console.log('[Spark] Call 5: Synthesizing results with GPT-5.2...');
-
   const userPrompt = `Synthesize this market validation data into a final SparkResult:
 
 ## BUSINESS IDEA
@@ -289,16 +293,7 @@ ${competitorResult ? JSON.stringify(competitorResult, null, 2) : 'UNAVAILABLE - 
 
   const response = await withExponentialBackoff(
     () => openai.responses.create(params),
-    {
-      maxAttempts: 5,
-      initialDelayMs: 2000,
-      onRetry: (attempt, error, delayMs) => {
-        console.warn(
-          `[Spark] Synthesis retry ${attempt}/5 after ${delayMs}ms:`,
-          error instanceof Error ? error.message : error
-        );
-      },
-    }
+    { maxAttempts: 5, initialDelayMs: 2000 }
   );
 
   // Track token usage
@@ -314,13 +309,10 @@ ${competitorResult ? JSON.stringify(competitorResult, null, 2) : 'UNAVAILABLE - 
     throw new ResponseParseError('Synthesis returned empty content', response);
   }
 
-  console.log('[Spark] Synthesis response length:', content.length);
-
   // Validate JSON completeness before parsing
   try {
     validateJsonCompleteness(content, 'synthesizeSparkResults');
   } catch (truncationError) {
-    console.error('[Spark] Synthesis response appears truncated');
     throw truncationError;
   }
 
@@ -329,17 +321,13 @@ ${competitorResult ? JSON.stringify(competitorResult, null, 2) : 'UNAVAILABLE - 
   try {
     parsed = JSON.parse(content);
   } catch (directParseError) {
-    console.log('[Spark] Direct JSON parse failed, attempting isolation...');
     const isolated = isolateJson(content);
     if (!isolated) {
-      console.error('[Spark] Failed to isolate JSON from response:', content.slice(0, 500));
       throw new ResponseParseError('Failed to parse synthesis response: could not isolate JSON', response);
     }
     try {
       parsed = JSON.parse(isolated);
-      console.log('[Spark] Successfully parsed after JSON isolation');
     } catch (isolatedParseError) {
-      console.error('[Spark] JSON parse failed after isolation:', isolatedParseError);
       throw new ResponseParseError('Failed to parse synthesis response after isolation', response);
     }
   }
@@ -394,10 +382,8 @@ ${competitorResult ? JSON.stringify(competitorResult, null, 2) : 'UNAVAILABLE - 
       },
     });
 
-    console.log('[Spark] Synthesis complete');
     return validated;
   } catch (validationError) {
-    console.error('[Spark] Zod validation failed:', validationError);
     throw new ResponseParseError('Failed to validate synthesis response schema', response);
   }
 }
@@ -413,11 +399,8 @@ export async function fetchSparkKeywordTrends(
   phrases: string[]
 ): Promise<SparkKeywordTrend[]> {
   if (!isSerpApiConfigured()) {
-    console.log('[Spark] SerpAPI not configured, skipping trend data');
     return [];
   }
-
-  console.log(`[Spark] Step 6: Fetching trends for ${phrases.length} keywords...`);
 
   const results = await batchGetTrendData(phrases, {
     timeRange: 'today 12-m',
@@ -428,7 +411,6 @@ export async function fetchSparkKeywordTrends(
 
   for (const [keyword, result] of results) {
     if (result instanceof Error) {
-      console.warn(`[Spark] Failed to get trend for "${keyword}":`, result.message);
       continue;
     }
 
@@ -444,7 +426,6 @@ export async function fetchSparkKeywordTrends(
     });
   }
 
-  console.log(`[Spark] Got trends for ${trends.length}/${phrases.length} keywords`);
   return trends;
 }
 
@@ -503,26 +484,40 @@ export async function runSparkPipeline(
     return runSparkPipelineLegacy(ideaDescription, { onStatusChange, includeTrends });
   }
 
-  console.log('[Spark] Starting parallel validation pipeline...');
   const pipelineStart = Date.now();
 
   // =========================================================================
-  // Call 1: Generate keywords
+  // Call 1: Generate keywords (now includes LLM-generated expanded queries)
   // =========================================================================
   await onStatusChange?.('RUNNING_KEYWORDS');
   const keywords = await generateSparkKeywords(ideaDescription);
-  console.log(`[Spark] Call 1 complete - ${keywords.phrases.length} keywords generated`);
 
   // =========================================================================
-  // Call 2 + 3 + 4: Parallel deep research
+  // Step 1.5: Query expansion (templates + SerpAPI rising queries)
+  // =========================================================================
+  const expansionResult = await expandQueries(
+    keywords.phrases,
+    keywords.expanded_queries || [],
+    { serpApiEnabled: true, timeoutMs: 60000 }
+  );
+  const expandedQueryStrings = getExpandedQueryStrings(expansionResult);
+  const expansionPromptSection = formatQueriesForPrompt(expandedQueryStrings);
+
+  console.log(
+    `[Spark] Query expansion: ${expansionResult.totalUnique} unique queries ` +
+    `(${expansionResult.templateCount} template, ${expansionResult.llmCount} LLM, ${expansionResult.serpApiCount} SerpAPI) ` +
+    `in ${expansionResult.elapsedMs}ms`
+  );
+
+  // =========================================================================
+  // Call 2 + 3 + 4: Parallel deep research (with expanded queries)
   // =========================================================================
   await onStatusChange?.('RUNNING_PARALLEL');
-  console.log('[Spark] Starting parallel research (Call 2: Demand, Call 3: TAM, Call 4: Competitors)...');
 
   const [demandSettled, tamSettled, competitorSettled] = await Promise.allSettled([
-    runDemandResearch(ideaDescription, keywords),
-    runTamResearch(ideaDescription, keywords),
-    runCompetitorResearch(ideaDescription, keywords),
+    runDemandResearch(ideaDescription, keywords, expansionPromptSection),
+    runTamResearch(ideaDescription, keywords, expansionPromptSection),
+    runCompetitorResearch(ideaDescription, keywords, expansionPromptSection),
   ]);
 
   // Extract results with graceful degradation
@@ -530,35 +525,22 @@ export async function runSparkPipeline(
   const tamResult = tamSettled.status === 'fulfilled' ? tamSettled.value : null;
   const competitorResult = competitorSettled.status === 'fulfilled' ? competitorSettled.value : null;
 
-  // Log errors if any
-  if (demandSettled.status === 'rejected') {
-    console.error('[Spark] Call 2 (Demand) failed:', demandSettled.reason);
-  }
-  if (tamSettled.status === 'rejected') {
-    console.error('[Spark] Call 3 (TAM) failed:', tamSettled.reason);
-  }
-  if (competitorSettled.status === 'rejected') {
-    console.error('[Spark] Call 4 (Competitors) failed:', competitorSettled.reason);
-  }
-
   // Check if we can proceed - need at least one of demand or TAM
   if (!demandResult && !tamResult) {
     throw new Error('Both demand and TAM research calls failed - cannot synthesize');
   }
 
-  // Determine data quality context for synthesis
-  const qualityIssues: string[] = [];
-  if (!demandResult) qualityIssues.push('Community signals unavailable (Call 2 failed)');
-  if (!tamResult) qualityIssues.push('Market sizing unavailable (Call 3 failed)');
-  if (!competitorResult) qualityIssues.push('Competitor analysis unavailable (Call 4 failed)');
-
-  const dataQualityContext = qualityIssues.length === 0
-    ? 'Full data available from all 3 research calls. Confidence: HIGH.'
-    : qualityIssues.length === 1
-    ? `WARNING: ${qualityIssues[0]}. Confidence: MEDIUM.`
-    : `WARNING: ${qualityIssues.join('. ')}. Confidence: LOW.`;
-
-  console.log(`[Spark] Parallel research complete - Demand: ${demandResult ? 'OK' : 'FAILED'}, TAM: ${tamResult ? 'OK' : 'FAILED'}, Competitors: ${competitorResult ? 'OK' : 'FAILED'}`);
+  // =========================================================================
+  // Compute data quality scores
+  // =========================================================================
+  const qualityReport = computeSparkQualityScores(
+    demandResult,
+    tamResult,
+    competitorResult,
+    expandedQueryStrings,
+    expansionResult.totalUnique
+  );
+  const dataQualityContext = qualityReportToPromptContext(qualityReport);
 
   // =========================================================================
   // Call 5: Synthesize results
@@ -572,6 +554,9 @@ export async function runSparkPipeline(
     competitorResult,
     dataQualityContext
   );
+
+  // Attach quality report to result
+  result.data_quality = qualityReport;
 
   // =========================================================================
   // Step 6: SerpAPI keyword trends (optional)
@@ -594,7 +579,6 @@ export async function runSparkPipeline(
         }
       }
     } catch (trendError) {
-      console.warn('[Spark] Step 6 (SerpAPI) failed:', trendError);
       // Continue without trend data - it's optional
     }
   }
@@ -604,9 +588,6 @@ export async function runSparkPipeline(
   // =========================================================================
   const status: SparkJobStatus = (!demandResult || !tamResult || !competitorResult) ? 'PARTIAL_COMPLETE' : 'COMPLETE';
   await onStatusChange?.(status);
-
-  const elapsed = Math.round((Date.now() - pipelineStart) / 1000);
-  console.log(`[Spark] Pipeline complete in ${elapsed}s - Status: ${status}`);
 
   return result;
 }
@@ -712,8 +693,6 @@ async function runSparkResearchLegacy(
   idea: string,
   keywords: SparkKeywords
 ): Promise<SparkResult> {
-  console.log('[Spark:Legacy] Running single research call...');
-
   const userQuery = `
 ## BUSINESS IDEA
 ${idea}
@@ -767,22 +746,8 @@ Synonyms: ${keywords.synonyms.slice(0, 10).join(', ')}
       runDeepResearchWithPolling(params, {
         pollIntervalMs: 15000,
         maxWaitMs: 3600000,
-        onProgress: (status: ResponseStatus, elapsed: number) => {
-          console.log(`[Spark:Legacy] Status: ${status} (${Math.round(elapsed / 1000)}s)`);
-        },
-        onLog: (msg: string) => console.log(msg),
       }),
-    {
-      maxAttempts: 3,
-      initialDelayMs: 10000,
-      maxDelayMs: 120000,
-      onRetry: (attempt, error, delayMs) => {
-        console.warn(
-          `[Spark:Legacy] Retry ${attempt}/3 after ${delayMs}ms:`,
-          error instanceof Error ? error.message : error
-        );
-      },
-    }
+    { maxAttempts: 3, initialDelayMs: 10000, maxDelayMs: 120000 }
   );
 
   const rawContent = result.content || '';
@@ -859,8 +824,6 @@ async function runSparkPipelineLegacy(
 ): Promise<SparkResult> {
   const { onStatusChange, includeTrends = true } = options;
 
-  console.log('[Spark:Legacy] Starting single-call pipeline...');
-
   // Call 1: Generate keywords
   await onStatusChange?.('RUNNING_KEYWORDS');
   const keywords = await generateSparkKeywords(ideaDescription);
@@ -884,13 +847,11 @@ async function runSparkPipelineLegacy(
         }
       }
     } catch (trendError) {
-      console.warn('[Spark:Legacy] SerpAPI failed:', trendError);
+      // Continue without trend data
     }
   }
 
   await onStatusChange?.('COMPLETE');
-  console.log('[Spark:Legacy] Pipeline complete');
-
   return result;
 }
 

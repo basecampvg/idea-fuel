@@ -198,6 +198,7 @@ Remember: Every URL must be REAL. Every claim needs evidence. Empty arrays are a
 export async function runDemandResearch(
   idea: string,
   keywords: SparkKeywords,
+  expansionPromptSection: string = '',
   options: DemandResearchOptions = {}
 ): Promise<SparkDemandResult> {
   console.log('[Spark:Demand] Starting demand + community research...');
@@ -223,6 +224,7 @@ Synonyms: ${keywords.synonyms.slice(0, 10).join(', ')}
 2. Only include results that are DIRECTLY relevant to the business idea
 3. Do NOT substitute irrelevant content if specific searches yield no results
 4. Compile findings into the required JSON format
+${expansionPromptSection}
 `;
 
   const params = createDeepResearchParams({

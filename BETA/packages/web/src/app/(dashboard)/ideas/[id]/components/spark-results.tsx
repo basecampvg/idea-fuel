@@ -17,8 +17,11 @@ import {
   XCircle,
   PieChart,
   ArrowUp,
+  Shield,
+  ShieldCheck,
+  ShieldAlert,
 } from 'lucide-react';
-import type { SparkResult, SparkRedditThread } from '@forge/shared';
+import type { SparkResult, SparkRedditThread, DataQualityReport, SectionQuality } from '@forge/shared';
 import {
   SPARK_VERDICT_LABELS,
   SPARK_VERDICT_DESCRIPTIONS,
@@ -209,6 +212,99 @@ function SparkPostCard({ thread }: { thread: SparkRedditThread }) {
   );
 }
 
+// Confidence level styling
+function getConfidenceConfig(level: string) {
+  switch (level) {
+    case 'high':
+      return {
+        Icon: ShieldCheck,
+        color: 'text-primary',
+        bgColor: 'bg-primary/10',
+        borderColor: 'border-primary/20',
+        label: 'High',
+        barColor: 'bg-primary',
+        barWidth: 'w-full',
+      };
+    case 'medium':
+      return {
+        Icon: Shield,
+        color: 'text-primary/50',
+        bgColor: 'bg-primary/10',
+        borderColor: 'border-primary/20',
+        label: 'Medium',
+        barColor: 'bg-primary/50',
+        barWidth: 'w-2/3',
+      };
+    default:
+      return {
+        Icon: ShieldAlert,
+        color: 'text-[#ef4444]',
+        bgColor: 'bg-[#ef4444]/10',
+        borderColor: 'border-[#ef4444]/20',
+        label: 'Low',
+        barColor: 'bg-[#ef4444]/60',
+        barWidth: 'w-1/3',
+      };
+  }
+}
+
+// Section label mapping
+function getSectionLabel(section: string): string {
+  switch (section) {
+    case 'demand': return 'Demand Signals';
+    case 'tam': return 'Market Sizing';
+    case 'competitors': return 'Competitors';
+    default: return section.charAt(0).toUpperCase() + section.slice(1);
+  }
+}
+
+function DataQualityBanner({ quality }: { quality: DataQualityReport }) {
+  const overallConfig = getConfidenceConfig(quality.overall);
+
+  return (
+    <div className={`rounded-2xl border ${overallConfig.borderColor} ${overallConfig.bgColor} p-5`}>
+      <div className="flex items-center gap-3 mb-4">
+        <div
+          className="w-8 h-8 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: quality.overall === 'high' ? 'rgba(34, 197, 94, 0.15)' : quality.overall === 'medium' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)' }}
+        >
+          <overallConfig.Icon className={`w-4 h-4 ${overallConfig.color}`} />
+        </div>
+        <div>
+          <p className="text-sm font-medium text-foreground">
+            Data Confidence: <span className={overallConfig.color}>{overallConfig.label}</span>
+          </p>
+          <p className="text-xs text-muted-foreground">{quality.summary}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        {quality.sections.map((section) => {
+          const config = getConfidenceConfig(section.confidence);
+          return (
+            <div key={section.section} className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">{getSectionLabel(section.section)}</span>
+                <span className={`text-xs font-medium ${config.color}`}>{config.label}</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-muted/30 overflow-hidden">
+                <div className={`h-full rounded-full ${config.barColor} ${config.barWidth} transition-all duration-500`} />
+              </div>
+              <p className="text-[10px] text-muted-foreground/70">{section.details}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {quality.queriedTopics.length > 0 && (
+        <p className="text-[10px] text-muted-foreground/50 mt-3 pt-3 border-t border-border/50">
+          Searched {quality.queriedTopics.length} query variations across all sections
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
   const verdictConfig = getVerdictConfig(result.verdict);
   const trendConfig = getTrendConfig(result.trend_signal.direction);
@@ -260,6 +356,11 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
           </div>
         )}
       </div>
+
+      {/* Data Quality Banner */}
+      {result.data_quality && (
+        <DataQualityBanner quality={result.data_quality} />
+      )}
 
       {/* Trend Signal */}
       <div className="rounded-2xl bg-background border border-border p-6">

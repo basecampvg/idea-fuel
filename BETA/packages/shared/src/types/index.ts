@@ -515,6 +515,8 @@ export interface SparkKeywords {
     reddit_search: string[];
     facebook_groups_search: string[];
   };
+  expanded_queries?: string[];   // LLM-generated search variations
+  expansion_notes?: string;      // Brief explanation of angles covered
 }
 
 // Evidence for trend signal
@@ -607,4 +609,35 @@ export interface SparkResult {
   summary?: string;  // AI-generated 2-4 sentence findings summary
   next_experiment: SparkNextExperiment;
   keyword_trends?: SparkKeywordTrend[];  // Optional Google Trends data
+  data_quality?: DataQualityReport;  // Per-section confidence scoring
+}
+
+// =============================================================================
+// Data Quality / Confidence Scoring Types
+// =============================================================================
+
+export type ConfidenceLevel = 'high' | 'medium' | 'low';
+
+export interface SectionQuality {
+  section: string;
+  confidence: ConfidenceLevel;
+  queriesRun: number;
+  resultsFound: number;
+  details: string;
+}
+
+export interface DataQualityReport {
+  overall: ConfidenceLevel;
+  sections: SectionQuality[];
+  summary: string;
+  queriedTopics: string[];
+}
+
+// Query expansion metadata
+export type QuerySource = 'template' | 'llm_generated' | 'serp_rising';
+
+export interface QueryVariation {
+  query: string;
+  source: QuerySource;
+  category?: string;  // e.g., "problem-framing", "purchase-intent"
 }

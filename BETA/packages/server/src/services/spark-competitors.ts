@@ -145,6 +145,7 @@ Remember: Every competitor must be REAL and verifiable. Balanced analysis with b
 export async function runCompetitorResearch(
   idea: string,
   keywords: SparkKeywords,
+  expansionPromptSection: string = '',
   options: CompetitorResearchOptions = {}
 ): Promise<SparkCompetitorResult> {
   console.log('[Spark:Competitors] Starting competitive landscape research...');
@@ -171,6 +172,7 @@ These keywords describe the market space and can help identify competitors:
 3. Look for pricing information and market positioning
 4. Identify market gaps based on competitor weaknesses
 5. Return structured JSON with all findings
+${expansionPromptSection}
 `;
 
   const params = createDeepResearchParams({

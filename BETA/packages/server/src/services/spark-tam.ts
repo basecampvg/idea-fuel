@@ -188,6 +188,7 @@ Remember: Every number needs a citation. Assumptions must be specific. Be honest
 export async function runTamResearch(
   idea: string,
   keywords: SparkKeywords,
+  expansionPromptSection: string = '',
   options: TamResearchOptions = {}
 ): Promise<SparkTamResult> {
   console.log('[Spark:TAM] Starting TAM + trend research...');
@@ -210,6 +211,7 @@ ${keywords.query_plan.general_search.map((q, i) => `${i + 1}. ${q}`).join('\n')}
 3. Look for trend indicators: growth rates, funding activity, forecasts
 4. Cite every number with its source URL
 5. Be conservative in estimates and explicit about assumptions
+${expansionPromptSection}
 `;
 
   const params = createDeepResearchParams({
