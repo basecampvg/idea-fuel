@@ -86,6 +86,7 @@ Forge Automation/
 
 | Router | Endpoints | Description |
 |--------|-----------|-------------|
+| `project` | `list`, `get`, `create`, `update`, `updateCanvas`, `delete` | Project CRUD + canvas editing |
 | `user` | `me`, `update`, `stats`, `subscription` | User profile and stats |
 | `idea` | `list`, `get`, `create`, `update`, `delete`, `startInterview`, `startResearch` | Idea CRUD + workflow triggers |
 | `interview` | `get`, `listByIdea`, `getActive`, `resume`, `addMessage`, `addAssistantMessage`, `complete`, `abandon`, `markExpired`, `heartbeat` | Interview chat management |
@@ -99,10 +100,12 @@ Forge Automation/
 | `User` | User accounts with subscription tiers |
 | `Account` | OAuth provider accounts (Auth.js) |
 | `Session` | User sessions (Auth.js) |
-| `Idea` | Business idea entries |
+| `Project` | Top-level container; owns canvas (JSON blocks) and one Idea |
+| `Idea` | Business idea entries (belongs to Project) |
 | `Interview` | AI interview sessions with message history |
 | `Research` | Background research pipeline state |
 | `Report` | Generated business reports |
+| `CanvasSnapshot` | Frozen canvas state captured when research starts |
 
 ### Interview Modes
 - **LIGHTNING** - No interview, AI generates from description only
@@ -413,6 +416,24 @@ npx expo-doctor
 
 ## Change Log
 
+### 2026-02-06
+- ✅ **Project + Canvas Architecture** - Top-level Project entity with rich canvas workspace
+  - **New Models:** `Project` (owns canvas JSON blocks + one Idea), `CanvasSnapshot` (frozen canvas at research start)
+  - **New Router:** `project.ts` — CRUD + `updateCanvas` + audit logging
+  - **Canvas System:** Structured blocks (section, note, subIdea, link) with drag-to-reorder, auto-save, predefined sections
+  - **Shared Types:** `CanvasBlock` discriminated union, `serializeCanvasForAI()` for AI context injection
+  - **Web Frontend:** `/projects` list page, `/projects/[id]` detail with canvas editor, sidebar migrated to show projects
+  - **Mobile Frontend:** Vault screen updated to query projects with derived status (Draft/Active/Complete)
+  - **AI Pipeline:** Canvas context injected into deep research, chunked research, and Spark pipeline prompts
+  - **Key Files:**
+    - `packages/server/src/routers/project.ts` — Project router
+    - `packages/server/prisma/schema.prisma` — Project + CanvasSnapshot models
+    - `packages/shared/src/utils/canvas-serializer.ts` — AI serialization
+    - `packages/shared/src/validators/index.ts` — Canvas/project Zod schemas
+    - `packages/web/src/app/(dashboard)/projects/` — Web project pages
+    - `packages/web/src/components/layout/project-mini-card.tsx` — Sidebar card
+    - `packages/web/src/lib/project-status.ts` — Derived status config
+
 ### 2026-01-26 (In Progress)
 - 🔄 **Daily Pick Feature** - Automated trending topic to business idea pipeline
   - **Concept:** Daily automated pipeline that identifies a single high-potential business idea from trending searches
@@ -613,9 +634,12 @@ When building or modifying any frontend components, pages, or interfaces (web or
 
 ### Key Files to Know
 - `BETA/packages/web/src/app/` - Next.js App Router pages
+- `BETA/packages/web/src/app/(dashboard)/projects/` - Project list + detail pages with canvas editor
 - `BETA/packages/mobile/src/app/` - Expo Router screens
 - `BETA/packages/server/src/routers/` - tRPC API routers
+- `BETA/packages/server/src/routers/project.ts` - Project CRUD + canvas update router
 - `BETA/packages/shared/src/` - Shared types and utilities
+- `BETA/packages/shared/src/utils/canvas-serializer.ts` - Canvas → markdown for AI prompts
 - `BETA/packages/server/prisma/schema.prisma` - Database schema
 
 ### n8n Integration
