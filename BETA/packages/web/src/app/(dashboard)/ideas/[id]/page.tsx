@@ -1,17 +1,17 @@
 'use client';
 
-import { use } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
-import { LoadingScreen } from '@/components/ui/spinner';
-import { IdeaHeader } from './components/idea-header';
 import { StatusCaptured } from './components/status-captured';
 import { StatusInterviewing } from './components/status-interviewing';
 import { StatusResearching } from './components/status-researching';
-import { StatusComplete } from './components/status-complete';
 import { SparkResults } from './components/spark-results';
 import { SparkProgress } from './components/spark-progress';
 import { NextStepPromotion } from './components/next-step-promotion';
+import { UserStory, type UserStoryData } from './components/user-story';
+import { ScoreCards } from './components/score-cards';
+import { DownloadsSection } from './components/download-card';
+import { Trash2 } from 'lucide-react';
 import type { SparkResult, InterviewMode } from '@forge/shared';
 import { getResearchJourneyState } from '@forge/shared';
 
@@ -40,16 +40,13 @@ function isSparkComplete(research: unknown): boolean {
   return r.sparkStatus === 'COMPLETE' && r.sparkResult !== null;
 }
 
-export default function IdeaDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
+export default function IdeaOverviewPage() {
+  const params = useParams<{ id: string }>();
   const router = useRouter();
   const utils = trpc.useUtils();
 
-  const { data: idea, isLoading, error, refetch } = trpc.idea.get.useQuery({ id });
+  // React Query deduplicates — layout already fetched this, returns cached data instantly
+  const { data: idea, refetch } = trpc.idea.get.useQuery({ id: params.id });
 
   const deleteIdea = trpc.idea.delete.useMutation({
     onSuccess: () => {
@@ -59,37 +56,29 @@ export default function IdeaDetailPage({
 
   const startInterview = trpc.idea.startInterview.useMutation({
     onSuccess: () => {
-      router.push(`/ideas/${id}/interview`);
+      router.push(`/ideas/${params.id}/interview`);
     },
   });
 
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this idea? This cannot be undone.')) {
-      deleteIdea.mutate({ id });
+      deleteIdea.mutate({ id: params.id });
     }
   };
 
   const handleStartMode = (mode: InterviewMode) => {
-    startInterview.mutate({ ideaId: id, mode });
+    startInterview.mutate({ ideaId: params.id, mode });
   };
 
   const handleSparkComplete = () => {
-    // Refetch the idea to get the latest data with sparkResult
     refetch();
-    utils.idea.get.invalidate({ id });
+    utils.idea.get.invalidate({ id: params.id });
   };
 
-  if (isLoading) {
-    return <LoadingScreen message="Loading idea..." />;
-  }
+  // Layout handles loading/error — if we get here, idea exists
+  if (!idea) return null;
 
-  if (error || !idea) {
-    return (
-      <div className="glass-card p-6 border-red-500/30">
-        <p className="text-red-400">{error?.message || 'Idea not found'}</p>
-      </div>
-    );
-  }
+  const research = idea.research;
 
   // Determine if this is a Spark mode idea
   const sparkMode = isSparkResearch(idea.research);
@@ -109,15 +98,12 @@ export default function IdeaDetailPage({
   });
 
   return (
-    <div className="w-full space-y-6 max-w-[1120px] mx-auto px-6 py-8">
-      {/* Header */}
-      <IdeaHeader idea={idea} />
-
+    <>
       {/* Status-specific content */}
       {idea.status === 'CAPTURED' && <StatusCaptured idea={idea} />}
       {idea.status === 'INTERVIEWING' && <StatusInterviewing idea={idea} />}
 
-      {/* Spark researching - show progress component (handles all spark states) */}
+      {/* Spark researching - show progress component */}
       {idea.status === 'RESEARCHING' && sparkMode && idea.research && (
         <SparkProgress
           jobId={(idea.research as { id: string }).id}
@@ -133,52 +119,47 @@ export default function IdeaDetailPage({
       {/* Spark complete - show Spark results with upgrade banner */}
       {idea.status === 'COMPLETE' && sparkComplete && idea.research && (
         <>
-          {/* Next Step Promotion Banner */}
           <NextStepPromotion
             ideaId={idea.id}
             journeyState={journeyState}
             onStartMode={handleStartMode}
             isStarting={startInterview.isPending}
           />
-
           <SparkResults
             result={(idea.research as unknown as { sparkResult: SparkResult }).sparkResult}
             ideaTitle={idea.title}
           />
-          {/* Delete button */}
-          <div className="pt-4 border-t border-border">
-            <button
-              onClick={handleDelete}
-              disabled={deleteIdea.isPending}
-              className="px-4 py-2 text-sm rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
-            >
-              {deleteIdea.isPending ? 'Deleting...' : 'Delete Idea'}
-            </button>
-          </div>
         </>
       )}
 
-      {/* Regular complete - show full results */}
+      {/* Regular complete — Overview shows summary content via sub-pages, but main page shows key items */}
       {idea.status === 'COMPLETE' && !sparkMode && (
-        <StatusComplete
-          idea={idea}
-          onDelete={handleDelete}
-          isDeleting={deleteIdea.isPending}
-        />
-      )}
-
-      {/* Delete button for non-COMPLETE statuses (excluding Spark researching) */}
-      {idea.status !== 'COMPLETE' && !(idea.status === 'RESEARCHING' && sparkMode) && (
-        <div className="pt-4 border-t border-[var(--border)]">
-          <button
-            onClick={handleDelete}
-            disabled={deleteIdea.isPending}
-            className="px-4 py-2 text-sm rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
-          >
-            {deleteIdea.isPending ? 'Deleting...' : 'Delete Idea'}
-          </button>
+        <div className="space-y-5">
+          <UserStory userStory={research?.userStory as UserStoryData | null | undefined} />
+          <DownloadsSection ideaId={idea.id} hasResearch={research?.status === 'COMPLETE'} />
+          <ScoreCards
+            opportunityScore={research?.opportunityScore}
+            problemScore={research?.problemScore}
+            feasibilityScore={research?.feasibilityScore}
+            whyNowScore={research?.whyNowScore}
+            scoreJustifications={research?.scoreJustifications as any}
+            scoreMetadata={research?.scoreMetadata as any}
+            layout="horizontal"
+          />
         </div>
       )}
-    </div>
+
+      {/* Delete button */}
+      <div className="pt-4 border-t border-border">
+        <button
+          onClick={handleDelete}
+          disabled={deleteIdea.isPending}
+          className="flex items-center gap-2 px-4 py-2 text-sm rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+        >
+          <Trash2 className="w-4 h-4" />
+          {deleteIdea.isPending ? 'Deleting...' : 'Delete Idea'}
+        </button>
+      </div>
+    </>
   );
 }
