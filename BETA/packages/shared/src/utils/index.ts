@@ -66,17 +66,6 @@ export function truncate(text: string, maxLength: number): string {
 }
 
 /**
- * Generate a slug from a string
- */
-export function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_-]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-/**
  * Format currency for display
  */
 export function formatCurrency(amount: number, currency = 'USD'): string {
@@ -110,15 +99,4 @@ export function formatPercent(value: number, decimals = 1): string {
  */
 export function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-/**
- * Safe JSON parse with fallback
- */
-export function safeJsonParse<T>(json: string, fallback: T): T {
-  try {
-    return JSON.parse(json) as T;
-  } catch {
-    return fallback;
-  }
 }

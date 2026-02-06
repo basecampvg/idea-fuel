@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '@/components/layout/sidebar-context';
+import { type IdeaStatus, ideaStatusConfig } from '@/lib/idea-status';
 import {
   LayoutDashboard,
   Target,
@@ -24,14 +25,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 
-type IdeaStatus = 'CAPTURED' | 'INTERVIEWING' | 'RESEARCHING' | 'COMPLETE';
-
-const statusConfig: Record<IdeaStatus, { label: string; color: string }> = {
-  CAPTURED: { label: 'Draft', color: 'text-muted-foreground' },
-  INTERVIEWING: { label: 'Forging', color: 'text-primary' },
-  RESEARCHING: { label: 'Researching', color: 'text-info' },
-  COMPLETE: { label: 'Ready', color: 'text-primary' },
-};
+// IdeaStatus and ideaStatusConfig imported from @/lib/idea-status
 
 interface NavItem {
   label: string;
@@ -111,7 +105,7 @@ export function IdeaSecondaryNav({ idea }: IdeaSecondaryNavProps) {
   const { sidebarWidth } = useSidebar();
   const navSections = getNavSections(idea.id);
   const reportItems = getReportItems(idea.id);
-  const status = statusConfig[idea.status as IdeaStatus] || statusConfig.CAPTURED;
+  const status = ideaStatusConfig[idea.status as IdeaStatus] || ideaStatusConfig.CAPTURED;
 
   function isActive(href: string) {
     // Exact match for the base route (Summary)

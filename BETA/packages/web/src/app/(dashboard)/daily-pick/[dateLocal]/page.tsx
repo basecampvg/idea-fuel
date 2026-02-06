@@ -126,7 +126,7 @@ export default function DailyPickByDatePage({
 
   const { cluster, report: reportJson, trendPoints } = data;
   const report = reportJson as WinnerReport | null;
-  const chartData = (trendPoints as TrendPoint[]).map((p) => ({
+  const chartData = (trendPoints as unknown as TrendPoint[]).map((p) => ({
     date: new Date(p.ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     value: p.value,
   }));
@@ -345,7 +345,7 @@ export default function DailyPickByDatePage({
         <CardContent>
           <div className="flex flex-wrap gap-2">
             {(cluster.memberQueries as string[]).map((query, i) => (
-              <Badge key={i} variant="outline">
+              <Badge key={i} variant="default">
                 {query}
               </Badge>
             ))}

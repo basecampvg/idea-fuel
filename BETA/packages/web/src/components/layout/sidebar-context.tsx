@@ -6,6 +6,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useMemo,
   useRef,
   type ReactNode,
 } from 'react';
@@ -31,6 +32,9 @@ const HOVER_LEAVE_DELAY = 300;
 
 const SidebarContext = createContext<SidebarContextValue | null>(null);
 
+// Stable no-op to avoid creating new closures every render
+const noop = () => {};
+
 function isIdeaDetailRoute(pathname: string | null): boolean {
   if (!pathname) return false;
   return /^\/ideas\/[^/]+/.test(pathname) && pathname !== '/ideas';
@@ -40,8 +44,6 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [mode, setModeState] = useState<SidebarMode>('collapsed');
   const [hoverActive, setHoverActive] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
   const hoverEnterTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hoverLeaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -51,14 +53,33 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     if (stored && ['collapsed', 'expanded', 'hover'].includes(stored)) {
       setModeState(stored);
     }
-    // Delay mounted flag by one frame to suppress initial transition
-    requestAnimationFrame(() => setMounted(true));
+  }, []);
+
+  // Clear any pending hover timers
+  const clearHoverTimers = useCallback(() => {
+    if (hoverEnterTimer.current) {
+      clearTimeout(hoverEnterTimer.current);
+      hoverEnterTimer.current = null;
+    }
+    if (hoverLeaveTimer.current) {
+      clearTimeout(hoverLeaveTimer.current);
+      hoverLeaveTimer.current = null;
+    }
   }, []);
 
   const setMode = useCallback((newMode: SidebarMode) => {
+    // Clear pending timers to prevent stale hover state after mode change
+    clearHoverTimers();
     setModeState(newMode);
     localStorage.setItem(STORAGE_KEY, newMode);
-  }, []);
+    // When switching to hover mode the mouse is already inside the sidebar
+    // (user just clicked the mode selector), so activate hover immediately
+    if (newMode === 'hover') {
+      setHoverActive(true);
+    } else {
+      setHoverActive(false);
+    }
+  }, [clearHoverTimers]);
 
   const isAutoCollapsed = isIdeaDetailRoute(pathname);
 
@@ -88,36 +109,34 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     }, HOVER_LEAVE_DELAY);
   }, []);
 
-  // Cleanup timers
+  // Cleanup timers on unmount
   useEffect(() => {
-    return () => {
-      if (hoverEnterTimer.current) clearTimeout(hoverEnterTimer.current);
-      if (hoverLeaveTimer.current) clearTimeout(hoverLeaveTimer.current);
-    };
-  }, []);
+    return clearHoverTimers;
+  }, [clearHoverTimers]);
 
   // Reset hover when auto-collapsed
   useEffect(() => {
     if (isAutoCollapsed) {
+      clearHoverTimers();
       setHoverActive(false);
     }
-  }, [isAutoCollapsed]);
+  }, [isAutoCollapsed, clearHoverTimers]);
 
-  const value: SidebarContextValue = {
+  const hoverEnabled = mode === 'hover' && !isAutoCollapsed;
+
+  const value = useMemo<SidebarContextValue>(() => ({
     mode,
     isExpanded,
     isAutoCollapsed,
     setMode,
     sidebarWidth,
-    onMouseEnter: mode === 'hover' && !isAutoCollapsed ? onMouseEnter : () => {},
-    onMouseLeave: mode === 'hover' && !isAutoCollapsed ? onMouseLeave : () => {},
-  };
+    onMouseEnter: hoverEnabled ? onMouseEnter : noop,
+    onMouseLeave: hoverEnabled ? onMouseLeave : noop,
+  }), [mode, isExpanded, isAutoCollapsed, setMode, sidebarWidth, hoverEnabled, onMouseEnter, onMouseLeave]);
 
   return (
     <SidebarContext.Provider value={value}>
-      <div data-sidebar-mounted={mounted ? '' : undefined}>
-        {children}
-      </div>
+      {children}
     </SidebarContext.Provider>
   );
 }

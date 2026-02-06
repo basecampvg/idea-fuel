@@ -186,7 +186,7 @@ export default function InterviewScreen() {
 
   const completeInterview = trpc.interview.complete.useMutation({
     onSuccess: () => {
-      router.replace(`/(tabs)/ideas/${ideaId}`);
+      router.replace(`/(tabs)/ideas/${ideaId}` as never);
     },
   });
 
@@ -228,7 +228,7 @@ export default function InterviewScreen() {
           </Text>
           <TouchableOpacity
             style={styles.emptyButton}
-            onPress={() => router.replace(`/(tabs)/ideas/${ideaId}`)}
+            onPress={() => router.replace(`/(tabs)/ideas/${ideaId}` as never)}
           >
             <Text style={styles.emptyButtonText}>Go Back to Idea</Text>
           </TouchableOpacity>
@@ -355,7 +355,7 @@ export default function InterviewScreen() {
               </View>
               <TouchableOpacity
                 style={styles.viewIdeaButton}
-                onPress={() => router.replace(`/(tabs)/ideas/${ideaId}`)}
+                onPress={() => router.replace(`/(tabs)/ideas/${ideaId}` as never)}
               >
                 <Text style={styles.viewIdeaButtonText}>View Idea</Text>
               </TouchableOpacity>

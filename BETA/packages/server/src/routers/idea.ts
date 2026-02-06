@@ -6,6 +6,7 @@ import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
 import { generateOpeningQuestion } from '../services/interview-ai';
 import { logAuditAsync, formatResource } from '../lib/audit';
+import { enqueueResearchPipeline } from '../jobs';
 
 // Default max turns by interview mode
 const MAX_TURNS_BY_MODE = {
@@ -216,8 +217,6 @@ export const ideaRouter = router({
    * Supports SPARK, LIGHT, and IN_DEPTH modes
    */
   startInterview: protectedProcedure.input(startInterviewSchema).mutation(async ({ ctx, input }) => {
-    console.log('[Idea Router] startInterview called with:', { ideaId: input.ideaId, mode: input.mode });
-
     // Verify ownership
     const idea = await ctx.prisma.idea.findFirst({
       where: {
@@ -227,17 +226,14 @@ export const ideaRouter = router({
     });
 
     if (!idea) {
-      console.log('[Idea Router] Idea not found:', input.ideaId);
       throw new TRPCError({
         code: 'NOT_FOUND',
         message: 'Idea not found',
       });
     }
 
-    console.log('[Idea Router] Found idea:', idea.title);
     const mode = input.mode ?? 'LIGHT';
     const maxTurns = MAX_TURNS_BY_MODE[mode];
-    console.log('[Idea Router] Mode:', mode, 'MaxTurns:', maxTurns);
 
     // For SPARK mode, skip interview and trigger Spark quick validation
     if (mode === 'SPARK') {
@@ -287,10 +283,7 @@ export const ideaRouter = router({
     const tier = user?.subscription ?? 'FREE';
 
     // Generate AI opening question
-    console.log('[Idea Router] Generating opening question...');
-    console.log('[Idea Router] Using tier:', tier);
     const openingQuestion = await generateOpeningQuestion(idea.title, idea.description, mode as InterviewMode, tier);
-    console.log('[Idea Router] Opening question generated:', openingQuestion.substring(0, 100) + '...');
 
     // Create opening message
     const openingMessage: ChatMessage = {
@@ -398,7 +391,20 @@ export const ideaRouter = router({
       metadata: { ideaId: input.id },
     });
 
-    // TODO: Trigger BullMQ job to start research pipeline
+    // Queue research pipeline job
+    const latestInterview = idea.interviews[0];
+    try {
+      await enqueueResearchPipeline({
+        researchId: research.id,
+        ideaId: input.id,
+        userId: ctx.userId,
+        interviewId: latestInterview?.id,
+        mode: latestInterview?.mode as 'LIGHT' | 'IN_DEPTH' | 'SPARK' | undefined,
+      });
+    } catch (queueError) {
+      console.error('[Research] Failed to queue pipeline:', queueError);
+      // Don't fail - research is created, can be retried
+    }
 
     return research;
   }),

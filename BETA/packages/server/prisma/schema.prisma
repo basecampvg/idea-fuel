@@ -19,7 +19,8 @@ model User {
   passwordHash  String?
   image         String?
   subscription  SubscriptionTier @default(FREE)
-  isAdmin       Boolean          @default(false)
+  isAdmin       Boolean          @default(false) // Legacy - use role instead
+  role          UserRole         @default(USER)  // Granular role-based access
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
@@ -36,6 +37,14 @@ enum SubscriptionTier {
   FREE        // Basic reports only
   PRO         // Pro-level reports
   ENTERPRISE  // Full reports with all features
+}
+
+// User roles for admin access control
+enum UserRole {
+  USER        // Regular user
+  EDITOR      // Can edit content (blog posts)
+  ADMIN       // Full admin access
+  SUPER_ADMIN // Can manage other admins, IP whitelist
 }
 
 model Account {
@@ -623,4 +632,38 @@ model DailyPick {
 
   @@index([dateLocal])
   @@index([status])
+}
+
+// =============================================================================
+// ADMIN SECURITY
+// =============================================================================
+
+// IP whitelist for admin subdomain access control
+model AdminIPWhitelist {
+  id        String    @id @default(cuid())
+  ipAddress String    @unique // IPv4 or IPv6 address
+  label     String?   // Friendly name (e.g., "Matt's Office", "VPN Exit")
+  addedBy   String    // User ID who added this IP
+  createdAt DateTime  @default(now())
+  expiresAt DateTime? // Optional expiration for temporary access
+
+  @@index([ipAddress])
+}
+
+// =============================================================================
+// EMAIL CAPTURE (LANDING PAGE)
+// =============================================================================
+
+// Email capture for landing page waitlist
+model EmailCapture {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  source        String   @default("landing") // landing, blog, popup, etc.
+  beehiivSynced Boolean  @default(false)     // Synced to Beehiiv newsletter
+  metadata      Json?    // Optional: UTM params, referrer, etc.
+  createdAt     DateTime @default(now())
+
+  @@index([email])
+  @@index([beehiivSynced])
+  @@index([source])
 }

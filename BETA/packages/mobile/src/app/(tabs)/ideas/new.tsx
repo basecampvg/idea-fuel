@@ -72,9 +72,9 @@ export default function NewIdeaScreen() {
 
       if (mode === 'SPARK') {
         await startSpark.mutateAsync({ ideaId: data.id });
-        router.replace(`/(tabs)/ideas/${data.id}`);
+        router.replace(`/(tabs)/ideas/${data.id}` as never);
       } else {
-        router.replace(`/(tabs)/ideas/${data.id}/interview`);
+        router.replace(`/(tabs)/ideas/${data.id}/interview` as never);
       }
     },
     onError: (error) => {

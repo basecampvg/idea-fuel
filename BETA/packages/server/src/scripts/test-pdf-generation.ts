@@ -14,11 +14,10 @@ async function main() {
   console.log('🔍 Looking for idea with full research data...');
 
   // Find an idea with complete research (market analysis)
-  const idea = await prisma.idea.findFirst({
+  const ideaWithResearch = await prisma.idea.findFirst({
     where: {
       research: {
         status: 'COMPLETE',
-        marketAnalysis: { not: null },
       },
     },
     include: {
@@ -28,6 +27,9 @@ async function main() {
       updatedAt: 'desc',
     },
   });
+
+  // Filter for ideas with market analysis data
+  const idea = ideaWithResearch?.research?.marketAnalysis ? ideaWithResearch : null;
 
   if (!idea) {
     console.log('❌ Could not find idea with full research data. Listing available ideas...');

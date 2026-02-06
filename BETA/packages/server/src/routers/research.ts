@@ -5,6 +5,7 @@ import { TRPCError } from '@trpc/server';
 import { RESEARCH_PHASE_PROGRESS, SPARK_STATUS_PROGRESS } from '@forge/shared';
 import type { ChatMessage, InterviewDataPoints, SparkJobStatus } from '@forge/shared';
 import { logAuditAsync, formatResource } from '../lib/audit';
+import { enqueueResearchCancel } from '../jobs';
 import {
   runResearchPipeline,
   classifyResearchError,
@@ -287,8 +288,6 @@ export const researchRouter = router({
       const slaTracker = new SlaTracker();
 
       try {
-        const canResume = existingResearchData?.rawDeepResearch;
-        console.log('[Research] Starting NEW 4-phase pipeline with tier:', userTier, canResume ? '(RESUMING)' : '(FRESH START)');
         const result = await runResearchPipeline(researchInput, async (phase, progress, intermediateData?: IntermediateResearchData) => {
           // Track phase for error reporting
           currentPhase = phase as typeof currentPhase;
@@ -303,10 +302,8 @@ export const researchRouter = router({
           }
 
           // Check SLAs periodically - warn but don't fail (soft limit)
-          const totalSla = slaTracker.checkTotalSla();
-          if (!totalSla.ok) {
-            console.warn(`[SLA Warning] Total SLA exceeded: pipeline took ${Math.round(totalSla.elapsed/1000)}s (limit: ${Math.round(totalSla.limit/1000)}s). Continuing execution.`);
-          }
+          slaTracker.checkTotalSla();
+
           // Update progress in database
           // New phases: DEEP_RESEARCH, SYNTHESIS, SOCIAL_RESEARCH, REPORT_GENERATION, COMPLETE
           const updateData: Record<string, unknown> = {
@@ -345,16 +342,13 @@ export const researchRouter = router({
                   citations: intermediateData.deepResearch.citations,
                   sources: intermediateData.deepResearch.sources,
                 } as object;
-                console.log('[Research] Saved researchChunks for resume capability:', Object.keys(chunkResults).join(', '));
               }
             }
             if (intermediateData.socialProof) {
               updateData.socialProof = intermediateData.socialProof as object;
-              console.log('[Research] Saved socialProof for resume capability');
             }
             if (intermediateData.insights) {
               updateData.synthesizedInsights = intermediateData.insights as object;
-              console.log('[Research] Saved synthesizedInsights for resume capability');
             }
             if (intermediateData.scores) {
               updateData.opportunityScore = intermediateData.scores.opportunityScore;
@@ -363,18 +357,15 @@ export const researchRouter = router({
               updateData.whyNowScore = intermediateData.scores.whyNowScore;
               updateData.scoreJustifications = intermediateData.scores.justifications as object;
               updateData.scoreMetadata = intermediateData.scores.metadata as object;
-              console.log('[Research] Saved scores for resume capability');
             }
             if (intermediateData.metrics) {
               updateData.revenuePotential = intermediateData.metrics.revenuePotential as object;
               updateData.executionDifficulty = intermediateData.metrics.executionDifficulty as object;
               updateData.gtmClarity = intermediateData.metrics.gtmClarity as object;
               updateData.founderFit = intermediateData.metrics.founderFit as object;
-              console.log('[Research] Saved metrics for resume capability');
             }
             if (intermediateData.marketSizing) {
               updateData.marketSizing = intermediateData.marketSizing as object;
-              console.log('[Research] Saved market sizing (TAM/SAM/SOM) for resume capability');
             }
           }
 
@@ -439,8 +430,6 @@ export const researchRouter = router({
           where: { id: input.ideaId },
           data: { status: 'COMPLETE' },
         });
-
-        console.log('[Research] Pipeline completed for idea:', input.ideaId);
       } catch (error) {
         const duration = Date.now() - startTime;
 
@@ -468,9 +457,6 @@ export const researchRouter = router({
             // errorDetails: errorDetails, // Uncomment if you add this field to schema
           },
         });
-
-        // Log additional context for debugging
-        console.error('[Research] Classified error:', JSON.stringify(errorDetails, null, 2));
       }
     })();
 
@@ -516,7 +502,13 @@ export const researchRouter = router({
       });
     }
 
-    // TODO: Cancel BullMQ job
+    // Queue cancellation job to stop any in-flight operations
+    try {
+      await enqueueResearchCancel({ researchId: input.id });
+    } catch (queueError) {
+      console.error('[Research] Failed to queue cancel:', queueError);
+      // Continue with local cancellation even if queue fails
+    }
 
     const updatedResearch = await ctx.prisma.research.update({
       where: { id: input.id },
@@ -687,8 +679,6 @@ export const researchRouter = router({
       },
     });
 
-    console.log('[Research] Reset stuck research for idea:', input.ideaId, 'was at phase:', idea.research.currentPhase);
-
     return updatedResearch;
   }),
 
@@ -821,8 +811,6 @@ export const researchRouter = router({
       // Run Spark pipeline asynchronously (fire and forget)
       (async () => {
         try {
-          console.log('[Spark] Starting pipeline for idea:', input.ideaId);
-
           const result = await runSparkPipeline(idea.description, {
             onStatusChange: async (status: SparkJobStatus) => {
               await ctx.prisma.research.update({
@@ -862,11 +850,7 @@ export const researchRouter = router({
             where: { id: input.ideaId },
             data: { status: 'COMPLETE' },
           });
-
-          console.log('[Spark] Pipeline complete for idea:', input.ideaId);
         } catch (error) {
-          console.error('[Spark] Pipeline failed for idea:', input.ideaId, error);
-
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
           await ctx.prisma.research.update({
@@ -1057,8 +1041,6 @@ export const researchRouter = router({
         return { backfilled: [], failed: [], skipped: [], message: 'All fields already populated.' };
       }
 
-      console.log(`[Backfill] Starting for research ${input.researchId}. Missing: ${missing.join(', ')}`);
-
       // Step 1: Ensure insights exist (dependency for Phase 4 functions)
       let insights = research.synthesizedInsights as unknown as SynthesizedInsights | null;
       if (!insights && hasRawResearch) {
@@ -1068,13 +1050,10 @@ export const researchRouter = router({
             where: { id: input.researchId },
             data: { synthesizedInsights: insights as object },
           });
-          console.log('[Backfill] Extracted missing insights');
         } catch (err) {
-          console.error('[Backfill] Failed to extract insights:', err instanceof Error ? err.message : err);
           return { backfilled: [], failed: ['insights', ...missing.filter(m => m !== 'insights')], skipped: [], message: 'Cannot backfill: insights extraction failed (required dependency).' };
         }
       } else if (!insights) {
-        console.warn('[Backfill] No insights and no rawDeepResearch — cannot backfill any fields');
         return { backfilled: [], failed: [], skipped: missing, message: 'Cannot backfill: no raw research data or insights available.' };
       }
 
@@ -1113,7 +1092,6 @@ export const researchRouter = router({
         const phase3Missing = missing.filter(m => needsRawResearch.includes(m));
         if (phase3Missing.length > 0) {
           skipped.push(...phase3Missing);
-          console.warn(`[Backfill] Skipping ${phase3Missing.join(', ')} — no rawDeepResearch available`);
         }
       }
 
@@ -1237,17 +1215,14 @@ export const researchRouter = router({
       results.forEach((r, i) => {
         if (r.status === 'fulfilled') {
           backfilled.push(tasks[i].name);
-          console.log(`[Backfill] SUCCESS: ${tasks[i].name}`);
         } else {
           failed.push(tasks[i].name);
-          console.error(`[Backfill] FAILED: ${tasks[i].name}:`, r.reason instanceof Error ? r.reason.message : r.reason);
         }
       });
 
       const message = failed.length === 0
         ? `Successfully backfilled ${backfilled.length} field(s).`
         : `Backfilled ${backfilled.length}, failed ${failed.length}: ${failed.join(', ')}`;
-      console.log(`[Backfill] Complete: ${message}`);
 
       return { backfilled, failed, skipped, message };
     }),

@@ -25,9 +25,11 @@ export default function EditBlogPostPage() {
 
   if (error || !post) {
     return (
-      <div className="p-8 text-center">
-        <h1 className="text-2xl font-bold text-destructive mb-2">Post Not Found</h1>
-        <p className="text-muted-foreground">The blog post you are looking for does not exist.</p>
+      <div className="p-8">
+        <div className="max-w-md mx-auto text-center py-12">
+          <h1 className="text-lg font-semibold text-destructive mb-2">Post Not Found</h1>
+          <p className="text-sm text-muted-foreground">The blog post you are looking for does not exist.</p>
+        </div>
       </div>
     );
   }
@@ -48,7 +50,7 @@ export default function EditBlogPostPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="p-8 max-w-4xl">
       <PostForm
         mode="edit"
         initialData={{
@@ -64,7 +66,7 @@ export default function EditBlogPostPage() {
         isSubmitting={updateMutation.isPending}
       />
       {updateMutation.isError && (
-        <div className="mt-4 p-4 bg-destructive/10 text-destructive rounded-lg">
+        <div className="mt-4 p-4 bg-destructive/10 text-destructive rounded-xl text-sm">
           Error: {updateMutation.error.message}
         </div>
       )}

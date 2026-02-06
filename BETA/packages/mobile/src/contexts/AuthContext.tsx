@@ -74,10 +74,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Check for existing session on mount
   useEffect(() => {
     async function loadSession() {
-      console.log('[Auth] Starting session check...');
       try {
         const token = await secureStorage.getToken();
-        console.log('[Auth] Token exists:', !!token);
 
         if (token) {
           // Validate token with backend (with timeout)
@@ -96,22 +94,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (res.ok) {
               const data = await res.json();
               setUser(data.user);
-              console.log('[Auth] Session validated');
             } else {
               // Token invalid, clear storage
               await secureStorage.clearAll();
-              console.log('[Auth] Token invalid, cleared storage');
             }
-          } catch (fetchError) {
+          } catch {
             clearTimeout(timeoutId);
-            console.log('[Auth] Session check failed (timeout or network):', fetchError);
             // Don't clear storage on network error, just continue without auth
           }
         }
-      } catch (error) {
-        console.error('[Auth] Failed to load session:', error);
+      } catch {
+        // Silently handle session load errors
       } finally {
-        console.log('[Auth] Setting isLoading to false');
         setIsLoading(false);
       }
     }

@@ -48,8 +48,8 @@ export default function PlansPage() {
               isRecommended={tier === 'PRO'}
               disabled={tier !== currentTier} // All upgrades disabled for now
               onSelect={() => {
-                // TODO: Implement upgrade flow
-                console.log('Selected tier:', tier);
+                // TODO: Implement upgrade flow with Stripe
+                // For now, upgrades are disabled - button shows "Current Plan" or disabled state
               }}
             />
           ))}

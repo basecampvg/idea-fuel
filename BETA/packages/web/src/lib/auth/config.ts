@@ -67,6 +67,60 @@ export const authConfig: NextAuthConfig = {
     error: '/auth/error',
   },
 
+  // Cookie configuration for cross-subdomain sessions
+  // Setting domain to .ideationlab.ai allows sharing session across:
+  // - ideationlab.ai (landing)
+  // - app.ideationlab.ai (main app)
+  // - admin.ideationlab.ai (admin panel)
+  cookies: {
+    sessionToken: {
+      name:
+        process.env.NODE_ENV === 'production'
+          ? '__Secure-next-auth.session-token'
+          : 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        // Set domain for cross-subdomain auth in production
+        domain:
+          process.env.NODE_ENV === 'production'
+            ? `.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'ideationlab.ai'}`
+            : undefined,
+      },
+    },
+    callbackUrl: {
+      name:
+        process.env.NODE_ENV === 'production'
+          ? '__Secure-next-auth.callback-url'
+          : 'next-auth.callback-url',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        domain:
+          process.env.NODE_ENV === 'production'
+            ? `.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'ideationlab.ai'}`
+            : undefined,
+      },
+    },
+    csrfToken: {
+      name:
+        process.env.NODE_ENV === 'production'
+          ? '__Host-next-auth.csrf-token'
+          : 'next-auth.csrf-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        // CSRF token uses __Host- prefix which requires no domain setting
+      },
+    },
+  },
+
   // Enable debug mode in development
   debug: process.env.NODE_ENV === 'development',
 };

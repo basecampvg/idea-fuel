@@ -126,6 +126,7 @@ interface Research {
   socialProof?: SocialProofData | unknown | null;
   marketSizing?: MarketSizingData | unknown | null;
   techStack?: TechStackData | unknown | null;
+  businessPlan?: string | unknown | null;
 }
 
 interface StatusCompleteProps {

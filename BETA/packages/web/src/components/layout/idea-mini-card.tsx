@@ -3,15 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { MessageSquare, FileText } from 'lucide-react';
-
-type IdeaStatus = 'CAPTURED' | 'INTERVIEWING' | 'RESEARCHING' | 'COMPLETE';
-
-const statusConfig: Record<IdeaStatus, { label: string; badgeClass: string }> = {
-  CAPTURED: { label: 'Draft', badgeClass: 'bg-muted-foreground/20 text-muted-foreground' },
-  INTERVIEWING: { label: 'Interview', badgeClass: 'bg-primary/20 text-primary' },
-  RESEARCHING: { label: 'Researching', badgeClass: 'bg-primary/30 text-primary' },
-  COMPLETE: { label: 'Ready', badgeClass: 'bg-primary/20 text-primary' },
-};
+import { type IdeaStatus, ideaStatusConfig } from '@/lib/idea-status';
 
 function formatRelativeTime(date: Date | string): string {
   const now = Date.now();
@@ -27,24 +19,24 @@ function formatRelativeTime(date: Date | string): string {
   return `${Math.floor(diffDays / 30)}mo`;
 }
 
-interface IdeaMiniCardProps {
+export interface IdeaMiniCardProps {
   idea: {
     id: string;
     title: string;
     status: string;
     updatedAt: Date | string;
     _count: { interviews: number; reports: number };
-    research: Array<{ status: string; progress: number }> | null;
+    research: { status: string; progress: number } | null;
   };
 }
 
 export function IdeaMiniCard({ idea }: IdeaMiniCardProps) {
   const pathname = usePathname();
-  const status = statusConfig[idea.status as IdeaStatus] || statusConfig.CAPTURED;
+  const status = ideaStatusConfig[idea.status as IdeaStatus] || ideaStatusConfig.CAPTURED;
   const isActive = pathname?.startsWith(`/ideas/${idea.id}`);
   const researchProgress =
-    idea.status === 'RESEARCHING' && idea.research?.[0]
-      ? idea.research[0].progress
+    idea.status === 'RESEARCHING' && idea.research
+      ? idea.research.progress
       : null;
 
   return (

@@ -6,6 +6,7 @@ import { TRPCError } from '@trpc/server';
 import type { ReportType, ReportTier } from '@prisma/client';
 import { generatePDFBuffer, getPDFFilename } from '../lib/pdf';
 import { logAuditAsync, formatResource } from '../lib/audit';
+import { enqueueReportGeneration } from '../jobs';
 
 export const reportRouter = router({
   /**
@@ -177,31 +178,30 @@ export const reportRouter = router({
       },
     });
 
-    // TODO: Trigger BullMQ job to generate report content with AI
-    // For now, we'll simulate with placeholder content
-    const placeholderContent = `# ${title}\n\n**Tier:** ${reportTier}\n\nThis report is being generated. AI content generation will be implemented in the next phase.\n\n## Based on\n- Interview Mode: ${interviewMode}\n- Subscription: ${user.subscription}`;
-
-    const updatedReport = await ctx.prisma.report.update({
-      where: { id: report.id },
-      data: {
-        content: placeholderContent,
-        status: 'COMPLETE',
-        sections: {
-          included: ['summary', 'analysis', 'recommendations'],
-          locked: reportTier === 'FULL' ? [] : ['advanced-analytics', 'appendix'],
-        },
-      },
-    });
+    // Queue report generation job
+    try {
+      await enqueueReportGeneration({
+        reportId: report.id,
+        ideaId: input.ideaId,
+        userId: ctx.userId,
+        reportType: input.type,
+        tier: reportTier,
+      });
+    } catch (queueError) {
+      // If queue fails, log error but don't fail the request
+      // The report is created in GENERATING state, user can retry
+      console.error('[Report] Failed to queue generation:', queueError);
+    }
 
     // Audit log - generate report
     logAuditAsync({
       userId: ctx.userId,
       action: 'REPORT_GENERATE',
-      resource: formatResource('report', updatedReport.id),
-      metadata: { reportType: input.type, tier: reportTier, ideaId: input.ideaId },
+      resource: formatResource('report', report.id),
+      metadata: { reportType: input.type, tier: reportTier, ideaId: input.ideaId, queued: true },
     });
 
-    return updatedReport;
+    return report;
   }),
 
   /**
@@ -231,7 +231,18 @@ export const reportRouter = router({
       },
     });
 
-    // TODO: Trigger BullMQ job to regenerate report
+    // Queue report regeneration job
+    try {
+      await enqueueReportGeneration({
+        reportId: report.id,
+        ideaId: existing.ideaId,
+        userId: ctx.userId,
+        reportType: existing.type,
+        tier: existing.tier,
+      });
+    } catch (queueError) {
+      console.error('[Report] Failed to queue regeneration:', queueError);
+    }
 
     return report;
   }),
@@ -321,11 +332,80 @@ export const reportRouter = router({
       });
     }
 
-    // TODO: Trigger BullMQ job to generate all 10 reports in parallel
+    // Get user subscription for tier calculation
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: ctx.userId },
+      select: { subscription: true },
+    });
+
+    // Get latest interview mode
+    const latestInterview = await ctx.prisma.interview.findFirst({
+      where: { ideaId: input.ideaId, status: 'COMPLETE' },
+      orderBy: { createdAt: 'desc' },
+      select: { mode: true },
+    });
+    const interviewMode = latestInterview?.mode ?? 'LIGHT';
+    const reportTier = getReportTier(interviewMode, user?.subscription ?? 'FREE') as ReportTier;
+
+    // Create and queue all report types
+    const reportTypes = Object.keys(REPORT_TYPE_LABELS);
+    const createdReports = [];
+    const queuedCount = { success: 0, failed: 0 };
+
+    for (const reportType of reportTypes) {
+      // Check if report already exists
+      const existing = await ctx.prisma.report.findFirst({
+        where: {
+          ideaId: input.ideaId,
+          type: reportType as ReportType,
+          userId: ctx.userId,
+        },
+      });
+
+      if (existing) {
+        continue; // Skip existing reports
+      }
+
+      const title = REPORT_TYPE_LABELS[reportType] ?? reportType;
+
+      // Create report in generating state
+      const report = await ctx.prisma.report.create({
+        data: {
+          type: reportType as ReportType,
+          tier: reportTier,
+          title,
+          content: '',
+          sections: { included: [], locked: [] },
+          status: 'GENERATING',
+          ideaId: input.ideaId,
+          userId: ctx.userId,
+        },
+      });
+
+      createdReports.push(report);
+
+      // Queue generation job
+      try {
+        await enqueueReportGeneration({
+          reportId: report.id,
+          ideaId: input.ideaId,
+          userId: ctx.userId,
+          reportType,
+          tier: reportTier,
+        });
+        queuedCount.success++;
+      } catch (queueError) {
+        console.error(`[Report] Failed to queue ${reportType}:`, queueError);
+        queuedCount.failed++;
+      }
+    }
 
     return {
       success: true,
-      message: 'Report generation queued for all 10 report types',
+      message: `Queued ${queuedCount.success} reports for generation`,
+      created: createdReports.length,
+      queued: queuedCount.success,
+      failed: queuedCount.failed,
     };
   }),
 
@@ -408,13 +488,6 @@ export const reportRouter = router({
 
       // Generate PDF
       try {
-        console.log('Generating PDF for:', {
-          ideaId: idea.id,
-          ideaTitle: idea.title,
-          reportType: report.type,
-          reportTier: report.tier,
-        });
-
         const pdfBuffer = await generatePDFBuffer({
           idea: {
             id: idea.id,
@@ -433,7 +506,6 @@ export const reportRouter = router({
         });
 
         const filename = getPDFFilename(idea.title, input.reportType);
-        console.log('PDF generated successfully:', filename, 'Size:', pdfBuffer.length);
 
         // Audit log - download PDF
         logAuditAsync({
@@ -450,11 +522,7 @@ export const reportRouter = router({
           data: pdfBuffer.toString('base64'),
         };
       } catch (error) {
-        console.error('PDF generation error:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        const errorStack = error instanceof Error ? error.stack : '';
-        console.error('Error details:', errorMessage);
-        console.error('Error stack:', errorStack);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: `Failed to generate PDF: ${errorMessage}`,

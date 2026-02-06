@@ -1,0 +1,170 @@
+import { Worker, Job } from 'bullmq';
+import { createRedisConnection } from '../../lib/redis';
+import { prisma } from '../../db';
+import { QUEUE_NAMES, ReportGenerationJobData } from '../queues';
+
+/**
+ * Report Generation Worker
+ * Processes report generation jobs in the background
+ *
+ * This worker handles the AI-powered generation of business reports.
+ * Currently using placeholder content - will integrate full AI generation in Phase 2.
+ */
+export function createReportGenerationWorker() {
+  const worker = new Worker<ReportGenerationJobData>(
+    QUEUE_NAMES.REPORT_GENERATION,
+    async (job: Job<ReportGenerationJobData>) => {
+      const { reportId, ideaId, userId, reportType, tier } = job.data;
+
+      console.log(`[ReportWorker] Processing report ${reportId} (type: ${reportType})`);
+
+      try {
+        // Update status to generating
+        await prisma.report.update({
+          where: { id: reportId },
+          data: { status: 'GENERATING' },
+        });
+
+        // Get idea and research data for context
+        const idea = await prisma.idea.findUnique({
+          where: { id: ideaId },
+          include: {
+            research: true,
+            interviews: {
+              where: { status: 'COMPLETE' },
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+            },
+          },
+        });
+
+        if (!idea) {
+          throw new Error(`Idea ${ideaId} not found`);
+        }
+
+        // Update progress
+        await job.updateProgress(20);
+
+        // Generate report content
+        // TODO: Replace with actual AI generation from report-ai.ts
+        const content = await generateReportContent({
+          idea,
+          research: idea.research,
+          interview: idea.interviews[0],
+          reportType,
+          tier,
+        });
+
+        await job.updateProgress(80);
+
+        // Update report with generated content
+        const updatedReport = await prisma.report.update({
+          where: { id: reportId },
+          data: {
+            content,
+            status: 'COMPLETE',
+            sections: {
+              included: ['summary', 'analysis', 'recommendations'],
+              locked: tier === 'FULL' ? [] : ['advanced-analytics', 'appendix'],
+            },
+          },
+        });
+
+        await job.updateProgress(100);
+
+        console.log(`[ReportWorker] Completed report ${reportId}`);
+
+        return {
+          success: true,
+          reportId: updatedReport.id,
+          reportType,
+        };
+      } catch (error) {
+        console.error(`[ReportWorker] Failed report ${reportId}:`, error);
+
+        // Mark report as failed
+        await prisma.report.update({
+          where: { id: reportId },
+          data: {
+            status: 'FAILED',
+            content: `Error generating report: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+        });
+
+        throw error;
+      }
+    },
+    {
+      connection: createRedisConnection(),
+      concurrency: 3, // Process up to 3 reports in parallel
+      limiter: {
+        max: 10, // Max 10 jobs per minute to avoid rate limits
+        duration: 60000,
+      },
+    }
+  );
+
+  // Event handlers for monitoring
+  worker.on('completed', (job) => {
+    console.log(`[ReportWorker] Job ${job.id} completed`);
+  });
+
+  worker.on('failed', (job, err) => {
+    console.error(`[ReportWorker] Job ${job?.id} failed:`, err.message);
+  });
+
+  worker.on('error', (err) => {
+    console.error('[ReportWorker] Worker error:', err);
+  });
+
+  return worker;
+}
+
+/**
+ * Generate report content
+ * Placeholder implementation - will be replaced with AI generation
+ */
+async function generateReportContent(params: {
+  idea: {
+    id: string;
+    title: string;
+    description: string;
+    research?: {
+      marketAnalysis?: unknown;
+      competitors?: unknown;
+      painPoints?: unknown;
+      positioning?: unknown;
+    } | null;
+  };
+  research?: unknown;
+  interview?: { mode: string } | null;
+  reportType: string;
+  tier: string;
+}): Promise<string> {
+  const { idea, reportType, tier, interview } = params;
+
+  // Simulate processing time
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  // Generate placeholder content based on report type
+  const content = `# ${reportType.replace(/_/g, ' ')}\n\n` +
+    `**Business Idea:** ${idea.title}\n\n` +
+    `**Report Tier:** ${tier}\n\n` +
+    `**Interview Mode:** ${interview?.mode || 'N/A'}\n\n` +
+    `## Executive Summary\n\n${idea.description}\n\n` +
+    `## Analysis\n\n` +
+    `This ${reportType.toLowerCase().replace(/_/g, ' ')} report provides ` +
+    `${tier === 'FULL' ? 'comprehensive' : tier === 'PRO' ? 'detailed' : 'essential'} ` +
+    `insights for "${idea.title}".\n\n` +
+    `## Recommendations\n\n` +
+    `1. Validate core assumptions with target customers\n` +
+    `2. Build a minimum viable product to test demand\n` +
+    `3. Establish metrics for tracking progress\n\n` +
+    `---\n\n` +
+    `*This report was generated by IdeationLab AI.*`;
+
+  return content;
+}
+
+// Export for testing
+export { generateReportContent };

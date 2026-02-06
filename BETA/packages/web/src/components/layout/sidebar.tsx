@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useSidebar, type SidebarMode } from './sidebar-context';
-import { IdeaMiniCard, IdeaMiniCardSkeleton } from './idea-mini-card';
+import { IdeaMiniCard, IdeaMiniCardSkeleton, type IdeaMiniCardProps } from './idea-mini-card';
 import {
   Plus,
   Archive,
@@ -42,16 +43,23 @@ const bottomNav = [
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
-// Mode selector popover
+// Mode selector popover (portaled to body to escape sidebar overflow-hidden)
 function ModeSelector() {
-  const { mode, setMode, isExpanded } = useSidebar();
+  const { mode, setMode, isExpanded, sidebarWidth } = useSidebar();
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const [popoverStyle, setPopoverStyle] = useState<CSSProperties>({});
 
+  // Close popover on click outside
   useEffect(() => {
     if (!open) return;
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        buttonRef.current && !buttonRef.current.contains(target) &&
+        popoverRef.current && !popoverRef.current.contains(target)
+      ) {
         setOpen(false);
       }
     }
@@ -59,16 +67,34 @@ function ModeSelector() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [open]);
 
+  // Close popover if sidebar width changes (e.g. hover mode transition)
+  useEffect(() => {
+    setOpen(false);
+  }, [sidebarWidth]);
+
   const options: { value: SidebarMode; label: string; icon: React.ElementType }[] = [
     { value: 'collapsed', label: 'Collapsed', icon: Columns2 },
     { value: 'expanded', label: 'Expanded', icon: PanelLeftOpen },
     { value: 'hover', label: 'Auto (hover)', icon: MousePointer },
   ];
 
+  const handleToggle = () => {
+    if (!open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPopoverStyle({
+        position: 'fixed',
+        bottom: window.innerHeight - rect.bottom,
+        left: rect.right + 8,
+      });
+    }
+    setOpen(!open);
+  };
+
   return (
-    <div ref={ref} className={`relative ${isExpanded ? 'w-full' : ''}`}>
+    <div className={isExpanded ? 'w-full' : ''}>
       <button
-        onClick={() => setOpen(!open)}
+        ref={buttonRef}
+        onClick={handleToggle}
         className={`
           group relative flex items-center rounded-lg transition-colors
           ${isExpanded ? 'h-10 gap-2.5 px-3 w-full' : 'h-10 w-10 justify-center'}
@@ -83,8 +109,12 @@ function ModeSelector() {
         {isExpanded && <span className="text-sm font-medium">Layout</span>}
       </button>
 
-      {open && (
-        <div className="absolute bottom-0 left-full ml-2 w-44 rounded-lg border border-border bg-card shadow-lg p-1 z-50">
+      {open && createPortal(
+        <div
+          ref={popoverRef}
+          className="w-44 rounded-lg border border-border bg-card shadow-lg p-1 z-[100]"
+          style={popoverStyle}
+        >
           {options.map((opt) => {
             const Icon = opt.icon;
             const isActive = mode === opt.value;
@@ -108,7 +138,8 @@ function ModeSelector() {
               </button>
             );
           })}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -143,7 +174,7 @@ function SidebarIdeas() {
       ) : (
         <div className="space-y-1.5 mt-1">
           {ideas.map((idea) => (
-            <IdeaMiniCard key={idea.id} idea={idea as any} />
+            <IdeaMiniCard key={idea.id} idea={idea as IdeaMiniCardProps['idea']} />
           ))}
         </div>
       )}
@@ -245,15 +276,13 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Divider + Inline Ideas (expanded only) */}
-      {isExpanded && (
-        <>
-          <div className="h-px bg-border mx-3" />
-          <div className="flex-1 overflow-y-auto">
-            <SidebarIdeas />
-          </div>
-        </>
-      )}
+      {/* Divider + Inline Ideas — always mounted, hidden when collapsed to preserve query cache */}
+      <div className={isExpanded ? '' : 'hidden'}>
+        <div className="h-px bg-border mx-3" />
+        <div className="flex-1 overflow-y-auto">
+          <SidebarIdeas />
+        </div>
+      </div>
 
       {/* Spacer when collapsed */}
       {!isExpanded && <div className="flex-1" />}

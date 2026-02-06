@@ -187,7 +187,7 @@ export default function IdeasScreen() {
             {ideas.map((idea, index) => (
               <TouchableOpacity
                 key={idea.id}
-                onPress={() => router.push(`/(tabs)/ideas/${idea.id}`)}
+                onPress={() => router.push(`/(tabs)/ideas/${idea.id}` as never)}
                 activeOpacity={0.7}
                 style={[
                   styles.ideaCard,

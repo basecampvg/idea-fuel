@@ -398,4 +398,167 @@ export const adminRouter = router({
         callCount: Number(r.callCount),
       }));
     }),
+
+  // ==========================================================================
+  // IP WHITELIST MANAGEMENT (SUPER_ADMIN only)
+  // ==========================================================================
+
+  /**
+   * List all whitelisted IPs
+   * Only SUPER_ADMIN can view the whitelist
+   */
+  ipWhitelist: protectedProcedure.query(async ({ ctx }) => {
+    // Check if user is SUPER_ADMIN
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: ctx.userId },
+      select: { role: true },
+    });
+
+    if (user?.role !== 'SUPER_ADMIN') {
+      throw new Error('Access denied. SUPER_ADMIN role required.');
+    }
+
+    return ctx.prisma.adminIPWhitelist.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  }),
+
+  /**
+   * Add an IP to the whitelist
+   */
+  addIPToWhitelist: protectedProcedure
+    .input(
+      z.object({
+        ipAddress: z.string().min(7).max(45), // IPv4 or IPv6
+        label: z.string().optional(),
+        expiresAt: z.date().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if user is SUPER_ADMIN
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: ctx.userId },
+        select: { role: true, email: true },
+      });
+
+      if (user?.role !== 'SUPER_ADMIN') {
+        throw new Error('Access denied. SUPER_ADMIN role required.');
+      }
+
+      // Validate IP format (basic check)
+      const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
+      const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
+
+      if (!ipv4Regex.test(input.ipAddress) && !ipv6Regex.test(input.ipAddress)) {
+        throw new Error('Invalid IP address format');
+      }
+
+      const entry = await ctx.prisma.adminIPWhitelist.create({
+        data: {
+          ipAddress: input.ipAddress,
+          label: input.label,
+          addedBy: ctx.userId,
+          expiresAt: input.expiresAt,
+        },
+      });
+
+      // Log the action
+      await ctx.prisma.auditLog.create({
+        data: {
+          userId: ctx.userId,
+          action: 'IP_WHITELIST_ADD',
+          resource: `ip:${input.ipAddress}`,
+          metadata: {
+            label: input.label,
+            expiresAt: input.expiresAt?.toISOString(),
+          },
+        },
+      });
+
+      return entry;
+    }),
+
+  /**
+   * Remove an IP from the whitelist
+   */
+  removeIPFromWhitelist: protectedProcedure
+    .input(z.object({ id: z.string().cuid() }))
+    .mutation(async ({ ctx, input }) => {
+      // Check if user is SUPER_ADMIN
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: ctx.userId },
+        select: { role: true },
+      });
+
+      if (user?.role !== 'SUPER_ADMIN') {
+        throw new Error('Access denied. SUPER_ADMIN role required.');
+      }
+
+      // Get the entry before deleting for audit log
+      const entry = await ctx.prisma.adminIPWhitelist.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!entry) {
+        throw new Error('IP whitelist entry not found');
+      }
+
+      await ctx.prisma.adminIPWhitelist.delete({
+        where: { id: input.id },
+      });
+
+      // Log the action
+      await ctx.prisma.auditLog.create({
+        data: {
+          userId: ctx.userId,
+          action: 'IP_WHITELIST_REMOVE',
+          resource: `ip:${entry.ipAddress}`,
+          metadata: { label: entry.label },
+        },
+      });
+
+      return { success: true, removed: entry.ipAddress };
+    }),
+
+  /**
+   * Update an IP whitelist entry (label or expiration)
+   */
+  updateIPWhitelist: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().cuid(),
+        label: z.string().optional(),
+        expiresAt: z.date().nullable().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if user is SUPER_ADMIN
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: ctx.userId },
+        select: { role: true },
+      });
+
+      if (user?.role !== 'SUPER_ADMIN') {
+        throw new Error('Access denied. SUPER_ADMIN role required.');
+      }
+
+      const entry = await ctx.prisma.adminIPWhitelist.update({
+        where: { id: input.id },
+        data: {
+          label: input.label,
+          expiresAt: input.expiresAt,
+        },
+      });
+
+      return entry;
+    }),
+
+  /**
+   * Get current user's IP (for self-whitelisting)
+   */
+  getCurrentIP: protectedProcedure.query(() => {
+    // This is a placeholder - the actual IP comes from the request headers
+    // In the frontend, we'll need to call an API endpoint that reads headers
+    return { note: 'Use /api/admin/current-ip endpoint to get your IP' };
+  }),
 });

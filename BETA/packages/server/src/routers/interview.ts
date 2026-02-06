@@ -497,8 +497,6 @@ export const interviewRouter = router({
 
     (async () => {
       try {
-        console.log('[Interview Complete] Starting research pipeline...');
-        console.log('[Interview Complete] Using tier:', userTier);
         const result = await runResearchPipeline(researchInput, async (phase, progress) => {
           await prisma.research.update({
             where: { id: researchId },
@@ -554,10 +552,7 @@ export const interviewRouter = router({
           where: { id: ideaId },
           data: { status: 'COMPLETE' },
         });
-
-        console.log('[Interview Complete] Research pipeline completed!');
       } catch (error) {
-        console.error('[Interview Complete] Research pipeline failed:', error);
         await prisma.research.update({
           where: { id: researchId },
           data: {

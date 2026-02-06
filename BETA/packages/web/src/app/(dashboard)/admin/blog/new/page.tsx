@@ -26,14 +26,14 @@ export default function NewBlogPostPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="p-8 max-w-4xl">
       <PostForm
         mode="create"
         onSubmit={handleSubmit}
         isSubmitting={createMutation.isPending}
       />
       {createMutation.isError && (
-        <div className="mt-4 p-4 bg-destructive/10 text-destructive rounded-lg">
+        <div className="mt-4 p-4 bg-destructive/10 text-destructive rounded-xl text-sm">
           Error: {createMutation.error.message}
         </div>
       )}

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -34,6 +35,7 @@ import {
   AlertCircle,
   CheckCircle,
   ExternalLink,
+  RotateCcw,
 } from 'lucide-react';
 
 type ConfigValue = string | number | boolean | string[];
@@ -624,8 +626,9 @@ const CATEGORY_LABELS: Record<string, string> = {
   dailyPick: 'Daily Trend Pick',
 };
 
-export default function AdminPage() {
-  const [activeCategory, setActiveCategory] = useState<string>('ai');
+function AdminPageContent() {
+  const searchParams = useSearchParams();
+  const activeCategory = searchParams.get('tab') || 'ai';
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>('');
   const [showAuditLog, setShowAuditLog] = useState(false);
@@ -633,7 +636,6 @@ export default function AdminPage() {
   const utils = trpc.useUtils();
 
   const { data: configs, isLoading } = trpc.admin.list.useQuery();
-  const { data: categories } = trpc.admin.categories.useQuery();
   const { data: auditLog } = trpc.admin.auditLog.useQuery({ limit: 20 }, { enabled: showAuditLog });
 
   const setConfig = trpc.admin.set.useMutation({
@@ -809,22 +811,33 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="w-full max-w-[1120px] mx-auto px-6 py-8 space-y-6">
-      {/* Header */}
+    <div className="p-8 space-y-6 max-w-5xl">
+      {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground flex items-center gap-2">
-            <Settings className="h-6 w-6" />
-            Admin Dashboard
+          <h1 className="text-xl font-semibold text-foreground flex items-center gap-3">
+            {CATEGORY_ICONS[activeCategory]}
+            {CATEGORY_LABELS[activeCategory] || activeCategory}
           </h1>
-          <p className="mt-1 text-muted-foreground">Runtime configuration and feature flags</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {activeCategory === 'ai' && 'Configure AI models and parameters'}
+            {activeCategory === 'interview' && 'Interview session settings'}
+            {activeCategory === 'research' && 'Research pipeline configuration'}
+            {activeCategory === 'limits' && 'Subscription tier limits'}
+            {activeCategory === 'features' && 'Toggle feature flags'}
+            {activeCategory === 'domains' && 'Configure search domains'}
+            {activeCategory === 'analytics' && 'View token usage analytics'}
+            {activeCategory === 'dashboard' && 'Configure dashboard pane settings'}
+            {activeCategory === 'dailyPick' && 'Daily trend pick pipeline control'}
+          </p>
         </div>
         <div className="flex gap-2">
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => seedDefaults.mutate()}
             isLoading={seedDefaults.isPending}
+            className="text-muted-foreground hover:text-foreground"
           >
             Seed Defaults
           </Button>
@@ -834,195 +847,160 @@ export default function AdminPage() {
             onClick={() => refreshCache.mutate()}
             isLoading={refreshCache.isPending}
           >
-            <RefreshCw className="h-4 w-4 mr-1" />
+            <RefreshCw className="h-4 w-4 mr-1.5" />
             Refresh Cache
           </Button>
         </div>
       </div>
 
-      {/* Quick Toggles */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Quick Toggles</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4">
-            {[
-              { key: 'testMode', label: 'Test Mode', color: 'warning' },
-              { key: 'mockAI', label: 'Mock AI', color: 'info' },
-              { key: 'deepResearch.enabled', label: 'Deep Research', color: 'success' },
-              { key: 'socialProof', label: 'Social Proof', color: 'default' },
-              { key: 'serpApi', label: 'SerpAPI', color: 'default' },
-            ].map((toggle) => {
-              const configKey = toggle.key === 'deepResearch.enabled'
-                ? 'ai.deepResearch.enabled'
-                : `features.${toggle.key}`;
-              const isEnabled = (configs?.ai as ConfigItem[] | undefined)?.find((c) => c.key === configKey)?.value === true
-                || (configs?.features as ConfigItem[] | undefined)?.find((c) => c.key === configKey)?.value === true;
+      {/* Quick Toggles - only show on AI or Features tab */}
+      {(activeCategory === 'ai' || activeCategory === 'features') && (
+        <div className="flex flex-wrap gap-2">
+          {[
+            { key: 'testMode', label: 'Test Mode' },
+            { key: 'mockAI', label: 'Mock AI' },
+            { key: 'deepResearch.enabled', label: 'Deep Research' },
+            { key: 'socialProof', label: 'Social Proof' },
+            { key: 'serpApi', label: 'SerpAPI' },
+          ].map((toggle) => {
+            const configKey = toggle.key === 'deepResearch.enabled'
+              ? 'ai.deepResearch.enabled'
+              : `features.${toggle.key}`;
+            const isEnabled = (configs?.ai as ConfigItem[] | undefined)?.find((c) => c.key === configKey)?.value === true
+              || (configs?.features as ConfigItem[] | undefined)?.find((c) => c.key === configKey)?.value === true;
 
-              return (
-                <button
-                  key={toggle.key}
-                  onClick={() => toggleFeature.mutate({ feature: toggle.key as 'testMode' | 'mockAI' | 'socialProof' | 'serpApi' | 'deepResearch.enabled' })}
-                  className={`flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors ${
-                    isEnabled
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border bg-background text-muted-foreground hover:bg-muted'
-                  }`}
-                >
-                  {isEnabled ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <X className="h-4 w-4" />
-                  )}
-                  {toggle.label}
-                </button>
-              );
-            })}
+            return (
+              <button
+                key={toggle.key}
+                onClick={() => toggleFeature.mutate({ feature: toggle.key as 'testMode' | 'mockAI' | 'socialProof' | 'serpApi' | 'deepResearch.enabled' })}
+                className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition-all ${
+                  isEnabled
+                    ? 'border-primary/50 bg-primary/10 text-primary'
+                    : 'border-border bg-card text-muted-foreground hover:border-muted-foreground/50'
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${isEnabled ? 'bg-primary' : 'bg-muted-foreground/50'}`} />
+                {toggle.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Main Content Area */}
+      <div className="space-y-4">
+        {/* Reset button for config categories */}
+        {!['analytics', 'dailyPick'].includes(activeCategory) && currentConfigs.length > 0 && (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => resetCategory.mutate({ category: activeCategory })}
+              isLoading={resetCategory.isPending}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+              Reset to Defaults
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        )}
 
-      {/* Category Tabs */}
-      <div className="flex gap-2 border-b border-border pb-2 overflow-x-auto">
-        {categories?.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setActiveCategory(cat.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-t-lg transition-colors whitespace-nowrap ${
-              activeCategory === cat.id
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
-            }`}
-          >
-            {CATEGORY_ICONS[cat.id]}
-            {CATEGORY_LABELS[cat.id] || cat.label}
-            <Badge variant="info" className="ml-1">
-              {cat.count}
-            </Badge>
-          </button>
-        ))}
-        {/* Daily Pick - special category not from config */}
-        <button
-          onClick={() => setActiveCategory('dailyPick')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg transition-colors whitespace-nowrap ${
-            activeCategory === 'dailyPick'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-muted-foreground hover:bg-muted/80'
-          }`}
-        >
-          {CATEGORY_ICONS.dailyPick}
-          {CATEGORY_LABELS.dailyPick}
-        </button>
+        {/* Special rendering for Analytics category - Token Usage */}
+        {activeCategory === 'analytics' ? (
+          <TokenUsageAnalytics />
+        ) : activeCategory === 'dashboard' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {groupDashboardPaneConfigs(currentConfigs).map(([paneName, paneConfig]) => (
+              <DashboardPaneCard
+                key={paneName}
+                paneName={paneName}
+                config={paneConfig}
+                onSave={(key, value) => setConfig.mutate({ key, value })}
+                isSaving={setConfig.isPending}
+              />
+            ))}
+          </div>
+        ) : activeCategory === 'dailyPick' ? (
+          <DailyPickControl />
+        ) : (
+          <div className="space-y-3">
+            {currentConfigs.map((item: ConfigItem) => (
+              <div
+                key={item.key}
+                className="flex items-center justify-between rounded-xl border border-border bg-card p-4 transition-colors hover:border-border/80"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-foreground text-sm">{item.label}</p>
+                  {item.description && (
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{item.description}</p>
+                  )}
+                  <code className="text-[10px] text-muted-foreground/70 font-mono mt-1 block">{item.key}</code>
+                </div>
+                <div className="ml-4 flex-shrink-0">
+                  {renderConfigValue(item)}
+                </div>
+              </div>
+            ))}
+            {currentConfigs.length === 0 && (
+              <div className="text-center py-12 text-muted-foreground">
+                No configuration items in this category.
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Config Items */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              {CATEGORY_ICONS[activeCategory]}
-              {CATEGORY_LABELS[activeCategory]}
-            </CardTitle>
-            <CardDescription>
-              Configure {activeCategory} settings
-            </CardDescription>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => resetCategory.mutate({ category: activeCategory })}
-            isLoading={resetCategory.isPending}
-          >
-            Reset to Defaults
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {/* Special rendering for Analytics category - Token Usage */}
-          {activeCategory === 'analytics' ? (
-            <TokenUsageAnalytics />
-          ) : activeCategory === 'dashboard' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {groupDashboardPaneConfigs(currentConfigs).map(([paneName, paneConfig]) => (
-                <DashboardPaneCard
-                  key={paneName}
-                  paneName={paneName}
-                  config={paneConfig}
-                  onSave={(key, value) => setConfig.mutate({ key, value })}
-                  isSaving={setConfig.isPending}
-                />
-              ))}
-            </div>
-          ) : activeCategory === 'dailyPick' ? (
-            <DailyPickControl />
+      {/* Audit Log */}
+      <div className="mt-8 pt-6 border-t border-border">
+        <button
+          onClick={() => setShowAuditLog(!showAuditLog)}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {showAuditLog ? (
+            <ChevronDown className="h-4 w-4" />
           ) : (
-            <div className="space-y-4">
-              {currentConfigs.map((item: ConfigItem) => (
+            <ChevronRight className="h-4 w-4" />
+          )}
+          <History className="h-4 w-4" />
+          <span className="text-sm font-medium">Recent Changes</span>
+        </button>
+
+        {showAuditLog && (
+          <div className="mt-4 space-y-2">
+            {auditLog && auditLog.length > 0 ? (
+              auditLog.map((entry) => (
                 <div
-                  key={item.key}
-                  className="flex items-center justify-between rounded-lg border border-border p-4"
+                  key={entry.id}
+                  className="flex items-center justify-between text-xs py-2 border-b border-border/50 last:border-0"
                 >
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">{item.label}</p>
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
-                    <code className="text-xs text-muted-foreground">{item.key}</code>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <code className="bg-muted px-1.5 py-0.5 rounded font-mono text-muted-foreground">{entry.configKey}</code>
+                    <span className="text-muted-foreground">&rarr;</span>
+                    <code className="bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                      {typeof entry.newValue === 'object'
+                        ? JSON.stringify(entry.newValue).substring(0, 30) + '...'
+                        : String(entry.newValue)}
+                    </code>
                   </div>
-                  <div className="ml-4">
-                    {renderConfigValue(item)}
+                  <div className="text-muted-foreground/70 ml-4 flex-shrink-0">
+                    {new Date(entry.changedAt).toLocaleString()}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Audit Log */}
-      <Card>
-        <CardHeader>
-          <button
-            onClick={() => setShowAuditLog(!showAuditLog)}
-            className="flex items-center gap-2 w-full text-left"
-          >
-            {showAuditLog ? (
-              <ChevronDown className="h-4 w-4" />
+              ))
             ) : (
-              <ChevronRight className="h-4 w-4" />
+              <p className="text-muted-foreground text-sm py-4">No changes recorded yet.</p>
             )}
-            <History className="h-4 w-4" />
-            <CardTitle className="text-lg">Recent Changes</CardTitle>
-          </button>
-        </CardHeader>
-        {showAuditLog && (
-          <CardContent>
-            {auditLog && auditLog.length > 0 ? (
-              <div className="space-y-2">
-                {auditLog.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="flex items-center justify-between text-sm border-b border-border pb-2"
-                  >
-                    <div>
-                      <code className="text-xs bg-muted px-1 rounded">{entry.configKey}</code>
-                      <span className="text-muted-foreground mx-2">changed to</span>
-                      <code className="text-xs bg-primary/10 text-primary px-1 rounded">
-                        {typeof entry.newValue === 'object'
-                          ? JSON.stringify(entry.newValue).substring(0, 30) + '...'
-                          : String(entry.newValue)}
-                      </code>
-                    </div>
-                    <div className="text-muted-foreground text-xs">
-                      {new Date(entry.changedAt).toLocaleString()}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm">No changes recorded yet.</p>
-            )}
-          </CardContent>
+          </div>
         )}
-      </Card>
+      </div>
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <Suspense fallback={<LoadingScreen message="Loading admin..." />}>
+      <AdminPageContent />
+    </Suspense>
   );
 }

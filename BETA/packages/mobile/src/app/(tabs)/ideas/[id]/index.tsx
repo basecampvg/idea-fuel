@@ -363,7 +363,7 @@ export default function IdeaDetailScreen() {
 
   const startInterview = trpc.idea.startInterview.useMutation({
     onSuccess: () => {
-      router.push(`/(tabs)/ideas/${id}/interview`);
+      router.push(`/(tabs)/ideas/${id}/interview` as never);
     },
   });
 
@@ -547,7 +547,7 @@ export default function IdeaDetailScreen() {
           <>
             <InterviewCard
               interview={activeInterview as any}
-              onContinue={() => router.push(`/(tabs)/ideas/${id}/interview`)}
+              onContinue={() => router.push(`/(tabs)/ideas/${id}/interview` as never)}
               onAbandon={handleAbandon}
               isAbandoning={abandonInterview.isPending}
             />
@@ -659,7 +659,7 @@ export default function IdeaDetailScreen() {
                 />
                 <TouchableOpacity
                   style={styles.viewInterviewButton}
-                  onPress={() => router.push(`/(tabs)/ideas/${id}/interview`)}
+                  onPress={() => router.push(`/(tabs)/ideas/${id}/interview` as never)}
                 >
                   <Text style={styles.viewInterviewText}>View Full Interview</Text>
                   <Ionicons name="chevron-forward" size={16} color={colors.accent} />
