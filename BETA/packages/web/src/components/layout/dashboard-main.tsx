@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useSidebar } from './sidebar-context';
+import { useSidebar, TOP_BAR_HEIGHT } from './sidebar-context';
 
 export function DashboardMain({ children }: { children: React.ReactNode }) {
   const { sidebarWidth } = useSidebar();
@@ -20,7 +20,7 @@ export function DashboardMain({ children }: { children: React.ReactNode }) {
   return (
     <main
       className="min-h-screen flex flex-col relative z-10 transition-[margin-left] duration-200 ease-out"
-      style={{ marginLeft: sidebarWidth }}
+      style={{ marginLeft: sidebarWidth, paddingTop: TOP_BAR_HEIGHT }}
     >
       {children}
     </main>

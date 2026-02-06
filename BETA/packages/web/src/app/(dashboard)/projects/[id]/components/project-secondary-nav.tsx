@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useSidebar } from '@/components/layout/sidebar-context';
+import { useSidebar, TOP_BAR_HEIGHT } from '@/components/layout/sidebar-context';
 import { deriveProjectStatus, projectStatusConfig } from '@/lib/project-status';
 import {
   Paintbrush,
@@ -117,8 +117,8 @@ export function ProjectSecondaryNav({ project }: ProjectSecondaryNavProps) {
 
   return (
     <aside
-      className="fixed inset-y-0 z-40 w-[240px] flex flex-col bg-background border-r border-border transition-[left] duration-200 ease-out"
-      style={{ left: sidebarWidth }}
+      className="fixed bottom-0 z-40 w-[240px] flex flex-col bg-background border-r border-border transition-[left] duration-200 ease-out"
+      style={{ left: sidebarWidth, top: TOP_BAR_HEIGHT }}
     >
       {/* Header */}
       <div className="px-4 pt-5 pb-3">

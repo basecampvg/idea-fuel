@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { ConditionalSidebar } from '@/components/layout/conditional-sidebar';
+import { ConditionalTopNavBar } from '@/components/layout/conditional-top-nav-bar';
 import { DashboardProviders } from '@/components/providers/dashboard-providers';
 import { DashboardMain } from '@/components/layout/dashboard-main';
 
@@ -21,6 +22,7 @@ export default async function DashboardLayout({
   return (
     <DashboardProviders>
       <div className="min-h-screen aurora-background">
+        <ConditionalTopNavBar />
         <ConditionalSidebar />
         <DashboardMain>{children}</DashboardMain>
       </div>
