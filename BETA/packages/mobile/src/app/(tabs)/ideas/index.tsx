@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { trpc } from '../../../lib/trpc';
-import { IDEA_STATUS_LABELS, IdeaStatus } from '@forge/shared';
+import { PROJECT_STATUS_LABELS, IDEA_STATUS_LABELS } from '@forge/shared';
 
 // Forge Design System Colors
 const colors = {
@@ -34,27 +34,33 @@ const colors = {
   statusComplete: '#34D399',
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  CAPTURED: colors.statusDraft,
-  INTERVIEWING: colors.statusInterview,
-  RESEARCHING: colors.statusResearch,
+type ProjectStatus = 'DRAFT' | 'ACTIVE' | 'COMPLETE';
+
+const PROJECT_STATUS_COLORS: Record<ProjectStatus, string> = {
+  DRAFT: colors.statusDraft,
+  ACTIVE: colors.statusInterview,
   COMPLETE: colors.statusComplete,
 };
 
-const filters: Array<{ label: string; value: IdeaStatus | 'ALL' }> = [
+function deriveProjectStatus(project: { ideas: { status: string }[] }): ProjectStatus {
+  if (project.ideas.length === 0) return 'DRAFT';
+  if (project.ideas[0].status === 'COMPLETE') return 'COMPLETE';
+  return 'ACTIVE';
+}
+
+const filters: Array<{ label: string; value: ProjectStatus | 'ALL' }> = [
   { label: 'All', value: 'ALL' },
-  { label: 'Captured', value: 'CAPTURED' },
-  { label: 'Interviewing', value: 'INTERVIEWING' },
-  { label: 'Researching', value: 'RESEARCHING' },
+  { label: 'Draft', value: 'DRAFT' },
+  { label: 'Active', value: 'ACTIVE' },
   { label: 'Complete', value: 'COMPLETE' },
 ];
 
-function StatusDot({ status }: { status: string }) {
+function StatusDot({ status }: { status: ProjectStatus }) {
   return (
     <View
       style={[
         styles.statusDot,
-        { backgroundColor: STATUS_COLORS[status] || colors.muted },
+        { backgroundColor: PROJECT_STATUS_COLORS[status] || colors.muted },
       ]}
     />
   );
@@ -96,21 +102,23 @@ function EmptyState({
           activeOpacity={0.8}
         >
           <Ionicons name="add" size={18} color="#fff" />
-          <Text style={styles.emptyButtonText}>Create Idea</Text>
+          <Text style={styles.emptyButtonText}>Create Project</Text>
         </TouchableOpacity>
       )}
     </View>
   );
 }
 
-export default function IdeasScreen() {
+export default function ProjectsScreen() {
   const router = useRouter();
-  const [filter, setFilter] = useState<IdeaStatus | 'ALL'>('ALL');
+  const [filter, setFilter] = useState<ProjectStatus | 'ALL'>('ALL');
 
-  const { data, isLoading, refetch, isRefetching } = trpc.idea.list.useQuery({});
+  const { data, isLoading, refetch, isRefetching } = trpc.project.list.useQuery({});
 
-  const allIdeas = data?.items ?? [];
-  const ideas = filter === 'ALL' ? allIdeas : allIdeas.filter((idea) => idea.status === filter);
+  const allProjects = data?.items ?? [];
+  const projects = filter === 'ALL'
+    ? allProjects
+    : allProjects.filter((p) => deriveProjectStatus(p) === filter);
 
   if (isLoading && !isRefetching) {
     return <LoadingScreen message="Loading your vault..." />;
@@ -122,7 +130,7 @@ export default function IdeasScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Vault</Text>
         <Text style={styles.headerSubtitle}>
-          {allIdeas.length} {allIdeas.length === 1 ? 'idea' : 'ideas'}
+          {allProjects.length} {allProjects.length === 1 ? 'project' : 'projects'}
         </Text>
       </View>
 
@@ -171,83 +179,109 @@ export default function IdeasScreen() {
           />
         }
       >
-        {ideas.length === 0 ? (
+        {projects.length === 0 ? (
           <EmptyState
             icon="archive-outline"
-            title={filter === 'ALL' ? 'Your vault is empty' : `No ${filter.toLowerCase()} ideas`}
+            title={filter === 'ALL' ? 'Your vault is empty' : `No ${filter.toLowerCase()} projects`}
             description={
               filter === 'ALL'
                 ? 'Start forging your first business idea'
-                : 'Try a different filter or create a new idea'
+                : 'Try a different filter or create a new project'
             }
             onAction={() => router.push('/(tabs)/dashboard')}
           />
         ) : (
-          <View style={styles.ideaList}>
-            {ideas.map((idea, index) => (
-              <TouchableOpacity
-                key={idea.id}
-                onPress={() => router.push(`/(tabs)/ideas/${idea.id}` as never)}
-                activeOpacity={0.7}
-                style={[
-                  styles.ideaCard,
-                  index === ideas.length - 1 && { marginBottom: 0 },
-                ]}
-              >
-                {/* Status indicator bar */}
-                <View
+          <View style={styles.projectList}>
+            {projects.map((project, index) => {
+              const status = deriveProjectStatus(project);
+              const idea = project.ideas[0];
+              return (
+                <TouchableOpacity
+                  key={project.id}
+                  onPress={() => {
+                    // Navigate to idea detail if idea exists, otherwise just show project
+                    if (idea) {
+                      router.push(`/(tabs)/ideas/${idea.id}` as never);
+                    }
+                  }}
+                  activeOpacity={0.7}
                   style={[
-                    styles.statusBar,
-                    { backgroundColor: STATUS_COLORS[idea.status] || colors.muted },
+                    styles.projectCard,
+                    index === projects.length - 1 && { marginBottom: 0 },
                   ]}
-                />
+                >
+                  {/* Status indicator bar */}
+                  <View
+                    style={[
+                      styles.statusBar,
+                      { backgroundColor: PROJECT_STATUS_COLORS[status] },
+                    ]}
+                  />
 
-                <View style={styles.ideaContent}>
-                  {/* Header row */}
-                  <View style={styles.ideaHeader}>
-                    <View style={styles.ideaTitleRow}>
-                      <StatusDot status={idea.status} />
-                      <Text style={styles.ideaTitle} numberOfLines={1}>
-                        {idea.title}
-                      </Text>
+                  <View style={styles.projectContent}>
+                    {/* Header row */}
+                    <View style={styles.projectHeader}>
+                      <View style={styles.projectTitleRow}>
+                        <StatusDot status={status} />
+                        <Text style={styles.projectTitle} numberOfLines={1}>
+                          {project.title}
+                        </Text>
+                      </View>
+                      <View style={styles.statusBadge}>
+                        <Text style={styles.statusBadgeText}>
+                          {PROJECT_STATUS_LABELS[status] || status}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={styles.statusBadge}>
-                      <Text style={styles.statusBadgeText}>
-                        {IDEA_STATUS_LABELS[idea.status]}
+
+                    {/* Idea subtitle */}
+                    {idea && (
+                      <View style={styles.ideaRow}>
+                        <Ionicons name="bulb-outline" size={12} color={colors.muted} />
+                        <Text style={styles.ideaSubtitle} numberOfLines={1}>
+                          {idea.title}
+                        </Text>
+                        <View style={styles.ideaStatusDot}>
+                          <Text style={styles.ideaStatusText}>
+                            {IDEA_STATUS_LABELS[idea.status] || idea.status}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Description */}
+                    {project.description && (
+                      <Text style={styles.projectDescription} numberOfLines={2}>
+                        {project.description}
                       </Text>
+                    )}
+
+                    {/* Footer */}
+                    <View style={styles.projectFooter}>
+                      <Text style={styles.projectDate}>
+                        {new Date(project.updatedAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </Text>
+                      <Ionicons
+                        name="chevron-forward"
+                        size={16}
+                        color={colors.muted}
+                      />
                     </View>
                   </View>
-
-                  {/* Description */}
-                  <Text style={styles.ideaDescription} numberOfLines={2}>
-                    {idea.description}
-                  </Text>
-
-                  {/* Footer */}
-                  <View style={styles.ideaFooter}>
-                    <Text style={styles.ideaDate}>
-                      {new Date(idea.createdAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </Text>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={16}
-                      color={colors.muted}
-                    />
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         )}
 
         {/* Pagination Info */}
         {data && data.pagination.total > 0 && (
           <Text style={styles.paginationText}>
-            Showing {ideas.length} of {data.pagination.total} ideas
+            Showing {projects.length} of {data.pagination.total} projects
           </Text>
         )}
       </ScrollView>
@@ -321,10 +355,10 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 100,
   },
-  ideaList: {
+  projectList: {
     gap: 12,
   },
-  ideaCard: {
+  projectCard: {
     backgroundColor: colors.card,
     borderRadius: 16,
     borderWidth: 1,
@@ -336,16 +370,16 @@ const styles = StyleSheet.create({
     height: 3,
     width: '100%',
   },
-  ideaContent: {
+  projectContent: {
     padding: 16,
   },
-  ideaHeader: {
+  projectHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     marginBottom: 8,
   },
-  ideaTitleRow: {
+  projectTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
@@ -357,7 +391,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginRight: 10,
   },
-  ideaTitle: {
+  projectTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.foreground,
@@ -376,18 +410,41 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  ideaDescription: {
+  ideaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  ideaSubtitle: {
+    fontSize: 13,
+    color: colors.muted,
+    flex: 1,
+  },
+  ideaStatusDot: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    backgroundColor: colors.mutedBg,
+  },
+  ideaStatusText: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: colors.muted,
+    textTransform: 'uppercase',
+  },
+  projectDescription: {
     fontSize: 14,
     color: colors.muted,
     lineHeight: 20,
     marginBottom: 12,
   },
-  ideaFooter: {
+  projectFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  ideaDate: {
+  projectDate: {
     fontSize: 12,
     color: colors.muted,
     opacity: 0.7,
