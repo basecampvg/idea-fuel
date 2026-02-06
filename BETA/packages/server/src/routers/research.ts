@@ -5,6 +5,7 @@ import { TRPCError } from '@trpc/server';
 import { RESEARCH_PHASE_PROGRESS, SPARK_STATUS_PROGRESS } from '@forge/shared';
 import type { ChatMessage, InterviewDataPoints, SparkJobStatus } from '@forge/shared';
 import { logAuditAsync, formatResource } from '../lib/audit';
+import { serializeCanvasForAI } from '@forge/shared';
 import { enqueueResearchCancel } from '../jobs';
 import {
   runResearchPipeline,
@@ -159,6 +160,9 @@ export const researchRouter = router({
           orderBy: { createdAt: 'desc' },
           take: 1,
         },
+        project: {
+          select: { canvas: true },
+        },
       },
     });
 
@@ -232,12 +236,18 @@ export const researchRouter = router({
       metadata: { ideaId: input.ideaId, isRetry: idea.research?.retryCount ? idea.research.retryCount > 0 : false },
     });
 
-    // Prepare research input
+    // Prepare research input (include canvas context if project has canvas blocks)
+    const canvasBlocks = idea.project?.canvas as unknown as import('@forge/shared').CanvasBlock[] | null;
+    const canvasContext = canvasBlocks && canvasBlocks.length > 0
+      ? serializeCanvasForAI(canvasBlocks)
+      : undefined;
+
     const researchInput: ResearchInput = {
       ideaTitle: idea.title,
       ideaDescription: idea.description,
       interviewData: interview.collectedData as Partial<InterviewDataPoints> | null,
       interviewMessages: (interview.messages as unknown as ChatMessage[]) || [],
+      canvasContext,
     };
 
     // Get user's subscription tier for AI parameters
@@ -748,6 +758,9 @@ export const researchRouter = router({
         },
         include: {
           research: true,
+          project: {
+            select: { canvas: true },
+          },
         },
       });
 
@@ -808,10 +821,21 @@ export const researchRouter = router({
         metadata: { ideaId: input.ideaId, mode: 'SPARK' },
       });
 
+      // Serialize canvas context for Spark pipeline
+      const sparkCanvasBlocks = idea.project?.canvas as unknown as import('@forge/shared').CanvasBlock[] | null;
+      const sparkCanvasContext = sparkCanvasBlocks && sparkCanvasBlocks.length > 0
+        ? serializeCanvasForAI(sparkCanvasBlocks)
+        : undefined;
+
+      // Build enriched description with canvas context
+      const sparkDescription = sparkCanvasContext
+        ? `${idea.description}\n\n## FOUNDER'S CANVAS (structured research notes)\n${sparkCanvasContext}`
+        : idea.description;
+
       // Run Spark pipeline asynchronously (fire and forget)
       (async () => {
         try {
-          const result = await runSparkPipeline(idea.description, {
+          const result = await runSparkPipeline(sparkDescription, {
             onStatusChange: async (status: SparkJobStatus) => {
               await ctx.prisma.research.update({
                 where: { id: research.id },
@@ -991,6 +1015,9 @@ export const researchRouter = router({
                 orderBy: { createdAt: 'desc' },
                 take: 1,
               },
+              project: {
+                select: { canvas: true },
+              },
             },
           },
         },
@@ -1012,11 +1039,16 @@ export const researchRouter = router({
       // Reconstruct ResearchInput from idea
       const idea = research.idea;
       const interview = idea.interviews[0];
+      const backfillCanvasBlocks = idea.project?.canvas as unknown as import('@forge/shared').CanvasBlock[] | null;
+      const backfillCanvasContext = backfillCanvasBlocks && backfillCanvasBlocks.length > 0
+        ? serializeCanvasForAI(backfillCanvasBlocks)
+        : undefined;
       const researchInput: ResearchInput = {
         ideaTitle: idea.title,
         ideaDescription: idea.description || '',
         interviewData: (interview?.collectedData as unknown as ResearchInput['interviewData']) ?? null,
         interviewMessages: (interview?.messages as unknown as Array<{ role: string; content: string }>) ?? [],
+        canvasContext: backfillCanvasContext,
       };
 
       // Get user tier

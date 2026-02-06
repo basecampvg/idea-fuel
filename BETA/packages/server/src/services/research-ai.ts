@@ -38,6 +38,7 @@ export interface ResearchInput {
   ideaDescription: string;
   interviewData: Partial<InterviewDataPoints> | null;
   interviewMessages: Array<{ role: string; content: string }>;
+  canvasContext?: string;
 }
 
 export interface GeneratedQueries {
@@ -241,7 +242,7 @@ export async function runDeepResearch(
   input: ResearchInput,
   tier: SubscriptionTier = 'ENTERPRISE'
 ): Promise<DeepResearchOutput> {
-  const { ideaTitle, ideaDescription, interviewData, interviewMessages } = input;
+  const { ideaTitle, ideaDescription, interviewData, interviewMessages, canvasContext } = input;
 
   console.log('[Deep Research] Starting comprehensive market research...');
   console.log('[Deep Research] Tier:', tier);
@@ -285,10 +286,12 @@ Provide a comprehensive research report with:
 Be thorough but focus on actionable intelligence. Cite your sources.`;
 
   // User query with all context
+  const canvasSection = canvasContext ? `\n## FOUNDER'S CANVAS (structured research notes)\n${canvasContext}\n` : '';
+
   const userQuery = `## BUSINESS IDEA
 **Title:** ${ideaTitle}
 **Description:** ${ideaDescription}
-
+${canvasSection}
 ## INTERVIEW INSIGHTS
 The founder has provided the following information through an AI interview:
 
@@ -447,7 +450,7 @@ export async function runChunkedDeepResearch(
   onProgress?: ChunkedProgressCallback,
   existingChunks?: ChunkedResearchData
 ): Promise<DeepResearchOutput> {
-  const { ideaTitle, ideaDescription, interviewData, interviewMessages } = input;
+  const { ideaTitle, ideaDescription, interviewData, interviewMessages, canvasContext } = input;
 
   console.log('[Chunked Research] Starting chunked market research...');
   console.log('[Chunked Research] Tier:', tier);
@@ -521,7 +524,8 @@ export async function runChunkedDeepResearch(
         interviewContext,
         chunk,
         model,
-        expansionContext
+        expansionContext,
+        canvasContext
       );
 
       clearInterval(heartbeat);
@@ -579,7 +583,8 @@ async function runSingleResearchChunk(
   interviewContext: string,
   chunk: typeof RESEARCH_CHUNKS[number],
   model: string,
-  expansionContext: string = ''
+  expansionContext: string = '',
+  canvasContext?: string
 ): Promise<DeepResearchResult> {
   const systemPrompt = `You are a market research analyst conducting focused research.
 
@@ -593,10 +598,12 @@ Research ONLY: ${chunk.focus}
 - Keep your response focused and under 2000 words
 - Do not cover other research areas - stay focused on your assigned task`;
 
+  const canvasSection = canvasContext ? `\n## FOUNDER'S CANVAS\n${canvasContext}\n` : '';
+
   const userQuery = `## BUSINESS IDEA
 **Title:** ${ideaTitle}
 **Description:** ${ideaDescription}
-
+${canvasSection}
 ## FOUNDER CONTEXT
 ${interviewData ? JSON.stringify(interviewData, null, 2) : 'No additional context provided.'}
 
