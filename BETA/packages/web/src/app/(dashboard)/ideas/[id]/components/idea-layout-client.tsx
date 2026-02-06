@@ -7,6 +7,8 @@ import { LoadingScreen } from '@/components/ui/spinner';
 import { IdeaSecondaryNav } from './idea-secondary-nav';
 import { IdeaHeader } from './idea-header';
 
+const SECONDARY_NAV_WIDTH = 240;
+
 function IdeaLayoutInner({
   children,
   params,
@@ -54,7 +56,7 @@ function IdeaLayoutInner({
   return (
     <>
       <IdeaSecondaryNav idea={idea} />
-      <div className="ml-[240px] min-h-screen">
+      <div className="min-h-screen" style={{ marginLeft: SECONDARY_NAV_WIDTH }}>
         <div className="max-w-[1120px] mx-auto px-6 py-8 space-y-6">
           <IdeaHeader idea={idea} />
           {children}
@@ -74,7 +76,7 @@ export function IdeaLayoutClient({
   return (
     <Suspense
       fallback={
-        <div className="ml-[240px] flex min-h-screen items-center justify-center">
+        <div className="flex min-h-screen items-center justify-center" style={{ marginLeft: SECONDARY_NAV_WIDTH }}>
           <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
         </div>
       }

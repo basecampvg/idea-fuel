@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { SubscriptionProvider } from '@/components/subscription/subscription-context';
 import { UpgradeModalContainer } from '@/components/subscription/upgrade-modal';
+import { SidebarProvider } from '@/components/layout/sidebar-context';
 
 interface DashboardProvidersProps {
   children: ReactNode;
@@ -14,9 +15,11 @@ interface DashboardProvidersProps {
  */
 export function DashboardProviders({ children }: DashboardProvidersProps) {
   return (
-    <SubscriptionProvider>
-      {children}
-      <UpgradeModalContainer />
-    </SubscriptionProvider>
+    <SidebarProvider>
+      <SubscriptionProvider>
+        {children}
+        <UpgradeModalContainer />
+      </SubscriptionProvider>
+    </SidebarProvider>
   );
 }

@@ -5,30 +5,21 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { useSidebar, type SidebarMode } from './sidebar-context';
+import { IdeaMiniCard, IdeaMiniCardSkeleton } from './idea-mini-card';
 import {
   Plus,
   Archive,
-  Compass,
   Settings,
   ChevronRight,
-  X,
-  MessageSquare,
-  FileText,
-  MoreHorizontal,
   Shield,
+  PanelLeft,
+  Columns2,
+  PanelLeftOpen,
+  MousePointer,
 } from 'lucide-react';
 
-// Status configuration with semantic colors
-type IdeaStatus = 'CAPTURED' | 'INTERVIEWING' | 'RESEARCHING' | 'COMPLETE';
-
-const statusConfig: Record<IdeaStatus, { label: string; dotColor: string }> = {
-  CAPTURED: { label: 'Draft', dotColor: 'bg-muted-foreground' },
-  INTERVIEWING: { label: 'Interview', dotColor: 'bg-primary/50' },
-  RESEARCHING: { label: 'Researching', dotColor: 'bg-primary/70' },
-  COMPLETE: { label: 'Ready', dotColor: 'bg-primary' },
-};
-
-// Forge flame logo - simplified
+// Forge flame logo
 function LogoFlame({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 18 22" fill="none">
@@ -43,7 +34,7 @@ function LogoFlame({ className }: { className?: string }) {
 // Navigation items
 const mainNav = [
   { name: 'New', href: '/dashboard', icon: Plus, isAction: true },
-  { name: 'Vault', href: '/ideas', icon: Archive, hasSubmenu: true },
+  { name: 'Vault', href: '/ideas', icon: Archive },
 ];
 
 const bottomNav = [
@@ -51,291 +42,266 @@ const bottomNav = [
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
-// Vault/Library submenu component
-function LibrarySubmenu({
-  isOpen,
-  onClose,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-}) {
-  const submenuRef = useRef<HTMLDivElement>(null);
-  const isDev = process.env.NODE_ENV === 'development';
-
-  const { data, isLoading } = trpc.idea.list.useQuery(
-    { limit: 8 },
-    { enabled: isOpen, retry: isDev ? false : 3 }
-  );
+// Mode selector popover
+function ModeSelector() {
+  const { mode, setMode, isExpanded } = useSidebar();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (submenuRef.current && !submenuRef.current.contains(event.target as Node)) {
-        const target = event.target as HTMLElement;
-        if (!target.closest('[data-library-trigger]')) {
-          onClose();
-        }
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
       }
     }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isOpen, onClose]);
+  const options: { value: SidebarMode; label: string; icon: React.ElementType }[] = [
+    { value: 'collapsed', label: 'Collapsed', icon: Columns2 },
+    { value: 'expanded', label: 'Expanded', icon: PanelLeftOpen },
+    { value: 'hover', label: 'Auto (hover)', icon: MousePointer },
+  ];
+
+  return (
+    <div ref={ref} className={`relative ${isExpanded ? 'w-full' : ''}`}>
+      <button
+        onClick={() => setOpen(!open)}
+        className={`
+          group relative flex items-center rounded-lg transition-colors
+          ${isExpanded ? 'h-10 gap-2.5 px-3 w-full' : 'h-10 w-10 justify-center'}
+          ${open
+            ? 'bg-[var(--muted)] text-[var(--foreground)]'
+            : 'text-[var(--muted-foreground)] hover:bg-[var(--muted)]/50 hover:text-[var(--foreground)]'
+          }
+        `}
+        title="Sidebar mode"
+      >
+        <PanelLeft className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
+        {isExpanded && <span className="text-sm font-medium">Layout</span>}
+      </button>
+
+      {open && (
+        <div className="absolute bottom-0 left-full ml-2 w-44 rounded-lg border border-border bg-card shadow-lg p-1 z-50">
+          {options.map((opt) => {
+            const Icon = opt.icon;
+            const isActive = mode === opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => {
+                  setMode(opt.value);
+                  setOpen(false);
+                }}
+                className={`
+                  flex items-center gap-2.5 w-full px-3 py-2 rounded-md text-sm transition-colors
+                  ${isActive
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-foreground hover:bg-muted/50'
+                  }
+                `}
+              >
+                <Icon className="w-4 h-4" strokeWidth={1.5} />
+                <span>{opt.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Inline ideas section for expanded sidebar
+function SidebarIdeas() {
+  const isDev = process.env.NODE_ENV === 'development';
+  const { data, isLoading } = trpc.idea.list.useQuery(
+    { limit: 5 },
+    { staleTime: 30_000, retry: isDev ? false : 3 }
+  );
 
   const ideas = data?.items ?? [];
 
   return (
-    <div
-      ref={submenuRef}
-      className={`
-        fixed top-0 left-[60px] h-full w-[260px] z-40
-        bg-background border-r border-border
-        transition-all duration-200 ease-out
-        ${isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 pointer-events-none'}
-      `}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between h-14 px-4 border-b border-border">
-        <span className="text-sm font-medium text-[var(--foreground)]">Vault</span>
-        <button
-          onClick={onClose}
-          className="p-1.5 rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50 transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </button>
+    <div className="px-2 mt-1">
+      <div className="px-2 py-1.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+        Recent
       </div>
 
-      {/* New Idea */}
-      <div className="p-2">
-        <Link
-          href="/dashboard"
-          onClick={onClose}
-          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[var(--foreground)] hover:bg-[var(--muted)]/50 transition-colors"
-        >
-          <Plus className="w-4 h-4 text-[var(--muted-foreground)]" />
-          <span className="text-sm">New Idea</span>
-        </Link>
-      </div>
-
-      {/* Divider */}
-      <div className="h-px bg-border mx-3" />
-
-      {/* Recent Ideas */}
-      <div className="p-2">
-        <div className="px-3 py-1.5 text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wide">
-          Recent
+      {isLoading ? (
+        <div className="space-y-1.5 mt-1">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <IdeaMiniCardSkeleton key={i} />
+          ))}
         </div>
+      ) : ideas.length === 0 ? (
+        <p className="px-2 py-4 text-sm text-muted-foreground text-center">
+          No ideas yet
+        </p>
+      ) : (
+        <div className="space-y-1.5 mt-1">
+          {ideas.map((idea) => (
+            <IdeaMiniCard key={idea.id} idea={idea as any} />
+          ))}
+        </div>
+      )}
 
-        {isLoading ? (
-          <div className="px-3 py-6 text-sm text-[var(--muted-foreground)] text-center">
-            Loading...
-          </div>
-        ) : ideas.length === 0 ? (
-          <div className="px-3 py-6 text-sm text-[var(--muted-foreground)] text-center">
-            No ideas yet
-          </div>
-        ) : (
-          <div className="space-y-0.5">
-            {ideas.map((idea) => {
-              const status = statusConfig[idea.status as IdeaStatus] || statusConfig.CAPTURED;
-              return (
-                <Link
-                  key={idea.id}
-                  href={`/ideas/${idea.id}`}
-                  onClick={onClose}
-                  className="group flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-[var(--muted)]/50 transition-colors"
-                >
-                  {/* Status dot */}
-                  <span className={`w-2 h-2 rounded-full ${status.dotColor} flex-shrink-0`} />
-
-                  {/* Title */}
-                  <span className="flex-1 text-sm text-[var(--foreground)] truncate group-hover:text-[var(--accent)] transition-colors">
-                    {idea.title}
-                  </span>
-
-                  {/* Meta counts */}
-                  {idea._count && (
-                    <div className="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)] opacity-0 group-hover:opacity-100 transition-opacity">
-                      {idea._count.interviews > 0 && (
-                        <span className="flex items-center gap-0.5">
-                          <MessageSquare className="w-3 h-3" />
-                          {idea._count.interviews}
-                        </span>
-                      )}
-                      {idea._count.reports > 0 && (
-                        <span className="flex items-center gap-0.5">
-                          <FileText className="w-3 h-3" />
-                          {idea._count.reports}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* View All - positioned after recent ideas */}
-      <div className="p-2 pt-0">
-        <Link
-          href="/ideas"
-          onClick={onClose}
-          className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50 transition-colors"
-        >
-          <span>View all</span>
-          <ChevronRight className="w-4 h-4" />
-        </Link>
-      </div>
+      <Link
+        href="/ideas"
+        className="flex items-center justify-between px-2 py-2 mt-1 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+      >
+        <span>View all</span>
+        <ChevronRight className="w-4 h-4" />
+      </Link>
     </div>
   );
 }
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [libraryOpen, setLibraryOpen] = useState(false);
+  const { isExpanded, sidebarWidth, onMouseEnter, onMouseLeave } = useSidebar();
 
   return (
-    <>
-      {/* Main Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-50 w-[60px] flex flex-col bg-background border-r border-border">
-        {/* Logo */}
-        <div className="flex h-14 items-center justify-center">
-          <Link
-            href="/dashboard"
-            className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--accent)] text-foreground transition-transform hover:scale-105 active:scale-95"
-          >
-            <LogoFlame className="h-5 w-5" />
-          </Link>
-        </div>
+    <aside
+      className="fixed inset-y-0 left-0 z-50 flex flex-col bg-background border-r border-border overflow-hidden transition-[width] duration-200 ease-out"
+      style={{ width: sidebarWidth }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      {/* Logo */}
+      <div className="flex h-14 items-center px-[10px]">
+        <Link
+          href="/dashboard"
+          className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--accent)] text-foreground transition-transform hover:scale-105 active:scale-95 flex-shrink-0"
+          title="Dashboard"
+        >
+          <LogoFlame className="h-5 w-5" />
+        </Link>
+        {isExpanded && (
+          <span className="ml-3 text-sm font-semibold text-foreground truncate">
+            Forge
+          </span>
+        )}
+      </div>
 
-        {/* Main Navigation */}
-        <nav className="flex flex-1 flex-col items-center gap-1 px-2 py-3">
-          {mainNav.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href ||
-              (item.href !== '/dashboard' && pathname.startsWith(item.href));
-            const isLibrary = item.hasSubmenu;
+      {/* Main Navigation */}
+      <nav className="flex flex-col gap-1 px-2 py-3">
+        {mainNav.map((item) => {
+          const Icon = item.icon;
+          const isActive =
+            pathname === item.href ||
+            (item.href !== '/dashboard' && pathname.startsWith(item.href));
 
-            if (item.isAction) {
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="group relative flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white transition-all hover:bg-primary/80 active:scale-95 shadow-[0_0_12px_hsl(var(--primary)/0.3)]"
-                  title={item.name}
-                >
-                  <Icon className="w-5 h-5" strokeWidth={2} />
-                  {/* Tooltip */}
+          if (item.isAction) {
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`
+                  group relative flex items-center rounded-lg bg-primary text-white transition-all hover:bg-primary/80 active:scale-95 shadow-[0_0_12px_hsl(var(--primary)/0.3)]
+                  ${isExpanded ? 'h-10 gap-2.5 px-3' : 'h-10 w-10 justify-center'}
+                `}
+                title={item.name}
+              >
+                <Icon className="w-5 h-5 flex-shrink-0" strokeWidth={2} />
+                {isExpanded && <span className="text-sm font-medium">New Idea</span>}
+                {!isExpanded && (
                   <span className="absolute left-full ml-3 px-3 py-1.5 rounded-full bg-card text-foreground text-xs font-medium opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
                     {item.name}
                   </span>
-                </Link>
-              );
-            }
-
-            if (isLibrary) {
-              return (
-                <button
-                  key={item.name}
-                  data-library-trigger
-                  onClick={() => setLibraryOpen(!libraryOpen)}
-                  className={`
-                    group relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors
-                    ${isActive || libraryOpen
-                      ? 'bg-[var(--muted)] text-[var(--foreground)]'
-                      : 'text-[var(--muted-foreground)] hover:bg-[var(--muted)]/50 hover:text-[var(--foreground)]'
-                    }
-                  `}
-                  title={item.name}
-                >
-                  <Icon className="w-5 h-5" strokeWidth={1.5} />
-                  {/* Active indicator */}
-                  {(isActive || libraryOpen) && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-[var(--accent)]" />
-                  )}
-                  {/* Tooltip */}
-                  {!libraryOpen && (
-                    <span className="absolute left-full ml-3 px-3 py-1.5 rounded-full bg-card text-foreground text-xs font-medium opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
-                      {item.name}
-                    </span>
-                  )}
-                </button>
-              );
-            }
-
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`
-                  group relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors
-                  ${isActive
-                    ? 'bg-[var(--muted)] text-[var(--foreground)]'
-                    : 'text-[var(--muted-foreground)] hover:bg-[var(--muted)]/50 hover:text-[var(--foreground)]'
-                  }
-                `}
-                title={item.name}
-              >
-                <Icon className="w-5 h-5" strokeWidth={1.5} />
-                {/* Active indicator */}
-                {isActive && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-[var(--accent)]" />
                 )}
-                {/* Tooltip */}
+              </Link>
+            );
+          }
+
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`
+                group relative flex items-center rounded-lg transition-colors
+                ${isExpanded ? 'h-10 gap-2.5 px-3' : 'h-10 w-10 justify-center'}
+                ${isActive
+                  ? 'bg-[var(--muted)] text-[var(--foreground)]'
+                  : 'text-[var(--muted-foreground)] hover:bg-[var(--muted)]/50 hover:text-[var(--foreground)]'
+                }
+              `}
+              title={item.name}
+            >
+              <Icon className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
+              {isExpanded && <span className="text-sm font-medium">{item.name}</span>}
+              {isActive && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-[var(--accent)]" />
+              )}
+              {!isExpanded && (
                 <span className="absolute left-full ml-3 px-3 py-1.5 rounded-full bg-card text-foreground text-xs font-medium opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
                   {item.name}
                 </span>
-              </Link>
-            );
-          })}
-        </nav>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
 
-        {/* Bottom Navigation */}
-        <nav className="flex flex-col items-center gap-1 px-2 py-3 border-t border-border">
-          {/* Theme Toggle */}
-          <div className="group relative flex h-10 w-10 items-center justify-center">
-            <ThemeToggle />
+      {/* Divider + Inline Ideas (expanded only) */}
+      {isExpanded && (
+        <>
+          <div className="h-px bg-border mx-3" />
+          <div className="flex-1 overflow-y-auto">
+            <SidebarIdeas />
+          </div>
+        </>
+      )}
+
+      {/* Spacer when collapsed */}
+      {!isExpanded && <div className="flex-1" />}
+
+      {/* Bottom Navigation */}
+      <nav className={`flex flex-col gap-1 px-2 py-3 border-t border-border ${isExpanded ? '' : 'items-center'}`}>
+        {/* Theme Toggle */}
+        <div className={`group relative flex items-center ${isExpanded ? 'w-full px-1' : 'h-10 w-10 justify-center'}`}>
+          <ThemeToggle />
+          {!isExpanded && (
             <span className="absolute left-full ml-3 px-3 py-1.5 rounded-full bg-card text-foreground text-xs font-medium opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
               Theme
             </span>
-          </div>
+          )}
+        </div>
 
-          {bottomNav.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
+        {/* Mode Selector */}
+        <ModeSelector />
 
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`
-                  group relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors
-                  ${isActive
-                    ? 'bg-[var(--muted)] text-[var(--foreground)]'
-                    : 'text-[var(--muted-foreground)] hover:bg-[var(--muted)]/50 hover:text-[var(--foreground)]'
-                  }
-                `}
-                title={item.name}
-              >
-                <Icon className="w-5 h-5" strokeWidth={1.5} />
-                {/* Tooltip */}
+        {bottomNav.map((item) => {
+          const Icon = item.icon;
+          const isActive = pathname === item.href;
+
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`
+                group relative flex items-center rounded-lg transition-colors
+                ${isExpanded ? 'h-10 gap-2.5 px-3 w-full' : 'h-10 w-10 justify-center'}
+                ${isActive
+                  ? 'bg-[var(--muted)] text-[var(--foreground)]'
+                  : 'text-[var(--muted-foreground)] hover:bg-[var(--muted)]/50 hover:text-[var(--foreground)]'
+                }
+              `}
+              title={item.name}
+            >
+              <Icon className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
+              {isExpanded && <span className="text-sm font-medium">{item.name}</span>}
+              {!isExpanded && (
                 <span className="absolute left-full ml-3 px-3 py-1.5 rounded-full bg-card text-foreground text-xs font-medium opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
                   {item.name}
                 </span>
-              </Link>
-            );
-          })}
-        </nav>
-      </aside>
-
-      {/* Library Submenu */}
-      <LibrarySubmenu
-        isOpen={libraryOpen}
-        onClose={() => setLibraryOpen(false)}
-      />
-    </>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+    </aside>
   );
 }

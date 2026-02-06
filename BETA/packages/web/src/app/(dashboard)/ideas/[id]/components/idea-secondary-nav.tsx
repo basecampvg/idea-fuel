@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSidebar } from '@/components/layout/sidebar-context';
 import {
   LayoutDashboard,
   Target,
@@ -107,6 +108,7 @@ interface IdeaSecondaryNavProps {
 
 export function IdeaSecondaryNav({ idea }: IdeaSecondaryNavProps) {
   const pathname = usePathname();
+  const { sidebarWidth } = useSidebar();
   const navSections = getNavSections(idea.id);
   const reportItems = getReportItems(idea.id);
   const status = statusConfig[idea.status as IdeaStatus] || statusConfig.CAPTURED;
@@ -120,7 +122,7 @@ export function IdeaSecondaryNav({ idea }: IdeaSecondaryNavProps) {
   }
 
   return (
-    <aside className="fixed inset-y-0 left-[60px] z-40 w-[240px] flex flex-col bg-background border-r border-border">
+    <aside className="fixed inset-y-0 z-40 w-[240px] flex flex-col bg-background border-r border-border transition-[left] duration-200 ease-out" style={{ left: sidebarWidth }}>
       {/* Header */}
       <div className="px-4 pt-5 pb-3">
         <Link
