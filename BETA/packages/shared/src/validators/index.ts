@@ -2,11 +2,73 @@
 import { z } from 'zod';
 
 // ============================================
+// Project validators
+// ============================================
+export const createProjectSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
+  description: z.string().max(5000).optional(),
+});
+export type CreateProjectInput = z.infer<typeof createProjectSchema>;
+
+export const updateProjectSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().max(5000).nullable().optional(),
+});
+export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
+
+// Canvas block schemas
+export const canvasBlockSchema = z.discriminatedUnion('type', [
+  z.object({
+    id: z.string(),
+    type: z.literal('section'),
+    order: z.number(),
+    sectionType: z.string(),
+    title: z.string().max(200),
+    content: z.string().max(10000),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  }),
+  z.object({
+    id: z.string(),
+    type: z.literal('note'),
+    order: z.number(),
+    content: z.string().max(5000),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  }),
+  z.object({
+    id: z.string(),
+    type: z.literal('subIdea'),
+    order: z.number(),
+    title: z.string().max(200),
+    description: z.string().max(2000),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  }),
+  z.object({
+    id: z.string(),
+    type: z.literal('link'),
+    order: z.number(),
+    url: z.string().url(),
+    title: z.string().max(200).optional(),
+    description: z.string().max(500).optional(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  }),
+]);
+
+export const updateCanvasSchema = z.object({
+  blocks: z.array(canvasBlockSchema),
+});
+export type UpdateCanvasInput = z.infer<typeof updateCanvasSchema>;
+
+// ============================================
 // Idea validators
 // ============================================
 export const createIdeaSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
   description: z.string().min(10, 'Description must be at least 10 characters').max(5000, 'Description too long'),
+  projectId: z.string().cuid().optional(),
 });
 
 export const updateIdeaSchema = z.object({

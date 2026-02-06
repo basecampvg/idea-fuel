@@ -6,6 +6,7 @@ import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
 import { generateOpeningQuestion } from '../services/interview-ai';
 import { logAuditAsync, formatResource } from '../lib/audit';
+import { createCanvasSnapshot } from '../lib/canvas-snapshot';
 import { enqueueResearchPipeline } from '../jobs';
 
 // Default max turns by interview mode
@@ -118,9 +119,38 @@ export const ideaRouter = router({
    * Create a new idea
    */
   create: protectedProcedure.input(createIdeaSchema).mutation(async ({ ctx, input }) => {
+    // If projectId provided, verify ownership and enforce one-idea-per-project
+    if (input.projectId) {
+      const project = await ctx.prisma.project.findFirst({
+        where: {
+          id: input.projectId,
+          userId: ctx.userId,
+        },
+        include: {
+          _count: { select: { ideas: true } },
+        },
+      });
+
+      if (!project) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Project not found',
+        });
+      }
+
+      if (project._count.ideas > 0) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Project already has an idea. Only one idea per project is currently supported.',
+        });
+      }
+    }
+
     const idea = await ctx.prisma.idea.create({
       data: {
-        ...input,
+        title: input.title,
+        description: input.description,
+        projectId: input.projectId,
         userId: ctx.userId,
       },
     });
@@ -130,7 +160,7 @@ export const ideaRouter = router({
       userId: ctx.userId,
       action: 'IDEA_CREATE',
       resource: formatResource('idea', idea.id),
-      metadata: { title: idea.title },
+      metadata: { title: idea.title, projectId: input.projectId },
     });
 
     return idea;
@@ -217,11 +247,17 @@ export const ideaRouter = router({
    * Supports SPARK, LIGHT, and IN_DEPTH modes
    */
   startInterview: protectedProcedure.input(startInterviewSchema).mutation(async ({ ctx, input }) => {
-    // Verify ownership
+    // Verify ownership (include project relation for canvas snapshot)
     const idea = await ctx.prisma.idea.findFirst({
       where: {
         id: input.ideaId,
         userId: ctx.userId,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        projectId: true,
       },
     });
 
@@ -367,13 +403,27 @@ export const ideaRouter = router({
       });
     }
 
-    // Create research record
+    // Create canvas snapshot if idea belongs to a project
+    let canvasSnapshotId: string | undefined;
+    if (idea.projectId) {
+      canvasSnapshotId = await createCanvasSnapshot(ctx.prisma, idea.projectId);
+
+      logAuditAsync({
+        userId: ctx.userId,
+        action: 'CANVAS_SNAPSHOT',
+        resource: formatResource('project', idea.projectId),
+        metadata: { snapshotId: canvasSnapshotId, trigger: 'research_start' },
+      });
+    }
+
+    // Create research record (linked to canvas snapshot if available)
     const research = await ctx.prisma.research.create({
       data: {
         ideaId: input.id,
         status: 'PENDING',
         currentPhase: 'QUEUED',
         progress: 0,
+        ...(canvasSnapshotId ? { canvasSnapshotId } : {}),
       },
     });
 

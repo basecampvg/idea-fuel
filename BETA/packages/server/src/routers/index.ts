@@ -1,5 +1,6 @@
 import { router } from '../trpc';
 import { userRouter } from './user';
+import { projectRouter } from './project';
 import { ideaRouter } from './idea';
 import { interviewRouter } from './interview';
 import { reportRouter } from './report';
@@ -14,6 +15,7 @@ import { blogRouter } from './blog';
  */
 export const appRouter = router({
   user: userRouter,
+  project: projectRouter,
   idea: ideaRouter,
   interview: interviewRouter,
   report: reportRouter,

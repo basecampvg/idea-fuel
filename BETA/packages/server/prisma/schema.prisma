@@ -24,6 +24,7 @@ model User {
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
+  projects   Project[]
   ideas      Idea[]
   interviews Interview[]
   reports    Report[]
@@ -82,16 +83,54 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// =============================================================================
+// PROJECT + CANVAS
+// =============================================================================
+
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  canvas      Json     @default("[]") // Array of CanvasBlock objects
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ideas     Idea[]
+  snapshots CanvasSnapshot[]
+
+  @@index([userId])
+}
+
+model CanvasSnapshot {
+  id        String   @id @default(cuid())
+  projectId String
+  content   Json     // Frozen canvas blocks at time of snapshot
+  createdAt DateTime @default(now())
+
+  project  Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  research Research[]
+
+  @@index([projectId])
+}
+
+// =============================================================================
+// IDEAS + PIPELINE
+// =============================================================================
+
 model Idea {
   id          String     @id @default(cuid())
   title       String
   description String     @db.Text
   status      IdeaStatus @default(CAPTURED)
+  projectId   String?    // Nullable during migration, required after
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
   userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   interviews Interview[]
   reports    Report[]
@@ -99,6 +138,7 @@ model Idea {
 
   @@index([userId])
   @@index([status])
+  @@index([projectId])
 }
 
 // Interview model - supports auto-save and resume
@@ -238,14 +278,19 @@ model Research {
   errorPhase           ResearchPhase?
   retryCount           Int            @default(0)
 
+  // Canvas context (snapshot taken when research starts)
+  canvasSnapshotId     String?
+
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
 
   ideaId String @unique
   idea   Idea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  canvasSnapshot CanvasSnapshot? @relation(fields: [canvasSnapshotId], references: [id])
 
   @@index([status])
   @@index([currentPhase])
+  @@index([canvasSnapshotId])
 }
 
 // Research pipeline phases

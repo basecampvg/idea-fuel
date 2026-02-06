@@ -6,6 +6,13 @@ import { prisma } from '../db';
  * Used for access control, compliance, and analytics.
  */
 export type AuditAction =
+  // Project lifecycle
+  | 'PROJECT_CREATE'
+  | 'PROJECT_UPDATE'
+  | 'PROJECT_DELETE'
+  | 'PROJECT_VIEW'
+  | 'CANVAS_UPDATE'
+  | 'CANVAS_SNAPSHOT'
   // Idea lifecycle
   | 'IDEA_CREATE'
   | 'IDEA_UPDATE'
@@ -76,6 +83,6 @@ export function logAuditAsync(params: AuditLogParams): void {
 /**
  * Helper to create a resource string from type and ID.
  */
-export function formatResource(type: 'idea' | 'interview' | 'report' | 'research' | 'user', id: string): string {
+export function formatResource(type: 'project' | 'idea' | 'interview' | 'report' | 'research' | 'user', id: string): string {
   return `${type}:${id}`;
 }

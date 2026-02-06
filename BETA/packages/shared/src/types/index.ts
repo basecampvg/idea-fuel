@@ -1,5 +1,82 @@
 // Shared type definitions
 
+// =============================================================================
+// Project + Canvas Types
+// =============================================================================
+
+export type ProjectStatus = 'DRAFT' | 'ACTIVE' | 'COMPLETE';
+
+export interface Project {
+  id: string;
+  title: string;
+  description: string | null;
+  canvas: CanvasBlock[];
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CanvasSnapshot {
+  id: string;
+  projectId: string;
+  content: CanvasBlock[];
+  createdAt: Date;
+}
+
+// Canvas block types
+export type CanvasBlockType = 'section' | 'note' | 'subIdea' | 'link';
+
+export type PredefinedSectionType =
+  | 'target_audience'
+  | 'problem_statement'
+  | 'competitors'
+  | 'inspiration'
+  | 'open_questions'
+  | 'revenue_model';
+
+export interface CanvasBlockBase {
+  id: string;
+  type: CanvasBlockType;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CanvasSectionBlock extends CanvasBlockBase {
+  type: 'section';
+  sectionType: PredefinedSectionType | 'custom';
+  title: string;
+  content: string;
+}
+
+export interface CanvasNoteBlock extends CanvasBlockBase {
+  type: 'note';
+  content: string;
+}
+
+export interface CanvasSubIdeaBlock extends CanvasBlockBase {
+  type: 'subIdea';
+  title: string;
+  description: string;
+}
+
+export interface CanvasLinkBlock extends CanvasBlockBase {
+  type: 'link';
+  url: string;
+  title?: string;
+  description?: string;
+}
+
+export type CanvasBlock =
+  | CanvasSectionBlock
+  | CanvasNoteBlock
+  | CanvasSubIdeaBlock
+  | CanvasLinkBlock;
+
+// =============================================================================
+// Idea + Pipeline Types
+// =============================================================================
+
 export type IdeaStatus = 'CAPTURED' | 'INTERVIEWING' | 'RESEARCHING' | 'COMPLETE';
 
 export type InterviewStatus = 'IN_PROGRESS' | 'COMPLETE' | 'ABANDONED';
