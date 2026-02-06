@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useSidebar, type SidebarMode } from './sidebar-context';
-import { IdeaMiniCard, IdeaMiniCardSkeleton, type IdeaMiniCardProps } from './idea-mini-card';
+import { ProjectMiniCard, ProjectMiniCardSkeleton, type ProjectMiniCardProps } from './project-mini-card';
 import {
   Plus,
   Archive,
@@ -35,7 +35,7 @@ function LogoFlame({ className }: { className?: string }) {
 // Navigation items
 const mainNav = [
   { name: 'New', href: '/dashboard', icon: Plus, isAction: true },
-  { name: 'Vault', href: '/ideas', icon: Archive },
+  { name: 'Vault', href: '/projects', icon: Archive },
 ];
 
 const bottomNav = [
@@ -145,15 +145,15 @@ function ModeSelector() {
   );
 }
 
-// Inline ideas section for expanded sidebar
-function SidebarIdeas() {
+// Inline projects section for expanded sidebar
+function SidebarProjects() {
   const isDev = process.env.NODE_ENV === 'development';
-  const { data, isLoading } = trpc.idea.list.useQuery(
+  const { data, isLoading } = trpc.project.list.useQuery(
     { limit: 5 },
     { staleTime: 30_000, retry: isDev ? false : 3 }
   );
 
-  const ideas = data?.items ?? [];
+  const projects = data?.items ?? [];
 
   return (
     <div className="px-2 mt-1">
@@ -164,23 +164,23 @@ function SidebarIdeas() {
       {isLoading ? (
         <div className="space-y-1.5 mt-1">
           {Array.from({ length: 3 }).map((_, i) => (
-            <IdeaMiniCardSkeleton key={i} />
+            <ProjectMiniCardSkeleton key={i} />
           ))}
         </div>
-      ) : ideas.length === 0 ? (
+      ) : projects.length === 0 ? (
         <p className="px-2 py-4 text-sm text-muted-foreground text-center">
-          No ideas yet
+          No projects yet
         </p>
       ) : (
         <div className="space-y-1.5 mt-1">
-          {ideas.map((idea) => (
-            <IdeaMiniCard key={idea.id} idea={idea as IdeaMiniCardProps['idea']} />
+          {projects.map((project) => (
+            <ProjectMiniCard key={project.id} project={project as ProjectMiniCardProps['project']} />
           ))}
         </div>
       )}
 
       <Link
-        href="/ideas"
+        href="/projects"
         className="flex items-center justify-between px-2 py-2 mt-1 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
       >
         <span>View all</span>
@@ -237,7 +237,7 @@ export function Sidebar() {
                 title={item.name}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" strokeWidth={2} />
-                {isExpanded && <span className="text-sm font-medium">New Idea</span>}
+                {isExpanded && <span className="text-sm font-medium">New Project</span>}
                 {!isExpanded && (
                   <span className="absolute left-full ml-3 px-3 py-1.5 rounded-full bg-card text-foreground text-xs font-medium opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
                     {item.name}
@@ -276,11 +276,11 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Divider + Inline Ideas — always mounted, hidden when collapsed to preserve query cache */}
+      {/* Divider + Inline Projects — always mounted, hidden when collapsed to preserve query cache */}
       <div className={isExpanded ? '' : 'hidden'}>
         <div className="h-px bg-border mx-3" />
         <div className="flex-1 overflow-y-auto">
-          <SidebarIdeas />
+          <SidebarProjects />
         </div>
       </div>
 
