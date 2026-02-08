@@ -31,6 +31,11 @@ function getSubdomain(host: string): string | null {
     return null; // Treat as root domain in dev
   }
 
+  // Handle Vercel preview/production URLs (*.vercel.app)
+  if (hostname.endsWith('.vercel.app')) {
+    return null; // Treat as root domain — no subdomain routing on Vercel URLs
+  }
+
   // Handle *.local for local testing with hosts file
   if (hostname.endsWith('.local')) {
     const parts = hostname.replace('.local', '').split('.');

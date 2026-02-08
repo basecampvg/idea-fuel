@@ -9,6 +9,7 @@
     "dev:server": "pnpm --filter @forge/server dev",
     "build": "pnpm -r run build",
     "build:web": "pnpm --filter @forge/web build",
+    "vercel-build": "pnpm db:generate && pnpm build:web",
     "build:server": "pnpm --filter @forge/server build",
     "lint": "pnpm -r run lint",
     "type-check": "pnpm -r run type-check",
