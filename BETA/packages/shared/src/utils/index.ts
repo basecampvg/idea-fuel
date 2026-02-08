@@ -1,8 +1,5 @@
 // Shared utility functions
 
-// Re-export canvas utilities
-export { serializeCanvasForAI } from './canvas-serializer';
-
 // Re-export research journey utilities
 export {
   getResearchJourneyState,

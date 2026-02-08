@@ -2,38 +2,29 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Layers } from 'lucide-react';
-import { type ProjectStatus, projectStatusConfig, deriveProjectStatus } from '@/lib/project-status';
-
-function formatRelativeTime(date: Date | string): string {
-  const now = Date.now();
-  const then = new Date(date).getTime();
-  const diffMs = now - then;
-  const diffMins = Math.floor(diffMs / 60000);
-  if (diffMins < 1) return 'now';
-  if (diffMins < 60) return `${diffMins}m`;
-  const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h`;
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 30) return `${diffDays}d`;
-  return `${Math.floor(diffDays / 30)}mo`;
-}
+import { MessageSquare, FileText } from 'lucide-react';
+import { type ProjectStatus, projectStatusConfig } from '@/lib/project-status';
+import { formatRelativeTime } from '@/lib/utils';
 
 export interface ProjectMiniCardProps {
   project: {
     id: string;
     title: string;
+    status: string;
     updatedAt: Date | string;
-    ideas: { id: string; status: string; title: string }[];
-    _count: { ideas: number; snapshots: number };
+    _count: { interviews: number; reports: number };
+    research: { status: string; progress: number } | null;
   };
 }
 
 export function ProjectMiniCard({ project }: ProjectMiniCardProps) {
   const pathname = usePathname();
-  const derivedStatus = deriveProjectStatus(project);
-  const status = projectStatusConfig[derivedStatus];
+  const status = projectStatusConfig[project.status as ProjectStatus] ?? projectStatusConfig.CAPTURED;
   const isActive = pathname?.startsWith(`/projects/${project.id}`);
+  const researchProgress =
+    project.status === 'RESEARCHING' && project.research
+      ? project.research.progress
+      : null;
 
   return (
     <Link
@@ -56,22 +47,31 @@ export function ProjectMiniCard({ project }: ProjectMiniCardProps) {
         </span>
       </div>
 
-      {/* Row 2: Idea name (if exists) + meta */}
+      {/* Row 2: Progress bar (RESEARCHING only) + meta */}
       <div className="flex items-center gap-2 mt-1.5">
-        {project.ideas.length > 0 ? (
-          <span className="text-[10px] text-muted-foreground truncate flex-1">
-            {project.ideas[0].title}
-          </span>
+        {researchProgress !== null ? (
+          <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full rounded-full bg-primary transition-all duration-500"
+              style={{ width: `${Math.min(researchProgress, 100)}%` }}
+            />
+          </div>
         ) : (
           <div className="flex-1" />
         )}
 
         <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground flex-shrink-0">
           <span>{formatRelativeTime(project.updatedAt)}</span>
-          {project._count.ideas > 0 && (
+          {project._count.interviews > 0 && (
             <span className="flex items-center gap-0.5">
-              <Layers className="w-2.5 h-2.5" />
-              {project._count.ideas}
+              <MessageSquare className="w-2.5 h-2.5" />
+              {project._count.interviews}
+            </span>
+          )}
+          {project._count.reports > 0 && (
+            <span className="flex items-center gap-0.5">
+              <FileText className="w-2.5 h-2.5" />
+              {project._count.reports}
             </span>
           )}
         </div>

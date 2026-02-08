@@ -23,7 +23,7 @@ export const interviewRouter = router({
         userId: ctx.userId,
       },
       include: {
-        idea: {
+        project: {
           select: {
             id: true,
             title: true,
@@ -44,12 +44,12 @@ export const interviewRouter = router({
   }),
 
   /**
-   * List interviews for an idea
+   * List interviews for a project
    */
-  listByIdea: protectedProcedure.input(z.object({ ideaId: z.string().cuid() })).query(async ({ ctx, input }) => {
+  listByProject: protectedProcedure.input(z.object({ projectId: z.string().cuid() })).query(async ({ ctx, input }) => {
     const interviews = await ctx.prisma.interview.findMany({
       where: {
-        ideaId: input.ideaId,
+        projectId: input.projectId,
         userId: ctx.userId,
       },
       orderBy: { createdAt: 'desc' },
@@ -70,7 +70,7 @@ export const interviewRouter = router({
         isExpired: false,
       },
       include: {
-        idea: {
+        project: {
           select: {
             id: true,
             title: true,
@@ -93,7 +93,7 @@ export const interviewRouter = router({
         userId: ctx.userId,
       },
       include: {
-        idea: {
+        project: {
           select: {
             id: true,
             title: true,
@@ -138,7 +138,7 @@ export const interviewRouter = router({
         userId: ctx.userId,
         action: 'INTERVIEW_RESUME',
         resource: formatResource('interview', interview.id),
-        metadata: { ideaId: interview.ideaId, timeSinceLastActive },
+        metadata: { projectId: interview.projectId, timeSinceLastActive },
       });
     }
 
@@ -288,14 +288,14 @@ export const interviewRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // 1. Get interview with idea context
+      // 1. Get interview with project context
       const interview = await ctx.prisma.interview.findFirst({
         where: {
           id: input.interviewId,
           userId: ctx.userId,
         },
         include: {
-          idea: {
+          project: {
             select: {
               id: true,
               title: true,
@@ -358,8 +358,8 @@ export const interviewRouter = router({
 
       // 5. Generate AI response
       const aiResponse = await generateNextQuestion(
-        interview.idea.title,
-        interview.idea.description,
+        interview.project.title,
+        interview.project.description,
         interview.mode as InterviewMode,
         messages,
         mergedData,
@@ -393,7 +393,7 @@ export const interviewRouter = router({
           resumeContext,
         },
         include: {
-          idea: {
+          project: {
             select: {
               id: true,
               title: true,
@@ -422,7 +422,7 @@ export const interviewRouter = router({
         userId: ctx.userId,
       },
       include: {
-        idea: true,
+        project: true,
       },
     });
 
@@ -455,19 +455,19 @@ export const interviewRouter = router({
       userId: ctx.userId,
       action: 'INTERVIEW_COMPLETE',
       resource: formatResource('interview', interview.id),
-      metadata: { ideaId: interview.ideaId, confidenceScore, turnsUsed: interview.currentTurn },
+      metadata: { projectId: interview.projectId, confidenceScore, turnsUsed: interview.currentTurn },
     });
 
-    // Update idea status to researching
-    await ctx.prisma.idea.update({
-      where: { id: interview.ideaId },
+    // Update project status to researching
+    await ctx.prisma.project.update({
+      where: { id: interview.projectId },
       data: { status: 'RESEARCHING' },
     });
 
     // Create research record and start pipeline
     const research = await ctx.prisma.research.create({
       data: {
-        ideaId: interview.ideaId,
+        projectId: interview.projectId,
         status: 'IN_PROGRESS',
         currentPhase: 'QUERY_GENERATION',
         progress: 0,
@@ -477,8 +477,8 @@ export const interviewRouter = router({
 
     // Prepare research input
     const researchInput: ResearchInput = {
-      ideaTitle: interview.idea.title,
-      ideaDescription: interview.idea.description,
+      ideaTitle: interview.project.title,
+      ideaDescription: interview.project.description,
       interviewData: interview.collectedData as Partial<InterviewDataPoints> | null,
       interviewMessages: (interview.messages as unknown as ChatMessage[]) || [],
     };
@@ -492,7 +492,7 @@ export const interviewRouter = router({
 
     // Run pipeline in background (non-blocking)
     const researchId = research.id;
-    const ideaId = interview.ideaId;
+    const projectId = interview.projectId;
     const prisma = ctx.prisma;
 
     (async () => {
@@ -547,9 +547,9 @@ export const interviewRouter = router({
           },
         });
 
-        // Update idea status to complete
-        await prisma.idea.update({
-          where: { id: ideaId },
+        // Update project status to complete
+        await prisma.project.update({
+          where: { id: projectId },
           data: { status: 'COMPLETE' },
         });
       } catch (error) {
@@ -595,12 +595,12 @@ export const interviewRouter = router({
       userId: ctx.userId,
       action: 'INTERVIEW_ABANDON',
       resource: formatResource('interview', interview.id),
-      metadata: { ideaId: interview.ideaId, turnsCompleted: interview.currentTurn },
+      metadata: { projectId: interview.projectId, turnsCompleted: interview.currentTurn },
     });
 
-    // Revert idea status to captured
-    await ctx.prisma.idea.update({
-      where: { id: interview.ideaId },
+    // Revert project status to captured
+    await ctx.prisma.project.update({
+      where: { id: interview.projectId },
       data: { status: 'CAPTURED' },
     });
 

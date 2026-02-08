@@ -3,8 +3,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Settings } from 'lucide-react';
+import { trpc } from '@/lib/trpc/client';
 import { TOP_BAR_HEIGHT } from './sidebar-context';
 import { ProjectSelector } from './project-selector';
+import { useSubscriptionContext } from '@/components/subscription/subscription-context';
+import type { SubscriptionTier } from '@forge/shared';
 
 // Forge flame logo (same SVG as sidebar)
 function LogoFlame({ className }: { className?: string }) {
@@ -18,6 +21,12 @@ function LogoFlame({ className }: { className?: string }) {
   );
 }
 
+const TIER_STYLES: Record<SubscriptionTier, string> = {
+  FREE: 'bg-muted text-muted-foreground',
+  PRO: 'bg-primary/15 text-primary',
+  ENTERPRISE: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+};
+
 function BreadcrumbSeparator() {
   return (
     <span className="text-border text-lg font-light select-none">/</span>
@@ -27,13 +36,18 @@ function BreadcrumbSeparator() {
 export function TopNavBar() {
   const pathname = usePathname();
   const isSettings = pathname?.startsWith('/settings');
+  const { data: user } = trpc.user.me.useQuery(undefined, { staleTime: 60_000 });
+  const { tier } = useSubscriptionContext();
+
+  const userName = user?.name ?? user?.email?.split('@')[0];
+  const userImage = user?.image;
 
   return (
     <header
       className="fixed top-0 left-0 right-0 z-[60] flex items-center border-b border-border bg-background/95 backdrop-blur-sm px-4"
       style={{ height: TOP_BAR_HEIGHT }}
     >
-      {/* Left section: Logo + breadcrumb */}
+      {/* Left section: Logo / User / Project */}
       <div className="flex items-center gap-3">
         {/* Logo */}
         <Link
@@ -45,6 +59,30 @@ export function TopNavBar() {
           </div>
           <span className="text-sm font-semibold">Forge</span>
         </Link>
+
+        <BreadcrumbSeparator />
+
+        {/* User + tier badge */}
+        {userName && (
+          <div className="flex items-center gap-2">
+            {userImage ? (
+              <img
+                src={userImage}
+                alt={userName}
+                className="h-5 w-5 rounded-full"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground">
+                {userName.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <span className="text-sm text-foreground">{userName}</span>
+            <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide ${TIER_STYLES[tier]}`}>
+              {tier}
+            </span>
+          </div>
+        )}
 
         <BreadcrumbSeparator />
 

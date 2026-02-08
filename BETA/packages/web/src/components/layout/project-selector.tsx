@@ -165,7 +165,7 @@ export function ProjectSelector() {
           <div className="border-t border-border p-2">
             <button
               onClick={() => {
-                createMutation.mutate({ title: 'Untitled Project' });
+                createMutation.mutate({ title: 'Untitled Project', description: '' });
               }}
               disabled={createMutation.isPending}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors disabled:opacity-50"

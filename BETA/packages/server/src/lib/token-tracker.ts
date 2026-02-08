@@ -26,7 +26,7 @@ const MODEL_PRICING: Record<string, { input: number; output: number; cached: num
 
 export interface TokenUsageParams {
   userId?: string | null;
-  ideaId?: string | null;
+  projectId?: string | null;
   functionName: string;
   model: string;
   inputTokens: number;
@@ -39,7 +39,7 @@ export interface TokenUsageParams {
  * This is fire-and-forget - it will never throw or block the main flow.
  */
 export async function trackTokenUsage(params: TokenUsageParams): Promise<void> {
-  const { userId, ideaId, functionName, model, inputTokens, outputTokens, cachedTokens = 0 } = params;
+  const { userId, projectId, functionName, model, inputTokens, outputTokens, cachedTokens = 0 } = params;
   const totalTokens = inputTokens + outputTokens;
 
   // Calculate cost estimate
@@ -63,7 +63,7 @@ export async function trackTokenUsage(params: TokenUsageParams): Promise<void> {
     await prisma.tokenUsage.create({
       data: {
         userId: userId ?? null,
-        ideaId: ideaId ?? null,
+        projectId: projectId ?? null,
         functionName,
         model,
         inputTokens,

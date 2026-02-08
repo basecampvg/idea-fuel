@@ -22,7 +22,7 @@ type ReportType =
 
 type ReportTier = 'BASIC' | 'PRO' | 'FULL';
 
-interface IdeaData {
+interface ProjectData {
   id: string;
   title: string;
   description: string;
@@ -68,7 +68,7 @@ interface ReportData {
 }
 
 interface GeneratePDFOptions {
-  idea: IdeaData;
+  project: ProjectData;
   report: ReportData;
   research?: ResearchData | null;
 }
@@ -139,7 +139,7 @@ function parseReportContent(content: string): Record<string, unknown> {
  * Transform data for Business Plan PDF
  */
 function transformBusinessPlanData(
-  idea: IdeaData,
+  project: ProjectData,
   report: ReportData,
   research: ReturnType<typeof parseResearchData>
 ) {
@@ -170,7 +170,7 @@ function transformBusinessPlanData(
     || (synthesizedInsights?.summary as string)
     || (sparkResult?.summary as string)
     || (content.rawContent as string)
-    || idea.description;
+    || project.description;
 
   // Build problem statement from pain points
   const problemFromPainPoints = painPoints?.length
@@ -178,8 +178,8 @@ function transformBusinessPlanData(
     : undefined;
 
   return {
-    ideaTitle: idea.title,
-    ideaDescription: idea.description,
+    ideaTitle: project.title,
+    ideaDescription: project.description,
     generatedAt: new Date(),
     tier: report.tier,
 
@@ -332,7 +332,7 @@ function transformBusinessPlanData(
  * Transform data for Positioning PDF
  */
 function transformPositioningData(
-  idea: IdeaData,
+  project: ProjectData,
   report: ReportData,
   research: ReturnType<typeof parseResearchData>
 ) {
@@ -341,8 +341,8 @@ function transformPositioningData(
   const painPoints = research.painPoints as Array<Record<string, unknown>> | null;
 
   return {
-    ideaTitle: idea.title,
-    ideaDescription: idea.description,
+    ideaTitle: project.title,
+    ideaDescription: project.description,
     generatedAt: new Date(),
     tier: report.tier,
 
@@ -384,7 +384,7 @@ function transformPositioningData(
  * Transform data for Competitive Analysis PDF
  */
 function transformCompetitiveAnalysisData(
-  idea: IdeaData,
+  project: ProjectData,
   report: ReportData,
   research: ReturnType<typeof parseResearchData>
 ) {
@@ -393,8 +393,8 @@ function transformCompetitiveAnalysisData(
   const competitors = research.competitors as Array<Record<string, unknown>> | null;
 
   return {
-    ideaTitle: idea.title,
-    ideaDescription: idea.description,
+    ideaTitle: project.title,
+    ideaDescription: project.description,
     generatedAt: new Date(),
     tier: report.tier,
 
@@ -433,11 +433,11 @@ function transformCompetitiveAnalysisData(
  * Generate PDF buffer for a report
  */
 export async function generatePDFBuffer(options: GeneratePDFOptions): Promise<Buffer> {
-  const { idea, report, research } = options;
+  const { project, report, research } = options;
 
   console.log('[PDF Generator] Starting PDF generation:', {
-    ideaId: idea.id,
-    ideaTitle: idea.title?.slice(0, 50),
+    projectId: project.id,
+    projectTitle: project.title?.slice(0, 50),
     reportType: report.type,
     reportTier: report.tier,
     hasResearch: !!research,
@@ -464,21 +464,21 @@ export async function generatePDFBuffer(options: GeneratePDFOptions): Promise<Bu
   try {
     switch (report.type) {
       case 'BUSINESS_PLAN': {
-        transformedData = transformBusinessPlanData(idea, report, parsedResearch);
+        transformedData = transformBusinessPlanData(project, report, parsedResearch);
         console.log('[PDF Generator] Business plan data transformed');
         pdfDocument = <BusinessPlanPDF data={transformedData as Parameters<typeof BusinessPlanPDF>[0]['data']} />;
         break;
       }
 
       case 'POSITIONING': {
-        transformedData = transformPositioningData(idea, report, parsedResearch);
+        transformedData = transformPositioningData(project, report, parsedResearch);
         console.log('[PDF Generator] Positioning data transformed');
         pdfDocument = <PositioningPDF data={transformedData as Parameters<typeof PositioningPDF>[0]['data']} />;
         break;
       }
 
       case 'COMPETITIVE_ANALYSIS': {
-        transformedData = transformCompetitiveAnalysisData(idea, report, parsedResearch);
+        transformedData = transformCompetitiveAnalysisData(project, report, parsedResearch);
         console.log('[PDF Generator] Competitive analysis data transformed');
         pdfDocument = <CompetitiveAnalysisPDF data={transformedData as Parameters<typeof CompetitiveAnalysisPDF>[0]['data']} />;
         break;
@@ -486,7 +486,7 @@ export async function generatePDFBuffer(options: GeneratePDFOptions): Promise<Bu
 
       // For unsupported report types, generate a basic PDF
       default: {
-        transformedData = transformBusinessPlanData(idea, report, parsedResearch);
+        transformedData = transformBusinessPlanData(project, report, parsedResearch);
         console.log('[PDF Generator] Default (business plan) data transformed');
         pdfDocument = <BusinessPlanPDF data={{ ...(transformedData as Parameters<typeof BusinessPlanPDF>[0]['data']), tier: 'BASIC' }} />;
         break;
@@ -514,7 +514,7 @@ export async function generatePDFBuffer(options: GeneratePDFOptions): Promise<Bu
     // Log detailed error for debugging
     console.error('[PDF Generator] renderToBuffer failed:', {
       reportType: report.type,
-      ideaId: idea.id,
+      projectId: project.id,
       error: renderError instanceof Error ? renderError.message : renderError,
       stack: renderError instanceof Error ? renderError.stack : undefined,
       // Log the transformed data to help debug
@@ -529,8 +529,8 @@ export async function generatePDFBuffer(options: GeneratePDFOptions): Promise<Bu
 /**
  * Get filename for a report PDF
  */
-export function getPDFFilename(ideaTitle: string, reportType: ReportType): string {
-  const sanitizedTitle = ideaTitle
+export function getPDFFilename(projectTitle: string, reportType: ReportType): string {
+  const sanitizedTitle = projectTitle
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')

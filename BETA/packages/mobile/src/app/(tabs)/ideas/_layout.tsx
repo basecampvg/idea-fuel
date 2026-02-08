@@ -54,7 +54,7 @@ export default function IdeasStackLayout() {
       <Stack.Screen
         name="new"
         options={{
-          title: 'New Idea',
+          title: 'New Project',
           headerStyle: {
             backgroundColor: colors.background,
           },

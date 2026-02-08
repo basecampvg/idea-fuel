@@ -38,7 +38,7 @@ export interface ResearchInput {
   ideaDescription: string;
   interviewData: Partial<InterviewDataPoints> | null;
   interviewMessages: Array<{ role: string; content: string }>;
-  canvasContext?: string;
+  canvasContext?: string; // now receives notes text (not canvas blocks)
 }
 
 export interface GeneratedQueries {

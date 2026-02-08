@@ -23,7 +23,7 @@ export const reportRouter = router({
         skip,
         take: limit,
         include: {
-          idea: {
+          project: {
             select: {
               id: true,
               title: true,
@@ -46,12 +46,12 @@ export const reportRouter = router({
   }),
 
   /**
-   * List reports for a specific idea
+   * List reports for a specific project
    */
-  listByIdea: protectedProcedure.input(z.object({ ideaId: z.string().cuid() })).query(async ({ ctx, input }) => {
+  listByProject: protectedProcedure.input(z.object({ projectId: z.string().cuid() })).query(async ({ ctx, input }) => {
     const reports = await ctx.prisma.report.findMany({
       where: {
-        ideaId: input.ideaId,
+        projectId: input.projectId,
         userId: ctx.userId,
       },
       orderBy: { createdAt: 'desc' },
@@ -70,7 +70,7 @@ export const reportRouter = router({
         userId: ctx.userId,
       },
       include: {
-        idea: {
+        project: {
           select: {
             id: true,
             title: true,
@@ -92,21 +92,21 @@ export const reportRouter = router({
       userId: ctx.userId,
       action: 'REPORT_VIEW',
       resource: formatResource('report', report.id),
-      metadata: { reportType: report.type, ideaId: report.ideaId },
+      metadata: { reportType: report.type, projectId: report.projectId },
     });
 
     return report;
   }),
 
   /**
-   * Generate a new report for an idea
+   * Generate a new report for a project
    * Report tier is automatically determined by interview mode + subscription tier
    */
   generate: protectedProcedure.input(generateReportSchema).mutation(async ({ ctx, input }) => {
-    // Verify idea ownership and get related data
-    const idea = await ctx.prisma.idea.findFirst({
+    // Verify project ownership and get related data
+    const project = await ctx.prisma.project.findFirst({
       where: {
-        id: input.ideaId,
+        id: input.projectId,
         userId: ctx.userId,
       },
       include: {
@@ -119,10 +119,10 @@ export const reportRouter = router({
       },
     });
 
-    if (!idea) {
+    if (!project) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Idea not found',
+        message: 'Project not found',
       });
     }
 
@@ -140,7 +140,7 @@ export const reportRouter = router({
     }
 
     // Determine interview mode (default to LIGHT if no interview)
-    const interviewMode = idea.interviews[0]?.mode ?? 'LIGHT';
+    const interviewMode = project.interviews[0]?.mode ?? 'LIGHT';
 
     // Calculate report tier based on interview mode + subscription
     const reportTier = getReportTier(interviewMode, user.subscription) as ReportTier;
@@ -151,7 +151,7 @@ export const reportRouter = router({
     // Check if report of this type already exists
     const existingReport = await ctx.prisma.report.findFirst({
       where: {
-        ideaId: input.ideaId,
+        projectId: input.projectId,
         type: input.type as ReportType,
         userId: ctx.userId,
       },
@@ -160,7 +160,7 @@ export const reportRouter = router({
     if (existingReport) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: `A ${title} report already exists for this idea`,
+        message: `A ${title} report already exists for this project`,
       });
     }
 
@@ -173,7 +173,7 @@ export const reportRouter = router({
         content: '', // Will be populated by AI
         sections: { included: [], locked: [] }, // Will be populated based on tier
         status: 'GENERATING',
-        ideaId: input.ideaId,
+        projectId: input.projectId,
         userId: ctx.userId,
       },
     });
@@ -182,7 +182,7 @@ export const reportRouter = router({
     try {
       await enqueueReportGeneration({
         reportId: report.id,
-        ideaId: input.ideaId,
+        projectId: input.projectId,
         userId: ctx.userId,
         reportType: input.type,
         tier: reportTier,
@@ -198,7 +198,7 @@ export const reportRouter = router({
       userId: ctx.userId,
       action: 'REPORT_GENERATE',
       resource: formatResource('report', report.id),
-      metadata: { reportType: input.type, tier: reportTier, ideaId: input.ideaId, queued: true },
+      metadata: { reportType: input.type, tier: reportTier, projectId: input.projectId, queued: true },
     });
 
     return report;
@@ -235,7 +235,7 @@ export const reportRouter = router({
     try {
       await enqueueReportGeneration({
         reportId: report.id,
-        ideaId: existing.ideaId,
+        projectId: existing.projectId,
         userId: ctx.userId,
         reportType: existing.type,
         tier: existing.tier,
@@ -303,29 +303,34 @@ export const reportRouter = router({
   }),
 
   /**
-   * Generate all reports for an idea at once
+   * Generate all reports for a project at once
    */
-  generateAll: protectedProcedure.input(z.object({ ideaId: z.string().cuid() })).mutation(async ({ ctx, input }) => {
-    // Verify idea ownership
-    const idea = await ctx.prisma.idea.findFirst({
+  generateAll: protectedProcedure.input(z.object({ projectId: z.string().cuid() })).mutation(async ({ ctx, input }) => {
+    // Verify project ownership
+    const project = await ctx.prisma.project.findFirst({
       where: {
-        id: input.ideaId,
+        id: input.projectId,
         userId: ctx.userId,
       },
       include: {
         research: true,
+        interviews: {
+          where: { status: 'COMPLETE' },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
       },
     });
 
-    if (!idea) {
+    if (!project) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Idea not found',
+        message: 'Project not found',
       });
     }
 
     // Check if research is complete
-    if (!idea.research || idea.research.status !== 'COMPLETE') {
+    if (!project.research || project.research.status !== 'COMPLETE') {
       throw new TRPCError({
         code: 'BAD_REQUEST',
         message: 'Research must be complete before generating all reports',
@@ -339,12 +344,7 @@ export const reportRouter = router({
     });
 
     // Get latest interview mode
-    const latestInterview = await ctx.prisma.interview.findFirst({
-      where: { ideaId: input.ideaId, status: 'COMPLETE' },
-      orderBy: { createdAt: 'desc' },
-      select: { mode: true },
-    });
-    const interviewMode = latestInterview?.mode ?? 'LIGHT';
+    const interviewMode = project.interviews[0]?.mode ?? 'LIGHT';
     const reportTier = getReportTier(interviewMode, user?.subscription ?? 'FREE') as ReportTier;
 
     // Create and queue all report types
@@ -356,7 +356,7 @@ export const reportRouter = router({
       // Check if report already exists
       const existing = await ctx.prisma.report.findFirst({
         where: {
-          ideaId: input.ideaId,
+          projectId: input.projectId,
           type: reportType as ReportType,
           userId: ctx.userId,
         },
@@ -377,7 +377,7 @@ export const reportRouter = router({
           content: '',
           sections: { included: [], locked: [] },
           status: 'GENERATING',
-          ideaId: input.ideaId,
+          projectId: input.projectId,
           userId: ctx.userId,
         },
       });
@@ -388,7 +388,7 @@ export const reportRouter = router({
       try {
         await enqueueReportGeneration({
           reportId: report.id,
-          ideaId: input.ideaId,
+          projectId: input.projectId,
           userId: ctx.userId,
           reportType,
           tier: reportTier,
@@ -416,7 +416,7 @@ export const reportRouter = router({
   downloadPDF: protectedProcedure
     .input(
       z.object({
-        ideaId: z.string().cuid(),
+        projectId: z.string().cuid(),
         reportType: z.enum([
           'BUSINESS_PLAN',
           'POSITIONING',
@@ -432,10 +432,10 @@ export const reportRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Get idea with research data
-      const idea = await ctx.prisma.idea.findFirst({
+      // Get project with research data
+      const project = await ctx.prisma.project.findFirst({
         where: {
-          id: input.ideaId,
+          id: input.projectId,
           userId: ctx.userId,
         },
         include: {
@@ -443,17 +443,17 @@ export const reportRouter = router({
         },
       });
 
-      if (!idea) {
+      if (!project) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Idea not found',
+          message: 'Project not found',
         });
       }
 
       // Get or create report for this type
       let report = await ctx.prisma.report.findFirst({
         where: {
-          ideaId: input.ideaId,
+          projectId: input.projectId,
           type: input.reportType as ReportType,
           userId: ctx.userId,
         },
@@ -476,11 +476,11 @@ export const reportRouter = router({
             tier: reportTier,
             title,
             content: JSON.stringify({
-              executiveSummary: idea.description,
+              executiveSummary: project.description,
             }),
             sections: { included: ['summary'], locked: [] },
             status: 'COMPLETE',
-            ideaId: input.ideaId,
+            projectId: input.projectId,
             userId: ctx.userId,
           },
         });
@@ -489,10 +489,10 @@ export const reportRouter = router({
       // Generate PDF
       try {
         const pdfBuffer = await generatePDFBuffer({
-          idea: {
-            id: idea.id,
-            title: idea.title,
-            description: idea.description,
+          project: {
+            id: project.id,
+            title: project.title,
+            description: project.description,
           },
           report: {
             id: report.id,
@@ -502,17 +502,17 @@ export const reportRouter = router({
             content: report.content,
             sections: report.sections,
           },
-          research: idea.research,
+          research: project.research ?? null,
         });
 
-        const filename = getPDFFilename(idea.title, input.reportType);
+        const filename = getPDFFilename(project.title, input.reportType);
 
         // Audit log - download PDF
         logAuditAsync({
           userId: ctx.userId,
           action: 'REPORT_DOWNLOAD',
           resource: formatResource('report', report.id),
-          metadata: { reportType: input.reportType, ideaId: input.ideaId, filename },
+          metadata: { reportType: input.reportType, projectId: input.projectId, filename },
         });
 
         return {

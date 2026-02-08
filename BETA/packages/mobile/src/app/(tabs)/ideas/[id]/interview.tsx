@@ -157,7 +157,7 @@ function MessageBubble({ message, isLast }: { message: Message; isLast: boolean 
 }
 
 export default function InterviewScreen() {
-  const { id: ideaId } = useLocalSearchParams<{ id: string }>();
+  const { id: projectId } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -167,7 +167,7 @@ export default function InterviewScreen() {
   const utils = trpc.useUtils();
 
   const { data: interviews, isLoading: interviewLoading } =
-    trpc.interview.listByIdea.useQuery({ ideaId });
+    trpc.interview.listByProject.useQuery({ projectId });
 
   const activeInterview = interviews?.find((i) => i.status === 'IN_PROGRESS');
 
@@ -177,7 +177,7 @@ export default function InterviewScreen() {
     },
     onSuccess: () => {
       setInput('');
-      utils.interview.listByIdea.invalidate({ ideaId });
+      utils.interview.listByProject.invalidate({ projectId });
     },
     onSettled: () => {
       setIsTyping(false);
@@ -186,7 +186,7 @@ export default function InterviewScreen() {
 
   const completeInterview = trpc.interview.complete.useMutation({
     onSuccess: () => {
-      router.replace(`/(tabs)/ideas/${ideaId}` as never);
+      router.replace(`/(tabs)/ideas/${projectId}` as never);
     },
   });
 
@@ -228,9 +228,9 @@ export default function InterviewScreen() {
           </Text>
           <TouchableOpacity
             style={styles.emptyButton}
-            onPress={() => router.replace(`/(tabs)/ideas/${ideaId}` as never)}
+            onPress={() => router.replace(`/(tabs)/ideas/${projectId}` as never)}
           >
-            <Text style={styles.emptyButtonText}>Go Back to Idea</Text>
+            <Text style={styles.emptyButtonText}>Go Back to Project</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -355,9 +355,9 @@ export default function InterviewScreen() {
               </View>
               <TouchableOpacity
                 style={styles.viewIdeaButton}
-                onPress={() => router.replace(`/(tabs)/ideas/${ideaId}` as never)}
+                onPress={() => router.replace(`/(tabs)/ideas/${projectId}` as never)}
               >
-                <Text style={styles.viewIdeaButtonText}>View Idea</Text>
+                <Text style={styles.viewIdeaButtonText}>View Project</Text>
               </TouchableOpacity>
             </View>
           </View>

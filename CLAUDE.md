@@ -86,12 +86,11 @@ Forge Automation/
 
 | Router | Endpoints | Description |
 |--------|-----------|-------------|
-| `project` | `list`, `get`, `create`, `update`, `updateCanvas`, `delete` | Project CRUD + canvas editing |
+| `project` | `list`, `get`, `create`, `update`, `delete`, `startInterview`, `startResearch` | Project CRUD + workflow triggers |
 | `user` | `me`, `update`, `stats`, `subscription` | User profile and stats |
-| `idea` | `list`, `get`, `create`, `update`, `delete`, `startInterview`, `startResearch` | Idea CRUD + workflow triggers |
-| `interview` | `get`, `listByIdea`, `getActive`, `resume`, `addMessage`, `addAssistantMessage`, `complete`, `abandon`, `markExpired`, `heartbeat` | Interview chat management |
-| `report` | `list`, `listByIdea`, `get`, `generate`, `regenerate`, `update`, `delete`, `generateAll` | Report generation and management |
-| `research` | `get`, `getByIdea`, `getProgress`, `start`, `cancel`, `updatePhase`, `markFailed` | Research pipeline tracking |
+| `interview` | `get`, `listByProject`, `getActive`, `resume`, `addMessage`, `addAssistantMessage`, `complete`, `abandon`, `markExpired`, `heartbeat` | Interview chat management |
+| `report` | `list`, `listByProject`, `get`, `generate`, `regenerate`, `update`, `delete`, `generateAll` | Report generation and management |
+| `research` | `get`, `getByProject`, `getProgress`, `start`, `cancel`, `updatePhase`, `markFailed` | Research pipeline tracking |
 
 ### Database Models (Prisma)
 
@@ -100,12 +99,10 @@ Forge Automation/
 | `User` | User accounts with subscription tiers |
 | `Account` | OAuth provider accounts (Auth.js) |
 | `Session` | User sessions (Auth.js) |
-| `Project` | Top-level container; owns canvas (JSON blocks) and one Idea |
-| `Idea` | Business idea entries (belongs to Project) |
+| `Project` | Unified entity: draft idea → active project (status-driven lifecycle) |
 | `Interview` | AI interview sessions with message history |
 | `Research` | Background research pipeline state |
 | `Report` | Generated business reports |
-| `CanvasSnapshot` | Frozen canvas state captured when research starts |
 
 ### Interview Modes
 - **LIGHTNING** - No interview, AI generates from description only
@@ -416,8 +413,26 @@ npx expo-doctor
 
 ## Change Log
 
-### 2026-02-06
-- ✅ **Project + Canvas Architecture** - Top-level Project entity with rich canvas workspace
+### 2026-02-08
+- ✅ **Unified Project Lifecycle** - Merged Idea + Project into single unified Project model
+  - **Supersedes:** 2026-02-06 Project + Canvas Architecture
+  - **Models Removed:** `Idea`, `CanvasSnapshot`, `IdeaStatus` enum
+  - **Schema Changes:** Project now has `title`, `description`, `notes`, `status` (ProjectStatus enum: CAPTURED → INTERVIEWING → RESEARCHING → COMPLETE); direct relations to Interview[], Report[], Research?
+  - **Router Consolidation:** `idea.ts` deleted; `startInterview` + `startResearch` absorbed into `project.ts`; all routers updated from `ideaId` → `projectId`
+  - **Canvas → Notes:** Block-based canvas editor replaced with simple `notes` text field; `CanvasSnapshot` replaced by `notesSnapshot` on Research
+  - **Shared Package:** Removed all canvas types/validators/serializer; renamed `IdeaStatus` → `ProjectStatus`; updated research-journey utility
+  - **Web Frontend:** Sidebar shows Drafts (CAPTURED) + Vault (active/complete) sections; all `/ideas/` routes deleted and redirected to `/projects/`; subscription context updated
+  - **Mobile Frontend:** All `trpc.idea.*` calls → `trpc.project.*`; status display updated
+  - **AI Pipeline:** Notes text passed directly to prompts (no canvas serialization); `notesSnapshot` stored on Research record
+  - **Key Files:**
+    - `packages/server/src/routers/project.ts` — Unified project router
+    - `packages/server/prisma/schema.prisma` — Simplified single-entity schema
+    - `packages/shared/src/types/index.ts` — No more Idea/Canvas types
+    - `packages/web/src/components/layout/sidebar.tsx` — Drafts + Vault sections
+    - `packages/web/src/app/(dashboard)/projects/` — All project pages
+
+### 2026-02-06 (Superseded by 2026-02-08)
+- ~~✅ **Project + Canvas Architecture**~~ - Replaced by Unified Project Lifecycle
   - **New Models:** `Project` (owns canvas JSON blocks + one Idea), `CanvasSnapshot` (frozen canvas at research start)
   - **New Router:** `project.ts` — CRUD + `updateCanvas` + audit logging
   - **Canvas System:** Structured blocks (section, note, subIdea, link) with drag-to-reorder, auto-save, predefined sections
@@ -634,12 +649,11 @@ When building or modifying any frontend components, pages, or interfaces (web or
 
 ### Key Files to Know
 - `BETA/packages/web/src/app/` - Next.js App Router pages
-- `BETA/packages/web/src/app/(dashboard)/projects/` - Project list + detail pages with canvas editor
+- `BETA/packages/web/src/app/(dashboard)/projects/` - Project list + detail pages
 - `BETA/packages/mobile/src/app/` - Expo Router screens
 - `BETA/packages/server/src/routers/` - tRPC API routers
-- `BETA/packages/server/src/routers/project.ts` - Project CRUD + canvas update router
+- `BETA/packages/server/src/routers/project.ts` - Project CRUD + interview/research triggers
 - `BETA/packages/shared/src/` - Shared types and utilities
-- `BETA/packages/shared/src/utils/canvas-serializer.ts` - Canvas → markdown for AI prompts
 - `BETA/packages/server/prisma/schema.prisma` - Database schema
 
 ### n8n Integration

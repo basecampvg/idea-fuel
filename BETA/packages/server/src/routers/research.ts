@@ -5,7 +5,6 @@ import { TRPCError } from '@trpc/server';
 import { RESEARCH_PHASE_PROGRESS, SPARK_STATUS_PROGRESS } from '@forge/shared';
 import type { ChatMessage, InterviewDataPoints, SparkJobStatus } from '@forge/shared';
 import { logAuditAsync, formatResource } from '../lib/audit';
-import { serializeCanvasForAI } from '@forge/shared';
 import { enqueueResearchCancel } from '../jobs';
 import {
   runResearchPipeline,
@@ -43,7 +42,7 @@ export const researchRouter = router({
         id: input.id,
       },
       include: {
-        idea: {
+        project: {
           select: {
             id: true,
             title: true,
@@ -60,8 +59,8 @@ export const researchRouter = router({
       });
     }
 
-    // Verify ownership through idea
-    if (research.idea.userId !== ctx.userId) {
+    // Verify ownership through project
+    if (research.project.userId !== ctx.userId) {
       throw new TRPCError({
         code: 'FORBIDDEN',
         message: 'Access denied',
@@ -72,12 +71,12 @@ export const researchRouter = router({
   }),
 
   /**
-   * Get research by idea ID
+   * Get research by project ID
    */
-  getByIdea: protectedProcedure.input(z.object({ ideaId: z.string().cuid() })).query(async ({ ctx, input }) => {
-    const idea = await ctx.prisma.idea.findFirst({
+  getByProject: protectedProcedure.input(z.object({ projectId: z.string().cuid() })).query(async ({ ctx, input }) => {
+    const project = await ctx.prisma.project.findFirst({
       where: {
-        id: input.ideaId,
+        id: input.projectId,
         userId: ctx.userId,
       },
       include: {
@@ -85,14 +84,14 @@ export const researchRouter = router({
       },
     });
 
-    if (!idea) {
+    if (!project) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Idea not found',
+        message: 'Project not found',
       });
     }
 
-    return idea.research;
+    return project.research;
   }),
 
   /**
@@ -104,7 +103,7 @@ export const researchRouter = router({
         id: input.id,
       },
       include: {
-        idea: {
+        project: {
           select: {
             userId: true,
           },
@@ -119,7 +118,7 @@ export const researchRouter = router({
       });
     }
 
-    if (research.idea.userId !== ctx.userId) {
+    if (research.project.userId !== ctx.userId) {
       throw new TRPCError({
         code: 'FORBIDDEN',
         message: 'Access denied',
@@ -144,13 +143,13 @@ export const researchRouter = router({
   }),
 
   /**
-   * Start research for an idea
+   * Start research for a project
    * Called after interview is complete
    */
-  start: protectedProcedure.input(z.object({ ideaId: z.string().cuid() })).mutation(async ({ ctx, input }) => {
-    const idea = await ctx.prisma.idea.findFirst({
+  start: protectedProcedure.input(z.object({ projectId: z.string().cuid() })).mutation(async ({ ctx, input }) => {
+    const project = await ctx.prisma.project.findFirst({
       where: {
-        id: input.ideaId,
+        id: input.projectId,
         userId: ctx.userId,
       },
       include: {
@@ -160,40 +159,37 @@ export const researchRouter = router({
           orderBy: { createdAt: 'desc' },
           take: 1,
         },
-        project: {
-          select: { canvas: true },
-        },
       },
     });
 
-    if (!idea) {
+    if (!project) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Idea not found',
+        message: 'Project not found',
       });
     }
 
     // Check if research already exists and is not failed
-    if (idea.research && idea.research.status !== 'FAILED') {
+    if (project.research && project.research.status !== 'FAILED') {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'Research already exists for this idea',
+        message: 'Research already exists for this project',
       });
     }
 
     // Require at least one completed interview
-    if (idea.interviews.length === 0) {
+    if (project.interviews.length === 0) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
         message: 'Complete an interview before starting research',
       });
     }
 
-    const interview = idea.interviews[0];
+    const interview = project.interviews[0];
 
     // Create or update research record
     // New pipeline starts with DEEP_RESEARCH phase
-    let research = idea.research;
+    let research = project.research;
     if (research) {
       // Restart failed research
       research = await ctx.prisma.research.update({
@@ -207,24 +203,26 @@ export const researchRouter = router({
           retryCount: research.retryCount + 1,
           startedAt: new Date(),
           completedAt: null,
+          notesSnapshot: project.notes, // Snapshot project notes
         },
       });
     } else {
       // Create new research record
       research = await ctx.prisma.research.create({
         data: {
-          ideaId: input.ideaId,
+          projectId: input.projectId,
           status: 'IN_PROGRESS',
           currentPhase: 'DEEP_RESEARCH', // New 4-phase pipeline starts here
           progress: 0,
           startedAt: new Date(),
+          notesSnapshot: project.notes, // Snapshot project notes
         },
       });
     }
 
-    // Update idea status
-    await ctx.prisma.idea.update({
-      where: { id: input.ideaId },
+    // Update project status
+    await ctx.prisma.project.update({
+      where: { id: input.projectId },
       data: { status: 'RESEARCHING' },
     });
 
@@ -233,21 +231,18 @@ export const researchRouter = router({
       userId: ctx.userId,
       action: 'RESEARCH_START',
       resource: formatResource('research', research.id),
-      metadata: { ideaId: input.ideaId, isRetry: idea.research?.retryCount ? idea.research.retryCount > 0 : false },
+      metadata: { projectId: input.projectId, isRetry: project.research?.retryCount ? project.research.retryCount > 0 : false },
     });
 
-    // Prepare research input (include canvas context if project has canvas blocks)
-    const canvasBlocks = idea.project?.canvas as unknown as import('@forge/shared').CanvasBlock[] | null;
-    const canvasContext = canvasBlocks && canvasBlocks.length > 0
-      ? serializeCanvasForAI(canvasBlocks)
-      : undefined;
+    // Prepare research input (include project notes as context)
+    const notesContext = project.notes ? `## FOUNDER'S NOTES\n${project.notes}` : undefined;
 
     const researchInput: ResearchInput = {
-      ideaTitle: idea.title,
-      ideaDescription: idea.description,
+      ideaTitle: project.title,
+      ideaDescription: project.description,
       interviewData: interview.collectedData as Partial<InterviewDataPoints> | null,
       interviewMessages: (interview.messages as unknown as ChatMessage[]) || [],
-      canvasContext,
+      canvasContext: notesContext,
     };
 
     // Get user's subscription tier for AI parameters
@@ -259,28 +254,28 @@ export const researchRouter = router({
 
     // Build existing research data for resume functionality
     // This allows the pipeline to skip completed phases (and chunks within phases)
-    const existingResearchData: ExistingResearchData | undefined = idea.research ? {
-      rawDeepResearch: idea.research.rawDeepResearch as ExistingResearchData['rawDeepResearch'],
-      researchChunks: idea.research.researchChunks as ChunkedResearchData | null, // Chunk progress for resume
-      socialProof: idea.research.socialProof as ExistingResearchData['socialProof'],
-      synthesizedInsights: idea.research.synthesizedInsights as ExistingResearchData['synthesizedInsights'],
-      opportunityScore: idea.research.opportunityScore,
-      problemScore: idea.research.problemScore,
-      feasibilityScore: idea.research.feasibilityScore,
-      whyNowScore: idea.research.whyNowScore,
-      scoreJustifications: idea.research.scoreJustifications as ExistingResearchData['scoreJustifications'],
-      scoreMetadata: idea.research.scoreMetadata as ExistingResearchData['scoreMetadata'],
-      revenuePotential: idea.research.revenuePotential as ExistingResearchData['revenuePotential'],
-      executionDifficulty: idea.research.executionDifficulty as ExistingResearchData['executionDifficulty'],
-      gtmClarity: idea.research.gtmClarity as ExistingResearchData['gtmClarity'],
-      founderFit: idea.research.founderFit as ExistingResearchData['founderFit'],
-      marketSizing: idea.research.marketSizing as ExistingResearchData['marketSizing'],
-      userStory: idea.research.userStory as ExistingResearchData['userStory'],
-      valueLadder: idea.research.valueLadder as ExistingResearchData['valueLadder'],
-      actionPrompts: idea.research.actionPrompts as ExistingResearchData['actionPrompts'],
-      keywordTrends: idea.research.keywordTrends as ExistingResearchData['keywordTrends'],
-      techStack: idea.research.techStack as ExistingResearchData['techStack'],
-      businessPlan: idea.research.businessPlan,
+    const existingResearchData: ExistingResearchData | undefined = project.research ? {
+      rawDeepResearch: project.research.rawDeepResearch as ExistingResearchData['rawDeepResearch'],
+      researchChunks: project.research.researchChunks as ChunkedResearchData | null, // Chunk progress for resume
+      socialProof: project.research.socialProof as ExistingResearchData['socialProof'],
+      synthesizedInsights: project.research.synthesizedInsights as ExistingResearchData['synthesizedInsights'],
+      opportunityScore: project.research.opportunityScore,
+      problemScore: project.research.problemScore,
+      feasibilityScore: project.research.feasibilityScore,
+      whyNowScore: project.research.whyNowScore,
+      scoreJustifications: project.research.scoreJustifications as ExistingResearchData['scoreJustifications'],
+      scoreMetadata: project.research.scoreMetadata as ExistingResearchData['scoreMetadata'],
+      revenuePotential: project.research.revenuePotential as ExistingResearchData['revenuePotential'],
+      executionDifficulty: project.research.executionDifficulty as ExistingResearchData['executionDifficulty'],
+      gtmClarity: project.research.gtmClarity as ExistingResearchData['gtmClarity'],
+      founderFit: project.research.founderFit as ExistingResearchData['founderFit'],
+      marketSizing: project.research.marketSizing as ExistingResearchData['marketSizing'],
+      userStory: project.research.userStory as ExistingResearchData['userStory'],
+      valueLadder: project.research.valueLadder as ExistingResearchData['valueLadder'],
+      actionPrompts: project.research.actionPrompts as ExistingResearchData['actionPrompts'],
+      keywordTrends: project.research.keywordTrends as ExistingResearchData['keywordTrends'],
+      techStack: project.research.techStack as ExistingResearchData['techStack'],
+      businessPlan: project.research.businessPlan,
     } : undefined;
 
     // Run pipeline in background (non-blocking for MVP)
@@ -435,9 +430,9 @@ export const researchRouter = router({
           },
         });
 
-        // Update idea status to complete
-        await prisma.idea.update({
-          where: { id: input.ideaId },
+        // Update project status to complete
+        await prisma.project.update({
+          where: { id: input.projectId },
           data: { status: 'COMPLETE' },
         });
       } catch (error) {
@@ -482,7 +477,7 @@ export const researchRouter = router({
         id: input.id,
       },
       include: {
-        idea: {
+        project: {
           select: {
             id: true,
             userId: true,
@@ -498,7 +493,7 @@ export const researchRouter = router({
       });
     }
 
-    if (research.idea.userId !== ctx.userId) {
+    if (research.project.userId !== ctx.userId) {
       throw new TRPCError({
         code: 'FORBIDDEN',
         message: 'Access denied',
@@ -534,7 +529,7 @@ export const researchRouter = router({
       userId: ctx.userId,
       action: 'RESEARCH_CANCEL',
       resource: formatResource('research', research.id),
-      metadata: { ideaId: research.ideaId, cancelledAtPhase: research.currentPhase },
+      metadata: { projectId: research.projectId, cancelledAtPhase: research.currentPhase },
     });
 
     return updatedResearch;
@@ -570,7 +565,7 @@ export const researchRouter = router({
           id: input.id,
         },
         include: {
-          idea: {
+          project: {
             select: {
               userId: true,
             },
@@ -630,10 +625,10 @@ export const researchRouter = router({
         data: updateData as Parameters<typeof ctx.prisma.research.update>[0]['data'],
       });
 
-      // If complete, update idea status
+      // If complete, update project status
       if (input.phase === 'COMPLETE') {
-        await ctx.prisma.idea.update({
-          where: { id: research.ideaId },
+        await ctx.prisma.project.update({
+          where: { id: research.projectId },
           data: { status: 'COMPLETE' },
         });
       }
@@ -645,10 +640,10 @@ export const researchRouter = router({
    * Reset stuck research (allows restarting interrupted/stuck research)
    * This marks the research as FAILED so it can be restarted via the start endpoint
    */
-  reset: protectedProcedure.input(z.object({ ideaId: z.string().cuid() })).mutation(async ({ ctx, input }) => {
-    const idea = await ctx.prisma.idea.findFirst({
+  reset: protectedProcedure.input(z.object({ projectId: z.string().cuid() })).mutation(async ({ ctx, input }) => {
+    const project = await ctx.prisma.project.findFirst({
       where: {
-        id: input.ideaId,
+        id: input.projectId,
         userId: ctx.userId,
       },
       include: {
@@ -656,22 +651,22 @@ export const researchRouter = router({
       },
     });
 
-    if (!idea) {
+    if (!project) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Idea not found',
+        message: 'Project not found',
       });
     }
 
-    if (!idea.research) {
+    if (!project.research) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'No research found for this idea',
+        message: 'No research found for this project',
       });
     }
 
     // Only allow reset for IN_PROGRESS or PENDING research (stuck states)
-    if (idea.research.status === 'COMPLETE') {
+    if (project.research.status === 'COMPLETE') {
       throw new TRPCError({
         code: 'BAD_REQUEST',
         message: 'Cannot reset completed research. Use delete and restart instead.',
@@ -679,13 +674,13 @@ export const researchRouter = router({
     }
 
     // Mark research as failed so it can be restarted
-    // Keep idea status as RESEARCHING so user stays on same page and sees failed state
+    // Keep project status as RESEARCHING so user stays on same page and sees failed state
     const updatedResearch = await ctx.prisma.research.update({
-      where: { id: idea.research.id },
+      where: { id: project.research.id },
       data: {
         status: 'FAILED',
         errorMessage: 'Research reset by user (interrupted or stuck)',
-        errorPhase: idea.research.currentPhase,
+        errorPhase: project.research.currentPhase,
       },
     });
 
@@ -745,35 +740,32 @@ export const researchRouter = router({
   // =============================================================================
 
   /**
-   * Start Spark validation for an idea
+   * Start Spark validation for a project
    * Creates a Research record and triggers the 2-step Spark pipeline
    */
   startSpark: protectedProcedure
-    .input(z.object({ ideaId: z.string().cuid() }))
+    .input(z.object({ projectId: z.string().cuid() }))
     .mutation(async ({ ctx, input }) => {
-      const idea = await ctx.prisma.idea.findFirst({
+      const project = await ctx.prisma.project.findFirst({
         where: {
-          id: input.ideaId,
+          id: input.projectId,
           userId: ctx.userId,
         },
         include: {
           research: true,
-          project: {
-            select: { canvas: true },
-          },
         },
       });
 
-      if (!idea) {
+      if (!project) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Idea not found',
+          message: 'Project not found',
         });
       }
 
       // Check if there's already a Spark job running
       const runningStatuses = ['QUEUED', 'RUNNING_KEYWORDS', 'RUNNING_RESEARCH', 'RUNNING_PARALLEL', 'SYNTHESIZING'];
-      if (idea.research?.sparkStatus && runningStatuses.includes(idea.research.sparkStatus)) {
+      if (project.research?.sparkStatus && runningStatuses.includes(project.research.sparkStatus)) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Spark validation already in progress',
@@ -782,9 +774,9 @@ export const researchRouter = router({
 
       // Create or update research record for Spark
       let research;
-      if (idea.research) {
+      if (project.research) {
         research = await ctx.prisma.research.update({
-          where: { id: idea.research.id },
+          where: { id: project.research.id },
           data: {
             sparkStatus: 'QUEUED',
             sparkKeywords: Prisma.DbNull,
@@ -792,24 +784,26 @@ export const researchRouter = router({
             sparkStartedAt: new Date(),
             sparkCompletedAt: null,
             sparkError: null,
+            notesSnapshot: project.notes, // Snapshot project notes
           },
         });
       } else {
         research = await ctx.prisma.research.create({
           data: {
-            ideaId: input.ideaId,
+            projectId: input.projectId,
             status: 'IN_PROGRESS',
             currentPhase: 'QUEUED',
             progress: 0,
             sparkStatus: 'QUEUED',
             sparkStartedAt: new Date(),
+            notesSnapshot: project.notes, // Snapshot project notes
           },
         });
       }
 
-      // Update idea status
-      await ctx.prisma.idea.update({
-        where: { id: input.ideaId },
+      // Update project status
+      await ctx.prisma.project.update({
+        where: { id: input.projectId },
         data: { status: 'RESEARCHING' },
       });
 
@@ -818,19 +812,13 @@ export const researchRouter = router({
         userId: ctx.userId,
         action: 'RESEARCH_START',
         resource: formatResource('research', research.id),
-        metadata: { ideaId: input.ideaId, mode: 'SPARK' },
+        metadata: { projectId: input.projectId, mode: 'SPARK' },
       });
 
-      // Serialize canvas context for Spark pipeline
-      const sparkCanvasBlocks = idea.project?.canvas as unknown as import('@forge/shared').CanvasBlock[] | null;
-      const sparkCanvasContext = sparkCanvasBlocks && sparkCanvasBlocks.length > 0
-        ? serializeCanvasForAI(sparkCanvasBlocks)
-        : undefined;
-
-      // Build enriched description with canvas context
-      const sparkDescription = sparkCanvasContext
-        ? `${idea.description}\n\n## FOUNDER'S CANVAS (structured research notes)\n${sparkCanvasContext}`
-        : idea.description;
+      // Build enriched description with project notes
+      const sparkDescription = project.notes
+        ? `${project.description}\n\n## FOUNDER'S NOTES\n${project.notes}`
+        : project.description;
 
       // Run Spark pipeline asynchronously (fire and forget)
       (async () => {
@@ -869,9 +857,9 @@ export const researchRouter = router({
             },
           });
 
-          // Update idea status
-          await ctx.prisma.idea.update({
-            where: { id: input.ideaId },
+          // Update project status
+          await ctx.prisma.project.update({
+            where: { id: input.projectId },
             data: { status: 'COMPLETE' },
           });
         } catch (error) {
@@ -903,7 +891,7 @@ export const researchRouter = router({
           id: input.jobId,
         },
         include: {
-          idea: {
+          project: {
             select: {
               userId: true,
               title: true,
@@ -920,7 +908,7 @@ export const researchRouter = router({
         });
       }
 
-      if (research.idea.userId !== ctx.userId) {
+      if (research.project.userId !== ctx.userId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Access denied',
@@ -929,7 +917,7 @@ export const researchRouter = router({
 
       return {
         jobId: research.id,
-        ideaTitle: research.idea.title,
+        projectTitle: research.project.title,
         sparkStatus: research.sparkStatus,
         sparkResult: research.sparkResult,
         sparkKeywords: research.sparkKeywords,
@@ -957,7 +945,7 @@ export const researchRouter = router({
           sparkError: true,
           sparkStartedAt: true,
           sparkCompletedAt: true,
-          idea: {
+          project: {
             select: {
               userId: true,
             },
@@ -972,7 +960,7 @@ export const researchRouter = router({
         });
       }
 
-      if (research.idea.userId !== ctx.userId) {
+      if (research.project.userId !== ctx.userId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Access denied',
@@ -1008,15 +996,12 @@ export const researchRouter = router({
       const research = await ctx.prisma.research.findFirst({
         where: { id: input.researchId },
         include: {
-          idea: {
+          project: {
             include: {
               interviews: {
                 where: { status: 'COMPLETE' },
                 orderBy: { createdAt: 'desc' },
                 take: 1,
-              },
-              project: {
-                select: { canvas: true },
               },
             },
           },
@@ -1026,7 +1011,7 @@ export const researchRouter = router({
       if (!research) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Research not found' });
       }
-      if (research.idea.userId !== ctx.userId) {
+      if (research.project.userId !== ctx.userId) {
         throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized' });
       }
       if (research.status !== 'COMPLETE') {
@@ -1036,19 +1021,16 @@ export const researchRouter = router({
       const rawDeepResearch = research.rawDeepResearch as unknown as DeepResearchOutput | null;
       const hasRawResearch = !!rawDeepResearch?.rawReport;
 
-      // Reconstruct ResearchInput from idea
-      const idea = research.idea;
-      const interview = idea.interviews[0];
-      const backfillCanvasBlocks = idea.project?.canvas as unknown as import('@forge/shared').CanvasBlock[] | null;
-      const backfillCanvasContext = backfillCanvasBlocks && backfillCanvasBlocks.length > 0
-        ? serializeCanvasForAI(backfillCanvasBlocks)
-        : undefined;
+      // Reconstruct ResearchInput from project
+      const project = research.project;
+      const interview = project.interviews[0];
+      const notesContext = project.notes ? `## FOUNDER'S NOTES\n${project.notes}` : undefined;
       const researchInput: ResearchInput = {
-        ideaTitle: idea.title,
-        ideaDescription: idea.description || '',
+        ideaTitle: project.title,
+        ideaDescription: project.description || '',
         interviewData: (interview?.collectedData as unknown as ResearchInput['interviewData']) ?? null,
         interviewMessages: (interview?.messages as unknown as Array<{ role: string; content: string }>) ?? [],
-        canvasContext: backfillCanvasContext,
+        canvasContext: notesContext,
       };
 
       // Get user tier

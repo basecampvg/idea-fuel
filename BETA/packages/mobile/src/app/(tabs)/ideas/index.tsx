@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { trpc } from '../../../lib/trpc';
-import { PROJECT_STATUS_LABELS, IDEA_STATUS_LABELS } from '@forge/shared';
+import { PROJECT_STATUS_LABELS } from '@forge/shared';
 
 // Forge Design System Colors
 const colors = {
@@ -34,33 +34,36 @@ const colors = {
   statusComplete: '#34D399',
 };
 
-type ProjectStatus = 'DRAFT' | 'ACTIVE' | 'COMPLETE';
+type ProjectStatus = 'CAPTURED' | 'INTERVIEWING' | 'RESEARCHING' | 'COMPLETE';
 
 const PROJECT_STATUS_COLORS: Record<ProjectStatus, string> = {
-  DRAFT: colors.statusDraft,
-  ACTIVE: colors.statusInterview,
+  CAPTURED: colors.statusDraft,
+  INTERVIEWING: colors.statusInterview,
+  RESEARCHING: colors.statusResearch,
   COMPLETE: colors.statusComplete,
 };
 
-function deriveProjectStatus(project: { ideas: { status: string }[] }): ProjectStatus {
-  if (project.ideas.length === 0) return 'DRAFT';
-  if (project.ideas[0].status === 'COMPLETE') return 'COMPLETE';
+type DisplayStatus = 'DRAFT' | 'ACTIVE' | 'COMPLETE';
+
+function deriveDisplayStatus(status: ProjectStatus): DisplayStatus {
+  if (status === 'CAPTURED') return 'DRAFT';
+  if (status === 'COMPLETE') return 'COMPLETE';
   return 'ACTIVE';
 }
 
-const filters: Array<{ label: string; value: ProjectStatus | 'ALL' }> = [
+const filters: Array<{ label: string; value: DisplayStatus | 'ALL' }> = [
   { label: 'All', value: 'ALL' },
   { label: 'Draft', value: 'DRAFT' },
   { label: 'Active', value: 'ACTIVE' },
   { label: 'Complete', value: 'COMPLETE' },
 ];
 
-function StatusDot({ status }: { status: ProjectStatus }) {
+function StatusDot({ status }: { status: ProjectStatus | string }) {
   return (
     <View
       style={[
         styles.statusDot,
-        { backgroundColor: PROJECT_STATUS_COLORS[status] || colors.muted },
+        { backgroundColor: PROJECT_STATUS_COLORS[status as ProjectStatus] || colors.muted },
       ]}
     />
   );
@@ -111,14 +114,14 @@ function EmptyState({
 
 export default function ProjectsScreen() {
   const router = useRouter();
-  const [filter, setFilter] = useState<ProjectStatus | 'ALL'>('ALL');
+  const [filter, setFilter] = useState<DisplayStatus | 'ALL'>('ALL');
 
   const { data, isLoading, refetch, isRefetching } = trpc.project.list.useQuery({});
 
   const allProjects = data?.items ?? [];
   const projects = filter === 'ALL'
     ? allProjects
-    : allProjects.filter((p) => deriveProjectStatus(p) === filter);
+    : allProjects.filter((p) => deriveDisplayStatus(p.status as ProjectStatus) === filter);
 
   if (isLoading && !isRefetching) {
     return <LoadingScreen message="Loading your vault..." />;
@@ -193,16 +196,12 @@ export default function ProjectsScreen() {
         ) : (
           <View style={styles.projectList}>
             {projects.map((project, index) => {
-              const status = deriveProjectStatus(project);
-              const idea = project.ideas[0];
+              const status = project.status as ProjectStatus;
               return (
                 <TouchableOpacity
                   key={project.id}
                   onPress={() => {
-                    // Navigate to idea detail if idea exists, otherwise just show project
-                    if (idea) {
-                      router.push(`/(tabs)/ideas/${idea.id}` as never);
-                    }
+                    router.push(`/(tabs)/ideas/${project.id}` as never);
                   }}
                   activeOpacity={0.7}
                   style={[
@@ -233,21 +232,6 @@ export default function ProjectsScreen() {
                         </Text>
                       </View>
                     </View>
-
-                    {/* Idea subtitle */}
-                    {idea && (
-                      <View style={styles.ideaRow}>
-                        <Ionicons name="bulb-outline" size={12} color={colors.muted} />
-                        <Text style={styles.ideaSubtitle} numberOfLines={1}>
-                          {idea.title}
-                        </Text>
-                        <View style={styles.ideaStatusDot}>
-                          <Text style={styles.ideaStatusText}>
-                            {IDEA_STATUS_LABELS[idea.status] || idea.status}
-                          </Text>
-                        </View>
-                      </View>
-                    )}
 
                     {/* Description */}
                     {project.description && (

@@ -11,6 +11,7 @@ import { ProjectMiniCard, ProjectMiniCardSkeleton, type ProjectMiniCardProps } f
 import {
   Plus,
   Archive,
+  Lightbulb,
   Settings,
   ChevronRight,
   Shield,
@@ -23,7 +24,6 @@ import {
 // Navigation items
 const mainNav = [
   { name: 'New', href: '/dashboard', icon: Plus, isAction: true },
-  { name: 'Vault', href: '/projects', icon: Archive },
 ];
 
 const bottomNav = [
@@ -39,7 +39,7 @@ function ModeSelector() {
   const popoverRef = useRef<HTMLDivElement>(null);
   const [popoverStyle, setPopoverStyle] = useState<CSSProperties>({});
 
-  // Close popover on click outside
+  // Close popover on click outside or Escape key
   useEffect(() => {
     if (!open) return;
     function handleClick(e: MouseEvent) {
@@ -49,10 +49,21 @@ function ModeSelector() {
         popoverRef.current && !popoverRef.current.contains(target)
       ) {
         setOpen(false);
+        buttonRef.current?.focus();
+      }
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        buttonRef.current?.focus();
       }
     }
     document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [open]);
 
   // Close popover if sidebar width changes (e.g. hover mode transition)
@@ -83,6 +94,8 @@ function ModeSelector() {
       <button
         ref={buttonRef}
         onClick={handleToggle}
+        aria-haspopup="listbox"
+        aria-expanded={open}
         className={`
           group relative flex items-center rounded-lg transition-colors
           ${isExpanded ? 'h-10 gap-2.5 px-3 w-full' : 'h-10 w-10 justify-center'}
@@ -100,18 +113,37 @@ function ModeSelector() {
       {open && createPortal(
         <div
           ref={popoverRef}
+          role="listbox"
+          aria-label="Sidebar layout mode"
           className="w-44 rounded-lg border border-border bg-card shadow-lg p-1 z-[100]"
           style={popoverStyle}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+              e.preventDefault();
+              const items = popoverRef.current?.querySelectorAll<HTMLButtonElement>('[role="option"]');
+              if (!items?.length) return;
+              const focused = document.activeElement as HTMLElement;
+              const idx = Array.from(items).indexOf(focused as HTMLButtonElement);
+              const next = e.key === 'ArrowDown'
+                ? items[(idx + 1) % items.length]
+                : items[(idx - 1 + items.length) % items.length];
+              next.focus();
+            }
+          }}
         >
-          {options.map((opt) => {
+          {options.map((opt, i) => {
             const Icon = opt.icon;
             const isActive = mode === opt.value;
             return (
               <button
                 key={opt.value}
+                role="option"
+                aria-selected={isActive}
+                autoFocus={i === 0}
                 onClick={() => {
                   setMode(opt.value);
                   setOpen(false);
+                  buttonRef.current?.focus();
                 }}
                 className={`
                   flex items-center gap-2.5 w-full px-3 py-2 rounded-md text-sm transition-colors
@@ -133,11 +165,55 @@ function ModeSelector() {
   );
 }
 
-// Inline projects section for expanded sidebar
-function SidebarProjects() {
+// Sidebar section for drafts (CAPTURED status)
+function SidebarDrafts() {
   const isDev = process.env.NODE_ENV === 'development';
-  const { data, isLoading } = trpc.project.list.useQuery(
-    { limit: 5 },
+  const { data, isLoading, isError } = trpc.project.list.useQuery(
+    { phase: 'draft', limit: 5 },
+    { staleTime: 30_000, retry: isDev ? false : 3 }
+  );
+
+  const drafts = data?.items ?? [];
+
+  return (
+    <div className="px-2 mt-1">
+      <div className="flex items-center gap-1.5 px-2 py-1.5">
+        <Lightbulb className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
+        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+          Drafts
+        </span>
+      </div>
+
+      {isLoading ? (
+        <div className="space-y-1.5 mt-1">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <ProjectMiniCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : isError ? (
+        <p className="px-2 py-3 text-xs text-muted-foreground text-center">
+          Could not load drafts
+        </p>
+      ) : drafts.length === 0 ? (
+        <p className="px-2 py-3 text-xs text-muted-foreground text-center">
+          No drafts
+        </p>
+      ) : (
+        <div className="space-y-1.5 mt-1">
+          {drafts.map((project) => (
+            <ProjectMiniCard key={project.id} project={project as ProjectMiniCardProps['project']} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Sidebar section for vault (INTERVIEWING, RESEARCHING, COMPLETE)
+function SidebarVault() {
+  const isDev = process.env.NODE_ENV === 'development';
+  const { data, isLoading, isError } = trpc.project.list.useQuery(
+    { phase: 'active', limit: 5 },
     { staleTime: 30_000, retry: isDev ? false : 3 }
   );
 
@@ -145,8 +221,11 @@ function SidebarProjects() {
 
   return (
     <div className="px-2 mt-1">
-      <div className="px-2 py-1.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-        Recent
+      <div className="flex items-center gap-1.5 px-2 py-1.5">
+        <Archive className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
+        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+          Vault
+        </span>
       </div>
 
       {isLoading ? (
@@ -155,8 +234,12 @@ function SidebarProjects() {
             <ProjectMiniCardSkeleton key={i} />
           ))}
         </div>
+      ) : isError ? (
+        <p className="px-2 py-3 text-xs text-muted-foreground text-center">
+          Could not load projects
+        </p>
       ) : projects.length === 0 ? (
-        <p className="px-2 py-4 text-sm text-muted-foreground text-center">
+        <p className="px-2 py-3 text-xs text-muted-foreground text-center">
           No projects yet
         </p>
       ) : (
@@ -184,7 +267,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className="fixed left-0 bottom-0 z-50 flex flex-col bg-background border-r border-border overflow-hidden transition-[width] duration-200 ease-out"
+      className="fixed left-0 bottom-0 z-50 flex flex-col bg-background border-r border-border overflow-hidden transition-[width] duration-200 ease-out motion-reduce:duration-0"
       style={{ width: sidebarWidth, top: TOP_BAR_HEIGHT }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -248,12 +331,12 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Divider + Inline Projects — always mounted, hidden when collapsed to preserve query cache */}
-      <div className={isExpanded ? '' : 'hidden'}>
+      {/* Divider + Drafts + Vault — always mounted, hidden when collapsed to preserve query cache */}
+      <div className={isExpanded ? 'flex-1 overflow-y-auto' : 'hidden'}>
         <div className="h-px bg-border mx-3" />
-        <div className="flex-1 overflow-y-auto">
-          <SidebarProjects />
-        </div>
+        <SidebarDrafts />
+        <div className="h-px bg-border mx-3 my-1" />
+        <SidebarVault />
       </div>
 
       {/* Spacer when collapsed */}

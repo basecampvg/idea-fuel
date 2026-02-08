@@ -18,7 +18,7 @@ async function main() {
       positioning: true,
       sparkResult: true,
       marketSizing: true,
-      idea: { select: { id: true, title: true } },
+      project: { select: { id: true, title: true } },
     },
     orderBy: { updatedAt: 'desc' },
     take: 15,
@@ -36,9 +36,9 @@ async function main() {
       r.marketSizing && 'marketSizing',
     ].filter(Boolean);
 
-    console.log(`${i + 1}. [${r.status}] ${r.idea.title.slice(0, 60)}...`);
+    console.log(`${i + 1}. [${r.status}] ${r.project.title.slice(0, 60)}...`);
     console.log(`   ID: ${r.id}`);
-    console.log(`   Idea ID: ${r.idea.id}`);
+    console.log(`   Project ID: ${r.project.id}`);
     console.log(`   Phase: ${r.currentPhase}, Spark: ${r.sparkStatus || 'N/A'}`);
     console.log(`   Data: ${dataFields.length > 0 ? dataFields.join(', ') : 'NONE'}`);
     console.log();

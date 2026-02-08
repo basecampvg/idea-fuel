@@ -9,7 +9,7 @@
  */
 
 import type {
-  IdeaStatus,
+  ProjectStatus,
   InterviewMode,
   InterviewStatus,
   SparkJobStatus,
@@ -27,8 +27,8 @@ export type JourneyState =
   | 'FORGE_COMPLETE'; // Full analysis complete (hide banner)
 
 export interface ResearchStateInput {
-  idea: {
-    status: IdeaStatus;
+  project: {
+    status: ProjectStatus;
   };
   interview?: {
     mode: InterviewMode;
@@ -55,7 +55,7 @@ export interface ResearchStateInput {
  * 4. FORGE_COMPLETE: IN_DEPTH interview complete + research complete
  */
 export function getResearchJourneyState(state: ResearchStateInput): JourneyState {
-  const { idea, interview, research } = state;
+  const { project, interview, research } = state;
 
   // Check for Spark completion first (doesn't require interview)
   const isSparkComplete =
@@ -75,8 +75,8 @@ export function getResearchJourneyState(state: ResearchStateInput): JourneyState
     return 'SPARK_COMPLETE';
   }
 
-  // No interview started or idea just captured
-  if (!interview || idea.status === 'CAPTURED') {
+  // No interview started or project just captured
+  if (!interview || project.status === 'CAPTURED') {
     return 'CAPTURED';
   }
 

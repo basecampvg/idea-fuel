@@ -22,7 +22,7 @@ export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
  */
 export interface ReportGenerationJobData {
   reportId: string;
-  ideaId: string;
+  projectId: string;
   userId: string;
   reportType: string;
   tier: string;
@@ -33,7 +33,7 @@ export interface ReportGenerationJobData {
  */
 export interface ResearchPipelineJobData {
   researchId: string;
-  ideaId: string;
+  projectId: string;
   userId: string;
   interviewId?: string;
   mode?: 'LIGHT' | 'IN_DEPTH' | 'SPARK';

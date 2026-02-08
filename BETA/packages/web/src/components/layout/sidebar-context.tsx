@@ -38,9 +38,9 @@ const SidebarContext = createContext<SidebarContextValue | null>(null);
 // Stable no-op to avoid creating new closures every render
 const noop = () => {};
 
-function isIdeaDetailRoute(pathname: string | null): boolean {
+function isProjectDetailRoute(pathname: string | null): boolean {
   if (!pathname) return false;
-  return /^\/ideas\/[^/]+/.test(pathname) && pathname !== '/ideas';
+  return /^\/projects\/[^/]+/.test(pathname) && pathname !== '/projects';
 }
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
@@ -84,7 +84,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     }
   }, [clearHoverTimers]);
 
-  const isAutoCollapsed = isIdeaDetailRoute(pathname);
+  const isAutoCollapsed = isProjectDetailRoute(pathname);
 
   const isExpanded =
     !isAutoCollapsed &&

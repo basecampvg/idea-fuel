@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { trpc } from '../../../../lib/trpc';
 import {
-  IDEA_STATUS_LABELS,
+  PROJECT_STATUS_LABELS,
   INTERVIEW_MODE_LABELS,
   REPORT_TYPE_LABELS,
   REPORT_STATUS_LABELS,
@@ -106,7 +106,7 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
       <Text style={[styles.statusBadgeText, { color: statusStyle.text }]}>
-        {IDEA_STATUS_LABELS[status] || status}
+        {PROJECT_STATUS_LABELS[status] || status}
       </Text>
     </View>
   );
@@ -354,14 +354,14 @@ function LockedFeatures() {
   );
 }
 
-export default function IdeaDetailScreen() {
+export default function ProjectDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const utils = trpc.useUtils();
 
-  const { data: idea, isLoading, error, refetch, isRefetching } = trpc.idea.get.useQuery({ id });
+  const { data: project, isLoading, error, refetch, isRefetching } = trpc.project.get.useQuery({ id });
 
-  const startInterview = trpc.idea.startInterview.useMutation({
+  const startInterview = trpc.project.startInterview.useMutation({
     onSuccess: () => {
       router.push(`/(tabs)/ideas/${id}/interview` as never);
     },
@@ -369,17 +369,17 @@ export default function IdeaDetailScreen() {
 
   const abandonInterview = trpc.interview.abandon.useMutation({
     onSuccess: () => {
-      utils.idea.get.invalidate({ id });
+      utils.project.get.invalidate({ id });
     },
   });
 
-  const startResearch = trpc.research.start.useMutation({
+  const startResearch = trpc.project.startResearch.useMutation({
     onSuccess: () => {
-      utils.idea.get.invalidate({ id });
+      utils.project.get.invalidate({ id });
     },
   });
 
-  const deleteIdea = trpc.idea.delete.useMutation({
+  const deleteProject = trpc.project.delete.useMutation({
     onSuccess: () => {
       router.replace('/(tabs)/ideas');
     },
@@ -387,14 +387,14 @@ export default function IdeaDetailScreen() {
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete Idea',
-      'Are you sure you want to delete this idea? This cannot be undone.',
+      'Delete Project',
+      'Are you sure you want to delete this project? This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => deleteIdea.mutate({ id }),
+          onPress: () => deleteProject.mutate({ id }),
         },
       ]
     );
@@ -417,18 +417,18 @@ export default function IdeaDetailScreen() {
   };
 
   if (isLoading && !isRefetching) {
-    return <LoadingScreen message="Loading idea..." />;
+    return <LoadingScreen message="Loading project..." />;
   }
 
-  if (error || !idea) {
+  if (error || !project) {
     return (
       <SafeAreaView style={styles.container} edges={['bottom']}>
         <View style={styles.errorContainer}>
           <View style={styles.errorIcon}>
             <Ionicons name="alert-circle" size={48} color={colors.destructive} />
           </View>
-          <Text style={styles.errorTitle}>Idea not found</Text>
-          <Text style={styles.errorMessage}>This idea may have been deleted</Text>
+          <Text style={styles.errorTitle}>Project not found</Text>
+          <Text style={styles.errorMessage}>This project may have been deleted</Text>
           <TouchableOpacity
             style={styles.errorButton}
             onPress={() => router.replace('/(tabs)/ideas')}
@@ -440,28 +440,28 @@ export default function IdeaDetailScreen() {
     );
   }
 
-  const activeInterview = idea.interviews?.find((i) => i.status === 'IN_PROGRESS');
-  const completedInterview = idea.interviews?.find((i) => i.status === 'COMPLETE');
-  const isResearching = idea.status === 'RESEARCHING';
-  const isComplete = idea.status === 'COMPLETE';
-  const hasResearch = idea.research?.status === 'COMPLETE';
+  const activeInterview = project.interviews?.find((i) => i.status === 'IN_PROGRESS');
+  const completedInterview = project.interviews?.find((i) => i.status === 'COMPLETE');
+  const isResearching = project.status === 'RESEARCHING';
+  const isComplete = project.status === 'COMPLETE';
+  const hasResearch = project.research?.status === 'COMPLETE';
 
   // Calculate journey state for next step promotion
   const journeyState = getResearchJourneyState({
-    idea: { status: idea.status },
+    project: { status: project.status },
     interview: completedInterview ? {
       mode: completedInterview.mode as InterviewMode,
       status: completedInterview.status as 'IN_PROGRESS' | 'COMPLETE' | 'ABANDONED',
     } : null,
-    research: idea.research ? {
-      sparkStatus: (idea.research as any)?.sparkStatus || null,
-      sparkResult: (idea.research as any)?.sparkResult || null,
-      status: idea.research.status as 'PENDING' | 'IN_PROGRESS' | 'COMPLETE' | 'FAILED',
+    research: project.research ? {
+      sparkStatus: (project.research as any)?.sparkStatus || null,
+      sparkResult: (project.research as any)?.sparkResult || null,
+      status: project.research.status as 'PENDING' | 'IN_PROGRESS' | 'COMPLETE' | 'FAILED',
     } : null,
   });
 
   const handleStartMode = (mode: InterviewMode) => {
-    startInterview.mutate({ ideaId: id, mode });
+    startInterview.mutate({ projectId: id, mode });
   };
 
   return (
@@ -483,15 +483,15 @@ export default function IdeaDetailScreen() {
         <View style={styles.headerCard}>
           <View style={styles.headerTop}>
             <Text style={styles.headerTitle} numberOfLines={2}>
-              {idea.title}
+              {project.title}
             </Text>
-            <StatusBadge status={idea.status} />
+            <StatusBadge status={project.status} />
           </View>
           <Text style={styles.headerDescription} numberOfLines={3}>
-            {idea.description}
+            {project.description}
           </Text>
           <Text style={styles.headerDate}>
-            Created {new Date(idea.createdAt).toLocaleDateString('en-US', {
+            Created {new Date(project.createdAt).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
               year: 'numeric',
@@ -500,7 +500,7 @@ export default function IdeaDetailScreen() {
         </View>
 
         {/* Status: CAPTURED - Start Interview */}
-        {idea.status === 'CAPTURED' && (
+        {project.status === 'CAPTURED' && (
           <View style={styles.card}>
             <SectionHeader
               icon="chatbubbles"
@@ -517,7 +517,7 @@ export default function IdeaDetailScreen() {
                   <TouchableOpacity
                     key={mode}
                     style={styles.modeOption}
-                    onPress={() => startInterview.mutate({ ideaId: id, mode })}
+                    onPress={() => startInterview.mutate({ projectId: id, mode })}
                     disabled={startInterview.isPending}
                     activeOpacity={0.7}
                   >
@@ -543,7 +543,7 @@ export default function IdeaDetailScreen() {
         )}
 
         {/* Status: INTERVIEWING */}
-        {idea.status === 'INTERVIEWING' && activeInterview && (
+        {project.status === 'INTERVIEWING' && activeInterview && (
           <>
             <InterviewCard
               interview={activeInterview as any}
@@ -556,8 +556,8 @@ export default function IdeaDetailScreen() {
         )}
 
         {/* Status: RESEARCHING */}
-        {isResearching && idea.research && (
-          <ResearchProgressCard research={idea.research as any} />
+        {isResearching && project.research && (
+          <ResearchProgressCard research={project.research as any} />
         )}
 
         {/* Status: COMPLETE */}
@@ -565,68 +565,68 @@ export default function IdeaDetailScreen() {
           <>
             {/* Next Step Promotion Banner */}
             <NextStepPromotion
-              ideaId={id}
+              projectId={id}
               journeyState={journeyState}
               onStartMode={handleStartMode}
               isStarting={startInterview.isPending}
             />
 
             {/* Spark Results (for SPARK mode ideas) */}
-            {(idea.research as any)?.sparkResult && (
-              <SparkResultsSection sparkResult={(idea.research as any).sparkResult} />
+            {(project.research as any)?.sparkResult && (
+              <SparkResultsSection sparkResult={(project.research as any).sparkResult} />
             )}
 
             {/* User Story */}
-            <UserStorySection userStory={(idea.research as any)?.userStory} />
+            <UserStorySection userStory={(project.research as any)?.userStory} />
 
             {/* Score Cards with Justifications */}
             <ScoreCardsEnhanced
               scores={{
-                opportunity: (idea.research as any)?.opportunityScore,
-                problem: (idea.research as any)?.problemScore,
-                feasibility: (idea.research as any)?.feasibilityScore,
-                whyNow: (idea.research as any)?.whyNowScore,
+                opportunity: (project.research as any)?.opportunityScore,
+                problem: (project.research as any)?.problemScore,
+                feasibility: (project.research as any)?.feasibilityScore,
+                whyNow: (project.research as any)?.whyNowScore,
               }}
-              justifications={(idea.research as any)?.scoreJustifications}
+              justifications={(project.research as any)?.scoreJustifications}
             />
 
             {/* Market Sizing (TAM/SAM/SOM) */}
-            <MarketSizingSection marketSizing={(idea.research as any)?.marketSizing} />
+            <MarketSizingSection marketSizing={(project.research as any)?.marketSizing} />
 
             {/* Keyword Trends Chart */}
-            <KeywordChartSection keywordTrends={(idea.research as any)?.keywordTrends} />
+            <KeywordChartSection keywordTrends={(project.research as any)?.keywordTrends} />
 
             {/* Business Fit Metrics */}
             <BusinessFitSection
-              revenuePotential={(idea.research as any)?.revenuePotential}
-              executionDifficulty={(idea.research as any)?.executionDifficulty}
-              gtmClarity={(idea.research as any)?.gtmClarity}
-              founderFit={(idea.research as any)?.founderFit}
+              revenuePotential={(project.research as any)?.revenuePotential}
+              executionDifficulty={(project.research as any)?.executionDifficulty}
+              gtmClarity={(project.research as any)?.gtmClarity}
+              founderFit={(project.research as any)?.founderFit}
             />
 
             {/* Tech Stack Recommendations */}
-            <TechStackSection techStack={(idea.research as any)?.techStack} />
+            <TechStackSection techStack={(project.research as any)?.techStack} />
 
             {/* Value Ladder / Offer Tiers */}
-            <OfferSection offerTiers={(idea.research as any)?.valueLadder} />
+            <OfferSection offerTiers={(project.research as any)?.valueLadder} />
 
             {/* Why Now - Market Timing */}
-            <WhyNowSection whyNow={(idea.research as any)?.whyNow} />
+            <WhyNowSection whyNow={(project.research as any)?.whyNow} />
 
             {/* Proof Signals - Demand Validation */}
-            <ProofSignalsSection proofSignals={(idea.research as any)?.proofSignals} />
+            <ProofSignalsSection proofSignals={(project.research as any)?.proofSignals} />
 
             {/* Social Proof */}
-            <SocialProofSection socialProof={(idea.research as any)?.socialProof} />
+            <SocialProofSection socialProof={(project.research as any)?.socialProof} />
 
             {/* Competitors */}
-            <CompetitorsSection competitors={(idea.research as any)?.competitors} />
+            <CompetitorsSection competitors={(project.research as any)?.competitors} />
 
             {/* Pain Points */}
-            <PainPointsSection painPoints={(idea.research as any)?.painPoints} />
+            <PainPointsSection painPoints={(project.research as any)?.painPoints} />
 
             {/* Reports */}
-            {idea.reports && idea.reports.length > 0 && (
+            {project.reports && project.reports.length > 0 && (
               <View style={styles.card}>
                 <SectionHeader
                   icon="document-text"
@@ -636,7 +636,7 @@ export default function IdeaDetailScreen() {
                   subtitle="Generated business documents"
                 />
                 <View style={styles.reportsList}>
-                  {idea.reports.map((report) => (
+                  {project.reports.map((report) => (
                     <ReportCard
                       key={report.id}
                       report={report as any}
@@ -670,7 +670,7 @@ export default function IdeaDetailScreen() {
         )}
 
         {/* Ready for Research */}
-        {completedInterview && !isResearching && !hasResearch && idea.status !== 'COMPLETE' && (
+        {completedInterview && !isResearching && !hasResearch && project.status !== 'COMPLETE' && (
           <View style={styles.card}>
             <SectionHeader
               icon="analytics"
@@ -681,7 +681,7 @@ export default function IdeaDetailScreen() {
             />
             <TouchableOpacity
               style={styles.startResearchButton}
-              onPress={() => startResearch.mutate({ ideaId: id })}
+              onPress={() => startResearch.mutate({ id })}
               disabled={startResearch.isPending}
               activeOpacity={0.8}
             >
@@ -701,11 +701,11 @@ export default function IdeaDetailScreen() {
         <TouchableOpacity
           style={styles.deleteButton}
           onPress={handleDelete}
-          disabled={deleteIdea.isPending}
+          disabled={deleteProject.isPending}
         >
           <Ionicons name="trash-outline" size={18} color={colors.destructive} />
           <Text style={styles.deleteButtonText}>
-            {deleteIdea.isPending ? 'Deleting...' : 'Delete Idea'}
+            {deleteProject.isPending ? 'Deleting...' : 'Delete Project'}
           </Text>
         </TouchableOpacity>
       </ScrollView>

@@ -19,7 +19,7 @@ export function DashboardMain({ children }: { children: React.ReactNode }) {
 
   return (
     <main
-      className="min-h-screen flex flex-col relative z-10 transition-[margin-left] duration-200 ease-out"
+      className="min-h-screen flex flex-col relative z-10 transition-[margin-left] duration-200 ease-out motion-reduce:duration-0"
       style={{ marginLeft: sidebarWidth, paddingTop: TOP_BAR_HEIGHT }}
     >
       {children}

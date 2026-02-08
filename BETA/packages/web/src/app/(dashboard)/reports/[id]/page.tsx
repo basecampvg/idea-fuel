@@ -25,7 +25,7 @@ export default function ReportDetailPage({
     return (
       <div className="w-full max-w-[1120px] mx-auto px-6 py-8">
         <Link
-          href="/ideas"
+          href="/projects"
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <svg className="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -47,14 +47,14 @@ export default function ReportDetailPage({
 
       {/* Metadata cards */}
       <div className="grid gap-3 sm:grid-cols-4">
-        {/* Idea link */}
+        {/* Project link */}
         <div className="p-4 rounded-xl bg-card border border-border">
-          <p className="text-xs text-muted-foreground mb-1">Source Idea</p>
+          <p className="text-xs text-muted-foreground mb-1">Source Project</p>
           <Link
-            href={`/ideas/${report.ideaId}`}
+            href={`/projects/${report.projectId}`}
             className="text-sm font-medium text-accent hover:text-accent/80 transition-colors line-clamp-1"
           >
-            {report.idea?.title || 'View Idea'}
+            {report.project?.title || 'View Project'}
           </Link>
         </div>
 

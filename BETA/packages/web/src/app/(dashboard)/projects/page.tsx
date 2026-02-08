@@ -5,11 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { LoadingScreen } from '@/components/ui/spinner';
-import { deriveProjectStatus, projectStatusConfig, type ProjectStatus } from '@/lib/project-status';
+import { deriveProjectStatus, type ProjectDisplayStatus } from '@/lib/project-status';
 import {
   FolderOpen,
   Sparkles,
-  Search,
   CheckCircle2,
   FileText,
   Clock,
@@ -20,9 +19,9 @@ import {
   Layers,
 } from 'lucide-react';
 
-// Status configuration with icons and colors
+// Status configuration with icons and colors for display statuses
 const statusDisplay: Record<
-  ProjectStatus,
+  ProjectDisplayStatus,
   {
     icon: React.ReactNode;
     borderColor: string;
@@ -31,21 +30,21 @@ const statusDisplay: Record<
     color: string;
   }
 > = {
-  DRAFT: {
+  Draft: {
     icon: <FileText className="w-4 h-4" />,
     color: 'text-muted-foreground',
     bgColor: 'bg-muted/50',
     borderColor: 'border-border',
     glowColor: '',
   },
-  ACTIVE: {
+  Active: {
     icon: <Sparkles className="w-4 h-4" />,
     color: 'text-primary',
     bgColor: 'bg-primary/10',
     borderColor: 'border-primary/30',
     glowColor: 'shadow-[0_0_20px_hsl(var(--primary)/0.15)]',
   },
-  COMPLETE: {
+  Complete: {
     icon: <CheckCircle2 className="w-4 h-4" />,
     color: 'text-primary',
     bgColor: 'bg-primary/10',
@@ -70,7 +69,7 @@ function formatTimeAgo(date: Date): string {
 
 export default function ProjectsPage() {
   const router = useRouter();
-  const [filter, setFilter] = useState<ProjectStatus | 'ALL'>('ALL');
+  const [filter, setFilter] = useState<ProjectDisplayStatus | 'ALL'>('ALL');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -110,7 +109,7 @@ export default function ProjectsPage() {
   };
 
   const handleNewProject = () => {
-    createMutation.mutate({ title: 'Untitled Project' });
+    createMutation.mutate({ title: 'Untitled Project', description: '' });
   };
 
   if (isLoading) {
@@ -134,9 +133,9 @@ export default function ProjectsPage() {
 
   const statusCounts = {
     ALL: allProjects.length,
-    DRAFT: allProjects.filter((p) => p.derivedStatus === 'DRAFT').length,
-    ACTIVE: allProjects.filter((p) => p.derivedStatus === 'ACTIVE').length,
-    COMPLETE: allProjects.filter((p) => p.derivedStatus === 'COMPLETE').length,
+    Draft: allProjects.filter((p) => p.derivedStatus === 'Draft').length,
+    Active: allProjects.filter((p) => p.derivedStatus === 'Active').length,
+    Complete: allProjects.filter((p) => p.derivedStatus === 'Complete').length,
   };
 
   return (
@@ -169,7 +168,7 @@ export default function ProjectsPage() {
 
       {/* Filter Tabs */}
       <div className="flex gap-1 p-1 rounded-xl bg-card/50 border border-border w-fit">
-        {(['ALL', 'DRAFT', 'ACTIVE', 'COMPLETE'] as const).map((status) => {
+        {(['ALL', 'Draft', 'Active', 'Complete'] as const).map((status) => {
           const count = statusCounts[status];
           const isActive = filter === status;
           const config = status !== 'ALL' ? statusDisplay[status] : null;
@@ -188,7 +187,7 @@ export default function ProjectsPage() {
               `}
             >
               {config && <span className={isActive ? 'text-primary' : ''}>{config.icon}</span>}
-              <span>{status === 'ALL' ? 'All' : projectStatusConfig[status].label}</span>
+              <span>{status === 'ALL' ? 'All' : status}</span>
               <span
                 className={`
                 text-xs px-1.5 py-0.5 rounded-full
@@ -209,9 +208,8 @@ export default function ProjectsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects.map((project) => {
             const display = statusDisplay[project.derivedStatus];
-            const statusLabel = projectStatusConfig[project.derivedStatus].label;
-            const canvasBlockCount = Array.isArray(project.canvas) ? (project.canvas as unknown[]).length : 0;
-            const ideaCount = project._count?.ideas ?? 0;
+            const statusLabel = project.derivedStatus;
+            const hasNotes = !!project.notes;
 
             return (
               <Link key={project.id} href={`/projects/${project.id}`} className="group">
@@ -262,10 +260,10 @@ export default function ProjectsPage() {
                         <Clock className="w-3.5 h-3.5" />
                         <span>{formatTimeAgo(project.updatedAt)}</span>
                       </div>
-                      {canvasBlockCount > 0 && (
+                      {hasNotes && (
                         <div className="flex items-center gap-1">
                           <Layers className="w-3.5 h-3.5" />
-                          <span>{canvasBlockCount} block{canvasBlockCount !== 1 ? 's' : ''}</span>
+                          <span>Has notes</span>
                         </div>
                       )}
                     </div>
@@ -345,21 +343,21 @@ export default function ProjectsPage() {
   );
 }
 
-function EmptyState({ filter, onNewProject }: { filter: ProjectStatus | 'ALL'; onNewProject: () => void }) {
-  const messages: Record<ProjectStatus | 'ALL', { title: string; description: string }> = {
+function EmptyState({ filter, onNewProject }: { filter: ProjectDisplayStatus | 'ALL'; onNewProject: () => void }) {
+  const messages: Record<ProjectDisplayStatus | 'ALL', { title: string; description: string }> = {
     ALL: {
       title: 'Your vault is empty',
       description: 'Start by creating your first project',
     },
-    DRAFT: {
+    Draft: {
       title: 'No drafts',
       description: 'Projects you create will appear here',
     },
-    ACTIVE: {
+    Active: {
       title: 'No active projects',
       description: 'Start an interview or research to activate a project',
     },
-    COMPLETE: {
+    Complete: {
       title: 'No completed projects',
       description: 'Finish research to see your results here',
     },

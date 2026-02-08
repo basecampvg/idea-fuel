@@ -35,7 +35,7 @@ const ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 interface NextStepPromotionProps {
-  ideaId: string;
+  projectId: string;
   journeyState: JourneyState;
   onStartMode: (mode: InterviewMode) => void;
   isStarting: boolean;
@@ -44,7 +44,7 @@ interface NextStepPromotionProps {
 }
 
 export function NextStepPromotion({
-  ideaId,
+  projectId,
   journeyState,
   onStartMode,
   isStarting,

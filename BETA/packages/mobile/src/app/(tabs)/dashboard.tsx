@@ -134,8 +134,8 @@ export default function DashboardScreen() {
     }
   };
 
-  const createIdea = trpc.idea.create.useMutation();
-  const startInterview = trpc.idea.startInterview.useMutation();
+  const createProject = trpc.project.create.useMutation();
+  const startInterview = trpc.project.startInterview.useMutation();
   const startSpark = trpc.research.startSpark.useMutation();
 
   const firstName = user?.name?.split(' ')[0] || 'there';
@@ -148,31 +148,31 @@ export default function DashboardScreen() {
     Keyboard.dismiss();
 
     try {
-      const title = ideaDescription.split('\n')[0].slice(0, 100) || 'Untitled Idea';
+      const title = ideaDescription.split('\n')[0].slice(0, 100) || 'Untitled Project';
 
-      const idea = await createIdea.mutateAsync({
+      const project = await createProject.mutateAsync({
         title,
         description: ideaDescription,
       });
 
       if (selectedMode === 'SAVE') {
-        router.push(`/ideas/${idea.id}`);
+        router.push(`/ideas/${project.id}`);
       } else if (selectedMode === 'SPARK') {
-        await startInterview.mutateAsync({ ideaId: idea.id, mode: 'SPARK' });
-        await startSpark.mutateAsync({ ideaId: idea.id });
-        router.push(`/ideas/${idea.id}`);
+        await startInterview.mutateAsync({ projectId: project.id, mode: 'SPARK' });
+        await startSpark.mutateAsync({ projectId: project.id });
+        router.push(`/ideas/${project.id}`);
       } else {
         // LIGHT or IN_DEPTH - go to interview
         await startInterview.mutateAsync({
-          ideaId: idea.id,
+          projectId: project.id,
           mode: selectedMode as 'LIGHT' | 'IN_DEPTH',
         });
-        router.push(`/ideas/${idea.id}/interview`);
+        router.push(`/ideas/${project.id}/interview`);
       }
 
       setIdeaDescription('');
     } catch (error) {
-      console.error('Failed to create idea:', error);
+      console.error('Failed to create project:', error);
     } finally {
       setIsSubmitting(false);
     }

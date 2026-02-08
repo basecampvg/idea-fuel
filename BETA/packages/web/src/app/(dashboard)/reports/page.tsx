@@ -107,10 +107,10 @@ export default function ReportsPage() {
             </svg>
           }
           title="No reports yet"
-          description="Reports are generated after completing research on your ideas"
+          description="Reports are generated after completing research on your projects"
           action={
-            <Link href="/ideas">
-              <Button>View Your Ideas</Button>
+            <Link href="/projects">
+              <Button>View Your Projects</Button>
             </Link>
           }
         />
@@ -131,7 +131,7 @@ export default function ReportsPage() {
                     </div>
                     <p className="mt-1 text-sm text-gray-500">{report.title}</p>
                     <p className="mt-2 text-xs text-gray-400">
-                      {report.idea?.title}
+                      {report.project?.title}
                     </p>
                   </div>
                   <div className="mt-4 flex items-center justify-between">

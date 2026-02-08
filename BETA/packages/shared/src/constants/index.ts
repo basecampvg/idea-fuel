@@ -6,34 +6,26 @@ export * from './subscription';
 export const APP_NAME = 'Forge Automation';
 export const APP_VERSION = '0.1.0';
 
-// Project status labels
+// Project status labels (unified lifecycle: CAPTURED=draft, rest=project)
 export const PROJECT_STATUS_LABELS: Record<string, string> = {
-  DRAFT: 'Draft',
-  ACTIVE: 'Active',
+  CAPTURED: 'Draft',
+  INTERVIEWING: 'Interviewing',
+  RESEARCHING: 'Researching',
   COMPLETE: 'Complete',
 };
 
 export const PROJECT_STATUS_DESCRIPTIONS: Record<string, string> = {
-  DRAFT: 'Building canvas — no idea submitted yet',
-  ACTIVE: 'Idea is in the pipeline',
+  CAPTURED: 'Idea captured — ready to research',
+  INTERVIEWING: 'Interview in progress',
+  RESEARCHING: 'Research pipeline running',
   COMPLETE: 'Research and reports are ready',
 };
 
-// Predefined canvas section types
-export const PREDEFINED_SECTIONS = [
-  { type: 'target_audience', title: 'Target Audience', description: 'Who is this for?' },
-  { type: 'problem_statement', title: 'Problem Statement', description: 'What problem does this solve?' },
-  { type: 'competitors', title: 'Competitors', description: 'Who else is solving this?' },
-  { type: 'inspiration', title: 'Inspiration', description: 'What inspired this idea?' },
-  { type: 'open_questions', title: 'Open Questions', description: 'What do you still need to figure out?' },
-  { type: 'revenue_model', title: 'Revenue Model', description: 'How will this make money?' },
-] as const;
-
-// Status labels for display
-export const IDEA_STATUS_LABELS: Record<string, string> = {
-  CAPTURED: 'Captured',
-  INTERVIEWING: 'In Interview',
-  RESEARCHING: 'Researching',
+// Derived display status for sidebar sections
+export const PROJECT_DISPLAY_STATUS: Record<string, string> = {
+  CAPTURED: 'Draft',
+  INTERVIEWING: 'Active',
+  RESEARCHING: 'Active',
   COMPLETE: 'Complete',
 };
 

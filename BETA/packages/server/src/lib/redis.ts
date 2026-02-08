@@ -28,6 +28,13 @@ const redisOptions: RedisOptions = {
   maxRetriesPerRequest: null, // Required by BullMQ
   enableReadyCheck: false, // Faster startup
   lazyConnect: true, // Don't connect until needed
+  retryStrategy(times) {
+    if (times > 3) {
+      console.warn(`[Redis] Could not connect after ${times} attempts — giving up. Redis-dependent features (queues, budget tracking) will be unavailable.`);
+      return null; // Stop retrying
+    }
+    return Math.min(times * 500, 3000); // 500ms, 1s, 1.5s
+  },
 };
 
 /**
@@ -36,12 +43,17 @@ const redisOptions: RedisOptions = {
  */
 export const redis = new Redis(getRedisUrl(), redisOptions);
 
+// Suppress repetitive connection error spam — logged once via retryStrategy
+redis.on('error', () => {});
+
 /**
  * Create a new Redis connection
  * BullMQ requires separate connections for Queue and Worker
  */
 export function createRedisConnection(): Redis {
-  return new Redis(getRedisUrl(), redisOptions);
+  const conn = new Redis(getRedisUrl(), redisOptions);
+  conn.on('error', () => {}); // Suppress retry error spam
+  return conn;
 }
 
 /**

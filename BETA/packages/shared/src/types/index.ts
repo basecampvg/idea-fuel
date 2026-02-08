@@ -1,83 +1,29 @@
 // Shared type definitions
 
 // =============================================================================
-// Project + Canvas Types
+// Project Types (Unified: absorbs former Idea + Canvas types)
 // =============================================================================
 
-export type ProjectStatus = 'DRAFT' | 'ACTIVE' | 'COMPLETE';
+// Project status enum (matches Prisma ProjectStatus)
+export type ProjectStatus = 'CAPTURED' | 'INTERVIEWING' | 'RESEARCHING' | 'COMPLETE';
+
+// Derived display status for sidebar grouping
+export type ProjectDisplayStatus = 'Draft' | 'Active' | 'Complete';
 
 export interface Project {
   id: string;
   title: string;
-  description: string | null;
-  canvas: CanvasBlock[];
+  description: string;
+  notes: string | null;
+  status: ProjectStatus;
   userId: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface CanvasSnapshot {
-  id: string;
-  projectId: string;
-  content: CanvasBlock[];
-  createdAt: Date;
-}
-
-// Canvas block types
-export type CanvasBlockType = 'section' | 'note' | 'subIdea' | 'link';
-
-export type PredefinedSectionType =
-  | 'target_audience'
-  | 'problem_statement'
-  | 'competitors'
-  | 'inspiration'
-  | 'open_questions'
-  | 'revenue_model';
-
-export interface CanvasBlockBase {
-  id: string;
-  type: CanvasBlockType;
-  order: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CanvasSectionBlock extends CanvasBlockBase {
-  type: 'section';
-  sectionType: PredefinedSectionType | 'custom';
-  title: string;
-  content: string;
-}
-
-export interface CanvasNoteBlock extends CanvasBlockBase {
-  type: 'note';
-  content: string;
-}
-
-export interface CanvasSubIdeaBlock extends CanvasBlockBase {
-  type: 'subIdea';
-  title: string;
-  description: string;
-}
-
-export interface CanvasLinkBlock extends CanvasBlockBase {
-  type: 'link';
-  url: string;
-  title?: string;
-  description?: string;
-}
-
-export type CanvasBlock =
-  | CanvasSectionBlock
-  | CanvasNoteBlock
-  | CanvasSubIdeaBlock
-  | CanvasLinkBlock;
-
 // =============================================================================
-// Idea + Pipeline Types
+// Pipeline Types
 // =============================================================================
-
-export type IdeaStatus = 'CAPTURED' | 'INTERVIEWING' | 'RESEARCHING' | 'COMPLETE';
 
 export type InterviewStatus = 'IN_PROGRESS' | 'COMPLETE' | 'ABANDONED';
 
@@ -138,15 +84,6 @@ export interface User {
   updatedAt: Date;
 }
 
-export interface Idea {
-  id: string;
-  title: string;
-  description: string;
-  status: IdeaStatus;
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 export interface Interview {
   id: string;
@@ -165,7 +102,7 @@ export interface Interview {
   resumeContext: string | null; // AI context for seamless resume
   isExpired: boolean;
 
-  ideaId: string;
+  projectId: string;
   userId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -300,7 +237,7 @@ export interface Research {
   errorPhase: ResearchPhase | null;
   retryCount: number;
 
-  ideaId: string;
+  projectId: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -463,7 +400,7 @@ export interface Report {
   version: number;
   status: ReportStatus;
   pdfUrl: string | null;
-  ideaId: string;
+  projectId: string;
   userId: string;
   createdAt: Date;
   updatedAt: Date;

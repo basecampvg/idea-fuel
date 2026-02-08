@@ -177,7 +177,7 @@ const isDev = process.env.NODE_ENV === 'development';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { canCreateIdea, canAccessMode, showUpgradePrompt, currentIdeaCount, features } = useSubscription();
+  const { canCreateIdea, canAccessMode, showUpgradePrompt, currentProjectCount, features } = useSubscription();
   const [ideaDescription, setIdeaDescription] = useState('');
   const [selectedMode, setSelectedMode] = useState<string>('IN_DEPTH');
   const [hoveredMode, setHoveredMode] = useState<string | null>(null);
@@ -188,7 +188,7 @@ export default function DashboardPage() {
 
   // Interview state
   const [interviewActive, setInterviewActive] = useState(false);
-  const [currentIdeaId, setCurrentIdeaId] = useState<string | null>(null);
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [currentInterviewId, setCurrentInterviewId] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<string>('');
   const [ideaTitle, setIdeaTitle] = useState<string>('');
@@ -206,8 +206,8 @@ export default function DashboardPage() {
     undefined,
     { retry: isDev ? false : 3 }
   );
-  const createIdea = trpc.idea.create.useMutation();
-  const startInterview = trpc.idea.startInterview.useMutation();
+  const createProject = trpc.project.create.useMutation();
+  const startInterview = trpc.project.startInterview.useMutation();
   const startResearch = trpc.research.start.useMutation();
   const startSpark = trpc.research.startSpark.useMutation();
   const sendMessage = trpc.interview.chat.useMutation();
@@ -236,7 +236,7 @@ export default function DashboardPage() {
   }
 
   const firstName = user?.name?.split(' ')[0] || (isDev ? 'Developer' : 'there');
-  const isSubmitting = createIdea.isPending || startInterview.isPending || startResearch.isPending || startSpark.isPending || isExecuting;
+  const isSubmitting = createProject.isPending || startInterview.isPending || startResearch.isPending || startSpark.isPending || isExecuting;
   const canSubmit = ideaDescription.trim().length >= 10;
 
   // Execute the selected mode
@@ -244,10 +244,10 @@ export default function DashboardPage() {
     if (!canSubmit || isSubmitting) return;
 
     // Check idea limit
-    if (!canCreateIdea(currentIdeaCount)) {
+    if (!canCreateIdea(currentProjectCount)) {
       showUpgradePrompt({
         type: 'idea_limit',
-        currentCount: currentIdeaCount,
+        currentCount: currentProjectCount,
         limit: features.maxIdeas,
       });
       return;
@@ -262,24 +262,24 @@ export default function DashboardPage() {
     setIsExecuting(true);
 
     try {
-      const title = ideaDescription.split('\n')[0].slice(0, 100) || 'Untitled Idea';
+      const title = ideaDescription.split('\n')[0].slice(0, 100) || 'Untitled Project';
 
-      const idea = await createIdea.mutateAsync({
+      const project = await createProject.mutateAsync({
         title,
         description: ideaDescription,
       });
 
       if (selectedMode === 'SAVE') {
-        router.push(`/ideas/${idea.id}`);
+        router.push(`/projects/${project.id}`);
       } else if (selectedMode === 'SPARK') {
         // Spark mode - quick validation pipeline
-        await startInterview.mutateAsync({ ideaId: idea.id, mode: 'SPARK' });
-        await startSpark.mutateAsync({ ideaId: idea.id });
-        router.push(`/ideas/${idea.id}`);
+        await startInterview.mutateAsync({ projectId: project.id, mode: 'SPARK' });
+        await startSpark.mutateAsync({ projectId: project.id });
+        router.push(`/projects/${project.id}`);
       } else {
         // LIGHT or IN_DEPTH - start inline interview
         const result = await startInterview.mutateAsync({
-          ideaId: idea.id,
+          projectId: project.id,
           mode: selectedMode as InterviewMode
         });
 
@@ -288,7 +288,7 @@ export default function DashboardPage() {
         const firstQuestion = messages?.find(m => m.role === 'assistant')?.content || '';
 
         // Switch to interview mode
-        setCurrentIdeaId(idea.id);
+        setCurrentProjectId(project.id);
         setCurrentInterviewId(result.interview.id);
         setIdeaTitle(title);
         setInterviewModeState(selectedMode as InterviewMode);
@@ -304,7 +304,7 @@ export default function DashboardPage() {
         setTimeout(() => setAnimationState('visible'), 50);
       }
     } catch (error) {
-      console.error('Failed to process idea:', error);
+      console.error('Failed to process project:', error);
       setIsExecuting(false);
     }
   };
@@ -339,7 +339,7 @@ export default function DashboardPage() {
       // Check if interview is complete
       if (result.interview.status === 'COMPLETE') {
         setTimeout(() => {
-          router.push(`/ideas/${currentIdeaId}`);
+          router.push(`/projects/${currentProjectId}`);
         }, 500);
         return;
       }
@@ -374,7 +374,7 @@ export default function DashboardPage() {
 
     try {
       await completeInterview.mutateAsync({ id: currentInterviewId });
-      router.push(`/ideas/${currentIdeaId}`);
+      router.push(`/projects/${currentProjectId}`);
     } catch (error) {
       console.error('Failed to complete interview:', error);
     }

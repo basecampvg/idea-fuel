@@ -152,7 +152,7 @@ export default function ReportsScreen() {
               return (
                 <TouchableOpacity
                   key={report.id}
-                  onPress={() => router.push(`/ideas/${report.ideaId}`)}
+                  onPress={() => router.push(`/ideas/${report.projectId}`)}
                   style={styles.reportCard}
                   activeOpacity={0.7}
                 >

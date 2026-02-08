@@ -98,8 +98,8 @@ interface ReportHeaderProps {
     title: string;
     version: number;
     createdAt: Date;
-    ideaId: string;
-    idea?: {
+    projectId: string;
+    project?: {
       id: string;
       title: string;
       description?: string | null;
@@ -150,26 +150,26 @@ export function ReportHeader({ report }: ReportHeaderProps) {
     setIsDownloading(true);
     setDownloadError(null);
     downloadPDF.mutate({
-      ideaId: report.ideaId,
+      projectId: report.projectId,
       reportType: report.type as ReportType,
     });
   };
 
-  // Get idea title for back link
-  const ideaTitle = report.idea?.title || report.idea?.description?.slice(0, 40) || 'Idea';
-  const truncatedIdeaTitle = ideaTitle.length > 30 ? ideaTitle.slice(0, 30) + '...' : ideaTitle;
+  // Get project title for back link
+  const projectTitle = report.project?.title || report.project?.description?.slice(0, 40) || 'Project';
+  const truncatedProjectTitle = projectTitle.length > 30 ? projectTitle.slice(0, 30) + '...' : projectTitle;
 
   return (
     <div>
       {/* Back navigation */}
       <Link
-        href={`/ideas/${report.ideaId}`}
+        href={`/projects/${report.projectId}`}
         className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         <svg className="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
-        Back to {truncatedIdeaTitle}
+        Back to {truncatedProjectTitle}
       </Link>
 
       <div className="mt-4">

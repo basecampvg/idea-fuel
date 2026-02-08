@@ -18,7 +18,7 @@ export function createResearchPipelineWorker() {
   const worker = new Worker<ResearchPipelineJobData>(
     QUEUE_NAMES.RESEARCH_PIPELINE,
     async (job: Job<ResearchPipelineJobData>) => {
-      const { researchId, ideaId, userId, mode } = job.data;
+      const { researchId, projectId, userId, mode } = job.data;
 
       console.log(`[ResearchWorker] Processing research ${researchId} (mode: ${mode || 'LIGHT'})`);
 
@@ -34,9 +34,9 @@ export function createResearchPipelineWorker() {
           },
         });
 
-        // Get idea data
-        const idea = await prisma.idea.findUnique({
-          where: { id: ideaId },
+        // Get project data
+        const project = await prisma.project.findUnique({
+          where: { id: projectId },
           include: {
             interviews: {
               where: { status: 'COMPLETE' },
@@ -46,8 +46,8 @@ export function createResearchPipelineWorker() {
           },
         });
 
-        if (!idea) {
-          throw new Error(`Idea ${ideaId} not found`);
+        if (!project) {
+          throw new Error(`Project ${projectId} not found`);
         }
 
         // Phase 1: Deep Research (0-40%)
@@ -58,7 +58,6 @@ export function createResearchPipelineWorker() {
         });
 
         // TODO: Call actual deep research service
-        // const deepResearchResult = await runDeepResearch(idea, interview);
         await simulatePhase('DEEP_RESEARCH', 3000);
         await job.updateProgress(40);
 
@@ -69,7 +68,6 @@ export function createResearchPipelineWorker() {
         });
 
         // TODO: Call synthesis service
-        // const synthesisResult = await synthesizeInsights(deepResearchResult);
         await simulatePhase('SYNTHESIS', 2000);
         await job.updateProgress(65);
 
@@ -80,7 +78,6 @@ export function createResearchPipelineWorker() {
         });
 
         // TODO: Call social research service
-        // const socialProof = await collectSocialProof(idea, synthesisResult);
         await simulatePhase('SOCIAL_RESEARCH', 2000);
         await job.updateProgress(80);
 
@@ -116,7 +113,7 @@ export function createResearchPipelineWorker() {
             marketAnalysis: { summary: 'Market analysis placeholder' },
             competitors: { list: [] },
             painPoints: { items: [] },
-            positioning: { statement: idea.title },
+            positioning: { statement: project.title },
             opportunityScore: 75,
             problemScore: 70,
             feasibilityScore: 80,
@@ -124,9 +121,9 @@ export function createResearchPipelineWorker() {
           },
         });
 
-        // Update idea status
-        await prisma.idea.update({
-          where: { id: ideaId },
+        // Update project status
+        await prisma.project.update({
+          where: { id: projectId },
           data: { status: 'COMPLETE' },
         });
 
@@ -135,7 +132,7 @@ export function createResearchPipelineWorker() {
         return {
           success: true,
           researchId,
-          ideaId,
+          projectId,
         };
       } catch (error) {
         console.error(`[ResearchWorker] Failed research ${researchId}:`, error);
@@ -217,10 +214,6 @@ export function createResearchCancelWorker() {
           errorMessage: 'Cancelled by user',
         },
       });
-
-      // TODO: Actually cancel any in-flight API calls
-      // This would require tracking active job IDs and having
-      // a mechanism to abort them
 
       return { success: true, cancelled: researchId };
     },

@@ -45,19 +45,19 @@ export const userRouter = router({
    * Get user statistics
    */
   stats: protectedProcedure.query(async ({ ctx }) => {
-    const [ideasCount, interviewsCount, reportsCount, activeResearch] = await Promise.all([
-      ctx.prisma.idea.count({ where: { userId: ctx.userId } }),
+    const [projectsCount, interviewsCount, reportsCount, activeResearch] = await Promise.all([
+      ctx.prisma.project.count({ where: { userId: ctx.userId } }),
       ctx.prisma.interview.count({ where: { userId: ctx.userId } }),
       ctx.prisma.report.count({ where: { userId: ctx.userId } }),
       ctx.prisma.research.count({
         where: {
-          idea: { userId: ctx.userId },
+          project: { userId: ctx.userId },
           status: 'IN_PROGRESS',
         },
       }),
     ]);
 
-    const ideasByStatus = await ctx.prisma.idea.groupBy({
+    const projectsByStatus = await ctx.prisma.project.groupBy({
       by: ['status'],
       where: { userId: ctx.userId },
       _count: true,
@@ -70,11 +70,11 @@ export const userRouter = router({
     });
 
     return {
-      totalIdeas: ideasCount,
+      totalProjects: projectsCount,
       totalInterviews: interviewsCount,
       totalReports: reportsCount,
       activeResearch,
-      ideasByStatus: Object.fromEntries(ideasByStatus.map((s) => [s.status, s._count])),
+      projectsByStatus: Object.fromEntries(projectsByStatus.map((s) => [s.status, s._count])),
       reportsByType: Object.fromEntries(reportsByType.map((r) => [r.type, r._count])),
     };
   }),

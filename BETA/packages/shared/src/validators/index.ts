@@ -2,83 +2,20 @@
 import { z } from 'zod';
 
 // ============================================
-// Project validators
+// Project validators (unified: absorbs former Idea validators)
 // ============================================
 export const createProjectSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
-  description: z.string().max(5000).optional(),
+  description: z.string().min(10, 'Description must be at least 10 characters').max(5000, 'Description too long'),
 });
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 
 export const updateProjectSchema = z.object({
   title: z.string().min(1).max(200).optional(),
-  description: z.string().max(5000).nullable().optional(),
+  description: z.string().min(10).max(5000).optional(),
+  notes: z.string().max(50000).nullable().optional(),
 });
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
-
-// Canvas block schemas
-export const canvasBlockSchema = z.discriminatedUnion('type', [
-  z.object({
-    id: z.string(),
-    type: z.literal('section'),
-    order: z.number(),
-    sectionType: z.string(),
-    title: z.string().max(200),
-    content: z.string().max(10000),
-    createdAt: z.string(),
-    updatedAt: z.string(),
-  }),
-  z.object({
-    id: z.string(),
-    type: z.literal('note'),
-    order: z.number(),
-    content: z.string().max(5000),
-    createdAt: z.string(),
-    updatedAt: z.string(),
-  }),
-  z.object({
-    id: z.string(),
-    type: z.literal('subIdea'),
-    order: z.number(),
-    title: z.string().max(200),
-    description: z.string().max(2000),
-    createdAt: z.string(),
-    updatedAt: z.string(),
-  }),
-  z.object({
-    id: z.string(),
-    type: z.literal('link'),
-    order: z.number(),
-    url: z.string().url(),
-    title: z.string().max(200).optional(),
-    description: z.string().max(500).optional(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
-  }),
-]);
-
-export const updateCanvasSchema = z.object({
-  blocks: z.array(canvasBlockSchema),
-});
-export type UpdateCanvasInput = z.infer<typeof updateCanvasSchema>;
-
-// ============================================
-// Idea validators
-// ============================================
-export const createIdeaSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
-  description: z.string().min(10, 'Description must be at least 10 characters').max(5000, 'Description too long'),
-  projectId: z.string().cuid().optional(),
-});
-
-export const updateIdeaSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  description: z.string().min(10).max(5000).optional(),
-  status: z.enum(['CAPTURED', 'INTERVIEWING', 'RESEARCHING', 'COMPLETE']).optional(),
-});
-
-export type CreateIdeaInput = z.infer<typeof createIdeaSchema>;
-export type UpdateIdeaInput = z.infer<typeof updateIdeaSchema>;
 
 // ============================================
 // Interview validators
@@ -98,7 +35,7 @@ export const sparkJobStatusSchema = z.enum([
 export const interviewStatusSchema = z.enum(['IN_PROGRESS', 'COMPLETE', 'ABANDONED']);
 
 export const startInterviewSchema = z.object({
-  ideaId: z.string().cuid(),
+  projectId: z.string().cuid(),
   mode: interviewModeSchema.default('LIGHT'),
 });
 
@@ -137,7 +74,7 @@ export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 
 // ============================================
-// Report validators (replacing Document)
+// Report validators
 // ============================================
 export const reportTypeSchema = z.enum([
   'BUSINESS_PLAN',
@@ -156,9 +93,8 @@ export const reportTierSchema = z.enum(['BASIC', 'PRO', 'FULL']);
 export const reportStatusSchema = z.enum(['DRAFT', 'GENERATING', 'COMPLETE', 'FAILED']);
 
 export const generateReportSchema = z.object({
-  ideaId: z.string().cuid(),
+  projectId: z.string().cuid(),
   type: reportTypeSchema,
-  // Tier is automatically determined by interview mode + subscription
 });
 
 export const updateReportSchema = z.object({
@@ -186,7 +122,7 @@ export const researchPhaseSchema = z.enum([
 ]);
 
 export const startResearchSchema = z.object({
-  ideaId: z.string().cuid(),
+  projectId: z.string().cuid(),
 });
 
 export type ResearchStatusInput = z.infer<typeof researchStatusSchema>;
@@ -264,7 +200,6 @@ export const sparkResultSchema = z.object({
       subreddit: z.string(),
       url: z.string(),
       signal: z.string(),
-      // Enhanced fields (optional for backward compatibility)
       upvotes: z.number().optional(),
       comments: z.number().optional(),
       posted: z.string().optional(),
@@ -278,7 +213,7 @@ export const sparkResultSchema = z.object({
     privacy: z.enum(['public', 'private', 'unknown']),
     url: z.string(),
     fit_score: z.number().min(0).max(3),
-    why_relevant: z.string().optional(),  // Enhanced: explanation of fit
+    why_relevant: z.string().optional(),
   })),
   tam: z.object({
     currency: z.string(),
@@ -307,7 +242,7 @@ export const sparkResultSchema = z.object({
 });
 
 export const startSparkSchema = z.object({
-  ideaId: z.string().cuid(),
+  projectId: z.string().cuid(),
 });
 
 export type SparkJobStatusInput = z.infer<typeof sparkJobStatusSchema>;

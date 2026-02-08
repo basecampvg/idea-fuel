@@ -63,22 +63,22 @@ export default function NewIdeaScreen() {
   const [titleFocused, setTitleFocused] = useState(false);
   const [descriptionFocused, setDescriptionFocused] = useState(false);
 
-  const startInterview = trpc.idea.startInterview.useMutation();
+  const startInterview = trpc.project.startInterview.useMutation();
   const startSpark = trpc.research.startSpark.useMutation();
 
-  const createIdea = trpc.idea.create.useMutation({
+  const createProject = trpc.project.create.useMutation({
     onSuccess: async (data) => {
-      await startInterview.mutateAsync({ ideaId: data.id, mode });
+      await startInterview.mutateAsync({ projectId: data.id, mode });
 
       if (mode === 'SPARK') {
-        await startSpark.mutateAsync({ ideaId: data.id });
+        await startSpark.mutateAsync({ projectId: data.id });
         router.replace(`/(tabs)/ideas/${data.id}` as never);
       } else {
         router.replace(`/(tabs)/ideas/${data.id}/interview` as never);
       }
     },
     onError: (error) => {
-      Alert.alert('Error', 'Failed to create idea: ' + error.message);
+      Alert.alert('Error', 'Failed to create project: ' + error.message);
     },
   });
 
@@ -98,10 +98,10 @@ export default function NewIdeaScreen() {
       return;
     }
 
-    createIdea.mutate({ title, description });
+    createProject.mutate({ title, description });
   };
 
-  const isLoading = createIdea.isPending || startInterview.isPending || startSpark.isPending;
+  const isLoading = createProject.isPending || startInterview.isPending || startSpark.isPending;
   const selectedModeStyle = MODE_COLORS[mode];
 
   return (

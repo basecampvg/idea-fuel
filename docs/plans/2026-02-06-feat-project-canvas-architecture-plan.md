@@ -656,8 +656,8 @@ All use the shared `createCanvasSnapshot()` utility from Phase 1.6.
 - [ ] User can reorder canvas blocks
 - [ ] Canvas auto-saves on edit
 - [ ] User can create one Idea within a Project
-- [ ] Starting research creates a frozen CanvasSnapshot
-- [ ] Research and reports reference the snapshot, not the live canvas
+- [x] Starting research creates a frozen CanvasSnapshot
+- [x] Research and reports reference the snapshot, not the live canvas
 - [ ] Re-running research creates a new snapshot
 - [ ] AI-generated research includes canvas context in its analysis
 - [ ] User can delete an idea; project reverts to Draft state
@@ -673,14 +673,14 @@ All use the shared `createCanvasSnapshot()` utility from Phase 1.6.
 - [ ] Canvas auto-save debounced to max 1 request per 2 seconds
 - [ ] Canvas JSON size < 1MB per project (soft limit, warn user)
 - [ ] Snapshot creation is atomic (transaction with research creation)
-- [ ] Type-check passes across all packages (`pnpm type-check`)
+- [x] Type-check passes across all packages (`pnpm type-check`)
 
 ### Quality Gates
 
 - [ ] All existing functionality preserved (interview, research, reports work identically)
 - [ ] No broken links from old `/ideas/*` URLs
 - [ ] Mobile app compiles and navigates correctly
-- [ ] Canvas serialization for AI produces clean, readable markdown
+- [x] Canvas serialization for AI produces clean, readable markdown
 
 ---
 
@@ -739,8 +739,8 @@ All use the shared `createCanvasSnapshot()` utility from Phase 1.6.
 - 3 AI service files (canvas context injection)
 
 ### Post-Change Checklist (from CLAUDE.md)
-- [ ] `pnpm db:push` after schema changes
-- [ ] `pnpm db:generate` after schema changes
-- [ ] `pnpm type-check` from BETA root
+- [x] `pnpm db:push` after schema changes
+- [x] `pnpm db:generate` after schema changes
+- [x] `pnpm type-check` from BETA root
 - [ ] Verify no "invalid input value for enum" errors
 - [ ] Test with authenticated requests on web and mobile

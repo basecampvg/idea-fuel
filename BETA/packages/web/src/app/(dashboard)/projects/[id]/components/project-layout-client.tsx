@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { LoadingScreen } from '@/components/ui/spinner';
 import { ProjectSecondaryNav } from './project-secondary-nav';
+import { ProjectHeader } from './project-header';
 
 const SECONDARY_NAV_WIDTH = 240;
 
@@ -22,11 +23,8 @@ function ProjectLayoutInner({
   const { data: project, isLoading, error } = trpc.project.get.useQuery(
     { id },
     {
-      refetchInterval: (query) => {
-        // Auto-refetch when any idea is researching
-        const ideas = query.state.data?.ideas ?? [];
-        return ideas.some((i) => i.status === 'RESEARCHING') ? 3000 : false;
-      },
+      refetchInterval: (query) =>
+        query.state.data?.status === 'RESEARCHING' ? 3000 : false,
     }
   );
 
@@ -60,6 +58,7 @@ function ProjectLayoutInner({
       <ProjectSecondaryNav project={project} />
       <div className="min-h-screen" style={{ marginLeft: SECONDARY_NAV_WIDTH }}>
         <div className="max-w-[1120px] mx-auto px-6 py-8 space-y-6">
+          <ProjectHeader project={project} />
           {children}
         </div>
       </div>

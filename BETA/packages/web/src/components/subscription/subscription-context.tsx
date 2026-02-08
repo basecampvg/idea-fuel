@@ -25,9 +25,9 @@ interface SubscriptionContextValue {
   canAccessReportTier: (tier: ReportTier) => boolean;
 
   // Limit info
-  ideasRemaining: number;
-  isAtIdeaLimit: boolean;
-  currentIdeaCount: number;
+  projectsRemaining: number;
+  isAtProjectLimit: boolean;
+  currentProjectCount: number;
 
   // Upgrade modal controls
   showUpgradePrompt: (reason: UpgradeReason) => void;
@@ -67,9 +67,9 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   // Derive values from fetched data
   const tier: SubscriptionTier = subscriptionData?.tier ?? 'FREE';
   const features: SubscriptionFeatures = SUBSCRIPTION_FEATURES[tier];
-  const currentIdeaCount = statsData?.totalIdeas ?? 0;
-  const ideasRemaining = getIdeasRemaining(tier, currentIdeaCount);
-  const isAtIdeaLimit = ideasRemaining === 0;
+  const currentProjectCount = statsData?.totalProjects ?? 0;
+  const projectsRemaining = getIdeasRemaining(tier, currentProjectCount);
+  const isAtProjectLimit = projectsRemaining === 0;
 
   // Check methods using shared helpers
   const canAccessMode = useCallback(
@@ -106,9 +106,9 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     canAccessMode,
     canCreateIdea: canCreateIdeaCheck,
     canAccessReportTier: canAccessReportTierCheck,
-    ideasRemaining,
-    isAtIdeaLimit,
-    currentIdeaCount,
+    projectsRemaining,
+    isAtProjectLimit,
+    currentProjectCount,
     showUpgradePrompt,
     hideUpgradePrompt,
     upgradeReason,

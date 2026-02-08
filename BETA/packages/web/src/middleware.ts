@@ -164,7 +164,7 @@ export function middleware(request: NextRequest) {
     }
 
     // Redirect app routes to app subdomain in production
-    const appRoutes = ['/dashboard', '/ideas', '/reports', '/settings', '/plans', '/daily-pick'];
+    const appRoutes = ['/dashboard', '/projects', '/reports', '/settings', '/plans', '/daily-pick'];
     const isAppRoute = appRoutes.some(
       (r) => pathname === r || pathname.startsWith(r + '/')
     );
