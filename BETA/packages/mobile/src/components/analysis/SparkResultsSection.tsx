@@ -90,6 +90,21 @@ interface SparkTAM {
   citations?: Array<{ label: string; url: string }>;
 }
 
+interface SectionQuality {
+  section: string;
+  confidence: 'high' | 'medium' | 'low';
+  queriesRun: number;
+  resultsFound: number;
+  details: string;
+}
+
+interface DataQualityReport {
+  overall: 'high' | 'medium' | 'low';
+  sections: SectionQuality[];
+  summary: string;
+  queriedTopics: string[];
+}
+
 interface SparkResult {
   idea?: string;
   keywords?: { phrases?: string[] };
@@ -113,6 +128,7 @@ interface SparkResult {
   verdict?: 'proceed' | 'watchlist' | 'drop';
   summary?: string;
   keyword_trends?: SparkKeywordTrend[];
+  data_quality?: DataQualityReport;
 }
 
 interface SparkResultsSectionProps {
@@ -397,6 +413,157 @@ function FacebookSection({ groups }: { groups: SparkFacebookGroup[] }) {
   );
 }
 
+const CONFIDENCE_CONFIG = {
+  high: { color: colors.success, bg: colors.successMuted, label: 'High', icon: 'shield-checkmark' as const, barFlex: 1 },
+  medium: { color: colors.warning, bg: colors.warningMuted, label: 'Medium', icon: 'shield-half' as const, barFlex: 0.66 },
+  low: { color: colors.destructive, bg: colors.destructiveMuted, label: 'Low', icon: 'shield' as const, barFlex: 0.33 },
+};
+
+const SECTION_LABELS: Record<string, string> = {
+  demand: 'Demand Signals',
+  tam: 'Market Sizing',
+  competitors: 'Competitors',
+};
+
+function DataQualityBanner({ quality }: { quality: DataQualityReport }) {
+  const [expanded, setExpanded] = useState(false);
+  const config = CONFIDENCE_CONFIG[quality.overall] || CONFIDENCE_CONFIG.low;
+
+  return (
+    <TouchableOpacity
+      style={[dqStyles.container, { backgroundColor: config.bg, borderColor: config.color + '40' }]}
+      onPress={() => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setExpanded(!expanded);
+      }}
+      activeOpacity={0.8}
+    >
+      <View style={dqStyles.header}>
+        <View style={[dqStyles.iconWrap, { backgroundColor: config.color + '25' }]}>
+          <Ionicons name={config.icon} size={16} color={config.color} />
+        </View>
+        <View style={dqStyles.headerText}>
+          <Text style={dqStyles.headerLabel}>
+            Data Confidence: <Text style={{ color: config.color }}>{config.label}</Text>
+          </Text>
+          <Text style={dqStyles.headerSummary} numberOfLines={expanded ? undefined : 1}>
+            {quality.summary}
+          </Text>
+        </View>
+        <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={14} color={colors.muted} />
+      </View>
+
+      {expanded && (
+        <View style={dqStyles.sections}>
+          {quality.sections.map((section) => {
+            const sConfig = CONFIDENCE_CONFIG[section.confidence] || CONFIDENCE_CONFIG.low;
+            return (
+              <View key={section.section} style={dqStyles.sectionRow}>
+                <View style={dqStyles.sectionLabel}>
+                  <Text style={dqStyles.sectionName}>
+                    {SECTION_LABELS[section.section] || section.section}
+                  </Text>
+                  <Text style={[dqStyles.sectionConfidence, { color: sConfig.color }]}>
+                    {sConfig.label}
+                  </Text>
+                </View>
+                <View style={dqStyles.barTrack}>
+                  <View style={[dqStyles.barFill, { flex: sConfig.barFlex, backgroundColor: sConfig.color }]} />
+                  <View style={{ flex: 1 - sConfig.barFlex }} />
+                </View>
+                <Text style={dqStyles.sectionDetail}>{section.details}</Text>
+              </View>
+            );
+          })}
+          {quality.queriedTopics.length > 0 && (
+            <Text style={dqStyles.topicCount}>
+              Searched {quality.queriedTopics.length} query variations
+            </Text>
+          )}
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+}
+
+const dqStyles = StyleSheet.create({
+  container: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  headerText: {
+    flex: 1,
+  },
+  headerLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.foreground,
+  },
+  headerSummary: {
+    fontSize: 11,
+    color: colors.muted,
+    marginTop: 2,
+  },
+  sections: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    gap: 10,
+  },
+  sectionRow: {},
+  sectionLabel: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  sectionName: {
+    fontSize: 11,
+    color: colors.muted,
+  },
+  sectionConfidence: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  barTrack: {
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.mutedBg,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    marginBottom: 3,
+  },
+  barFill: {
+    height: 4,
+    borderRadius: 2,
+  },
+  sectionDetail: {
+    fontSize: 10,
+    color: colors.muted,
+    opacity: 0.7,
+  },
+  topicCount: {
+    fontSize: 10,
+    color: colors.muted,
+    opacity: 0.5,
+    marginTop: 4,
+  },
+});
+
 export function SparkResultsSection({ sparkResult }: SparkResultsSectionProps) {
   if (!sparkResult) return null;
 
@@ -415,6 +582,11 @@ export function SparkResultsSection({ sparkResult }: SparkResultsSectionProps) {
       {/* Verdict */}
       {sparkResult.verdict && (
         <VerdictCard verdict={sparkResult.verdict} summary={sparkResult.summary} />
+      )}
+
+      {/* Data Quality */}
+      {sparkResult.data_quality && (
+        <DataQualityBanner quality={sparkResult.data_quality} />
       )}
 
       {/* Trend Signal */}

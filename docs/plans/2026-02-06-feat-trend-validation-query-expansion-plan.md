@@ -396,12 +396,12 @@ Adapted for mobile constraints:
 - [x] Quality scores are persisted in `sparkResult` JSON blob
 - [x] Quality scores are returned via tRPC to frontends
 - [x] Web UI shows per-section confidence badges with hover details
-- [ ] Mobile UI shows per-section confidence badges with tap-to-expand
+- [x] Mobile UI shows per-section confidence badges with tap-to-expand
 - [x] Overall confidence indicator shown at top of results
-- [ ] "Search Strategy" section shows what queries were used (collapsible)
+- [x] "Search Strategy" section shows what queries were used (collapsible)
 - [x] SerpAPI daily budget is tracked in Redis
 - [x] Budget exhaustion falls back gracefully to templates + LLM only
-- [ ] Expanded queries are saved to Prisma so retries skip re-expansion
+- [x] Expanded queries are saved to Prisma so retries skip re-expansion
 
 ### Non-Functional Requirements
 

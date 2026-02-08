@@ -20,6 +20,7 @@ import {
   Shield,
   ShieldCheck,
   ShieldAlert,
+  Search,
 } from 'lucide-react';
 import type { SparkResult, SparkRedditThread, DataQualityReport, SectionQuality } from '@forge/shared';
 import {
@@ -360,6 +361,32 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
       {/* Data Quality Banner */}
       {result.data_quality && (
         <DataQualityBanner quality={result.data_quality} />
+      )}
+
+      {/* Search Strategy */}
+      {result.keywords.expanded_queries && result.keywords.expanded_queries.length > 0 && (
+        <CollapsibleSection
+          icon={<Search className="w-5 h-5 text-primary/60" />}
+          iconBgColor="hsla(160, 84%, 44%, 0.15)"
+          title="Search Strategy"
+          subtitle={`${result.keywords.expanded_queries.length} query variations used`}
+        >
+          <div className="space-y-3">
+            {result.keywords.expansion_notes && (
+              <p className="text-xs text-muted-foreground italic">{result.keywords.expansion_notes}</p>
+            )}
+            <div className="flex flex-wrap gap-1.5">
+              {result.keywords.expanded_queries.map((query, i) => (
+                <span
+                  key={i}
+                  className="px-2.5 py-1 text-xs rounded-full bg-muted/30 text-muted-foreground border border-border/50"
+                >
+                  {query}
+                </span>
+              ))}
+            </div>
+          </div>
+        </CollapsibleSection>
       )}
 
       {/* Trend Signal */}
