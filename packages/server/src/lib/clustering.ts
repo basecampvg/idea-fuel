@@ -8,9 +8,13 @@
  * - Title generation
  */
 
-import OpenAI from 'openai';
+import { getOpenAIClient } from './openai';
 
-const openai = new OpenAI();
+const openai = new Proxy({} as ReturnType<typeof getOpenAIClient>, {
+  get(_target, prop) {
+    return (getOpenAIClient() as unknown as Record<string | symbol, unknown>)[prop];
+  },
+});
 
 // Clustering configuration
 const SIMILARITY_THRESHOLD = 0.70; // Cosine similarity threshold for clustering (lowered from 0.82 for diverse trending queries)

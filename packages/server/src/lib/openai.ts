@@ -5,22 +5,29 @@ import { configService } from '../services/config';
 // Re-export retry utility from deep-research for convenience
 export { withExponentialBackoff, type RetryOptions } from './deep-research';
 
-// Log OpenAI initialization status
-const apiKey = process.env.OPENAI_API_KEY;
-console.log('[OpenAI] API Key configured:', apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT SET');
-
 // Check if GPT-5.2 extended parameters are enabled
 // Set OPENAI_USE_GPT52_PARAMS=true when you have access to GPT-5.2's reasoning/text params
 export const USE_GPT52_PARAMS = process.env.OPENAI_USE_GPT52_PARAMS === 'true';
-console.log('[OpenAI] GPT-5.2 extended params enabled:', USE_GPT52_PARAMS);
 
-// Initialize OpenAI client with API key from environment
-// Set timeout to 10 minutes for GPT-5.2 with extended reasoning (xhigh effort)
-// Note: For very long operations (o3-deep-research), use background mode + polling instead
-export const openai = new OpenAI({
-  apiKey,
-  timeout: 600000, // 10 minute timeout (was 2 min - too short for xhigh reasoning)
-  maxRetries: 2,   // Retry twice on transient errors
+// Lazy-initialized OpenAI client — avoids crash at build time when OPENAI_API_KEY is not set
+let _openai: OpenAI | null = null;
+
+export function getOpenAIClient(): OpenAI {
+  if (!_openai) {
+    _openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      timeout: 600000, // 10 minute timeout for xhigh reasoning
+      maxRetries: 2,
+    });
+  }
+  return _openai;
+}
+
+/** @deprecated Use getOpenAIClient() for lazy initialization */
+export const openai = new Proxy({} as OpenAI, {
+  get(_target, prop) {
+    return (getOpenAIClient() as unknown as Record<string | symbol, unknown>)[prop];
+  },
 });
 
 // Default model constants (used as fallbacks when config service not initialized)

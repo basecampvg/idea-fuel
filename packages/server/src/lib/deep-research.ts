@@ -378,16 +378,27 @@ export const SOCIAL_PROOF_DOMAINS = [...SEARCH_DOMAINS.social];
 // OPENAI CLIENT FOR DEEP RESEARCH
 // =============================================================================
 
-const apiKey = process.env.OPENAI_API_KEY;
-
 /**
- * Dedicated OpenAI client for deep research with extended timeout.
+ * Lazy-initialized OpenAI client for deep research with extended timeout.
  * Deep research can take 5-10 minutes for comprehensive analysis.
  */
-export const deepResearchClient = new OpenAI({
-  apiKey,
-  timeout: DEEP_RESEARCH_TIMEOUT,
-  maxRetries: 1, // Don't retry expensive deep research calls
+let _deepResearchClient: OpenAI | null = null;
+
+function getDeepResearchClient(): OpenAI {
+  if (!_deepResearchClient) {
+    _deepResearchClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      timeout: DEEP_RESEARCH_TIMEOUT,
+      maxRetries: 1, // Don't retry expensive deep research calls
+    });
+  }
+  return _deepResearchClient;
+}
+
+export const deepResearchClient = new Proxy({} as OpenAI, {
+  get(_target, prop) {
+    return (getDeepResearchClient() as unknown as Record<string | symbol, unknown>)[prop];
+  },
 });
 
 // =============================================================================
