@@ -9,7 +9,7 @@ export const metadata = {
   description: 'Insights, updates, and guides for entrepreneurs and business builders.',
 };
 
-export const revalidate = 60; // Revalidate every 60 seconds
+export const dynamic = 'force-dynamic';
 
 async function getPosts() {
   const posts = await prisma.blogPost.findMany({

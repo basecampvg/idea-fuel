@@ -10,7 +10,7 @@ interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export const revalidate = 60; // Revalidate every 60 seconds
+export const dynamic = 'force-dynamic';
 
 async function getPost(slug: string) {
   const post = await prisma.blogPost.findFirst({
@@ -63,19 +63,6 @@ async function getAdjacentPosts(slug: string) {
   ]);
 
   return { prev, next };
-}
-
-async function getAllSlugs() {
-  const posts = await prisma.blogPost.findMany({
-    where: { status: 'PUBLISHED' },
-    select: { slug: true },
-  });
-
-  return posts.map((post) => ({ slug: post.slug }));
-}
-
-export async function generateStaticParams() {
-  return getAllSlugs();
 }
 
 export async function generateMetadata({ params }: BlogPostPageProps) {
