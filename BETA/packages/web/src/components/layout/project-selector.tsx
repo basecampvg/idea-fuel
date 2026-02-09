@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
-import { deriveProjectStatus, projectStatusConfig } from '@/lib/project-status';
+import { getDisplayStatus, projectStatusConfig } from '@/lib/project-status';
 import { ChevronDown, Search, Plus, Check } from 'lucide-react';
 
 const STATUS_DOT_COLORS: Record<string, string> = {
@@ -80,7 +80,7 @@ export function ProjectSelector() {
 
   const displayName = currentProject?.title ?? 'Select a project';
   const currentStatus = currentProject
-    ? deriveProjectStatus(currentProject)
+    ? getDisplayStatus(currentProject.status)
     : null;
 
   return (
@@ -130,7 +130,7 @@ export function ProjectSelector() {
               </p>
             ) : (
               filtered.map((project) => {
-                const status = deriveProjectStatus(project);
+                const status = getDisplayStatus(project.status);
                 const isSelected = project.id === currentProjectId;
                 return (
                   <button

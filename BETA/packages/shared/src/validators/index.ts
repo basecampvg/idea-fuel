@@ -6,7 +6,7 @@ import { z } from 'zod';
 // ============================================
 export const createProjectSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
-  description: z.string().min(10, 'Description must be at least 10 characters').max(5000, 'Description too long'),
+  description: z.string().max(5000, 'Description too long').default(''),
 });
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 
@@ -114,11 +114,15 @@ export type UpdateReportInput = z.infer<typeof updateReportSchema>;
 export const researchStatusSchema = z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETE', 'FAILED']);
 export const researchPhaseSchema = z.enum([
   'QUEUED',
-  'QUERY_GENERATION',
-  'DATA_COLLECTION',
+  'DEEP_RESEARCH',
+  'SOCIAL_RESEARCH',
   'SYNTHESIS',
   'REPORT_GENERATION',
+  'BUSINESS_PLAN_GENERATION',
   'COMPLETE',
+  // Legacy phases (kept for backward compatibility)
+  'QUERY_GENERATION',
+  'DATA_COLLECTION',
 ]);
 
 export const startResearchSchema = z.object({

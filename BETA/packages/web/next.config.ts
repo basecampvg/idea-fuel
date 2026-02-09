@@ -30,6 +30,20 @@ const nextConfig: NextConfig = {
     '@react-pdf/stylesheet',
     '@react-pdf/types',
   ],
+  async redirects() {
+    return [
+      {
+        source: '/ideas',
+        destination: '/projects',
+        permanent: true,
+      },
+      {
+        source: '/ideas/:path*',
+        destination: '/projects/:path*',
+        permanent: true,
+      },
+    ];
+  },
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.plugins = [...config.plugins, new PrismaPlugin()];

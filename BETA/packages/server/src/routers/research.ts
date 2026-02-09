@@ -458,10 +458,13 @@ export const researchRouter = router({
             status: 'FAILED',
             errorMessage: `[${classifiedError.type}] ${classifiedError.message}`,
             errorPhase: currentPhase,
-            // Store structured error info in a JSON field if available
-            // errorDetails: errorDetails, // Uncomment if you add this field to schema
           },
         });
+        // Reset project status so user isn't stuck in RESEARCHING
+        await prisma.project.update({
+          where: { id: input.projectId },
+          data: { status: 'CAPTURED' },
+        }).catch(() => {}); // Best-effort
       }
     })();
 
@@ -556,7 +559,7 @@ export const researchRouter = router({
           'DATA_COLLECTION',
         ]),
         progress: z.number().min(0).max(100),
-        data: z.record(z.any()).optional(),
+        data: z.record(z.string(), z.unknown()).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -577,6 +580,14 @@ export const researchRouter = router({
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Research not found',
+        });
+      }
+
+      // Verify ownership through project
+      if (research.project.userId !== ctx.userId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Access denied',
         });
       }
 
@@ -714,12 +725,27 @@ export const researchRouter = router({
         where: {
           id: input.id,
         },
+        include: {
+          project: {
+            select: {
+              userId: true,
+            },
+          },
+        },
       });
 
       if (!research) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Research not found',
+        });
+      }
+
+      // Verify ownership through project
+      if (research.project.userId !== ctx.userId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Access denied',
         });
       }
 
@@ -874,6 +900,11 @@ export const researchRouter = router({
               errorMessage: `Spark validation failed: ${errorMessage}`,
             },
           });
+          // Reset project status so user isn't stuck in RESEARCHING
+          await ctx.prisma.project.update({
+            where: { id: input.projectId },
+            data: { status: 'CAPTURED' },
+          }).catch(() => {}); // Best-effort
         }
       })();
 

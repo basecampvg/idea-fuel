@@ -11,13 +11,6 @@ export type AuditAction =
   | 'PROJECT_UPDATE'
   | 'PROJECT_DELETE'
   | 'PROJECT_VIEW'
-  | 'CANVAS_UPDATE'
-  | 'CANVAS_SNAPSHOT'
-  // Idea lifecycle
-  | 'IDEA_CREATE'
-  | 'IDEA_UPDATE'
-  | 'IDEA_DELETE'
-  | 'IDEA_VIEW'
   // Interview lifecycle
   | 'INTERVIEW_START'
   | 'INTERVIEW_RESUME'
@@ -38,7 +31,7 @@ export type AuditAction =
 export interface AuditLogParams {
   userId: string;
   action: AuditAction;
-  resource: string; // Format: "type:id" e.g., "idea:abc123"
+  resource: string; // Format: "type:id" e.g., "project:abc123"
   metadata?: Record<string, unknown>;
 }
 
@@ -49,9 +42,9 @@ export interface AuditLogParams {
  * @example
  * await logAudit({
  *   userId: ctx.session.user.id,
- *   action: 'IDEA_CREATE',
- *   resource: `idea:${idea.id}`,
- *   metadata: { title: idea.title },
+ *   action: 'PROJECT_CREATE',
+ *   resource: `project:${project.id}`,
+ *   metadata: { title: project.title },
  * });
  */
 export async function logAudit(params: AuditLogParams): Promise<void> {
@@ -83,6 +76,6 @@ export function logAuditAsync(params: AuditLogParams): void {
 /**
  * Helper to create a resource string from type and ID.
  */
-export function formatResource(type: 'project' | 'idea' | 'interview' | 'report' | 'research' | 'user', id: string): string {
+export function formatResource(type: 'project' | 'interview' | 'report' | 'research' | 'user', id: string): string {
   return `${type}:${id}`;
 }

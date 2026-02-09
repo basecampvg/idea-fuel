@@ -1,6 +1,6 @@
 /**
- * Shared project status type and display configuration.
- * Single source of truth — used by sidebar, mini cards, secondary nav, etc.
+ * Project status display configuration.
+ * Used by sidebar, mini cards, secondary nav, etc.
  *
  * Unified lifecycle:
  *   CAPTURED     → Draft (not yet researched)
@@ -8,11 +8,8 @@
  *   RESEARCHING  → Active (research pipeline running)
  *   COMPLETE     → Complete (research finished)
  */
-
-export type ProjectStatus = 'CAPTURED' | 'INTERVIEWING' | 'RESEARCHING' | 'COMPLETE';
-
-/** Display group for sidebar sections */
-export type ProjectDisplayStatus = 'Draft' | 'Active' | 'Complete';
+import type { ProjectStatus, ProjectDisplayStatus } from '@forge/shared';
+export type { ProjectStatus, ProjectDisplayStatus };
 
 export interface ProjectStatusConfig {
   label: string;
@@ -52,15 +49,4 @@ export const projectStatusConfig: Record<ProjectStatus, ProjectStatusConfig> = {
 export function getDisplayStatus(status: string): ProjectDisplayStatus {
   const config = projectStatusConfig[status as ProjectStatus];
   return config?.displayStatus ?? 'Draft';
-}
-
-/**
- * Derive display status from a project.
- * Since the Idea model is merged into Project, the project has `status` directly.
- * Maps CAPTURED/INTERVIEWING/RESEARCHING/COMPLETE to DRAFT/ACTIVE/COMPLETE.
- */
-export function deriveProjectStatus(
-  project: { status: string }
-): ProjectDisplayStatus {
-  return getDisplayStatus(project.status);
 }

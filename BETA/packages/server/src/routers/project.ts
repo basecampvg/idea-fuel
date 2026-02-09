@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
-import { createProjectSchema, updateProjectSchema, startInterviewSchema, paginationSchema } from '@forge/shared';
+import { createProjectSchema, updateProjectSchema, startInterviewSchema } from '@forge/shared';
 import type { ChatMessage, InterviewMode } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
@@ -112,7 +112,54 @@ export const projectRouter = router({
             createdAt: true,
           },
         },
-        research: true,
+        research: {
+          select: {
+            id: true,
+            status: true,
+            currentPhase: true,
+            progress: true,
+            sparkStatus: true,
+            sparkResult: true,
+            sparkKeywords: true,
+            sparkError: true,
+            sparkStartedAt: true,
+            sparkCompletedAt: true,
+            startedAt: true,
+            completedAt: true,
+            errorMessage: true,
+            errorPhase: true,
+            opportunityScore: true,
+            problemScore: true,
+            feasibilityScore: true,
+            whyNowScore: true,
+            scoreJustifications: true,
+            scoreMetadata: true,
+            synthesizedInsights: true,
+            marketAnalysis: true,
+            competitors: true,
+            painPoints: true,
+            positioning: true,
+            whyNow: true,
+            proofSignals: true,
+            keywords: true,
+            revenuePotential: true,
+            executionDifficulty: true,
+            gtmClarity: true,
+            founderFit: true,
+            marketSizing: true,
+            userStory: true,
+            valueLadder: true,
+            actionPrompts: true,
+            keywordTrends: true,
+            techStack: true,
+            socialProof: true,
+            businessPlan: true,
+            notesSnapshot: true,
+            retryCount: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
       },
     });
 
@@ -122,12 +169,6 @@ export const projectRouter = router({
         message: 'Project not found',
       });
     }
-
-    logAuditAsync({
-      userId: ctx.userId,
-      action: 'PROJECT_VIEW',
-      resource: formatResource('project', project.id),
-    });
 
     return project;
   }),
@@ -252,26 +293,26 @@ export const projectRouter = router({
 
     // For SPARK mode, skip interview and trigger Spark quick validation
     if (mode === 'SPARK') {
-      const interview = await ctx.prisma.interview.create({
-        data: {
-          projectId: input.projectId,
-          userId: ctx.userId,
-          mode: 'SPARK',
-          status: 'COMPLETE',
-          currentTurn: 0,
-          maxTurns: 0,
-          messages: [],
-          collectedData: Prisma.JsonNull,
-          confidenceScore: 0,
-          summary: 'Spark mode - quick validation from project description.',
-        },
-      });
-
-      // Update project status to researching (promotes draft to project)
-      await ctx.prisma.project.update({
-        where: { id: input.projectId },
-        data: { status: 'RESEARCHING' },
-      });
+      const [interview] = await ctx.prisma.$transaction([
+        ctx.prisma.interview.create({
+          data: {
+            projectId: input.projectId,
+            userId: ctx.userId,
+            mode: 'SPARK',
+            status: 'COMPLETE',
+            currentTurn: 0,
+            maxTurns: 0,
+            messages: [],
+            collectedData: Prisma.JsonNull,
+            confidenceScore: 0,
+            summary: 'Spark mode - quick validation from project description.',
+          },
+        }),
+        ctx.prisma.project.update({
+          where: { id: input.projectId },
+          data: { status: 'RESEARCHING' },
+        }),
+      ]);
 
       logAuditAsync({
         userId: ctx.userId,
@@ -303,24 +344,24 @@ export const projectRouter = router({
       timestamp: new Date().toISOString(),
     };
 
-    const interview = await ctx.prisma.interview.create({
-      data: {
-        projectId: input.projectId,
-        userId: ctx.userId,
-        mode,
-        status: 'IN_PROGRESS',
-        currentTurn: 0,
-        maxTurns,
-        messages: [openingMessage] as unknown as Prisma.InputJsonValue,
-        lastActiveAt: new Date(),
-      },
-    });
-
-    // Update project status to interviewing (promotes draft to project)
-    await ctx.prisma.project.update({
-      where: { id: input.projectId },
-      data: { status: 'INTERVIEWING' },
-    });
+    const [interview] = await ctx.prisma.$transaction([
+      ctx.prisma.interview.create({
+        data: {
+          projectId: input.projectId,
+          userId: ctx.userId,
+          mode,
+          status: 'IN_PROGRESS',
+          currentTurn: 0,
+          maxTurns,
+          messages: [openingMessage] as unknown as Prisma.InputJsonValue,
+          lastActiveAt: new Date(),
+        },
+      }),
+      ctx.prisma.project.update({
+        where: { id: input.projectId },
+        data: { status: 'INTERVIEWING' },
+      }),
+    ]);
 
     logAuditAsync({
       userId: ctx.userId,
@@ -375,22 +416,22 @@ export const projectRouter = router({
       });
     }
 
-    // Create research record with notes snapshot
-    const research = await ctx.prisma.research.create({
-      data: {
-        projectId: input.id,
-        status: 'PENDING',
-        currentPhase: 'QUEUED',
-        progress: 0,
-        notesSnapshot: project.notes,
-      },
-    });
-
-    // Update project status
-    await ctx.prisma.project.update({
-      where: { id: input.id },
-      data: { status: 'RESEARCHING' },
-    });
+    // Create research record and update project status atomically
+    const [research] = await ctx.prisma.$transaction([
+      ctx.prisma.research.create({
+        data: {
+          projectId: input.id,
+          status: 'PENDING',
+          currentPhase: 'QUEUED',
+          progress: 0,
+          notesSnapshot: project.notes,
+        },
+      }),
+      ctx.prisma.project.update({
+        where: { id: input.id },
+        data: { status: 'RESEARCHING' },
+      }),
+    ]);
 
     logAuditAsync({
       userId: ctx.userId,
@@ -411,6 +452,15 @@ export const projectRouter = router({
       });
     } catch (queueError) {
       console.error('[Research] Failed to queue pipeline:', queueError);
+      // Mark research as failed so it doesn't stay stuck in PENDING
+      await ctx.prisma.research.update({
+        where: { id: research.id },
+        data: {
+          status: 'FAILED',
+          errorMessage: 'Failed to queue research pipeline',
+          errorPhase: 'QUEUED',
+        },
+      });
     }
 
     return research;

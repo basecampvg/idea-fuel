@@ -203,6 +203,7 @@ export type ResearchPhase =
   | 'SOCIAL_RESEARCH'    // Domain-filtered social proof search (~1 min)
   | 'SYNTHESIS'          // GPT-5.2 extracts structured data (~1 min)
   | 'REPORT_GENERATION'  // GPT-5.2 generates creative content (~1 min)
+  | 'BUSINESS_PLAN_GENERATION' // GPT-5.2 writes comprehensive business plan (~2-3 min)
   | 'COMPLETE'
   // Legacy phases (kept for backward compatibility)
   | 'QUERY_GENERATION'

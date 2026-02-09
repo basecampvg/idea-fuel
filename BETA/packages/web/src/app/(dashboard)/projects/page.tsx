@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { LoadingScreen } from '@/components/ui/spinner';
-import { deriveProjectStatus, type ProjectDisplayStatus } from '@/lib/project-status';
+import { getDisplayStatus, type ProjectDisplayStatus } from '@/lib/project-status';
 import {
   FolderOpen,
   Sparkles,
@@ -126,7 +126,7 @@ export default function ProjectsPage() {
 
   const allProjects = (data?.items ?? []).map((p) => ({
     ...p,
-    derivedStatus: deriveProjectStatus(p),
+    derivedStatus: getDisplayStatus(p.status),
   }));
 
   const projects = filter === 'ALL' ? allProjects : allProjects.filter((p) => p.derivedStatus === filter);

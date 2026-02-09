@@ -67,6 +67,7 @@ export const RESEARCH_PHASE_LABELS: Record<string, string> = {
   SOCIAL_RESEARCH: 'Social Proof',
   SYNTHESIS: 'Analyzing Data',
   REPORT_GENERATION: 'Generating Reports',
+  BUSINESS_PLAN_GENERATION: 'Writing Business Plan',
   COMPLETE: 'Complete',
   // Legacy phases (kept for backward compatibility)
   QUERY_GENERATION: 'Generating Queries',
@@ -80,6 +81,7 @@ export const RESEARCH_PHASE_DESCRIPTIONS: Record<string, string> = {
   SOCIAL_RESEARCH: 'Finding real discussions on Reddit, Twitter, HackerNews, and more',
   SYNTHESIS: 'Extracting structured insights and calculating scores with GPT-5.2 reasoning',
   REPORT_GENERATION: 'Creating your personalized business reports',
+  BUSINESS_PLAN_GENERATION: 'AI is writing a comprehensive business plan',
   COMPLETE: 'All research and reports are ready',
   // Legacy descriptions
   QUERY_GENERATION: 'AI is generating targeted search queries for your business',
@@ -95,6 +97,7 @@ export const RESEARCH_PHASE_DURATION_MINUTES: Record<string, number> = {
   SOCIAL_RESEARCH: 5, // o3-deep-research social proof search
   SYNTHESIS: 1, // GPT-5.2 extraction
   REPORT_GENERATION: 1, // GPT-5.2 creative generation
+  BUSINESS_PLAN_GENERATION: 2, // GPT-5.2 business plan
   COMPLETE: 0,
   // Legacy durations
   QUERY_GENERATION: 5,
@@ -108,7 +111,8 @@ export const RESEARCH_PHASE_PROGRESS: Record<string, { start: number; end: numbe
   DEEP_RESEARCH: { start: 0, end: 30 },
   SOCIAL_RESEARCH: { start: 30, end: 55 },
   SYNTHESIS: { start: 55, end: 80 },
-  REPORT_GENERATION: { start: 80, end: 100 },
+  REPORT_GENERATION: { start: 80, end: 90 },
+  BUSINESS_PLAN_GENERATION: { start: 90, end: 100 },
   COMPLETE: { start: 100, end: 100 },
   // Legacy progress ranges
   QUERY_GENERATION: { start: 0, end: 5 },

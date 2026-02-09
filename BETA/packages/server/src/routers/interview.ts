@@ -226,7 +226,7 @@ export const interviewRouter = router({
       z.object({
         interviewId: z.string().cuid(),
         content: z.string().min(1),
-        collectedData: z.record(z.any()).optional(),
+        collectedData: z.record(z.string(), z.unknown()).optional(),
         resumeContext: z.string().optional(),
       })
     )
@@ -469,9 +469,10 @@ export const interviewRouter = router({
       data: {
         projectId: interview.projectId,
         status: 'IN_PROGRESS',
-        currentPhase: 'QUERY_GENERATION',
+        currentPhase: 'DEEP_RESEARCH',
         progress: 0,
         startedAt: new Date(),
+        notesSnapshot: interview.project.notes,
       },
     });
 
@@ -496,12 +497,16 @@ export const interviewRouter = router({
     const prisma = ctx.prisma;
 
     (async () => {
+      // Track current phase for accurate error reporting
+      let currentPhase: 'QUEUED' | 'DEEP_RESEARCH' | 'SOCIAL_RESEARCH' | 'SYNTHESIS' | 'REPORT_GENERATION' | 'BUSINESS_PLAN_GENERATION' | 'COMPLETE' = 'DEEP_RESEARCH';
+
       try {
         const result = await runResearchPipeline(researchInput, async (phase, progress) => {
+          currentPhase = phase as typeof currentPhase;
           await prisma.research.update({
             where: { id: researchId },
             data: {
-              currentPhase: phase as 'QUEUED' | 'QUERY_GENERATION' | 'DATA_COLLECTION' | 'SYNTHESIS' | 'REPORT_GENERATION' | 'COMPLETE',
+              currentPhase: phase as typeof currentPhase,
               progress,
             },
           });
@@ -538,7 +543,6 @@ export const interviewRouter = router({
               gtmClarity: result.metrics.gtmClarity as object,
               founderFit: result.metrics.founderFit as object,
             } : {}),
-            // New fields from extended pipeline
             ...(result.userStory ? { userStory: result.userStory as object } : {}),
             keywordTrends: result.keywordTrends as object[],
             ...(result.valueLadder ? { valueLadder: result.valueLadder as object[] } : {}),
@@ -558,9 +562,14 @@ export const interviewRouter = router({
           data: {
             status: 'FAILED',
             errorMessage: error instanceof Error ? error.message : 'Unknown error',
-            errorPhase: 'SYNTHESIS',
+            errorPhase: currentPhase,
           },
         });
+        // Reset project status so user isn't stuck in RESEARCHING
+        await prisma.project.update({
+          where: { id: projectId },
+          data: { status: 'CAPTURED' },
+        }).catch(() => {}); // Best-effort
       }
     })();
 
@@ -598,9 +607,9 @@ export const interviewRouter = router({
       metadata: { projectId: interview.projectId, turnsCompleted: interview.currentTurn },
     });
 
-    // Revert project status to captured
-    await ctx.prisma.project.update({
-      where: { id: interview.projectId },
+    // Revert project status to captured (only if still interviewing, not if research started)
+    await ctx.prisma.project.updateMany({
+      where: { id: interview.projectId, status: 'INTERVIEWING' },
       data: { status: 'CAPTURED' },
     });
 

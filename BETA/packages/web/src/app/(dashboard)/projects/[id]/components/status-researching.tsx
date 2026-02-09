@@ -149,16 +149,8 @@ export function StatusResearching({ project }: StatusResearchingProps) {
     },
   });
 
-  // Poll for research progress every 3 seconds while in progress
-  useEffect(() => {
-    if (!research || research.status !== 'IN_PROGRESS') return;
-
-    const interval = setInterval(() => {
-      utils.project.get.invalidate({ id: project.id });
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [research?.status, project.id, utils.project.get]);
+  // Polling is handled by project-layout-client.tsx (refetchInterval: 3000)
+  // No duplicate polling needed here.
 
   // Calculate active subtask from progress
   useEffect(() => {
