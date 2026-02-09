@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@forge/shared": "workspace:*",
+    "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^6.2.0",
     "@react-pdf/renderer": "^4.3.2",
     "@trpc/server": "^11.0.0-rc.682",
