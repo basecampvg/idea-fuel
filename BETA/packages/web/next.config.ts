@@ -1,6 +1,9 @@
 import type { NextConfig } from 'next';
 import path from 'path';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { PrismaPlugin } = require('@prisma/nextjs-monorepo-workaround-plugin');
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@forge/shared', '@forge/server'],
@@ -23,6 +26,12 @@ const nextConfig: NextConfig = {
     '@prisma/client',
     '.prisma/client',
   ],
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.plugins = [...config.plugins, new PrismaPlugin()];
+    }
+    return config;
+  },
 };
 
 export default nextConfig;
