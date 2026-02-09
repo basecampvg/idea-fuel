@@ -56,8 +56,8 @@ Sidebar width transitions with `transition-all duration-200 ease-in-out`. Conten
 - Should the "New Idea" button appear in the expanded sidebar or stay as the + icon only?
 
 ## References
-- Current sidebar: `BETA/packages/web/src/components/layout/sidebar.tsx`
-- Idea card pattern (grid): `BETA/packages/web/src/app/(dashboard)/ideas/page.tsx:200-285`
-- Card components: `BETA/packages/web/src/components/ui/card.tsx`
-- Secondary nav (just built): `BETA/packages/web/src/app/(dashboard)/ideas/[id]/components/idea-secondary-nav.tsx`
-- Sidebar context pattern: Similar to admin sidebar at `BETA/packages/web/src/components/layout/admin-sidebar.tsx`
+- Current sidebar: `packages/web/src/components/layout/sidebar.tsx`
+- Idea card pattern (grid): `packages/web/src/app/(dashboard)/ideas/page.tsx:200-285`
+- Card components: `packages/web/src/components/ui/card.tsx`
+- Secondary nav (just built): `packages/web/src/app/(dashboard)/ideas/[id]/components/idea-secondary-nav.tsx`
+- Sidebar context pattern: Similar to admin sidebar at `packages/web/src/components/layout/admin-sidebar.tsx`

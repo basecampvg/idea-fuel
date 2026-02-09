@@ -48,8 +48,8 @@ At minimum, create a database snapshot before applying schema changes.
 ## Technical Details
 
 **Affected files:**
-- `BETA/packages/server/prisma/schema.prisma`
-- `BETA/packages/server/prisma/migrations/` (empty)
+- `packages/server/prisma/schema.prisma`
+- `packages/server/prisma/migrations/` (empty)
 
 ## Acceptance Criteria
 

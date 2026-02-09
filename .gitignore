@@ -34,6 +34,7 @@ web-build/
 # Temp/personal files
 *.docx
 extract_*.ps1
+nul
 
 # Debug
 npm-debug.log*
@@ -50,5 +51,10 @@ pnpm-debug.log*
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
-BETA/packages/web/nul
-nul
+
+# Prisma
+packages/server/prisma/migrations/
+packages/web/.prisma/
+
+# Vercel
+.vercel

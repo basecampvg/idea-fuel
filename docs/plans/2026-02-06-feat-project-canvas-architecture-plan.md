@@ -130,7 +130,7 @@ erDiagram
 
 ##### 1.1 Prisma Schema Changes
 
-**File:** `BETA/packages/server/prisma/schema.prisma`
+**File:** `packages/server/prisma/schema.prisma`
 
 Add `Project` model (follows existing conventions: cuid ID, timestamps, cascade deletes, indexed FKs):
 
@@ -205,7 +205,7 @@ model User {
 
 ##### 1.2 Canvas Block Type Definition
 
-**File:** `BETA/packages/shared/src/types/index.ts`
+**File:** `packages/shared/src/types/index.ts`
 
 ```typescript
 // Canvas block types
@@ -261,7 +261,7 @@ export type PredefinedSectionType =
 
 ##### 1.3 Shared Validators
 
-**File:** `BETA/packages/shared/src/validators/index.ts`
+**File:** `packages/shared/src/validators/index.ts`
 
 ```typescript
 // Project schemas
@@ -326,7 +326,7 @@ export type UpdateCanvasInput = z.infer<typeof updateCanvasSchema>;
 
 ##### 1.4 Shared Constants
 
-**File:** `BETA/packages/shared/src/constants/index.ts`
+**File:** `packages/shared/src/constants/index.ts`
 
 ```typescript
 export const PROJECT_STATUS_LABELS: Record<string, string> = {
@@ -347,7 +347,7 @@ export const PREDEFINED_SECTIONS = [
 
 ##### 1.5 Project tRPC Router
 
-**File:** `BETA/packages/server/src/routers/project.ts` (NEW)
+**File:** `packages/server/src/routers/project.ts` (NEW)
 
 Endpoints (following `ideaRouter` patterns):
 
@@ -360,14 +360,14 @@ Endpoints (following `ideaRouter` patterns):
 | `updateCanvas` | mutation | `{ id, blocks: CanvasBlock[] }` | Replace canvas blocks (auto-save target) |
 | `delete` | mutation | `{ id }` | Delete project + cascade ideas/snapshots |
 
-Register in `BETA/packages/server/src/routers/index.ts`:
+Register in `packages/server/src/routers/index.ts`:
 ```typescript
 project: projectRouter,
 ```
 
 ##### 1.6 Canvas Snapshot Utility
 
-**File:** `BETA/packages/server/src/lib/canvas-snapshot.ts` (NEW)
+**File:** `packages/server/src/lib/canvas-snapshot.ts` (NEW)
 
 ```typescript
 export async function createCanvasSnapshot(
@@ -397,7 +397,7 @@ Called from all research entry points:
 
 ##### 1.7 Canvas Serialization for AI
 
-**File:** `BETA/packages/shared/src/utils/canvas-serializer.ts` (NEW)
+**File:** `packages/shared/src/utils/canvas-serializer.ts` (NEW)
 
 ```typescript
 export function serializeCanvasForAI(blocks: CanvasBlock[]): string {
@@ -420,7 +420,7 @@ Injected into `ResearchInput` in `research-ai.ts` and `spark-ai.ts` as an additi
 
 ##### 1.8 Modify Idea Router
 
-**File:** `BETA/packages/server/src/routers/idea.ts`
+**File:** `packages/server/src/routers/idea.ts`
 
 - `create` mutation: require `projectId` input. Validate project ownership. Enforce one-idea-per-project in application logic.
 - `startInterview` / `startResearch`: look up the idea's project, create canvas snapshot.
@@ -429,7 +429,7 @@ Injected into `ResearchInput` in `research-ai.ts` and `spark-ai.ts` as an additi
 
 ##### 1.9 Data Migration Script
 
-**File:** `BETA/packages/server/prisma/migrations/migrate-ideas-to-projects.ts` (NEW)
+**File:** `packages/server/prisma/migrations/migrate-ideas-to-projects.ts` (NEW)
 
 ```typescript
 // For each existing Idea:
@@ -483,7 +483,7 @@ New structure:
 
 ##### 2.2 URL Redirect Middleware
 
-**File:** `BETA/packages/web/src/middleware.ts` (MODIFY)
+**File:** `packages/web/src/middleware.ts` (MODIFY)
 
 Add redirect rule:
 ```typescript
@@ -495,7 +495,7 @@ Add redirect rule:
 
 ##### 2.3 Canvas Editor Component
 
-**File:** `BETA/packages/web/src/app/(dashboard)/projects/[id]/components/canvas-editor.tsx` (NEW)
+**File:** `packages/web/src/app/(dashboard)/projects/[id]/components/canvas-editor.tsx` (NEW)
 
 - Renders canvas blocks in order
 - Each block type has its own component (section, note, subIdea, link)
@@ -506,20 +506,20 @@ Add redirect rule:
 
 ##### 2.4 Sidebar Updates
 
-**File:** `BETA/packages/web/src/components/layout/sidebar.tsx` (MODIFY)
+**File:** `packages/web/src/components/layout/sidebar.tsx` (MODIFY)
 
 - "Vault" link → `/projects` instead of `/ideas`
 - Mini cards show projects instead of ideas
 - Rename `IdeaMiniCard` → `ProjectMiniCard`
 
-**File:** `BETA/packages/web/src/components/layout/idea-mini-card.tsx` → rename to `project-mini-card.tsx`
+**File:** `packages/web/src/components/layout/idea-mini-card.tsx` → rename to `project-mini-card.tsx`
 
 - Show project title + derived status (DRAFT/ACTIVE/COMPLETE)
 - Link to `/projects/[id]`
 
 ##### 2.5 Project Secondary Nav
 
-**File:** `BETA/packages/web/src/app/(dashboard)/projects/[id]/components/project-secondary-nav.tsx` (NEW)
+**File:** `packages/web/src/app/(dashboard)/projects/[id]/components/project-secondary-nav.tsx` (NEW)
 
 Structure:
 ```
@@ -539,7 +539,7 @@ Canvas tab is always visible. Idea sub-nav only visible when an idea exists.
 
 ##### 2.6 Project List Page
 
-**File:** `BETA/packages/web/src/app/(dashboard)/projects/page.tsx` (NEW)
+**File:** `packages/web/src/app/(dashboard)/projects/page.tsx` (NEW)
 
 - Replace the current ideas list
 - Show project cards with title, derived status, idea count, last updated
@@ -547,7 +547,7 @@ Canvas tab is always visible. Idea sub-nav only visible when an idea exists.
 
 ##### 2.7 Project Status Utility
 
-**File:** `BETA/packages/web/src/lib/project-status.ts` (NEW, replaces `idea-status.ts`)
+**File:** `packages/web/src/lib/project-status.ts` (NEW, replaces `idea-status.ts`)
 
 ```typescript
 export function deriveProjectStatus(project: {
@@ -596,7 +596,7 @@ Rename: `(tabs)/ideas/` → `(tabs)/projects/`
 
 ##### 4.1 Research AI Changes
 
-**File:** `BETA/packages/server/src/services/research-ai.ts` (MODIFY)
+**File:** `packages/server/src/services/research-ai.ts` (MODIFY)
 
 - Add `canvasContext?: string` to `ResearchInput` interface
 - In `synthesizeInsights()` and `extractInsights()`, append canvas context to the system prompt
@@ -604,7 +604,7 @@ Rename: `(tabs)/ideas/` → `(tabs)/projects/`
 
 ##### 4.2 Spark AI Changes
 
-**File:** `BETA/packages/server/src/services/spark-ai.ts` (MODIFY)
+**File:** `packages/server/src/services/spark-ai.ts` (MODIFY)
 
 - Same pattern: add canvas context to the prompts that generate analysis
 - Load from snapshot
@@ -612,9 +612,9 @@ Rename: `(tabs)/ideas/` → `(tabs)/projects/`
 ##### 4.3 Snapshot Creation in Pipeline Entry Points
 
 **Files to modify:**
-- `BETA/packages/server/src/routers/interview.ts` → in `complete` mutation, after creating Research, create snapshot and link
-- `BETA/packages/server/src/routers/idea.ts` → in `startResearch`, create snapshot
-- `BETA/packages/server/src/routers/research.ts` → in `start` / `startSpark`, create snapshot
+- `packages/server/src/routers/interview.ts` → in `complete` mutation, after creating Research, create snapshot and link
+- `packages/server/src/routers/idea.ts` → in `startResearch`, create snapshot
+- `packages/server/src/routers/research.ts` → in `start` / `startSpark`, create snapshot
 
 All use the shared `createCanvasSnapshot()` utility from Phase 1.6.
 
@@ -721,14 +721,14 @@ All use the shared `createCanvasSnapshot()` utility from Phase 1.6.
 
 ### Internal References
 - Brainstorm: [docs/brainstorms/2026-02-06-project-canvas-brainstorm.md](docs/brainstorms/2026-02-06-project-canvas-brainstorm.md)
-- Prisma schema: [BETA/packages/server/prisma/schema.prisma](BETA/packages/server/prisma/schema.prisma)
-- Idea router pattern: [BETA/packages/server/src/routers/idea.ts](BETA/packages/server/src/routers/idea.ts)
-- Shared types: [BETA/packages/shared/src/types/index.ts](BETA/packages/shared/src/types/index.ts)
-- Shared validators: [BETA/packages/shared/src/validators/index.ts](BETA/packages/shared/src/validators/index.ts)
-- Web ideas routes: [BETA/packages/web/src/app/(dashboard)/ideas/](BETA/packages/web/src/app/(dashboard)/ideas/)
-- Mobile ideas routes: [BETA/packages/mobile/src/app/(tabs)/ideas/](BETA/packages/mobile/src/app/(tabs)/ideas/)
-- Blog TipTap pattern: [BETA/packages/web/src/components/blog/PostForm.tsx](BETA/packages/web/src/components/blog/PostForm.tsx)
-- Frontend design guidelines: [BETA/skills/frontend-design/frontend-design.md](BETA/skills/frontend-design/frontend-design.md)
+- Prisma schema: [packages/server/prisma/schema.prisma](packages/server/prisma/schema.prisma)
+- Idea router pattern: [packages/server/src/routers/idea.ts](packages/server/src/routers/idea.ts)
+- Shared types: [packages/shared/src/types/index.ts](packages/shared/src/types/index.ts)
+- Shared validators: [packages/shared/src/validators/index.ts](packages/shared/src/validators/index.ts)
+- Web ideas routes: [packages/web/src/app/(dashboard)/ideas/](packages/web/src/app/(dashboard)/ideas/)
+- Mobile ideas routes: [packages/mobile/src/app/(tabs)/ideas/](packages/mobile/src/app/(tabs)/ideas/)
+- Blog TipTap pattern: [packages/web/src/components/blog/PostForm.tsx](packages/web/src/components/blog/PostForm.tsx)
+- Frontend design guidelines: [skills/frontend-design/frontend-design.md](skills/frontend-design/frontend-design.md)
 
 ### Codebase Impact
 - ~162 `ideaId` references across 34 files (most unchanged; some gain `projectId` sibling)

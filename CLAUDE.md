@@ -11,25 +11,17 @@
 ### Current Setup (Monorepo)
 ```
 Forge Automation/
-├── BETA/                   # ACTIVE - Current development
-│   ├── packages/
-│   │   ├── web/            # Next.js 15 + React 19 web app
-│   │   ├── mobile/         # Expo SDK 52 + React Native mobile app
-│   │   ├── server/         # tRPC + Prisma backend
-│   │   └── shared/         # Shared TypeScript code
-│   ├── skills/             # Claude skills for BETA development
-│   │   └── frontend-design/ # UI/UX design guidelines
-│   ├── package.json        # Root monorepo config
-│   ├── pnpm-workspace.yaml
-│   └── .npmrc              # pnpm configuration
-├── MVP/                    # Legacy - Previous iteration
-│   ├── packages/
-│   │   ├── web/
-│   │   ├── mobile/
-│   │   └── shared/
-│   └── ...
-├── skills/                 # n8n-specific Claude skills
+├── packages/
+│   ├── web/                # Next.js 15 + React 19 web app
+│   ├── mobile/             # Expo SDK 52 + React Native mobile app
+│   ├── server/             # tRPC + Prisma backend
+│   └── shared/             # Shared TypeScript code
+├── skills/                 # Claude skills (n8n + frontend-design)
 ├── workflows/              # n8n workflow exports
+├── MVP/                    # Legacy - Previous iteration
+├── package.json            # Root monorepo config
+├── pnpm-workspace.yaml
+├── vercel.json
 ├── CLAUDE.md               # This file
 └── README.md
 ```
@@ -294,11 +286,8 @@ curl -X GET "https://api.n8n.cloud/api/v1/workflows" \
   -H "X-N8N-API-KEY: ${N8N_API_KEY}"
 ```
 
-### Local Development (BETA)
+### Local Development
 ```bash
-# Navigate to BETA folder first
-cd BETA
-
 # Run web dev server
 pnpm dev:web
 
@@ -321,7 +310,7 @@ pnpm db:studio     # Open Prisma Studio
 
 ### Mobile App (Expo)
 ```bash
-cd BETA/packages/mobile
+cd packages/mobile
 
 # Start Expo dev server
 pnpm dev
@@ -566,9 +555,9 @@ npx expo-doctor
   - Feature flag: `OPENAI_USE_GPT52_PARAMS` in `.env` (true/false)
   - Fixed JSON truncation in `generateActionPrompts` (increased to 4000 tokens)
 - ✅ **Environment Variable Loading Fixed** - Monorepo `.env` loading
-  - Web package: Added `dotenv-cli` to load `BETA/.env` via dev script
+  - Web package: Added `dotenv-cli` to load `.env` via dev script
   - Server package: Added `--env-file` flag to tsx dev script
-  - Single `.env` file at `BETA/.env` now works for all packages
+  - Single `.env` file at repo root now works for all packages
 - ✅ **OpenAI Package Updated** - Updated to latest version (^6.16.0)
 
 ### 2026-01-17
@@ -633,7 +622,7 @@ npx expo-doctor
 ## Notes for Claude
 
 ### CRITICAL: Frontend Design Guidelines
-**ALWAYS reference `BETA/skills/frontend-design/frontend-design.md` before any UI-related work.**
+**ALWAYS reference `skills/frontend-design/frontend-design.md` before any UI-related work.**
 
 When building or modifying any frontend components, pages, or interfaces (web or mobile):
 1. Read the frontend-design skill file first
@@ -641,20 +630,20 @@ When building or modifying any frontend components, pages, or interfaces (web or
 3. AVOID generic AI aesthetics (Inter font, purple gradients, predictable layouts)
 4. Commit to a clear design direction and execute with precision
 
-### Active Development (BETA)
-- **Working Directory:** `BETA/` is the active codebase
+### Active Development
+- **Working Directory:** Repo root is the monorepo root
 - **Monorepo:** pnpm workspaces with 4 packages (web, mobile, server, shared)
 - **React Version:** 19.x across all packages
-- **Type Checking:** Run `pnpm type-check` from BETA root
+- **Type Checking:** Run `pnpm type-check` from repo root
 
 ### Key Files to Know
-- `BETA/packages/web/src/app/` - Next.js App Router pages
-- `BETA/packages/web/src/app/(dashboard)/projects/` - Project list + detail pages
-- `BETA/packages/mobile/src/app/` - Expo Router screens
-- `BETA/packages/server/src/routers/` - tRPC API routers
-- `BETA/packages/server/src/routers/project.ts` - Project CRUD + interview/research triggers
-- `BETA/packages/shared/src/` - Shared types and utilities
-- `BETA/packages/server/prisma/schema.prisma` - Database schema
+- `packages/web/src/app/` - Next.js App Router pages
+- `packages/web/src/app/(dashboard)/projects/` - Project list + detail pages
+- `packages/mobile/src/app/` - Expo Router screens
+- `packages/server/src/routers/` - tRPC API routers
+- `packages/server/src/routers/project.ts` - Project CRUD + interview/research triggers
+- `packages/shared/src/` - Shared types and utilities
+- `packages/server/prisma/schema.prisma` - Database schema
 
 ### n8n Integration
 - **MCP Access:** Use MCP server to fetch workflow data
@@ -678,7 +667,7 @@ If you modified `schema.prisma` (added/changed enums, models, or fields):
 
 ### TypeScript / Types Changes
 If you modified types in `shared/types` or `shared/constants`:
-- [ ] Run `pnpm type-check` from BETA root to verify all packages compile
+- [ ] Run `pnpm type-check` from repo root to verify all packages compile
 - [ ] Check that Prisma types align with shared types (especially enums)
 - [ ] Verify frontend components consuming changed types still work
 

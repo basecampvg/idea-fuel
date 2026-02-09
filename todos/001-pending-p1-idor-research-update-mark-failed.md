@@ -45,7 +45,7 @@ Add `research.project.userId !== ctx.userId` check to both endpoints, matching e
 ## Technical Details
 
 **Affected files:**
-- `BETA/packages/server/src/routers/research.ts` (lines 542-637, 693-736)
+- `packages/server/src/routers/research.ts` (lines 542-637, 693-736)
 
 ## Acceptance Criteria
 

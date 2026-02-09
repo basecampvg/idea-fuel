@@ -184,8 +184,8 @@ erDiagram
 - [x] Run `pnpm db:generate` to regenerate Prisma client
 
 **Files modified:**
-- `BETA/packages/server/prisma/schema.prisma`
-- `BETA/packages/server/src/scripts/migrate-idea-to-project.ts` (update existing)
+- `packages/server/prisma/schema.prisma`
+- `packages/server/src/scripts/migrate-idea-to-project.ts` (update existing)
 
 **Success criteria:**
 - [x] Prisma generates without errors
@@ -217,9 +217,9 @@ erDiagram
 - [x] Update `routers/index.ts` to remove idea router export
 
 **Files modified:**
-- `BETA/packages/server/src/routers/project.ts` (major rewrite)
-- `BETA/packages/server/src/routers/idea.ts` (delete)
-- `BETA/packages/server/src/routers/index.ts`
+- `packages/server/src/routers/project.ts` (major rewrite)
+- `packages/server/src/routers/idea.ts` (delete)
+- `packages/server/src/routers/index.ts`
 
 ##### 2b. Update `research.ts` router
 
@@ -232,7 +232,7 @@ erDiagram
 - [x] Update background job payloads: `ideaId` → `projectId`
 
 **Files modified:**
-- `BETA/packages/server/src/routers/research.ts`
+- `packages/server/src/routers/research.ts`
 
 ##### 2c. Update `interview.ts` router
 
@@ -242,7 +242,7 @@ erDiagram
 - [x] Update `abandon` endpoint: revert `project.status` to CAPTURED
 
 **Files modified:**
-- `BETA/packages/server/src/routers/interview.ts`
+- `packages/server/src/routers/interview.ts`
 
 ##### 2d. Update `report.ts` router
 
@@ -251,7 +251,7 @@ erDiagram
 - [x] Update PDF generation to use `project.title`, `project.description`
 
 **Files modified:**
-- `BETA/packages/server/src/routers/report.ts`
+- `packages/server/src/routers/report.ts`
 
 **Success criteria:**
 - [x] All tRPC endpoints compile without errors
@@ -299,16 +299,16 @@ erDiagram
 - [x] Delete `lib/canvas-snapshot.ts` (no longer needed)
 
 **Files modified:**
-- `BETA/packages/server/src/services/research-ai.ts`
-- `BETA/packages/server/src/services/interview-ai.ts`
-- `BETA/packages/server/src/services/spark-ai.ts`
-- `BETA/packages/server/src/jobs/queues.ts`
-- `BETA/packages/server/src/jobs/workers/researchPipelineWorker.ts`
-- `BETA/packages/server/src/jobs/workers/reportGenerationWorker.ts`
-- `BETA/packages/server/src/lib/token-tracker.ts`
-- `BETA/packages/server/src/lib/pdf/generator.tsx`
-- `BETA/packages/server/src/lib/audit.ts`
-- `BETA/packages/server/src/lib/canvas-snapshot.ts` (delete)
+- `packages/server/src/services/research-ai.ts`
+- `packages/server/src/services/interview-ai.ts`
+- `packages/server/src/services/spark-ai.ts`
+- `packages/server/src/jobs/queues.ts`
+- `packages/server/src/jobs/workers/researchPipelineWorker.ts`
+- `packages/server/src/jobs/workers/reportGenerationWorker.ts`
+- `packages/server/src/lib/token-tracker.ts`
+- `packages/server/src/lib/pdf/generator.tsx`
+- `packages/server/src/lib/audit.ts`
+- `packages/server/src/lib/canvas-snapshot.ts` (delete)
 
 **Success criteria:**
 - [x] No references to `ideaId`, `Idea`, `canvas`, or `CanvasSnapshot` in server package
@@ -345,10 +345,10 @@ erDiagram
 - [x] Delete `utils/canvas-serializer.ts`
 
 **Files modified:**
-- `BETA/packages/shared/src/types/index.ts`
-- `BETA/packages/shared/src/validators/index.ts`
-- `BETA/packages/shared/src/constants/index.ts`
-- `BETA/packages/shared/src/utils/canvas-serializer.ts` (delete)
+- `packages/shared/src/types/index.ts`
+- `packages/shared/src/validators/index.ts`
+- `packages/shared/src/constants/index.ts`
+- `packages/shared/src/utils/canvas-serializer.ts` (delete)
 
 **Success criteria:**
 - [x] No canvas-related types or validators remain
@@ -383,12 +383,12 @@ erDiagram
   - Derived display status for sidebar: `CAPTURED → 'Draft'`, `INTERVIEWING/RESEARCHING → 'Active'`, `COMPLETE → 'Complete'`
 
 **Files modified:**
-- `BETA/packages/web/src/components/layout/sidebar.tsx`
-- `BETA/packages/web/src/components/layout/project-mini-card.tsx`
-- `BETA/packages/web/src/components/layout/idea-mini-card.tsx` (delete if exists)
-- `BETA/packages/web/src/components/layout/top-nav-bar.tsx`
-- `BETA/packages/web/src/middleware.ts`
-- `BETA/packages/web/src/lib/project-status.ts`
+- `packages/web/src/components/layout/sidebar.tsx`
+- `packages/web/src/components/layout/project-mini-card.tsx`
+- `packages/web/src/components/layout/idea-mini-card.tsx` (delete if exists)
+- `packages/web/src/components/layout/top-nav-bar.tsx`
+- `packages/web/src/middleware.ts`
+- `packages/web/src/lib/project-status.ts`
 
 **Success criteria:**
 - [x] Sidebar shows Drafts and Vault sections
@@ -453,13 +453,13 @@ erDiagram
 - [x] Delete entire `ideas/` directory under `(dashboard)/`
 
 **Files modified/created/deleted:**
-- `BETA/packages/web/src/app/(dashboard)/dashboard/page.tsx` (capture card update)
-- `BETA/packages/web/src/app/(dashboard)/projects/page.tsx` (list update)
-- `BETA/packages/web/src/app/(dashboard)/projects/[id]/page.tsx` (major rewrite)
-- `BETA/packages/web/src/app/(dashboard)/projects/[id]/interview/page.tsx` (moved from ideas)
-- `BETA/packages/web/src/app/(dashboard)/projects/[id]/components/*.tsx` (moved from ideas)
-- `BETA/packages/web/src/app/(dashboard)/ideas/` (delete entire directory)
-- `BETA/packages/web/src/app/(dashboard)/projects/[id]/components/canvas-editor.tsx` (delete)
+- `packages/web/src/app/(dashboard)/dashboard/page.tsx` (capture card update)
+- `packages/web/src/app/(dashboard)/projects/page.tsx` (list update)
+- `packages/web/src/app/(dashboard)/projects/[id]/page.tsx` (major rewrite)
+- `packages/web/src/app/(dashboard)/projects/[id]/interview/page.tsx` (moved from ideas)
+- `packages/web/src/app/(dashboard)/projects/[id]/components/*.tsx` (moved from ideas)
+- `packages/web/src/app/(dashboard)/ideas/` (delete entire directory)
+- `packages/web/src/app/(dashboard)/projects/[id]/components/canvas-editor.tsx` (delete)
 
 **Success criteria:**
 - [x] Dashboard capture card has title + description fields
@@ -497,13 +497,13 @@ erDiagram
   - `ideaId` → `projectId`
 
 **Files modified:**
-- `BETA/packages/mobile/src/app/(tabs)/ideas/index.tsx`
-- `BETA/packages/mobile/src/app/(tabs)/ideas/new.tsx`
-- `BETA/packages/mobile/src/app/(tabs)/ideas/[id]/index.tsx`
-- `BETA/packages/mobile/src/app/(tabs)/ideas/[id]/interview.tsx`
-- `BETA/packages/mobile/src/app/(tabs)/dashboard.tsx`
-- `BETA/packages/mobile/src/app/(tabs)/reports.tsx`
-- `BETA/packages/mobile/src/components/analysis/NextStepPromotion.tsx`
+- `packages/mobile/src/app/(tabs)/ideas/index.tsx`
+- `packages/mobile/src/app/(tabs)/ideas/new.tsx`
+- `packages/mobile/src/app/(tabs)/ideas/[id]/index.tsx`
+- `packages/mobile/src/app/(tabs)/ideas/[id]/interview.tsx`
+- `packages/mobile/src/app/(tabs)/dashboard.tsx`
+- `packages/mobile/src/app/(tabs)/reports.tsx`
+- `packages/mobile/src/components/analysis/NextStepPromotion.tsx`
 
 **Success criteria:**
 - [x] Mobile app displays drafts and projects correctly
@@ -530,7 +530,7 @@ erDiagram
   - Remove canvas references
   - Update router endpoints
   - Add change log entry
-- [x] Update `BETA/.env.example` if any canvas-related env vars exist
+- [x] Update `.env.example` if any canvas-related env vars exist
 - [x] Run full type check: `pnpm type-check` from BETA root
 - [ ] Test key flows manually:
   - Create draft → edit notes → trigger Spark → view results
@@ -649,13 +649,13 @@ Keep the block-based canvas system but simplify the editor. Rejected because the
 
 - Brainstorm: [2026-02-08-unified-project-lifecycle-brainstorm.md](../brainstorms/2026-02-08-unified-project-lifecycle-brainstorm.md)
 - Superseded plan: [2026-02-06-feat-project-canvas-architecture-plan.md](2026-02-06-feat-project-canvas-architecture-plan.md)
-- Prisma schema: `BETA/packages/server/prisma/schema.prisma`
-- Project router: `BETA/packages/server/src/routers/project.ts`
-- Idea router: `BETA/packages/server/src/routers/idea.ts`
-- Research router: `BETA/packages/server/src/routers/research.ts`
-- Interview router: `BETA/packages/server/src/routers/interview.ts`
-- Sidebar: `BETA/packages/web/src/components/layout/sidebar.tsx`
-- Shared types: `BETA/packages/shared/src/types/index.ts`
+- Prisma schema: `packages/server/prisma/schema.prisma`
+- Project router: `packages/server/src/routers/project.ts`
+- Idea router: `packages/server/src/routers/idea.ts`
+- Research router: `packages/server/src/routers/research.ts`
+- Interview router: `packages/server/src/routers/interview.ts`
+- Sidebar: `packages/web/src/components/layout/sidebar.tsx`
+- Shared types: `packages/shared/src/types/index.ts`
 
 ### File Impact Summary
 

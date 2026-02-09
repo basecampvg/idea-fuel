@@ -42,9 +42,9 @@ Create a function that validates `(currentStatus, targetStatus)` pairs against a
 ## Technical Details
 
 **Affected files:**
-- `BETA/packages/server/src/routers/project.ts`
-- `BETA/packages/server/src/routers/research.ts`
-- `BETA/packages/server/src/routers/interview.ts`
+- `packages/server/src/routers/project.ts`
+- `packages/server/src/routers/research.ts`
+- `packages/server/src/routers/interview.ts`
 
 ## Acceptance Criteria
 

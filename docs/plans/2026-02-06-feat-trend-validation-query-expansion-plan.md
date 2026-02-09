@@ -72,7 +72,7 @@ AFTER:
 
 ### Phase 1: Query Expansion Module
 
-**New file:** `BETA/packages/server/src/lib/query-expansion.ts`
+**New file:** `packages/server/src/lib/query-expansion.ts`
 
 **Template expansion** — deterministic patterns applied to each keyword phrase:
 
@@ -119,7 +119,7 @@ interface ExpansionConfig {
 
 ### Phase 2: Enhanced `generateSparkKeywords()`
 
-**File:** `BETA/packages/server/src/services/spark-ai.ts` (line 84)
+**File:** `packages/server/src/services/spark-ai.ts` (line 84)
 
 Modify the existing GPT-4o-mini prompt to produce richer output:
 
@@ -157,9 +157,9 @@ This adds ~0 extra cost (same GPT-4o-mini call, just more output tokens) and ~1-
 
 ### Phase 3: SerpAPI Budget Tracker
 
-**New file:** `BETA/packages/server/src/lib/serpapi-budget.ts`
+**New file:** `packages/server/src/lib/serpapi-budget.ts`
 
-Uses existing Redis client from `BETA/packages/server/src/lib/redis.ts`.
+Uses existing Redis client from `packages/server/src/lib/redis.ts`.
 
 **Mechanism:**
 - Redis key: `serpapi:usage:{YYYY-MM-DD}` with 24h TTL
@@ -180,7 +180,7 @@ Uses existing Redis client from `BETA/packages/server/src/lib/redis.ts`.
 
 ### Phase 4: Quality Scoring Module
 
-**New file:** `BETA/packages/server/src/lib/quality-scoring.ts`
+**New file:** `packages/server/src/lib/quality-scoring.ts`
 
 **Thin-result thresholds:**
 
@@ -267,7 +267,7 @@ This guides the deep research model to search more broadly while keeping the exi
 
 ### Phase 6: Full Research Pipeline Integration
 
-**File:** `BETA/packages/server/src/services/research-ai.ts`
+**File:** `packages/server/src/services/research-ai.ts`
 
 **Lighter integration** since `o3-deep-research` does its own web searching:
 
@@ -291,7 +291,7 @@ This guides the deep research model to search more broadly while keeping the exi
 
 ### Phase 7: Shared Type Updates
 
-**File:** `BETA/packages/shared/src/types/index.ts`
+**File:** `packages/shared/src/types/index.ts`
 
 Add types:
 
@@ -331,7 +331,7 @@ export interface SparkKeywords {
 }
 ```
 
-**File:** `BETA/packages/shared/src/validators/index.ts`
+**File:** `packages/shared/src/validators/index.ts`
 
 Add Zod schemas for new types:
 
@@ -354,7 +354,7 @@ export const dataQualityReportSchema = z.object({
 
 ### Phase 8: Frontend — Web Confidence Indicators
 
-**File:** `BETA/packages/web/src/app/(dashboard)/ideas/[id]/components/spark-results.tsx`
+**File:** `packages/web/src/app/(dashboard)/ideas/[id]/components/spark-results.tsx`
 
 **Per-section confidence badges:**
 - Small colored dot/badge next to each section header
@@ -372,7 +372,7 @@ export const dataQualityReportSchema = z.object({
 
 ### Phase 9: Frontend — Mobile Confidence Indicators
 
-**File:** `BETA/packages/mobile/src/components/analysis/SparkResultsSection.tsx`
+**File:** `packages/mobile/src/components/analysis/SparkResultsSection.tsx`
 
 Adapted for mobile constraints:
 - Colored dot next to section headers (same as web)
@@ -431,7 +431,7 @@ Adapted for mobile constraints:
 
 ## Dependencies & Prerequisites
 
-- Redis must be available for SerpAPI budget tracking (already configured in `BETA/packages/server/src/lib/redis.ts`)
+- Redis must be available for SerpAPI budget tracking (already configured in `packages/server/src/lib/redis.ts`)
 - SerpAPI key must be configured (already in `.env`)
 - No new external dependencies needed
 - No Prisma schema changes needed (quality data stored in existing JSON fields)
@@ -477,10 +477,10 @@ Adapted for mobile constraints:
 
 ### Internal
 - Brainstorm: [2026-02-06-trend-validation-robustness-brainstorm.md](../brainstorms/2026-02-06-trend-validation-robustness-brainstorm.md)
-- Spark pipeline: [spark-ai.ts](../../BETA/packages/server/src/services/spark-ai.ts) (main orchestration)
-- Research pipeline: [research-ai.ts](../../BETA/packages/server/src/services/research-ai.ts)
-- SerpAPI client: [serpapi.ts](../../BETA/packages/server/src/lib/serpapi.ts) (has unused expansion functions)
-- Shared types: [types/index.ts](../../BETA/packages/shared/src/types/index.ts)
+- Spark pipeline: [spark-ai.ts](../../packages/server/src/services/spark-ai.ts) (main orchestration)
+- Research pipeline: [research-ai.ts](../../packages/server/src/services/research-ai.ts)
+- SerpAPI client: [serpapi.ts](../../packages/server/src/lib/serpapi.ts) (has unused expansion functions)
+- Shared types: [types/index.ts](../../packages/shared/src/types/index.ts)
 - Deep research BP: [deep-research-BP.md](../../deep-research-BP.md)
 - Batch API plan: [batch-plan.md](../../batch-plan.md)
 
@@ -488,4 +488,4 @@ Adapted for mobile constraints:
 - Existing retry logic: `withExponentialBackoff()` in `deep-research.ts`
 - Existing SerpAPI batching: `batchGetTrendData()` in `serpapi.ts`
 - Existing quality context: `dataQualityContext` string in `spark-ai.ts:502-512`
-- Redis usage: `BETA/packages/server/src/lib/redis.ts`
+- Redis usage: `packages/server/src/lib/redis.ts`

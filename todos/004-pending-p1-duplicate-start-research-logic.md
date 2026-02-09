@@ -43,9 +43,9 @@ Since the BullMQ worker is a stub, remove the project.startResearch endpoint and
 ## Technical Details
 
 **Affected files:**
-- `BETA/packages/server/src/routers/project.ts` (lines 342-417)
-- `BETA/packages/server/src/routers/research.ts` (lines 149-469)
-- `BETA/packages/server/src/routers/interview.ts` (lines 418-567)
+- `packages/server/src/routers/project.ts` (lines 342-417)
+- `packages/server/src/routers/research.ts` (lines 149-469)
+- `packages/server/src/routers/interview.ts` (lines 418-567)
 
 ## Acceptance Criteria
 

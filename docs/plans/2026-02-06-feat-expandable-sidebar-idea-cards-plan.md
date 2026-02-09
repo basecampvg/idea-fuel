@@ -45,11 +45,11 @@ The current sidebar crams ideas into a submenu overlay with tiny colored dots an
 Create the context, provider, and wire it into the dashboard layout. No visual changes yet — just plumbing.
 
 **Files to create:**
-- [x] `BETA/packages/web/src/components/layout/sidebar-context.tsx` — `SidebarProvider`, `useSidebar()` hook
+- [x] `packages/web/src/components/layout/sidebar-context.tsx` — `SidebarProvider`, `useSidebar()` hook
 
 **Files to modify:**
-- [x] `BETA/packages/web/src/components/providers/dashboard-providers.tsx` — Wrap with `SidebarProvider`
-- [x] `BETA/packages/web/src/app/(dashboard)/layout.tsx` — Add dynamic `ml-*` to `<main>` based on sidebar state
+- [x] `packages/web/src/components/providers/dashboard-providers.tsx` — Wrap with `SidebarProvider`
+- [x] `packages/web/src/app/(dashboard)/layout.tsx` — Add dynamic `ml-*` to `<main>` based on sidebar state
 
 #### sidebar-context.tsx
 
@@ -97,7 +97,7 @@ function isIdeaDetailRoute(pathname: string | null): boolean {
 Replace the fixed 60px sidebar with a width-transitioning sidebar that reads from context. Replace the `LibrarySubmenu` overlay with inline content.
 
 **Files to modify:**
-- [x] `BETA/packages/web/src/components/layout/sidebar.tsx` — Full refactor
+- [x] `packages/web/src/components/layout/sidebar.tsx` — Full refactor
 
 #### Sidebar changes:
 
@@ -133,7 +133,7 @@ Replace the fixed 60px sidebar with a width-transitioning sidebar that reads fro
 Create the `IdeaMiniCard` component and render 5 cards in the expanded sidebar.
 
 **Files to create:**
-- [x] `BETA/packages/web/src/components/layout/idea-mini-card.tsx`
+- [x] `packages/web/src/components/layout/idea-mini-card.tsx`
 
 #### IdeaMiniCard
 
@@ -174,7 +174,7 @@ interface IdeaMiniCardProps {
 Add a sidebar mode selector at the bottom of the sidebar.
 
 **Files to modify:**
-- [ ] `BETA/packages/web/src/components/layout/sidebar.tsx` — Add mode selector button + popover
+- [ ] `packages/web/src/components/layout/sidebar.tsx` — Add mode selector button + popover
 
 **Implementation:**
 - New icon: `PanelLeft` from lucide-react (represents sidebar toggle)
@@ -192,9 +192,9 @@ Add a sidebar mode selector at the bottom of the sidebar.
 Update components that hardcode sidebar width assumptions.
 
 **Files to modify:**
-- [x] `BETA/packages/web/src/app/(dashboard)/ideas/[id]/components/idea-secondary-nav.tsx` — Read `sidebarWidth` from context instead of hardcoded `left-[60px]`
-- [x] `BETA/packages/web/src/app/(dashboard)/ideas/[id]/components/idea-layout-client.tsx` — Read `sidebarWidth` from context for margin calculation
-- [x] `BETA/packages/web/src/components/layout/conditional-sidebar.tsx` — No changes needed (still returns null on /admin)
+- [x] `packages/web/src/app/(dashboard)/ideas/[id]/components/idea-secondary-nav.tsx` — Read `sidebarWidth` from context instead of hardcoded `left-[60px]`
+- [x] `packages/web/src/app/(dashboard)/ideas/[id]/components/idea-layout-client.tsx` — Read `sidebarWidth` from context for margin calculation
+- [x] `packages/web/src/components/layout/conditional-sidebar.tsx` — No changes needed (still returns null on /admin)
 
 #### idea-secondary-nav.tsx changes:
 ```tsx
@@ -259,16 +259,16 @@ Note: The idea layout margin is always 240px (secondary nav width) since the sid
 | Modify | `ideas/[id]/components/idea-secondary-nav.tsx` | Dynamic left positioning |
 | Modify | `ideas/[id]/components/idea-layout-client.tsx` | Dynamic margin from context |
 
-All paths relative to `BETA/packages/web/src/`.
+All paths relative to `packages/web/src/`.
 
 ## References
 
 - Brainstorm: `docs/brainstorms/2026-02-06-expandable-sidebar-idea-cards-brainstorm.md`
-- Current sidebar: `BETA/packages/web/src/components/layout/sidebar.tsx`
-- Admin sidebar pattern: `BETA/packages/web/src/components/layout/admin-sidebar.tsx`
-- Idea secondary nav: `BETA/packages/web/src/app/(dashboard)/ideas/[id]/components/idea-secondary-nav.tsx`
-- Dashboard layout: `BETA/packages/web/src/app/(dashboard)/layout.tsx`
-- Subscription context pattern: `BETA/packages/web/src/components/subscription/subscription-context.tsx`
-- Idea list endpoint: `BETA/packages/server/src/routers/idea.ts:22-60`
-- Research model (progress field): `BETA/packages/server/prisma/schema.prisma:163-193`
-- CSS transition variables: `BETA/packages/web/src/app/globals.css:25-28`
+- Current sidebar: `packages/web/src/components/layout/sidebar.tsx`
+- Admin sidebar pattern: `packages/web/src/components/layout/admin-sidebar.tsx`
+- Idea secondary nav: `packages/web/src/app/(dashboard)/ideas/[id]/components/idea-secondary-nav.tsx`
+- Dashboard layout: `packages/web/src/app/(dashboard)/layout.tsx`
+- Subscription context pattern: `packages/web/src/components/subscription/subscription-context.tsx`
+- Idea list endpoint: `packages/server/src/routers/idea.ts:22-60`
+- Research model (progress field): `packages/server/prisma/schema.prisma:163-193`
+- CSS transition variables: `packages/web/src/app/globals.css:25-28`

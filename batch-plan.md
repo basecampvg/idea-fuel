@@ -85,16 +85,16 @@ Based on OpenAI documentation, deep research requests in batch format:
 
 | File | Changes |
 |------|---------|
-| `BETA/packages/server/src/lib/deep-research.ts` | Add batch request builders |
-| `BETA/packages/server/src/services/research-ai.ts` | Refactor to batch mode |
-| `BETA/packages/server/src/routers/research.ts` | Update pipeline orchestration |
-| `BETA/packages/server/src/services/config.ts` | Add batch config keys |
+| `packages/server/src/lib/deep-research.ts` | Add batch request builders |
+| `packages/server/src/services/research-ai.ts` | Refactor to batch mode |
+| `packages/server/src/routers/research.ts` | Update pipeline orchestration |
+| `packages/server/src/services/config.ts` | Add batch config keys |
 
 ### New Files
 
 | File | Purpose |
 |------|---------|
-| `BETA/packages/server/src/lib/batch-api.ts` | Batch API utilities |
+| `packages/server/src/lib/batch-api.ts` | Batch API utilities |
 
 ---
 
@@ -103,7 +103,7 @@ Based on OpenAI documentation, deep research requests in batch format:
 ### Step 1: Create Batch API Utilities
 
 ```typescript
-// BETA/packages/server/src/lib/batch-api.ts
+// packages/server/src/lib/batch-api.ts
 
 import OpenAI from 'openai';
 import { openai } from './openai';

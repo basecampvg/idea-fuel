@@ -39,12 +39,12 @@ Add all missing phases to shared types and validators to match the Prisma schema
 ## Technical Details
 
 **Affected files:**
-- `BETA/packages/shared/src/types/index.ts` (lines 200-209)
-- `BETA/packages/shared/src/validators/index.ts` (lines 115-122)
-- `BETA/packages/server/prisma/schema.prisma` (lines 265-277) — source of truth
+- `packages/shared/src/types/index.ts` (lines 200-209)
+- `packages/shared/src/validators/index.ts` (lines 115-122)
+- `packages/server/prisma/schema.prisma` (lines 265-277) — source of truth
 
 Also update shared constants:
-- `BETA/packages/shared/src/constants/index.ts` — add `BUSINESS_PLAN_GENERATION` to `RESEARCH_PHASE_LABELS`, `RESEARCH_PHASE_DESCRIPTIONS`, `RESEARCH_PHASE_DURATION_MINUTES`, `RESEARCH_PHASE_PROGRESS`
+- `packages/shared/src/constants/index.ts` — add `BUSINESS_PLAN_GENERATION` to `RESEARCH_PHASE_LABELS`, `RESEARCH_PHASE_DESCRIPTIONS`, `RESEARCH_PHASE_DURATION_MINUTES`, `RESEARCH_PHASE_PROGRESS`
 
 ## Acceptance Criteria
 

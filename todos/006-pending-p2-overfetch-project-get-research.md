@@ -36,8 +36,8 @@ At minimum, stop writing audit rows on every read.
 ## Technical Details
 
 **Affected files:**
-- `BETA/packages/server/src/routers/project.ts` (line 115)
-- `BETA/packages/server/src/lib/audit.ts` (logAuditAsync call in get endpoint)
+- `packages/server/src/routers/project.ts` (line 115)
+- `packages/server/src/lib/audit.ts` (logAuditAsync call in get endpoint)
 
 ## Acceptance Criteria
 

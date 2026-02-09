@@ -702,15 +702,15 @@ After each phase, verify:
 
 ### Internal
 
-- Admin sidebar: `BETA/packages/web/src/components/layout/admin-sidebar.tsx` — NavSection/NavItem pattern
-- Admin layout (client): `BETA/packages/web/src/app/(dashboard)/admin/admin-layout-client.tsx` — Sidebar + content with margin
-- Conditional sidebar: `BETA/packages/web/src/components/layout/conditional-sidebar.tsx` — Route-based sidebar hiding
-- Dashboard layout: `BETA/packages/web/src/app/(dashboard)/layout.tsx` — ConditionalSidebar + DashboardProviders
-- Current idea page: `BETA/packages/web/src/app/(dashboard)/ideas/[id]/page.tsx` — Status branching, data fetching
-- StatusComplete: `BETA/packages/web/src/app/(dashboard)/ideas/[id]/components/status-complete.tsx` — All 17 sections
-- SparkResults: `BETA/packages/web/src/app/(dashboard)/ideas/[id]/components/spark-results.tsx` — Spark-specific sections
-- Dashboard config: `BETA/packages/web/src/hooks/use-dashboard-config.ts` — Section visibility control
-- Subscription context: `BETA/packages/web/src/components/subscription/subscription-context.tsx` — React context pattern precedent
+- Admin sidebar: `packages/web/src/components/layout/admin-sidebar.tsx` — NavSection/NavItem pattern
+- Admin layout (client): `packages/web/src/app/(dashboard)/admin/admin-layout-client.tsx` — Sidebar + content with margin
+- Conditional sidebar: `packages/web/src/components/layout/conditional-sidebar.tsx` — Route-based sidebar hiding
+- Dashboard layout: `packages/web/src/app/(dashboard)/layout.tsx` — ConditionalSidebar + DashboardProviders
+- Current idea page: `packages/web/src/app/(dashboard)/ideas/[id]/page.tsx` — Status branching, data fetching
+- StatusComplete: `packages/web/src/app/(dashboard)/ideas/[id]/components/status-complete.tsx` — All 17 sections
+- SparkResults: `packages/web/src/app/(dashboard)/ideas/[id]/components/spark-results.tsx` — Spark-specific sections
+- Dashboard config: `packages/web/src/hooks/use-dashboard-config.ts` — Section visibility control
+- Subscription context: `packages/web/src/components/subscription/subscription-context.tsx` — React context pattern precedent
 
 ### External
 

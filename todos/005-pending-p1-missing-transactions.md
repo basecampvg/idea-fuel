@@ -36,9 +36,9 @@ Use `prisma.$transaction([...])` for all multi-table writes.
 ## Technical Details
 
 **Affected files:**
-- `BETA/packages/server/src/routers/project.ts` (startInterview ~line 270, startResearch ~line 380)
-- `BETA/packages/server/src/routers/research.ts` (start ~line 210)
-- `BETA/packages/server/src/routers/interview.ts` (complete ~line 460)
+- `packages/server/src/routers/project.ts` (startInterview ~line 270, startResearch ~line 380)
+- `packages/server/src/routers/research.ts` (start ~line 210)
+- `packages/server/src/routers/interview.ts` (complete ~line 460)
 
 ## Acceptance Criteria
 
