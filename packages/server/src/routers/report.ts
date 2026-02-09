@@ -3,7 +3,7 @@ import { router, protectedProcedure } from '../trpc';
 import { generateReportSchema, updateReportSchema, paginationSchema } from '@forge/shared';
 import { getReportTier, REPORT_TYPE_LABELS } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
-import type { ReportType, ReportTier } from '@prisma/client';
+import type { ReportType, ReportTier } from '../generated/prisma';
 import { generatePDFBuffer, getPDFFilename } from '../lib/pdf';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { enqueueReportGeneration } from '../jobs';
