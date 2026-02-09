@@ -6,10 +6,13 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@forge/shared', '@forge/server'],
   // Required for monorepo: tells Next.js to trace files from the monorepo root
   outputFileTracingRoot: path.join(__dirname, '../../'),
-  // Externalize @react-pdf packages so they use Node.js resolution (React 18)
-  // instead of webpack bundling (which would use Next.js's React 19)
-  // NOTE: reconciler MUST be included - without it, React 19 internals break PDF rendering
+  // Externalize packages that break when processed by webpack:
+  // - Prisma: engine binary resolution fails when bundled (monorepo + Vercel)
+  // - @react-pdf: needs React 18 Node.js resolution, not webpack's React 19
   serverExternalPackages: [
+    '@prisma/client',
+    '.prisma/client',
+    '@prisma/adapter-pg',
     '@react-pdf/renderer',
     '@react-pdf/reconciler',
     '@react-pdf/layout',
