@@ -23,8 +23,6 @@ const nextConfig: NextConfig = {
     '@react-pdf/textkit',
     '@react-pdf/stylesheet',
     '@react-pdf/types',
-    '@prisma/client',
-    '.prisma/client',
   ],
   webpack: (config, { isServer }) => {
     if (isServer) {
