@@ -88,12 +88,6 @@ export default function ProjectsPage() {
     },
   });
 
-  const createMutation = trpc.project.create.useMutation({
-    onSuccess: (project) => {
-      router.push(`/projects/${project.id}`);
-    },
-  });
-
   const handleDeleteClick = (e: React.MouseEvent, project: { id: string; title: string }) => {
     e.preventDefault();
     e.stopPropagation();
@@ -109,7 +103,7 @@ export default function ProjectsPage() {
   };
 
   const handleNewProject = () => {
-    createMutation.mutate({ title: 'Untitled Project', description: '' });
+    router.push('/dashboard');
   };
 
   if (isLoading) {
@@ -150,7 +144,6 @@ export default function ProjectsPage() {
         </div>
         <button
           onClick={handleNewProject}
-          disabled={createMutation.isPending}
           className="
             inline-flex items-center gap-2 px-4 py-2.5
             bg-primary text-primary-foreground text-sm font-medium
@@ -158,11 +151,10 @@ export default function ProjectsPage() {
             shadow-[0_0_20px_hsl(var(--primary)/0.3)]
             hover:shadow-[0_0_30px_hsl(var(--primary)/0.5)]
             transition-all duration-300
-            disabled:opacity-50
           "
         >
           <Plus className="w-4 h-4" />
-          New Project
+          New Idea
         </button>
       </div>
 
@@ -385,7 +377,7 @@ function EmptyState({ filter, onNewProject }: { filter: ProjectDisplayStatus | '
           "
         >
           <Plus className="w-4 h-4" />
-          New Project
+          New Idea
         </button>
       )}
     </div>

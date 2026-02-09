@@ -4,15 +4,19 @@ import { z } from 'zod';
 // ============================================
 // Project validators (unified: absorbs former Idea validators)
 // ============================================
+export const PROJECT_TITLE_MAX = 80;
+export const PROJECT_DESC_MAX = 5000;
+export const PROJECT_DESC_MIN = 10;
+
 export const createProjectSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
-  description: z.string().max(5000, 'Description too long').default(''),
+  title: z.string().min(1, 'Title is required').max(PROJECT_TITLE_MAX, 'Title too long'),
+  description: z.string().max(PROJECT_DESC_MAX, 'Description too long').default(''),
 });
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 
 export const updateProjectSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  description: z.string().min(10).max(5000).optional(),
+  title: z.string().min(1).max(PROJECT_TITLE_MAX).optional(),
+  description: z.string().min(PROJECT_DESC_MIN).max(PROJECT_DESC_MAX).optional(),
   notes: z.string().max(50000).nullable().optional(),
 });
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;

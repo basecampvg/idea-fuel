@@ -1,30 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, Check, X } from 'lucide-react';
 import { type ProjectStatus, projectStatusConfig } from '@/lib/project-status';
-
-// Summarize a long title/description to a shorter display title
-function summarizeTitle(text: string, maxLength: number = 60): string {
-  if (!text) return 'Untitled Project';
-
-  // Clean up the text - take first line if multiline
-  const firstLine = text.split('\n')[0].trim();
-
-  // If already short enough, return as-is
-  if (firstLine.length <= maxLength) return firstLine;
-
-  // Try to cut at a natural boundary (space, punctuation)
-  const truncated = firstLine.substring(0, maxLength);
-  const lastSpace = truncated.lastIndexOf(' ');
-
-  if (lastSpace > maxLength * 0.6) {
-    return truncated.substring(0, lastSpace) + '...';
-  }
-
-  return truncated + '...';
-}
+import { PROJECT_TITLE_MAX } from '@forge/shared';
+import { trpc } from '@/lib/trpc/client';
 
 const statusIcons: Record<ProjectStatus, React.ReactNode> = {
   CAPTURED: (
@@ -61,13 +42,56 @@ interface ProjectHeaderProps {
 
 export function ProjectHeader({ project }: ProjectHeaderProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(project.title);
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const status = projectStatusConfig[project.status as ProjectStatus] || projectStatusConfig.CAPTURED;
   const icon = statusIcons[project.status as ProjectStatus] || statusIcons.CAPTURED;
 
-  // Use description as the source for the display title, fall back to title
-  const fullText = project.description || project.title;
-  const displayTitle = summarizeTitle(fullText, 65);
-  const hasMoreContent = fullText.length > 65 || (project.description && project.description !== project.title);
+  const utils = trpc.useUtils();
+  const updateProject = trpc.project.update.useMutation({
+    onSuccess: () => {
+      utils.project.get.invalidate({ id: project.id });
+      utils.project.list.invalidate();
+    },
+  });
+
+  const hasDescription = !!project.description;
+
+  useEffect(() => {
+    if (isEditing) {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+  }, [isEditing]);
+
+  const handleSave = () => {
+    const trimmed = editValue.trim();
+    if (!trimmed || trimmed === project.title) {
+      setEditValue(project.title);
+      setIsEditing(false);
+      return;
+    }
+    updateProject.mutate(
+      { id: project.id, data: { title: trimmed } },
+      { onSettled: () => setIsEditing(false) }
+    );
+  };
+
+  const handleCancel = () => {
+    setEditValue(project.title);
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSave();
+    } else if (e.key === 'Escape') {
+      handleCancel();
+    }
+  };
 
   return (
     <div>
@@ -85,7 +109,60 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-semibold text-foreground">{displayTitle}</h1>
+              {isEditing ? (
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <div className="relative flex-1">
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={editValue}
+                      onChange={(e) => {
+                        if (e.target.value.length <= PROJECT_TITLE_MAX) setEditValue(e.target.value);
+                      }}
+                      onKeyDown={handleKeyDown}
+                      onBlur={handleSave}
+                      maxLength={PROJECT_TITLE_MAX}
+                      className="
+                        w-full text-2xl font-semibold text-foreground bg-transparent
+                        border-b-2 border-primary/50 focus:border-primary
+                        focus:outline-none py-0.5 pr-16
+                      "
+                      disabled={updateProject.isPending}
+                    />
+                    <span className={`absolute right-0 top-1/2 -translate-y-1/2 text-xs tabular-nums ${editValue.length >= PROJECT_TITLE_MAX ? 'text-destructive' : 'text-muted-foreground/40'}`}>
+                      {editValue.length}/{PROJECT_TITLE_MAX}
+                    </span>
+                  </div>
+                  <button
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={handleSave}
+                    disabled={!editValue.trim() || updateProject.isPending}
+                    className="p-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors disabled:opacity-40"
+                    title="Save"
+                  >
+                    <Check className="w-4 h-4" />
+                  </button>
+                  <button
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={handleCancel}
+                    className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted/50 transition-colors"
+                    title="Cancel"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="group flex items-center gap-2 min-w-0">
+                  <h1 className="text-2xl font-semibold text-foreground truncate">{project.title}</h1>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="p-1.5 rounded-lg text-muted-foreground/0 group-hover:text-muted-foreground hover:bg-muted/50 transition-all"
+                    title="Edit title"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
               {/* Status tag */}
               <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${status.badgeClass}`}>
                 {icon}
@@ -103,7 +180,7 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
         </div>
 
         {/* Expandable full description */}
-        {hasMoreContent && (
+        {hasDescription && (
           <div className="mt-4">
             <button
               onClick={() => setIsExpanded(!isExpanded)}
@@ -112,12 +189,12 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
               {isExpanded ? (
                 <>
                   <ChevronUp className="h-4 w-4" />
-                  <span>Hide full description</span>
+                  <span>Hide description</span>
                 </>
               ) : (
                 <>
                   <ChevronDown className="h-4 w-4" />
-                  <span>Show full description</span>
+                  <span>Show description</span>
                 </>
               )}
             </button>
@@ -125,7 +202,7 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
             {isExpanded && (
               <div className="mt-3 p-4 rounded-xl bg-card/50 border border-border">
                 <p className="text-sm text-foreground/80 whitespace-pre-wrap leading-relaxed">
-                  {project.description || project.title}
+                  {project.description}
                 </p>
               </div>
             )}

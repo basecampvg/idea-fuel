@@ -1,10 +1,11 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Feather, Microscope, Sparkles, Clock, ArrowRight, Lightbulb, Lock } from 'lucide-react';
+import { Feather, Microscope, Sparkles, Clock, ArrowRight, Lightbulb, Lock, Pencil, Check, X } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 import { useSubscription } from '@/components/subscription/use-subscription';
-import { INTERVIEW_MODE_LABELS, INTERVIEW_MODE_DESCRIPTIONS } from '@forge/shared';
+import { INTERVIEW_MODE_LABELS, INTERVIEW_MODE_DESCRIPTIONS, PROJECT_DESC_MAX, PROJECT_DESC_MIN } from '@forge/shared';
 
 interface StatusCapturedProps {
   project: {
@@ -20,11 +21,69 @@ export function StatusCaptured({ project }: StatusCapturedProps) {
 
   const canAccessInDepth = canAccessMode('IN_DEPTH');
 
+  const [isEditingDesc, setIsEditingDesc] = useState(false);
+  const [descValue, setDescValue] = useState(project.description || '');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const utils = trpc.useUtils();
+
   const startInterview = trpc.project.startInterview.useMutation({
     onSuccess: () => {
       router.push(`/projects/${project.id}/interview`);
     },
   });
+
+  const updateProject = trpc.project.update.useMutation({
+    onSuccess: () => {
+      utils.project.get.invalidate({ id: project.id });
+      utils.project.list.invalidate();
+    },
+  });
+
+  useEffect(() => {
+    if (isEditingDesc && textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.setSelectionRange(
+        textareaRef.current.value.length,
+        textareaRef.current.value.length
+      );
+      // Auto-resize
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  }, [isEditingDesc]);
+
+  const handleSaveDesc = () => {
+    const trimmed = descValue.trim();
+    if (trimmed === (project.description || '').trim()) {
+      setIsEditingDesc(false);
+      return;
+    }
+    if (trimmed.length < PROJECT_DESC_MIN) {
+      // Don't save if too short
+      return;
+    }
+    updateProject.mutate(
+      { id: project.id, data: { description: trimmed } },
+      { onSettled: () => setIsEditingDesc(false) }
+    );
+  };
+
+  const handleCancelDesc = () => {
+    setDescValue(project.description || '');
+    setIsEditingDesc(false);
+  };
+
+  const handleDescKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      handleCancelDesc();
+    }
+    // Ctrl/Cmd+Enter to save
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      handleSaveDesc();
+    }
+  };
 
   const handleInDepthClick = () => {
     if (!canAccessInDepth) {
@@ -34,6 +93,8 @@ export function StatusCaptured({ project }: StatusCapturedProps) {
     startInterview.mutate({ projectId: project.id, mode: 'IN_DEPTH' });
   };
 
+  const descTooShort = descValue.trim().length > 0 && descValue.trim().length < PROJECT_DESC_MIN;
+
   return (
     <div className="space-y-6">
       {/* Hero Section - Project Overview */}
@@ -42,16 +103,89 @@ export function StatusCaptured({ project }: StatusCapturedProps) {
         <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
 
         <div className="relative">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-              <Lightbulb className="w-4 h-4 text-primary" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                <Lightbulb className="w-4 h-4 text-primary" />
+              </div>
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Your Idea</span>
             </div>
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Your Idea</span>
+            {!isEditingDesc && (
+              <button
+                onClick={() => setIsEditingDesc(true)}
+                className="p-1.5 rounded-lg text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/50 transition-all"
+                title="Edit description"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
-          <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed text-sm">
-            {project.description}
-          </p>
+          {isEditingDesc ? (
+            <div className="space-y-3">
+              <textarea
+                ref={textareaRef}
+                value={descValue}
+                onChange={(e) => {
+                  if (e.target.value.length <= PROJECT_DESC_MAX) {
+                    setDescValue(e.target.value);
+                  }
+                  // Auto-resize
+                  e.target.style.height = 'auto';
+                  e.target.style.height = e.target.scrollHeight + 'px';
+                }}
+                onKeyDown={handleDescKeyDown}
+                maxLength={PROJECT_DESC_MAX}
+                rows={3}
+                disabled={updateProject.isPending}
+                className="
+                  w-full text-sm text-foreground/80 bg-background/50
+                  border border-border rounded-xl p-3
+                  focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20
+                  resize-none leading-relaxed
+                  disabled:opacity-50
+                "
+                placeholder="Describe your idea..."
+              />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground/50">
+                  {descTooShort && (
+                    <span className="text-destructive">
+                      Min {PROJECT_DESC_MIN} characters
+                    </span>
+                  )}
+                  <span className={descValue.length >= PROJECT_DESC_MAX ? 'text-destructive' : ''}>
+                    {descValue.length}/{PROJECT_DESC_MAX}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground/40">
+                    Ctrl+Enter to save
+                  </span>
+                  <button
+                    onClick={handleCancelDesc}
+                    disabled={updateProject.isPending}
+                    className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted/50 transition-colors"
+                    title="Cancel"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleSaveDesc}
+                    disabled={descTooShort || !descValue.trim() || updateProject.isPending}
+                    className="p-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors disabled:opacity-40"
+                    title="Save"
+                  >
+                    <Check className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed text-sm">
+              {project.description || <span className="italic text-muted-foreground/40">No description yet. Click the pencil to add one.</span>}
+            </p>
+          )}
         </div>
       </div>
 

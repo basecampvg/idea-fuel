@@ -6,6 +6,7 @@ import { trpc } from '@/lib/trpc/client';
 import { useSubscription } from '@/components/subscription/use-subscription';
 import { LoadingScreen } from '@/components/ui/spinner';
 import { Flame, Feather, Zap, Bookmark, ArrowUp, TrendingUp, Paperclip, Sparkles, FileText, Target, TrendingUp as TrendUp, DollarSign, Lock, HelpCircle, X } from 'lucide-react';
+import { PROJECT_TITLE_MAX } from '@forge/shared';
 
 type InterviewMode = 'SPARK' | 'LIGHT' | 'IN_DEPTH';
 
@@ -237,7 +238,7 @@ export default function DashboardPage() {
 
   const firstName = user?.name?.split(' ')[0] || (isDev ? 'Developer' : 'there');
   const isSubmitting = createProject.isPending || startInterview.isPending || startResearch.isPending || startSpark.isPending || isExecuting;
-  const canSubmit = ideaDescription.trim().length >= 10;
+  const canSubmit = ideaTitle.trim().length >= 1 && ideaDescription.trim().length >= 10;
 
   // Execute the selected mode
   const executeSelectedMode = async () => {
@@ -262,10 +263,8 @@ export default function DashboardPage() {
     setIsExecuting(true);
 
     try {
-      const title = ideaDescription.split('\n')[0].slice(0, 100) || 'Untitled Project';
-
       const project = await createProject.mutateAsync({
-        title,
+        title: ideaTitle.trim(),
         description: ideaDescription,
       });
 
@@ -290,7 +289,6 @@ export default function DashboardPage() {
         // Switch to interview mode
         setCurrentProjectId(project.id);
         setCurrentInterviewId(result.interview.id);
-        setIdeaTitle(title);
         setInterviewModeState(selectedMode as InterviewMode);
         setMaxTurns(result.interview.maxTurns);
         setCurrentTurn(result.interview.currentTurn);
@@ -545,6 +543,36 @@ export default function DashboardPage() {
           />
 
           <div className="relative p-6">
+            {/* Title Input */}
+            <div className="relative mb-1">
+              <input
+                type="text"
+                value={ideaTitle}
+                onChange={(e) => {
+                  if (e.target.value.length <= PROJECT_TITLE_MAX) setIdeaTitle(e.target.value);
+                }}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                placeholder="Name your idea"
+                className="
+                  w-full bg-transparent text-foreground text-base font-semibold
+                  placeholder:text-muted-foreground/40 placeholder:font-normal
+                  border-0 focus:outline-none focus:ring-0
+                  leading-relaxed
+                "
+                maxLength={PROJECT_TITLE_MAX}
+                disabled={isSubmitting}
+              />
+              {ideaTitle.length > 0 && (
+                <span className={`absolute right-0 top-1/2 -translate-y-1/2 text-xs tabular-nums ${ideaTitle.length >= PROJECT_TITLE_MAX ? 'text-destructive' : 'text-muted-foreground/40'}`}>
+                  {ideaTitle.length}/{PROJECT_TITLE_MAX}
+                </span>
+              )}
+            </div>
+
+            {/* Title/Description divider */}
+            <div className="h-px bg-border/30 mb-4" />
+
             {/* Textarea */}
             <div className="relative">
               {/* Prompt hint tooltip */}

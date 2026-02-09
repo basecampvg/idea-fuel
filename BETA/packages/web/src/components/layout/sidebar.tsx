@@ -292,7 +292,7 @@ export function Sidebar() {
                 title={item.name}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" strokeWidth={2} />
-                {isExpanded && <span className="text-sm font-medium">New Project</span>}
+                {isExpanded && <span className="text-sm font-medium">New Idea</span>}
                 {!isExpanded && (
                   <span className="absolute left-full ml-3 px-3 py-1.5 rounded-full bg-card text-foreground text-xs font-medium opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
                     {item.name}
