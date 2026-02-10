@@ -1,4 +1,4 @@
-import { PrismaClient, ConfigType } from '../generated/prisma';
+import { PrismaClient, ConfigType } from '@prisma/client';
 
 // =============================================================================
 // DEFAULT CONFIGURATION VALUES

@@ -8,8 +8,7 @@ import { prisma } from '@forge/server';
  * Supports Google SSO with Prisma adapter for database sessions
  */
 export const authConfig: NextAuthConfig = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  adapter: PrismaAdapter(prisma as any),
+  adapter: PrismaAdapter(prisma),
 
   providers: [
     Google({

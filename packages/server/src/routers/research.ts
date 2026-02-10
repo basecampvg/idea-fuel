@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Prisma } from '../generated/prisma';
+import { Prisma } from '@prisma/client';
 import { router, protectedProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { RESEARCH_PHASE_PROGRESS, SPARK_STATUS_PROGRESS } from '@forge/shared';

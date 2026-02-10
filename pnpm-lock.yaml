@@ -241,6 +241,12 @@ importers:
       '@forge/shared':
         specifier: workspace:*
         version: link:../shared
+      '@prisma/adapter-pg':
+        specifier: ^7.3.0
+        version: 7.3.0
+      '@prisma/client':
+        specifier: ^6.2.0
+        version: 6.19.2(prisma@6.19.2(magicast@0.3.5)(typescript@5.9.3))(typescript@5.9.3)
       '@tanstack/react-query':
         specifier: ^5.64.0
         version: 5.90.19(react@19.1.0)

@@ -7,7 +7,7 @@
 
 import { prisma } from '../db';
 import { formatInTimeZone } from 'date-fns-tz';
-import type { Prisma } from '../generated/prisma';
+import type { Prisma } from '@prisma/client';
 import {
   getTrendingNow,
   getTrendingExpanded,
@@ -34,7 +34,7 @@ import {
   type ScoredCluster,
 } from '../lib/winner';
 import { runStructured } from '../lib/openai';
-import type { DailyRunStatus } from '../generated/prisma';
+import type { DailyRunStatus } from '@prisma/client';
 
 // Default seed keywords for commercial trend discovery
 // These are evergreen queries in commercially-viable categories

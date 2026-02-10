@@ -12,6 +12,8 @@
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
     "@forge/server": "workspace:*",
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^6.2.0",
     "@forge/shared": "workspace:*",
     "@tanstack/react-query": "^5.64.0",
     "@tiptap/extension-code-block-lowlight": "^2.2.0",

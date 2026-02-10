@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import slugify from 'slugify';
 import { router, publicProcedure, adminProcedure } from '../trpc';
-import type { Prisma, BlogPostStatus } from '../generated/prisma';
+import type { Prisma, BlogPostStatus } from '@prisma/client';
 
 /**
  * Calculate reading time from TipTap JSON content

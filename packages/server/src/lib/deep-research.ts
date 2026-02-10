@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import type { SubscriptionTier } from '../generated/prisma';
+import type { SubscriptionTier } from '@prisma/client';
 import { configService } from '../services/config';
 
 // =============================================================================

@@ -3,7 +3,7 @@ import { router, protectedProcedure } from '../trpc';
 import { createProjectSchema, updateProjectSchema, startInterviewSchema } from '@forge/shared';
 import type { ChatMessage, InterviewMode } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
-import { Prisma } from '../generated/prisma';
+import { Prisma } from '@prisma/client';
 import { generateOpeningQuestion } from '../services/interview-ai';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { enqueueResearchPipeline } from '../jobs';
