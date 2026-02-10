@@ -56,103 +56,83 @@ export interface EmailSyncJobData {
 }
 
 // ============================================================================
-// QUEUE INSTANCES
+// QUEUE INSTANCES (lazy-initialized to avoid Redis connections at import time)
 // ============================================================================
 
-/**
- * Report Generation Queue
- * Handles AI-powered report generation with retry logic
- */
-export const reportGenerationQueue = new Queue<ReportGenerationJobData>(
-  QUEUE_NAMES.REPORT_GENERATION,
-  {
-    connection: createRedisConnection(),
-    defaultJobOptions: {
-      attempts: 3,
-      backoff: {
-        type: 'exponential',
-        delay: 5000, // Start with 5 seconds
-      },
-      removeOnComplete: {
-        count: 100, // Keep last 100 completed jobs
-        age: 24 * 60 * 60, // Remove after 24 hours
-      },
-      removeOnFail: {
-        count: 500, // Keep more failed jobs for debugging
-        age: 7 * 24 * 60 * 60, // Remove after 7 days
-      },
-    },
-  }
-);
+let _reportGenerationQueue: Queue<ReportGenerationJobData> | null = null;
+let _researchPipelineQueue: Queue<ResearchPipelineJobData> | null = null;
+let _researchCancelQueue: Queue<ResearchCancelJobData> | null = null;
+let _emailSyncQueue: Queue<EmailSyncJobData> | null = null;
 
-/**
- * Research Pipeline Queue
- * Handles the multi-phase research pipeline (deep research, synthesis, etc.)
- */
-export const researchPipelineQueue = new Queue<ResearchPipelineJobData>(
-  QUEUE_NAMES.RESEARCH_PIPELINE,
-  {
-    connection: createRedisConnection(),
-    defaultJobOptions: {
-      attempts: 2, // Fewer retries for expensive operations
-      backoff: {
-        type: 'exponential',
-        delay: 10000, // Start with 10 seconds
-      },
-      removeOnComplete: {
-        count: 50,
-        age: 24 * 60 * 60,
-      },
-      removeOnFail: {
-        count: 200,
-        age: 7 * 24 * 60 * 60,
-      },
-    },
+export function getReportGenerationQueue(): Queue<ReportGenerationJobData> {
+  if (!_reportGenerationQueue) {
+    _reportGenerationQueue = new Queue<ReportGenerationJobData>(
+      QUEUE_NAMES.REPORT_GENERATION,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 5000 },
+          removeOnComplete: { count: 100, age: 24 * 60 * 60 },
+          removeOnFail: { count: 500, age: 7 * 24 * 60 * 60 },
+        },
+      }
+    );
   }
-);
+  return _reportGenerationQueue;
+}
 
-/**
- * Research Cancel Queue
- * Handles cancellation of in-progress research jobs
- */
-export const researchCancelQueue = new Queue<ResearchCancelJobData>(
-  QUEUE_NAMES.RESEARCH_CANCEL,
-  {
-    connection: createRedisConnection(),
-    defaultJobOptions: {
-      attempts: 1, // No retry for cancel operations
-      removeOnComplete: {
-        count: 100,
-        age: 60 * 60, // Remove after 1 hour
-      },
-    },
+export function getResearchPipelineQueue(): Queue<ResearchPipelineJobData> {
+  if (!_researchPipelineQueue) {
+    _researchPipelineQueue = new Queue<ResearchPipelineJobData>(
+      QUEUE_NAMES.RESEARCH_PIPELINE,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 2,
+          backoff: { type: 'exponential', delay: 10000 },
+          removeOnComplete: { count: 50, age: 24 * 60 * 60 },
+          removeOnFail: { count: 200, age: 7 * 24 * 60 * 60 },
+        },
+      }
+    );
   }
-);
+  return _researchPipelineQueue;
+}
 
-/**
- * Email Sync Queue
- * Handles batch synchronization of emails to Beehiiv
- */
-export const emailSyncQueue = new Queue<EmailSyncJobData>(
-  QUEUE_NAMES.EMAIL_SYNC,
-  {
-    connection: createRedisConnection(),
-    defaultJobOptions: {
-      attempts: 3,
-      backoff: {
-        type: 'exponential',
-        delay: 2000,
-      },
-      removeOnComplete: {
-        count: 500,
-        age: 24 * 60 * 60,
-      },
-      removeOnFail: {
-        count: 200,
-      },
-    },
+export function getResearchCancelQueue(): Queue<ResearchCancelJobData> {
+  if (!_researchCancelQueue) {
+    _researchCancelQueue = new Queue<ResearchCancelJobData>(
+      QUEUE_NAMES.RESEARCH_CANCEL,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 1,
+          removeOnComplete: { count: 100, age: 60 * 60 },
+        },
+      }
+    );
   }
-);
+  return _researchCancelQueue;
+}
+
+export function getEmailSyncQueue(): Queue<EmailSyncJobData> {
+  if (!_emailSyncQueue) {
+    _emailSyncQueue = new Queue<EmailSyncJobData>(
+      QUEUE_NAMES.EMAIL_SYNC,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 2000 },
+          removeOnComplete: { count: 500, age: 24 * 60 * 60 },
+          removeOnFail: { count: 200 },
+        },
+      }
+    );
+  }
+  return _emailSyncQueue;
+}
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -164,7 +144,7 @@ export const emailSyncQueue = new Queue<EmailSyncJobData>(
 export async function enqueueReportGeneration(
   data: ReportGenerationJobData
 ): Promise<string> {
-  const job = await reportGenerationQueue.add(
+  const job = await getReportGenerationQueue().add(
     `report-${data.reportId}`,
     data,
     {
@@ -180,7 +160,7 @@ export async function enqueueReportGeneration(
 export async function enqueueResearchPipeline(
   data: ResearchPipelineJobData
 ): Promise<string> {
-  const job = await researchPipelineQueue.add(
+  const job = await getResearchPipelineQueue().add(
     `research-${data.researchId}`,
     data,
     {
@@ -196,7 +176,7 @@ export async function enqueueResearchPipeline(
 export async function enqueueResearchCancel(
   data: ResearchCancelJobData
 ): Promise<string> {
-  const job = await researchCancelQueue.add(
+  const job = await getResearchCancelQueue().add(
     `cancel-${data.researchId}`,
     data,
     {
@@ -210,16 +190,17 @@ export async function enqueueResearchCancel(
  * Get queue stats for monitoring
  */
 export async function getQueueStats(queueName: QueueName) {
-  const queues: Record<QueueName, Queue> = {
-    [QUEUE_NAMES.REPORT_GENERATION]: reportGenerationQueue,
-    [QUEUE_NAMES.RESEARCH_PIPELINE]: researchPipelineQueue,
-    [QUEUE_NAMES.RESEARCH_CANCEL]: researchCancelQueue,
-    [QUEUE_NAMES.EMAIL_SYNC]: emailSyncQueue,
+  const getters: Record<QueueName, () => Queue> = {
+    [QUEUE_NAMES.REPORT_GENERATION]: getReportGenerationQueue,
+    [QUEUE_NAMES.RESEARCH_PIPELINE]: getResearchPipelineQueue,
+    [QUEUE_NAMES.RESEARCH_CANCEL]: getResearchCancelQueue,
+    [QUEUE_NAMES.EMAIL_SYNC]: getEmailSyncQueue,
   };
 
-  const queue = queues[queueName];
-  if (!queue) return null;
+  const getQueue = getters[queueName];
+  if (!getQueue) return null;
 
+  const queue = getQueue();
   const [waiting, active, completed, failed, delayed] = await Promise.all([
     queue.getWaitingCount(),
     queue.getActiveCount(),

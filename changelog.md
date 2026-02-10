@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-02-10
+
+### Fix: OAuth login fails on Vercel — Redis ECONNREFUSED 127.0.0.1:6379
+
+**Problem:**
+OAuth login (and all server routes) failed on Vercel with repeated errors:
+```
+Error: connect ECONNREFUSED 127.0.0.1:6379
+Error: Connection is closed.
+```
+
+**Root Cause:**
+`packages/server/src/jobs/queues.ts` created 4 BullMQ `Queue` instances at **module scope**, each calling `createRedisConnection()`. BullMQ's Queue constructor triggers internal Redis commands, causing immediate connection attempts. Since routers import from `../jobs`, and `@forge/server` exports `appRouter`, the entire queue module was loaded on every Vercel function invocation — including OAuth. With no `REDIS_URL` env var on Vercel, ioredis fell back to `redis://localhost:6379`, which doesn't exist on serverless.
+
+**Fix:**
+Made all 4 BullMQ Queue instances lazy-initialized via getter functions (`getReportGenerationQueue()`, etc.). Queues are only instantiated on first call to `enqueue*()` or `getQueueStats()` — not at import time. This breaks the module-load → Redis connection chain.
+
+**Files changed:**
+- `packages/server/src/jobs/queues.ts` — Queue instances → lazy getter functions
+- `packages/server/src/jobs/index.ts` — Updated re-exports to use getter functions
+
+---
+
 ## 2026-02-09
 
 ### Fix: Prisma Query Engine not found on Vercel (PrismaClientInitializationError)

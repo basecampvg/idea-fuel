@@ -6,10 +6,10 @@
 // Queue exports
 export {
   QUEUE_NAMES,
-  reportGenerationQueue,
-  researchPipelineQueue,
-  researchCancelQueue,
-  emailSyncQueue,
+  getReportGenerationQueue,
+  getResearchPipelineQueue,
+  getResearchCancelQueue,
+  getEmailSyncQueue,
   enqueueReportGeneration,
   enqueueResearchPipeline,
   enqueueResearchCancel,
