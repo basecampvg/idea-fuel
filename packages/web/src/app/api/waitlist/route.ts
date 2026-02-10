@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { db, schema } from '@forge/server';
 import { eq, count } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/waitlist
  * Captures email for landing page waitlist, syncs to Beehiiv

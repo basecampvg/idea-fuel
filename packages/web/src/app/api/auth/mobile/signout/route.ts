@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, schema } from '@forge/server';
 import { eq } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/auth/mobile/signout
  * Sign out a mobile user by deleting their session

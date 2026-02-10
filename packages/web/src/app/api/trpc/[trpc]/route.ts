@@ -3,6 +3,8 @@ import { appRouter, createContext, db, schema } from '@forge/server';
 import { eq } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+
 // DEV MODE: Bypass authentication for testing
 const DEV_BYPASS_AUTH = process.env.NODE_ENV === 'development';
 const DEV_USER = {

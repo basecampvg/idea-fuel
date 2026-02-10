@@ -3,6 +3,8 @@ import { db, schema } from '@forge/server';
 import { eq, and } from 'drizzle-orm';
 import { randomBytes } from 'crypto';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/auth/mobile/google
  * Exchange a Google OAuth access token for a session token
