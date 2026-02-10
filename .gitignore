@@ -54,6 +54,7 @@ next-env.d.ts
 
 # Prisma
 packages/server/prisma/migrations/
+packages/web/src/generated/
 
 # Vercel
 .vercel
