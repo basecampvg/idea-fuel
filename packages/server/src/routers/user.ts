@@ -16,6 +16,7 @@ export const userRouter = router({
         name: true,
         image: true,
         subscription: true,
+        role: true,
         createdAt: true,
       },
     });

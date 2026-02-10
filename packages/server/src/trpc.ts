@@ -89,3 +89,42 @@ const isAdmin = middleware(async ({ ctx, next }) => {
  * Admin procedure - requires authentication + admin role
  */
 export const adminProcedure = t.procedure.use(isAdmin);
+
+/**
+ * Middleware to check if user is a super admin
+ */
+const isSuperAdmin = middleware(async ({ ctx, next }) => {
+  if (!ctx.session?.user || !ctx.userId) {
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'You must be logged in to perform this action',
+    });
+  }
+
+  const { eq } = await import('drizzle-orm');
+  const { users } = await import('./db/schema');
+  const user = await ctx.db.query.users.findFirst({
+    where: eq(users.id, ctx.userId),
+    columns: { role: true },
+  });
+
+  if (user?.role !== 'SUPER_ADMIN') {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Super admin access required',
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
+      session: ctx.session,
+      userId: ctx.userId,
+    },
+  });
+});
+
+/**
+ * Super admin procedure - requires SUPER_ADMIN role
+ */
+export const superAdminProcedure = t.procedure.use(isSuperAdmin);

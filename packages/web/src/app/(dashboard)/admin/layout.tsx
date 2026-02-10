@@ -10,7 +10,7 @@ import { AdminLayoutClient } from './admin-layout-client';
  *
  * Access Requirements:
  * 1. User must be authenticated
- * 2. User must have ADMIN or SUPER_ADMIN role (or legacy isAdmin flag)
+ * 2. User must have SUPER_ADMIN role
  * 3. IP whitelist is checked in middleware.ts
  */
 export default async function AdminLayout({
@@ -39,12 +39,8 @@ export default async function AdminLayout({
     redirect('/auth/signin?error=UserNotFound');
   }
 
-  // Check if user has admin access
-  // Support both new role system and legacy isAdmin flag
-  const hasAdminAccess =
-    user.isAdmin === true ||
-    user.role === 'ADMIN' ||
-    user.role === 'SUPER_ADMIN';
+  // Check if user has super admin access
+  const hasAdminAccess = user.role === 'SUPER_ADMIN';
 
   if (!hasAdminAccess) {
     // Log unauthorized access attempt

@@ -27,7 +27,7 @@ const mainNav = [
 ];
 
 const bottomNav = [
-  { name: 'Admin', href: '/admin', icon: Shield },
+  { name: 'Admin', href: '/admin', icon: Shield, superAdminOnly: true },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
@@ -264,6 +264,8 @@ function SidebarVault() {
 export function Sidebar() {
   const pathname = usePathname();
   const { isExpanded, sidebarWidth, onMouseEnter, onMouseLeave } = useSidebar();
+  const { data: user } = trpc.user.me.useQuery(undefined, { staleTime: 60_000 });
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
 
   return (
     <aside
@@ -357,7 +359,7 @@ export function Sidebar() {
         {/* Mode Selector */}
         <ModeSelector />
 
-        {bottomNav.map((item) => {
+        {bottomNav.filter((item) => !item.superAdminOnly || isSuperAdmin).map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
 

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { router, protectedProcedure } from '../trpc';
+import { router, superAdminProcedure } from '../trpc';
 import { configService, DEFAULT_CONFIGS } from '../services/config';
 import { eq, and, gte, desc, count, sum, sql, inArray, like } from 'drizzle-orm';
 import { auditLogs, users, tokenUsages, adminIPWhitelists } from '../db/schema';
@@ -8,7 +8,7 @@ export const adminRouter = router({
   /**
    * List all configs grouped by category
    */
-  list: protectedProcedure.query(async ({ ctx }) => {
+  list: superAdminProcedure.query(async ({ ctx }) => {
     // Initialize config service if needed
     if (!configService.isInitialized()) {
       await configService.init(ctx.db);
@@ -20,7 +20,7 @@ export const adminRouter = router({
   /**
    * Get a single config value
    */
-  get: protectedProcedure
+  get: superAdminProcedure
     .input(z.object({ key: z.string() }))
     .query(async ({ ctx, input }) => {
       if (!configService.isInitialized()) {
@@ -43,7 +43,7 @@ export const adminRouter = router({
   /**
    * Update a single config value
    */
-  set: protectedProcedure
+  set: superAdminProcedure
     .input(
       z.object({
         key: z.string(),
@@ -64,7 +64,7 @@ export const adminRouter = router({
   /**
    * Bulk update multiple configs
    */
-  bulkSet: protectedProcedure
+  bulkSet: superAdminProcedure
     .input(
       z.array(
         z.object({
@@ -88,7 +88,7 @@ export const adminRouter = router({
   /**
    * Get audit log (config change history)
    */
-  auditLog: protectedProcedure
+  auditLog: superAdminProcedure
     .input(
       z.object({
         key: z.string().optional(),
@@ -109,7 +109,7 @@ export const adminRouter = router({
   /**
    * Reset a category to default values
    */
-  resetCategory: protectedProcedure
+  resetCategory: superAdminProcedure
     .input(z.object({ category: z.string() }))
     .mutation(async ({ ctx, input }) => {
       if (!configService.isInitialized()) {
@@ -124,7 +124,7 @@ export const adminRouter = router({
   /**
    * Refresh server config cache from database
    */
-  refreshCache: protectedProcedure.mutation(async ({ ctx }) => {
+  refreshCache: superAdminProcedure.mutation(async ({ ctx }) => {
     if (!configService.isInitialized()) {
       await configService.init(ctx.db);
     } else {
@@ -140,7 +140,7 @@ export const adminRouter = router({
   /**
    * Seed default configs if they don't exist
    */
-  seedDefaults: protectedProcedure.mutation(async ({ ctx }) => {
+  seedDefaults: superAdminProcedure.mutation(async ({ ctx }) => {
     if (!configService.isInitialized()) {
       await configService.init(ctx.db);
     }
@@ -153,7 +153,7 @@ export const adminRouter = router({
   /**
    * Get available categories
    */
-  categories: protectedProcedure.query(() => {
+  categories: superAdminProcedure.query(() => {
     const categories = new Set(DEFAULT_CONFIGS.map((c) => c.category));
     return Array.from(categories).map((category) => ({
       id: category,
@@ -165,7 +165,7 @@ export const adminRouter = router({
   /**
    * Quick toggle for common feature flags
    */
-  toggleFeature: protectedProcedure
+  toggleFeature: superAdminProcedure
     .input(
       z.object({
         feature: z.enum(['testMode', 'mockAI', 'socialProof', 'serpApi', 'deepResearch.enabled']),
@@ -193,7 +193,7 @@ export const adminRouter = router({
   /**
    * Get user action audit logs (access control, compliance)
    */
-  userAuditLogs: protectedProcedure
+  userAuditLogs: superAdminProcedure
     .input(
       z.object({
         userId: z.string().optional(),
@@ -240,7 +240,7 @@ export const adminRouter = router({
   /**
    * Get audit log summary by action type
    */
-  auditLogSummary: protectedProcedure
+  auditLogSummary: superAdminProcedure
     .input(
       z.object({
         days: z.number().min(1).max(90).default(7),
@@ -297,7 +297,7 @@ export const adminRouter = router({
   /**
    * Get token usage summary for dashboard
    */
-  tokenUsageSummary: protectedProcedure
+  tokenUsageSummary: superAdminProcedure
     .input(
       z.object({
         days: z.number().min(1).max(90).default(1),
@@ -373,7 +373,7 @@ export const adminRouter = router({
   /**
    * Get daily token usage for chart display
    */
-  tokenUsageChart: protectedProcedure
+  tokenUsageChart: superAdminProcedure
     .input(
       z.object({
         days: z.number().min(1).max(90).default(30),
@@ -411,16 +411,7 @@ export const adminRouter = router({
   /**
    * List all whitelisted IPs
    */
-  ipWhitelist: protectedProcedure.query(async ({ ctx }) => {
-    const user = await ctx.db.query.users.findFirst({
-      where: eq(users.id, ctx.userId),
-      columns: { role: true },
-    });
-
-    if (user?.role !== 'SUPER_ADMIN') {
-      throw new Error('Access denied. SUPER_ADMIN role required.');
-    }
-
+  ipWhitelist: superAdminProcedure.query(async ({ ctx }) => {
     return ctx.db.query.adminIPWhitelists.findMany({
       orderBy: desc(adminIPWhitelists.createdAt),
     });
@@ -429,7 +420,7 @@ export const adminRouter = router({
   /**
    * Add an IP to the whitelist
    */
-  addIPToWhitelist: protectedProcedure
+  addIPToWhitelist: superAdminProcedure
     .input(
       z.object({
         ipAddress: z.string().min(7).max(45),
@@ -438,15 +429,6 @@ export const adminRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const user = await ctx.db.query.users.findFirst({
-        where: eq(users.id, ctx.userId),
-        columns: { role: true, email: true },
-      });
-
-      if (user?.role !== 'SUPER_ADMIN') {
-        throw new Error('Access denied. SUPER_ADMIN role required.');
-      }
-
       const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
       const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
 
@@ -478,18 +460,9 @@ export const adminRouter = router({
   /**
    * Remove an IP from the whitelist
    */
-  removeIPFromWhitelist: protectedProcedure
+  removeIPFromWhitelist: superAdminProcedure
     .input(z.object({ id: z.string().cuid() }))
     .mutation(async ({ ctx, input }) => {
-      const user = await ctx.db.query.users.findFirst({
-        where: eq(users.id, ctx.userId),
-        columns: { role: true },
-      });
-
-      if (user?.role !== 'SUPER_ADMIN') {
-        throw new Error('Access denied. SUPER_ADMIN role required.');
-      }
-
       const entry = await ctx.db.query.adminIPWhitelists.findFirst({
         where: eq(adminIPWhitelists.id, input.id),
       });
@@ -514,7 +487,7 @@ export const adminRouter = router({
   /**
    * Update an IP whitelist entry
    */
-  updateIPWhitelist: protectedProcedure
+  updateIPWhitelist: superAdminProcedure
     .input(
       z.object({
         id: z.string().cuid(),
@@ -523,15 +496,6 @@ export const adminRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const user = await ctx.db.query.users.findFirst({
-        where: eq(users.id, ctx.userId),
-        columns: { role: true },
-      });
-
-      if (user?.role !== 'SUPER_ADMIN') {
-        throw new Error('Access denied. SUPER_ADMIN role required.');
-      }
-
       const [entry] = await ctx.db
         .update(adminIPWhitelists)
         .set({
@@ -547,7 +511,147 @@ export const adminRouter = router({
   /**
    * Get current user's IP (for self-whitelisting)
    */
-  getCurrentIP: protectedProcedure.query(() => {
+  getCurrentIP: superAdminProcedure.query(() => {
     return { note: 'Use /api/admin/current-ip endpoint to get your IP' };
   }),
+
+  // ==========================================================================
+  // USER MANAGEMENT
+  // ==========================================================================
+
+  /**
+   * List users with optional search
+   */
+  listUsers: superAdminProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+        limit: z.number().min(1).max(100).default(50),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const conditions = [];
+      if (input.search) {
+        conditions.push(
+          sql`(${users.email} ILIKE ${'%' + input.search + '%'} OR ${users.name} ILIKE ${'%' + input.search + '%'})`
+        );
+      }
+
+      return ctx.db.query.users.findMany({
+        where: conditions.length > 0 ? and(...conditions) : undefined,
+        columns: {
+          id: true,
+          email: true,
+          name: true,
+          image: true,
+          subscription: true,
+          role: true,
+          isAdmin: true,
+          createdAt: true,
+        },
+        limit: input.limit,
+        orderBy: desc(users.createdAt),
+      });
+    }),
+
+  /**
+   * Set a user's subscription tier
+   */
+  setUserTier: superAdminProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        tier: z.enum(['FREE', 'PRO', 'ENTERPRISE']),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const target = await ctx.db.query.users.findFirst({
+        where: eq(users.id, input.userId),
+        columns: { id: true, email: true, subscription: true },
+      });
+
+      if (!target) {
+        throw new Error('User not found');
+      }
+
+      const previousTier = target.subscription;
+
+      const [updated] = await ctx.db
+        .update(users)
+        .set({ subscription: input.tier })
+        .where(eq(users.id, input.userId))
+        .returning({
+          id: users.id,
+          email: users.email,
+          subscription: users.subscription,
+        });
+
+      // Audit log
+      await ctx.db.insert(auditLogs).values({
+        userId: ctx.userId,
+        action: 'USER_TIER_CHANGE',
+        resource: `user:${input.userId}`,
+        metadata: {
+          targetEmail: target.email,
+          previousTier,
+          newTier: input.tier,
+        },
+      });
+
+      return updated;
+    }),
+
+  /**
+   * Set a user's role
+   */
+  setUserRole: superAdminProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        role: z.enum(['USER', 'EDITOR', 'ADMIN', 'SUPER_ADMIN']),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Prevent removing your own SUPER_ADMIN role
+      if (input.userId === ctx.userId && input.role !== 'SUPER_ADMIN') {
+        throw new Error('Cannot demote your own SUPER_ADMIN role');
+      }
+
+      const target = await ctx.db.query.users.findFirst({
+        where: eq(users.id, input.userId),
+        columns: { id: true, email: true, role: true },
+      });
+
+      if (!target) {
+        throw new Error('User not found');
+      }
+
+      const previousRole = target.role;
+      const isAdmin = input.role === 'ADMIN' || input.role === 'SUPER_ADMIN';
+
+      const [updated] = await ctx.db
+        .update(users)
+        .set({ role: input.role, isAdmin })
+        .where(eq(users.id, input.userId))
+        .returning({
+          id: users.id,
+          email: users.email,
+          role: users.role,
+          isAdmin: users.isAdmin,
+        });
+
+      // Audit log
+      await ctx.db.insert(auditLogs).values({
+        userId: ctx.userId,
+        action: 'USER_ROLE_CHANGE',
+        resource: `user:${input.userId}`,
+        metadata: {
+          targetEmail: target.email,
+          previousRole,
+          newRole: input.role,
+        },
+      });
+
+      return updated;
+    }),
 });

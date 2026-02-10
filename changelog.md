@@ -2,6 +2,22 @@
 
 ## 2026-02-10
 
+### Fix: 100% 500 errors on Vercel — DATABASE_URL "URI malformed"
+
+**Problem:**
+Every server-side route on Vercel returned `500` with `[DB] Failed to initialize database: URI malformed`. Dashboard, tRPC, auth session, OAuth callbacks — all broken. 76 out of 183 logged requests were 500s.
+
+**Root Cause:**
+The `postgres` npm library (v3.4.8) uses `new URL()` to parse the `DATABASE_URL` connection string. Supabase passwords containing `%` followed by non-hex characters (e.g., `%ZQ`) cause `decodeURIComponent` inside the URL constructor to throw `URIError: URI malformed`. Prisma's custom URL parser handled this; postgres.js delegates to the strict platform parser.
+
+**Fix:**
+Added `parseConnectionString()` — a manual URL decomposer that splits connection strings WITHOUT using `new URL()`. Uses `lastIndexOf('@')` to find the host separator (handles `@` in passwords) and `indexOf(':')` on credentials to split user from password (handles `:` in passwords). On `URIError`, falls back to passing individual `{ host, port, database, username, password }` options to `postgres({...})`, bypassing URL parsing entirely.
+
+**Files changed:**
+- `packages/server/src/db/drizzle.ts` — added `parseConnectionString()` fallback + URI error detection
+
+---
+
 ### Fix: OAuth login fails on Vercel — Drizzle placeholder DB used at runtime
 
 **Problem:**
