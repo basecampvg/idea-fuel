@@ -416,7 +416,7 @@ npx expo-doctor
   - **Removed Packages:** `@prisma/client`, `@prisma/adapter-pg`, `prisma`, `@auth/prisma-adapter`
   - **Removed Files:** `packages/server/src/db/index.ts` (old Prisma client), `packages/server/src/generated/prisma/` (generated directory), `packages/server/test-db.js`, `packages/server/prisma/seed-test-ideas.js`
   - **Schema File:** `packages/server/src/db/schema.ts` — auto-generated via `drizzle-kit pull`, then refined with `.$type<T>()` on 30+ JSONB columns, `relations()` for all relationships, 16 enums
-  - **DB Client:** `packages/server/src/db/drizzle.ts` — lazy-initialized Proxy pattern (same as old Prisma client)
+  - **DB Client:** `packages/server/src/db/drizzle.ts` — eager init with globalThis caching (Proxy pattern didn't work — `DrizzleAdapter` uses `instanceof`/prototype checks that Proxies can't intercept)
   - **Key Files:**
     - `packages/server/src/db/schema.ts` — Drizzle schema (replaces `prisma/schema.prisma`)
     - `packages/server/src/db/drizzle.ts` — Drizzle client

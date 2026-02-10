@@ -2,6 +2,24 @@
 
 ## 2026-02-10
 
+### Fix: OAuth login fails on Vercel — Drizzle placeholder DB used at runtime
+
+**Problem:**
+Google OAuth login failed with `Failed query: select ... from "Account" inner join "User"`. The `[DB] Failed to parse DATABASE_URL — using placeholder for build` warning appeared at runtime, meaning the real database was replaced by a dead `localhost:5432` placeholder.
+
+**Root Cause:**
+`drizzle.ts`'s `createDrizzleClient()` wrapped `postgres(url)` in a `try/catch` that silently fell back to a localhost placeholder on ANY error — not just at build time. When `postgres` (bundled by webpack via `transpilePackages`) failed to parse the DATABASE_URL, the catch block swallowed the error and substituted a dead placeholder. All subsequent queries (including Auth.js's `getUserByAccount`) then failed against the nonexistent localhost DB.
+
+**Fix (two-part):**
+1. **drizzle.ts**: Added `NEXT_PHASE` build-time detection. Placeholder fallback now only activates during `next build` (`NEXT_PHASE === 'phase-production-build'`). At runtime, parse failures throw the real error instead of silently dying.
+2. **next.config.ts**: Added `postgres`, `drizzle-orm`, and `@auth/drizzle-adapter` to `serverExternalPackages` to prevent webpack from bundling these database packages (same pattern as the earlier Prisma fix).
+
+**Files changed:**
+- `packages/server/src/db/drizzle.ts` — build-time-only placeholder fallback
+- `packages/web/next.config.ts` — added DB packages to `serverExternalPackages`
+
+---
+
 ### Fix: OAuth login fails on Vercel — Redis ECONNREFUSED 127.0.0.1:6379
 
 **Problem:**

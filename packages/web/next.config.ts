@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   // Required for monorepo: tells Next.js to trace files from the monorepo root
   outputFileTracingRoot: path.join(__dirname, '../../'),
   serverExternalPackages: [
+    'postgres',
+    'drizzle-orm',
+    '@auth/drizzle-adapter',
     '@react-pdf/renderer',
     '@react-pdf/reconciler',
     '@react-pdf/layout',
