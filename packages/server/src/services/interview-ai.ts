@@ -1,5 +1,5 @@
 import { openai, INTERVIEW_MODEL, EXTRACTION_MODEL, getAIParams, createResponsesParams } from '../lib/openai';
-import type { SubscriptionTier } from '@prisma/client';
+import type { SubscriptionTier } from '../generated/prisma';
 import { getInterviewKnowledge } from '../lib/knowledge';
 import type { ChatMessage, InterviewMode, InterviewDataPoints, DataPoint } from '@forge/shared';
 import { trackUsageFromResponse } from '../lib/token-tracker';

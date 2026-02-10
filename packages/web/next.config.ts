@@ -7,11 +7,10 @@ const nextConfig: NextConfig = {
   // Required for monorepo: tells Next.js to trace files from the monorepo root
   outputFileTracingRoot: path.join(__dirname, '../../'),
   // Include Prisma WASM query compiler in Vercel serverless functions.
-  // The generated client lives in packages/server but at runtime Prisma's
-  // __dirname fallback resolves to process.cwd()+src/generated/prisma/ which
-  // is packages/web/src/generated/prisma/ on Vercel. The vercel-build script
-  // copies schema.prisma + query_compiler_bg.wasm there; this config ensures
-  // they survive output file tracing into the deployment bundle.
+  // Prisma's generated code falls back to process.cwd()+src/generated/prisma/
+  // when __dirname is rewritten by webpack. The vercel-build script copies
+  // schema.prisma + query_compiler_bg.wasm there; this ensures they survive
+  // output file tracing into the deployment bundle.
   outputFileTracingIncludes: {
     '/**': ['./src/generated/prisma/**/*'],
   },
