@@ -1,0 +1,46 @@
+{
+  "name": "@forge/server",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "dev": "tsx watch --env-file=../../.env src/index.ts",
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@forge/shared": "workspace:*",
+    "@react-pdf/renderer": "^4.3.2",
+    "@trpc/server": "^11.0.0-rc.682",
+    "ajv": "^8.17.1",
+    "bullmq": "^5.67.2",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
+    "drizzle-orm": "^0.45.1",
+    "ioredis": "^5.9.2",
+    "openai": "^6.16.0",
+    "postgres": "^3.4.8",
+    "react": "^19.0.0",
+    "slugify": "^1.6.6",
+    "superjson": "^2.2.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/react": "19.1.0",
+    "@vitest/coverage-v8": "^2.1.0",
+    "drizzle-kit": "^0.31.9",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.0"
+  }
+}

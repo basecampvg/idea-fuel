@@ -1,7 +1,7 @@
 # Claude Context: Forge Automation Project
 
 ## Project Overview
-
+All bug fixes should be logged in changelog.md
 **Project Name:** Forge Automation
 **Purpose:** Stabilize existing n8n cloud automation workflows, then migrate to Next.js + BullMQ stack
 **Current Phase:** BETA app development (web + mobile)
@@ -11,25 +11,17 @@
 ### Current Setup (Monorepo)
 ```
 Forge Automation/
-├── BETA/                   # ACTIVE - Current development
-│   ├── packages/
-│   │   ├── web/            # Next.js 15 + React 19 web app
-│   │   ├── mobile/         # Expo SDK 52 + React Native mobile app
-│   │   ├── server/         # tRPC + Prisma backend
-│   │   └── shared/         # Shared TypeScript code
-│   ├── skills/             # Claude skills for BETA development
-│   │   └── frontend-design/ # UI/UX design guidelines
-│   ├── package.json        # Root monorepo config
-│   ├── pnpm-workspace.yaml
-│   └── .npmrc              # pnpm configuration
-├── MVP/                    # Legacy - Previous iteration
-│   ├── packages/
-│   │   ├── web/
-│   │   ├── mobile/
-│   │   └── shared/
-│   └── ...
-├── skills/                 # n8n-specific Claude skills
+├── packages/
+│   ├── web/                # Next.js 15 + React 19 web app
+│   ├── mobile/             # Expo SDK 52 + React Native mobile app
+│   ├── server/             # tRPC + Drizzle backend
+│   └── shared/             # Shared TypeScript code
+├── skills/                 # Claude skills (n8n + frontend-design)
 ├── workflows/              # n8n workflow exports
+├── MVP/                    # Legacy - Previous iteration
+├── package.json            # Root monorepo config
+├── pnpm-workspace.yaml
+├── vercel.json
 ├── CLAUDE.md               # This file
 └── README.md
 ```
@@ -63,7 +55,7 @@ Forge Automation/
 | Component | Technology | Version |
 |-----------|------------|---------|
 | API Layer | tRPC | 11.x |
-| ORM | Prisma | 6.x |
+| ORM | Drizzle | 0.45.x |
 | Database | PostgreSQL | via Supabase |
 | Auth | Auth.js | 5.0 beta |
 
@@ -86,20 +78,20 @@ Forge Automation/
 
 | Router | Endpoints | Description |
 |--------|-----------|-------------|
+| `project` | `list`, `get`, `create`, `update`, `delete`, `startInterview`, `startResearch` | Project CRUD + workflow triggers |
 | `user` | `me`, `update`, `stats`, `subscription` | User profile and stats |
-| `idea` | `list`, `get`, `create`, `update`, `delete`, `startInterview`, `startResearch` | Idea CRUD + workflow triggers |
-| `interview` | `get`, `listByIdea`, `getActive`, `resume`, `addMessage`, `addAssistantMessage`, `complete`, `abandon`, `markExpired`, `heartbeat` | Interview chat management |
-| `report` | `list`, `listByIdea`, `get`, `generate`, `regenerate`, `update`, `delete`, `generateAll` | Report generation and management |
-| `research` | `get`, `getByIdea`, `getProgress`, `start`, `cancel`, `updatePhase`, `markFailed` | Research pipeline tracking |
+| `interview` | `get`, `listByProject`, `getActive`, `resume`, `addMessage`, `addAssistantMessage`, `complete`, `abandon`, `markExpired`, `heartbeat` | Interview chat management |
+| `report` | `list`, `listByProject`, `get`, `generate`, `regenerate`, `update`, `delete`, `generateAll` | Report generation and management |
+| `research` | `get`, `getByProject`, `getProgress`, `start`, `cancel`, `updatePhase`, `markFailed` | Research pipeline tracking |
 
-### Database Models (Prisma)
+### Database Models (Drizzle)
 
 | Model | Purpose |
 |-------|---------|
 | `User` | User accounts with subscription tiers |
 | `Account` | OAuth provider accounts (Auth.js) |
 | `Session` | User sessions (Auth.js) |
-| `Idea` | Business idea entries |
+| `Project` | Unified entity: draft idea → active project (status-driven lifecycle) |
 | `Interview` | AI interview sessions with message history |
 | `Research` | Background research pipeline state |
 | `Report` | Generated business reports |
@@ -294,11 +286,8 @@ curl -X GET "https://api.n8n.cloud/api/v1/workflows" \
   -H "X-N8N-API-KEY: ${N8N_API_KEY}"
 ```
 
-### Local Development (BETA)
+### Local Development
 ```bash
-# Navigate to BETA folder first
-cd BETA
-
 # Run web dev server
 pnpm dev:web
 
@@ -312,16 +301,16 @@ pnpm dev
 # Type check all packages
 pnpm type-check
 
-# Database commands
-pnpm db:generate   # Generate Prisma client
+# Database commands (Drizzle Kit)
+pnpm db:generate   # Generate Drizzle migrations
 pnpm db:push       # Push schema to database
 pnpm db:migrate    # Run migrations
-pnpm db:studio     # Open Prisma Studio
+pnpm db:studio     # Open Drizzle Studio
 ```
 
 ### Mobile App (Expo)
 ```bash
-cd BETA/packages/mobile
+cd packages/mobile
 
 # Start Expo dev server
 pnpm dev
@@ -413,6 +402,172 @@ npx expo-doctor
 
 ## Change Log
 
+### 2026-02-09
+- ✅ **Prisma → Drizzle ORM Migration** - Complete migration from Prisma to Drizzle ORM
+  - **Motivation:** Prisma + Vercel + monorepo caused 11+ deployment fix commits (binary not found, WASM fallbacks, MODULE_NOT_FOUND, webpack externals). Drizzle is 56 KB, zero-binary, natively edge-compatible.
+  - **Migration:** 7-phase migration (setup → auth adapter → context + pilot → routers → services → research → cleanup)
+  - **Key Changes:**
+    - `@auth/prisma-adapter` → `@auth/drizzle-adapter` with custom table mappings
+    - All routers converted: `ctx.prisma.X.findFirst(...)` → `ctx.db.query.X.findFirst({ where: eq(...), with: {...} })`
+    - All services/workers converted: module-level `db` import from `db/drizzle.ts`
+    - `next.config.ts` cleaned: Removed all Prisma webpack externals, WASM copy, outputFileTracingIncludes
+    - `vercel-build` script simplified from copy-WASM-and-build to just `pnpm build:web`
+    - Root `postinstall` script removed (no more `prisma generate`)
+  - **Removed Packages:** `@prisma/client`, `@prisma/adapter-pg`, `prisma`, `@auth/prisma-adapter`
+  - **Removed Files:** `packages/server/src/db/index.ts` (old Prisma client), `packages/server/src/generated/prisma/` (generated directory), `packages/server/test-db.js`, `packages/server/prisma/seed-test-ideas.js`
+  - **Schema File:** `packages/server/src/db/schema.ts` — auto-generated via `drizzle-kit pull`, then refined with `.$type<T>()` on 30+ JSONB columns, `relations()` for all relationships, 16 enums
+  - **DB Client:** `packages/server/src/db/drizzle.ts` — eager init with globalThis caching (Proxy pattern didn't work — `DrizzleAdapter` uses `instanceof`/prototype checks that Proxies can't intercept)
+  - **Key Files:**
+    - `packages/server/src/db/schema.ts` — Drizzle schema (replaces `prisma/schema.prisma`)
+    - `packages/server/src/db/drizzle.ts` — Drizzle client
+    - `packages/server/drizzle.config.ts` — Drizzle Kit configuration
+    - `packages/web/src/lib/auth/config.ts` — DrizzleAdapter setup
+
+### 2026-02-08
+- ✅ **Unified Project Lifecycle** - Merged Idea + Project into single unified Project model
+  - **Supersedes:** 2026-02-06 Project + Canvas Architecture
+  - **Models Removed:** `Idea`, `CanvasSnapshot`, `IdeaStatus` enum
+  - **Schema Changes:** Project now has `title`, `description`, `notes`, `status` (ProjectStatus enum: CAPTURED → INTERVIEWING → RESEARCHING → COMPLETE); direct relations to Interview[], Report[], Research?
+  - **Router Consolidation:** `idea.ts` deleted; `startInterview` + `startResearch` absorbed into `project.ts`; all routers updated from `ideaId` → `projectId`
+  - **Canvas → Notes:** Block-based canvas editor replaced with simple `notes` text field; `CanvasSnapshot` replaced by `notesSnapshot` on Research
+  - **Shared Package:** Removed all canvas types/validators/serializer; renamed `IdeaStatus` → `ProjectStatus`; updated research-journey utility
+  - **Web Frontend:** Sidebar shows Drafts (CAPTURED) + Vault (active/complete) sections; all `/ideas/` routes deleted and redirected to `/projects/`; subscription context updated
+  - **Mobile Frontend:** All `trpc.idea.*` calls → `trpc.project.*`; status display updated
+  - **AI Pipeline:** Notes text passed directly to prompts (no canvas serialization); `notesSnapshot` stored on Research record
+  - **Key Files:**
+    - `packages/server/src/routers/project.ts` — Unified project router
+    - `packages/server/prisma/schema.prisma` — Simplified single-entity schema
+    - `packages/shared/src/types/index.ts` — No more Idea/Canvas types
+    - `packages/web/src/components/layout/sidebar.tsx` — Drafts + Vault sections
+    - `packages/web/src/app/(dashboard)/projects/` — All project pages
+
+### 2026-02-06 (Superseded by 2026-02-08)
+- ~~✅ **Project + Canvas Architecture**~~ - Replaced by Unified Project Lifecycle
+  - **New Models:** `Project` (owns canvas JSON blocks + one Idea), `CanvasSnapshot` (frozen canvas at research start)
+  - **New Router:** `project.ts` — CRUD + `updateCanvas` + audit logging
+  - **Canvas System:** Structured blocks (section, note, subIdea, link) with drag-to-reorder, auto-save, predefined sections
+  - **Shared Types:** `CanvasBlock` discriminated union, `serializeCanvasForAI()` for AI context injection
+  - **Web Frontend:** `/projects` list page, `/projects/[id]` detail with canvas editor, sidebar migrated to show projects
+  - **Mobile Frontend:** Vault screen updated to query projects with derived status (Draft/Active/Complete)
+  - **AI Pipeline:** Canvas context injected into deep research, chunked research, and Spark pipeline prompts
+  - **Key Files:**
+    - `packages/server/src/routers/project.ts` — Project router
+    - `packages/server/prisma/schema.prisma` — Project + CanvasSnapshot models
+    - `packages/shared/src/utils/canvas-serializer.ts` — AI serialization
+    - `packages/shared/src/validators/index.ts` — Canvas/project Zod schemas
+    - `packages/web/src/app/(dashboard)/projects/` — Web project pages
+    - `packages/web/src/components/layout/project-mini-card.tsx` — Sidebar card
+    - `packages/web/src/lib/project-status.ts` — Derived status config
+
+### 2026-01-26 (In Progress)
+- 🔄 **Daily Pick Feature** - Automated trending topic to business idea pipeline
+  - **Concept:** Daily automated pipeline that identifies a single high-potential business idea from trending searches
+  - **New Files:**
+    - `packages/server/src/routers/dailyPick.ts` - Daily pick router
+    - `packages/server/src/lib/clustering.ts` - Topic clustering algorithm
+    - `packages/server/src/lib/intentFormFilter.ts` - Pain-point/question filter
+    - `packages/server/src/lib/normalizeQuery.ts` - Query normalization
+    - `packages/server/src/lib/scoring.ts` - Opportunity scoring
+    - `packages/server/src/lib/winner.ts` - Winner selection logic
+    - `packages/server/src/jobs/` - Background job processing
+    - `packages/shared/src/schemas/` - Validation schemas
+    - `packages/web/src/app/(dashboard)/daily-pick/` - Web UI
+    - `packages/mobile/src/app/(tabs)/daily-pick/` - Mobile UI
+  - **Database Changes:** Added `DailyPick`, `TrendingQuery` models to Prisma schema
+  - **SerpAPI Enhancements:**
+    - Extended `serpapi.ts` with Google Trends Trending Now API
+    - Related Queries (rising) expansion
+    - Intent-form filtering (pain-point phrasing detection)
+    - Category filtering for business/tech/health
+  - **Architecture:** Post-filter + expand via related rising queries + then enrich
+- 📋 **Batch API Plan** - Drafted integration plan for 50% cost reduction
+  - Plan documented in `batch-plan.md`
+  - Two-phase batch submission strategy (Phase 1-2 deep research, Phase 3-4 extraction)
+  - Estimated savings: ~$7.90 per research (50%)
+
+### 2026-01-24
+- ✅ **Spark AI Pipeline** - Rapid market analysis service
+  - **New Services:**
+    - `spark-ai.ts` - Main Spark orchestration (858 lines)
+    - `spark-competitors.ts` - Competitor analysis
+    - `spark-demand.ts` - Demand validation
+    - `spark-tam.ts` - TAM/SAM/SOM market sizing
+  - **Token Tracking:** Added `token-tracker.ts` for usage monitoring
+  - **Testing:** Added vitest configuration and initial tests (`market-sizing.test.ts`)
+- ✅ **Mobile App Overhaul** - Complete UI redesign
+  - Restructured ideas routes with folder-based layout (`/ideas/[id]/`, `/ideas/new`)
+  - New components: `BottomSheet`, `CollapsibleSection`, `GlobalHeader`, `ProgressMeter`
+  - 14 new analysis section components for research results display
+  - Updated tailwind config with custom theme
+  - Sign-in page redesign
+  - Dashboard, reports, settings UI refresh
+- ✅ **Web Enhancements**
+  - Spark progress tracking and results components
+  - Market sizing section with TAM/SAM/SOM visualization
+  - Tech stack section
+  - Enhanced admin page with system diagnostics
+  - Dashboard configuration hook
+- ✅ **PDF Custom Fonts** - Inter font family support for PDF generation
+- ✅ **Research AI Enhancements** - Improved token tracking and extraction
+- ✅ **Shared Types Expansion** - New types for Spark analysis results
+
+### 2026-01-22
+- ✅ **Spark Pipeline Model Settings Audit** - Error reduction for o4-mini-deep-research
+  - **Issue:** Spark pipeline missing retry logic, low token limits causing `status: incomplete`
+  - **Changes to `spark-ai.ts`:**
+    - Added `withExponentialBackoff` around `runDeepResearchWithPolling` (3 attempts)
+    - Increased `maxOutputTokens`: 25,000 → 50,000 (matches default)
+    - Changed `reasoningSummary`: `'detailed'` → `'auto'` (balances token budget)
+    - Increased `pollIntervalMs`: 10s → 15s (matches research-ai.ts)
+    - Increased `maxWaitMs`: 30min → 60min (matches research-ai.ts)
+    - Added retry to `repairSparkResult` gpt-4o-mini call (3 attempts)
+    - Added `trackUsageFromResponse` for keyword generation and JSON repair
+  - **Compatibility:** All changes verified against OpenAI docs and existing research-ai.ts patterns
+  - **Plan file:** `~/.claude/plans/glittery-doodling-willow.md`
+
+### 2026-01-20
+- ✅ **Deep Research Best Practices Implementation** - Full 6-phase overhaul
+  - Implemented per `deep-research-BP.md` guidelines for o3-deep-research model
+  - **Phase 1: Background Mode + Polling** (core fix)
+    - Added `runDeepResearchWithPolling()` for background API calls
+    - Added `startBackgroundResearch()` and `pollForCompletion()` utilities
+    - 10-15 second polling interval, 30-45 minute SLAs
+    - Eliminates long-lived connection timeouts
+  - **Phase 2: Token Limits Increased** (prevents truncation)
+    - `extractInsights()`: 3,500 → 25,000 tokens
+    - `synthesizeInsights()`: 3,000 → 15,000 tokens
+    - Deep research chunks: Added 50,000 token default
+  - **Phase 3: Exponential Backoff Retries**
+    - Added `withExponentialBackoff()` utility with jitter
+    - Handles 502/503/504, rate limits, connection resets
+    - 3 attempts for deep research, 5 for extraction calls
+  - **Phase 4: Discriminated Error Handling**
+    - `classifyResearchError()` categorizes errors by type
+    - Types: timeout, rate_limit, transient, api_error, parse_error, sla_exceeded
+    - Enhanced logging with `logResearchError()`
+  - **Phase 5: Response Validation Fix** (root cause)
+    - Added `extractResponseContent()` unified parser
+    - Handles both `output_text` and `output[]` array formats
+    - `ResponseParseError` class with raw response capture
+  - **Phase 6: SLA Management**
+    - `SlaTracker` class for phase/total time tracking
+    - Configurable SLAs via `config.ts` (research.sla.*)
+    - Default: 30min deep research, 15min social, 5min synthesis/reports, 45min total
+  - **Files Modified:**
+    - `packages/server/src/lib/deep-research.ts` - Polling, background mode
+    - `packages/server/src/lib/openai.ts` - Re-exported retry utility
+    - `packages/server/src/services/research-ai.ts` - All extraction/pipeline changes
+    - `packages/server/src/routers/research.ts` - SLA tracking, error classification
+    - `packages/server/src/services/config.ts` - SLA configuration keys
+- 🔧 **Research Pipeline Error Tracking Fix** - Fixed hardcoded `errorPhase` bug
+  - **File:** `packages/server/src/routers/research.ts` (lines 244-384)
+  - Added `currentPhase` variable to track active phase during pipeline execution
+  - Error handler now uses tracked phase instead of hardcoded `'SYNTHESIS'`
+  - Added timing info to error logs (`Pipeline failed at phase: X after Y seconds`)
+- ✅ **Previous Issue RESOLVED:** `extractInsights()` empty `output_text`
+  - Root cause: Response format mismatch + low token limits
+  - Fixed with unified response parser and 25k token limit
+
 ### 2026-01-18
 - ✅ **OpenAI Responses API Migration** - Migrated from Chat Completions to Responses API
   - All 12 API calls migrated (`interview-ai.ts`: 3, `research-ai.ts`: 9)
@@ -421,9 +576,9 @@ npx expo-doctor
   - Feature flag: `OPENAI_USE_GPT52_PARAMS` in `.env` (true/false)
   - Fixed JSON truncation in `generateActionPrompts` (increased to 4000 tokens)
 - ✅ **Environment Variable Loading Fixed** - Monorepo `.env` loading
-  - Web package: Added `dotenv-cli` to load `BETA/.env` via dev script
+  - Web package: Added `dotenv-cli` to load `.env` via dev script
   - Server package: Added `--env-file` flag to tsx dev script
-  - Single `.env` file at `BETA/.env` now works for all packages
+  - Single `.env` file at repo root now works for all packages
 - ✅ **OpenAI Package Updated** - Updated to latest version (^6.16.0)
 
 ### 2026-01-17
@@ -488,7 +643,7 @@ npx expo-doctor
 ## Notes for Claude
 
 ### CRITICAL: Frontend Design Guidelines
-**ALWAYS reference `BETA/skills/frontend-design/frontend-design.md` before any UI-related work.**
+**ALWAYS reference `skills/frontend-design/frontend-design.md` before any UI-related work.**
 
 When building or modifying any frontend components, pages, or interfaces (web or mobile):
 1. Read the frontend-design skill file first
@@ -496,18 +651,21 @@ When building or modifying any frontend components, pages, or interfaces (web or
 3. AVOID generic AI aesthetics (Inter font, purple gradients, predictable layouts)
 4. Commit to a clear design direction and execute with precision
 
-### Active Development (BETA)
-- **Working Directory:** `BETA/` is the active codebase
+### Active Development
+- **Working Directory:** Repo root is the monorepo root
 - **Monorepo:** pnpm workspaces with 4 packages (web, mobile, server, shared)
 - **React Version:** 19.x across all packages
-- **Type Checking:** Run `pnpm type-check` from BETA root
+- **Type Checking:** Run `pnpm type-check` from repo root
 
 ### Key Files to Know
-- `BETA/packages/web/src/app/` - Next.js App Router pages
-- `BETA/packages/mobile/src/app/` - Expo Router screens
-- `BETA/packages/server/src/routers/` - tRPC API routers
-- `BETA/packages/shared/src/` - Shared types and utilities
-- `BETA/packages/server/prisma/schema.prisma` - Database schema
+- `packages/web/src/app/` - Next.js App Router pages
+- `packages/web/src/app/(dashboard)/projects/` - Project list + detail pages
+- `packages/mobile/src/app/` - Expo Router screens
+- `packages/server/src/routers/` - tRPC API routers
+- `packages/server/src/routers/project.ts` - Project CRUD + interview/research triggers
+- `packages/shared/src/` - Shared types and utilities
+- `packages/server/src/db/schema.ts` - Database schema (Drizzle)
+- `packages/server/src/db/drizzle.ts` - Database client
 
 ### n8n Integration
 - **MCP Access:** Use MCP server to fetch workflow data
@@ -516,4 +674,50 @@ When building or modifying any frontend components, pages, or interfaces (web or
 
 ### Legacy
 - `MVP/` contains previous iteration - reference only
+
+---
+
+## Post-Change Checklist
+
+**Run this checklist after any significant code changes to catch common issues:**
+
+### Database / Drizzle Changes
+If you modified `packages/server/src/db/schema.ts` (added/changed enums, tables, or columns):
+- [ ] Run `pnpm db:push` to sync schema to database (or `pnpm db:migrate` for production)
+- [ ] Run `pnpm db:generate` to generate migration files
+- [ ] Verify no "invalid input value for enum" errors at runtime
+
+### TypeScript / Types Changes
+If you modified types in `shared/types` or `shared/constants`:
+- [ ] Run `pnpm type-check` from repo root to verify all packages compile
+- [ ] Check that Drizzle schema types align with shared types (especially enums)
+- [ ] Verify frontend components consuming changed types still work
+
+### API / Router Changes
+If you modified tRPC routers or added new endpoints:
+- [ ] Verify endpoint is accessible from frontend (web and/or mobile)
+- [ ] Check error handling returns appropriate messages
+- [ ] Test with both authenticated and unauthenticated requests (if applicable)
+
+### AI Pipeline Changes
+If you modified interview-ai.ts, research-ai.ts, or spark-ai.ts:
+- [ ] Verify token limits are appropriate (check for truncation)
+- [ ] Confirm retry logic is in place for API calls
+- [ ] Test with a real idea to verify end-to-end flow
+- [ ] Check that progress/status updates work correctly
+
+### Feature Flags / Rollback
+For significant changes:
+- [ ] Add a feature flag at top of file for easy rollback (e.g., `const USE_NEW_PIPELINE = true`)
+- [ ] Keep legacy code path available until change is verified in production
+- [ ] Document the feature flag in the Change Log
+
+### Common Error Patterns
+| Error | Likely Cause | Fix |
+|-------|--------------|-----|
+| `invalid input value for enum "X"` | Drizzle schema not synced | `pnpm db:push` |
+| `Type '"X"' is not assignable to type` | Schema types out of date | Update `schema.ts`, run `pnpm type-check` |
+| `EPERM: operation not permitted` (Windows) | File locked by VS Code/TS server | Close IDE and retry |
+| `output_text is empty` | Token limit too low or response parsing issue | Increase maxOutputTokens, check response format |
+| `status: incomplete` | Deep research timeout or token exhaustion | Add retry logic, increase timeouts |
 

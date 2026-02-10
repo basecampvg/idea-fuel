@@ -1,0 +1,636 @@
+import {
+  pgTable,
+  pgEnum,
+  text,
+  timestamp,
+  integer,
+  boolean,
+  jsonb,
+  doublePrecision,
+  index,
+  uniqueIndex,
+  foreignKey,
+} from 'drizzle-orm/pg-core';
+import { relations, sql } from 'drizzle-orm';
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+export const subscriptionTierEnum = pgEnum('SubscriptionTier', ['FREE', 'PRO', 'ENTERPRISE']);
+export const userRoleEnum = pgEnum('UserRole', ['USER', 'EDITOR', 'ADMIN', 'SUPER_ADMIN']);
+export const projectStatusEnum = pgEnum('ProjectStatus', ['CAPTURED', 'INTERVIEWING', 'RESEARCHING', 'COMPLETE']);
+export const interviewModeEnum = pgEnum('InterviewMode', ['SPARK', 'LIGHT', 'IN_DEPTH']);
+export const interviewStatusEnum = pgEnum('InterviewStatus', ['IN_PROGRESS', 'COMPLETE', 'ABANDONED']);
+export const researchStatusEnum = pgEnum('ResearchStatus', ['PENDING', 'IN_PROGRESS', 'COMPLETE', 'FAILED']);
+export const researchPhaseEnum = pgEnum('ResearchPhase', [
+  'QUEUED', 'DEEP_RESEARCH', 'SYNTHESIS', 'SOCIAL_RESEARCH', 'REPORT_GENERATION',
+  'BUSINESS_PLAN_GENERATION', 'COMPLETE', 'QUERY_GENERATION', 'DATA_COLLECTION',
+]);
+export const sparkJobStatusEnum = pgEnum('SparkJobStatus', [
+  'QUEUED', 'RUNNING_KEYWORDS', 'RUNNING_RESEARCH', 'RUNNING_PARALLEL',
+  'SYNTHESIZING', 'ENRICHING', 'COMPLETE', 'PARTIAL_COMPLETE', 'FAILED',
+]);
+export const reportTypeEnum = pgEnum('ReportType', [
+  'BUSINESS_PLAN', 'POSITIONING', 'COMPETITIVE_ANALYSIS', 'WHY_NOW', 'PROOF_SIGNALS',
+  'KEYWORDS_SEO', 'CUSTOMER_PROFILE', 'VALUE_EQUATION', 'VALUE_LADDER', 'GO_TO_MARKET',
+]);
+export const reportTierEnum = pgEnum('ReportTier', ['BASIC', 'PRO', 'FULL']);
+export const reportStatusEnum = pgEnum('ReportStatus', ['DRAFT', 'GENERATING', 'COMPLETE', 'FAILED']);
+export const configTypeEnum = pgEnum('ConfigType', ['STRING', 'NUMBER', 'BOOLEAN', 'JSON', 'SELECT']);
+export const dailyRunStatusEnum = pgEnum('DailyRunStatus', ['SUCCESS', 'PARTIAL', 'FAILED']);
+export const dailyPickStatusEnum = pgEnum('DailyPickStatus', ['ACTIVE', 'ARCHIVED']);
+export const blogPostStatusEnum = pgEnum('BlogPostStatus', ['DRAFT', 'PUBLISHED', 'ARCHIVED']);
+export const aiClassificationTargetTypeEnum = pgEnum('AIClassificationTargetType', ['QUERY', 'CLUSTER', 'WINNER_REPORT']);
+
+// TypeScript types derived from enums
+export type SubscriptionTier = (typeof subscriptionTierEnum.enumValues)[number];
+export type UserRole = (typeof userRoleEnum.enumValues)[number];
+export type ProjectStatus = (typeof projectStatusEnum.enumValues)[number];
+export type InterviewMode = (typeof interviewModeEnum.enumValues)[number];
+export type InterviewStatus = (typeof interviewStatusEnum.enumValues)[number];
+export type ResearchStatus = (typeof researchStatusEnum.enumValues)[number];
+export type ResearchPhase = (typeof researchPhaseEnum.enumValues)[number];
+export type SparkJobStatus = (typeof sparkJobStatusEnum.enumValues)[number];
+export type ReportType = (typeof reportTypeEnum.enumValues)[number];
+export type ReportTier = (typeof reportTierEnum.enumValues)[number];
+export type ReportStatus = (typeof reportStatusEnum.enumValues)[number];
+export type ConfigType = (typeof configTypeEnum.enumValues)[number];
+export type DailyRunStatus = (typeof dailyRunStatusEnum.enumValues)[number];
+export type DailyPickStatus = (typeof dailyPickStatusEnum.enumValues)[number];
+export type BlogPostStatus = (typeof blogPostStatusEnum.enumValues)[number];
+export type AIClassificationTargetType = (typeof aiClassificationTargetTypeEnum.enumValues)[number];
+
+// =============================================================================
+// AUTH TABLES (User, Account, Session, VerificationToken)
+// =============================================================================
+
+export const users = pgTable('User', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  email: text().notNull(),
+  emailVerified: timestamp({ precision: 3, mode: 'date' }),
+  name: text(),
+  passwordHash: text(),
+  image: text(),
+  subscription: subscriptionTierEnum().default('FREE').notNull(),
+  isAdmin: boolean().default(false).notNull(),
+  role: userRoleEnum().default('USER').notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+}, (table) => [
+  uniqueIndex('User_email_key').using('btree', table.email.asc().nullsLast()),
+]);
+
+export const accounts = pgTable('Account', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  userId: text().notNull(),
+  type: text().notNull(),
+  provider: text().notNull(),
+  providerAccountId: text().notNull(),
+  refresh_token: text(),
+  access_token: text(),
+  expires_at: integer(),
+  token_type: text(),
+  scope: text(),
+  id_token: text(),
+  session_state: text(),
+}, (table) => [
+  uniqueIndex('Account_provider_providerAccountId_key').using('btree', table.provider.asc().nullsLast(), table.providerAccountId.asc().nullsLast()),
+  foreignKey({
+    columns: [table.userId],
+    foreignColumns: [users.id],
+    name: 'Account_userId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+export const sessions = pgTable('Session', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  sessionToken: text().notNull(),
+  userId: text().notNull(),
+  expires: timestamp({ precision: 3, mode: 'date' }).notNull(),
+}, (table) => [
+  uniqueIndex('Session_sessionToken_key').using('btree', table.sessionToken.asc().nullsLast()),
+  foreignKey({
+    columns: [table.userId],
+    foreignColumns: [users.id],
+    name: 'Session_userId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+export const verificationTokens = pgTable('VerificationToken', {
+  identifier: text().notNull(),
+  token: text().notNull(),
+  expires: timestamp({ precision: 3, mode: 'date' }).notNull(),
+}, (table) => [
+  uniqueIndex('VerificationToken_identifier_token_key').using('btree', table.identifier.asc().nullsLast(), table.token.asc().nullsLast()),
+  uniqueIndex('VerificationToken_token_key').using('btree', table.token.asc().nullsLast()),
+]);
+
+// =============================================================================
+// PROJECT
+// =============================================================================
+
+export const projects = pgTable('Project', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  title: text().notNull(),
+  description: text().notNull(),
+  notes: text(),
+  status: projectStatusEnum().default('CAPTURED').notNull(),
+  userId: text().notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+}, (table) => [
+  index('Project_status_idx').using('btree', table.status.asc().nullsLast()),
+  index('Project_userId_idx').using('btree', table.userId.asc().nullsLast()),
+  foreignKey({
+    columns: [table.userId],
+    foreignColumns: [users.id],
+    name: 'Project_userId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
+// INTERVIEW
+// =============================================================================
+
+export const interviews = pgTable('Interview', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  mode: interviewModeEnum().default('LIGHT').notNull(),
+  status: interviewStatusEnum().default('IN_PROGRESS').notNull(),
+  currentTurn: integer().default(0).notNull(),
+  maxTurns: integer().default(5).notNull(),
+  messages: jsonb().notNull(),
+  collectedData: jsonb(),
+  confidenceScore: integer().default(0).notNull(),
+  summary: text(),
+  lastActiveAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  lastMessageAt: timestamp({ precision: 3, mode: 'date' }),
+  resumeContext: text(),
+  isExpired: boolean().default(false).notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+  projectId: text().notNull(),
+  userId: text().notNull(),
+}, (table) => [
+  index('Interview_lastActiveAt_idx').using('btree', table.lastActiveAt.asc().nullsLast()),
+  index('Interview_mode_idx').using('btree', table.mode.asc().nullsLast()),
+  index('Interview_projectId_idx').using('btree', table.projectId.asc().nullsLast()),
+  index('Interview_status_idx').using('btree', table.status.asc().nullsLast()),
+  index('Interview_userId_idx').using('btree', table.userId.asc().nullsLast()),
+  foreignKey({
+    columns: [table.projectId],
+    foreignColumns: [projects.id],
+    name: 'Interview_projectId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+  foreignKey({
+    columns: [table.userId],
+    foreignColumns: [users.id],
+    name: 'Interview_userId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
+// RESEARCH
+// =============================================================================
+
+export const research = pgTable('Research', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  status: researchStatusEnum().default('PENDING').notNull(),
+  currentPhase: researchPhaseEnum().default('QUEUED').notNull(),
+  progress: integer().default(0).notNull(),
+  estimatedCompletion: timestamp({ precision: 3, mode: 'date' }),
+  startedAt: timestamp({ precision: 3, mode: 'date' }),
+  completedAt: timestamp({ precision: 3, mode: 'date' }),
+  generatedQueries: jsonb(),
+  rawData: jsonb(),
+  rawDeepResearch: jsonb(),
+  researchChunks: jsonb(),
+  synthesizedInsights: jsonb(),
+  marketAnalysis: jsonb(),
+  competitors: jsonb(),
+  painPoints: jsonb(),
+  positioning: jsonb(),
+  whyNow: jsonb(),
+  proofSignals: jsonb(),
+  keywords: jsonb(),
+  opportunityScore: integer(),
+  problemScore: integer(),
+  feasibilityScore: integer(),
+  whyNowScore: integer(),
+  scoreJustifications: jsonb(),
+  scoreMetadata: jsonb(),
+  revenuePotential: jsonb(),
+  executionDifficulty: jsonb(),
+  gtmClarity: jsonb(),
+  founderFit: jsonb(),
+  keywordTrends: jsonb(),
+  valueLadder: jsonb(),
+  actionPrompts: jsonb(),
+  userStory: jsonb(),
+  socialProof: jsonb(),
+  marketSizing: jsonb(),
+  techStack: jsonb(),
+  businessPlan: text(),
+  sparkStatus: sparkJobStatusEnum(),
+  sparkKeywords: jsonb(),
+  sparkResult: jsonb(),
+  sparkStartedAt: timestamp({ precision: 3, mode: 'date' }),
+  sparkCompletedAt: timestamp({ precision: 3, mode: 'date' }),
+  sparkError: text(),
+  errorMessage: text(),
+  errorPhase: researchPhaseEnum(),
+  retryCount: integer().default(0).notNull(),
+  notesSnapshot: text(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+  projectId: text().notNull(),
+}, (table) => [
+  index('Research_currentPhase_idx').using('btree', table.currentPhase.asc().nullsLast()),
+  uniqueIndex('Research_projectId_key').using('btree', table.projectId.asc().nullsLast()),
+  index('Research_status_idx').using('btree', table.status.asc().nullsLast()),
+  foreignKey({
+    columns: [table.projectId],
+    foreignColumns: [projects.id],
+    name: 'Research_projectId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
+// REPORT
+// =============================================================================
+
+export const reports = pgTable('Report', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  type: reportTypeEnum().notNull(),
+  tier: reportTierEnum().notNull(),
+  title: text().notNull(),
+  content: text().notNull(),
+  sections: jsonb().notNull(),
+  version: integer().default(1).notNull(),
+  status: reportStatusEnum().default('DRAFT').notNull(),
+  pdfUrl: text(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+  projectId: text().notNull(),
+  userId: text().notNull(),
+}, (table) => [
+  index('Report_projectId_idx').using('btree', table.projectId.asc().nullsLast()),
+  index('Report_status_idx').using('btree', table.status.asc().nullsLast()),
+  index('Report_tier_idx').using('btree', table.tier.asc().nullsLast()),
+  index('Report_type_idx').using('btree', table.type.asc().nullsLast()),
+  index('Report_userId_idx').using('btree', table.userId.asc().nullsLast()),
+  foreignKey({
+    columns: [table.projectId],
+    foreignColumns: [projects.id],
+    name: 'Report_projectId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+  foreignKey({
+    columns: [table.userId],
+    foreignColumns: [users.id],
+    name: 'Report_userId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
+// ADMIN CONFIG
+// =============================================================================
+
+export const adminConfigs = pgTable('AdminConfig', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  key: text().notNull(),
+  value: jsonb().notNull(),
+  type: configTypeEnum().default('STRING').notNull(),
+  category: text().notNull(),
+  label: text().notNull(),
+  description: text(),
+  options: jsonb(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+  updatedBy: text(),
+}, (table) => [
+  index('AdminConfig_category_idx').using('btree', table.category.asc().nullsLast()),
+  uniqueIndex('AdminConfig_key_key').using('btree', table.key.asc().nullsLast()),
+]);
+
+export const configAuditLogs = pgTable('ConfigAuditLog', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  configKey: text().notNull(),
+  oldValue: jsonb(),
+  newValue: jsonb().notNull(),
+  changedBy: text().notNull(),
+  changedAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  reason: text(),
+}, (table) => [
+  index('ConfigAuditLog_changedAt_idx').using('btree', table.changedAt.asc().nullsLast()),
+  index('ConfigAuditLog_configKey_idx').using('btree', table.configKey.asc().nullsLast()),
+]);
+
+// =============================================================================
+// TOKEN USAGE TRACKING
+// =============================================================================
+
+export const tokenUsages = pgTable('TokenUsage', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  userId: text(),
+  projectId: text(),
+  functionName: text().notNull(),
+  model: text().notNull(),
+  inputTokens: integer().notNull(),
+  outputTokens: integer().notNull(),
+  totalTokens: integer().notNull(),
+  cachedTokens: integer().default(0).notNull(),
+  costEstimate: doublePrecision(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('TokenUsage_createdAt_idx').using('btree', table.createdAt.asc().nullsLast()),
+  index('TokenUsage_functionName_idx').using('btree', table.functionName.asc().nullsLast()),
+  index('TokenUsage_model_idx').using('btree', table.model.asc().nullsLast()),
+  index('TokenUsage_userId_idx').using('btree', table.userId.asc().nullsLast()),
+]);
+
+// =============================================================================
+// AUDIT LOGGING
+// =============================================================================
+
+export const auditLogs = pgTable('AuditLog', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  userId: text().notNull(),
+  action: text().notNull(),
+  resource: text().notNull(),
+  metadata: jsonb(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('AuditLog_action_idx').using('btree', table.action.asc().nullsLast()),
+  index('AuditLog_createdAt_idx').using('btree', table.createdAt.asc().nullsLast()),
+  index('AuditLog_userId_idx').using('btree', table.userId.asc().nullsLast()),
+  foreignKey({
+    columns: [table.userId],
+    foreignColumns: [users.id],
+    name: 'AuditLog_userId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
+// BLOG
+// =============================================================================
+
+export const blogPosts = pgTable('BlogPost', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  slug: text().notNull(),
+  title: text().notNull(),
+  description: text(),
+  content: jsonb().notNull(),
+  coverImage: text(),
+  status: blogPostStatusEnum().default('DRAFT').notNull(),
+  publishedAt: timestamp({ precision: 3, mode: 'date' }),
+  readingTime: text(),
+  wordCount: integer().default(0).notNull(),
+  tags: text().array().default(sql`'{}'::text[]`).notNull(),
+  authorId: text().notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+}, (table) => [
+  index('BlogPost_authorId_idx').using('btree', table.authorId.asc().nullsLast()),
+  index('BlogPost_publishedAt_idx').using('btree', table.publishedAt.asc().nullsLast()),
+  uniqueIndex('BlogPost_slug_key').using('btree', table.slug.asc().nullsLast()),
+  index('BlogPost_status_idx').using('btree', table.status.asc().nullsLast()),
+  foreignKey({
+    columns: [table.authorId],
+    foreignColumns: [users.id],
+    name: 'BlogPost_authorId_fkey',
+  }).onUpdate('cascade').onDelete('restrict'),
+]);
+
+// =============================================================================
+// DAILY TREND PICK
+// =============================================================================
+
+export const dailyRuns = pgTable('DailyRun', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  dateLocal: text().notNull(),
+  startedAt: timestamp({ precision: 3, mode: 'date' }).notNull(),
+  finishedAt: timestamp({ precision: 3, mode: 'date' }),
+  status: dailyRunStatusEnum().notNull(),
+  metrics: jsonb(),
+  logsRef: text(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+}, (table) => [
+  index('DailyRun_dateLocal_idx').using('btree', table.dateLocal.asc().nullsLast()),
+  index('DailyRun_status_idx').using('btree', table.status.asc().nullsLast()),
+]);
+
+export const queryCandidates = pgTable('QueryCandidate', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  runId: text().notNull(),
+  query: text().notNull(),
+  normalizedQuery: text().notNull(),
+  source: text().notNull(),
+  discoveredAt: timestamp({ precision: 3, mode: 'date' }).notNull(),
+  filterPassed: boolean().default(false).notNull(),
+  filterPassReason: text(),
+  matchedPatterns: jsonb(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('QueryCandidate_filterPassed_idx').using('btree', table.filterPassed.asc().nullsLast()),
+  index('QueryCandidate_normalizedQuery_idx').using('btree', table.normalizedQuery.asc().nullsLast()),
+  index('QueryCandidate_runId_idx').using('btree', table.runId.asc().nullsLast()),
+  foreignKey({
+    columns: [table.runId],
+    foreignColumns: [dailyRuns.id],
+    name: 'QueryCandidate_runId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+export const trendSeries = pgTable('TrendSeries', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  query: text().notNull(),
+  geo: text().notNull(),
+  timeframe: text().notNull(),
+  points: jsonb().notNull(),
+  fetchedAt: timestamp({ precision: 3, mode: 'date' }).notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('TrendSeries_fetchedAt_idx').using('btree', table.fetchedAt.asc().nullsLast()),
+  index('TrendSeries_query_geo_timeframe_idx').using('btree', table.query.asc().nullsLast(), table.geo.asc().nullsLast(), table.timeframe.asc().nullsLast()),
+]);
+
+export const serpSnapshots = pgTable('SerpSnapshot', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  query: text().notNull(),
+  geo: text().notNull(),
+  device: text().default('desktop').notNull(),
+  adsCount: integer().notNull(),
+  shoppingPresent: boolean().notNull(),
+  topStoriesPresent: boolean().notNull(),
+  topDomains: jsonb().notNull(),
+  snippetsSample: jsonb().notNull(),
+  rawFeatures: jsonb(),
+  fetchedAt: timestamp({ precision: 3, mode: 'date' }).notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('SerpSnapshot_fetchedAt_idx').using('btree', table.fetchedAt.asc().nullsLast()),
+  index('SerpSnapshot_query_geo_idx').using('btree', table.query.asc().nullsLast(), table.geo.asc().nullsLast()),
+]);
+
+export const clusters = pgTable('Cluster', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  runId: text().notNull(),
+  title: text().notNull(),
+  canonicalQuery: text().notNull(),
+  memberQueries: jsonb().notNull(),
+  growthScore: integer().notNull(),
+  purchaseProofScore: integer().notNull(),
+  painPointScore: integer().notNull(),
+  newsSpikeRisk: doublePrecision().notNull(),
+  combinedScore: doublePrecision().notNull(),
+  winnerReason: jsonb().notNull(),
+  triageIntent: text(),
+  triageConfidence: doublePrecision(),
+  triageCategory: text(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('Cluster_canonicalQuery_idx').using('btree', table.canonicalQuery.asc().nullsLast()),
+  index('Cluster_combinedScore_idx').using('btree', table.combinedScore.asc().nullsLast()),
+  index('Cluster_runId_idx').using('btree', table.runId.asc().nullsLast()),
+  foreignKey({
+    columns: [table.runId],
+    foreignColumns: [dailyRuns.id],
+    name: 'Cluster_runId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+export const aiClassifications = pgTable('AIClassification', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  targetType: aiClassificationTargetTypeEnum().notNull(),
+  targetId: text().notNull(),
+  model: text().notNull(),
+  schemaVersion: text().notNull(),
+  payloadHash: text().notNull(),
+  outputJson: jsonb().notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('AIClassification_payloadHash_idx').using('btree', table.payloadHash.asc().nullsLast()),
+  index('AIClassification_targetType_targetId_idx').using('btree', table.targetType.asc().nullsLast(), table.targetId.asc().nullsLast()),
+]);
+
+export const dailyPicks = pgTable('DailyPick', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  dateLocal: text().notNull(),
+  winnerClusterId: text().notNull(),
+  revision: integer().default(1).notNull(),
+  status: dailyPickStatusEnum().default('ACTIVE').notNull(),
+  publishedAt: timestamp({ precision: 3, mode: 'date' }).notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+}, (table) => [
+  index('DailyPick_dateLocal_idx').using('btree', table.dateLocal.asc().nullsLast()),
+  index('DailyPick_status_idx').using('btree', table.status.asc().nullsLast()),
+  foreignKey({
+    columns: [table.winnerClusterId],
+    foreignColumns: [clusters.id],
+    name: 'DailyPick_winnerClusterId_fkey',
+  }).onUpdate('cascade').onDelete('restrict'),
+]);
+
+// =============================================================================
+// ADMIN SECURITY
+// =============================================================================
+
+export const adminIPWhitelists = pgTable('AdminIPWhitelist', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  ipAddress: text().notNull(),
+  label: text(),
+  addedBy: text().notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  expiresAt: timestamp({ precision: 3, mode: 'date' }),
+}, (table) => [
+  index('AdminIPWhitelist_ipAddress_idx').using('btree', table.ipAddress.asc().nullsLast()),
+  uniqueIndex('AdminIPWhitelist_ipAddress_key').using('btree', table.ipAddress.asc().nullsLast()),
+]);
+
+// =============================================================================
+// EMAIL CAPTURE
+// =============================================================================
+
+export const emailCaptures = pgTable('EmailCapture', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  email: text().notNull(),
+  source: text().default('landing').notNull(),
+  beehiivSynced: boolean().default(false).notNull(),
+  metadata: jsonb(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('EmailCapture_beehiivSynced_idx').using('btree', table.beehiivSynced.asc().nullsLast()),
+  index('EmailCapture_email_idx').using('btree', table.email.asc().nullsLast()),
+  uniqueIndex('EmailCapture_email_key').using('btree', table.email.asc().nullsLast()),
+  index('EmailCapture_source_idx').using('btree', table.source.asc().nullsLast()),
+]);
+
+// =============================================================================
+// RELATIONS
+// =============================================================================
+
+export const usersRelations = relations(users, ({ many }) => ({
+  projects: many(projects),
+  interviews: many(interviews),
+  reports: many(reports),
+  accounts: many(accounts),
+  sessions: many(sessions),
+  auditLogs: many(auditLogs),
+  blogPosts: many(blogPosts),
+}));
+
+export const accountsRelations = relations(accounts, ({ one }) => ({
+  user: one(users, { fields: [accounts.userId], references: [users.id] }),
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, { fields: [sessions.userId], references: [users.id] }),
+}));
+
+export const projectsRelations = relations(projects, ({ one, many }) => ({
+  user: one(users, { fields: [projects.userId], references: [users.id] }),
+  interviews: many(interviews),
+  reports: many(reports),
+  research: one(research, { fields: [projects.id], references: [research.projectId] }),
+}));
+
+export const interviewsRelations = relations(interviews, ({ one }) => ({
+  project: one(projects, { fields: [interviews.projectId], references: [projects.id] }),
+  user: one(users, { fields: [interviews.userId], references: [users.id] }),
+}));
+
+export const researchRelations = relations(research, ({ one }) => ({
+  project: one(projects, { fields: [research.projectId], references: [projects.id] }),
+}));
+
+export const reportsRelations = relations(reports, ({ one }) => ({
+  project: one(projects, { fields: [reports.projectId], references: [projects.id] }),
+  user: one(users, { fields: [reports.userId], references: [users.id] }),
+}));
+
+export const blogPostsRelations = relations(blogPosts, ({ one }) => ({
+  author: one(users, { fields: [blogPosts.authorId], references: [users.id] }),
+}));
+
+export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
+  user: one(users, { fields: [auditLogs.userId], references: [users.id] }),
+}));
+
+export const dailyRunsRelations = relations(dailyRuns, ({ many }) => ({
+  candidates: many(queryCandidates),
+  clusters: many(clusters),
+}));
+
+export const queryCandidatesRelations = relations(queryCandidates, ({ one }) => ({
+  run: one(dailyRuns, { fields: [queryCandidates.runId], references: [dailyRuns.id] }),
+}));
+
+export const clustersRelations = relations(clusters, ({ one, many }) => ({
+  run: one(dailyRuns, { fields: [clusters.runId], references: [dailyRuns.id] }),
+  dailyPicks: many(dailyPicks),
+}));
+
+export const dailyPicksRelations = relations(dailyPicks, ({ one }) => ({
+  winnerCluster: one(clusters, { fields: [dailyPicks.winnerClusterId], references: [clusters.id] }),
+}));

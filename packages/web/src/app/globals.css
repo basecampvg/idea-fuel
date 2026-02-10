@@ -1,0 +1,826 @@
+@import 'tailwindcss';
+
+/* Import fonts - Inter for body, Space Grotesk for headings */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* ===== SHARED VARIABLES ===== */
+
+  /* Accent Gradient */
+  --gradient-accent: linear-gradient(135deg,
+    hsl(160, 84%, 44%) 0%,
+    hsl(160, 60%, 55%) 50%,
+    hsl(160, 40%, 65%) 100%);
+
+  /* Radius */
+  --radius: 0.625rem;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ===== LIGHT THEME ===== */
+/* Base: #d9d9d9 (background), #c4c4c4 (card) */
+
+html.light {
+  /* Core Colors */
+  --background: 0 0% 85%;
+  --foreground: 0 0% 10%;
+  --card: 0 0% 77%;
+  --card-foreground: 0 0% 10%;
+  --popover: 0 0% 85%;
+  --popover-foreground: 0 0% 10%;
+
+  /* Primary (Mint Green) - for buttons and accents */
+  --primary: 160 84% 39%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary (Muted Mint) */
+  --secondary: 160 30% 25%;
+  --secondary-foreground: 0 0% 100%;
+
+  /* Accent (Light Mint) - links and highlights */
+  --accent: 160 60% 45%;
+  --accent-foreground: 0 0% 100%;
+
+  /* Muted */
+  --muted: 0 0% 72%;
+  --muted-foreground: 0 0% 35%;
+
+  /* Borders & Inputs - subtle, just a few shades lighter than background */
+  --border: 0 0% 80%;
+  --input: 0 0% 80%;
+  --ring: 160 84% 39%;
+
+  /* Status Colors */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 142 76% 36%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 222 47% 11%;
+  --info: 217 91% 60%;
+  --info-foreground: 0 0% 100%;
+
+  /* Score Colors - remain vibrant */
+  --score-opportunity: 142 70% 35%;
+  --score-problem: 326 75% 45%;
+  --score-feasibility: 180 65% 40%;
+  --score-whynow: 260 55% 50%;
+
+  /* Chart Colors */
+  --chart-1: 160 84% 39%;
+  --chart-2: 260 55% 50%;
+  --chart-3: 200 75% 45%;
+  --chart-4: 180 65% 40%;
+  --chart-5: 45 90% 45%;
+
+  /* Accent Gradient - lighter version */
+  --gradient-accent: linear-gradient(135deg,
+    hsl(160, 70%, 50%) 0%,
+    hsl(160, 50%, 60%) 50%,
+    hsl(160, 35%, 70%) 100%);
+}
+
+/* ===== BASE STYLES ===== */
+
+html {
+  /* Prevent layout shift when scrollbar appears/disappears */
+  scrollbar-gutter: stable;
+}
+
+body {
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== BACKGROUND ===== */
+
+.aurora-background {
+  position: relative;
+  background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(40 8% 12%) 100%);
+  min-height: 100vh;
+}
+
+/* Legacy gradient classes for backwards compatibility */
+.animated-gradient {
+  position: relative;
+  background: hsl(var(--background));
+}
+
+.gradient-glow {
+  position: relative;
+}
+
+/* ===== TAILWIND THEME EXTENSIONS ===== */
+
+@theme {
+  /* Colors using HSL variables */
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-info: hsl(var(--info));
+  --color-info-foreground: hsl(var(--info-foreground));
+
+  /* Score colors */
+  --color-score-opportunity: hsl(var(--score-opportunity));
+  --color-score-problem: hsl(var(--score-problem));
+  --color-score-feasibility: hsl(var(--score-feasibility));
+  --color-score-whynow: hsl(var(--score-whynow));
+
+  /* Chart colors */
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  /* Border radius */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+/* ===== CARD COMPONENT ===== */
+
+.glass-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 16px;
+  padding: 24px;
+  transition: all var(--transition-smooth);
+}
+
+.glass-card:hover {
+  border-color: hsl(var(--border) / 0.8);
+  background: hsl(var(--card) / 0.9);
+}
+
+.glass-card-selected {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--primary));
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.25);
+}
+
+.glass-card-interactive {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 16px;
+  padding: 24px;
+  transition: all var(--transition-smooth);
+  cursor: pointer;
+}
+
+.glass-card-interactive:hover {
+  border-color: hsl(var(--border) / 0.8);
+  background: hsl(var(--muted));
+}
+
+/* ===== TAG COMPONENT ===== */
+
+/* Category tag - outline pill */
+.tag-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid hsl(var(--border) / 0.8);
+  color: hsl(var(--muted-foreground));
+}
+
+/* Ready tag - pink text with cube icon */
+.tag-ready {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: hsl(var(--primary));
+}
+
+/* Outdated tag - amber pill */
+.tag-outdated {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  background: hsl(var(--warning) / 0.15);
+  color: hsl(var(--warning));
+}
+
+/* Draft tag - gray text */
+.tag-draft {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Forging tag - pink text */
+.tag-forging {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: hsl(var(--primary));
+}
+
+/* Report Complete tag - pink text */
+.tag-complete {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: hsl(var(--primary));
+}
+
+/* ===== FORGE BUTTON ===== */
+
+.btn-forge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 500;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+}
+
+.btn-forge:hover {
+  box-shadow: 0 0 30px hsl(var(--primary) / 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-forge:active {
+  transform: translateY(0);
+}
+
+.btn-forge:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Save button - text only */
+.btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  border: none;
+  cursor: pointer;
+  transition: color var(--transition-smooth);
+}
+
+.btn-save:hover {
+  color: hsl(var(--foreground));
+}
+
+/* ===== REPORT PILLS (with cyan border) ===== */
+
+.pill-report {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid hsl(var(--accent));
+  color: hsl(var(--accent));
+  transition: all var(--transition-smooth);
+}
+
+.pill-report:hover {
+  background: hsl(var(--accent) / 0.1);
+}
+
+/* ===== PROGRESS BAR ===== */
+
+.progress-track {
+  height: 4px;
+  background: hsl(var(--border));
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill-pink {
+  height: 100%;
+  background: hsl(var(--primary));
+  border-radius: 2px;
+}
+
+.progress-fill-cyan {
+  height: 100%;
+  background: hsl(var(--accent));
+  border-radius: 2px;
+}
+
+.progress-fill-green {
+  height: 100%;
+  background: hsl(var(--success));
+  border-radius: 2px;
+}
+
+.progress-fill-purple {
+  height: 100%;
+  background: hsl(var(--secondary));
+  border-radius: 2px;
+}
+
+/* ===== ICON CIRCLES (SOLID) ===== */
+
+.icon-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Solid backgrounds */
+.icon-circle-yellow {
+  background: hsl(var(--warning));
+  color: hsl(var(--warning-foreground));
+}
+
+.icon-circle-purple {
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+
+.icon-circle-pink {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.icon-circle-orange {
+  background: hsl(var(--primary) / 0.5);
+  color: white;
+}
+
+/* Outline style for metric boxes */
+.icon-circle-outline {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid hsl(var(--border) / 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--accent));
+}
+
+/* ===== NUMBERED CIRCLES (for Offer section) ===== */
+
+.number-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.number-circle-1 {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.number-circle-2 {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.number-circle-3 {
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+
+/* ===== SCORE CARD STYLING ===== */
+
+.score-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  padding: 16px;
+  transition: all var(--transition-smooth);
+}
+
+.score-card-highlight {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--primary));
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.2);
+}
+
+.score-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  font-variant-numeric: tabular-nums;
+}
+
+.score-label {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.score-header {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground) / 0.7);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.score-underline {
+  height: 3px;
+  border-radius: 2px;
+  margin-top: 12px;
+}
+
+.score-underline-green { background: hsl(var(--primary)); }
+.score-underline-red { background: hsl(var(--primary) / 0.8); }
+.score-underline-teal { background: hsl(var(--primary) / 0.7); }
+.score-underline-purple { background: hsl(var(--primary) / 0.6); }
+
+/* ===== COLORED DOTS ===== */
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.dot-pink { background: hsl(var(--primary)); }
+.dot-cyan { background: hsl(var(--accent)); }
+.dot-purple { background: hsl(var(--secondary)); }
+.dot-blue { background: hsl(var(--info)); }
+
+/* ===== CHART STYLING ===== */
+
+.chart-line-glow {
+  filter: drop-shadow(0 0 8px hsl(var(--primary) / 0.6));
+}
+
+/* ===== LINKS ===== */
+
+.link-cyan {
+  color: hsl(var(--accent));
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: opacity var(--transition-smooth);
+}
+
+.link-cyan:hover {
+  opacity: 0.8;
+}
+
+/* ===== ANIMATIONS ===== */
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 0;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent 0%, hsl(var(--foreground) / 0.05) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.typewriter-cursor {
+  animation: blink 1s step-end infinite;
+  color: hsl(var(--accent));
+  font-weight: 400;
+  margin-left: 2px;
+}
+
+
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
+.stagger-5 { animation-delay: 250ms; }
+
+/* ===== TEXT UTILITIES ===== */
+
+.text-gradient {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* ===== FOCUS STATES ===== */
+
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring) / 0.5);
+}
+
+/* ===== SCROLLBAR ===== */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+::selection {
+  background: hsl(var(--primary) / 0.3);
+  color: hsl(var(--foreground));
+}
+
+/* ===== INPUT STYLING ===== */
+
+.input-dark {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 16px;
+  padding: 16px 20px;
+  color: hsl(var(--foreground));
+  font-size: 14px;
+  transition: all var(--transition-smooth);
+}
+
+.input-dark::placeholder {
+  color: hsl(var(--muted-foreground) / 0.6);
+}
+
+.input-dark:focus {
+  outline: none;
+  border-color: hsl(var(--accent));
+  box-shadow: 0 0 0 1px hsl(var(--accent));
+}
+
+/* ===== SECTION CARD ===== */
+
+.section-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 16px;
+  padding: 20px 24px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: 16px;
+}
+
+/* ===== PROMPT CARD ===== */
+
+.prompt-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+}
+
+.prompt-card:hover {
+  border-color: hsl(var(--border) / 0.8);
+  background: hsl(var(--muted));
+}
+
+.prompt-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.prompt-description {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground) / 0.7);
+  margin-top: 4px;
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+}
+
+/* ===== DARK THEME (Default) ===== */
+/* Base: #11100E (near-black with warm undertone) */
+.dark,
+:root {
+  /* Core Colors */
+  --background: 40 10% 6%;
+  --foreground: 40 5% 90%;
+  --card: 40 8% 10%;
+  --card-foreground: 40 5% 90%;
+  --popover: 40 8% 10%;
+  --popover-foreground: 40 5% 90%;
+
+  /* Primary (Mint Green) - Forge button, active states */
+  --primary: 160 84% 44%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary (Muted Mint) */
+  --secondary: 160 30% 25%;
+  --secondary-foreground: 0 0% 100%;
+
+  /* Accent (Light Mint) - Links, report pills */
+  --accent: 160 60% 55%;
+  --accent-foreground: 0 0% 100%;
+
+  /* Muted - Tertiary text */
+  --muted: 40 6% 15%;
+  --muted-foreground: 40 5% 55%;
+
+  /* Borders & Inputs - very subtle, barely visible separation */
+  --border: 40 6% 8%;
+  --input: 40 6% 12%;
+  --ring: 160 84% 44%;
+
+  /* Status Colors */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 142 76% 36%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 222 47% 11%;
+  --info: 217 91% 60%;
+  --info-foreground: 0 0% 100%;
+
+  /* Score Colors */
+  --score-opportunity: 142 76% 36%;
+  --score-problem: 350 80% 60%;
+  --score-feasibility: 180 70% 45%;
+  --score-whynow: 260 60% 55%;
+
+  /* Chart Colors */
+  --chart-1: 160 84% 44%;
+  --chart-2: 260 60% 55%;
+  --chart-3: 180 70% 45%;
+  --chart-4: 142 76% 36%;
+  --chart-5: 38 92% 50%;
+
+  /* Sidebar */
+  --sidebar: 40 8% 10%;
+  --sidebar-foreground: 40 5% 90%;
+  --sidebar-primary: 160 84% 44%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 40 6% 15%;
+  --sidebar-accent-foreground: 40 5% 90%;
+  --sidebar-border: 40 6% 8%;
+  --sidebar-ring: 160 84% 44%;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

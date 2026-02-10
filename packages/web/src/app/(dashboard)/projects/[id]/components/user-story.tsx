@@ -1,0 +1,62 @@
+'use client';
+
+import { BookOpen } from 'lucide-react';
+
+export interface UserStoryData {
+  scenario: string;
+  protagonist: string;
+  problem: string;
+  solution: string;
+  outcome: string;
+}
+
+interface UserStoryProps {
+  userStory?: UserStoryData | null;
+  title?: string;
+  subtitle?: string;
+}
+
+export function UserStory({ userStory, title = 'The Story', subtitle }: UserStoryProps) {
+  if (!userStory) return null;
+
+  return (
+    <div className="rounded-2xl bg-background border border-border p-6">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
+          <BookOpen className="w-5 h-5 text-accent" />
+        </div>
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+          {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {/* Scenario - Main narrative */}
+        <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+          {userStory.scenario}
+        </p>
+
+        {/* Key elements in a subtle grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border">
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">The User</p>
+            <p className="text-sm text-foreground">{userStory.protagonist}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Their Problem</p>
+            <p className="text-sm text-muted-foreground">{userStory.problem}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">The Solution</p>
+            <p className="text-sm text-muted-foreground">{userStory.solution}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">The Outcome</p>
+            <p className="text-sm text-primary">{userStory.outcome}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
