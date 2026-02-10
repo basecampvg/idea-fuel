@@ -1,8 +1,11 @@
 import { z } from 'zod';
+import { eq, and, desc } from 'drizzle-orm';
 import { router, protectedProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { INTERVIEW_SESSION, INTERVIEW_RESUME_MESSAGES } from '@forge/shared';
 import type { ChatMessage, InterviewDataPoints, InterviewMode } from '@forge/shared';
+import { interviews, projects, research, users } from '../db/schema';
+import { db } from '../db/drizzle';
 import {
   generateNextQuestion,
   extractDataPoints,
@@ -17,14 +20,11 @@ export const interviewRouter = router({
    * Get an interview by ID
    */
   get: protectedProcedure.input(z.object({ id: z.string().cuid() })).query(async ({ ctx, input }) => {
-    const interview = await ctx.prisma.interview.findFirst({
-      where: {
-        id: input.id,
-        userId: ctx.userId,
-      },
-      include: {
+    const interview = await ctx.db.query.interviews.findFirst({
+      where: and(eq(interviews.id, input.id), eq(interviews.userId, ctx.userId)),
+      with: {
         project: {
-          select: {
+          columns: {
             id: true,
             title: true,
             description: true,
@@ -47,15 +47,12 @@ export const interviewRouter = router({
    * List interviews for a project
    */
   listByProject: protectedProcedure.input(z.object({ projectId: z.string().cuid() })).query(async ({ ctx, input }) => {
-    const interviews = await ctx.prisma.interview.findMany({
-      where: {
-        projectId: input.projectId,
-        userId: ctx.userId,
-      },
-      orderBy: { createdAt: 'desc' },
+    const results = await ctx.db.query.interviews.findMany({
+      where: and(eq(interviews.projectId, input.projectId), eq(interviews.userId, ctx.userId)),
+      orderBy: desc(interviews.createdAt),
     });
 
-    return interviews;
+    return results;
   }),
 
   /**
@@ -63,38 +60,35 @@ export const interviewRouter = router({
    * Useful for showing "Continue Interview" prompts
    */
   getActive: protectedProcedure.query(async ({ ctx }) => {
-    const interviews = await ctx.prisma.interview.findMany({
-      where: {
-        userId: ctx.userId,
-        status: 'IN_PROGRESS',
-        isExpired: false,
-      },
-      include: {
+    const results = await ctx.db.query.interviews.findMany({
+      where: and(
+        eq(interviews.userId, ctx.userId),
+        eq(interviews.status, 'IN_PROGRESS'),
+        eq(interviews.isExpired, false),
+      ),
+      with: {
         project: {
-          select: {
+          columns: {
             id: true,
             title: true,
           },
         },
       },
-      orderBy: { lastActiveAt: 'desc' },
+      orderBy: desc(interviews.lastActiveAt),
     });
 
-    return interviews;
+    return results;
   }),
 
   /**
    * Resume an interview - returns resume state with appropriate greeting
    */
   resume: protectedProcedure.input(z.object({ id: z.string().cuid() })).query(async ({ ctx, input }) => {
-    const interview = await ctx.prisma.interview.findFirst({
-      where: {
-        id: input.id,
-        userId: ctx.userId,
-      },
-      include: {
+    const interview = await ctx.db.query.interviews.findFirst({
+      where: and(eq(interviews.id, input.id), eq(interviews.userId, ctx.userId)),
+      with: {
         project: {
-          select: {
+          columns: {
             id: true,
             title: true,
             description: true,
@@ -162,11 +156,8 @@ export const interviewRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const interview = await ctx.prisma.interview.findFirst({
-        where: {
-          id: input.interviewId,
-          userId: ctx.userId,
-        },
+      const interview = await ctx.db.query.interviews.findFirst({
+        where: and(eq(interviews.id, input.interviewId), eq(interviews.userId, ctx.userId)),
       });
 
       if (!interview) {
@@ -199,17 +190,16 @@ export const interviewRouter = router({
       };
 
       const now = new Date();
-      const updatedInterview = await ctx.prisma.interview.update({
-        where: { id: input.interviewId },
-        data: {
-          messages: [...messages, newMessage] as unknown as Parameters<
-            typeof ctx.prisma.interview.update
-          >[0]['data']['messages'],
+      const [updatedInterview] = await ctx.db
+        .update(interviews)
+        .set({
+          messages: [...messages, newMessage],
           lastActiveAt: now,
           lastMessageAt: now,
           currentTurn: interview.currentTurn + 1,
-        },
-      });
+        })
+        .where(eq(interviews.id, input.interviewId))
+        .returning();
 
       return {
         interview: updatedInterview,
@@ -231,11 +221,8 @@ export const interviewRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const interview = await ctx.prisma.interview.findFirst({
-        where: {
-          id: input.interviewId,
-          userId: ctx.userId,
-        },
+      const interview = await ctx.db.query.interviews.findFirst({
+        where: and(eq(interviews.id, input.interviewId), eq(interviews.userId, ctx.userId)),
       });
 
       if (!interview) {
@@ -257,18 +244,15 @@ export const interviewRouter = router({
       const existingData = (interview.collectedData as Record<string, unknown>) || {};
       const mergedData = input.collectedData ? { ...existingData, ...input.collectedData } : existingData;
 
-      const updatedInterview = await ctx.prisma.interview.update({
-        where: { id: input.interviewId },
-        data: {
-          messages: [...messages, newMessage] as unknown as Parameters<
-            typeof ctx.prisma.interview.update
-          >[0]['data']['messages'],
-          collectedData: mergedData as unknown as Parameters<
-            typeof ctx.prisma.interview.update
-          >[0]['data']['collectedData'],
+      const [updatedInterview] = await ctx.db
+        .update(interviews)
+        .set({
+          messages: [...messages, newMessage],
+          collectedData: mergedData,
           ...(input.resumeContext && { resumeContext: input.resumeContext }),
-        },
-      });
+        })
+        .where(eq(interviews.id, input.interviewId))
+        .returning();
 
       return {
         interview: updatedInterview,
@@ -289,14 +273,11 @@ export const interviewRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       // 1. Get interview with project context
-      const interview = await ctx.prisma.interview.findFirst({
-        where: {
-          id: input.interviewId,
-          userId: ctx.userId,
-        },
-        include: {
+      const interview = await ctx.db.query.interviews.findFirst({
+        where: and(eq(interviews.id, input.interviewId), eq(interviews.userId, ctx.userId)),
+        with: {
           project: {
-            select: {
+            columns: {
               id: true,
               title: true,
               description: true,
@@ -330,9 +311,9 @@ export const interviewRouter = router({
       const currentTurn = interview.currentTurn;
 
       // Get user's subscription tier for AI parameters
-      const user = await ctx.prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { subscription: true },
+      const user = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.userId),
+        columns: { subscription: true },
       });
       const tier = user?.subscription ?? 'FREE';
 
@@ -382,26 +363,21 @@ export const interviewRouter = router({
 
       // 8. Update interview
       const now = new Date();
-      const updatedInterview = await ctx.prisma.interview.update({
-        where: { id: input.interviewId },
-        data: {
-          messages: messages as unknown as Parameters<typeof ctx.prisma.interview.update>[0]['data']['messages'],
-          collectedData: mergedData as unknown as Parameters<typeof ctx.prisma.interview.update>[0]['data']['collectedData'],
+      const [updated] = await ctx.db
+        .update(interviews)
+        .set({
+          messages,
+          collectedData: mergedData,
           currentTurn: currentTurn + 1,
           lastActiveAt: now,
           lastMessageAt: now,
           resumeContext,
-        },
-        include: {
-          project: {
-            select: {
-              id: true,
-              title: true,
-              description: true,
-            },
-          },
-        },
-      });
+        })
+        .where(eq(interviews.id, input.interviewId))
+        .returning();
+
+      // Return with project relation attached
+      const updatedInterview = { ...updated, project: interview.project };
 
       return {
         interview: updatedInterview,
@@ -416,14 +392,9 @@ export const interviewRouter = router({
    * Automatically starts research pipeline
    */
   complete: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
-    const interview = await ctx.prisma.interview.findFirst({
-      where: {
-        id: input.id,
-        userId: ctx.userId,
-      },
-      include: {
-        project: true,
-      },
+    const interview = await ctx.db.query.interviews.findFirst({
+      where: and(eq(interviews.id, input.id), eq(interviews.userId, ctx.userId)),
+      with: { project: true },
     });
 
     if (!interview) {
@@ -441,14 +412,11 @@ export const interviewRouter = router({
 
     const summary = `Interview completed with ${interview.currentTurn} turns. ${filledFields}/${totalFields} data points collected.`;
 
-    const updatedInterview = await ctx.prisma.interview.update({
-      where: { id: input.id },
-      data: {
-        status: 'COMPLETE',
-        summary,
-        confidenceScore,
-      },
-    });
+    const [updatedInterview] = await ctx.db
+      .update(interviews)
+      .set({ status: 'COMPLETE', summary, confidenceScore })
+      .where(eq(interviews.id, input.id))
+      .returning();
 
     // Audit log - complete interview
     logAuditAsync({
@@ -459,22 +427,17 @@ export const interviewRouter = router({
     });
 
     // Update project status to researching
-    await ctx.prisma.project.update({
-      where: { id: interview.projectId },
-      data: { status: 'RESEARCHING' },
-    });
+    await ctx.db.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, interview.projectId));
 
     // Create research record and start pipeline
-    const research = await ctx.prisma.research.create({
-      data: {
-        projectId: interview.projectId,
-        status: 'IN_PROGRESS',
-        currentPhase: 'DEEP_RESEARCH',
-        progress: 0,
-        startedAt: new Date(),
-        notesSnapshot: interview.project.notes,
-      },
-    });
+    const [researchRecord] = await ctx.db.insert(research).values({
+      projectId: interview.projectId,
+      status: 'IN_PROGRESS',
+      currentPhase: 'DEEP_RESEARCH',
+      progress: 0,
+      startedAt: new Date(),
+      notesSnapshot: interview.project.notes,
+    }).returning();
 
     // Prepare research input
     const researchInput: ResearchInput = {
@@ -485,16 +448,16 @@ export const interviewRouter = router({
     };
 
     // Get user's subscription tier for AI parameters
-    const user = await ctx.prisma.user.findUnique({
-      where: { id: ctx.userId },
-      select: { subscription: true },
+    const user = await ctx.db.query.users.findFirst({
+      where: eq(users.id, ctx.userId),
+      columns: { subscription: true },
     });
     const userTier = user?.subscription ?? 'FREE';
 
     // Run pipeline in background (non-blocking)
-    const researchId = research.id;
+    // Use module-level db import for background work (ctx may be garbage collected)
+    const researchId = researchRecord.id;
     const projectId = interview.projectId;
-    const prisma = ctx.prisma;
 
     (async () => {
       // Track current phase for accurate error reporting
@@ -503,19 +466,16 @@ export const interviewRouter = router({
       try {
         const result = await runResearchPipeline(researchInput, async (phase, progress) => {
           currentPhase = phase as typeof currentPhase;
-          await prisma.research.update({
-            where: { id: researchId },
-            data: {
-              currentPhase: phase as typeof currentPhase,
-              progress,
-            },
-          });
+          await db
+            .update(research)
+            .set({ currentPhase: phase as typeof currentPhase, progress })
+            .where(eq(research.id, researchId));
         }, userTier);
 
         // Save final results
-        await prisma.research.update({
-          where: { id: researchId },
-          data: {
+        await db
+          .update(research)
+          .set({
             status: 'COMPLETE',
             currentPhase: 'COMPLETE',
             progress: 100,
@@ -548,28 +508,22 @@ export const interviewRouter = router({
             ...(result.valueLadder ? { valueLadder: result.valueLadder as object[] } : {}),
             ...(result.actionPrompts ? { actionPrompts: result.actionPrompts as object[] } : {}),
             socialProof: result.socialProof as object,
-          },
-        });
+          })
+          .where(eq(research.id, researchId));
 
         // Update project status to complete
-        await prisma.project.update({
-          where: { id: projectId },
-          data: { status: 'COMPLETE' },
-        });
+        await db.update(projects).set({ status: 'COMPLETE' }).where(eq(projects.id, projectId));
       } catch (error) {
-        await prisma.research.update({
-          where: { id: researchId },
-          data: {
+        await db
+          .update(research)
+          .set({
             status: 'FAILED',
             errorMessage: error instanceof Error ? error.message : 'Unknown error',
             errorPhase: currentPhase,
-          },
-        });
+          })
+          .where(eq(research.id, researchId));
         // Reset project status so user isn't stuck in RESEARCHING
-        await prisma.project.update({
-          where: { id: projectId },
-          data: { status: 'CAPTURED' },
-        }).catch(() => {}); // Best-effort
+        await db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, projectId)).catch(() => {}); // Best-effort
       }
     })();
 
@@ -580,11 +534,8 @@ export const interviewRouter = router({
    * Abandon an interview
    */
   abandon: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
-    const interview = await ctx.prisma.interview.findFirst({
-      where: {
-        id: input.id,
-        userId: ctx.userId,
-      },
+    const interview = await ctx.db.query.interviews.findFirst({
+      where: and(eq(interviews.id, input.id), eq(interviews.userId, ctx.userId)),
     });
 
     if (!interview) {
@@ -594,10 +545,11 @@ export const interviewRouter = router({
       });
     }
 
-    const updatedInterview = await ctx.prisma.interview.update({
-      where: { id: input.id },
-      data: { status: 'ABANDONED' },
-    });
+    const [updatedInterview] = await ctx.db
+      .update(interviews)
+      .set({ status: 'ABANDONED' })
+      .where(eq(interviews.id, input.id))
+      .returning();
 
     // Audit log - abandon interview
     logAuditAsync({
@@ -608,10 +560,10 @@ export const interviewRouter = router({
     });
 
     // Revert project status to captured (only if still interviewing, not if research started)
-    await ctx.prisma.project.updateMany({
-      where: { id: interview.projectId, status: 'INTERVIEWING' },
-      data: { status: 'CAPTURED' },
-    });
+    await ctx.db
+      .update(projects)
+      .set({ status: 'CAPTURED' })
+      .where(and(eq(projects.id, interview.projectId), eq(projects.status, 'INTERVIEWING')));
 
     return updatedInterview;
   }),
@@ -620,11 +572,8 @@ export const interviewRouter = router({
    * Mark interview as expired (called by background job)
    */
   markExpired: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
-    const interview = await ctx.prisma.interview.findFirst({
-      where: {
-        id: input.id,
-        userId: ctx.userId,
-      },
+    const interview = await ctx.db.query.interviews.findFirst({
+      where: and(eq(interviews.id, input.id), eq(interviews.userId, ctx.userId)),
     });
 
     if (!interview) {
@@ -634,10 +583,11 @@ export const interviewRouter = router({
       });
     }
 
-    const updatedInterview = await ctx.prisma.interview.update({
-      where: { id: input.id },
-      data: { isExpired: true },
-    });
+    const [updatedInterview] = await ctx.db
+      .update(interviews)
+      .set({ isExpired: true })
+      .where(eq(interviews.id, input.id))
+      .returning();
 
     return updatedInterview;
   }),
@@ -646,12 +596,12 @@ export const interviewRouter = router({
    * Update interview activity (heartbeat for idle detection)
    */
   heartbeat: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
-    const interview = await ctx.prisma.interview.findFirst({
-      where: {
-        id: input.id,
-        userId: ctx.userId,
-        status: 'IN_PROGRESS',
-      },
+    const interview = await ctx.db.query.interviews.findFirst({
+      where: and(
+        eq(interviews.id, input.id),
+        eq(interviews.userId, ctx.userId),
+        eq(interviews.status, 'IN_PROGRESS'),
+      ),
     });
 
     if (!interview) {
@@ -661,10 +611,10 @@ export const interviewRouter = router({
       });
     }
 
-    await ctx.prisma.interview.update({
-      where: { id: input.id },
-      data: { lastActiveAt: new Date() },
-    });
+    await ctx.db
+      .update(interviews)
+      .set({ lastActiveAt: new Date() })
+      .where(eq(interviews.id, input.id));
 
     return { success: true };
   }),

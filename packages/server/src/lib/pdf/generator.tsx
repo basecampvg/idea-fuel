@@ -7,7 +7,7 @@ import { BusinessPlanPDF } from './templates/business-plan';
 import { PositioningPDF } from './templates/positioning';
 import { CompetitiveAnalysisPDF } from './templates/competitive-analysis';
 
-// Report types enum (matches Prisma schema)
+// Report types enum (matches DB schema)
 type ReportType =
   | 'BUSINESS_PLAN'
   | 'POSITIONING'

@@ -90,7 +90,7 @@ export function KeywordChart({ keywordTrends: rawKeywordTrends, title, subtitle 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedTimeframe, setSelectedTimeframe] = useState<TimeframeOption>(TIMEFRAME_OPTIONS[2]); // Default to 5 years
 
-  // Parse keywordTrends if it's a string (Prisma JSON field)
+  // Parse keywordTrends if it's a string (JSON field)
   let keywordTrends: KeywordTrend[] | null = null;
   if (rawKeywordTrends) {
     if (typeof rawKeywordTrends === 'string') {

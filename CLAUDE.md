@@ -1,7 +1,7 @@
 # Claude Context: Forge Automation Project
 
 ## Project Overview
-
+All bug fixes should be logged in changelog.md
 **Project Name:** Forge Automation
 **Purpose:** Stabilize existing n8n cloud automation workflows, then migrate to Next.js + BullMQ stack
 **Current Phase:** BETA app development (web + mobile)
@@ -14,7 +14,7 @@ Forge Automation/
 ├── packages/
 │   ├── web/                # Next.js 15 + React 19 web app
 │   ├── mobile/             # Expo SDK 52 + React Native mobile app
-│   ├── server/             # tRPC + Prisma backend
+│   ├── server/             # tRPC + Drizzle backend
 │   └── shared/             # Shared TypeScript code
 ├── skills/                 # Claude skills (n8n + frontend-design)
 ├── workflows/              # n8n workflow exports
@@ -55,7 +55,7 @@ Forge Automation/
 | Component | Technology | Version |
 |-----------|------------|---------|
 | API Layer | tRPC | 11.x |
-| ORM | Prisma | 6.x |
+| ORM | Drizzle | 0.45.x |
 | Database | PostgreSQL | via Supabase |
 | Auth | Auth.js | 5.0 beta |
 
@@ -84,7 +84,7 @@ Forge Automation/
 | `report` | `list`, `listByProject`, `get`, `generate`, `regenerate`, `update`, `delete`, `generateAll` | Report generation and management |
 | `research` | `get`, `getByProject`, `getProgress`, `start`, `cancel`, `updatePhase`, `markFailed` | Research pipeline tracking |
 
-### Database Models (Prisma)
+### Database Models (Drizzle)
 
 | Model | Purpose |
 |-------|---------|
@@ -301,11 +301,11 @@ pnpm dev
 # Type check all packages
 pnpm type-check
 
-# Database commands
-pnpm db:generate   # Generate Prisma client
+# Database commands (Drizzle Kit)
+pnpm db:generate   # Generate Drizzle migrations
 pnpm db:push       # Push schema to database
 pnpm db:migrate    # Run migrations
-pnpm db:studio     # Open Prisma Studio
+pnpm db:studio     # Open Drizzle Studio
 ```
 
 ### Mobile App (Expo)
@@ -401,6 +401,27 @@ npx expo-doctor
 ---
 
 ## Change Log
+
+### 2026-02-09
+- ✅ **Prisma → Drizzle ORM Migration** - Complete migration from Prisma to Drizzle ORM
+  - **Motivation:** Prisma + Vercel + monorepo caused 11+ deployment fix commits (binary not found, WASM fallbacks, MODULE_NOT_FOUND, webpack externals). Drizzle is 56 KB, zero-binary, natively edge-compatible.
+  - **Migration:** 7-phase migration (setup → auth adapter → context + pilot → routers → services → research → cleanup)
+  - **Key Changes:**
+    - `@auth/prisma-adapter` → `@auth/drizzle-adapter` with custom table mappings
+    - All routers converted: `ctx.prisma.X.findFirst(...)` → `ctx.db.query.X.findFirst({ where: eq(...), with: {...} })`
+    - All services/workers converted: module-level `db` import from `db/drizzle.ts`
+    - `next.config.ts` cleaned: Removed all Prisma webpack externals, WASM copy, outputFileTracingIncludes
+    - `vercel-build` script simplified from copy-WASM-and-build to just `pnpm build:web`
+    - Root `postinstall` script removed (no more `prisma generate`)
+  - **Removed Packages:** `@prisma/client`, `@prisma/adapter-pg`, `prisma`, `@auth/prisma-adapter`
+  - **Removed Files:** `packages/server/src/db/index.ts` (old Prisma client), `packages/server/src/generated/prisma/` (generated directory), `packages/server/test-db.js`, `packages/server/prisma/seed-test-ideas.js`
+  - **Schema File:** `packages/server/src/db/schema.ts` — auto-generated via `drizzle-kit pull`, then refined with `.$type<T>()` on 30+ JSONB columns, `relations()` for all relationships, 16 enums
+  - **DB Client:** `packages/server/src/db/drizzle.ts` — lazy-initialized Proxy pattern (same as old Prisma client)
+  - **Key Files:**
+    - `packages/server/src/db/schema.ts` — Drizzle schema (replaces `prisma/schema.prisma`)
+    - `packages/server/src/db/drizzle.ts` — Drizzle client
+    - `packages/server/drizzle.config.ts` — Drizzle Kit configuration
+    - `packages/web/src/lib/auth/config.ts` — DrizzleAdapter setup
 
 ### 2026-02-08
 - ✅ **Unified Project Lifecycle** - Merged Idea + Project into single unified Project model
@@ -643,7 +664,8 @@ When building or modifying any frontend components, pages, or interfaces (web or
 - `packages/server/src/routers/` - tRPC API routers
 - `packages/server/src/routers/project.ts` - Project CRUD + interview/research triggers
 - `packages/shared/src/` - Shared types and utilities
-- `packages/server/prisma/schema.prisma` - Database schema
+- `packages/server/src/db/schema.ts` - Database schema (Drizzle)
+- `packages/server/src/db/drizzle.ts` - Database client
 
 ### n8n Integration
 - **MCP Access:** Use MCP server to fetch workflow data
@@ -659,16 +681,16 @@ When building or modifying any frontend components, pages, or interfaces (web or
 
 **Run this checklist after any significant code changes to catch common issues:**
 
-### Database / Prisma Changes
-If you modified `schema.prisma` (added/changed enums, models, or fields):
+### Database / Drizzle Changes
+If you modified `packages/server/src/db/schema.ts` (added/changed enums, tables, or columns):
 - [ ] Run `pnpm db:push` to sync schema to database (or `pnpm db:migrate` for production)
-- [ ] Run `pnpm db:generate` to regenerate Prisma client
+- [ ] Run `pnpm db:generate` to generate migration files
 - [ ] Verify no "invalid input value for enum" errors at runtime
 
 ### TypeScript / Types Changes
 If you modified types in `shared/types` or `shared/constants`:
 - [ ] Run `pnpm type-check` from repo root to verify all packages compile
-- [ ] Check that Prisma types align with shared types (especially enums)
+- [ ] Check that Drizzle schema types align with shared types (especially enums)
 - [ ] Verify frontend components consuming changed types still work
 
 ### API / Router Changes
@@ -693,9 +715,9 @@ For significant changes:
 ### Common Error Patterns
 | Error | Likely Cause | Fix |
 |-------|--------------|-----|
-| `invalid input value for enum "X"` | Prisma schema not synced | `pnpm db:push` |
-| `Type '"X"' is not assignable to type` | Prisma client not regenerated | `pnpm db:generate` |
-| `EPERM: operation not permitted` (Windows) | File locked by VS Code/TS server | Close IDE, retry, or delete `.prisma/client` folder |
+| `invalid input value for enum "X"` | Drizzle schema not synced | `pnpm db:push` |
+| `Type '"X"' is not assignable to type` | Schema types out of date | Update `schema.ts`, run `pnpm type-check` |
+| `EPERM: operation not permitted` (Windows) | File locked by VS Code/TS server | Close IDE and retry |
 | `output_text is empty` | Token limit too low or response parsing issue | Increase maxOutputTokens, check response format |
 | `status: incomplete` | Deep research timeout or token exhaustion | Add retry logic, increase timeouts |
 

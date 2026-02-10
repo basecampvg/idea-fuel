@@ -9,15 +9,14 @@
     "dev:server": "pnpm --filter @forge/server dev",
     "build": "pnpm -r run build",
     "build:web": "pnpm --filter @forge/web build",
-    "postinstall": "pnpm --filter @forge/server prisma generate",
-    "vercel-build": "pnpm db:generate && mkdir -p packages/web/src/generated/prisma && cp packages/server/src/generated/prisma/schema.prisma packages/server/src/generated/prisma/query_compiler_bg.wasm packages/web/src/generated/prisma/ && pnpm build:web",
+    "vercel-build": "pnpm build:web",
     "build:server": "pnpm --filter @forge/server build",
     "lint": "pnpm -r run lint",
     "type-check": "pnpm -r run type-check",
-    "db:generate": "pnpm --filter @forge/server prisma generate",
-    "db:push": "pnpm --filter @forge/server prisma db push",
-    "db:migrate": "pnpm --filter @forge/server prisma migrate dev",
-    "db:studio": "pnpm --filter @forge/server prisma studio"
+    "db:generate": "pnpm --filter @forge/server db:generate",
+    "db:push": "pnpm --filter @forge/server db:push",
+    "db:migrate": "pnpm --filter @forge/server db:migrate",
+    "db:studio": "pnpm --filter @forge/server db:studio"
   },
   "engines": {
     "node": ">=20.0.0",

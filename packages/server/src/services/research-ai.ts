@@ -1,6 +1,6 @@
 import { openai, getAIParams, createResponsesParams, createResponsesParamsWithWebSearch, withExponentialBackoff, type ReasoningEffort, type AIParams } from '../lib/openai';
 import { configService } from './config';
-import type { SubscriptionTier } from '../generated/prisma';
+import type { SubscriptionTier } from '../db/schema';
 import { getResearchKnowledge, KNOWLEDGE } from '../lib/knowledge';
 import type { InterviewDataPoints, MarketSizingData, MarketMetric, MarketSegmentBreakdown, MarketAssumption, MarketSource, TechStackData, TechRecommendation, CostBreakdown, BusinessType } from '@forge/shared';
 import { trackUsageFromResponse } from '../lib/token-tracker';

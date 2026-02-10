@@ -183,7 +183,7 @@ export function BusinessFit({
   title = 'Business Fit',
   subtitle,
 }: BusinessFitProps) {
-  // Parse JSON fields that might come as strings from Prisma
+  // Parse JSON fields that might come as strings
   const revenuePotential = parseJson<RevenuePotential>(rawRevenuePotential);
   const executionDifficulty = parseJson<ExecutionDifficulty>(rawExecutionDifficulty);
   const gtmClarity = parseJson<GTMClarity>(rawGtmClarity);

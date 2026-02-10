@@ -1,11 +1,13 @@
 import { z } from 'zod';
-import { Prisma } from '../generated/prisma';
+import { eq, and } from 'drizzle-orm';
 import { router, protectedProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { RESEARCH_PHASE_PROGRESS, SPARK_STATUS_PROGRESS } from '@forge/shared';
 import type { ChatMessage, InterviewDataPoints, SparkJobStatus } from '@forge/shared';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { enqueueResearchCancel } from '../jobs';
+import { research, projects, users, interviews } from '../db/schema';
+import { db } from '../db/drizzle';
 import {
   runResearchPipeline,
   classifyResearchError,
@@ -37,13 +39,11 @@ export const researchRouter = router({
    * Get research by ID
    */
   get: protectedProcedure.input(z.object({ id: z.string().cuid() })).query(async ({ ctx, input }) => {
-    const research = await ctx.prisma.research.findFirst({
-      where: {
-        id: input.id,
-      },
-      include: {
+    const result = await ctx.db.query.research.findFirst({
+      where: eq(research.id, input.id),
+      with: {
         project: {
-          select: {
+          columns: {
             id: true,
             title: true,
             userId: true,
@@ -52,7 +52,7 @@ export const researchRouter = router({
       },
     });
 
-    if (!research) {
+    if (!result) {
       throw new TRPCError({
         code: 'NOT_FOUND',
         message: 'Research not found',
@@ -60,26 +60,23 @@ export const researchRouter = router({
     }
 
     // Verify ownership through project
-    if (research.project.userId !== ctx.userId) {
+    if (result.project.userId !== ctx.userId) {
       throw new TRPCError({
         code: 'FORBIDDEN',
         message: 'Access denied',
       });
     }
 
-    return research;
+    return result;
   }),
 
   /**
    * Get research by project ID
    */
   getByProject: protectedProcedure.input(z.object({ projectId: z.string().cuid() })).query(async ({ ctx, input }) => {
-    const project = await ctx.prisma.project.findFirst({
-      where: {
-        id: input.projectId,
-        userId: ctx.userId,
-      },
-      include: {
+    const project = await ctx.db.query.projects.findFirst({
+      where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+      with: {
         research: true,
       },
     });
@@ -98,27 +95,25 @@ export const researchRouter = router({
    * Get research progress/status for polling
    */
   getProgress: protectedProcedure.input(z.object({ id: z.string().cuid() })).query(async ({ ctx, input }) => {
-    const research = await ctx.prisma.research.findFirst({
-      where: {
-        id: input.id,
-      },
-      include: {
+    const result = await ctx.db.query.research.findFirst({
+      where: eq(research.id, input.id),
+      with: {
         project: {
-          select: {
+          columns: {
             userId: true,
           },
         },
       },
     });
 
-    if (!research) {
+    if (!result) {
       throw new TRPCError({
         code: 'NOT_FOUND',
         message: 'Research not found',
       });
     }
 
-    if (research.project.userId !== ctx.userId) {
+    if (result.project.userId !== ctx.userId) {
       throw new TRPCError({
         code: 'FORBIDDEN',
         message: 'Access denied',
@@ -126,19 +121,19 @@ export const researchRouter = router({
     }
 
     // Calculate estimated completion based on phase
-    const phaseProgress = RESEARCH_PHASE_PROGRESS[research.currentPhase];
+    const phaseProgress = RESEARCH_PHASE_PROGRESS[result.currentPhase];
 
     return {
-      id: research.id,
-      status: research.status,
-      currentPhase: research.currentPhase,
-      progress: research.progress,
+      id: result.id,
+      status: result.status,
+      currentPhase: result.currentPhase,
+      progress: result.progress,
       phaseProgress,
-      estimatedCompletion: research.estimatedCompletion,
-      startedAt: research.startedAt,
-      completedAt: research.completedAt,
-      errorMessage: research.errorMessage,
-      errorPhase: research.errorPhase,
+      estimatedCompletion: result.estimatedCompletion,
+      startedAt: result.startedAt,
+      completedAt: result.completedAt,
+      errorMessage: result.errorMessage,
+      errorPhase: result.errorPhase,
     };
   }),
 
@@ -147,17 +142,14 @@ export const researchRouter = router({
    * Called after interview is complete
    */
   start: protectedProcedure.input(z.object({ projectId: z.string().cuid() })).mutation(async ({ ctx, input }) => {
-    const project = await ctx.prisma.project.findFirst({
-      where: {
-        id: input.projectId,
-        userId: ctx.userId,
-      },
-      include: {
+    const project = await ctx.db.query.projects.findFirst({
+      where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+      with: {
         research: true,
         interviews: {
-          where: { status: 'COMPLETE' },
-          orderBy: { createdAt: 'desc' },
-          take: 1,
+          where: eq(interviews.status, 'COMPLETE'),
+          orderBy: (interviews, { desc }) => desc(interviews.createdAt),
+          limit: 1,
         },
       },
     });
@@ -189,48 +181,42 @@ export const researchRouter = router({
 
     // Create or update research record
     // New pipeline starts with DEEP_RESEARCH phase
-    let research = project.research;
-    if (research) {
+    let researchRecord = project.research;
+    if (researchRecord) {
       // Restart failed research
-      research = await ctx.prisma.research.update({
-        where: { id: research.id },
-        data: {
-          status: 'IN_PROGRESS',
-          currentPhase: 'DEEP_RESEARCH', // New 4-phase pipeline starts here
-          progress: 0,
-          errorMessage: null,
-          errorPhase: null,
-          retryCount: research.retryCount + 1,
-          startedAt: new Date(),
-          completedAt: null,
-          notesSnapshot: project.notes, // Snapshot project notes
-        },
-      });
+      const [updated] = await ctx.db.update(research).set({
+        status: 'IN_PROGRESS',
+        currentPhase: 'DEEP_RESEARCH', // New 4-phase pipeline starts here
+        progress: 0,
+        errorMessage: null,
+        errorPhase: null,
+        retryCount: researchRecord.retryCount + 1,
+        startedAt: new Date(),
+        completedAt: null,
+        notesSnapshot: project.notes, // Snapshot project notes
+      }).where(eq(research.id, researchRecord.id)).returning();
+      researchRecord = updated;
     } else {
       // Create new research record
-      research = await ctx.prisma.research.create({
-        data: {
-          projectId: input.projectId,
-          status: 'IN_PROGRESS',
-          currentPhase: 'DEEP_RESEARCH', // New 4-phase pipeline starts here
-          progress: 0,
-          startedAt: new Date(),
-          notesSnapshot: project.notes, // Snapshot project notes
-        },
-      });
+      const [created] = await ctx.db.insert(research).values({
+        projectId: input.projectId,
+        status: 'IN_PROGRESS',
+        currentPhase: 'DEEP_RESEARCH', // New 4-phase pipeline starts here
+        progress: 0,
+        startedAt: new Date(),
+        notesSnapshot: project.notes, // Snapshot project notes
+      }).returning();
+      researchRecord = created;
     }
 
     // Update project status
-    await ctx.prisma.project.update({
-      where: { id: input.projectId },
-      data: { status: 'RESEARCHING' },
-    });
+    await ctx.db.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, input.projectId));
 
     // Audit log - start research
     logAuditAsync({
       userId: ctx.userId,
       action: 'RESEARCH_START',
-      resource: formatResource('research', research.id),
+      resource: formatResource('research', researchRecord.id),
       metadata: { projectId: input.projectId, isRetry: project.research?.retryCount ? project.research.retryCount > 0 : false },
     });
 
@@ -246,9 +232,9 @@ export const researchRouter = router({
     };
 
     // Get user's subscription tier for AI parameters
-    const user = await ctx.prisma.user.findUnique({
-      where: { id: ctx.userId },
-      select: { subscription: true },
+    const user = await ctx.db.query.users.findFirst({
+      where: eq(users.id, ctx.userId),
+      columns: { subscription: true },
     });
     const userTier = user?.subscription ?? 'FREE';
 
@@ -280,8 +266,7 @@ export const researchRouter = router({
 
     // Run pipeline in background (non-blocking for MVP)
     // In production, this would be a BullMQ job
-    const researchId = research.id;
-    const prisma = ctx.prisma;
+    const researchId = researchRecord.id;
 
     // Run pipeline async without awaiting
     (async () => {
@@ -374,67 +359,58 @@ export const researchRouter = router({
             }
           }
 
-          await prisma.research.update({
-            where: { id: researchId },
-            data: updateData,
-          });
+          await db.update(research).set(updateData as typeof research.$inferInsert).where(eq(research.id, researchId));
         }, userTier, existingResearchData);
 
         // Save final results
         // Include rawDeepResearch for resume capability (allows skipping Phase 1 on restart)
-        await prisma.research.update({
-          where: { id: researchId },
-          data: {
-            status: 'COMPLETE',
-            currentPhase: 'COMPLETE',
-            progress: 100,
-            completedAt: new Date(),
-            generatedQueries: result.queries as object,
-            synthesizedInsights: result.insights as object,
-            marketAnalysis: result.insights.marketAnalysis as object,
-            competitors: result.insights.competitors as object[],
-            painPoints: result.insights.painPoints as object[],
-            positioning: result.insights.positioning as object,
-            whyNow: result.insights.whyNow as object,
-            proofSignals: result.insights.proofSignals as object,
-            keywords: result.insights.keywords as object,
-            // Scores (nullable - may have failed independently)
-            ...(result.scores ? {
-              opportunityScore: result.scores.opportunityScore,
-              problemScore: result.scores.problemScore,
-              feasibilityScore: result.scores.feasibilityScore,
-              whyNowScore: result.scores.whyNowScore,
-              scoreJustifications: result.scores.justifications as object,
-              scoreMetadata: result.scores.metadata as object,
-            } : {}),
-            // Metrics (nullable)
-            ...(result.metrics ? {
-              revenuePotential: result.metrics.revenuePotential as object,
-              executionDifficulty: result.metrics.executionDifficulty as object,
-              gtmClarity: result.metrics.gtmClarity as object,
-              founderFit: result.metrics.founderFit as object,
-            } : {}),
-            // Market sizing (nullable)
-            ...(result.marketSizing ? { marketSizing: result.marketSizing as object } : {}),
-            // Creative generation fields (nullable)
-            ...(result.userStory ? { userStory: result.userStory as object } : {}),
-            keywordTrends: result.keywordTrends as object[],
-            ...(result.valueLadder ? { valueLadder: result.valueLadder as object[] } : {}),
-            ...(result.actionPrompts ? { actionPrompts: result.actionPrompts as object[] } : {}),
-            socialProof: result.socialProof as object,
-            ...(result.techStack ? { techStack: result.techStack as object } : {}),
-            // Business plan (nullable - extensive markdown document)
-            ...(result.businessPlan ? { businessPlan: result.businessPlan } : {}),
-            // Raw deep research output for resume capability
-            rawDeepResearch: result.deepResearch as object,
-          },
-        });
+        await db.update(research).set({
+          status: 'COMPLETE',
+          currentPhase: 'COMPLETE',
+          progress: 100,
+          completedAt: new Date(),
+          generatedQueries: result.queries as object,
+          synthesizedInsights: result.insights as object,
+          marketAnalysis: result.insights.marketAnalysis as object,
+          competitors: result.insights.competitors as object[],
+          painPoints: result.insights.painPoints as object[],
+          positioning: result.insights.positioning as object,
+          whyNow: result.insights.whyNow as object,
+          proofSignals: result.insights.proofSignals as object,
+          keywords: result.insights.keywords as object,
+          // Scores (nullable - may have failed independently)
+          ...(result.scores ? {
+            opportunityScore: result.scores.opportunityScore,
+            problemScore: result.scores.problemScore,
+            feasibilityScore: result.scores.feasibilityScore,
+            whyNowScore: result.scores.whyNowScore,
+            scoreJustifications: result.scores.justifications as object,
+            scoreMetadata: result.scores.metadata as object,
+          } : {}),
+          // Metrics (nullable)
+          ...(result.metrics ? {
+            revenuePotential: result.metrics.revenuePotential as object,
+            executionDifficulty: result.metrics.executionDifficulty as object,
+            gtmClarity: result.metrics.gtmClarity as object,
+            founderFit: result.metrics.founderFit as object,
+          } : {}),
+          // Market sizing (nullable)
+          ...(result.marketSizing ? { marketSizing: result.marketSizing as object } : {}),
+          // Creative generation fields (nullable)
+          ...(result.userStory ? { userStory: result.userStory as object } : {}),
+          keywordTrends: result.keywordTrends as object[],
+          ...(result.valueLadder ? { valueLadder: result.valueLadder as object[] } : {}),
+          ...(result.actionPrompts ? { actionPrompts: result.actionPrompts as object[] } : {}),
+          socialProof: result.socialProof as object,
+          ...(result.techStack ? { techStack: result.techStack as object } : {}),
+          // Business plan (nullable - extensive markdown document)
+          ...(result.businessPlan ? { businessPlan: result.businessPlan } : {}),
+          // Raw deep research output for resume capability
+          rawDeepResearch: result.deepResearch as object,
+        }).where(eq(research.id, researchId));
 
         // Update project status to complete
-        await prisma.project.update({
-          where: { id: input.projectId },
-          data: { status: 'COMPLETE' },
-        });
+        await db.update(projects).set({ status: 'COMPLETE' }).where(eq(projects.id, input.projectId));
       } catch (error) {
         const duration = Date.now() - startTime;
 
@@ -452,36 +428,28 @@ export const researchRouter = router({
           ...(classifiedError.type === 'parse_error' && { rawResponsePreview: classifiedError.rawResponse.substring(0, 500) }),
         };
 
-        await prisma.research.update({
-          where: { id: researchId },
-          data: {
-            status: 'FAILED',
-            errorMessage: `[${classifiedError.type}] ${classifiedError.message}`,
-            errorPhase: currentPhase,
-          },
-        });
+        await db.update(research).set({
+          status: 'FAILED',
+          errorMessage: `[${classifiedError.type}] ${classifiedError.message}`,
+          errorPhase: currentPhase,
+        }).where(eq(research.id, researchId));
         // Reset project status so user isn't stuck in RESEARCHING
-        await prisma.project.update({
-          where: { id: input.projectId },
-          data: { status: 'CAPTURED' },
-        }).catch(() => {}); // Best-effort
+        await db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, input.projectId)).catch(() => {}); // Best-effort
       }
     })();
 
-    return research;
+    return researchRecord;
   }),
 
   /**
    * Cancel ongoing research
    */
   cancel: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
-    const research = await ctx.prisma.research.findFirst({
-      where: {
-        id: input.id,
-      },
-      include: {
+    const result = await ctx.db.query.research.findFirst({
+      where: eq(research.id, input.id),
+      with: {
         project: {
-          select: {
+          columns: {
             id: true,
             userId: true,
           },
@@ -489,21 +457,21 @@ export const researchRouter = router({
       },
     });
 
-    if (!research) {
+    if (!result) {
       throw new TRPCError({
         code: 'NOT_FOUND',
         message: 'Research not found',
       });
     }
 
-    if (research.project.userId !== ctx.userId) {
+    if (result.project.userId !== ctx.userId) {
       throw new TRPCError({
         code: 'FORBIDDEN',
         message: 'Access denied',
       });
     }
 
-    if (research.status === 'COMPLETE') {
+    if (result.status === 'COMPLETE') {
       throw new TRPCError({
         code: 'BAD_REQUEST',
         message: 'Cannot cancel completed research',
@@ -518,21 +486,18 @@ export const researchRouter = router({
       // Continue with local cancellation even if queue fails
     }
 
-    const updatedResearch = await ctx.prisma.research.update({
-      where: { id: input.id },
-      data: {
-        status: 'FAILED',
-        errorMessage: 'Research cancelled by user',
-        errorPhase: research.currentPhase,
-      },
-    });
+    const [updatedResearch] = await ctx.db.update(research).set({
+      status: 'FAILED',
+      errorMessage: 'Research cancelled by user',
+      errorPhase: result.currentPhase,
+    }).where(eq(research.id, input.id)).returning();
 
     // Audit log - cancel research
     logAuditAsync({
       userId: ctx.userId,
       action: 'RESEARCH_CANCEL',
-      resource: formatResource('research', research.id),
-      metadata: { projectId: research.projectId, cancelledAtPhase: research.currentPhase },
+      resource: formatResource('research', result.id),
+      metadata: { projectId: result.projectId, cancelledAtPhase: result.currentPhase },
     });
 
     return updatedResearch;
@@ -563,20 +528,18 @@ export const researchRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const research = await ctx.prisma.research.findFirst({
-        where: {
-          id: input.id,
-        },
-        include: {
+      const result = await ctx.db.query.research.findFirst({
+        where: eq(research.id, input.id),
+        with: {
           project: {
-            select: {
+            columns: {
               userId: true,
             },
           },
         },
       });
 
-      if (!research) {
+      if (!result) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Research not found',
@@ -584,7 +547,7 @@ export const researchRouter = router({
       }
 
       // Verify ownership through project
-      if (research.project.userId !== ctx.userId) {
+      if (result.project.userId !== ctx.userId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Access denied',
@@ -598,7 +561,7 @@ export const researchRouter = router({
       };
 
       // Set timestamps
-      if (input.phase !== 'QUEUED' && !research.startedAt) {
+      if (input.phase !== 'QUEUED' && !result.startedAt) {
         updateData.startedAt = new Date();
         updateData.status = 'IN_PROGRESS';
       }
@@ -631,17 +594,11 @@ export const researchRouter = router({
         }
       }
 
-      const updatedResearch = await ctx.prisma.research.update({
-        where: { id: input.id },
-        data: updateData as Parameters<typeof ctx.prisma.research.update>[0]['data'],
-      });
+      const [updatedResearch] = await ctx.db.update(research).set(updateData as typeof research.$inferInsert).where(eq(research.id, input.id)).returning();
 
       // If complete, update project status
       if (input.phase === 'COMPLETE') {
-        await ctx.prisma.project.update({
-          where: { id: research.projectId },
-          data: { status: 'COMPLETE' },
-        });
+        await ctx.db.update(projects).set({ status: 'COMPLETE' }).where(eq(projects.id, result.projectId));
       }
 
       return updatedResearch;
@@ -652,12 +609,9 @@ export const researchRouter = router({
    * This marks the research as FAILED so it can be restarted via the start endpoint
    */
   reset: protectedProcedure.input(z.object({ projectId: z.string().cuid() })).mutation(async ({ ctx, input }) => {
-    const project = await ctx.prisma.project.findFirst({
-      where: {
-        id: input.projectId,
-        userId: ctx.userId,
-      },
-      include: {
+    const project = await ctx.db.query.projects.findFirst({
+      where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+      with: {
         research: true,
       },
     });
@@ -686,14 +640,11 @@ export const researchRouter = router({
 
     // Mark research as failed so it can be restarted
     // Keep project status as RESEARCHING so user stays on same page and sees failed state
-    const updatedResearch = await ctx.prisma.research.update({
-      where: { id: project.research.id },
-      data: {
-        status: 'FAILED',
-        errorMessage: 'Research reset by user (interrupted or stuck)',
-        errorPhase: project.research.currentPhase,
-      },
-    });
+    const [updatedResearch] = await ctx.db.update(research).set({
+      status: 'FAILED',
+      errorMessage: 'Research reset by user (interrupted or stuck)',
+      errorPhase: project.research.currentPhase,
+    }).where(eq(research.id, project.research.id)).returning();
 
     return updatedResearch;
   }),
@@ -721,20 +672,18 @@ export const researchRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const research = await ctx.prisma.research.findFirst({
-        where: {
-          id: input.id,
-        },
-        include: {
+      const result = await ctx.db.query.research.findFirst({
+        where: eq(research.id, input.id),
+        with: {
           project: {
-            select: {
+            columns: {
               userId: true,
             },
           },
         },
       });
 
-      if (!research) {
+      if (!result) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Research not found',
@@ -742,21 +691,18 @@ export const researchRouter = router({
       }
 
       // Verify ownership through project
-      if (research.project.userId !== ctx.userId) {
+      if (result.project.userId !== ctx.userId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Access denied',
         });
       }
 
-      const updatedResearch = await ctx.prisma.research.update({
-        where: { id: input.id },
-        data: {
-          status: 'FAILED',
-          errorMessage: input.errorMessage,
-          errorPhase: input.errorPhase,
-        },
-      });
+      const [updatedResearch] = await ctx.db.update(research).set({
+        status: 'FAILED',
+        errorMessage: input.errorMessage,
+        errorPhase: input.errorPhase,
+      }).where(eq(research.id, input.id)).returning();
 
       return updatedResearch;
     }),
@@ -772,12 +718,9 @@ export const researchRouter = router({
   startSpark: protectedProcedure
     .input(z.object({ projectId: z.string().cuid() }))
     .mutation(async ({ ctx, input }) => {
-      const project = await ctx.prisma.project.findFirst({
-        where: {
-          id: input.projectId,
-          userId: ctx.userId,
-        },
-        include: {
+      const project = await ctx.db.query.projects.findFirst({
+        where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+        with: {
           research: true,
         },
       });
@@ -799,45 +742,39 @@ export const researchRouter = router({
       }
 
       // Create or update research record for Spark
-      let research;
+      let researchRecord;
       if (project.research) {
-        research = await ctx.prisma.research.update({
-          where: { id: project.research.id },
-          data: {
-            sparkStatus: 'QUEUED',
-            sparkKeywords: Prisma.DbNull,
-            sparkResult: Prisma.DbNull,
-            sparkStartedAt: new Date(),
-            sparkCompletedAt: null,
-            sparkError: null,
-            notesSnapshot: project.notes, // Snapshot project notes
-          },
-        });
+        const [updated] = await ctx.db.update(research).set({
+          sparkStatus: 'QUEUED',
+          sparkKeywords: null,
+          sparkResult: null,
+          sparkStartedAt: new Date(),
+          sparkCompletedAt: null,
+          sparkError: null,
+          notesSnapshot: project.notes, // Snapshot project notes
+        }).where(eq(research.id, project.research.id)).returning();
+        researchRecord = updated;
       } else {
-        research = await ctx.prisma.research.create({
-          data: {
-            projectId: input.projectId,
-            status: 'IN_PROGRESS',
-            currentPhase: 'QUEUED',
-            progress: 0,
-            sparkStatus: 'QUEUED',
-            sparkStartedAt: new Date(),
-            notesSnapshot: project.notes, // Snapshot project notes
-          },
-        });
+        const [created] = await ctx.db.insert(research).values({
+          projectId: input.projectId,
+          status: 'IN_PROGRESS',
+          currentPhase: 'QUEUED',
+          progress: 0,
+          sparkStatus: 'QUEUED',
+          sparkStartedAt: new Date(),
+          notesSnapshot: project.notes, // Snapshot project notes
+        }).returning();
+        researchRecord = created;
       }
 
       // Update project status
-      await ctx.prisma.project.update({
-        where: { id: input.projectId },
-        data: { status: 'RESEARCHING' },
-      });
+      await ctx.db.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, input.projectId));
 
       // Audit log - start Spark research
       logAuditAsync({
         userId: ctx.userId,
         action: 'RESEARCH_START',
-        resource: formatResource('research', research.id),
+        resource: formatResource('research', researchRecord.id),
         metadata: { projectId: input.projectId, mode: 'SPARK' },
       });
 
@@ -851,13 +788,10 @@ export const researchRouter = router({
         try {
           const result = await runSparkPipeline(sparkDescription, {
             onStatusChange: async (status: SparkJobStatus) => {
-              await ctx.prisma.research.update({
-                where: { id: research.id },
-                data: {
-                  sparkStatus: status,
-                  progress: SPARK_STATUS_PROGRESS[status]?.start || 0,
-                },
-              });
+              await db.update(research).set({
+                sparkStatus: status,
+                progress: SPARK_STATUS_PROGRESS[status]?.start || 0,
+              }).where(eq(research.id, researchRecord.id));
             },
             includeTrends: true,
           });
@@ -865,50 +799,38 @@ export const researchRouter = router({
           // Save successful result
           // Note: sparkStatus is already set by onStatusChange (COMPLETE or PARTIAL_COMPLETE)
           // We fetch the current status to preserve it
-          const currentResearch = await ctx.prisma.research.findUnique({
-            where: { id: research.id },
-            select: { sparkStatus: true },
+          const currentResearch = await db.query.research.findFirst({
+            where: eq(research.id, researchRecord.id),
+            columns: { sparkStatus: true },
           });
 
-          await ctx.prisma.research.update({
-            where: { id: research.id },
-            data: {
-              // Preserve the status set by the pipeline (COMPLETE or PARTIAL_COMPLETE)
-              sparkStatus: currentResearch?.sparkStatus || 'COMPLETE',
-              sparkResult: result as unknown as Parameters<typeof ctx.prisma.research.update>[0]['data']['sparkResult'],
-              sparkKeywords: result.keywords as unknown as Parameters<typeof ctx.prisma.research.update>[0]['data']['sparkKeywords'],
-              sparkCompletedAt: new Date(),
-              progress: currentResearch?.sparkStatus === 'PARTIAL_COMPLETE' ? 90 : 100,
-              status: 'COMPLETE', // Research overall is complete even if partial
-            },
-          });
+          await db.update(research).set({
+            // Preserve the status set by the pipeline (COMPLETE or PARTIAL_COMPLETE)
+            sparkStatus: currentResearch?.sparkStatus || 'COMPLETE',
+            sparkResult: result as object,
+            sparkKeywords: result.keywords as object,
+            sparkCompletedAt: new Date(),
+            progress: currentResearch?.sparkStatus === 'PARTIAL_COMPLETE' ? 90 : 100,
+            status: 'COMPLETE', // Research overall is complete even if partial
+          }).where(eq(research.id, researchRecord.id));
 
           // Update project status
-          await ctx.prisma.project.update({
-            where: { id: input.projectId },
-            data: { status: 'COMPLETE' },
-          });
+          await db.update(projects).set({ status: 'COMPLETE' }).where(eq(projects.id, input.projectId));
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-          await ctx.prisma.research.update({
-            where: { id: research.id },
-            data: {
-              sparkStatus: 'FAILED',
-              sparkError: errorMessage,
-              status: 'FAILED',
-              errorMessage: `Spark validation failed: ${errorMessage}`,
-            },
-          });
+          await db.update(research).set({
+            sparkStatus: 'FAILED',
+            sparkError: errorMessage,
+            status: 'FAILED',
+            errorMessage: `Spark validation failed: ${errorMessage}`,
+          }).where(eq(research.id, researchRecord.id));
           // Reset project status so user isn't stuck in RESEARCHING
-          await ctx.prisma.project.update({
-            where: { id: input.projectId },
-            data: { status: 'CAPTURED' },
-          }).catch(() => {}); // Best-effort
+          await db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, input.projectId)).catch(() => {}); // Best-effort
         }
       })();
 
-      return { jobId: research.id };
+      return { jobId: researchRecord.id };
     }),
 
   /**
@@ -917,13 +839,11 @@ export const researchRouter = router({
   getSparkStatus: protectedProcedure
     .input(z.object({ jobId: z.string().cuid() }))
     .query(async ({ ctx, input }) => {
-      const research = await ctx.prisma.research.findFirst({
-        where: {
-          id: input.jobId,
-        },
-        include: {
+      const result = await ctx.db.query.research.findFirst({
+        where: eq(research.id, input.jobId),
+        with: {
           project: {
-            select: {
+            columns: {
               userId: true,
               title: true,
               description: true,
@@ -932,14 +852,14 @@ export const researchRouter = router({
         },
       });
 
-      if (!research) {
+      if (!result) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Research not found',
         });
       }
 
-      if (research.project.userId !== ctx.userId) {
+      if (result.project.userId !== ctx.userId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Access denied',
@@ -947,15 +867,15 @@ export const researchRouter = router({
       }
 
       return {
-        jobId: research.id,
-        projectTitle: research.project.title,
-        sparkStatus: research.sparkStatus,
-        sparkResult: research.sparkResult,
-        sparkKeywords: research.sparkKeywords,
-        sparkError: research.sparkError,
-        sparkStartedAt: research.sparkStartedAt,
-        sparkCompletedAt: research.sparkCompletedAt,
-        progress: research.progress,
+        jobId: result.id,
+        projectTitle: result.project.title,
+        sparkStatus: result.sparkStatus,
+        sparkResult: result.sparkResult,
+        sparkKeywords: result.sparkKeywords,
+        sparkError: result.sparkError,
+        sparkStartedAt: result.sparkStartedAt,
+        sparkCompletedAt: result.sparkCompletedAt,
+        progress: result.progress,
       };
     }),
 
@@ -965,33 +885,33 @@ export const researchRouter = router({
   pollSpark: protectedProcedure
     .input(z.object({ jobId: z.string().cuid() }))
     .query(async ({ ctx, input }) => {
-      const research = await ctx.prisma.research.findFirst({
-        where: {
-          id: input.jobId,
-        },
-        select: {
+      const result = await ctx.db.query.research.findFirst({
+        where: eq(research.id, input.jobId),
+        columns: {
           id: true,
           sparkStatus: true,
           progress: true,
           sparkError: true,
           sparkStartedAt: true,
           sparkCompletedAt: true,
+        },
+        with: {
           project: {
-            select: {
+            columns: {
               userId: true,
             },
           },
         },
       });
 
-      if (!research) {
+      if (!result) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Research not found',
         });
       }
 
-      if (research.project.userId !== ctx.userId) {
+      if (result.project.userId !== ctx.userId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Access denied',
@@ -999,21 +919,21 @@ export const researchRouter = router({
       }
 
       // Calculate progress based on status
-      const statusProgress = research.sparkStatus
-        ? SPARK_STATUS_PROGRESS[research.sparkStatus] || { start: 0, end: 0 }
+      const statusProgress = result.sparkStatus
+        ? SPARK_STATUS_PROGRESS[result.sparkStatus] || { start: 0, end: 0 }
         : { start: 0, end: 0 };
 
       return {
-        jobId: research.id,
-        status: research.sparkStatus,
-        progress: research.progress,
+        jobId: result.id,
+        status: result.sparkStatus,
+        progress: result.progress,
         statusProgress,
-        error: research.sparkError,
-        startedAt: research.sparkStartedAt,
-        completedAt: research.sparkCompletedAt,
-        isComplete: research.sparkStatus === 'COMPLETE' || research.sparkStatus === 'PARTIAL_COMPLETE',
-        isPartial: research.sparkStatus === 'PARTIAL_COMPLETE',
-        isFailed: research.sparkStatus === 'FAILED',
+        error: result.sparkError,
+        startedAt: result.sparkStartedAt,
+        completedAt: result.sparkCompletedAt,
+        isComplete: result.sparkStatus === 'COMPLETE' || result.sparkStatus === 'PARTIAL_COMPLETE',
+        isPartial: result.sparkStatus === 'PARTIAL_COMPLETE',
+        isFailed: result.sparkStatus === 'FAILED',
       };
     }),
 
@@ -1024,36 +944,36 @@ export const researchRouter = router({
   backfill: protectedProcedure
     .input(z.object({ researchId: z.string().cuid() }))
     .mutation(async ({ ctx, input }) => {
-      const research = await ctx.prisma.research.findFirst({
-        where: { id: input.researchId },
-        include: {
+      const researchResult = await ctx.db.query.research.findFirst({
+        where: eq(research.id, input.researchId),
+        with: {
           project: {
-            include: {
+            with: {
               interviews: {
-                where: { status: 'COMPLETE' },
-                orderBy: { createdAt: 'desc' },
-                take: 1,
+                where: eq(interviews.status, 'COMPLETE'),
+                orderBy: (interviews, { desc }) => desc(interviews.createdAt),
+                limit: 1,
               },
             },
           },
         },
       });
 
-      if (!research) {
+      if (!researchResult) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Research not found' });
       }
-      if (research.project.userId !== ctx.userId) {
+      if (researchResult.project.userId !== ctx.userId) {
         throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized' });
       }
-      if (research.status !== 'COMPLETE') {
+      if (researchResult.status !== 'COMPLETE') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Research must be COMPLETE to backfill. Use restart for failed research.' });
       }
 
-      const rawDeepResearch = research.rawDeepResearch as unknown as DeepResearchOutput | null;
+      const rawDeepResearch = researchResult.rawDeepResearch as unknown as DeepResearchOutput | null;
       const hasRawResearch = !!rawDeepResearch?.rawReport;
 
       // Reconstruct ResearchInput from project
-      const project = research.project;
+      const project = researchResult.project;
       const interview = project.interviews[0];
       const notesContext = project.notes ? `## FOUNDER'S NOTES\n${project.notes}` : undefined;
       const researchInput: ResearchInput = {
@@ -1065,36 +985,33 @@ export const researchRouter = router({
       };
 
       // Get user tier
-      const user = await ctx.prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { subscription: true },
+      const user = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.userId),
+        columns: { subscription: true },
       });
       const userTier = user?.subscription ?? 'FREE';
 
       // Determine what's missing
       const missing: string[] = [];
-      if (!research.synthesizedInsights) missing.push('insights');
-      if (research.opportunityScore == null) missing.push('scores');
-      if (!research.revenuePotential) missing.push('metrics');
-      if (!research.marketSizing) missing.push('marketSizing');
-      if (!research.userStory) missing.push('userStory');
-      if (!research.valueLadder) missing.push('valueLadder');
-      if (!research.actionPrompts) missing.push('actionPrompts');
-      if (!research.techStack) missing.push('techStack');
+      if (!researchResult.synthesizedInsights) missing.push('insights');
+      if (researchResult.opportunityScore == null) missing.push('scores');
+      if (!researchResult.revenuePotential) missing.push('metrics');
+      if (!researchResult.marketSizing) missing.push('marketSizing');
+      if (!researchResult.userStory) missing.push('userStory');
+      if (!researchResult.valueLadder) missing.push('valueLadder');
+      if (!researchResult.actionPrompts) missing.push('actionPrompts');
+      if (!researchResult.techStack) missing.push('techStack');
 
       if (missing.length === 0) {
         return { backfilled: [], failed: [], skipped: [], message: 'All fields already populated.' };
       }
 
       // Step 1: Ensure insights exist (dependency for Phase 4 functions)
-      let insights = research.synthesizedInsights as unknown as SynthesizedInsights | null;
+      let insights = researchResult.synthesizedInsights as unknown as SynthesizedInsights | null;
       if (!insights && hasRawResearch) {
         try {
           insights = await extractInsights(rawDeepResearch!, researchInput, userTier);
-          await ctx.prisma.research.update({
-            where: { id: input.researchId },
-            data: { synthesizedInsights: insights as object },
-          });
+          await ctx.db.update(research).set({ synthesizedInsights: insights as object }).where(eq(research.id, input.researchId));
         } catch (err) {
           return { backfilled: [], failed: ['insights', ...missing.filter(m => m !== 'insights')], skipped: [], message: 'Cannot backfill: insights extraction failed (required dependency).' };
         }
@@ -1113,20 +1030,20 @@ export const researchRouter = router({
       }
 
       // Existing scores/metrics for dependencies
-      let scores = research.opportunityScore != null ? {
-        opportunityScore: research.opportunityScore!,
-        problemScore: research.problemScore!,
-        feasibilityScore: research.feasibilityScore!,
-        whyNowScore: research.whyNowScore!,
-        justifications: research.scoreJustifications as unknown as ResearchScores['justifications'],
-        metadata: (research.scoreMetadata || { passCount: 0, maxDeviation: 0, averageConfidence: 0, flagged: false }) as ResearchScores['metadata'],
+      let scores = researchResult.opportunityScore != null ? {
+        opportunityScore: researchResult.opportunityScore!,
+        problemScore: researchResult.problemScore!,
+        feasibilityScore: researchResult.feasibilityScore!,
+        whyNowScore: researchResult.whyNowScore!,
+        justifications: researchResult.scoreJustifications as unknown as ResearchScores['justifications'],
+        metadata: (researchResult.scoreMetadata || { passCount: 0, maxDeviation: 0, averageConfidence: 0, flagged: false }) as ResearchScores['metadata'],
       } as ResearchScores : null;
 
-      let metrics = research.revenuePotential ? {
-        revenuePotential: research.revenuePotential,
-        executionDifficulty: research.executionDifficulty || { rating: 'moderate' as const, factors: [], soloFriendly: false },
-        gtmClarity: research.gtmClarity || { rating: 'moderate' as const, channels: [], confidence: 0 },
-        founderFit: research.founderFit || { percentage: 0, strengths: [], gaps: [] },
+      let metrics = researchResult.revenuePotential ? {
+        revenuePotential: researchResult.revenuePotential,
+        executionDifficulty: researchResult.executionDifficulty || { rating: 'moderate' as const, factors: [], soloFriendly: false },
+        gtmClarity: researchResult.gtmClarity || { rating: 'moderate' as const, channels: [], confidence: 0 },
+        founderFit: researchResult.founderFit || { percentage: 0, strengths: [], gaps: [] },
       } as BusinessMetrics : null;
 
       // Phase 3 backfills (require rawDeepResearch)
@@ -1145,17 +1062,14 @@ export const researchRouter = router({
           name: 'scores',
           run: async () => {
             scores = await extractScores(rawDeepResearch!, researchInput, insights!, userTier);
-            await ctx.prisma.research.update({
-              where: { id: input.researchId },
-              data: {
-                opportunityScore: scores.opportunityScore,
-                problemScore: scores.problemScore,
-                feasibilityScore: scores.feasibilityScore,
-                whyNowScore: scores.whyNowScore,
-                scoreJustifications: scores.justifications as object,
-                scoreMetadata: scores.metadata as object,
-              },
-            });
+            await ctx.db.update(research).set({
+              opportunityScore: scores.opportunityScore,
+              problemScore: scores.problemScore,
+              feasibilityScore: scores.feasibilityScore,
+              whyNowScore: scores.whyNowScore,
+              scoreJustifications: scores.justifications as object,
+              scoreMetadata: scores.metadata as object,
+            }).where(eq(research.id, input.researchId));
           },
         });
       }
@@ -1170,15 +1084,12 @@ export const researchRouter = router({
               metadata: {} as ResearchScores['metadata'],
             };
             metrics = await extractBusinessMetrics(rawDeepResearch!, researchInput, insights!, placeholderScores, userTier);
-            await ctx.prisma.research.update({
-              where: { id: input.researchId },
-              data: {
-                revenuePotential: metrics.revenuePotential as object,
-                executionDifficulty: metrics.executionDifficulty as object,
-                gtmClarity: metrics.gtmClarity as object,
-                founderFit: metrics.founderFit as object,
-              },
-            });
+            await ctx.db.update(research).set({
+              revenuePotential: metrics.revenuePotential as object,
+              executionDifficulty: metrics.executionDifficulty as object,
+              gtmClarity: metrics.gtmClarity as object,
+              founderFit: metrics.founderFit as object,
+            }).where(eq(research.id, input.researchId));
           },
         });
       }
@@ -1188,10 +1099,7 @@ export const researchRouter = router({
           name: 'marketSizing',
           run: async () => {
             const ms = await extractMarketSizing(rawDeepResearch!, researchInput, insights!, userTier);
-            await ctx.prisma.research.update({
-              where: { id: input.researchId },
-              data: { marketSizing: ms as object },
-            });
+            await ctx.db.update(research).set({ marketSizing: ms as object }).where(eq(research.id, input.researchId));
           },
         });
       }
@@ -1202,10 +1110,7 @@ export const researchRouter = router({
           name: 'userStory',
           run: async () => {
             const us = await generateUserStory(researchInput, insights!, userTier);
-            await ctx.prisma.research.update({
-              where: { id: input.researchId },
-              data: { userStory: us as object },
-            });
+            await ctx.db.update(research).set({ userStory: us as object }).where(eq(research.id, input.researchId));
           },
         });
       }
@@ -1221,10 +1126,7 @@ export const researchRouter = router({
               founderFit: { percentage: 0, strengths: [], gaps: [] },
             };
             const vl = await generateValueLadder(researchInput, insights!, metrics ?? fallbackMetrics, userTier);
-            await ctx.prisma.research.update({
-              where: { id: input.researchId },
-              data: { valueLadder: vl as object[] },
-            });
+            await ctx.db.update(research).set({ valueLadder: vl as object[] }).where(eq(research.id, input.researchId));
           },
         });
       }
@@ -1234,10 +1136,7 @@ export const researchRouter = router({
           name: 'actionPrompts',
           run: async () => {
             const ap = await generateActionPrompts(researchInput, insights!, userTier);
-            await ctx.prisma.research.update({
-              where: { id: input.researchId },
-              data: { actionPrompts: ap as object[] },
-            });
+            await ctx.db.update(research).set({ actionPrompts: ap as object[] }).where(eq(research.id, input.researchId));
           },
         });
       }
@@ -1247,10 +1146,7 @@ export const researchRouter = router({
           name: 'techStack',
           run: async () => {
             const ts = await generateTechStack(researchInput, insights!, userTier);
-            await ctx.prisma.research.update({
-              where: { id: input.researchId },
-              data: { techStack: ts as object },
-            });
+            await ctx.db.update(research).set({ techStack: ts as object }).where(eq(research.id, input.researchId));
           },
         });
       }

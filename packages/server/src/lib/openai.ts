@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import type { SubscriptionTier } from '../generated/prisma';
+import type { SubscriptionTier } from '../db/schema';
 import { configService } from '../services/config';
 
 // Re-export retry utility from deep-research for convenience

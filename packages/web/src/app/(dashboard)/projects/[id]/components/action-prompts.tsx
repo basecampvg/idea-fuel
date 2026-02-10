@@ -245,7 +245,7 @@ function parseJson<T>(data: T | string | null | undefined): T | null {
 export function ActionPrompts({ actionPrompts: rawActionPrompts, ideaTitle, title = 'Start Building in 1-click', subtitle = 'Turn this idea into your business with pre-built prompts' }: ActionPromptsProps) {
   const [lastCopied, setLastCopied] = useState<string | null>(null);
 
-  // Parse actionPrompts if it's a string (Prisma JSON field)
+  // Parse actionPrompts if it's a string (JSON field)
   const actionPrompts = parseJson<ActionPrompt[]>(rawActionPrompts);
 
   // Use provided prompts or defaults

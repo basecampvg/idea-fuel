@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@forge/server';
+import { db, schema } from '@forge/server';
+import { eq } from 'drizzle-orm';
 
 /**
  * POST /api/auth/mobile/signout
@@ -19,11 +20,12 @@ export async function POST(request: NextRequest) {
     const sessionToken = authHeader.replace('Bearer ', '');
 
     // Delete the session
-    await prisma.session.delete({
-      where: { sessionToken },
-    }).catch(() => {
-      // Session may not exist, that's fine
-    });
+    await db
+      .delete(schema.sessions)
+      .where(eq(schema.sessions.sessionToken, sessionToken))
+      .catch(() => {
+        // Session may not exist, that's fine
+      });
 
     return NextResponse.json({ success: true });
   } catch (error) {

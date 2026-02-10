@@ -62,9 +62,11 @@ const isAdmin = middleware(async ({ ctx, next }) => {
   }
 
   // Check if user is admin
-  const user = await ctx.prisma.user.findUnique({
-    where: { id: ctx.userId },
-    select: { isAdmin: true },
+  const { eq } = await import('drizzle-orm');
+  const { users } = await import('./db/schema');
+  const user = await ctx.db.query.users.findFirst({
+    where: eq(users.id, ctx.userId),
+    columns: { isAdmin: true },
   });
 
   if (!user?.isAdmin) {

@@ -89,7 +89,7 @@ function TierCard({ tier, isLast }: { tier: ValueTier; isLast: boolean }) {
 }
 
 export function ValueLadder({ valueLadder: rawValueLadder, projectId }: ValueLadderProps) {
-  // Parse valueLadder if it's a string (Prisma JSON field)
+  // Parse valueLadder if it's a string (JSON field)
   let valueLadder: ValueTier[] | null = null;
   if (rawValueLadder) {
     if (typeof rawValueLadder === 'string') {

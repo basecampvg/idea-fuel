@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { prisma } from '@forge/server';
+import { db, schema } from '@forge/server';
+import { eq, desc } from 'drizzle-orm';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, ArrowRight } from 'lucide-react';
@@ -12,10 +13,10 @@ export const metadata = {
 export const dynamic = 'force-dynamic';
 
 async function getPosts() {
-  const posts = await prisma.blogPost.findMany({
-    where: { status: 'PUBLISHED' },
-    orderBy: { publishedAt: 'desc' },
-    select: {
+  const posts = await db.query.blogPosts.findMany({
+    where: eq(schema.blogPosts.status, 'PUBLISHED'),
+    orderBy: desc(schema.blogPosts.publishedAt),
+    columns: {
       id: true,
       slug: true,
       title: true,
@@ -23,8 +24,10 @@ async function getPosts() {
       publishedAt: true,
       readingTime: true,
       tags: true,
+    },
+    with: {
       author: {
-        select: {
+        columns: {
           name: true,
         },
       },

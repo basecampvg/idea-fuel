@@ -1,13 +1,11 @@
-import { PrismaClient } from '@prisma/client';
+import { db } from '../src/db/drizzle';
 import { configService } from '../src/services/config';
-
-const prisma = new PrismaClient();
 
 async function main() {
   console.log('Seeding admin configuration...\n');
 
   // Initialize config service
-  await configService.init(prisma);
+  await configService.init(db);
 
   // Seed defaults
   const seeded = await configService.seedDefaults();
@@ -38,5 +36,4 @@ main()
   .catch((e) => {
     console.error('Error seeding config:', e);
     process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+  });

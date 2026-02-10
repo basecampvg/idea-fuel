@@ -1,4 +1,8 @@
-import { PrismaClient, ConfigType } from '../generated/prisma';
+import { eq, desc, asc } from 'drizzle-orm';
+import { type ConfigType, adminConfigs, configAuditLogs } from '../db/schema';
+import { db as drizzleDb } from '../db/drizzle';
+
+type DbClient = typeof drizzleDb;
 
 // =============================================================================
 // DEFAULT CONFIGURATION VALUES
@@ -724,15 +728,15 @@ export class ConfigService {
   private cache: Map<string, unknown> = new Map();
   private metadataCache: Map<string, { type: ConfigType; category: string; label: string }> = new Map();
   private lastRefresh: Date | null = null;
-  private prisma: PrismaClient | null = null;
+  private db: DbClient | null = null;
   private initialized = false;
 
   /**
-   * Initialize the config service with a Prisma client.
+   * Initialize the config service with a Drizzle db instance.
    * Must be called before using other methods.
    */
-  async init(prisma: PrismaClient): Promise<void> {
-    this.prisma = prisma;
+  async init(db: DbClient): Promise<void> {
+    this.db = db;
     await this.refresh();
     this.initialized = true;
     console.log('[ConfigService] Initialized with', this.cache.size, 'configs');
@@ -791,7 +795,7 @@ export class ConfigService {
    * Creates audit log entry.
    */
   async set(key: string, value: unknown, userId?: string, reason?: string): Promise<void> {
-    if (!this.prisma) {
+    if (!this.db) {
       throw new Error('ConfigService not initialized');
     }
 
@@ -799,33 +803,30 @@ export class ConfigService {
     const defaultConfig = DEFAULT_CONFIGS.find((c) => c.key === key);
 
     // Upsert the config
-    await this.prisma.adminConfig.upsert({
-      where: { key },
-      update: {
+    await this.db.insert(adminConfigs).values({
+      key,
+      value: value as object,
+      type: defaultConfig?.type || 'STRING',
+      category: defaultConfig?.category || 'other',
+      label: defaultConfig?.label || key,
+      description: defaultConfig?.description,
+      options: defaultConfig?.options as object | undefined,
+      updatedBy: userId,
+    }).onConflictDoUpdate({
+      target: adminConfigs.key,
+      set: {
         value: value as object,
-        updatedBy: userId,
-      },
-      create: {
-        key,
-        value: value as object,
-        type: defaultConfig?.type || 'STRING',
-        category: defaultConfig?.category || 'other',
-        label: defaultConfig?.label || key,
-        description: defaultConfig?.description,
-        options: defaultConfig?.options as object | undefined,
         updatedBy: userId,
       },
     });
 
     // Create audit log
-    await this.prisma.configAuditLog.create({
-      data: {
-        configKey: key,
-        oldValue: oldValue as object | undefined,
-        newValue: value as object,
-        changedBy: userId || 'system',
-        reason,
-      },
+    await this.db.insert(configAuditLogs).values({
+      configKey: key,
+      oldValue: oldValue as object | undefined,
+      newValue: value as object,
+      changedBy: userId || 'system',
+      reason,
     });
 
     // Update cache
@@ -837,11 +838,11 @@ export class ConfigService {
    * Refresh cache from database.
    */
   async refresh(): Promise<void> {
-    if (!this.prisma) {
+    if (!this.db) {
       throw new Error('ConfigService not initialized');
     }
 
-    const configs = await this.prisma.adminConfig.findMany();
+    const configs = await this.db.query.adminConfigs.findMany();
 
     this.cache.clear();
     this.metadataCache.clear();
@@ -877,12 +878,12 @@ export class ConfigService {
     description?: string;
     options?: Array<{ value: string; label: string }>;
   }>>> {
-    if (!this.prisma) {
+    if (!this.db) {
       throw new Error('ConfigService not initialized');
     }
 
-    const dbConfigs = await this.prisma.adminConfig.findMany({
-      orderBy: { key: 'asc' },
+    const dbConfigs = await this.db.query.adminConfigs.findMany({
+      orderBy: asc(adminConfigs.key),
     });
 
     // Create a map of DB configs for quick lookup
@@ -923,29 +924,27 @@ export class ConfigService {
    * Seed default values into the database (if not exists).
    */
   async seedDefaults(): Promise<number> {
-    if (!this.prisma) {
+    if (!this.db) {
       throw new Error('ConfigService not initialized');
     }
 
     let seeded = 0;
 
     for (const config of DEFAULT_CONFIGS) {
-      const existing = await this.prisma.adminConfig.findUnique({
-        where: { key: config.key },
+      const existing = await this.db.query.adminConfigs.findFirst({
+        where: eq(adminConfigs.key, config.key),
       });
 
       if (!existing) {
-        await this.prisma.adminConfig.create({
-          data: {
-            key: config.key,
-            value: config.value as object,
-            type: config.type,
-            category: config.category,
-            label: config.label,
-            description: config.description,
-            options: config.options as object | undefined,
-            updatedBy: 'system',
-          },
+        await this.db.insert(adminConfigs).values({
+          key: config.key,
+          value: config.value as object,
+          type: config.type,
+          category: config.category,
+          label: config.label,
+          description: config.description,
+          options: config.options as object | undefined,
+          updatedBy: 'system',
         });
         seeded++;
       }
@@ -963,7 +962,7 @@ export class ConfigService {
    * Reset a category to default values.
    */
   async resetCategory(category: string, userId?: string): Promise<number> {
-    if (!this.prisma) {
+    if (!this.db) {
       throw new Error('ConfigService not initialized');
     }
 
@@ -982,14 +981,14 @@ export class ConfigService {
    * Get audit log entries.
    */
   async getAuditLog(options?: { key?: string; limit?: number }) {
-    if (!this.prisma) {
+    if (!this.db) {
       throw new Error('ConfigService not initialized');
     }
 
-    return this.prisma.configAuditLog.findMany({
-      where: options?.key ? { configKey: options.key } : undefined,
-      orderBy: { changedAt: 'desc' },
-      take: options?.limit || 50,
+    return this.db.query.configAuditLogs.findMany({
+      where: options?.key ? eq(configAuditLogs.configKey, options.key) : undefined,
+      orderBy: desc(configAuditLogs.changedAt),
+      limit: options?.limit || 50,
     });
   }
 

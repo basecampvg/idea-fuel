@@ -3,7 +3,8 @@
 
 export { appRouter, type AppRouter } from './routers';
 export { createContext, createInternalContext, type Context, type Session, type CreateContextOptions } from './context';
-export { prisma } from './db';
+export { db } from './db/drizzle';
+export * as schema from './db/schema';
 
 // External API clients
 export {

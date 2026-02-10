@@ -4,7 +4,7 @@
 // Project Types (Unified: absorbs former Idea + Canvas types)
 // =============================================================================
 
-// Project status enum (matches Prisma ProjectStatus)
+// Project status enum (matches DB ProjectStatus)
 export type ProjectStatus = 'CAPTURED' | 'INTERVIEWING' | 'RESEARCHING' | 'COMPLETE';
 
 // Derived display status for sidebar grouping

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { prisma } from '@forge/server';
+import { db, schema } from '@forge/server';
+import { eq, and, lt, gt, desc, asc } from 'drizzle-orm';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -13,14 +14,14 @@ interface BlogPostPageProps {
 export const dynamic = 'force-dynamic';
 
 async function getPost(slug: string) {
-  const post = await prisma.blogPost.findFirst({
-    where: {
-      slug,
-      status: 'PUBLISHED',
-    },
-    include: {
+  const post = await db.query.blogPosts.findFirst({
+    where: and(
+      eq(schema.blogPosts.slug, slug),
+      eq(schema.blogPosts.status, 'PUBLISHED'),
+    ),
+    with: {
       author: {
-        select: {
+        columns: {
           name: true,
           image: true,
         },
@@ -32,9 +33,12 @@ async function getPost(slug: string) {
 }
 
 async function getAdjacentPosts(slug: string) {
-  const current = await prisma.blogPost.findFirst({
-    where: { slug, status: 'PUBLISHED' },
-    select: { publishedAt: true },
+  const current = await db.query.blogPosts.findFirst({
+    where: and(
+      eq(schema.blogPosts.slug, slug),
+      eq(schema.blogPosts.status, 'PUBLISHED'),
+    ),
+    columns: { publishedAt: true },
   });
 
   if (!current?.publishedAt) {
@@ -43,22 +47,22 @@ async function getAdjacentPosts(slug: string) {
 
   const [prev, next] = await Promise.all([
     // Previous = older posts (publishedAt < current)
-    prisma.blogPost.findFirst({
-      where: {
-        status: 'PUBLISHED',
-        publishedAt: { lt: current.publishedAt },
-      },
-      orderBy: { publishedAt: 'desc' },
-      select: { slug: true, title: true },
+    db.query.blogPosts.findFirst({
+      where: and(
+        eq(schema.blogPosts.status, 'PUBLISHED'),
+        lt(schema.blogPosts.publishedAt, current.publishedAt),
+      ),
+      orderBy: desc(schema.blogPosts.publishedAt),
+      columns: { slug: true, title: true },
     }),
     // Next = newer posts (publishedAt > current)
-    prisma.blogPost.findFirst({
-      where: {
-        status: 'PUBLISHED',
-        publishedAt: { gt: current.publishedAt },
-      },
-      orderBy: { publishedAt: 'asc' },
-      select: { slug: true, title: true },
+    db.query.blogPosts.findFirst({
+      where: and(
+        eq(schema.blogPosts.status, 'PUBLISHED'),
+        gt(schema.blogPosts.publishedAt, current.publishedAt),
+      ),
+      orderBy: asc(schema.blogPosts.publishedAt),
+      columns: { slug: true, title: true },
     }),
   ]);
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@forge/server';
+import { db, schema } from '@forge/server';
+import { eq, and } from 'drizzle-orm';
 import { randomBytes } from 'crypto';
 
 /**
@@ -47,57 +48,58 @@ export async function POST(request: NextRequest) {
     }
 
     // Find or create user
-    let user = await prisma.user.findUnique({
-      where: { email: googleUser.email },
+    let user = await db.query.users.findFirst({
+      where: eq(schema.users.email, googleUser.email),
     });
 
     if (!user) {
       // Create new user
-      user = await prisma.user.create({
-        data: {
+      const [newUser] = await db
+        .insert(schema.users)
+        .values({
           email: googleUser.email,
           name: googleUser.name || null,
           image: googleUser.picture || null,
-        },
-      });
+          updatedAt: new Date(),
+        })
+        .returning();
+      user = newUser;
     } else {
       // Update user info if changed
       if (user.name !== googleUser.name || user.image !== googleUser.picture) {
-        user = await prisma.user.update({
-          where: { id: user.id },
-          data: {
+        const [updatedUser] = await db
+          .update(schema.users)
+          .set({
             name: googleUser.name || user.name,
             image: googleUser.picture || user.image,
-          },
-        });
+          })
+          .where(eq(schema.users.id, user.id))
+          .returning();
+        user = updatedUser;
       }
     }
 
     // Create or update Google account link
-    const existingAccount = await prisma.account.findFirst({
-      where: {
-        userId: user.id,
-        provider: 'google',
-      },
+    const existingAccount = await db.query.accounts.findFirst({
+      where: and(
+        eq(schema.accounts.userId, user.id),
+        eq(schema.accounts.provider, 'google'),
+      ),
     });
 
     if (!existingAccount) {
-      await prisma.account.create({
-        data: {
-          userId: user.id,
-          type: 'oauth',
-          provider: 'google',
-          providerAccountId: googleUser.sub,
-          access_token: token,
-        },
+      await db.insert(schema.accounts).values({
+        userId: user.id,
+        type: 'oauth',
+        provider: 'google',
+        providerAccountId: googleUser.sub,
+        access_token: token,
       });
     } else {
-      await prisma.account.update({
-        where: { id: existingAccount.id },
-        data: {
-          access_token: token,
-        },
-      });
+      await db
+        .update(schema.accounts)
+        .set({ access_token: token })
+        .where(eq(schema.accounts.id, existingAccount.id));
     }
 
     // Generate a session token for mobile
@@ -105,12 +107,10 @@ export async function POST(request: NextRequest) {
     const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
     // Create session in database
-    await prisma.session.create({
-      data: {
-        sessionToken,
-        userId: user.id,
-        expires,
-      },
+    await db.insert(schema.sessions).values({
+      sessionToken,
+      userId: user.id,
+      expires,
     });
 
     return NextResponse.json({

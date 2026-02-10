@@ -5,9 +5,13 @@
  * Runs the complete pipeline from ingestion to winner selection.
  */
 
-import { prisma } from '../db';
+import { db } from '../db/drizzle';
+import { eq, and, gte, desc, max, sql } from 'drizzle-orm';
+import {
+  trendSeries, serpSnapshots, dailyRuns, queryCandidates,
+  aiClassifications, clusters as clustersTable, dailyPicks,
+} from '../db/schema';
 import { formatInTimeZone } from 'date-fns-tz';
-import type { Prisma } from '../generated/prisma';
 import {
   getTrendingNow,
   getTrendingExpanded,
@@ -34,7 +38,7 @@ import {
   type ScoredCluster,
 } from '../lib/winner';
 import { runStructured } from '../lib/openai';
-import type { DailyRunStatus } from '../generated/prisma';
+import type { DailyRunStatus } from '../db/schema';
 
 // Default seed keywords for commercial trend discovery
 // These are evergreen queries in commercially-viable categories
@@ -149,14 +153,14 @@ async function getCachedTrendSeries(
 ): Promise<{ id: string; points: unknown[] } | null> {
   const cutoff = new Date(Date.now() - CONFIG.CACHE_TTL_HOURS * 60 * 60 * 1000);
 
-  const cached = await prisma.trendSeries.findFirst({
-    where: {
-      query: normalizeQuery(query),
-      geo,
-      timeframe,
-      fetchedAt: { gte: cutoff },
-    },
-    orderBy: { fetchedAt: 'desc' },
+  const cached = await db.query.trendSeries.findFirst({
+    where: and(
+      eq(trendSeries.query, normalizeQuery(query)),
+      eq(trendSeries.geo, geo),
+      eq(trendSeries.timeframe, timeframe),
+      gte(trendSeries.fetchedAt, cutoff),
+    ),
+    orderBy: desc(trendSeries.fetchedAt),
   });
 
   if (cached) {
@@ -174,13 +178,13 @@ async function getCachedSerpSnapshot(
 ): Promise<SerpSnapshotParsed | null> {
   const cutoff = new Date(Date.now() - CONFIG.CACHE_TTL_HOURS * 60 * 60 * 1000);
 
-  const cached = await prisma.serpSnapshot.findFirst({
-    where: {
-      query: normalizeQuery(query),
-      geo,
-      fetchedAt: { gte: cutoff },
-    },
-    orderBy: { fetchedAt: 'desc' },
+  const cached = await db.query.serpSnapshots.findFirst({
+    where: and(
+      eq(serpSnapshots.query, normalizeQuery(query)),
+      eq(serpSnapshots.geo, geo),
+      gte(serpSnapshots.fetchedAt, cutoff),
+    ),
+    orderBy: desc(serpSnapshots.fetchedAt),
   });
 
   if (cached) {
@@ -208,13 +212,11 @@ export async function runDailyTrendPick(
   console.log(`[DailyTrendPick] Starting job for ${targetDate}...`);
 
   // Create run record
-  const run = await prisma.dailyRun.create({
-    data: {
-      dateLocal: targetDate,
-      startedAt: new Date(),
-      status: 'FAILED', // Will update on success
-    },
-  });
+  const [run] = await db.insert(dailyRuns).values({
+    dateLocal: targetDate,
+    startedAt: new Date(),
+    status: 'FAILED', // Will update on success
+  }).returning();
 
   const metrics = {
     seedKeywordsUsed: 0,
@@ -329,15 +331,15 @@ export async function runDailyTrendPick(
     }
 
     // Persist QueryCandidate rows
-    await prisma.queryCandidate.createMany({
-      data: candidates.map((c) => ({
+    await db.insert(queryCandidates).values(
+      candidates.map((c) => ({
         runId: run.id,
         query: c.original,
         normalizedQuery: c.normalized,
         source: CONFIG.SEED_KEYWORDS_ENABLED ? 'seed_related' : 'google_trends',
         discoveredAt: new Date(),
       })),
-    });
+    );
 
     // =========================================================================
     // Stage 1.5: Intent-Form Filter
@@ -360,14 +362,16 @@ export async function runDailyTrendPick(
 
     // Update QueryCandidate records with filter results
     for (const item of filterResult.passed) {
-      await prisma.queryCandidate.updateMany({
-        where: { runId: run.id, normalizedQuery: item.query },
-        data: {
+      await db.update(queryCandidates)
+        .set({
           filterPassed: true,
           filterPassReason: item.result.reason,
           matchedPatterns: item.result.matched,
-        },
-      });
+        })
+        .where(and(
+          eq(queryCandidates.runId, run.id),
+          eq(queryCandidates.normalizedQuery, item.query),
+        ));
     }
 
     // =========================================================================
@@ -420,8 +424,8 @@ export async function runDailyTrendPick(
 
           // Persist new QueryCandidate rows
           if (newlyPassed.length > 0) {
-            await prisma.queryCandidate.createMany({
-              data: newlyPassed.map((item) => ({
+            await db.insert(queryCandidates).values(
+              newlyPassed.map((item) => ({
                 runId: run.id,
                 query: item.query,
                 normalizedQuery: item.query,
@@ -431,7 +435,7 @@ export async function runDailyTrendPick(
                 filterPassReason: item.result.reason,
                 matchedPatterns: item.result.matched,
               })),
-            });
+            );
 
             // Merge expanded queries with original filtered
             finalFilteredQueries = [
@@ -485,14 +489,12 @@ export async function runDailyTrendPick(
           }));
 
           // Cache
-          await prisma.trendSeries.create({
-            data: {
-              query: normalizeQuery(query),
-              geo: CONFIG.DEFAULT_GEO,
-              timeframe: CONFIG.DEFAULT_TIMEFRAME,
-              points: trendPoints,
-              fetchedAt: new Date(),
-            },
+          await db.insert(trendSeries).values({
+            query: normalizeQuery(query),
+            geo: CONFIG.DEFAULT_GEO,
+            timeframe: CONFIG.DEFAULT_TIMEFRAME,
+            points: trendPoints,
+            fetchedAt: new Date(),
           });
         }
 
@@ -507,18 +509,16 @@ export async function runDailyTrendPick(
           serpData = await fetchSerpSnapshot(query, { geo: CONFIG.DEFAULT_GEO });
 
           // Cache
-          await prisma.serpSnapshot.create({
-            data: {
-              query: normalizeQuery(query),
-              geo: CONFIG.DEFAULT_GEO,
-              adsCount: serpData.adsCount,
-              shoppingPresent: serpData.shoppingPresent,
-              topStoriesPresent: serpData.topStoriesPresent,
-              topDomains: serpData.topDomains,
-              snippetsSample: serpData.snippetsSample,
-              rawFeatures: serpData.rawFeatures as Prisma.InputJsonValue,
-              fetchedAt: new Date(),
-            },
+          await db.insert(serpSnapshots).values({
+            query: normalizeQuery(query),
+            geo: CONFIG.DEFAULT_GEO,
+            adsCount: serpData.adsCount,
+            shoppingPresent: serpData.shoppingPresent,
+            topStoriesPresent: serpData.topStoriesPresent,
+            topDomains: serpData.topDomains,
+            snippetsSample: serpData.snippetsSample,
+            rawFeatures: serpData.rawFeatures,
+            fetchedAt: new Date(),
           });
         }
 
@@ -629,15 +629,13 @@ CRITICAL: Sports matchups like "team vs team", game times, scores, schedules hav
         triageResult = triageResponse.output;
 
         // Store AI classification
-        await prisma.aIClassification.create({
-          data: {
-            targetType: 'CLUSTER',
-            targetId: cluster.canonicalQuery, // Temporary ID until cluster is persisted
-            model: 'gpt-4o-mini',
-            schemaVersion: triageResponse.schemaVersion,
-            payloadHash: triageResponse.payloadHash,
-            outputJson: triageResult as object,
-          },
+        await db.insert(aiClassifications).values({
+          targetType: 'CLUSTER',
+          targetId: cluster.canonicalQuery, // Temporary ID until cluster is persisted
+          model: 'gpt-4o-mini',
+          schemaVersion: triageResponse.schemaVersion,
+          payloadHash: triageResponse.payloadHash,
+          outputJson: triageResult as object,
         });
       } catch (error) {
         console.warn(`[DailyTrendPick] Triage failed for cluster:`, error);
@@ -679,23 +677,21 @@ CRITICAL: Sports matchups like "team vs team", game times, scores, schedules hav
       const winnerReason = generateWinnerReasons(clusterScores);
 
       // Persist cluster
-      const persistedCluster = await prisma.cluster.create({
-        data: {
-          runId: run.id,
-          title: cluster.title,
-          canonicalQuery: cluster.canonicalQuery,
-          memberQueries: cluster.memberQueries,
-          growthScore,
-          purchaseProofScore,
-          painPointScore,
-          newsSpikeRisk: triageResult.news_spike_risk,
-          combinedScore: combined,
-          winnerReason,
-          triageIntent: triageResult.intent,
-          triageConfidence: triageResult.confidence,
-          triageCategory: triageResult.category,
-        },
-      });
+      const [persistedCluster] = await db.insert(clustersTable).values({
+        runId: run.id,
+        title: cluster.title,
+        canonicalQuery: cluster.canonicalQuery,
+        memberQueries: cluster.memberQueries,
+        growthScore,
+        purchaseProofScore,
+        painPointScore,
+        newsSpikeRisk: triageResult.news_spike_risk,
+        combinedScore: combined,
+        winnerReason,
+        triageIntent: triageResult.intent,
+        triageConfidence: triageResult.confidence,
+        triageCategory: triageResult.category,
+      }).returning();
 
       scoredClusters.push({
         id: persistedCluster.id,
@@ -732,31 +728,33 @@ CRITICAL: Sports matchups like "team vs team", game times, scores, schedules hav
     );
 
     // Create DailyPick with transaction (archive existing, insert new)
-    const dailyPick = await prisma.$transaction(async (tx) => {
+    const dailyPick = await db.transaction(async (tx) => {
       // Archive any existing ACTIVE picks for this date
-      await tx.dailyPick.updateMany({
-        where: { dateLocal: targetDate, status: 'ACTIVE' },
-        data: { status: 'ARCHIVED' },
-      });
+      await tx.update(dailyPicks)
+        .set({ status: 'ARCHIVED' })
+        .where(and(
+          eq(dailyPicks.dateLocal, targetDate),
+          eq(dailyPicks.status, 'ACTIVE'),
+        ));
 
       // Get max revision for this date
-      const maxRevision = await tx.dailyPick.aggregate({
-        where: { dateLocal: targetDate },
-        _max: { revision: true },
-      });
+      const [maxResult] = await tx
+        .select({ maxRevision: max(dailyPicks.revision) })
+        .from(dailyPicks)
+        .where(eq(dailyPicks.dateLocal, targetDate));
 
-      const newRevision = (maxRevision._max.revision || 0) + 1;
+      const newRevision = (maxResult.maxRevision || 0) + 1;
 
       // Create new ACTIVE pick
-      return tx.dailyPick.create({
-        data: {
-          dateLocal: targetDate,
-          winnerClusterId: winner.id,
-          revision: newRevision,
-          status: 'ACTIVE',
-          publishedAt: new Date(),
-        },
-      });
+      const [pick] = await tx.insert(dailyPicks).values({
+        dateLocal: targetDate,
+        winnerClusterId: winner.id,
+        revision: newRevision,
+        status: 'ACTIVE',
+        publishedAt: new Date(),
+      }).returning();
+
+      return pick;
     });
 
     // =========================================================================
@@ -764,8 +762,8 @@ CRITICAL: Sports matchups like "team vs team", game times, scores, schedules hav
     // =========================================================================
     console.log('[DailyTrendPick] Stage 6: Generating winner report...');
 
-    const winnerCluster = await prisma.cluster.findUnique({
-      where: { id: winner.id },
+    const winnerCluster = await db.query.clusters.findFirst({
+      where: eq(clustersTable.id, winner.id),
     });
 
     if (winnerCluster) {
@@ -804,15 +802,13 @@ ${isLowConfidence ? 'NOTE: This is a low-confidence pick. Be clear about the unc
         });
 
         // Store winner report classification
-        await prisma.aIClassification.create({
-          data: {
-            targetType: 'WINNER_REPORT',
-            targetId: winner.id,
-            model: 'gpt-5.2',
-            schemaVersion: reportResponse.schemaVersion,
-            payloadHash: reportResponse.payloadHash,
-            outputJson: reportResponse.output as object,
-          },
+        await db.insert(aiClassifications).values({
+          targetType: 'WINNER_REPORT',
+          targetId: winner.id,
+          model: 'gpt-5.2',
+          schemaVersion: reportResponse.schemaVersion,
+          payloadHash: reportResponse.payloadHash,
+          outputJson: reportResponse.output as object,
         });
 
         console.log('[DailyTrendPick] Winner report generated successfully');
@@ -828,14 +824,13 @@ ${isLowConfidence ? 'NOTE: This is a low-confidence pick. Be clear about the unc
     metrics.durationMs = Date.now() - startTime;
 
     // Update run status
-    await prisma.dailyRun.update({
-      where: { id: run.id },
-      data: {
+    await db.update(dailyRuns)
+      .set({
         status: 'SUCCESS',
         finishedAt: new Date(),
         metrics: metrics as object,
-      },
-    });
+      })
+      .where(eq(dailyRuns.id, run.id));
 
     console.log(
       `[DailyTrendPick] Job completed successfully in ${metrics.durationMs}ms`
@@ -856,15 +851,14 @@ ${isLowConfidence ? 'NOTE: This is a low-confidence pick. Be clear about the unc
     console.error(`[DailyTrendPick] Job failed:`, error);
 
     // Update run with failure
-    await prisma.dailyRun.update({
-      where: { id: run.id },
-      data: {
+    await db.update(dailyRuns)
+      .set({
         status: 'FAILED',
         finishedAt: new Date(),
         metrics: metrics as object,
         logsRef: errorMessage,
-      },
-    });
+      })
+      .where(eq(dailyRuns.id, run.id));
 
     return {
       runId: run.id,
@@ -882,15 +876,18 @@ ${isLowConfidence ? 'NOTE: This is a low-confidence pick. Be clear about the unc
  * Get the status of a run by ID
  */
 export async function getRunStatus(runId: string) {
-  return prisma.dailyRun.findUnique({
-    where: { id: runId },
-    include: {
-      _count: {
-        select: {
-          candidates: true,
-          clusters: true,
-        },
-      },
-    },
+  const run = await db.query.dailyRuns.findFirst({
+    where: eq(dailyRuns.id, runId),
   });
+  if (!run) return null;
+
+  const [counts] = await db
+    .select({
+      candidates: sql<number>`(SELECT count(*) FROM "QueryCandidate" WHERE "runId" = ${runId})`.mapWith(Number),
+      clusters: sql<number>`(SELECT count(*) FROM "Cluster" WHERE "runId" = ${runId})`.mapWith(Number),
+    })
+    .from(dailyRuns)
+    .where(eq(dailyRuns.id, runId));
+
+  return { ...run, _count: { candidates: counts.candidates, clusters: counts.clusters } };
 }

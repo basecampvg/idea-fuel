@@ -1,5 +1,6 @@
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
-import { appRouter, createContext, prisma } from '@forge/server';
+import { appRouter, createContext, db, schema } from '@forge/server';
+import { eq } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 
 // DEV MODE: Bypass authentication for testing
@@ -21,15 +22,18 @@ async function ensureDevUser() {
   if (!DEV_BYPASS_AUTH || devUserEnsured) return;
 
   try {
-    await prisma.user.upsert({
-      where: { id: DEV_USER.id },
-      update: {},
-      create: {
+    await db
+      .insert(schema.users)
+      .values({
         id: DEV_USER.id,
         email: DEV_USER.email,
         name: DEV_USER.name,
-      },
-    });
+        updatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: schema.users.id,
+        set: {},
+      });
     devUserEnsured = true;
   } catch (error) {
     console.error('Failed to ensure dev user:', error);
@@ -42,7 +46,7 @@ async function ensureDevUser() {
  */
 const handler = async (req: Request) => {
   // In dev mode, skip auth entirely and use mock user immediately
-  // This avoids the Auth.js -> PrismaAdapter -> DB connection which can hang
+  // This avoids the Auth.js -> DrizzleAdapter -> DB connection which can hang
   if (DEV_BYPASS_AUTH) {
     await ensureDevUser();
 

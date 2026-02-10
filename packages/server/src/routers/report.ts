@@ -1,9 +1,11 @@
 import { z } from 'zod';
+import { eq, and, desc, count } from 'drizzle-orm';
 import { router, protectedProcedure } from '../trpc';
 import { generateReportSchema, updateReportSchema, paginationSchema } from '@forge/shared';
 import { getReportTier, REPORT_TYPE_LABELS } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
-import type { ReportType, ReportTier } from '../generated/prisma';
+import { reports, projects, users, interviews } from '../db/schema';
+import type { ReportType, ReportTier } from '../db/schema';
 import { generatePDFBuffer, getPDFFilename } from '../lib/pdf';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { enqueueReportGeneration } from '../jobs';
@@ -16,26 +18,26 @@ export const reportRouter = router({
     const { page = 1, limit = 20 } = input ?? {};
     const skip = (page - 1) * limit;
 
-    const [reports, total] = await Promise.all([
-      ctx.prisma.report.findMany({
-        where: { userId: ctx.userId },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-        include: {
+    const [items, [{ value: total }]] = await Promise.all([
+      ctx.db.query.reports.findMany({
+        where: eq(reports.userId, ctx.userId),
+        orderBy: desc(reports.createdAt),
+        offset: skip,
+        limit,
+        with: {
           project: {
-            select: {
+            columns: {
               id: true,
               title: true,
             },
           },
         },
       }),
-      ctx.prisma.report.count({ where: { userId: ctx.userId } }),
+      ctx.db.select({ value: count() }).from(reports).where(eq(reports.userId, ctx.userId)),
     ]);
 
     return {
-      items: reports,
+      items,
       pagination: {
         page,
         limit,
@@ -49,29 +51,23 @@ export const reportRouter = router({
    * List reports for a specific project
    */
   listByProject: protectedProcedure.input(z.object({ projectId: z.string().cuid() })).query(async ({ ctx, input }) => {
-    const reports = await ctx.prisma.report.findMany({
-      where: {
-        projectId: input.projectId,
-        userId: ctx.userId,
-      },
-      orderBy: { createdAt: 'desc' },
+    const results = await ctx.db.query.reports.findMany({
+      where: and(eq(reports.projectId, input.projectId), eq(reports.userId, ctx.userId)),
+      orderBy: desc(reports.createdAt),
     });
 
-    return reports;
+    return results;
   }),
 
   /**
    * Get a single report by ID
    */
   get: protectedProcedure.input(z.object({ id: z.string().cuid() })).query(async ({ ctx, input }) => {
-    const report = await ctx.prisma.report.findFirst({
-      where: {
-        id: input.id,
-        userId: ctx.userId,
-      },
-      include: {
+    const report = await ctx.db.query.reports.findFirst({
+      where: and(eq(reports.id, input.id), eq(reports.userId, ctx.userId)),
+      with: {
         project: {
-          select: {
+          columns: {
             id: true,
             title: true,
             description: true,
@@ -104,17 +100,14 @@ export const reportRouter = router({
    */
   generate: protectedProcedure.input(generateReportSchema).mutation(async ({ ctx, input }) => {
     // Verify project ownership and get related data
-    const project = await ctx.prisma.project.findFirst({
-      where: {
-        id: input.projectId,
-        userId: ctx.userId,
-      },
-      include: {
+    const project = await ctx.db.query.projects.findFirst({
+      where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+      with: {
         research: true,
         interviews: {
-          where: { status: 'COMPLETE' },
-          orderBy: { createdAt: 'desc' },
-          take: 1,
+          where: eq(interviews.status, 'COMPLETE'),
+          orderBy: desc(interviews.createdAt),
+          limit: 1,
         },
       },
     });
@@ -127,9 +120,9 @@ export const reportRouter = router({
     }
 
     // Get user subscription tier
-    const user = await ctx.prisma.user.findUnique({
-      where: { id: ctx.userId },
-      select: { subscription: true },
+    const user = await ctx.db.query.users.findFirst({
+      where: eq(users.id, ctx.userId),
+      columns: { subscription: true },
     });
 
     if (!user) {
@@ -149,12 +142,12 @@ export const reportRouter = router({
     const title = REPORT_TYPE_LABELS[input.type] ?? input.type;
 
     // Check if report of this type already exists
-    const existingReport = await ctx.prisma.report.findFirst({
-      where: {
-        projectId: input.projectId,
-        type: input.type as ReportType,
-        userId: ctx.userId,
-      },
+    const existingReport = await ctx.db.query.reports.findFirst({
+      where: and(
+        eq(reports.projectId, input.projectId),
+        eq(reports.type, input.type as ReportType),
+        eq(reports.userId, ctx.userId),
+      ),
     });
 
     if (existingReport) {
@@ -165,18 +158,16 @@ export const reportRouter = router({
     }
 
     // Create report in generating state
-    const report = await ctx.prisma.report.create({
-      data: {
-        type: input.type as ReportType,
-        tier: reportTier,
-        title,
-        content: '', // Will be populated by AI
-        sections: { included: [], locked: [] }, // Will be populated based on tier
-        status: 'GENERATING',
-        projectId: input.projectId,
-        userId: ctx.userId,
-      },
-    });
+    const [report] = await ctx.db.insert(reports).values({
+      type: input.type as ReportType,
+      tier: reportTier,
+      title,
+      content: '',
+      sections: { included: [], locked: [] },
+      status: 'GENERATING',
+      projectId: input.projectId,
+      userId: ctx.userId,
+    }).returning();
 
     // Queue report generation job
     try {
@@ -208,11 +199,8 @@ export const reportRouter = router({
    * Regenerate a report (creates new version)
    */
   regenerate: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
-    const existing = await ctx.prisma.report.findFirst({
-      where: {
-        id: input.id,
-        userId: ctx.userId,
-      },
+    const existing = await ctx.db.query.reports.findFirst({
+      where: and(eq(reports.id, input.id), eq(reports.userId, ctx.userId)),
     });
 
     if (!existing) {
@@ -223,13 +211,14 @@ export const reportRouter = router({
     }
 
     // Update to generating state with incremented version
-    const report = await ctx.prisma.report.update({
-      where: { id: input.id },
-      data: {
+    const [report] = await ctx.db
+      .update(reports)
+      .set({
         status: 'GENERATING',
         version: existing.version + 1,
-      },
-    });
+      })
+      .where(eq(reports.id, input.id))
+      .returning();
 
     // Queue report regeneration job
     try {
@@ -251,11 +240,8 @@ export const reportRouter = router({
    * Update report content (manual edits)
    */
   update: protectedProcedure.input(updateReportSchema).mutation(async ({ ctx, input }) => {
-    const existing = await ctx.prisma.report.findFirst({
-      where: {
-        id: input.id,
-        userId: ctx.userId,
-      },
+    const existing = await ctx.db.query.reports.findFirst({
+      where: and(eq(reports.id, input.id), eq(reports.userId, ctx.userId)),
     });
 
     if (!existing) {
@@ -265,14 +251,15 @@ export const reportRouter = router({
       });
     }
 
-    const report = await ctx.prisma.report.update({
-      where: { id: input.id },
-      data: {
+    const [report] = await ctx.db
+      .update(reports)
+      .set({
         ...(input.content && { content: input.content }),
         ...(input.title && { title: input.title }),
         version: existing.version + 1,
-      },
-    });
+      })
+      .where(eq(reports.id, input.id))
+      .returning();
 
     return report;
   }),
@@ -281,11 +268,8 @@ export const reportRouter = router({
    * Delete a report
    */
   delete: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
-    const existing = await ctx.prisma.report.findFirst({
-      where: {
-        id: input.id,
-        userId: ctx.userId,
-      },
+    const existing = await ctx.db.query.reports.findFirst({
+      where: and(eq(reports.id, input.id), eq(reports.userId, ctx.userId)),
     });
 
     if (!existing) {
@@ -295,9 +279,7 @@ export const reportRouter = router({
       });
     }
 
-    await ctx.prisma.report.delete({
-      where: { id: input.id },
-    });
+    await ctx.db.delete(reports).where(eq(reports.id, input.id));
 
     return { success: true };
   }),
@@ -307,17 +289,14 @@ export const reportRouter = router({
    */
   generateAll: protectedProcedure.input(z.object({ projectId: z.string().cuid() })).mutation(async ({ ctx, input }) => {
     // Verify project ownership
-    const project = await ctx.prisma.project.findFirst({
-      where: {
-        id: input.projectId,
-        userId: ctx.userId,
-      },
-      include: {
+    const project = await ctx.db.query.projects.findFirst({
+      where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+      with: {
         research: true,
         interviews: {
-          where: { status: 'COMPLETE' },
-          orderBy: { createdAt: 'desc' },
-          take: 1,
+          where: eq(interviews.status, 'COMPLETE'),
+          orderBy: desc(interviews.createdAt),
+          limit: 1,
         },
       },
     });
@@ -338,9 +317,9 @@ export const reportRouter = router({
     }
 
     // Get user subscription for tier calculation
-    const user = await ctx.prisma.user.findUnique({
-      where: { id: ctx.userId },
-      select: { subscription: true },
+    const user = await ctx.db.query.users.findFirst({
+      where: eq(users.id, ctx.userId),
+      columns: { subscription: true },
     });
 
     // Get latest interview mode
@@ -354,12 +333,12 @@ export const reportRouter = router({
 
     for (const reportType of reportTypes) {
       // Check if report already exists
-      const existing = await ctx.prisma.report.findFirst({
-        where: {
-          projectId: input.projectId,
-          type: reportType as ReportType,
-          userId: ctx.userId,
-        },
+      const existing = await ctx.db.query.reports.findFirst({
+        where: and(
+          eq(reports.projectId, input.projectId),
+          eq(reports.type, reportType as ReportType),
+          eq(reports.userId, ctx.userId),
+        ),
       });
 
       if (existing) {
@@ -369,18 +348,16 @@ export const reportRouter = router({
       const title = REPORT_TYPE_LABELS[reportType] ?? reportType;
 
       // Create report in generating state
-      const report = await ctx.prisma.report.create({
-        data: {
-          type: reportType as ReportType,
-          tier: reportTier,
-          title,
-          content: '',
-          sections: { included: [], locked: [] },
-          status: 'GENERATING',
-          projectId: input.projectId,
-          userId: ctx.userId,
-        },
-      });
+      const [report] = await ctx.db.insert(reports).values({
+        type: reportType as ReportType,
+        tier: reportTier,
+        title,
+        content: '',
+        sections: { included: [], locked: [] },
+        status: 'GENERATING',
+        projectId: input.projectId,
+        userId: ctx.userId,
+      }).returning();
 
       createdReports.push(report);
 
@@ -433,14 +410,9 @@ export const reportRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       // Get project with research data
-      const project = await ctx.prisma.project.findFirst({
-        where: {
-          id: input.projectId,
-          userId: ctx.userId,
-        },
-        include: {
-          research: true,
-        },
+      const project = await ctx.db.query.projects.findFirst({
+        where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+        with: { research: true },
       });
 
       if (!project) {
@@ -451,39 +423,37 @@ export const reportRouter = router({
       }
 
       // Get or create report for this type
-      let report = await ctx.prisma.report.findFirst({
-        where: {
-          projectId: input.projectId,
-          type: input.reportType as ReportType,
-          userId: ctx.userId,
-        },
+      let report = await ctx.db.query.reports.findFirst({
+        where: and(
+          eq(reports.projectId, input.projectId),
+          eq(reports.type, input.reportType as ReportType),
+          eq(reports.userId, ctx.userId),
+        ),
       });
 
       // If no report exists, create a basic one
       if (!report) {
-        const user = await ctx.prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { subscription: true },
+        const user = await ctx.db.query.users.findFirst({
+          where: eq(users.id, ctx.userId),
+          columns: { subscription: true },
         });
 
         const interviewMode = 'LIGHT'; // Default
         const reportTier = getReportTier(interviewMode, user?.subscription ?? 'FREE') as ReportTier;
         const title = REPORT_TYPE_LABELS[input.reportType] ?? input.reportType;
 
-        report = await ctx.prisma.report.create({
-          data: {
-            type: input.reportType as ReportType,
-            tier: reportTier,
-            title,
-            content: JSON.stringify({
-              executiveSummary: project.description,
-            }),
-            sections: { included: ['summary'], locked: [] },
-            status: 'COMPLETE',
-            projectId: input.projectId,
-            userId: ctx.userId,
-          },
-        });
+        [report] = await ctx.db.insert(reports).values({
+          type: input.reportType as ReportType,
+          tier: reportTier,
+          title,
+          content: JSON.stringify({
+            executiveSummary: project.description,
+          }),
+          sections: { included: ['summary'], locked: [] },
+          status: 'COMPLETE',
+          projectId: input.projectId,
+          userId: ctx.userId,
+        }).returning();
       }
 
       // Generate PDF

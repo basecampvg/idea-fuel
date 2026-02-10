@@ -147,7 +147,7 @@ export function MarketSizing({
 
   if (!marketSizing) return null;
 
-  // Parse JSON if it comes as a string (from Prisma)
+  // Parse JSON if it comes as a string
   const data: MarketSizingData =
     typeof marketSizing === 'string' ? JSON.parse(marketSizing) : marketSizing;
 

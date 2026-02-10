@@ -1,9 +1,10 @@
 import { z } from 'zod';
+import { eq, and, desc, count, inArray, sql } from 'drizzle-orm';
 import { router, protectedProcedure } from '../trpc';
 import { createProjectSchema, updateProjectSchema, startInterviewSchema } from '@forge/shared';
 import type { ChatMessage, InterviewMode } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
-import { Prisma } from '../generated/prisma';
+import { projects, interviews, reports, research, users } from '../db/schema';
 import { generateOpeningQuestion } from '../services/interview-ai';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { enqueueResearchPipeline } from '../jobs';
@@ -40,35 +41,53 @@ export const projectRouter = router({
       const { phase, page = 1, limit = 20 } = input ?? {};
       const skip = (page - 1) * limit;
 
-      const statusFilter = phase ? { status: { in: PHASE_STATUS_MAP[phase] as unknown as Prisma.EnumProjectStatusFilter['in'] } } : {};
+      const conditions = [eq(projects.userId, ctx.userId)];
+      if (phase) {
+        conditions.push(inArray(projects.status, [...PHASE_STATUS_MAP[phase]]));
+      }
+      const whereClause = and(...conditions);
 
-      const [projects, total] = await Promise.all([
-        ctx.prisma.project.findMany({
-          where: { userId: ctx.userId, ...statusFilter },
-          orderBy: { updatedAt: 'desc' },
-          skip,
-          take: limit,
-          include: {
+      const [items, [{ value: total }]] = await Promise.all([
+        ctx.db
+          .select({
+            id: projects.id,
+            title: projects.title,
+            description: projects.description,
+            notes: projects.notes,
+            status: projects.status,
+            userId: projects.userId,
+            createdAt: projects.createdAt,
+            updatedAt: projects.updatedAt,
             _count: {
-              select: {
-                interviews: true,
-                reports: true,
-              },
+              interviews: sql<number>`(SELECT count(*) FROM "Interview" WHERE "projectId" = ${projects.id})`.mapWith(Number),
+              reports: sql<number>`(SELECT count(*) FROM "Report" WHERE "projectId" = ${projects.id})`.mapWith(Number),
             },
-            research: {
-              select: {
-                status: true,
-                currentPhase: true,
-                progress: true,
-              },
-            },
-          },
-        }),
-        ctx.prisma.project.count({ where: { userId: ctx.userId, ...statusFilter } }),
+          })
+          .from(projects)
+          .where(whereClause)
+          .orderBy(desc(projects.updatedAt))
+          .offset(skip)
+          .limit(limit),
+        ctx.db.select({ value: count() }).from(projects).where(whereClause),
       ]);
 
+      // Fetch research for each project (one-to-one relation)
+      const projectIds = items.map((p) => p.id);
+      const researchData = projectIds.length > 0
+        ? await ctx.db.query.research.findMany({
+            where: inArray(research.projectId, projectIds),
+            columns: { projectId: true, status: true, currentPhase: true, progress: true },
+          })
+        : [];
+      const researchMap = new Map(researchData.map((r) => [r.projectId, r]));
+
+      const itemsWithResearch = items.map((p) => ({
+        ...p,
+        research: researchMap.get(p.id) ?? null,
+      }));
+
       return {
-        items: projects,
+        items: itemsWithResearch,
         pagination: {
           page,
           limit,
@@ -82,15 +101,12 @@ export const projectRouter = router({
    * Get a single project by ID with all related data
    */
   get: protectedProcedure.input(z.object({ id: z.string().cuid() })).query(async ({ ctx, input }) => {
-    const project = await ctx.prisma.project.findFirst({
-      where: {
-        id: input.id,
-        userId: ctx.userId,
-      },
-      include: {
+    const project = await ctx.db.query.projects.findFirst({
+      where: and(eq(projects.id, input.id), eq(projects.userId, ctx.userId)),
+      with: {
         interviews: {
-          orderBy: { createdAt: 'desc' },
-          select: {
+          orderBy: desc(interviews.createdAt),
+          columns: {
             id: true,
             mode: true,
             status: true,
@@ -102,8 +118,8 @@ export const projectRouter = router({
           },
         },
         reports: {
-          orderBy: { createdAt: 'desc' },
-          select: {
+          orderBy: desc(reports.createdAt),
+          columns: {
             id: true,
             type: true,
             tier: true,
@@ -112,54 +128,7 @@ export const projectRouter = router({
             createdAt: true,
           },
         },
-        research: {
-          select: {
-            id: true,
-            status: true,
-            currentPhase: true,
-            progress: true,
-            sparkStatus: true,
-            sparkResult: true,
-            sparkKeywords: true,
-            sparkError: true,
-            sparkStartedAt: true,
-            sparkCompletedAt: true,
-            startedAt: true,
-            completedAt: true,
-            errorMessage: true,
-            errorPhase: true,
-            opportunityScore: true,
-            problemScore: true,
-            feasibilityScore: true,
-            whyNowScore: true,
-            scoreJustifications: true,
-            scoreMetadata: true,
-            synthesizedInsights: true,
-            marketAnalysis: true,
-            competitors: true,
-            painPoints: true,
-            positioning: true,
-            whyNow: true,
-            proofSignals: true,
-            keywords: true,
-            revenuePotential: true,
-            executionDifficulty: true,
-            gtmClarity: true,
-            founderFit: true,
-            marketSizing: true,
-            userStory: true,
-            valueLadder: true,
-            actionPrompts: true,
-            keywordTrends: true,
-            techStack: true,
-            socialProof: true,
-            businessPlan: true,
-            notesSnapshot: true,
-            retryCount: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
+        research: true,
       },
     });
 
@@ -177,13 +146,11 @@ export const projectRouter = router({
    * Create a new project (starts as a draft idea with status CAPTURED)
    */
   create: protectedProcedure.input(createProjectSchema).mutation(async ({ ctx, input }) => {
-    const project = await ctx.prisma.project.create({
-      data: {
-        title: input.title,
-        description: input.description,
-        userId: ctx.userId,
-      },
-    });
+    const [project] = await ctx.db.insert(projects).values({
+      title: input.title,
+      description: input.description,
+      userId: ctx.userId,
+    }).returning();
 
     logAuditAsync({
       userId: ctx.userId,
@@ -206,8 +173,8 @@ export const projectRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const existing = await ctx.prisma.project.findFirst({
-        where: { id: input.id, userId: ctx.userId },
+      const existing = await ctx.db.query.projects.findFirst({
+        where: and(eq(projects.id, input.id), eq(projects.userId, ctx.userId)),
       });
 
       if (!existing) {
@@ -217,10 +184,11 @@ export const projectRouter = router({
         });
       }
 
-      const project = await ctx.prisma.project.update({
-        where: { id: input.id },
-        data: input.data,
-      });
+      const [project] = await ctx.db
+        .update(projects)
+        .set(input.data)
+        .where(eq(projects.id, input.id))
+        .returning();
 
       logAuditAsync({
         userId: ctx.userId,
@@ -236,8 +204,8 @@ export const projectRouter = router({
    * Delete a project (cascades to interviews, reports, research)
    */
   delete: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
-    const existing = await ctx.prisma.project.findFirst({
-      where: { id: input.id, userId: ctx.userId },
+    const existing = await ctx.db.query.projects.findFirst({
+      where: and(eq(projects.id, input.id), eq(projects.userId, ctx.userId)),
     });
 
     if (!existing) {
@@ -254,9 +222,7 @@ export const projectRouter = router({
       metadata: { title: existing.title },
     });
 
-    await ctx.prisma.project.delete({
-      where: { id: input.id },
-    });
+    await ctx.db.delete(projects).where(eq(projects.id, input.id));
 
     return { success: true };
   }),
@@ -268,12 +234,9 @@ export const projectRouter = router({
    * LIGHT/IN_DEPTH: Creates interactive interview with AI-generated opening question
    */
   startInterview: protectedProcedure.input(startInterviewSchema).mutation(async ({ ctx, input }) => {
-    const project = await ctx.prisma.project.findFirst({
-      where: {
-        id: input.projectId,
-        userId: ctx.userId,
-      },
-      select: {
+    const project = await ctx.db.query.projects.findFirst({
+      where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+      columns: {
         id: true,
         title: true,
         description: true,
@@ -293,26 +256,24 @@ export const projectRouter = router({
 
     // For SPARK mode, skip interview and trigger Spark quick validation
     if (mode === 'SPARK') {
-      const [interview] = await ctx.prisma.$transaction([
-        ctx.prisma.interview.create({
-          data: {
-            projectId: input.projectId,
-            userId: ctx.userId,
-            mode: 'SPARK',
-            status: 'COMPLETE',
-            currentTurn: 0,
-            maxTurns: 0,
-            messages: [],
-            collectedData: Prisma.JsonNull,
-            confidenceScore: 0,
-            summary: 'Spark mode - quick validation from project description.',
-          },
-        }),
-        ctx.prisma.project.update({
-          where: { id: input.projectId },
-          data: { status: 'RESEARCHING' },
-        }),
-      ]);
+      const interview = await ctx.db.transaction(async (tx) => {
+        const [created] = await tx.insert(interviews).values({
+          projectId: input.projectId,
+          userId: ctx.userId,
+          mode: 'SPARK',
+          status: 'COMPLETE',
+          currentTurn: 0,
+          maxTurns: 0,
+          messages: [],
+          collectedData: null,
+          confidenceScore: 0,
+          summary: 'Spark mode - quick validation from project description.',
+        }).returning();
+
+        await tx.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, input.projectId));
+
+        return created;
+      });
 
       logAuditAsync({
         userId: ctx.userId,
@@ -329,9 +290,9 @@ export const projectRouter = router({
     }
 
     // For LIGHT and IN_DEPTH modes, create an active interview with opening question
-    const user = await ctx.prisma.user.findUnique({
-      where: { id: ctx.userId },
-      select: { subscription: true },
+    const user = await ctx.db.query.users.findFirst({
+      where: eq(users.id, ctx.userId),
+      columns: { subscription: true },
     });
     const tier = user?.subscription ?? 'FREE';
 
@@ -344,24 +305,22 @@ export const projectRouter = router({
       timestamp: new Date().toISOString(),
     };
 
-    const [interview] = await ctx.prisma.$transaction([
-      ctx.prisma.interview.create({
-        data: {
-          projectId: input.projectId,
-          userId: ctx.userId,
-          mode,
-          status: 'IN_PROGRESS',
-          currentTurn: 0,
-          maxTurns,
-          messages: [openingMessage] as unknown as Prisma.InputJsonValue,
-          lastActiveAt: new Date(),
-        },
-      }),
-      ctx.prisma.project.update({
-        where: { id: input.projectId },
-        data: { status: 'INTERVIEWING' },
-      }),
-    ]);
+    const interview = await ctx.db.transaction(async (tx) => {
+      const [created] = await tx.insert(interviews).values({
+        projectId: input.projectId,
+        userId: ctx.userId,
+        mode,
+        status: 'IN_PROGRESS',
+        currentTurn: 0,
+        maxTurns,
+        messages: [openingMessage],
+        lastActiveAt: new Date(),
+      }).returning();
+
+      await tx.update(projects).set({ status: 'INTERVIEWING' }).where(eq(projects.id, input.projectId));
+
+      return created;
+    });
 
     logAuditAsync({
       userId: ctx.userId,
@@ -381,15 +340,12 @@ export const projectRouter = router({
    * Creates a Research record, snapshots notes, and queues the pipeline
    */
   startResearch: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
-    const project = await ctx.prisma.project.findFirst({
-      where: {
-        id: input.id,
-        userId: ctx.userId,
-      },
-      include: {
+    const project = await ctx.db.query.projects.findFirst({
+      where: and(eq(projects.id, input.id), eq(projects.userId, ctx.userId)),
+      with: {
         interviews: {
-          where: { status: 'COMPLETE' },
-          take: 1,
+          where: eq(interviews.status, 'COMPLETE'),
+          limit: 1,
         },
         research: true,
       },
@@ -417,26 +373,24 @@ export const projectRouter = router({
     }
 
     // Create research record and update project status atomically
-    const [research] = await ctx.prisma.$transaction([
-      ctx.prisma.research.create({
-        data: {
-          projectId: input.id,
-          status: 'PENDING',
-          currentPhase: 'QUEUED',
-          progress: 0,
-          notesSnapshot: project.notes,
-        },
-      }),
-      ctx.prisma.project.update({
-        where: { id: input.id },
-        data: { status: 'RESEARCHING' },
-      }),
-    ]);
+    const researchRecord = await ctx.db.transaction(async (tx) => {
+      const [created] = await tx.insert(research).values({
+        projectId: input.id,
+        status: 'PENDING',
+        currentPhase: 'QUEUED',
+        progress: 0,
+        notesSnapshot: project.notes,
+      }).returning();
+
+      await tx.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, input.id));
+
+      return created;
+    });
 
     logAuditAsync({
       userId: ctx.userId,
       action: 'RESEARCH_START',
-      resource: formatResource('research', research.id),
+      resource: formatResource('research', researchRecord.id),
       metadata: { projectId: input.id },
     });
 
@@ -444,7 +398,7 @@ export const projectRouter = router({
     const latestInterview = project.interviews[0];
     try {
       await enqueueResearchPipeline({
-        researchId: research.id,
+        researchId: researchRecord.id,
         projectId: input.id,
         userId: ctx.userId,
         interviewId: latestInterview?.id,
@@ -453,16 +407,16 @@ export const projectRouter = router({
     } catch (queueError) {
       console.error('[Research] Failed to queue pipeline:', queueError);
       // Mark research as failed so it doesn't stay stuck in PENDING
-      await ctx.prisma.research.update({
-        where: { id: research.id },
-        data: {
+      await ctx.db
+        .update(research)
+        .set({
           status: 'FAILED',
           errorMessage: 'Failed to queue research pipeline',
           errorPhase: 'QUEUED',
-        },
-      });
+        })
+        .where(eq(research.id, researchRecord.id));
     }
 
-    return research;
+    return researchRecord;
   }),
 });

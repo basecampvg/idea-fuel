@@ -1,4 +1,4 @@
-import { prisma } from './db';
+import { db } from './db/drizzle';
 
 /**
  * User session type (matches Auth.js session)
@@ -17,7 +17,7 @@ export interface Session {
  * tRPC context type
  */
 export interface Context {
-  prisma: typeof prisma;
+  db: typeof db;
   session: Session | null;
   userId: string | null;
 }
@@ -35,7 +35,7 @@ export interface CreateContextOptions {
  */
 export function createContext(opts: CreateContextOptions): Context {
   return {
-    prisma,
+    db,
     session: opts.session,
     userId: opts.session?.user?.id ?? null,
   };
@@ -47,7 +47,7 @@ export function createContext(opts: CreateContextOptions): Context {
  */
 export function createInternalContext(): Context {
   return {
-    prisma,
+    db,
     session: null,
     userId: null,
   };

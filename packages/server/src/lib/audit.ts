@@ -1,5 +1,5 @@
-import { Prisma } from '../generated/prisma';
-import { prisma } from '../db';
+import { db } from '../db/drizzle';
+import { auditLogs } from '../db/schema';
 
 /**
  * Audit action types for tracking user activity.
@@ -49,13 +49,11 @@ export interface AuditLogParams {
  */
 export async function logAudit(params: AuditLogParams): Promise<void> {
   try {
-    await prisma.auditLog.create({
-      data: {
-        userId: params.userId,
-        action: params.action,
-        resource: params.resource,
-        metadata: params.metadata ? (params.metadata as Prisma.InputJsonValue) : Prisma.JsonNull,
-      },
+    await db.insert(auditLogs).values({
+      userId: params.userId,
+      action: params.action,
+      resource: params.resource,
+      metadata: params.metadata ?? null,
     });
   } catch (error) {
     // Log but don't throw - audit logging should not break the main flow

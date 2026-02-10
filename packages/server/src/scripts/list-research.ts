@@ -1,13 +1,13 @@
 /**
  * List research records to find one with data
  */
-import { PrismaClient } from '../generated/prisma';
-
-const prisma = new PrismaClient();
+import { db } from '../db/drizzle';
+import { desc } from 'drizzle-orm';
+import { research } from '../db/schema';
 
 async function main() {
-  const researches = await prisma.research.findMany({
-    select: {
+  const records = await db.query.research.findMany({
+    columns: {
       id: true,
       status: true,
       currentPhase: true,
@@ -18,15 +18,17 @@ async function main() {
       positioning: true,
       sparkResult: true,
       marketSizing: true,
-      project: { select: { id: true, title: true } },
     },
-    orderBy: { updatedAt: 'desc' },
-    take: 15,
+    with: {
+      project: { columns: { id: true, title: true } },
+    },
+    orderBy: desc(research.updatedAt),
+    limit: 15,
   });
 
-  console.log(`Found ${researches.length} research records:\n`);
+  console.log(`Found ${records.length} research records:\n`);
 
-  researches.forEach((r, i) => {
+  records.forEach((r, i) => {
     const dataFields = [
       r.marketAnalysis && 'market',
       r.competitors && 'competitors',
@@ -45,4 +47,4 @@ async function main() {
   });
 }
 
-main().finally(() => prisma.$disconnect());
+main().catch(console.error);

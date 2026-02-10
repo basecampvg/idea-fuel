@@ -1,7 +1,9 @@
 import { z } from 'zod';
+import { eq, and, desc, count, sql } from 'drizzle-orm';
 import { router, publicProcedure, protectedProcedure } from '../trpc';
 import { runDailyTrendPick, getRunStatus } from '../jobs/dailyTrendPickJob';
 import { formatInTimeZone } from 'date-fns-tz';
+import { dailyPicks, clusters, aiClassifications, trendSeries, dailyRuns, queryCandidates } from '../db/schema';
 
 const TZ = process.env.TZ || 'America/Denver';
 
@@ -43,14 +45,9 @@ export const dailyPickRouter = router({
   getToday: publicProcedure.query(async ({ ctx }) => {
     const today = getTodayLocal();
 
-    const pick = await ctx.prisma.dailyPick.findFirst({
-      where: {
-        dateLocal: today,
-        status: 'ACTIVE',
-      },
-      include: {
-        winnerCluster: true,
-      },
+    const pick = await ctx.db.query.dailyPicks.findFirst({
+      where: and(eq(dailyPicks.dateLocal, today), eq(dailyPicks.status, 'ACTIVE')),
+      with: { winnerCluster: true },
     });
 
     if (!pick) {
@@ -58,27 +55,25 @@ export const dailyPickRouter = router({
     }
 
     // Get the winner report
-    const winnerReport = await ctx.prisma.aIClassification.findFirst({
-      where: {
-        targetType: 'WINNER_REPORT',
-        targetId: pick.winnerClusterId,
-      },
-      orderBy: { createdAt: 'desc' },
+    const winnerReport = await ctx.db.query.aiClassifications.findFirst({
+      where: and(
+        eq(aiClassifications.targetType, 'WINNER_REPORT'),
+        eq(aiClassifications.targetId, pick.winnerClusterId),
+      ),
+      orderBy: desc(aiClassifications.createdAt),
     });
 
     // Get trend series for the canonical query
-    const trendSeries = await ctx.prisma.trendSeries.findFirst({
-      where: {
-        query: pick.winnerCluster.canonicalQuery.toLowerCase(),
-      },
-      orderBy: { fetchedAt: 'desc' },
+    const trendData = await ctx.db.query.trendSeries.findFirst({
+      where: eq(trendSeries.query, pick.winnerCluster.canonicalQuery.toLowerCase()),
+      orderBy: desc(trendSeries.fetchedAt),
     });
 
     return {
       pick,
       cluster: pick.winnerCluster,
       report: winnerReport?.outputJson || null,
-      trendPoints: trendSeries?.points || [],
+      trendPoints: trendData?.points || [],
     };
   }),
 
@@ -88,14 +83,9 @@ export const dailyPickRouter = router({
   getByDate: publicProcedure
     .input(z.object({ dateLocal: z.string() }))
     .query(async ({ ctx, input }) => {
-      const pick = await ctx.prisma.dailyPick.findFirst({
-        where: {
-          dateLocal: input.dateLocal,
-          status: 'ACTIVE',
-        },
-        include: {
-          winnerCluster: true,
-        },
+      const pick = await ctx.db.query.dailyPicks.findFirst({
+        where: and(eq(dailyPicks.dateLocal, input.dateLocal), eq(dailyPicks.status, 'ACTIVE')),
+        with: { winnerCluster: true },
       });
 
       if (!pick) {
@@ -103,27 +93,25 @@ export const dailyPickRouter = router({
       }
 
       // Get the winner report
-      const winnerReport = await ctx.prisma.aIClassification.findFirst({
-        where: {
-          targetType: 'WINNER_REPORT',
-          targetId: pick.winnerClusterId,
-        },
-        orderBy: { createdAt: 'desc' },
+      const winnerReport = await ctx.db.query.aiClassifications.findFirst({
+        where: and(
+          eq(aiClassifications.targetType, 'WINNER_REPORT'),
+          eq(aiClassifications.targetId, pick.winnerClusterId),
+        ),
+        orderBy: desc(aiClassifications.createdAt),
       });
 
       // Get trend series for the canonical query
-      const trendSeries = await ctx.prisma.trendSeries.findFirst({
-        where: {
-          query: pick.winnerCluster.canonicalQuery.toLowerCase(),
-        },
-        orderBy: { fetchedAt: 'desc' },
+      const trendData = await ctx.db.query.trendSeries.findFirst({
+        where: eq(trendSeries.query, pick.winnerCluster.canonicalQuery.toLowerCase()),
+        orderBy: desc(trendSeries.fetchedAt),
       });
 
       return {
         pick,
         cluster: pick.winnerCluster,
         report: winnerReport?.outputJson || null,
-        trendPoints: trendSeries?.points || [],
+        trendPoints: trendData?.points || [],
       };
     }),
 
@@ -143,14 +131,14 @@ export const dailyPickRouter = router({
       const limit = input?.limit || 30;
       const offset = input?.offset || 0;
 
-      const picks = await ctx.prisma.dailyPick.findMany({
-        where: { status: 'ACTIVE' },
-        orderBy: { dateLocal: 'desc' },
-        take: limit,
-        skip: offset,
-        include: {
+      const picks = await ctx.db.query.dailyPicks.findMany({
+        where: eq(dailyPicks.status, 'ACTIVE'),
+        orderBy: desc(dailyPicks.dateLocal),
+        limit,
+        offset,
+        with: {
           winnerCluster: {
-            select: {
+            columns: {
               id: true,
               title: true,
               canonicalQuery: true,
@@ -162,9 +150,10 @@ export const dailyPickRouter = router({
         },
       });
 
-      const total = await ctx.prisma.dailyPick.count({
-        where: { status: 'ACTIVE' },
-      });
+      const [{ value: total }] = await ctx.db
+        .select({ value: count() })
+        .from(dailyPicks)
+        .where(eq(dailyPicks.status, 'ACTIVE'));
 
       return {
         picks,
@@ -187,18 +176,25 @@ export const dailyPickRouter = router({
     .query(async ({ ctx, input }) => {
       const limit = input?.limit || 10;
 
-      const runs = await ctx.prisma.dailyRun.findMany({
-        orderBy: { startedAt: 'desc' },
-        take: limit,
-        include: {
+      const runs = await ctx.db
+        .select({
+          id: dailyRuns.id,
+          dateLocal: dailyRuns.dateLocal,
+          startedAt: dailyRuns.startedAt,
+          finishedAt: dailyRuns.finishedAt,
+          status: dailyRuns.status,
+          metrics: dailyRuns.metrics,
+          logsRef: dailyRuns.logsRef,
+          createdAt: dailyRuns.createdAt,
+          updatedAt: dailyRuns.updatedAt,
           _count: {
-            select: {
-              candidates: true,
-              clusters: true,
-            },
+            candidates: sql<number>`(SELECT count(*) FROM "QueryCandidate" WHERE "runId" = ${dailyRuns.id})`.mapWith(Number),
+            clusters: sql<number>`(SELECT count(*) FROM "Cluster" WHERE "runId" = ${dailyRuns.id})`.mapWith(Number),
           },
-        },
-      });
+        })
+        .from(dailyRuns)
+        .orderBy(desc(dailyRuns.startedAt))
+        .limit(limit);
 
       return runs;
     }),
@@ -209,15 +205,15 @@ export const dailyPickRouter = router({
   getRunDetails: protectedProcedure
     .input(z.object({ runId: z.string() }))
     .query(async ({ ctx, input }) => {
-      const run = await ctx.prisma.dailyRun.findUnique({
-        where: { id: input.runId },
-        include: {
+      const run = await ctx.db.query.dailyRuns.findFirst({
+        where: eq(dailyRuns.id, input.runId),
+        with: {
           candidates: {
-            where: { filterPassed: true },
-            take: 50,
+            where: eq(queryCandidates.filterPassed, true),
+            limit: 50,
           },
           clusters: {
-            orderBy: { combinedScore: 'desc' },
+            orderBy: desc(clusters.combinedScore),
           },
         },
       });
@@ -227,8 +223,8 @@ export const dailyPickRouter = router({
       }
 
       // Get daily pick for this run (if any)
-      const pick = await ctx.prisma.dailyPick.findFirst({
-        where: { dateLocal: run.dateLocal, status: 'ACTIVE' },
+      const pick = await ctx.db.query.dailyPicks.findFirst({
+        where: and(eq(dailyPicks.dateLocal, run.dateLocal), eq(dailyPicks.status, 'ACTIVE')),
       });
 
       return {

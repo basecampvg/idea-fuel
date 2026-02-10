@@ -5,7 +5,8 @@
  * Fire-and-forget design - never throws to avoid breaking main flow.
  */
 
-import { prisma } from '../db';
+import { db } from '../db/drizzle';
+import { tokenUsages } from '../db/schema';
 
 // Model pricing (USD per 1K tokens) - update as pricing changes
 // Note: Cached tokens are billed at 50% of input price (handled in cost calculation)
@@ -60,18 +61,16 @@ export async function trackTokenUsage(params: TokenUsageParams): Promise<void> {
   }
 
   try {
-    await prisma.tokenUsage.create({
-      data: {
-        userId: userId ?? null,
-        projectId: projectId ?? null,
-        functionName,
-        model,
-        inputTokens,
-        outputTokens,
-        totalTokens,
-        cachedTokens,
-        costEstimate,
-      },
+    await db.insert(tokenUsages).values({
+      userId: userId ?? null,
+      projectId: projectId ?? null,
+      functionName,
+      model,
+      inputTokens,
+      outputTokens,
+      totalTokens,
+      cachedTokens,
+      costEstimate,
     });
   } catch (error) {
     // Log but don't throw - tracking should never break main flow

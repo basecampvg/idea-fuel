@@ -1,15 +1,22 @@
 import type { NextAuthConfig } from 'next-auth';
 import Google from 'next-auth/providers/google';
-import { PrismaAdapter } from '@auth/prisma-adapter';
-import { prisma } from '@forge/server';
+import { DrizzleAdapter } from '@auth/drizzle-adapter';
+import { db, schema } from '@forge/server';
 
 /**
  * Auth.js configuration
- * Supports Google SSO with Prisma adapter for database sessions
+ * Supports Google SSO with Drizzle adapter for database sessions
  */
 export const authConfig: NextAuthConfig = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  adapter: PrismaAdapter(prisma as any),
+  // Our DB uses `id` as PK on Session/Account rather than
+  // the adapter's default composite PKs — cast needed for type compatibility.
+  // Runtime behavior is identical since the adapter queries by sessionToken/provider.
+  adapter: DrizzleAdapter(db, {
+    usersTable: schema.users,
+    accountsTable: schema.accounts,
+    sessionsTable: schema.sessions as never,
+    verificationTokensTable: schema.verificationTokens,
+  }),
 
   providers: [
     Google({

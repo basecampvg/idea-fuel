@@ -1,24 +1,20 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { db } from '../src/db/drizzle';
+import { users } from '../src/db/schema';
 
 async function main() {
-  const users = await prisma.user.findMany({
-    select: { id: true, email: true, subscription: true }
+  const allUsers = await db.query.users.findMany({
+    columns: { id: true, email: true, subscription: true }
   });
-  console.log('Current users:', JSON.stringify(users, null, 2));
+  console.log('Current users:', JSON.stringify(allUsers, null, 2));
 
   // Update all users to ENTERPRISE for testing
-  const result = await prisma.user.updateMany({
-    data: { subscription: 'ENTERPRISE' }
+  const updated = await db.update(users).set({ subscription: 'ENTERPRISE' }).returning({
+    id: users.id,
+    email: users.email,
+    subscription: users.subscription,
   });
-  console.log('Updated', result.count, 'users to ENTERPRISE tier');
-
-  const updated = await prisma.user.findMany({
-    select: { id: true, email: true, subscription: true }
-  });
+  console.log('Updated', updated.length, 'users to ENTERPRISE tier');
   console.log('After update:', JSON.stringify(updated, null, 2));
 }
 
-main()
-  .finally(() => prisma.$disconnect());
+main().catch(console.error);

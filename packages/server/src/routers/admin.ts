@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import { configService, DEFAULT_CONFIGS } from '../services/config';
+import { eq, and, gte, desc, count, sum, sql, inArray, like } from 'drizzle-orm';
+import { auditLogs, users, tokenUsages, adminIPWhitelists } from '../db/schema';
 
 export const adminRouter = router({
   /**
@@ -9,7 +11,7 @@ export const adminRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
     // Initialize config service if needed
     if (!configService.isInitialized()) {
-      await configService.init(ctx.prisma);
+      await configService.init(ctx.db);
     }
 
     return configService.getAllByCategory();
@@ -22,7 +24,7 @@ export const adminRouter = router({
     .input(z.object({ key: z.string() }))
     .query(async ({ ctx, input }) => {
       if (!configService.isInitialized()) {
-        await configService.init(ctx.prisma);
+        await configService.init(ctx.db);
       }
 
       const defaultConfig = DEFAULT_CONFIGS.find((c) => c.key === input.key);
@@ -51,7 +53,7 @@ export const adminRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       if (!configService.isInitialized()) {
-        await configService.init(ctx.prisma);
+        await configService.init(ctx.db);
       }
 
       await configService.set(input.key, input.value, ctx.userId, input.reason);
@@ -73,7 +75,7 @@ export const adminRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       if (!configService.isInitialized()) {
-        await configService.init(ctx.prisma);
+        await configService.init(ctx.db);
       }
 
       for (const item of input) {
@@ -95,7 +97,7 @@ export const adminRouter = router({
     )
     .query(async ({ ctx, input }) => {
       if (!configService.isInitialized()) {
-        await configService.init(ctx.prisma);
+        await configService.init(ctx.db);
       }
 
       return configService.getAuditLog({
@@ -111,7 +113,7 @@ export const adminRouter = router({
     .input(z.object({ category: z.string() }))
     .mutation(async ({ ctx, input }) => {
       if (!configService.isInitialized()) {
-        await configService.init(ctx.prisma);
+        await configService.init(ctx.db);
       }
 
       const count = await configService.resetCategory(input.category, ctx.userId);
@@ -124,7 +126,7 @@ export const adminRouter = router({
    */
   refreshCache: protectedProcedure.mutation(async ({ ctx }) => {
     if (!configService.isInitialized()) {
-      await configService.init(ctx.prisma);
+      await configService.init(ctx.db);
     } else {
       await configService.refresh();
     }
@@ -140,7 +142,7 @@ export const adminRouter = router({
    */
   seedDefaults: protectedProcedure.mutation(async ({ ctx }) => {
     if (!configService.isInitialized()) {
-      await configService.init(ctx.prisma);
+      await configService.init(ctx.db);
     }
 
     const seeded = await configService.seedDefaults();
@@ -171,7 +173,7 @@ export const adminRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       if (!configService.isInitialized()) {
-        await configService.init(ctx.prisma);
+        await configService.init(ctx.db);
       }
 
       const key = input.feature === 'deepResearch.enabled'
@@ -202,18 +204,19 @@ export const adminRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const logs = await ctx.prisma.auditLog.findMany({
-        where: {
-          ...(input.userId && { userId: input.userId }),
-          ...(input.action && { action: input.action }),
-          ...(input.resource && { resource: { contains: input.resource } }),
-        },
-        take: input.limit + 1, // Fetch one extra to determine if there's more
-        ...(input.cursor && { cursor: { id: input.cursor }, skip: 1 }),
-        orderBy: { createdAt: 'desc' },
-        include: {
+      const conditions = [];
+      if (input.userId) conditions.push(eq(auditLogs.userId, input.userId));
+      if (input.action) conditions.push(eq(auditLogs.action, input.action));
+      if (input.resource) conditions.push(like(auditLogs.resource, `%${input.resource}%`));
+
+      const logs = await ctx.db.query.auditLogs.findMany({
+        where: conditions.length > 0 ? and(...conditions) : undefined,
+        limit: input.limit + 1,
+        offset: input.cursor ? 1 : 0,
+        orderBy: desc(auditLogs.createdAt),
+        with: {
           user: {
-            select: {
+            columns: {
               id: true,
               email: true,
               name: true,
@@ -248,39 +251,41 @@ export const adminRouter = router({
       since.setDate(since.getDate() - input.days);
       since.setHours(0, 0, 0, 0);
 
-      const byAction = await ctx.prisma.auditLog.groupBy({
-        by: ['action'],
-        where: { createdAt: { gte: since } },
-        _count: true,
-        orderBy: { _count: { action: 'desc' } },
-      });
+      const byAction = await ctx.db
+        .select({ action: auditLogs.action, count: count() })
+        .from(auditLogs)
+        .where(gte(auditLogs.createdAt, since))
+        .groupBy(auditLogs.action)
+        .orderBy(desc(count()));
 
-      const byUser = await ctx.prisma.auditLog.groupBy({
-        by: ['userId'],
-        where: { createdAt: { gte: since } },
-        _count: true,
-        orderBy: { _count: { userId: 'desc' } },
-        take: 10, // Top 10 most active users
-      });
+      const byUser = await ctx.db
+        .select({ userId: auditLogs.userId, count: count() })
+        .from(auditLogs)
+        .where(gte(auditLogs.createdAt, since))
+        .groupBy(auditLogs.userId)
+        .orderBy(desc(count()))
+        .limit(10);
 
       // Get user details for the top users
       const userIds = byUser.map((u) => u.userId);
-      const users = await ctx.prisma.user.findMany({
-        where: { id: { in: userIds } },
-        select: { id: true, email: true, name: true },
-      });
-      const userMap = new Map(users.map((u) => [u.id, u]));
+      const userDetails = userIds.length > 0
+        ? await ctx.db.query.users.findMany({
+            where: inArray(users.id, userIds),
+            columns: { id: true, email: true, name: true },
+          })
+        : [];
+      const userMap = new Map(userDetails.map((u) => [u.id, u]));
 
       return {
         period: { days: input.days, since: since.toISOString() },
         byAction: byAction.map((a) => ({
           action: a.action,
-          count: a._count,
+          count: a.count,
         })),
         byUser: byUser.map((u) => ({
           userId: u.userId,
           user: userMap.get(u.userId) ?? null,
-          count: u._count,
+          count: u.count,
         })),
       };
     }),
@@ -301,58 +306,66 @@ export const adminRouter = router({
     .query(async ({ ctx, input }) => {
       const since = new Date();
       since.setDate(since.getDate() - input.days);
-      since.setHours(0, 0, 0, 0); // Start of day
+      since.setHours(0, 0, 0, 0);
 
       // Total usage
-      const totals = await ctx.prisma.tokenUsage.aggregate({
-        where: { createdAt: { gte: since } },
-        _sum: {
-          inputTokens: true,
-          outputTokens: true,
-          totalTokens: true,
-          costEstimate: true,
-        },
-        _count: true,
-      });
+      const [totals] = await ctx.db
+        .select({
+          inputTokens: sum(tokenUsages.inputTokens),
+          outputTokens: sum(tokenUsages.outputTokens),
+          totalTokens: sum(tokenUsages.totalTokens),
+          costEstimate: sum(tokenUsages.costEstimate),
+          callCount: count(),
+        })
+        .from(tokenUsages)
+        .where(gte(tokenUsages.createdAt, since));
 
       // By model
-      const byModel = await ctx.prisma.tokenUsage.groupBy({
-        by: ['model'],
-        where: { createdAt: { gte: since } },
-        _sum: { totalTokens: true, costEstimate: true },
-        _count: true,
-        orderBy: { _sum: { totalTokens: 'desc' } },
-      });
+      const byModel = await ctx.db
+        .select({
+          model: tokenUsages.model,
+          totalTokens: sum(tokenUsages.totalTokens),
+          costEstimate: sum(tokenUsages.costEstimate),
+          callCount: count(),
+        })
+        .from(tokenUsages)
+        .where(gte(tokenUsages.createdAt, since))
+        .groupBy(tokenUsages.model)
+        .orderBy(desc(sum(tokenUsages.totalTokens)));
 
       // By function
-      const byFunction = await ctx.prisma.tokenUsage.groupBy({
-        by: ['functionName'],
-        where: { createdAt: { gte: since } },
-        _sum: { totalTokens: true, costEstimate: true },
-        _count: true,
-        orderBy: { _sum: { totalTokens: 'desc' } },
-      });
+      const byFunction = await ctx.db
+        .select({
+          functionName: tokenUsages.functionName,
+          totalTokens: sum(tokenUsages.totalTokens),
+          costEstimate: sum(tokenUsages.costEstimate),
+          callCount: count(),
+        })
+        .from(tokenUsages)
+        .where(gte(tokenUsages.createdAt, since))
+        .groupBy(tokenUsages.functionName)
+        .orderBy(desc(sum(tokenUsages.totalTokens)));
 
       return {
         period: { days: input.days, since: since.toISOString() },
         totals: {
-          inputTokens: totals._sum.inputTokens ?? 0,
-          outputTokens: totals._sum.outputTokens ?? 0,
-          totalTokens: totals._sum.totalTokens ?? 0,
-          costEstimate: totals._sum.costEstimate ?? 0,
-          callCount: totals._count,
+          inputTokens: Number(totals.inputTokens ?? 0),
+          outputTokens: Number(totals.outputTokens ?? 0),
+          totalTokens: Number(totals.totalTokens ?? 0),
+          costEstimate: Number(totals.costEstimate ?? 0),
+          callCount: totals.callCount,
         },
         byModel: byModel.map((m) => ({
           model: m.model,
-          totalTokens: m._sum.totalTokens ?? 0,
-          costEstimate: m._sum.costEstimate ?? 0,
-          callCount: m._count,
+          totalTokens: Number(m.totalTokens ?? 0),
+          costEstimate: Number(m.costEstimate ?? 0),
+          callCount: m.callCount,
         })),
         byFunction: byFunction.map((f) => ({
           functionName: f.functionName,
-          totalTokens: f._sum.totalTokens ?? 0,
-          costEstimate: f._sum.costEstimate ?? 0,
-          callCount: f._count,
+          totalTokens: Number(f.totalTokens ?? 0),
+          costEstimate: Number(f.costEstimate ?? 0),
+          callCount: f.callCount,
         })),
       };
     }),
@@ -371,15 +384,7 @@ export const adminRouter = router({
       since.setDate(since.getDate() - input.days);
       since.setHours(0, 0, 0, 0);
 
-      // Raw data grouped by date using Prisma raw query
-      const raw = await ctx.prisma.$queryRaw<
-        Array<{
-          date: Date;
-          totalTokens: bigint;
-          costEstimate: number | null;
-          callCount: bigint;
-        }>
-      >`
+      const raw = await ctx.db.execute(sql`
         SELECT
           DATE("createdAt") as date,
           SUM("totalTokens") as "totalTokens",
@@ -389,12 +394,12 @@ export const adminRouter = router({
         WHERE "createdAt" >= ${since}
         GROUP BY DATE("createdAt")
         ORDER BY date ASC
-      `;
+      `);
 
-      return raw.map((r) => ({
-        date: r.date.toISOString().split('T')[0],
+      return (raw as unknown as { date: Date; totalTokens: string; costEstimate: string | null; callCount: string }[]).map((r) => ({
+        date: new Date(r.date).toISOString().split('T')[0],
         totalTokens: Number(r.totalTokens),
-        costEstimate: r.costEstimate ?? 0,
+        costEstimate: Number(r.costEstimate ?? 0),
         callCount: Number(r.callCount),
       }));
     }),
@@ -405,21 +410,19 @@ export const adminRouter = router({
 
   /**
    * List all whitelisted IPs
-   * Only SUPER_ADMIN can view the whitelist
    */
   ipWhitelist: protectedProcedure.query(async ({ ctx }) => {
-    // Check if user is SUPER_ADMIN
-    const user = await ctx.prisma.user.findUnique({
-      where: { id: ctx.userId },
-      select: { role: true },
+    const user = await ctx.db.query.users.findFirst({
+      where: eq(users.id, ctx.userId),
+      columns: { role: true },
     });
 
     if (user?.role !== 'SUPER_ADMIN') {
       throw new Error('Access denied. SUPER_ADMIN role required.');
     }
 
-    return ctx.prisma.adminIPWhitelist.findMany({
-      orderBy: { createdAt: 'desc' },
+    return ctx.db.query.adminIPWhitelists.findMany({
+      orderBy: desc(adminIPWhitelists.createdAt),
     });
   }),
 
@@ -429,23 +432,21 @@ export const adminRouter = router({
   addIPToWhitelist: protectedProcedure
     .input(
       z.object({
-        ipAddress: z.string().min(7).max(45), // IPv4 or IPv6
+        ipAddress: z.string().min(7).max(45),
         label: z.string().optional(),
         expiresAt: z.date().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Check if user is SUPER_ADMIN
-      const user = await ctx.prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { role: true, email: true },
+      const user = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.userId),
+        columns: { role: true, email: true },
       });
 
       if (user?.role !== 'SUPER_ADMIN') {
         throw new Error('Access denied. SUPER_ADMIN role required.');
       }
 
-      // Validate IP format (basic check)
       const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
       const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
 
@@ -453,25 +454,21 @@ export const adminRouter = router({
         throw new Error('Invalid IP address format');
       }
 
-      const entry = await ctx.prisma.adminIPWhitelist.create({
-        data: {
-          ipAddress: input.ipAddress,
-          label: input.label,
-          addedBy: ctx.userId,
-          expiresAt: input.expiresAt,
-        },
-      });
+      const [entry] = await ctx.db.insert(adminIPWhitelists).values({
+        ipAddress: input.ipAddress,
+        label: input.label,
+        addedBy: ctx.userId,
+        expiresAt: input.expiresAt,
+      }).returning();
 
       // Log the action
-      await ctx.prisma.auditLog.create({
-        data: {
-          userId: ctx.userId,
-          action: 'IP_WHITELIST_ADD',
-          resource: `ip:${input.ipAddress}`,
-          metadata: {
-            label: input.label,
-            expiresAt: input.expiresAt?.toISOString(),
-          },
+      await ctx.db.insert(auditLogs).values({
+        userId: ctx.userId,
+        action: 'IP_WHITELIST_ADD',
+        resource: `ip:${input.ipAddress}`,
+        metadata: {
+          label: input.label,
+          expiresAt: input.expiresAt?.toISOString(),
         },
       });
 
@@ -484,44 +481,38 @@ export const adminRouter = router({
   removeIPFromWhitelist: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
     .mutation(async ({ ctx, input }) => {
-      // Check if user is SUPER_ADMIN
-      const user = await ctx.prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { role: true },
+      const user = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.userId),
+        columns: { role: true },
       });
 
       if (user?.role !== 'SUPER_ADMIN') {
         throw new Error('Access denied. SUPER_ADMIN role required.');
       }
 
-      // Get the entry before deleting for audit log
-      const entry = await ctx.prisma.adminIPWhitelist.findUnique({
-        where: { id: input.id },
+      const entry = await ctx.db.query.adminIPWhitelists.findFirst({
+        where: eq(adminIPWhitelists.id, input.id),
       });
 
       if (!entry) {
         throw new Error('IP whitelist entry not found');
       }
 
-      await ctx.prisma.adminIPWhitelist.delete({
-        where: { id: input.id },
-      });
+      await ctx.db.delete(adminIPWhitelists).where(eq(adminIPWhitelists.id, input.id));
 
       // Log the action
-      await ctx.prisma.auditLog.create({
-        data: {
-          userId: ctx.userId,
-          action: 'IP_WHITELIST_REMOVE',
-          resource: `ip:${entry.ipAddress}`,
-          metadata: { label: entry.label },
-        },
+      await ctx.db.insert(auditLogs).values({
+        userId: ctx.userId,
+        action: 'IP_WHITELIST_REMOVE',
+        resource: `ip:${entry.ipAddress}`,
+        metadata: { label: entry.label },
       });
 
       return { success: true, removed: entry.ipAddress };
     }),
 
   /**
-   * Update an IP whitelist entry (label or expiration)
+   * Update an IP whitelist entry
    */
   updateIPWhitelist: protectedProcedure
     .input(
@@ -532,23 +523,23 @@ export const adminRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Check if user is SUPER_ADMIN
-      const user = await ctx.prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { role: true },
+      const user = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.userId),
+        columns: { role: true },
       });
 
       if (user?.role !== 'SUPER_ADMIN') {
         throw new Error('Access denied. SUPER_ADMIN role required.');
       }
 
-      const entry = await ctx.prisma.adminIPWhitelist.update({
-        where: { id: input.id },
-        data: {
+      const [entry] = await ctx.db
+        .update(adminIPWhitelists)
+        .set({
           label: input.label,
           expiresAt: input.expiresAt,
-        },
-      });
+        })
+        .where(eq(adminIPWhitelists.id, input.id))
+        .returning();
 
       return entry;
     }),
@@ -557,8 +548,6 @@ export const adminRouter = router({
    * Get current user's IP (for self-whitelisting)
    */
   getCurrentIP: protectedProcedure.query(() => {
-    // This is a placeholder - the actual IP comes from the request headers
-    // In the frontend, we'll need to call an API endpoint that reads headers
     return { note: 'Use /api/admin/current-ip endpoint to get your IP' };
   }),
 });

@@ -1,13 +1,15 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import slugify from 'slugify';
+import { eq, and, ne, desc } from 'drizzle-orm';
 import { router, publicProcedure, adminProcedure } from '../trpc';
-import type { Prisma, BlogPostStatus } from '../generated/prisma';
+import { blogPosts } from '../db/schema';
+import type { BlogPostStatus } from '../db/schema';
 
 /**
  * Calculate reading time from TipTap JSON content
  */
-function calculateReadingTime(content: Prisma.JsonValue): { readingTime: string; wordCount: number } {
+function calculateReadingTime(content: unknown): { readingTime: string; wordCount: number } {
   // Extract text from TipTap JSON
   let text = '';
 
@@ -45,7 +47,7 @@ function calculateReadingTime(content: Prisma.JsonValue): { readingTime: string;
  * Generate unique slug from title
  */
 async function generateUniqueSlug(
-  prisma: Prisma.TransactionClient | typeof import('@prisma/client').PrismaClient.prototype,
+  db: { query: { blogPosts: { findFirst: (args: object) => Promise<{ id: string } | undefined> } } },
   title: string,
   excludeId?: string
 ): Promise<string> {
@@ -54,12 +56,13 @@ async function generateUniqueSlug(
   let counter = 1;
 
   while (true) {
-    const existing = await (prisma as { blogPost: { findFirst: (args: object) => Promise<{ id: string } | null> } }).blogPost.findFirst({
-      where: {
-        slug,
-        ...(excludeId && { id: { not: excludeId } }),
-      },
-      select: { id: true },
+    const conditions = excludeId
+      ? and(eq(blogPosts.slug, slug), ne(blogPosts.id, excludeId))
+      : eq(blogPosts.slug, slug);
+
+    const existing = await db.query.blogPosts.findFirst({
+      where: conditions,
+      columns: { id: true },
     });
 
     if (!existing) break;
@@ -99,15 +102,23 @@ export const blogRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const posts = await ctx.prisma.blogPost.findMany({
-        where: {
-          status: 'PUBLISHED',
-          ...(input.tag && { tags: { has: input.tag } }),
-        },
-        take: input.limit + 1,
-        ...(input.cursor && { cursor: { id: input.cursor }, skip: 1 }),
-        orderBy: { publishedAt: 'desc' },
-        select: {
+      const { sql: rawSql, lt } = await import('drizzle-orm');
+      const conditions = [eq(blogPosts.status, 'PUBLISHED')];
+      if (input.tag) {
+        conditions.push(rawSql`${blogPosts.tags} @> ARRAY[${input.tag}]::text[]`);
+      }
+      if (input.cursor) {
+        // Cursor pagination: get records after the cursor record (ordered by publishedAt DESC)
+        conditions.push(
+          rawSql`(${blogPosts.publishedAt}, ${blogPosts.id}) < (SELECT "publishedAt", "id" FROM "BlogPost" WHERE "id" = ${input.cursor})`,
+        );
+      }
+
+      const posts = await ctx.db.query.blogPosts.findMany({
+        where: and(...conditions),
+        limit: input.limit + 1,
+        orderBy: desc(blogPosts.publishedAt),
+        columns: {
           id: true,
           slug: true,
           title: true,
@@ -116,8 +127,10 @@ export const blogRouter = router({
           publishedAt: true,
           readingTime: true,
           tags: true,
+        },
+        with: {
           author: {
-            select: {
+            columns: {
               id: true,
               name: true,
               image: true,
@@ -144,14 +157,11 @@ export const blogRouter = router({
   getBySlug: publicProcedure
     .input(z.object({ slug: z.string() }))
     .query(async ({ ctx, input }) => {
-      const post = await ctx.prisma.blogPost.findFirst({
-        where: {
-          slug: input.slug,
-          status: 'PUBLISHED',
-        },
-        include: {
+      const post = await ctx.db.query.blogPosts.findFirst({
+        where: and(eq(blogPosts.slug, input.slug), eq(blogPosts.status, 'PUBLISHED')),
+        with: {
           author: {
-            select: {
+            columns: {
               id: true,
               name: true,
               image: true,
@@ -174,14 +184,14 @@ export const blogRouter = router({
    * Get all unique tags from published posts
    */
   getTags: publicProcedure.query(async ({ ctx }) => {
-    const posts = await ctx.prisma.blogPost.findMany({
-      where: { status: 'PUBLISHED' },
-      select: { tags: true },
+    const posts = await ctx.db.query.blogPosts.findMany({
+      where: eq(blogPosts.status, 'PUBLISHED'),
+      columns: { tags: true },
     });
 
     const tagCounts = new Map<string, number>();
     for (const post of posts) {
-      for (const tag of post.tags) {
+      for (const tag of post.tags ?? []) {
         tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
       }
     }
@@ -207,16 +217,22 @@ export const blogRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const posts = await ctx.prisma.blogPost.findMany({
-        where: {
-          ...(input.status && { status: input.status }),
-        },
-        take: input.limit + 1,
-        ...(input.cursor && { cursor: { id: input.cursor }, skip: 1 }),
-        orderBy: { updatedAt: 'desc' },
-        include: {
+      const { sql: rawSql } = await import('drizzle-orm');
+      const conditions = [];
+      if (input.status) conditions.push(eq(blogPosts.status, input.status));
+      if (input.cursor) {
+        conditions.push(
+          rawSql`(${blogPosts.updatedAt}, ${blogPosts.id}) < (SELECT "updatedAt", "id" FROM "BlogPost" WHERE "id" = ${input.cursor})`,
+        );
+      }
+
+      const posts = await ctx.db.query.blogPosts.findMany({
+        where: conditions.length > 0 ? and(...conditions) : undefined,
+        limit: input.limit + 1,
+        orderBy: desc(blogPosts.updatedAt),
+        with: {
           author: {
-            select: {
+            columns: {
               id: true,
               name: true,
               email: true,
@@ -243,11 +259,11 @@ export const blogRouter = router({
   adminGet: adminProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      const post = await ctx.prisma.blogPost.findUnique({
-        where: { id: input.id },
-        include: {
+      const post = await ctx.db.query.blogPosts.findFirst({
+        where: eq(blogPosts.id, input.id),
+        with: {
           author: {
-            select: {
+            columns: {
               id: true,
               name: true,
               email: true,
@@ -272,24 +288,22 @@ export const blogRouter = router({
   create: adminProcedure
     .input(blogPostInput)
     .mutation(async ({ ctx, input }) => {
-      const slug = input.slug || await generateUniqueSlug(ctx.prisma, input.title);
+      const slug = input.slug || await generateUniqueSlug(ctx.db, input.title);
       const { readingTime, wordCount } = calculateReadingTime(input.content);
 
-      const post = await ctx.prisma.blogPost.create({
-        data: {
-          slug,
-          title: input.title,
-          description: input.description,
-          content: input.content as Prisma.InputJsonValue,
-          coverImage: input.coverImage,
-          status: input.status as BlogPostStatus,
-          publishedAt: input.status === 'PUBLISHED' ? new Date() : null,
-          readingTime,
-          wordCount,
-          tags: input.tags,
-          authorId: ctx.userId,
-        },
-      });
+      const [post] = await ctx.db.insert(blogPosts).values({
+        slug,
+        title: input.title,
+        description: input.description,
+        content: input.content,
+        coverImage: input.coverImage,
+        status: input.status as BlogPostStatus,
+        publishedAt: input.status === 'PUBLISHED' ? new Date() : null,
+        readingTime,
+        wordCount,
+        tags: input.tags,
+        authorId: ctx.userId,
+      }).returning();
 
       return post;
     }),
@@ -305,9 +319,9 @@ export const blogRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const existing = await ctx.prisma.blogPost.findUnique({
-        where: { id: input.id },
-        select: { id: true, status: true, publishedAt: true },
+      const existing = await ctx.db.query.blogPosts.findFirst({
+        where: eq(blogPosts.id, input.id),
+        columns: { id: true, status: true, publishedAt: true },
       });
 
       if (!existing) {
@@ -320,7 +334,7 @@ export const blogRouter = router({
       // Handle slug generation if title changed
       let slug: string | undefined;
       if (input.data.title && !input.data.slug) {
-        slug = await generateUniqueSlug(ctx.prisma, input.data.title, input.id);
+        slug = await generateUniqueSlug(ctx.db, input.data.title, input.id);
       } else if (input.data.slug) {
         slug = input.data.slug;
       }
@@ -343,21 +357,22 @@ export const blogRouter = router({
         publishedAt = input.data.status === 'DRAFT' ? null : undefined;
       }
 
-      const post = await ctx.prisma.blogPost.update({
-        where: { id: input.id },
-        data: {
+      const [post] = await ctx.db
+        .update(blogPosts)
+        .set({
           ...(slug && { slug }),
           ...(input.data.title && { title: input.data.title }),
           ...(input.data.description !== undefined && { description: input.data.description }),
-          ...(input.data.content && { content: input.data.content as Prisma.InputJsonValue }),
+          ...(input.data.content && { content: input.data.content }),
           ...(input.data.coverImage !== undefined && { coverImage: input.data.coverImage }),
           ...(input.data.status && { status: input.data.status as BlogPostStatus }),
           ...(publishedAt !== undefined && { publishedAt }),
           ...(readingTime && { readingTime }),
           ...(wordCount !== undefined && { wordCount }),
           ...(input.data.tags && { tags: input.data.tags }),
-        },
-      });
+        })
+        .where(eq(blogPosts.id, input.id))
+        .returning();
 
       return post;
     }),
@@ -368,9 +383,9 @@ export const blogRouter = router({
   delete: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const existing = await ctx.prisma.blogPost.findUnique({
-        where: { id: input.id },
-        select: { id: true },
+      const existing = await ctx.db.query.blogPosts.findFirst({
+        where: eq(blogPosts.id, input.id),
+        columns: { id: true },
       });
 
       if (!existing) {
@@ -380,9 +395,7 @@ export const blogRouter = router({
         });
       }
 
-      await ctx.prisma.blogPost.delete({
-        where: { id: input.id },
-      });
+      await ctx.db.delete(blogPosts).where(eq(blogPosts.id, input.id));
 
       return { success: true };
     }),

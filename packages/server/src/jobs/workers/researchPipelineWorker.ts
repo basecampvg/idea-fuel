@@ -1,6 +1,8 @@
 import { Worker, Job } from 'bullmq';
 import { createRedisConnection } from '../../lib/redis';
-import { prisma } from '../../db';
+import { db } from '../../db/drizzle';
+import { eq, sql } from 'drizzle-orm';
+import { research, projects, interviews } from '../../db/schema';
 import { QUEUE_NAMES, ResearchPipelineJobData } from '../queues';
 
 /**
@@ -24,24 +26,23 @@ export function createResearchPipelineWorker() {
 
       try {
         // Update status to in-progress
-        await prisma.research.update({
-          where: { id: researchId },
-          data: {
+        await db.update(research)
+          .set({
             status: 'IN_PROGRESS',
             currentPhase: 'DEEP_RESEARCH',
             progress: 0,
             startedAt: new Date(),
-          },
-        });
+          })
+          .where(eq(research.id, researchId));
 
         // Get project data
-        const project = await prisma.project.findUnique({
-          where: { id: projectId },
-          include: {
+        const project = await db.query.projects.findFirst({
+          where: eq(projects.id, projectId),
+          with: {
             interviews: {
-              where: { status: 'COMPLETE' },
-              orderBy: { createdAt: 'desc' },
-              take: 1,
+              where: eq(interviews.status, 'COMPLETE'),
+              orderBy: (interviews, { desc }) => desc(interviews.createdAt),
+              limit: 1,
             },
           },
         });
@@ -52,80 +53,59 @@ export function createResearchPipelineWorker() {
 
         // Phase 1: Deep Research (0-40%)
         await job.updateProgress(5);
-        await prisma.research.update({
-          where: { id: researchId },
-          data: { currentPhase: 'DEEP_RESEARCH', progress: 5 },
-        });
+        await db.update(research).set({ currentPhase: 'DEEP_RESEARCH', progress: 5 }).where(eq(research.id, researchId));
 
         // TODO: Call actual deep research service
         await simulatePhase('DEEP_RESEARCH', 3000);
         await job.updateProgress(40);
 
         // Phase 2: Synthesis (40-65%)
-        await prisma.research.update({
-          where: { id: researchId },
-          data: { currentPhase: 'SYNTHESIS', progress: 40 },
-        });
+        await db.update(research).set({ currentPhase: 'SYNTHESIS', progress: 40 }).where(eq(research.id, researchId));
 
         // TODO: Call synthesis service
         await simulatePhase('SYNTHESIS', 2000);
         await job.updateProgress(65);
 
         // Phase 3: Social Research (65-80%)
-        await prisma.research.update({
-          where: { id: researchId },
-          data: { currentPhase: 'SOCIAL_RESEARCH', progress: 65 },
-        });
+        await db.update(research).set({ currentPhase: 'SOCIAL_RESEARCH', progress: 65 }).where(eq(research.id, researchId));
 
         // TODO: Call social research service
         await simulatePhase('SOCIAL_RESEARCH', 2000);
         await job.updateProgress(80);
 
         // Phase 4: Report Generation (80-90%)
-        await prisma.research.update({
-          where: { id: researchId },
-          data: { currentPhase: 'REPORT_GENERATION', progress: 80 },
-        });
+        await db.update(research).set({ currentPhase: 'REPORT_GENERATION', progress: 80 }).where(eq(research.id, researchId));
 
         // TODO: Generate action prompts, user story, etc.
         await simulatePhase('REPORT_GENERATION', 1500);
         await job.updateProgress(90);
 
         // Phase 5: Business Plan Generation (90-100%)
-        await prisma.research.update({
-          where: { id: researchId },
-          data: { currentPhase: 'BUSINESS_PLAN_GENERATION', progress: 90 },
-        });
+        await db.update(research).set({ currentPhase: 'BUSINESS_PLAN_GENERATION', progress: 90 }).where(eq(research.id, researchId));
 
         // TODO: Generate comprehensive business plan
         await simulatePhase('BUSINESS_PLAN_GENERATION', 2000);
         await job.updateProgress(100);
 
         // Mark as complete
-        await prisma.research.update({
-          where: { id: researchId },
-          data: {
-            status: 'COMPLETE',
-            currentPhase: 'COMPLETE',
-            progress: 100,
-            completedAt: new Date(),
-            // Placeholder data - replace with actual AI results
-            marketAnalysis: { summary: 'Market analysis placeholder' },
-            competitors: { list: [] },
-            painPoints: { items: [] },
-            positioning: { statement: project.title },
-            opportunityScore: 75,
-            problemScore: 70,
-            feasibilityScore: 80,
-            whyNowScore: 65,
-          },
-        });
+        await db.update(research).set({
+          status: 'COMPLETE',
+          currentPhase: 'COMPLETE',
+          progress: 100,
+          completedAt: new Date(),
+          // Placeholder data - replace with actual AI results
+          marketAnalysis: { summary: 'Market analysis placeholder' },
+          competitors: { list: [] },
+          painPoints: { items: [] },
+          positioning: { statement: project.title },
+          opportunityScore: 75,
+          problemScore: 70,
+          feasibilityScore: 80,
+          whyNowScore: 65,
+        }).where(eq(research.id, researchId));
 
         // Update project status
-        await prisma.project.update({
-          where: { id: projectId },
-          data: { status: 'COMPLETE' },
-        });
+        await db.update(projects).set({ status: 'COMPLETE' }).where(eq(projects.id, projectId));
 
         console.log(`[ResearchWorker] Completed research ${researchId}`);
 
@@ -138,23 +118,18 @@ export function createResearchPipelineWorker() {
         console.error(`[ResearchWorker] Failed research ${researchId}:`, error);
 
         // Determine which phase failed
-        const currentResearch = await prisma.research.findUnique({
-          where: { id: researchId },
-          select: { currentPhase: true },
+        const currentResearch = await db.query.research.findFirst({
+          where: eq(research.id, researchId),
+          columns: { currentPhase: true },
         });
 
         // Mark research as failed
-        await prisma.research.update({
-          where: { id: researchId },
-          data: {
-            status: 'FAILED',
-            errorMessage: error instanceof Error ? error.message : 'Unknown error',
-            errorPhase: currentResearch?.currentPhase,
-            retryCount: {
-              increment: 1,
-            },
-          },
-        });
+        await db.update(research).set({
+          status: 'FAILED',
+          errorMessage: error instanceof Error ? error.message : 'Unknown error',
+          errorPhase: currentResearch?.currentPhase,
+          retryCount: sql`${research.retryCount} + 1`,
+        }).where(eq(research.id, researchId));
 
         throw error;
       }
@@ -207,13 +182,10 @@ export function createResearchCancelWorker() {
       console.log(`[ResearchCancelWorker] Cancelling research ${researchId}`);
 
       // Mark research as failed/cancelled
-      await prisma.research.update({
-        where: { id: researchId },
-        data: {
-          status: 'FAILED',
-          errorMessage: 'Cancelled by user',
-        },
-      });
+      await db.update(research).set({
+        status: 'FAILED',
+        errorMessage: 'Cancelled by user',
+      }).where(eq(research.id, researchId));
 
       return { success: true, cancelled: researchId };
     },

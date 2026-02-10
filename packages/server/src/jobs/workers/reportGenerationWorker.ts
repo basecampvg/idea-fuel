@@ -1,6 +1,8 @@
 import { Worker, Job } from 'bullmq';
 import { createRedisConnection } from '../../lib/redis';
-import { prisma } from '../../db';
+import { db } from '../../db/drizzle';
+import { eq } from 'drizzle-orm';
+import { reports, projects, interviews } from '../../db/schema';
 import { QUEUE_NAMES, ReportGenerationJobData } from '../queues';
 
 /**
@@ -20,20 +22,17 @@ export function createReportGenerationWorker() {
 
       try {
         // Update status to generating
-        await prisma.report.update({
-          where: { id: reportId },
-          data: { status: 'GENERATING' },
-        });
+        await db.update(reports).set({ status: 'GENERATING' }).where(eq(reports.id, reportId));
 
         // Get project and research data for context
-        const project = await prisma.project.findUnique({
-          where: { id: projectId },
-          include: {
+        const project = await db.query.projects.findFirst({
+          where: eq(projects.id, projectId),
+          with: {
             research: true,
             interviews: {
-              where: { status: 'COMPLETE' },
-              orderBy: { createdAt: 'desc' },
-              take: 1,
+              where: eq(interviews.status, 'COMPLETE'),
+              orderBy: (interviews, { desc }) => desc(interviews.createdAt),
+              limit: 1,
             },
           },
         });
@@ -58,17 +57,14 @@ export function createReportGenerationWorker() {
         await job.updateProgress(80);
 
         // Update report with generated content
-        const updatedReport = await prisma.report.update({
-          where: { id: reportId },
-          data: {
-            content,
-            status: 'COMPLETE',
-            sections: {
-              included: ['summary', 'analysis', 'recommendations'],
-              locked: tier === 'FULL' ? [] : ['advanced-analytics', 'appendix'],
-            },
+        const [updatedReport] = await db.update(reports).set({
+          content,
+          status: 'COMPLETE',
+          sections: {
+            included: ['summary', 'analysis', 'recommendations'],
+            locked: tier === 'FULL' ? [] : ['advanced-analytics', 'appendix'],
           },
-        });
+        }).where(eq(reports.id, reportId)).returning();
 
         await job.updateProgress(100);
 
@@ -83,13 +79,10 @@ export function createReportGenerationWorker() {
         console.error(`[ReportWorker] Failed report ${reportId}:`, error);
 
         // Mark report as failed
-        await prisma.report.update({
-          where: { id: reportId },
-          data: {
-            status: 'FAILED',
-            content: `Error generating report: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          },
-        });
+        await db.update(reports).set({
+          status: 'FAILED',
+          content: `Error generating report: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        }).where(eq(reports.id, reportId));
 
         throw error;
       }

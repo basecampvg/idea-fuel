@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@forge/server';
+import { db, schema } from '@forge/server';
+import { eq, count } from 'drizzle-orm';
 
 /**
  * POST /api/waitlist
@@ -23,20 +24,22 @@ export async function POST(request: Request) {
     const normalizedEmail = email.toLowerCase().trim();
 
     // Store in database (upsert to handle duplicates)
-    const emailCapture = await prisma.emailCapture.upsert({
-      where: { email: normalizedEmail },
-      create: {
+    const [emailCapture] = await db
+      .insert(schema.emailCaptures)
+      .values({
         email: normalizedEmail,
         source,
         metadata: metadata || null,
         beehiivSynced: false,
-      },
-      update: {
-        // Update source if re-submitting from different location
-        source,
-        metadata: metadata || undefined,
-      },
-    });
+      })
+      .onConflictDoUpdate({
+        target: schema.emailCaptures.email,
+        set: {
+          source,
+          metadata: metadata || undefined,
+        },
+      })
+      .returning();
 
     // Sync to Beehiiv if configured
     let beehiivSynced = false;
@@ -67,10 +70,10 @@ export async function POST(request: Request) {
           beehiivSynced = true;
 
           // Update database record
-          await prisma.emailCapture.update({
-            where: { id: emailCapture.id },
-            data: { beehiivSynced: true },
-          });
+          await db
+            .update(schema.emailCaptures)
+            .set({ beehiivSynced: true })
+            .where(eq(schema.emailCaptures.id, emailCapture.id));
         } else {
           // Log error but don't fail the request
           const errorText = await beehiivResponse.text();
@@ -90,7 +93,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('[Waitlist Error]', error);
 
-    // Handle Prisma unique constraint error (duplicate email)
+    // Handle unique constraint error (duplicate email)
     if (
       error instanceof Error &&
       error.message.includes('Unique constraint failed')
@@ -114,9 +117,9 @@ export async function POST(request: Request) {
  */
 export async function GET() {
   try {
-    const count = await prisma.emailCapture.count();
+    const [result] = await db.select({ value: count() }).from(schema.emailCaptures);
 
-    return NextResponse.json({ count });
+    return NextResponse.json({ count: result.value });
   } catch (error) {
     console.error('[Waitlist Count Error]', error);
     return NextResponse.json({ count: 0 });

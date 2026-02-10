@@ -10,10 +10,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@auth/prisma-adapter": "^2.11.1",
+    "@auth/drizzle-adapter": "^1.11.1",
     "@forge/server": "workspace:*",
-    "@prisma/adapter-pg": "^7.3.0",
-    "@prisma/client": "^6.2.0",
     "@forge/shared": "workspace:*",
     "@tanstack/react-query": "^5.64.0",
     "@tiptap/extension-code-block-lowlight": "^2.2.0",
@@ -28,6 +26,7 @@
     "@trpc/server": "^11.0.0-rc.682",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "drizzle-orm": "^0.45.1",
     "lowlight": "^3.0.0",
     "lucide-react": "^0.562.0",
     "next": "^15.1.3",

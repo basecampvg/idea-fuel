@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@forge/server';
+import { db, schema } from '@forge/server';
+import { eq } from 'drizzle-orm';
 
 /**
  * GET /api/auth/mobile/session
@@ -21,9 +22,9 @@ export async function GET(request: NextRequest) {
     const sessionToken = authHeader.replace('Bearer ', '');
 
     // Find session with user
-    const session = await prisma.session.findUnique({
-      where: { sessionToken },
-      include: { user: true },
+    const session = await db.query.sessions.findFirst({
+      where: eq(schema.sessions.sessionToken, sessionToken),
+      with: { user: true },
     });
 
     if (!session) {
@@ -36,9 +37,9 @@ export async function GET(request: NextRequest) {
     // Check if session has expired
     if (session.expires < new Date()) {
       // Delete expired session
-      await prisma.session.delete({
-        where: { sessionToken },
-      });
+      await db
+        .delete(schema.sessions)
+        .where(eq(schema.sessions.sessionToken, sessionToken));
 
       return NextResponse.json(
         { error: 'Session expired' },

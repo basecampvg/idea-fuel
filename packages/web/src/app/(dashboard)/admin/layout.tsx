@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
-import { prisma } from '@forge/server';
+import { db, schema } from '@forge/server';
+import { eq } from 'drizzle-orm';
 import { AdminLayoutClient } from './admin-layout-client';
 
 /**
@@ -25,9 +26,9 @@ export default async function AdminLayout({
   }
 
   // Check user role
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
+  const user = await db.query.users.findFirst({
+    where: eq(schema.users.id, session.user.id),
+    columns: {
       role: true,
       isAdmin: true,
       email: true,
