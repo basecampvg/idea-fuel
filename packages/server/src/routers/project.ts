@@ -55,15 +55,21 @@ export const projectRouter = router({
             description: projects.description,
             notes: projects.notes,
             status: projects.status,
-            userId: projects.userId,
             createdAt: projects.createdAt,
             updatedAt: projects.updatedAt,
             _count: {
               interviews: sql<number>`(SELECT count(*) FROM "Interview" WHERE "projectId" = ${projects.id})`.mapWith(Number),
               reports: sql<number>`(SELECT count(*) FROM "Report" WHERE "projectId" = ${projects.id})`.mapWith(Number),
             },
+            // Inline research fields via LEFT JOIN subquery (avoids separate query)
+            research: {
+              status: research.status,
+              currentPhase: research.currentPhase,
+              progress: research.progress,
+            },
           })
           .from(projects)
+          .leftJoin(research, eq(research.projectId, projects.id))
           .where(whereClause)
           .orderBy(desc(projects.updatedAt))
           .offset(skip)
@@ -71,19 +77,16 @@ export const projectRouter = router({
         ctx.db.select({ value: count() }).from(projects).where(whereClause),
       ]);
 
-      // Fetch research for each project (one-to-one relation)
-      const projectIds = items.map((p) => p.id);
-      const researchData = projectIds.length > 0
-        ? await ctx.db.query.research.findMany({
-            where: inArray(research.projectId, projectIds),
-            columns: { projectId: true, status: true, currentPhase: true, progress: true },
-          })
-        : [];
-      const researchMap = new Map(researchData.map((r) => [r.projectId, r]));
-
       const itemsWithResearch = items.map((p) => ({
-        ...p,
-        research: researchMap.get(p.id) ?? null,
+        id: p.id,
+        title: p.title,
+        description: p.description,
+        notes: p.notes,
+        status: p.status,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+        _count: p._count,
+        research: p.research?.status ? p.research : null,
       }));
 
       return {
@@ -100,7 +103,7 @@ export const projectRouter = router({
   /**
    * Get a single project by ID with all related data
    */
-  get: protectedProcedure.input(z.object({ id: z.string().uuid() })).query(async ({ ctx, input }) => {
+  get: protectedProcedure.input(z.object({ id: z.string().min(1) })).query(async ({ ctx, input }) => {
     const project = await ctx.db.query.projects.findFirst({
       where: and(eq(projects.id, input.id), eq(projects.userId, ctx.userId)),
       with: {
@@ -168,7 +171,7 @@ export const projectRouter = router({
   update: protectedProcedure
     .input(
       z.object({
-        id: z.string().uuid(),
+        id: z.string().min(1),
         data: updateProjectSchema,
       })
     )
@@ -203,7 +206,7 @@ export const projectRouter = router({
   /**
    * Delete a project (cascades to interviews, reports, research)
    */
-  delete: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+  delete: protectedProcedure.input(z.object({ id: z.string().min(1) })).mutation(async ({ ctx, input }) => {
     const existing = await ctx.db.query.projects.findFirst({
       where: and(eq(projects.id, input.id), eq(projects.userId, ctx.userId)),
     });
@@ -339,7 +342,7 @@ export const projectRouter = router({
    * Start research for a project (after interview completion)
    * Creates a Research record, snapshots notes, and queues the pipeline
    */
-  startResearch: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+  startResearch: protectedProcedure.input(z.object({ id: z.string().min(1) })).mutation(async ({ ctx, input }) => {
     const project = await ctx.db.query.projects.findFirst({
       where: and(eq(projects.id, input.id), eq(projects.userId, ctx.userId)),
       with: {

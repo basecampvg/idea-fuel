@@ -1,9 +1,24 @@
 import type { NextConfig } from 'next';
 import path from 'path';
+import bundleAnalyzer from '@next/bundle-analyzer';
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  compress: true,
   transpilePackages: ['@forge/shared', '@forge/server'],
+  experimental: {
+    optimizePackageImports: [
+      'lucide-react',
+      'recharts',
+      '@tiptap/react',
+      '@tiptap/starter-kit',
+      '@tiptap/extension-placeholder',
+    ],
+  },
   // Required for monorepo: tells Next.js to trace files from the monorepo root
   outputFileTracingRoot: path.join(__dirname, '../../'),
   serverExternalPackages: [
@@ -21,6 +36,13 @@ const nextConfig: NextConfig = {
     '@react-pdf/stylesheet',
     '@react-pdf/types',
   ],
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
+      { protocol: 'https', hostname: '*.fbcdn.net' },
+      { protocol: 'https', hostname: 'platform-lookaside.fbsbx.com' },
+    ],
+  },
   async redirects() {
     return [
       {
@@ -37,4 +59,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

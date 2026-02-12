@@ -19,7 +19,7 @@ export const interviewRouter = router({
   /**
    * Get an interview by ID
    */
-  get: protectedProcedure.input(z.object({ id: z.string().uuid() })).query(async ({ ctx, input }) => {
+  get: protectedProcedure.input(z.object({ id: z.string().min(1) })).query(async ({ ctx, input }) => {
     const interview = await ctx.db.query.interviews.findFirst({
       where: and(eq(interviews.id, input.id), eq(interviews.userId, ctx.userId)),
       with: {
@@ -46,14 +46,20 @@ export const interviewRouter = router({
   /**
    * List interviews for a project
    */
-  listByProject: protectedProcedure.input(z.object({ projectId: z.string().uuid() })).query(async ({ ctx, input }) => {
-    const results = await ctx.db.query.interviews.findMany({
-      where: and(eq(interviews.projectId, input.projectId), eq(interviews.userId, ctx.userId)),
-      orderBy: desc(interviews.createdAt),
-    });
+  listByProject: protectedProcedure
+    .input(z.object({
+      projectId: z.string().min(1),
+      limit: z.number().min(1).max(50).default(20),
+    }))
+    .query(async ({ ctx, input }) => {
+      const results = await ctx.db.query.interviews.findMany({
+        where: and(eq(interviews.projectId, input.projectId), eq(interviews.userId, ctx.userId)),
+        orderBy: desc(interviews.createdAt),
+        limit: input.limit,
+      });
 
-    return results;
-  }),
+      return results;
+    }),
 
   /**
    * Get active (in-progress) interviews for the user
@@ -83,7 +89,7 @@ export const interviewRouter = router({
   /**
    * Resume an interview - returns resume state with appropriate greeting
    */
-  resume: protectedProcedure.input(z.object({ id: z.string().uuid() })).query(async ({ ctx, input }) => {
+  resume: protectedProcedure.input(z.object({ id: z.string().min(1) })).query(async ({ ctx, input }) => {
     const interview = await ctx.db.query.interviews.findFirst({
       where: and(eq(interviews.id, input.id), eq(interviews.userId, ctx.userId)),
       with: {
@@ -151,7 +157,7 @@ export const interviewRouter = router({
   addMessage: protectedProcedure
     .input(
       z.object({
-        interviewId: z.string().uuid(),
+        interviewId: z.string().min(1),
         content: z.string().min(1).max(10000),
       })
     )
@@ -214,7 +220,7 @@ export const interviewRouter = router({
   addAssistantMessage: protectedProcedure
     .input(
       z.object({
-        interviewId: z.string().uuid(),
+        interviewId: z.string().min(1),
         content: z.string().min(1),
         collectedData: z.record(z.string(), z.unknown()).optional(),
         resumeContext: z.string().optional(),
@@ -267,7 +273,7 @@ export const interviewRouter = router({
   chat: protectedProcedure
     .input(
       z.object({
-        interviewId: z.string().uuid(),
+        interviewId: z.string().min(1),
         content: z.string().min(1).max(10000),
       })
     )
@@ -391,7 +397,7 @@ export const interviewRouter = router({
    * Complete an interview and generate summary
    * Automatically starts research pipeline
    */
-  complete: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+  complete: protectedProcedure.input(z.object({ id: z.string().min(1) })).mutation(async ({ ctx, input }) => {
     const interview = await ctx.db.query.interviews.findFirst({
       where: and(eq(interviews.id, input.id), eq(interviews.userId, ctx.userId)),
       with: { project: true },
@@ -533,7 +539,7 @@ export const interviewRouter = router({
   /**
    * Abandon an interview
    */
-  abandon: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+  abandon: protectedProcedure.input(z.object({ id: z.string().min(1) })).mutation(async ({ ctx, input }) => {
     const interview = await ctx.db.query.interviews.findFirst({
       where: and(eq(interviews.id, input.id), eq(interviews.userId, ctx.userId)),
     });
@@ -571,7 +577,7 @@ export const interviewRouter = router({
   /**
    * Mark interview as expired (called by background job)
    */
-  markExpired: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+  markExpired: protectedProcedure.input(z.object({ id: z.string().min(1) })).mutation(async ({ ctx, input }) => {
     const interview = await ctx.db.query.interviews.findFirst({
       where: and(eq(interviews.id, input.id), eq(interviews.userId, ctx.userId)),
     });
@@ -595,7 +601,7 @@ export const interviewRouter = router({
   /**
    * Update interview activity (heartbeat for idle detection)
    */
-  heartbeat: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+  heartbeat: protectedProcedure.input(z.object({ id: z.string().min(1) })).mutation(async ({ ctx, input }) => {
     const interview = await ctx.db.query.interviews.findFirst({
       where: and(
         eq(interviews.id, input.id),

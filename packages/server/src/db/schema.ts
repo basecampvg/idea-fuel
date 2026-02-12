@@ -142,6 +142,7 @@ export const projects = pgTable('Project', {
 }, (table) => [
   index('Project_status_idx').using('btree', table.status.asc().nullsLast()),
   index('Project_userId_idx').using('btree', table.userId.asc().nullsLast()),
+  index('Project_userId_status_idx').using('btree', table.userId.asc(), table.status.asc()),
   foreignKey({
     columns: [table.userId],
     foreignColumns: [users.id],
@@ -175,6 +176,7 @@ export const interviews = pgTable('Interview', {
   index('Interview_lastActiveAt_idx').using('btree', table.lastActiveAt.asc().nullsLast()),
   index('Interview_mode_idx').using('btree', table.mode.asc().nullsLast()),
   index('Interview_projectId_idx').using('btree', table.projectId.asc().nullsLast()),
+  index('Interview_projectId_status_idx').using('btree', table.projectId.asc(), table.status.asc()),
   index('Interview_status_idx').using('btree', table.status.asc().nullsLast()),
   index('Interview_userId_idx').using('btree', table.userId.asc().nullsLast()),
   foreignKey({
@@ -248,6 +250,7 @@ export const research = pgTable('Research', {
   index('Research_currentPhase_idx').using('btree', table.currentPhase.asc().nullsLast()),
   uniqueIndex('Research_projectId_key').using('btree', table.projectId.asc().nullsLast()),
   index('Research_status_idx').using('btree', table.status.asc().nullsLast()),
+  index('Research_status_currentPhase_idx').using('btree', table.status.asc(), table.currentPhase.asc()),
   foreignKey({
     columns: [table.projectId],
     foreignColumns: [projects.id],
@@ -275,6 +278,7 @@ export const reports = pgTable('Report', {
   userId: text().notNull(),
 }, (table) => [
   index('Report_projectId_idx').using('btree', table.projectId.asc().nullsLast()),
+  index('Report_projectId_type_idx').using('btree', table.projectId.asc(), table.type.asc()),
   index('Report_status_idx').using('btree', table.status.asc().nullsLast()),
   index('Report_tier_idx').using('btree', table.tier.asc().nullsLast()),
   index('Report_type_idx').using('btree', table.type.asc().nullsLast()),

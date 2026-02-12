@@ -24,6 +24,35 @@ export const mergeRouters = t.mergeRouters;
  */
 export const publicProcedure = t.procedure;
 
+// ---------------------------------------------------------------------------
+// Role cache: avoids a DB query on every admin/superAdmin request.
+// Entries expire after 5 minutes or on process restart (serverless deploys).
+// ---------------------------------------------------------------------------
+const ROLE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const roleCache = new Map<string, { isAdmin: boolean; role: string | null; expiresAt: number }>();
+
+async function getUserRole(db: Context['db'], userId: string) {
+  const cached = roleCache.get(userId);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached;
+  }
+
+  const { eq } = await import('drizzle-orm');
+  const { users } = await import('./db/schema');
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: { isAdmin: true, role: true },
+  });
+
+  const entry = {
+    isAdmin: user?.isAdmin ?? false,
+    role: user?.role ?? null,
+    expiresAt: Date.now() + ROLE_CACHE_TTL,
+  };
+  roleCache.set(userId, entry);
+  return entry;
+}
+
 /**
  * Middleware to check if user is authenticated
  */
@@ -61,15 +90,8 @@ const isAdmin = middleware(async ({ ctx, next }) => {
     });
   }
 
-  // Check if user is admin
-  const { eq } = await import('drizzle-orm');
-  const { users } = await import('./db/schema');
-  const user = await ctx.db.query.users.findFirst({
-    where: eq(users.id, ctx.userId),
-    columns: { isAdmin: true },
-  });
-
-  if (!user?.isAdmin) {
+  const { isAdmin: admin } = await getUserRole(ctx.db, ctx.userId);
+  if (!admin) {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'Admin access required',
@@ -101,14 +123,8 @@ const isSuperAdmin = middleware(async ({ ctx, next }) => {
     });
   }
 
-  const { eq } = await import('drizzle-orm');
-  const { users } = await import('./db/schema');
-  const user = await ctx.db.query.users.findFirst({
-    where: eq(users.id, ctx.userId),
-    columns: { role: true },
-  });
-
-  if (user?.role !== 'SUPER_ADMIN') {
+  const { role } = await getUserRole(ctx.db, ctx.userId);
+  if (role !== 'SUPER_ADMIN') {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'Super admin access required',

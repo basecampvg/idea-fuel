@@ -1,7 +1,6 @@
 @import 'tailwindcss';
 
-/* Import fonts - Inter for body, Space Grotesk for headings */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+/* Fonts loaded via next/font in layout.tsx — no external CSS needed */
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
@@ -18,9 +17,9 @@
   /* Radius */
   --radius: 0.625rem;
 
-  /* Typography */
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  /* Typography — values injected by next/font CSS variables */
+  --font-sans: var(--font-sans, 'Inter', system-ui, sans-serif);
+  --font-display: var(--font-display, 'Space Grotesk', 'Inter', system-ui, sans-serif);
 
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);

@@ -3,9 +3,11 @@
 import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
-import LightPillar from '@/components/ui/light-pillar';
+
+const LightPillar = dynamic(() => import('@/components/ui/light-pillar'), { ssr: false });
 
 function SignInContent() {
   const searchParams = useSearchParams();

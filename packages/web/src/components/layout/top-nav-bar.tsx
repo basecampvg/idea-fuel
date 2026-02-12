@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Settings } from 'lucide-react';
@@ -66,10 +67,12 @@ export function TopNavBar() {
         {userName && (
           <div className="flex items-center gap-2">
             {userImage ? (
-              <img
+              <Image
                 src={userImage}
                 alt={userName}
-                className="h-5 w-5 rounded-full"
+                width={20}
+                height={20}
+                className="rounded-full"
                 referrerPolicy="no-referrer"
               />
             ) : (

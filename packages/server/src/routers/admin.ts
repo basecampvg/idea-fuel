@@ -1,10 +1,26 @@
 import { z } from 'zod';
-import { router, superAdminProcedure } from '../trpc';
+import { router, publicProcedure, superAdminProcedure } from '../trpc';
 import { configService, DEFAULT_CONFIGS } from '../services/config';
 import { eq, and, gte, desc, count, sum, sql, inArray, like } from 'drizzle-orm';
 import { auditLogs, users, tokenUsages, adminIPWhitelists } from '../db/schema';
+import { db } from '../db/drizzle';
 
 export const adminRouter = router({
+  /**
+   * Public endpoint for analytics config (no auth required).
+   * Returns only analytics-related config values — safe for unauthenticated access.
+   */
+  analyticsConfig: publicProcedure.query(async () => {
+    if (!configService.isInitialized()) {
+      await configService.init(db);
+    }
+
+    const enabled = configService.get('analytics.enabled', false);
+    const facebookPixelId = configService.get('analytics.facebookPixelId', null) as string | null;
+    const googleTagSnippet = configService.get('analytics.googleTagSnippet', null) as string | null;
+
+    return { enabled, facebookPixelId, googleTagSnippet };
+  }),
   /**
    * List all configs grouped by category
    */
@@ -461,7 +477,7 @@ export const adminRouter = router({
    * Remove an IP from the whitelist
    */
   removeIPFromWhitelist: superAdminProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       const entry = await ctx.db.query.adminIPWhitelists.findFirst({
         where: eq(adminIPWhitelists.id, input.id),
@@ -490,7 +506,7 @@ export const adminRouter = router({
   updateIPWhitelist: superAdminProcedure
     .input(
       z.object({
-        id: z.string().uuid(),
+        id: z.string().min(1),
         label: z.string().optional(),
         expiresAt: z.date().nullable().optional(),
       })

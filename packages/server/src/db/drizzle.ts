@@ -8,6 +8,8 @@ const globalForDrizzle = globalThis as unknown as {
 
 /** True only during `next build` on Vercel — env vars may be absent or malformed. */
 const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+const isDev = process.env.NODE_ENV === 'development';
+const poolMax = parseInt(process.env.DB_POOL_MAX ?? '10', 10);
 
 function buildPlaceholder() {
   const client = postgres('postgresql://placeholder:placeholder@localhost:5432/placeholder', {
@@ -86,10 +88,12 @@ function createDrizzleClient() {
     throw new Error('[DB] DATABASE_URL environment variable is not set');
   }
 
+  const drizzleOpts = { schema, ...(isDev ? { logger: true } : {}) } as const;
+
   // Attempt 1: Standard URL-based connection
   try {
-    const client = postgres(url, { max: 10, idle_timeout: 20 });
-    return drizzle(client, { schema });
+    const client = postgres(url, { max: poolMax, idle_timeout: 20 });
+    return drizzle(client, drizzleOpts);
   } catch (err) {
     const isUriError =
       err instanceof URIError ||
@@ -119,10 +123,10 @@ function createDrizzleClient() {
         username: parsed.username as string,
         password: parsed.password as string,
         ...(parsed.ssl ? { ssl: parsed.ssl as 'require' | 'verify-full' } : {}),
-        max: 10,
+        max: poolMax,
         idle_timeout: 20,
       });
-      return drizzle(client, { schema });
+      return drizzle(client, drizzleOpts);
     } catch (fallbackErr) {
       if (isBuildPhase) {
         console.warn('[DB] Fallback also failed — using placeholder for build');

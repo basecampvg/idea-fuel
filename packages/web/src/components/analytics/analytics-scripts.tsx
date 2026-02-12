@@ -4,31 +4,23 @@ import Script from 'next/script';
 import { trpc } from '@/lib/trpc/client';
 
 export function AnalyticsScripts() {
-  const { data: analyticsEnabled } = trpc.admin.get.useQuery(
-    { key: 'analytics.enabled' },
-    { retry: false, refetchOnWindowFocus: false }
-  );
-  const { data: facebookPixelId } = trpc.admin.get.useQuery(
-    { key: 'analytics.facebookPixelId' },
-    { retry: false, refetchOnWindowFocus: false }
-  );
-  const { data: googleTagSnippet } = trpc.admin.get.useQuery(
-    { key: 'analytics.googleTagSnippet' },
-    { retry: false, refetchOnWindowFocus: false }
-  );
+  const { data } = trpc.admin.analyticsConfig.useQuery(undefined, {
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    retry: false,
+  });
 
-  // Don't render if analytics is disabled
-  if (!analyticsEnabled?.value) {
+  if (!data?.enabled) {
     return null;
   }
 
-  const pixelId = facebookPixelId?.value as string | undefined;
-  const gtagSnippet = googleTagSnippet?.value as string | undefined;
+  const { facebookPixelId, googleTagSnippet } = data;
 
   return (
     <>
       {/* Facebook Pixel */}
-      {pixelId && pixelId.length > 0 && (
+      {facebookPixelId && facebookPixelId.length > 0 && (
         <Script id="facebook-pixel" strategy="afterInteractive">
           {`
             !function(f,b,e,v,n,t,s)
@@ -39,16 +31,16 @@ export function AnalyticsScripts() {
             t.src=v;s=b.getElementsByTagName(e)[0];
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '${pixelId}');
+            fbq('init', '${facebookPixelId}');
             fbq('track', 'PageView');
           `}
         </Script>
       )}
 
       {/* Google Tag (gtag.js) */}
-      {gtagSnippet && gtagSnippet.length > 0 && (
+      {googleTagSnippet && googleTagSnippet.length > 0 && (
         <Script id="google-tag" strategy="afterInteractive">
-          {gtagSnippet}
+          {googleTagSnippet}
         </Script>
       )}
     </>

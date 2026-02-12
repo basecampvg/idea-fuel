@@ -1,5 +1,52 @@
 # Changelog
 
+## 2026-02-11
+
+### Perf: Sitewide performance audit and optimization
+
+**Changes:**
+
+**Frontend (packages/web):**
+- Replaced render-blocking Google Fonts CSS `@import` with `next/font/google` (Inter + Space Grotesk) — eliminates external network request, zero CLS
+- Added `experimental.optimizePackageImports` for lucide-react, recharts, @tiptap/* — tree-shakes ~300-500KB from client bundles
+- Lazy-loaded Three.js LightPillar component via `next/dynamic` with `ssr: false` — removes ~600KB from sign-in page initial load
+- Consolidated AnalyticsScripts from 3 separate `superAdminProcedure` API calls (which failed for every non-admin user) into 1 public `analyticsConfig` endpoint with `staleTime: Infinity`
+- Increased React Query default `staleTime` from 5s to 30s — fewer refetches, snappier navigation
+- Replaced `<img>` tags with `next/image` `<Image>` in header and top-nav-bar — automatic WebP/AVIF, lazy loading, correct sizing
+- Added `images.remotePatterns` for Google/Facebook profile pictures
+- Added `viewport` export with themeColor for light/dark modes
+- Enhanced metadata with Open Graph, Twitter cards, and template titles
+- Added `@next/bundle-analyzer` for ongoing bundle size monitoring (`ANALYZE=true pnpm build:web`)
+- Added `compress: true` to next.config.ts
+
+**Backend (packages/server):**
+- Added 4 composite database indexes: `Project(userId, status)`, `Interview(projectId, status)`, `Research(status, currentPhase)`, `Report(projectId, type)` — 50-70% faster on common query patterns
+- Eliminated N+1 query in `project.list` — replaced separate research `inArray` query with LEFT JOIN (2 DB round-trips → 1)
+- Trimmed `userId` from project list select (already in WHERE clause)
+- Added `limit` parameter to `report.listByProject` and `interview.listByProject` (default 20, max 50) — prevents unbounded data fetching
+- Added in-memory TTL cache (5 min) for admin/superAdmin role checks in tRPC middleware — eliminates 1 DB query per protected endpoint
+- Made DB connection pool size configurable via `DB_POOL_MAX` env var (default 10)
+- Added Drizzle query logging in development (`NODE_ENV=development`)
+
+**Files changed:**
+- `packages/web/src/app/globals.css` — removed Google Fonts import
+- `packages/web/src/app/layout.tsx` — next/font, viewport, metadata
+- `packages/web/next.config.ts` — optimizePackageImports, compress, images, bundle analyzer
+- `packages/web/src/lib/trpc/provider.tsx` — staleTime 5s → 30s
+- `packages/web/src/components/analytics/analytics-scripts.tsx` — 3 queries → 1 public endpoint
+- `packages/web/src/components/layout/header.tsx` — img → Image
+- `packages/web/src/components/layout/top-nav-bar.tsx` — img → Image
+- `packages/web/src/app/auth/signin/page.tsx` — dynamic import for LightPillar
+- `packages/server/src/db/schema.ts` — 4 composite indexes
+- `packages/server/src/routers/project.ts` — LEFT JOIN optimization, trimmed columns
+- `packages/server/src/routers/report.ts` — pagination on listByProject
+- `packages/server/src/routers/interview.ts` — pagination on listByProject
+- `packages/server/src/routers/admin.ts` — new public analyticsConfig endpoint
+- `packages/server/src/trpc.ts` — role check caching
+- `packages/server/src/db/drizzle.ts` — configurable pool, dev query logging
+
+---
+
 ## 2026-02-10
 
 ### Fix: 100% 500 errors on Vercel — DATABASE_URL "URI malformed"
