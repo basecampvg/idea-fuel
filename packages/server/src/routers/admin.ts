@@ -461,7 +461,7 @@ export const adminRouter = router({
    * Remove an IP from the whitelist
    */
   removeIPFromWhitelist: superAdminProcedure
-    .input(z.object({ id: z.string().cuid() }))
+    .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const entry = await ctx.db.query.adminIPWhitelists.findFirst({
         where: eq(adminIPWhitelists.id, input.id),
@@ -490,7 +490,7 @@ export const adminRouter = router({
   updateIPWhitelist: superAdminProcedure
     .input(
       z.object({
-        id: z.string().cuid(),
+        id: z.string().uuid(),
         label: z.string().optional(),
         expiresAt: z.date().nullable().optional(),
       })

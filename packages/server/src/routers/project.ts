@@ -100,7 +100,7 @@ export const projectRouter = router({
   /**
    * Get a single project by ID with all related data
    */
-  get: protectedProcedure.input(z.object({ id: z.string().cuid() })).query(async ({ ctx, input }) => {
+  get: protectedProcedure.input(z.object({ id: z.string().uuid() })).query(async ({ ctx, input }) => {
     const project = await ctx.db.query.projects.findFirst({
       where: and(eq(projects.id, input.id), eq(projects.userId, ctx.userId)),
       with: {
@@ -168,7 +168,7 @@ export const projectRouter = router({
   update: protectedProcedure
     .input(
       z.object({
-        id: z.string().cuid(),
+        id: z.string().uuid(),
         data: updateProjectSchema,
       })
     )
@@ -203,7 +203,7 @@ export const projectRouter = router({
   /**
    * Delete a project (cascades to interviews, reports, research)
    */
-  delete: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
+  delete: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const existing = await ctx.db.query.projects.findFirst({
       where: and(eq(projects.id, input.id), eq(projects.userId, ctx.userId)),
     });
@@ -339,7 +339,7 @@ export const projectRouter = router({
    * Start research for a project (after interview completion)
    * Creates a Research record, snapshots notes, and queues the pipeline
    */
-  startResearch: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
+  startResearch: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const project = await ctx.db.query.projects.findFirst({
       where: and(eq(projects.id, input.id), eq(projects.userId, ctx.userId)),
       with: {

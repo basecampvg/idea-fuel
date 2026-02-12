@@ -50,7 +50,7 @@ export const reportRouter = router({
   /**
    * List reports for a specific project
    */
-  listByProject: protectedProcedure.input(z.object({ projectId: z.string().cuid() })).query(async ({ ctx, input }) => {
+  listByProject: protectedProcedure.input(z.object({ projectId: z.string().uuid() })).query(async ({ ctx, input }) => {
     const results = await ctx.db.query.reports.findMany({
       where: and(eq(reports.projectId, input.projectId), eq(reports.userId, ctx.userId)),
       orderBy: desc(reports.createdAt),
@@ -62,7 +62,7 @@ export const reportRouter = router({
   /**
    * Get a single report by ID
    */
-  get: protectedProcedure.input(z.object({ id: z.string().cuid() })).query(async ({ ctx, input }) => {
+  get: protectedProcedure.input(z.object({ id: z.string().uuid() })).query(async ({ ctx, input }) => {
     const report = await ctx.db.query.reports.findFirst({
       where: and(eq(reports.id, input.id), eq(reports.userId, ctx.userId)),
       with: {
@@ -198,7 +198,7 @@ export const reportRouter = router({
   /**
    * Regenerate a report (creates new version)
    */
-  regenerate: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
+  regenerate: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const existing = await ctx.db.query.reports.findFirst({
       where: and(eq(reports.id, input.id), eq(reports.userId, ctx.userId)),
     });
@@ -267,7 +267,7 @@ export const reportRouter = router({
   /**
    * Delete a report
    */
-  delete: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
+  delete: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const existing = await ctx.db.query.reports.findFirst({
       where: and(eq(reports.id, input.id), eq(reports.userId, ctx.userId)),
     });
@@ -287,7 +287,7 @@ export const reportRouter = router({
   /**
    * Generate all reports for a project at once
    */
-  generateAll: protectedProcedure.input(z.object({ projectId: z.string().cuid() })).mutation(async ({ ctx, input }) => {
+  generateAll: protectedProcedure.input(z.object({ projectId: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     // Verify project ownership
     const project = await ctx.db.query.projects.findFirst({
       where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
@@ -393,7 +393,7 @@ export const reportRouter = router({
   downloadPDF: protectedProcedure
     .input(
       z.object({
-        projectId: z.string().cuid(),
+        projectId: z.string().uuid(),
         reportType: z.enum([
           'BUSINESS_PLAN',
           'POSITIONING',

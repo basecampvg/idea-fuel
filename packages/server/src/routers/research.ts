@@ -38,7 +38,7 @@ export const researchRouter = router({
   /**
    * Get research by ID
    */
-  get: protectedProcedure.input(z.object({ id: z.string().cuid() })).query(async ({ ctx, input }) => {
+  get: protectedProcedure.input(z.object({ id: z.string().uuid() })).query(async ({ ctx, input }) => {
     const result = await ctx.db.query.research.findFirst({
       where: eq(research.id, input.id),
       with: {
@@ -73,7 +73,7 @@ export const researchRouter = router({
   /**
    * Get research by project ID
    */
-  getByProject: protectedProcedure.input(z.object({ projectId: z.string().cuid() })).query(async ({ ctx, input }) => {
+  getByProject: protectedProcedure.input(z.object({ projectId: z.string().uuid() })).query(async ({ ctx, input }) => {
     const project = await ctx.db.query.projects.findFirst({
       where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
       with: {
@@ -94,7 +94,7 @@ export const researchRouter = router({
   /**
    * Get research progress/status for polling
    */
-  getProgress: protectedProcedure.input(z.object({ id: z.string().cuid() })).query(async ({ ctx, input }) => {
+  getProgress: protectedProcedure.input(z.object({ id: z.string().uuid() })).query(async ({ ctx, input }) => {
     const result = await ctx.db.query.research.findFirst({
       where: eq(research.id, input.id),
       with: {
@@ -141,7 +141,7 @@ export const researchRouter = router({
    * Start research for a project
    * Called after interview is complete
    */
-  start: protectedProcedure.input(z.object({ projectId: z.string().cuid() })).mutation(async ({ ctx, input }) => {
+  start: protectedProcedure.input(z.object({ projectId: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const project = await ctx.db.query.projects.findFirst({
       where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
       with: {
@@ -444,7 +444,7 @@ export const researchRouter = router({
   /**
    * Cancel ongoing research
    */
-  cancel: protectedProcedure.input(z.object({ id: z.string().cuid() })).mutation(async ({ ctx, input }) => {
+  cancel: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const result = await ctx.db.query.research.findFirst({
       where: eq(research.id, input.id),
       with: {
@@ -510,7 +510,7 @@ export const researchRouter = router({
   updatePhase: protectedProcedure
     .input(
       z.object({
-        id: z.string().cuid(),
+        id: z.string().uuid(),
         phase: z.enum([
           'QUEUED',
           // New 4-phase pipeline phases
@@ -608,7 +608,7 @@ export const researchRouter = router({
    * Reset stuck research (allows restarting interrupted/stuck research)
    * This marks the research as FAILED so it can be restarted via the start endpoint
    */
-  reset: protectedProcedure.input(z.object({ projectId: z.string().cuid() })).mutation(async ({ ctx, input }) => {
+  reset: protectedProcedure.input(z.object({ projectId: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const project = await ctx.db.query.projects.findFirst({
       where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
       with: {
@@ -655,7 +655,7 @@ export const researchRouter = router({
   markFailed: protectedProcedure
     .input(
       z.object({
-        id: z.string().cuid(),
+        id: z.string().uuid(),
         errorMessage: z.string(),
         errorPhase: z.enum([
           'QUEUED',
@@ -716,7 +716,7 @@ export const researchRouter = router({
    * Creates a Research record and triggers the 2-step Spark pipeline
    */
   startSpark: protectedProcedure
-    .input(z.object({ projectId: z.string().cuid() }))
+    .input(z.object({ projectId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const project = await ctx.db.query.projects.findFirst({
         where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
@@ -837,7 +837,7 @@ export const researchRouter = router({
    * Get Spark job status and result
    */
   getSparkStatus: protectedProcedure
-    .input(z.object({ jobId: z.string().cuid() }))
+    .input(z.object({ jobId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       const result = await ctx.db.query.research.findFirst({
         where: eq(research.id, input.jobId),
@@ -883,7 +883,7 @@ export const researchRouter = router({
    * Poll Spark job progress (lightweight endpoint for polling)
    */
   pollSpark: protectedProcedure
-    .input(z.object({ jobId: z.string().cuid() }))
+    .input(z.object({ jobId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       const result = await ctx.db.query.research.findFirst({
         where: eq(research.id, input.jobId),
@@ -942,7 +942,7 @@ export const researchRouter = router({
    * Re-runs only the specific extraction functions whose data is null.
    */
   backfill: protectedProcedure
-    .input(z.object({ researchId: z.string().cuid() }))
+    .input(z.object({ researchId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const researchResult = await ctx.db.query.research.findFirst({
         where: eq(research.id, input.researchId),

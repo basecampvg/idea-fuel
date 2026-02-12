@@ -186,6 +186,7 @@ export default function DashboardPage() {
   const [isFocused, setIsFocused] = useState(false);
   const [showPromptHint, setShowPromptHint] = useState(false);
   const [promptHintDismissed, setPromptHintDismissed] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Interview state
   const [interviewActive, setInterviewActive] = useState(false);
@@ -243,6 +244,7 @@ export default function DashboardPage() {
   // Execute the selected mode
   const executeSelectedMode = async () => {
     if (!canSubmit || isSubmitting) return;
+    setSubmitError(null);
 
     // Check idea limit
     if (!canCreateIdea(currentProjectCount)) {
@@ -301,8 +303,10 @@ export default function DashboardPage() {
         // Trigger enter animation
         setTimeout(() => setAnimationState('visible'), 50);
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
       console.error('Failed to process project:', error);
+      setSubmitError(message);
       setIsExecuting(false);
     }
   };
@@ -721,6 +725,20 @@ export default function DashboardPage() {
               <p className="text-xs text-muted-foreground/60 mt-3">
                 {10 - ideaDescription.length} more characters needed
               </p>
+            )}
+
+            {/* Error message */}
+            {submitError && (
+              <div className="mt-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                <p className="text-xs text-destructive font-medium">Failed to start pipeline</p>
+                <p className="text-xs text-destructive/80 mt-1">{submitError}</p>
+                <button
+                  onClick={() => setSubmitError(null)}
+                  className="text-xs text-destructive/60 hover:text-destructive underline mt-1"
+                >
+                  Dismiss
+                </button>
+              </div>
             )}
           </div>
         </div>

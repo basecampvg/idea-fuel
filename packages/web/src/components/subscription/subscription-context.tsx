@@ -65,7 +65,9 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const isLoading = subLoading || statsLoading;
 
   // Derive values from fetched data
-  const tier: SubscriptionTier = subscriptionData?.tier ?? 'FREE';
+  // In development, always use ENTERPRISE tier for testing
+  const isDev = process.env.NODE_ENV === 'development';
+  const tier: SubscriptionTier = isDev ? 'ENTERPRISE' : (subscriptionData?.tier ?? 'FREE');
   const features: SubscriptionFeatures = SUBSCRIPTION_FEATURES[tier];
   const currentProjectCount = statsData?.totalProjects ?? 0;
   const projectsRemaining = getIdeasRemaining(tier, currentProjectCount);

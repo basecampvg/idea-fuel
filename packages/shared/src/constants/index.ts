@@ -233,19 +233,17 @@ export const REPORT_STATUS_LABELS: Record<string, string> = {
 
 // Report tier determination matrix
 // Maps [InterviewMode][SubscriptionTier] → ReportTier
+// FREE tier has no interview modes or reports — not included
 export const REPORT_TIER_MATRIX: Record<string, Record<string, string>> = {
   SPARK: {
-    FREE: 'BASIC',
     PRO: 'BASIC',
     ENTERPRISE: 'BASIC',
   },
   LIGHT: {
-    FREE: 'BASIC',
     PRO: 'PRO',
     ENTERPRISE: 'PRO',
   },
   IN_DEPTH: {
-    FREE: 'PRO',
     PRO: 'FULL',
     ENTERPRISE: 'FULL',
   },

@@ -39,7 +39,7 @@ export const sparkJobStatusSchema = z.enum([
 export const interviewStatusSchema = z.enum(['IN_PROGRESS', 'COMPLETE', 'ABANDONED']);
 
 export const startInterviewSchema = z.object({
-  projectId: z.string().cuid(),
+  projectId: z.string().uuid(),
   mode: interviewModeSchema.default('LIGHT'),
 });
 
@@ -49,7 +49,7 @@ export const chatMessageSchema = z.object({
 });
 
 export const sendMessageSchema = z.object({
-  interviewId: z.string().cuid(),
+  interviewId: z.string().uuid(),
   content: z.string().min(1, 'Message cannot be empty').max(10000, 'Message too long'),
 });
 
@@ -97,12 +97,12 @@ export const reportTierSchema = z.enum(['BASIC', 'PRO', 'FULL']);
 export const reportStatusSchema = z.enum(['DRAFT', 'GENERATING', 'COMPLETE', 'FAILED']);
 
 export const generateReportSchema = z.object({
-  projectId: z.string().cuid(),
+  projectId: z.string().uuid(),
   type: reportTypeSchema,
 });
 
 export const updateReportSchema = z.object({
-  id: z.string().cuid(),
+  id: z.string().uuid(),
   content: z.string().optional(),
   title: z.string().min(1).max(200).optional(),
 });
@@ -130,7 +130,7 @@ export const researchPhaseSchema = z.enum([
 ]);
 
 export const startResearchSchema = z.object({
-  projectId: z.string().cuid(),
+  projectId: z.string().uuid(),
 });
 
 export type ResearchStatusInput = z.infer<typeof researchStatusSchema>;
@@ -250,7 +250,7 @@ export const sparkResultSchema = z.object({
 });
 
 export const startSparkSchema = z.object({
-  projectId: z.string().cuid(),
+  projectId: z.string().uuid(),
 });
 
 export type SparkJobStatusInput = z.infer<typeof sparkJobStatusSchema>;
