@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { useSubscription } from '@/components/subscription/use-subscription';
 import { LoadingScreen } from '@/components/ui/spinner';
-import { Flame, Feather, Zap, Bookmark, ArrowUp, TrendingUp, Paperclip, Sparkles, FileText, Target, TrendingUp as TrendUp, DollarSign, Lock, HelpCircle, X } from 'lucide-react';
+import { Flame, Feather, Zap, Bookmark, ArrowUp, TrendingUp, Paperclip, Sparkles, FileText, Target, TrendingUp as TrendUp, DollarSign, Lock, Info } from 'lucide-react';
 import { PROJECT_TITLE_MAX } from '@forge/shared';
 
 type InterviewMode = 'SPARK' | 'LIGHT' | 'IN_DEPTH';
@@ -186,6 +186,7 @@ export default function DashboardPage() {
   const [isFocused, setIsFocused] = useState(false);
   const [showPromptHint, setShowPromptHint] = useState(false);
   const [promptHintDismissed, setPromptHintDismissed] = useState(false);
+  const [hintWiggle, setHintWiggle] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Interview state
@@ -222,16 +223,18 @@ export default function DashboardPage() {
     }
   }, [interviewActive, animationState, currentQuestion]);
 
-  // Auto-show prompt hint for first 5 visits
+  // Periodic wiggle on the info button to hint it's there
   useEffect(() => {
-    const HINT_STORAGE_KEY = 'forge_prompt_hint_views';
-    const viewCount = parseInt(localStorage.getItem(HINT_STORAGE_KEY) || '0', 10);
-
-    if (viewCount < 5) {
-      setShowPromptHint(true);
-      localStorage.setItem(HINT_STORAGE_KEY, String(viewCount + 1));
-    }
-  }, []);
+    if (showPromptHint || promptHintDismissed) return;
+    // Initial wiggle after 2s
+    const initialTimeout = setTimeout(() => setHintWiggle(true), 2000);
+    // Repeat every 8s
+    const interval = setInterval(() => {
+      setHintWiggle(true);
+      setTimeout(() => setHintWiggle(false), 700);
+    }, 8000);
+    return () => { clearTimeout(initialTimeout); clearInterval(interval); };
+  }, [showPromptHint, promptHintDismissed]);
 
   if (userLoading && !userError) {
     return <LoadingScreen message="Loading..." />;
@@ -579,46 +582,6 @@ export default function DashboardPage() {
 
             {/* Textarea */}
             <div className="relative">
-              {/* Prompt hint tooltip */}
-              <div className="absolute top-0 right-0 z-10">
-                <button
-                  type="button"
-                  onMouseEnter={() => !promptHintDismissed && setShowPromptHint(true)}
-                  onMouseLeave={() => !promptHintDismissed && setShowPromptHint(false)}
-                  onClick={() => setShowPromptHint(!showPromptHint)}
-                  className="p-1 text-muted-foreground/40 hover:text-muted-foreground transition-colors"
-                  aria-label="Show prompt structure hint"
-                >
-                  <HelpCircle className="w-4 h-4" />
-                </button>
-
-                {showPromptHint && (
-                  <div className="absolute top-full right-0 z-50 mt-1 w-72 animate-fade-in-up">
-                    <div className="rounded-xl bg-card border border-border px-4 py-3 shadow-xl text-left relative">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowPromptHint(false);
-                          setPromptHintDismissed(true);
-                        }}
-                        className="absolute top-2 right-2 p-1 text-muted-foreground/60 hover:text-foreground transition-colors"
-                        aria-label="Close hint"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                      <div className="font-medium text-foreground text-xs mb-2 pr-6">For best results, include:</div>
-                      <div className="space-y-1.5 text-xs text-muted-foreground">
-                        <p><span className="text-foreground font-medium">Idea:</span> Your core concept</p>
-                        <p><span className="text-foreground font-medium">Problem:</span> What pain point does it solve?</p>
-                        <p><span className="text-foreground font-medium">Core use cases:</span> 2-3 primary ways users would use it</p>
-                        <p><span className="text-foreground font-medium">Target users:</span> Who is this for?</p>
-                        <p><span className="text-foreground font-medium">Business model:</span> How might it make money?</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
               <textarea
                 value={ideaDescription}
                 onChange={(e) => setIdeaDescription(e.target.value)}
@@ -696,28 +659,49 @@ export default function DashboardPage() {
                 })}
               </div>
 
-              {/* Execute Button */}
-              <button
-                onClick={executeSelectedMode}
-                disabled={isSubmitting || !canSubmit}
-                className="
-                  p-2.5 rounded-xl bg-primary text-primary-foreground
-                  shadow-lg shadow-primary/25
-                  hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02]
-                  active:scale-[0.98]
-                  disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:scale-100
-                  transition-all duration-200
-                "
-              >
-                {isSubmitting ? (
-                  <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                ) : (
-                  <ArrowUp className="w-5 h-5" />
-                )}
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Prompt hint toggle */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPromptHint(!showPromptHint);
+                    setPromptHintDismissed(false);
+                  }}
+                  className={`
+                    p-2.5 rounded-xl border transition-all duration-200
+                    ${showPromptHint
+                      ? 'bg-primary/10 border-primary/30 text-primary'
+                      : 'border-border/50 text-muted-foreground/50 hover:text-muted-foreground hover:border-border hover:bg-muted/30'
+                    }
+                  `}
+                  aria-label="Toggle prompt tips"
+                >
+                  <Info className={`w-4 h-4 ${hintWiggle && !showPromptHint ? 'animate-wiggle' : ''}`} />
+                </button>
+
+                {/* Execute Button */}
+                <button
+                  onClick={executeSelectedMode}
+                  disabled={isSubmitting || !canSubmit}
+                  className="
+                    p-2.5 rounded-xl bg-primary text-primary-foreground
+                    shadow-lg shadow-primary/25
+                    hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02]
+                    active:scale-[0.98]
+                    disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:scale-100
+                    transition-all duration-200
+                  "
+                >
+                  {isSubmitting ? (
+                    <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  ) : (
+                    <ArrowUp className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Character hint */}
@@ -740,6 +724,29 @@ export default function DashboardPage() {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Prompt hint card - slides out from behind input card */}
+        <div
+          className={`
+            relative -mt-3 mx-4 z-[-1] overflow-hidden transition-all duration-350 ease-out
+            ${showPromptHint ? 'max-h-48 opacity-100 pt-6 pb-0' : 'max-h-0 opacity-0 pt-0 pb-0'}
+          `}
+        >
+          <div className={`
+            rounded-b-2xl bg-card/60 backdrop-blur-sm border border-t-0 border-border/40
+            px-6 pb-4 pt-2
+            ${showPromptHint ? 'animate-hint-show' : ''}
+          `}>
+            <div className="font-medium text-foreground/80 text-xs mb-2.5">For best results, include:</div>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-xs text-muted-foreground">
+              <p><span className="text-foreground/70 font-medium">Idea:</span> Your core concept</p>
+              <p><span className="text-foreground/70 font-medium">Problem:</span> What pain point does it solve?</p>
+              <p><span className="text-foreground/70 font-medium">Core use cases:</span> 2-3 primary ways users would use it</p>
+              <p><span className="text-foreground/70 font-medium">Target users:</span> Who is this for?</p>
+              <p className="col-span-2"><span className="text-foreground/70 font-medium">Business model:</span> How might it make money?</p>
+            </div>
           </div>
         </div>
 

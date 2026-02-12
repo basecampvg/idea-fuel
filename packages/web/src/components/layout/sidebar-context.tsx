@@ -45,7 +45,7 @@ function isProjectDetailRoute(pathname: string | null): boolean {
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const [mode, setModeState] = useState<SidebarMode>('collapsed');
+  const [mode, setModeState] = useState<SidebarMode>('hover');
   const [hoverActive, setHoverActive] = useState(false);
   const hoverEnterTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hoverLeaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
