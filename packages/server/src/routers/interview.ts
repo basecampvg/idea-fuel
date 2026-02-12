@@ -338,22 +338,26 @@ export const interviewRouter = router({
         .map((m) => `${m.role}: ${m.content}`)
         .join('\n');
 
-      // 4. Extract data points from user response
+      // 4. Run extraction + question generation in PARALLEL for speed
+      // Question gen uses pre-merge data (safe — scripted questions follow fixed order,
+      // and dynamic gap-fill with slightly stale data has negligible impact)
       const existingData = (interview.collectedData as Partial<InterviewDataPoints>) || {};
-      const extractedData = await extractDataPoints(input.content, conversationContext, existingData, tier);
-      const mergedData = mergeCollectedData(existingData, extractedData, currentTurn + 1);
 
-      // 5. Generate AI response
-      const aiResponse = await generateNextQuestion(
-        interview.project.title,
-        interview.project.description,
-        interview.mode as InterviewMode,
-        messages,
-        mergedData,
-        currentTurn + 1,
-        interview.maxTurns,
-        tier
-      );
+      const [extractedData, aiResponse] = await Promise.all([
+        extractDataPoints(input.content, conversationContext, existingData, tier),
+        generateNextQuestion(
+          interview.project.title,
+          interview.project.description,
+          interview.mode as InterviewMode,
+          messages,
+          existingData,
+          currentTurn + 1,
+          interview.maxTurns,
+          tier
+        ),
+      ]);
+
+      const mergedData = mergeCollectedData(existingData, extractedData, currentTurn + 1);
 
       // 6. Add assistant message
       const assistantMessage: ChatMessage = {

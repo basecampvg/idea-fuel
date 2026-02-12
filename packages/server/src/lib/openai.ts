@@ -32,7 +32,7 @@ export const openai = new Proxy({} as OpenAI, {
 
 // Default model constants (used as fallbacks when config service not initialized)
 export const INTERVIEW_MODEL = 'gpt-5.2';
-export const EXTRACTION_MODEL = 'gpt-5.2';
+export const EXTRACTION_MODEL = 'gpt-4o-mini';
 export const RESEARCH_MODEL = 'gpt-5.2';
 
 // =============================================================================
@@ -100,9 +100,9 @@ export interface AIParams {
 export const AI_PRESETS = {
   // Interview functions
   interviewQuestion: {
-    FREE: { reasoning: 'high', verbosity: 'low' },
-    PRO: { reasoning: 'high', verbosity: 'low' },
-    ENTERPRISE: { reasoning: 'high', verbosity: 'low' },
+    FREE: { reasoning: 'medium', verbosity: 'low' },
+    PRO: { reasoning: 'medium', verbosity: 'low' },
+    ENTERPRISE: { reasoning: 'medium', verbosity: 'low' },
   },
   dataExtraction: {
     FREE: { reasoning: 'medium', verbosity: 'medium' },
