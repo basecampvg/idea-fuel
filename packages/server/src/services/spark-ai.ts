@@ -310,11 +310,7 @@ ${competitorResult ? JSON.stringify(competitorResult, null, 2) : 'UNAVAILABLE - 
   }
 
   // Validate JSON completeness before parsing
-  try {
-    validateJsonCompleteness(content, 'synthesizeSparkResults');
-  } catch (truncationError) {
-    throw truncationError;
-  }
+  validateJsonCompleteness(content, 'synthesizeSparkResults');
 
   // Try direct parse first, then isolate JSON if needed (handles markdown code fences)
   let parsed: Record<string, unknown>;
@@ -546,7 +542,7 @@ export async function runSparkPipeline(
   // Call 5: Synthesize results
   // =========================================================================
   await onStatusChange?.('SYNTHESIZING');
-  let result = await synthesizeSparkResults(
+  const result = await synthesizeSparkResults(
     ideaDescription,
     keywords,
     demandResult,
@@ -830,7 +826,7 @@ async function runSparkPipelineLegacy(
 
   // Single research call
   await onStatusChange?.('RUNNING_RESEARCH');
-  let result = await runSparkResearchLegacy(ideaDescription, keywords);
+  const result = await runSparkResearchLegacy(ideaDescription, keywords);
 
   // SerpAPI trends
   if (includeTrends && keywords.phrases.length > 0) {

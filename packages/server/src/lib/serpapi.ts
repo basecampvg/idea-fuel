@@ -770,29 +770,31 @@ export async function fetchRelatedRisingQueries(
   const allRelated = new Set<string>();
   const bySource = new Map<string, string[]>();
 
-  console.log(`[SerpAPI] fetchRelatedRisingQueries expanding ${queries.length} seed queries...`);
+  console.log(`[SerpAPI] fetchRelatedRisingQueries expanding ${queries.length} seed queries (parallel)...`);
 
-  for (const query of queries) {
-    try {
+  // Fire all SerpAPI calls in parallel instead of sequentially
+  const results = await Promise.allSettled(
+    queries.map(async (query) => {
       const relatedData = await fetchRelatedData(
         query,
         { geo, timeRange },
         config
       );
-
-      // Only collect RISING queries (not top) - these are more likely to be emerging pain points
       const risingQueries = relatedData.queries
         .filter((r) => r.type === 'rising' && r.query)
         .map((r) => r.query!.toLowerCase());
+      return { query, risingQueries };
+    })
+  );
 
-      if (risingQueries.length > 0) {
-        bySource.set(query, risingQueries);
-        for (const rq of risingQueries) {
-          allRelated.add(rq);
-        }
+  for (const result of results) {
+    if (result.status === 'fulfilled' && result.value.risingQueries.length > 0) {
+      bySource.set(result.value.query, result.value.risingQueries);
+      for (const rq of result.value.risingQueries) {
+        allRelated.add(rq);
       }
-    } catch (error) {
-      console.warn(`[SerpAPI] Failed to fetch related rising queries for "${query}":`, error);
+    } else if (result.status === 'rejected') {
+      console.warn(`[SerpAPI] Failed to fetch related rising queries:`, result.reason);
     }
   }
 

@@ -477,23 +477,23 @@ export async function runChunkedDeepResearch(
     .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
     .join('\n\n');
 
-  // Run query expansion once (shared across all chunks)
+  // Fire off query expansion concurrently — don't block the first research chunk.
+  // The expansion result will enrich chunks 2+ while chunk 1 starts immediately.
   const keyPhrases = extractKeyPhrases(ideaTitle, ideaDescription);
   let expansionContext = '';
-  try {
-    const expansion = await expandQueries(keyPhrases, [], {
-      maxTemplateQueries: 20,
-      maxSerpApiQueries: 8,
-      serpApiEnabled: true,
-    });
+  const expansionPromise = expandQueries(keyPhrases, [], {
+    maxTemplateQueries: 20,
+    maxSerpApiQueries: 8,
+    serpApiEnabled: true,
+  }).then((expansion) => {
     if (expansion.totalUnique > 0) {
       const expandedStrings = getExpandedQueryStrings(expansion);
       expansionContext = formatQueriesForPrompt(expandedStrings, 'ADDITIONAL SEARCH ANGLES');
       console.log(`[Chunked Research] Query expansion: ${expansion.totalUnique} queries (${expansion.templateCount} template, ${expansion.serpApiCount} SerpAPI) in ${expansion.elapsedMs}ms`);
     }
-  } catch (err) {
+  }).catch((err) => {
     console.warn('[Chunked Research] Query expansion failed (non-fatal):', err instanceof Error ? err.message : err);
-  }
+  });
 
   // Process each chunk sequentially
   for (let i = 0; i < RESEARCH_CHUNKS.length; i++) {
@@ -504,6 +504,11 @@ export async function runChunkedDeepResearch(
       console.log(`[Chunked Research] Skipping ${chunk.name} (already completed)`);
       await onProgress?.('DEEP_RESEARCH', chunk.progressEnd);
       continue;
+    }
+
+    // Wait for expansion before chunk 2+ (chunk 1 proceeds without it)
+    if (i === 1) {
+      await expansionPromise;
     }
 
     console.log(`[Chunked Research] === Starting: ${chunk.name} ===`);

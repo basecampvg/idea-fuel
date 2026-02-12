@@ -196,7 +196,7 @@ export function getUpgradePromptContent(
         recommendedTier: currentTier === 'FREE' ? 'PRO' : 'ENTERPRISE',
       };
 
-    case 'report_tier':
+    case 'report_tier': {
       const tierName = reason.tier === 'FULL' ? 'Full' : 'Pro';
       return {
         title: `Unlock ${tierName} Reports`,
@@ -209,6 +209,7 @@ export function getUpgradePromptContent(
         ],
         recommendedTier: reason.tier === 'FULL' ? 'ENTERPRISE' : 'PRO',
       };
+    }
 
     case 'feature':
     default:

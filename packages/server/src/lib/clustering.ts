@@ -116,7 +116,7 @@ function agglomerativeClustering(
   const n = queries.length;
 
   // Each query starts in its own cluster
-  let clusters: Set<number>[] = queries.map((_, i) => new Set([i]));
+  const clusters: Set<number>[] = queries.map((_, i) => new Set([i]));
 
   // Keep merging until no pair exceeds threshold
   let merged = true;

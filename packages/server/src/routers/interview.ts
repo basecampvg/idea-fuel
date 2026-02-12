@@ -287,6 +287,7 @@ export const interviewRouter = router({
               id: true,
               title: true,
               description: true,
+              notes: true,
             },
           },
         },
@@ -343,7 +344,7 @@ export const interviewRouter = router({
       // and dynamic gap-fill with slightly stale data has negligible impact)
       const existingData = (interview.collectedData as Partial<InterviewDataPoints>) || {};
 
-      const [extractedData, aiResponse] = await Promise.all([
+      const [extractedData, { text: aiResponse, isClosing }] = await Promise.all([
         extractDataPoints(input.content, conversationContext, existingData, tier),
         generateNextQuestion(
           interview.project.title,
@@ -385,6 +386,122 @@ export const interviewRouter = router({
         })
         .where(eq(interviews.id, input.interviewId))
         .returning();
+
+      // 9. Auto-complete if this was the closing turn
+      if (isClosing) {
+        const filledFields = Object.values(mergedData).filter((v) => v !== null && v !== undefined).length;
+        const totalFields = 42;
+        const confidenceScore = Math.min(100, Math.round((filledFields / totalFields) * 100));
+        const summary = `Interview completed with ${currentTurn + 1} turns. ${filledFields}/${totalFields} data points collected.`;
+
+        const [completedInterview] = await ctx.db
+          .update(interviews)
+          .set({ status: 'COMPLETE', summary, confidenceScore })
+          .where(eq(interviews.id, input.interviewId))
+          .returning();
+
+        logAuditAsync({
+          userId: ctx.userId,
+          action: 'INTERVIEW_COMPLETE',
+          resource: formatResource('interview', interview.id),
+          metadata: { projectId: interview.projectId, confidenceScore, turnsUsed: currentTurn + 1 },
+        });
+
+        // Update project status to researching
+        await ctx.db.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, interview.projectId));
+
+        // Create research record and start pipeline
+        const [researchRecord] = await ctx.db.insert(research).values({
+          projectId: interview.projectId,
+          status: 'IN_PROGRESS',
+          currentPhase: 'DEEP_RESEARCH',
+          progress: 0,
+          startedAt: new Date(),
+          notesSnapshot: interview.project.notes,
+        }).returning();
+
+        const researchInput: ResearchInput = {
+          ideaTitle: interview.project.title,
+          ideaDescription: interview.project.description,
+          interviewData: mergedData as Partial<InterviewDataPoints> | null,
+          interviewMessages: messages,
+        };
+
+        // Run pipeline in background (non-blocking)
+        const researchId = researchRecord.id;
+        const projectId = interview.projectId;
+
+        (async () => {
+          let bgPhase: 'QUEUED' | 'DEEP_RESEARCH' | 'SOCIAL_RESEARCH' | 'SYNTHESIS' | 'REPORT_GENERATION' | 'BUSINESS_PLAN_GENERATION' | 'COMPLETE' = 'DEEP_RESEARCH';
+
+          try {
+            const result = await runResearchPipeline(researchInput, async (phase, progress) => {
+              bgPhase = phase as typeof bgPhase;
+              await db
+                .update(research)
+                .set({ currentPhase: phase as typeof bgPhase, progress })
+                .where(eq(research.id, researchId));
+            }, tier);
+
+            await db
+              .update(research)
+              .set({
+                status: 'COMPLETE',
+                currentPhase: 'COMPLETE',
+                progress: 100,
+                completedAt: new Date(),
+                generatedQueries: result.queries as object,
+                synthesizedInsights: result.insights as object,
+                marketAnalysis: result.insights.marketAnalysis as object,
+                competitors: result.insights.competitors as object[],
+                painPoints: result.insights.painPoints as object[],
+                positioning: result.insights.positioning as object,
+                whyNow: result.insights.whyNow as object,
+                proofSignals: result.insights.proofSignals as object,
+                keywords: result.insights.keywords as object,
+                ...(result.scores ? {
+                  opportunityScore: result.scores.opportunityScore,
+                  problemScore: result.scores.problemScore,
+                  feasibilityScore: result.scores.feasibilityScore,
+                  whyNowScore: result.scores.whyNowScore,
+                  scoreJustifications: result.scores.justifications as object,
+                  scoreMetadata: result.scores.metadata as object,
+                } : {}),
+                ...(result.metrics ? {
+                  revenuePotential: result.metrics.revenuePotential as object,
+                  executionDifficulty: result.metrics.executionDifficulty as object,
+                  gtmClarity: result.metrics.gtmClarity as object,
+                  founderFit: result.metrics.founderFit as object,
+                } : {}),
+                ...(result.userStory ? { userStory: result.userStory as object } : {}),
+                keywordTrends: result.keywordTrends as object[],
+                ...(result.valueLadder ? { valueLadder: result.valueLadder as object[] } : {}),
+                ...(result.actionPrompts ? { actionPrompts: result.actionPrompts as object[] } : {}),
+                socialProof: result.socialProof as object,
+              })
+              .where(eq(research.id, researchId));
+
+            await db.update(projects).set({ status: 'COMPLETE' }).where(eq(projects.id, projectId));
+          } catch (error) {
+            await db
+              .update(research)
+              .set({
+                status: 'FAILED',
+                errorMessage: error instanceof Error ? error.message : 'Unknown error',
+                errorPhase: bgPhase,
+              })
+              .where(eq(research.id, researchId));
+            await db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, projectId)).catch(() => {});
+          }
+        })();
+
+        return {
+          interview: { ...completedInterview, project: interview.project },
+          userMessage,
+          assistantMessage,
+          extractedData: Object.keys(extractedData),
+        };
+      }
 
       // Return with project relation attached
       const updatedInterview = { ...updated, project: interview.project };

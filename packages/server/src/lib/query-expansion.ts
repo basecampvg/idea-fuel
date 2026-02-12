@@ -20,7 +20,7 @@ export interface ExpansionConfig {
   maxTemplateQueries: number;    // default: 30
   maxSerpApiQueries: number;     // default: 15
   serpApiEnabled: boolean;       // default: true, false when budget exhausted
-  timeoutMs: number;             // default: 60000 (60s max for expansion)
+  timeoutMs: number;             // default: 15000 (15s max for expansion)
   phrasesToExpand: number;       // default: 3 (expand top N phrases)
 }
 
@@ -28,7 +28,7 @@ const DEFAULT_CONFIG: ExpansionConfig = {
   maxTemplateQueries: 30,
   maxSerpApiQueries: 15,
   serpApiEnabled: true,
-  timeoutMs: 60000,
+  timeoutMs: 15000,
   phrasesToExpand: 3,
 };
 

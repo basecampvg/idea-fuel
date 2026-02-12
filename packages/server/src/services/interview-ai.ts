@@ -418,7 +418,7 @@ export async function generateOpeningQuestion(
             content: 'Please start the discovery interview with your first question.',
           },
         ],
-        max_output_tokens: 300,
+        max_output_tokens: 500,
       }, aiParams)
     );
 
@@ -449,7 +449,7 @@ export async function generateNextQuestion(
   currentTurn: number,
   maxTurns: number,
   tier: SubscriptionTier = 'ENTERPRISE'
-): Promise<string> {
+): Promise<{ text: string; isClosing: boolean }> {
   const scriptedQuestions = getScriptedQuestionsForMode(mode);
   const scriptedCount = scriptedQuestions.length;
   const phase = getPhase(currentTurn, scriptedCount, maxTurns);
@@ -458,8 +458,10 @@ export async function generateNextQuestion(
   const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user')?.content ?? null;
 
   let systemPrompt: string;
+  let isClosing = false;
 
   if (phase === 'closing') {
+    isClosing = true;
     systemPrompt = buildClosingPrompt(ideaTitle, collectedData, currentTurn, maxTurns);
   } else if (phase === 'scripted') {
     const question = scriptedQuestions[currentTurn];
@@ -493,6 +495,7 @@ export async function generateNextQuestion(
       );
     } else {
       // No gaps — go to closing early
+      isClosing = true;
       systemPrompt = buildClosingPrompt(ideaTitle, collectedData, currentTurn, maxTurns);
     }
   }
@@ -513,7 +516,7 @@ export async function generateNextQuestion(
           { role: 'system', content: systemPrompt },
           ...conversationHistory,
         ],
-        max_output_tokens: 300,
+        max_output_tokens: 500,
       }, aiParams)
     );
 
@@ -533,7 +536,7 @@ export async function generateNextQuestion(
             { role: 'system', content: systemPrompt },
             ...conversationHistory,
           ],
-          max_output_tokens: 300,
+          max_output_tokens: 500,
         }, aiParams)
       );
 
@@ -547,10 +550,10 @@ export async function generateNextQuestion(
         console.error('[Interview AI] Empty response after retry');
         throw new Error('Failed to generate interview question after retry');
       }
-      return retryText;
+      return { text: retryText, isClosing };
     }
 
-    return text;
+    return { text, isClosing };
   } catch (error) {
     console.error('[Interview AI] Error generating question:', error);
     throw error;
