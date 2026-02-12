@@ -1,4 +1,26 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'IdeationLab — Validate Your Business Idea with AI',
+  description:
+    'Stop guessing. IdeationLab uses AI-powered deep research to validate your business idea in minutes. Market analysis, competitor intel, and timing signals.',
+  metadataBase: new URL('https://ideationlab.ai'),
+  openGraph: {
+    title: 'IdeationLab — Validate Your Business Idea with AI',
+    description:
+      'Stop guessing. AI-powered market research validates your business idea in minutes, not months.',
+    url: 'https://ideationlab.ai',
+    siteName: 'IdeationLab',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'IdeationLab — Validate Your Business Idea with AI',
+    description:
+      'Stop guessing. AI-powered market research validates your business idea in minutes, not months.',
+  },
+};
 
 /**
  * Landing page layout - minimal header, no sidebar
@@ -47,7 +69,7 @@ export default function LandingLayout({
                 ? `https://app.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'ideationlab.ai'}`
                 : '/dashboard'
             }
-            className="btn-forge"
+            className="btn-ideationlab"
           >
             Launch App
           </Link>
