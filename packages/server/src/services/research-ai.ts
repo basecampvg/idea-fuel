@@ -28,6 +28,14 @@ import {
   type PollOptions,
   type ResponseStatus,
 } from '../lib/deep-research';
+import {
+  getSearchProvider,
+  getResearchProvider,
+  getExtractionProvider,
+  getGenerationProvider,
+  getBusinessPlanProvider,
+} from '../providers';
+import { z } from 'zod';
 
 // Model for post-processing tasks (interpreting research, generating reports)
 const REPORT_MODEL = 'gpt-5.2';
@@ -2459,19 +2467,125 @@ export async function fetchSocialProof(
   deepResearch: DeepResearchOutput,
   tier: SubscriptionTier = 'ENTERPRISE'
 ): Promise<SocialProof> {
-  console.log('[Social Proof] Using o3-deep-research to search social platforms...');
+  console.log('[Social Proof] Using multi-provider strategy (Brave Search + Claude Sonnet synthesis)...');
   console.log('[Social Proof] Tier:', tier);
-  console.log('[Social Proof] Domains:', SEARCH_DOMAINS.social.join(', '));
 
-  // Select model based on tier (same as deep research)
-  const model = tier === 'FREE' ? DEEP_RESEARCH_MODEL_MINI : DEEP_RESEARCH_MODEL;
-  console.log('[Social Proof] Using model:', model);
+  const startTime = Date.now();
 
-  // Pass raw research report - o3 will identify pain points itself
-  // This avoids needing to call extractInsights (GPT-5.2) before social proof
-  const researchContext = deepResearch.rawReport.substring(0, 8000);
+  try {
+    // Step 1: Get search provider (defaults to Brave Search)
+    const searchProvider = getSearchProvider();
+    console.log(`[Social Proof] Using search provider: ${searchProvider.name}`);
 
-  const systemPrompt = `You are a social media researcher specializing in finding real discussions about specific pain points.
+    // Step 2: Perform social platform search
+    const platforms = ['reddit', 'twitter', 'hackernews', 'indiehackers', 'producthunt', 'linkedin'];
+    const searchQuery = `${input.ideaTitle} ${input.ideaDescription.substring(0, 200)}`;
+
+    console.log(`[Social Proof] Searching platforms: ${platforms.join(', ')}`);
+    const searchResult = await searchProvider.searchSocial(searchQuery, platforms);
+
+    console.log(`[Social Proof] Search returned ${searchResult.totalResults} posts from ${searchResult.provider}`);
+
+    // Step 3: Validate quality thresholds
+    const minPosts = configService.getNumber('search.fallback.minPosts', 5);
+    const minWordCount = configService.getNumber('search.fallback.minWordCount', 500);
+
+    const totalWordCount = searchResult.posts.reduce((sum, post) => {
+      return sum + (post.content?.split(/\s+/).length || 0);
+    }, 0);
+
+    const qualityPassed = searchResult.totalResults >= minPosts && totalWordCount >= minWordCount;
+
+    console.log(`[Social Proof] Quality check: ${searchResult.totalResults} posts, ${totalWordCount} words (need ${minPosts}/${minWordCount})`);
+    console.log(`[Social Proof] Quality passed: ${qualityPassed}`);
+
+    // Step 4: If quality passes, synthesize with Claude Sonnet
+    if (qualityPassed && searchProvider.name === 'brave') {
+      console.log('[Social Proof] Using Claude Sonnet for synthesis...');
+
+      const extractionProvider = getExtractionProvider(tier);
+      const researchContext = deepResearch.rawReport.substring(0, 8000);
+
+      // Format posts for synthesis
+      const postsContext = searchResult.posts.map((post, i) =>
+        `[${i + 1}] Platform: ${post.platform}\nAuthor: ${post.author}\nContent: ${post.content}\nURL: ${post.url}\nEngagement: ${JSON.stringify(post.engagement)}\nDate: ${post.date}\n`
+      ).join('\n---\n');
+
+      const synthesisPrompt = `## MARKET RESEARCH CONTEXT
+${researchContext}
+
+## SOCIAL PROOF DATA
+Found ${searchResult.posts.length} relevant posts from social platforms:
+
+${postsContext}
+
+## YOUR TASK
+Analyze these social media posts and synthesize insights about:
+1. Which pain points from the research are validated by real discussions
+2. What demand signals exist (people asking for solutions, willing to pay, etc.)
+3. Overall sentiment and market validation
+
+Return your analysis as JSON:
+{
+  "posts": [
+    {
+      "platform": "reddit|twitter|hackernews|indiehackers|producthunt|linkedin",
+      "author": "username",
+      "content": "post content (100-300 chars)",
+      "url": "https://...",
+      "engagement": { "upvotes": 0, "comments": 0, "likes": 0 },
+      "date": "YYYY-MM-DD",
+      "sentiment": "negative|neutral|positive",
+      "relevanceScore": 0-100
+    }
+  ],
+  "summary": "2-3 sentence summary of what the social proof reveals",
+  "painPointsValidated": ["List of pain points confirmed by real discussions"],
+  "demandSignals": ["Specific demand signals found"]
+}`;
+
+      const SocialProofSchema = z.object({
+        posts: z.array(z.object({
+          platform: z.enum(['reddit', 'twitter', 'facebook', 'hackernews', 'indiehackers', 'producthunt', 'linkedin']),
+          author: z.string(),
+          content: z.string(),
+          url: z.string(),
+          engagement: z.object({
+            upvotes: z.number().optional(),
+            comments: z.number().optional(),
+            likes: z.number().optional(),
+          }).optional(),
+          date: z.string(),
+          sentiment: z.enum(['negative', 'neutral', 'positive']),
+          relevanceScore: z.number(),
+        })),
+        summary: z.string(),
+        painPointsValidated: z.array(z.string()),
+        demandSignals: z.array(z.string()),
+      });
+
+      const synthesized = await extractionProvider.extract(synthesisPrompt, SocialProofSchema, {
+        maxTokens: 16000,
+        temperature: 1.0,
+      });
+
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      console.log(`[Social Proof] Synthesis complete after ${elapsed}s`);
+      console.log(`[Social Proof] Synthesized ${synthesized.posts.length} posts`);
+
+      return {
+        ...synthesized,
+        sources: searchResult.sources,
+      };
+    }
+
+    // Step 5: Fallback to OpenAI deep research if quality insufficient or OpenAI provider
+    console.log('[Social Proof] Quality insufficient or using OpenAI provider - falling back to deep research...');
+
+    const model = tier === 'FREE' ? DEEP_RESEARCH_MODEL_MINI : DEEP_RESEARCH_MODEL;
+    const researchContext = deepResearch.rawReport.substring(0, 8000);
+
+    const systemPrompt = `You are a social media researcher specializing in finding real discussions about specific pain points.
 Your task is to search social platforms and find authentic posts where real people discuss problems, frustrations, or needs related to the given business idea.
 
 ## MARKET RESEARCH CONTEXT
@@ -2505,7 +2619,7 @@ Focus on finding posts that:
 
 Be thorough in your search. Find 4-10 highly relevant posts.`;
 
-  const userQuery = `## BUSINESS IDEA
+    const userQuery = `## BUSINESS IDEA
 **Title:** ${input.ideaTitle}
 **Description:** ${input.ideaDescription}
 
@@ -2533,62 +2647,47 @@ Return your findings as JSON:
   "demandSignals": ["Specific demand signals found (e.g., 'people asking for X', 'willing to pay for Y')"]
 }`;
 
-  // Convert readonly array to mutable array for the API call
-  const socialDomains = [...SEARCH_DOMAINS.social];
+    const socialDomains = [...SEARCH_DOMAINS.social];
 
-  const startTime = Date.now();
-
-  try {
     const params = createDeepResearchParams({
       model,
       systemPrompt,
       userQuery,
       domains: socialDomains,
-      background: true, // Use background mode to avoid HTTP timeouts
+      background: true,
       reasoningSummary: 'auto',
     });
 
-    // Use background mode + polling (same as deep research) to avoid timeout issues
-    // Social proof uses o3-deep-research which can take several minutes
     const result = await runDeepResearchWithPolling(params, {
-      pollIntervalMs: 10000, // 10 second intervals
-      maxWaitMs: 900000, // 15 minute SLA for social proof
-      onLog: (message) => console.log(`[Social Proof] ${message}`),
+      pollIntervalMs: 10000,
+      maxWaitMs: 900000,
+      onLog: (message) => console.log(`[Social Proof Fallback] ${message}`),
       onProgress: (status, elapsed) => {
-        if (elapsed > 0 && elapsed % 30000 < 10000) { // Log every ~30 seconds
-          console.log(`[Social Proof] Status: ${status} (${Math.round(elapsed/1000)}s elapsed)`);
+        if (elapsed > 0 && elapsed % 30000 < 10000) {
+          console.log(`[Social Proof Fallback] Status: ${status} (${Math.round(elapsed/1000)}s elapsed)`);
         }
       },
     });
 
     const elapsed = Math.round((Date.now() - startTime) / 1000);
-    console.log(`[Social Proof] Search complete after ${elapsed}s`);
-    console.log(`[Social Proof] Raw content length: ${result.content?.length || 0} chars`);
-    console.log(`[Social Proof] Raw content preview: ${result.content?.substring(0, 500) || 'EMPTY'}`);
+    console.log(`[Social Proof Fallback] Search complete after ${elapsed}s`);
 
-    // Try to extract JSON from the response content
+    // Parse JSON response
     let socialProofData: Omit<SocialProof, 'sources'>;
     try {
-      // The model should return JSON, but might wrap it in markdown
-      // Use non-greedy match to get the first complete JSON object
       const jsonMatch = result.content.match(/\{[\s\S]*?\}(?=\s*$|\s*```|\s*\n\n)/);
       if (!jsonMatch) {
-        // Fallback: try greedy match for single JSON object
         const greedyMatch = result.content.match(/\{[\s\S]*\}/);
         if (greedyMatch) {
-          console.log(`[Social Proof] Using greedy JSON match (${greedyMatch[0].length} chars)`);
           socialProofData = JSON.parse(greedyMatch[0]);
         } else {
           throw new Error('No JSON found in response');
         }
       } else {
-        console.log(`[Social Proof] JSON extracted (${jsonMatch[0].length} chars)`);
         socialProofData = JSON.parse(jsonMatch[0]);
       }
     } catch (parseError) {
-      console.warn('[Social Proof] Could not parse JSON from response:', parseError instanceof Error ? parseError.message : parseError);
-      console.warn('[Social Proof] Full response content:', result.content);
-      // Fallback: create structure from raw response
+      console.warn('[Social Proof Fallback] Could not parse JSON:', parseError instanceof Error ? parseError.message : parseError);
       socialProofData = {
         posts: [],
         summary: result.content.substring(0, 500),
@@ -2597,8 +2696,7 @@ Return your findings as JSON:
       };
     }
 
-    console.log('[Social Proof] Found', socialProofData.posts?.length || 0, 'posts');
-    console.log('[Social Proof] Citations:', result.citations.length);
+    console.log('[Social Proof Fallback] Found', socialProofData.posts?.length || 0, 'posts');
 
     return {
       ...socialProofData,
@@ -2610,7 +2708,6 @@ Return your findings as JSON:
     };
   } catch (error) {
     console.error('[Social Proof] Search failed:', error);
-    // Fallback to empty social proof rather than failing the pipeline
     return {
       posts: [],
       summary: 'Social proof search encountered an error. Manual research recommended.',
