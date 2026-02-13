@@ -550,6 +550,62 @@ body {
   opacity: 0.8;
 }
 
+/* ===== LANDING PAGE GLASSMORPHISM ===== */
+
+.landing-glass {
+  background: hsl(0 0% 100% / 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid hsl(0 0% 100% / 0.08);
+  border-radius: 16px;
+  padding: 24px;
+  transition: all var(--transition-smooth);
+}
+
+.landing-glass:hover {
+  background: hsl(0 0% 100% / 0.06);
+  border-color: hsl(0 0% 100% / 0.12);
+}
+
+.landing-glass-strong {
+  background: hsl(0 0% 100% / 0.08);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid hsl(0 0% 100% / 0.12);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+/* Mobile: reduce blur for GPU performance */
+@media (max-width: 768px) {
+  .landing-glass,
+  .landing-glass-strong {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* Gradient glow orbs - decorative background elements */
+.glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.glow-orb-primary {
+  background: hsl(160 84% 44%);
+}
+
+.glow-orb-accent {
+  background: hsl(160 60% 55%);
+}
+
+.glow-orb-warm {
+  background: hsl(180 70% 45%);
+}
+
 /* ===== ANIMATIONS ===== */
 
 @keyframes fade-in-up {

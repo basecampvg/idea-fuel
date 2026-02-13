@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 
 /**
  * Landing page layout - minimal header, no sidebar
- * Used for root domain (ideationlab.ai)
+ * Forces dark mode + overrides accent to IdeationLab orange
  */
 export default function LandingLayout({
   children,
@@ -33,7 +33,7 @@ export default function LandingLayout({
 }) {
   return (
     <div
-      className="min-h-screen bg-background"
+      className="dark min-h-screen bg-background"
       style={{
         // Override theme colors for landing page with logo orange (#f15a29)
         ['--primary' as string]: '15 85% 55%',
@@ -41,8 +41,8 @@ export default function LandingLayout({
         ['--gradient-accent' as string]: 'linear-gradient(135deg, hsl(15, 85%, 55%) 0%, hsl(15, 70%, 60%) 50%, hsl(25, 90%, 65%) 100%)',
       }}
     >
-      {/* Minimal fixed header */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-5 bg-background/80 backdrop-blur-md border-b border-border/50">
+      {/* Minimal fixed header with glassmorphism */}
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-background/80 px-6 py-5 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center">
@@ -71,7 +71,7 @@ export default function LandingLayout({
       <main>{children}</main>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 px-6 py-8">
+      <footer className="border-t border-white/5 px-6 py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
           <p className="text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} IdeationLab. All rights reserved.
