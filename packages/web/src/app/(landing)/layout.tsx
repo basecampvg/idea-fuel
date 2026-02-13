@@ -41,7 +41,7 @@ export default function LandingLayout({
             <img
               src="/logo.svg"
               alt="IdeationLab"
-              className="h-10 w-auto"
+              className="h-16 w-auto sm:h-20"
             />
           </Link>
 
