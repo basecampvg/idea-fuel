@@ -37,29 +37,12 @@ export default function LandingLayout({
       <header className="fixed top-0 left-0 right-0 z-50 px-6 py-5">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 32 32"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="text-primary"
-            >
-              <path
-                d="M16 2L4 28h8l4-12 4 12h8L16 2z"
-                fill="currentColor"
-                fillOpacity="0.9"
-              />
-              <path
-                d="M16 8l-6 16h4l2-6 2 6h4L16 8z"
-                fill="currentColor"
-                fillOpacity="0.5"
-              />
-            </svg>
-            <span className="font-display text-xl font-semibold tracking-tight text-foreground">
-              IdeationLab
-            </span>
+          <Link href="/" className="flex items-center">
+            <img
+              src="/logo.svg"
+              alt="IdeationLab"
+              className="h-10 w-auto"
+            />
           </Link>
 
           {/* CTA */}
