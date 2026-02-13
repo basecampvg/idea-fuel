@@ -84,6 +84,98 @@ export const DEFAULT_CONFIGS: ConfigDefinition[] = [
   },
 
   // =========================================================================
+  // Provider Configuration
+  // =========================================================================
+  {
+    key: 'search.provider',
+    value: 'brave',
+    type: 'SELECT',
+    category: 'providers',
+    label: 'Search Provider',
+    description: 'Primary search provider for social proof scraping',
+    options: [
+      { value: 'brave', label: 'Brave Search' },
+      { value: 'openai', label: 'OpenAI web_search_preview' },
+    ],
+  },
+  {
+    key: 'search.fallback.provider',
+    value: 'openai',
+    type: 'SELECT',
+    category: 'providers',
+    label: 'Search Fallback Provider',
+    description: 'Fallback search provider when primary returns insufficient results',
+    options: [
+      { value: 'openai', label: 'OpenAI web_search_preview' },
+      { value: 'brave', label: 'Brave Search' },
+    ],
+  },
+  {
+    key: 'search.fallback.minPosts',
+    value: 5,
+    type: 'NUMBER',
+    category: 'providers',
+    label: 'Minimum Posts for Quality',
+    description: 'Minimum social proof posts to avoid fallback',
+  },
+  {
+    key: 'search.fallback.minWordCount',
+    value: 500,
+    type: 'NUMBER',
+    category: 'providers',
+    label: 'Minimum Word Count for Quality',
+    description: 'Minimum total word count to avoid fallback',
+  },
+  {
+    key: 'ai.research.provider',
+    value: 'openai',
+    type: 'SELECT',
+    category: 'providers',
+    label: 'Research Provider',
+    description: 'AI provider for deep research tasks',
+    options: [
+      { value: 'openai', label: 'OpenAI (o3-deep-research)' },
+      { value: 'anthropic', label: 'Anthropic (Claude Opus + Brave Search)' },
+    ],
+  },
+  {
+    key: 'ai.extraction.provider',
+    value: 'anthropic',
+    type: 'SELECT',
+    category: 'providers',
+    label: 'Extraction Provider',
+    description: 'AI provider for structured data extraction',
+    options: [
+      { value: 'anthropic', label: 'Anthropic (Claude Sonnet)' },
+      { value: 'openai', label: 'OpenAI (GPT-5.2)' },
+    ],
+  },
+  {
+    key: 'ai.generation.provider',
+    value: 'anthropic',
+    type: 'SELECT',
+    category: 'providers',
+    label: 'Generation Provider',
+    description: 'AI provider for creative content generation',
+    options: [
+      { value: 'anthropic', label: 'Anthropic (Claude Sonnet)' },
+      { value: 'openai', label: 'OpenAI (GPT-5.2)' },
+    ],
+  },
+  {
+    key: 'ai.businessPlan.provider',
+    value: 'anthropic',
+    type: 'SELECT',
+    category: 'providers',
+    label: 'Business Plan Provider',
+    description: 'AI provider for business plan generation (long-form writing)',
+    options: [
+      { value: 'anthropic', label: 'Anthropic (Claude Opus)' },
+      { value: 'openai', label: 'OpenAI (GPT-5.2)' },
+    ],
+  },
+
+  // =========================================================================
   // AI Parameters
   // =========================================================================
   {
