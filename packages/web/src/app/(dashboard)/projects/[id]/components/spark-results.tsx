@@ -106,12 +106,12 @@ const tamCardStyles = {
   base: {
     gradient: 'from-primary/20 to-primary/5',
     border: 'border-primary/30',
-    accent: 'hsl(160, 84%, 44%)',
+    accent: 'hsl(10, 80%, 50%)',
   },
   high: {
     gradient: 'from-primary/20 to-primary/5',
     border: 'border-primary/30',
-    accent: 'hsl(160, 84%, 44%)',
+    accent: 'hsl(10, 80%, 50%)',
   },
 };
 

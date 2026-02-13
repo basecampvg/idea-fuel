@@ -18,7 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { trpc } from '../../../../lib/trpc';
 import { INTERVIEW_MODE_LABELS } from '@forge/shared';
 
-// Forge Design System Colors
+// ideationLab Design System Colors
 const colors = {
   background: '#11100E',
   card: '#1A1918',

@@ -539,7 +539,7 @@ export function getPDFFilename(projectTitle: string, reportType: ReportType): st
   const typeLabel = reportType.toLowerCase().replace(/_/g, '-');
   const date = new Date().toISOString().split('T')[0];
 
-  return `forge-${sanitizedTitle}-${typeLabel}-${date}.pdf`;
+  return `ideationlab-${sanitizedTitle}-${typeLabel}-${date}.pdf`;
 }
 
 export type { GeneratePDFOptions, ReportType, ReportTier };

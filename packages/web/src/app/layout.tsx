@@ -31,19 +31,19 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'Forge Automation',
-    template: '%s | Forge',
+    default: 'ideationLab',
+    template: '%s | ideationLab',
   },
-  description: 'AI-powered business automation platform',
+  description: 'AI-powered business validation platform',
   openGraph: {
-    title: 'Forge Automation',
-    description: 'AI-powered business automation platform',
+    title: 'ideationLab',
+    description: 'AI-powered business validation platform',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Forge Automation',
-    description: 'AI-powered business automation platform',
+    title: 'ideationLab',
+    description: 'AI-powered business validation platform',
   },
 };
 

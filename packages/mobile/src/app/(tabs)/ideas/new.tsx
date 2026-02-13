@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { trpc } from '../../../lib/trpc';
 import { INTERVIEW_MODE_LABELS, INTERVIEW_MODE_DESCRIPTIONS, InterviewMode } from '@forge/shared';
 
-// Forge Design System Colors
+// ideationLab Design System Colors
 const colors = {
   background: '#11100E',
   card: '#1A1918',

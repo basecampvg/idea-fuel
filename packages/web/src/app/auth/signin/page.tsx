@@ -41,8 +41,8 @@ function SignInContent() {
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#0a0a0a]">
         {/* LightPillar Background */}
         <LightPillar
-          topColor="hsl(160, 84%, 44%)"
-          bottomColor="hsl(160, 60%, 55%)"
+          topColor="hsl(10, 80%, 50%)"
+          bottomColor="hsl(10, 70%, 55%)"
           intensity={0.2}
           rotationSpeed={0.1}
           interactive={false}
@@ -85,7 +85,7 @@ function SignInContent() {
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
-            <span className="text-lg font-semibold text-white tracking-tight">FORGE</span>
+            <span className="text-lg font-semibold text-white tracking-tight">ideationLab</span>
           </div>
         </div>
 
@@ -96,7 +96,7 @@ function SignInContent() {
             <div className="mb-8">
               <h1 className="text-2xl font-semibold text-white">Welcome back</h1>
               <p className="mt-2 text-sm text-white/50">
-                Sign in to your account to continue your journey with Forge
+                Sign in to your account to continue your journey with ideationLab
               </p>
             </div>
 
@@ -216,7 +216,7 @@ function SignInContent() {
 
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-[hsl(160,70%,38%)] transition-colors"
+                className="w-full py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-[hsl(10,70%,45%)] transition-colors"
               >
                 Sign in
               </button>
@@ -234,7 +234,7 @@ function SignInContent() {
         {/* Bottom Footer */}
         <div className="p-8 lg:p-12 text-center lg:text-right">
           <p className="text-xs text-white/30">
-            Powered by <span className="text-white/50">Forge</span>
+            Powered by <span className="text-white/50">ideationLab</span>
           </p>
         </div>
       </div>

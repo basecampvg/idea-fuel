@@ -45,17 +45,17 @@ const cardStyles: Record<string, { gradient: string; border: string; accent: str
   tam: {
     gradient: 'from-primary/20 to-primary/5',
     border: 'border-primary/30',
-    accent: 'hsl(160, 84%, 44%)',
+    accent: 'hsl(10, 80%, 50%)',
   },
   sam: {
     gradient: 'from-primary/15 to-primary/5',
     border: 'border-primary/25',
-    accent: 'hsl(160, 60%, 55%)',
+    accent: 'hsl(10, 70%, 55%)',
   },
   som: {
     gradient: 'from-primary/20 to-primary/5',
     border: 'border-primary/30',
-    accent: 'hsl(160, 84%, 44%)',
+    accent: 'hsl(10, 80%, 50%)',
   },
 };
 
@@ -115,7 +115,7 @@ function SegmentBar({
   segment: MarketSegmentBreakdown;
   index: number;
 }) {
-  const colors = ['hsl(160, 84%, 44%)', 'hsl(160, 60%, 55%)', 'hsl(160, 40%, 65%)', 'hsl(160, 50%, 60%)', 'hsl(160, 30%, 70%)'];
+  const colors = ['hsl(10, 80%, 50%)', 'hsl(10, 70%, 55%)', 'hsl(10, 50%, 65%)', 'hsl(10, 60%, 60%)', 'hsl(10, 40%, 70%)'];
   const color = colors[index % colors.length];
 
   return (
@@ -154,7 +154,7 @@ export function MarketSizing({
   return (
     <CollapsibleSection
       icon={<PieChart className="w-5 h-5 text-primary/70" />}
-      iconBgColor="hsla(160, 84%, 44%, 0.2)"
+      iconBgColor="hsla(10, 80%, 50%, 0.2)"
       title={title}
       subtitle={subtitle}
       defaultCollapsed={false}

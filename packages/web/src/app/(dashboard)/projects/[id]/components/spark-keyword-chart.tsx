@@ -224,8 +224,8 @@ export function SparkKeywordChart({
             <defs>
               {/* Gradient for area fill */}
               <linearGradient id="sparkPinkGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(160, 84%, 44%)" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="hsl(160, 84%, 44%)" stopOpacity={0} />
+                <stop offset="0%" stopColor="hsl(10, 80%, 50%)" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="hsl(10, 80%, 50%)" stopOpacity={0} />
               </linearGradient>
               {/* Glow filter for line */}
               <filter id="sparkGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -270,7 +270,7 @@ export function SparkKeywordChart({
             <Area
               type="monotone"
               dataKey="value"
-              stroke="hsl(160, 84%, 44%)"
+              stroke="hsl(10, 80%, 50%)"
               strokeWidth={2}
               fill="url(#sparkPinkGradient)"
               filter="url(#sparkGlow)"

@@ -4,7 +4,7 @@ import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-// Forge Design System Colors
+// ideationLab Design System Colors
 const colors = {
   background: '#11100E',
   card: '#1A1918',

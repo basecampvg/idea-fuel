@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, TextInputProps, StyleSheet, ViewStyle } from 'react-native';
 
-// Forge Design System Colors
+// ideationLab Design System Colors
 const colors = {
   background: '#11100E',
   card: '#1A1918',

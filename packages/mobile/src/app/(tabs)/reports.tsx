@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { trpc } from '../../lib/trpc';
 import { REPORT_TYPE_LABELS, REPORT_STATUS_LABELS, ReportType } from '@forge/shared';
 
-// Forge Design System Colors
+// ideationLab Design System Colors
 const colors = {
   background: '#11100E',
   card: '#1A1918',

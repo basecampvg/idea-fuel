@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 const DEV_BYPASS_AUTH = process.env.NODE_ENV === 'development';
 const DEV_USER = {
   id: 'dev-user-id-12345',
-  email: 'dev@forge.local',
+  email: 'dev@ideationlab.local',
   name: 'Developer',
   image: null,
 };

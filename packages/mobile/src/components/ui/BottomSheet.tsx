@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Forge Design System Colors
+// ideationLab Design System Colors
 const colors = {
   background: '#11100E',
   card: '#1A1918',

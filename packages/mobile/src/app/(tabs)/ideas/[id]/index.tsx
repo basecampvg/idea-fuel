@@ -39,7 +39,7 @@ import {
 } from '../../../../components/analysis';
 import { getResearchJourneyState, type InterviewMode } from '@forge/shared';
 
-// Forge Design System Colors
+// ideationLab Design System Colors
 const colors = {
   background: '#11100E',
   card: '#1A1918',

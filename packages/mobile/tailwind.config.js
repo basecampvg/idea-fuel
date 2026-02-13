@@ -5,7 +5,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Forge Design System - Dark Theme
+        // ideationLab Design System - Dark Theme
         background: '#11100E',
         foreground: '#E8E4DC',
 
@@ -15,7 +15,7 @@ module.exports = {
           foreground: '#E8E4DC',
         },
 
-        // Primary - Pink/Magenta (Forge button, active states)
+        // Primary - Pink/Magenta (ideationLab button, active states)
         primary: {
           DEFAULT: '#E91E8C',
           foreground: '#FFFFFF',

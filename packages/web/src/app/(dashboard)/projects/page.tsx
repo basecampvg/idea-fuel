@@ -49,7 +49,7 @@ const statusDisplay: Record<
     color: 'text-primary',
     bgColor: 'bg-primary/10',
     borderColor: 'border-primary/30',
-    glowColor: 'shadow-[0_0_20px_hsla(160,84%,44%,0.15)]',
+    glowColor: 'shadow-[0_0_20px_hsla(10,80%,50%,0.15)]',
   },
 };
 

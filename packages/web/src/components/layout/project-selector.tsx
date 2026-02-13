@@ -9,7 +9,7 @@ import { ChevronDown, Search, Plus, Check } from 'lucide-react';
 const STATUS_DOT_COLORS: Record<string, string> = {
   DRAFT: 'bg-muted-foreground',
   ACTIVE: 'bg-primary',
-  COMPLETE: 'bg-emerald-400',
+  COMPLETE: 'bg-primary',
 };
 
 export function ProjectSelector() {

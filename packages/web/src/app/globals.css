@@ -10,9 +10,9 @@
 
   /* Accent Gradient */
   --gradient-accent: linear-gradient(135deg,
-    hsl(160, 84%, 44%) 0%,
-    hsl(160, 60%, 55%) 50%,
-    hsl(160, 40%, 65%) 100%);
+    hsl(10, 80%, 50%) 0%,
+    hsl(10, 70%, 55%) 50%,
+    hsl(10, 50%, 65%) 100%);
 
   /* Radius */
   --radius: 0.625rem;
@@ -39,16 +39,16 @@ html.light {
   --popover: 0 0% 85%;
   --popover-foreground: 0 0% 10%;
 
-  /* Primary (Mint Green) - for buttons and accents */
-  --primary: 160 84% 39%;
+  /* Primary (Logo Orange) - for buttons and accents */
+  --primary: 10 80% 50%;
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary (Muted Mint) */
-  --secondary: 160 30% 25%;
+  /* Secondary (Muted Orange) */
+  --secondary: 10 40% 35%;
   --secondary-foreground: 0 0% 100%;
 
-  /* Accent (Light Mint) - links and highlights */
-  --accent: 160 60% 45%;
+  /* Accent (Logo Orange) - links and highlights */
+  --accent: 10 80% 50%;
   --accent-foreground: 0 0% 100%;
 
   /* Muted */
@@ -58,12 +58,12 @@ html.light {
   /* Borders & Inputs - subtle, just a few shades lighter than background */
   --border: 0 0% 80%;
   --input: 0 0% 80%;
-  --ring: 160 84% 39%;
+  --ring: 10 80% 50%;
 
   /* Status Colors */
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --success: 142 76% 36%;
+  --success: 10 80% 50%;
   --success-foreground: 0 0% 100%;
   --warning: 38 92% 50%;
   --warning-foreground: 222 47% 11%;
@@ -71,13 +71,13 @@ html.light {
   --info-foreground: 0 0% 100%;
 
   /* Score Colors - remain vibrant */
-  --score-opportunity: 142 70% 35%;
+  --score-opportunity: 10 70% 40%;
   --score-problem: 326 75% 45%;
-  --score-feasibility: 180 65% 40%;
+  --score-feasibility: 10 60% 45%;
   --score-whynow: 260 55% 50%;
 
   /* Chart Colors */
-  --chart-1: 160 84% 39%;
+  --chart-1: 10 80% 50%;
   --chart-2: 260 55% 50%;
   --chart-3: 200 75% 45%;
   --chart-4: 180 65% 40%;
@@ -85,9 +85,9 @@ html.light {
 
   /* Accent Gradient - lighter version */
   --gradient-accent: linear-gradient(135deg,
-    hsl(160, 70%, 50%) 0%,
-    hsl(160, 50%, 60%) 50%,
-    hsl(160, 35%, 70%) 100%);
+    hsl(10, 70%, 50%) 0%,
+    hsl(10, 60%, 60%) 50%,
+    hsl(10, 45%, 70%) 100%);
 }
 
 /* ===== BASE STYLES ===== */
@@ -281,14 +281,14 @@ body {
   color: hsl(var(--primary));
 }
 
-/* ===== FORGE BUTTON ===== */
+/* ===== PRIMARY CTA BUTTON ===== */
 
-.btn-forge {
+.btn-ideationlab {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 10px 24px;
-  border-radius: 9999px;
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 500;
   background: hsl(var(--primary));
@@ -299,16 +299,16 @@ body {
   box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
 }
 
-.btn-forge:hover {
+.btn-ideationlab:hover {
   box-shadow: 0 0 30px hsl(var(--primary) / 0.5);
   transform: translateY(-1px);
 }
 
-.btn-forge:active {
+.btn-ideationlab:active {
   transform: translateY(0);
 }
 
-.btn-forge:disabled {
+.btn-ideationlab:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   box-shadow: none;
@@ -458,6 +458,11 @@ body {
 .number-circle-3 {
   background: hsl(var(--secondary));
   color: hsl(var(--secondary-foreground));
+}
+
+.number-circle-4 {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
 }
 
 /* ===== SCORE CARD STYLING ===== */
@@ -803,16 +808,16 @@ body {
   --popover: 40 8% 10%;
   --popover-foreground: 40 5% 90%;
 
-  /* Primary (Mint Green) - Forge button, active states */
-  --primary: 160 84% 44%;
+  /* Primary (Logo Orange) - ideationLab button, active states */
+  --primary: 10 80% 55%;
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary (Muted Mint) */
-  --secondary: 160 30% 25%;
+  /* Secondary (Muted Orange) */
+  --secondary: 10 40% 35%;
   --secondary-foreground: 0 0% 100%;
 
-  /* Accent (Light Mint) - Links, report pills */
-  --accent: 160 60% 55%;
+  /* Accent (Logo Orange) - Links, report pills */
+  --accent: 10 80% 55%;
   --accent-foreground: 0 0% 100%;
 
   /* Muted - Tertiary text */
@@ -822,12 +827,12 @@ body {
   /* Borders & Inputs - very subtle, barely visible separation */
   --border: 40 6% 8%;
   --input: 40 6% 12%;
-  --ring: 160 84% 44%;
+  --ring: 10 80% 55%;
 
   /* Status Colors */
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --success: 142 76% 36%;
+  --success: 10 80% 50%;
   --success-foreground: 0 0% 100%;
   --warning: 38 92% 50%;
   --warning-foreground: 222 47% 11%;
@@ -835,9 +840,9 @@ body {
   --info-foreground: 0 0% 100%;
 
   /* Score Colors */
-  --score-opportunity: 142 76% 36%;
+  --score-opportunity: 10 76% 45%;
   --score-problem: 350 80% 60%;
-  --score-feasibility: 180 70% 45%;
+  --score-feasibility: 10 70% 50%;
   --score-whynow: 260 60% 55%;
 
   /* Chart Colors */

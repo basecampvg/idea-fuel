@@ -1,10 +1,10 @@
 import { StyleSheet } from '@react-pdf/renderer';
 
-// Forge brand colors - Professional palette
+// ideationLab brand colors - Professional palette
 export const colors = {
   // Primary brand
   primary: '#0f172a', // Slate 900 - Deep navy for text
-  accent: '#e91e8c', // Forge pink
+  accent: '#e91e8c', // ideationLab pink
   accentLight: '#fce7f3', // Pink 100 - Light pink for backgrounds
   accentMuted: '#f9a8d4', // Pink 300
 

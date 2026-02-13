@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 
-// Forge Design System Colors
+// ideationLab Design System Colors
 const colors = {
   background: '#11100E',
   foreground: '#E8E4DC',
