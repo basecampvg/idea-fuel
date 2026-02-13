@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { motion, useReducedMotion } from 'motion/react';
-import { ArrowRight, Zap, Target, TrendingUp, Check, BarChart3, Users, Shield, Clock, Lightbulb, Globe, Code, DollarSign, MessageSquare } from 'lucide-react';
+import { ArrowRight, Zap, Target, TrendingUp, Check, Users, Lightbulb, Globe, Code, DollarSign, MessageSquare } from 'lucide-react';
 import { BrowserFrame } from './components/browser-frame';
 import { AnimatedCursorDemo } from './components/animated-cursor-demo';
 import { AnimatedCounter } from './components/animated-counter';
@@ -245,7 +245,7 @@ function WaitlistForm() {
       if (res.ok) {
         setStatus('success');
         setEmail('');
-        try { localStorage.setItem('ideationlab_waitlist_submitted', 'true'); } catch {}
+        try { localStorage.setItem('ideationlab_waitlist_submitted', 'true'); } catch { /* localStorage may be unavailable */ }
       } else {
         setStatus('error');
         setErrorMessage(data.error || 'Something went wrong');

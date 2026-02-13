@@ -595,15 +595,15 @@ body {
 }
 
 .glow-orb-primary {
-  background: hsl(160 84% 44%);
+  background: hsl(15 85% 55%);
 }
 
 .glow-orb-accent {
-  background: hsl(160 60% 55%);
+  background: hsl(15 70% 60%);
 }
 
 .glow-orb-warm {
-  background: hsl(180 70% 45%);
+  background: hsl(25 90% 65%);
 }
 
 /* ===== ANIMATIONS ===== */
