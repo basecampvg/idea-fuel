@@ -59,7 +59,7 @@ function getModeConfig(mode: string) {
   if (mode === 'IN_DEPTH') {
     return {
       Icon: Microscope,
-      color: 'hsl(160, 84%, 44%)',
+      color: 'hsl(10, 80%, 50%)',
       bgColor: 'bg-primary/20',
       borderColor: 'border-primary/30',
       glowColor: 'shadow-primary/20',
@@ -68,7 +68,7 @@ function getModeConfig(mode: string) {
   if (mode === 'LIGHT') {
     return {
       Icon: Feather,
-      color: 'hsl(160, 60%, 55%)',
+      color: 'hsl(10, 70%, 55%)',
       bgColor: 'bg-primary/20',
       borderColor: 'border-primary/30',
       glowColor: 'shadow-primary/20',
@@ -77,7 +77,7 @@ function getModeConfig(mode: string) {
   // SPARK
   return {
     Icon: Sparkles,
-    color: 'hsl(160, 84%, 44%)',
+    color: 'hsl(10, 80%, 50%)',
     bgColor: 'bg-primary/20',
     borderColor: 'border-primary/30',
     glowColor: 'shadow-primary/20',
@@ -256,10 +256,10 @@ export function StatusInterviewing({ project }: StatusInterviewingProps) {
         {/* Locked features preview */}
         <div className="grid grid-cols-2 gap-3">
           {[
-            { icon: BarChart3, label: 'Market Research', color: 'hsl(160, 84%, 44%)' },
-            { icon: Users, label: 'Competitor Analysis', color: 'hsl(160, 60%, 55%)' },
-            { icon: TrendingUp, label: 'Opportunity Scores', color: 'hsl(160, 50%, 60%)' },
-            { icon: FileText, label: 'Business Reports', color: 'hsl(160, 40%, 65%)' },
+            { icon: BarChart3, label: 'Market Research', color: 'hsl(10, 80%, 50%)' },
+            { icon: Users, label: 'Competitor Analysis', color: 'hsl(10, 70%, 55%)' },
+            { icon: TrendingUp, label: 'Opportunity Scores', color: 'hsl(10, 60%, 60%)' },
+            { icon: FileText, label: 'Business Reports', color: 'hsl(10, 50%, 65%)' },
           ].map((feature) => (
             <div
               key={feature.label}

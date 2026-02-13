@@ -59,8 +59,9 @@ export function PipelineSection() {
             <div key={step.number} className="relative flex h-full flex-col items-center">
               {/* Step card */}
               <div
-                className="glass-card flex h-full w-full flex-col text-center transition-all duration-500"
+                className="glass-card flex h-full w-full flex-col text-center"
                 style={{
+                  transition: 'all 500ms ease',
                   transitionDelay: isInView ? `${(i + 1) * 200}ms` : '0ms',
                   opacity: isInView ? 1 : 0,
                   transform: isInView ? 'translateY(0)' : 'translateY(20px)',
@@ -70,14 +71,14 @@ export function PipelineSection() {
                 <div className="relative mx-auto mb-6 flex items-center justify-center">
                   {/* Main icon circle with gradient */}
                   <div
-                    className="group relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary via-primary/90 to-primary/80 shadow-lg transition-all duration-200 hover:scale-110 hover:shadow-[0_0_20px_hsl(var(--primary)/0.4)]"
+                    className="group relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary via-primary/90 to-primary/80 shadow-lg hover:scale-110 hover:shadow-[0_0_20px_hsl(var(--primary)/0.4)]"
                     style={{
+                      transition: 'all 500ms cubic-bezier(0.34, 1.56, 0.64, 1)',
                       transitionDelay: isInView ? `${(i + 1) * 200}ms` : '0ms',
                       opacity: isInView ? 1 : 0,
                       transform: isInView
                         ? 'translateY(0) scale(1)'
                         : 'translateY(20px) scale(0.8)',
-                      transition: 'all 500ms cubic-bezier(0.34, 1.56, 0.64, 1)',
                     }}
                   >
                     <step.icon

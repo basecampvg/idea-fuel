@@ -41,8 +41,8 @@ function SignInContent() {
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#0a0a0a]">
         {/* LightPillar Background */}
         <LightPillar
-          topColor="hsl(160, 84%, 44%)"
-          bottomColor="hsl(160, 60%, 55%)"
+          topColor="hsl(10, 80%, 50%)"
+          bottomColor="hsl(10, 70%, 55%)"
           intensity={0.2}
           rotationSpeed={0.1}
           interactive={false}
@@ -216,7 +216,7 @@ function SignInContent() {
 
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-[hsl(160,70%,38%)] transition-colors"
+                className="w-full py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-[hsl(10,70%,45%)] transition-colors"
               >
                 Sign in
               </button>

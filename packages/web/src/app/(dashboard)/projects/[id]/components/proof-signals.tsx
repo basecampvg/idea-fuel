@@ -28,7 +28,7 @@ export function ProofSignals({ proofSignals, title = 'Proof Signals', subtitle }
   return (
     <CollapsibleSection
       icon={<Signal className="w-5 h-5 text-primary/60" />}
-      iconBgColor="hsla(160, 84%, 44%, 0.2)"
+      iconBgColor="hsla(10, 80%, 50%, 0.2)"
       title={title}
       subtitle={subtitle}
     >

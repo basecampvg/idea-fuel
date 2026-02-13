@@ -17,8 +17,8 @@ interface WhyNowSectionProps {
 
 function UrgencyMeter({ score }: { score: number }) {
   const getColor = () => {
-    if (score >= 75) return 'hsl(160, 84%, 44%)';
-    if (score >= 50) return 'hsl(160, 50%, 60%)';
+    if (score >= 75) return 'hsl(10, 80%, 50%)';
+    if (score >= 50) return 'hsl(10, 60%, 60%)';
     return 'hsl(0, 84%, 60%)';
   };
 

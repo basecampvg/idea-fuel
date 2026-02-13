@@ -37,7 +37,7 @@ function PlatformIcon({ platform }: { platform: string }) {
     reddit: { color: '#ff4500', label: 'Reddit' },
     twitter: { color: '#1da1f2', label: 'Twitter' },
     facebook: { color: '#1877f2', label: 'Facebook' },
-  }[platform] || { color: 'hsl(160, 84%, 44%)', label: platform };
+  }[platform] || { color: 'hsl(10, 80%, 50%)', label: platform };
 
   return (
     <div
