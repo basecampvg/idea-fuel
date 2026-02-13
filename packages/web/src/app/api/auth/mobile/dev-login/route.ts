@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { email = 'dev@forge.local' } = await request.json().catch(() => ({}));
+    const { email = 'dev@ideationlab.local' } = await request.json().catch(() => ({}));
 
     // Find or create dev user
     let user = await db.query.users.findFirst({

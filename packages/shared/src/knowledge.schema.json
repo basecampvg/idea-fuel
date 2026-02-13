@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Forge Automation AI Knowledge Configuration",
+  "title": "ideationLab AI Knowledge Configuration",
   "description": "Configuration file for AI guardrails, personas, and behavioral rules",
   "type": "object",
   "required": ["version", "product", "interview", "research", "contentGuidelines", "socialProof", "prohibitedContent", "brandVoice", "customInstructions"],

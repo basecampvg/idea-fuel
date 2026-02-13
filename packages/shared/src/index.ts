@@ -1,4 +1,4 @@
-// Forge Automation - Shared Package
+// ideationLab - Shared Package
 // Re-export all shared modules
 
 export * from './types';

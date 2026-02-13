@@ -111,7 +111,7 @@ export const KNOWLEDGE: KnowledgeConfig = {
   lastUpdated: "2026-01-17",
 
   product: {
-    name: "Forge Automation",
+    name: "ideationLab",
     tagline: "Turn business ideas into validated plans in hours, not weeks",
     description: "An AI-powered business validation platform that interviews founders about their ideas, conducts automated research, and generates comprehensive business reports.",
     targetUser: "Solo entrepreneurs, indie hackers, startup founders, and business consultants",

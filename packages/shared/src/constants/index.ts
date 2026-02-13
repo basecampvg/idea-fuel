@@ -3,7 +3,7 @@
 // Re-export subscription constants
 export * from './subscription';
 
-export const APP_NAME = 'Forge Automation';
+export const APP_NAME = 'ideationLab';
 export const APP_VERSION = '0.1.0';
 
 // Project status labels (unified lifecycle: CAPTURED=draft, rest=project)

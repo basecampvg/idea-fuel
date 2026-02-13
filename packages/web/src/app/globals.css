@@ -281,9 +281,9 @@ body {
   color: hsl(var(--primary));
 }
 
-/* ===== FORGE BUTTON ===== */
+/* ===== PRIMARY CTA BUTTON ===== */
 
-.btn-forge {
+.btn-ideationlab {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -299,16 +299,16 @@ body {
   box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
 }
 
-.btn-forge:hover {
+.btn-ideationlab:hover {
   box-shadow: 0 0 30px hsl(var(--primary) / 0.5);
   transform: translateY(-1px);
 }
 
-.btn-forge:active {
+.btn-ideationlab:active {
   transform: translateY(0);
 }
 
-.btn-forge:disabled {
+.btn-ideationlab:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   box-shadow: none;
@@ -458,6 +458,11 @@ body {
 .number-circle-3 {
   background: hsl(var(--secondary));
   color: hsl(var(--secondary-foreground));
+}
+
+.number-circle-4 {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
 }
 
 /* ===== SCORE CARD STYLING ===== */
@@ -803,7 +808,7 @@ body {
   --popover: 40 8% 10%;
   --popover-foreground: 40 5% 90%;
 
-  /* Primary (Mint Green) - Forge button, active states */
+  /* Primary (Mint Green) - ideationLab button, active states */
   --primary: 160 84% 44%;
   --primary-foreground: 0 0% 100%;
 

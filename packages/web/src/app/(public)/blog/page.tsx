@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, ArrowRight } from 'lucide-react';
 
 export const metadata = {
-  title: 'Blog | Forge',
+  title: 'Blog | ideationLab',
   description: 'Insights, updates, and guides for entrepreneurs and business builders.',
 };
 

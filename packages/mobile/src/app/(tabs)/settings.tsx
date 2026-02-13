@@ -15,7 +15,7 @@ import { trpc } from '../../lib/trpc';
 import { useAuth } from '../../contexts/AuthContext';
 import { SUBSCRIPTION_TIER_LABELS, SUBSCRIPTION_TIER_DESCRIPTIONS } from '@forge/shared';
 
-// Forge Design System Colors
+// ideationLab Design System Colors
 const colors = {
   background: '#11100E',
   card: '#1A1918',
@@ -268,7 +268,7 @@ export default function SettingsScreen() {
                 })
               : 'N/A'}
           </Text>
-          <Text style={styles.versionText}>Forge v1.0.0</Text>
+          <Text style={styles.versionText}>ideationLab v1.0.0</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

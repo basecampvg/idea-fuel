@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingScreen } from '../../components/ui';
 
-// Forge Design System Colors
+// ideationLab Design System Colors
 const colors = {
   background: '#11100E',
   card: '#1A1918',
@@ -65,7 +65,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: 'Forge',
+          title: 'ideationLab',
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="flame" size={size} color={color} />

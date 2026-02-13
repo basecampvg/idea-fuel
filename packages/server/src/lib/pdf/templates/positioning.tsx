@@ -57,7 +57,7 @@ function Header({ title, ideaTitle, date, tier }: { title: string; ideaTitle: st
   return (
     <View style={baseStyles.header}>
       <View style={baseStyles.headerBrand}>
-        <Text style={baseStyles.logo}>FORGE</Text>
+        <Text style={baseStyles.logo}>ideationLab</Text>
         <Text style={baseStyles.logoTagline}>Brand Strategy</Text>
       </View>
       <Text style={baseStyles.reportTitle}>{title}</Text>
@@ -86,7 +86,7 @@ function PageHeader({ title }: { title: string }) {
   return (
     <View style={{ marginBottom: 24 }}>
       <View style={baseStyles.headerBrand}>
-        <Text style={baseStyles.logo}>FORGE</Text>
+        <Text style={baseStyles.logo}>ideationLab</Text>
       </View>
       <Text style={[baseStyles.h2, { marginBottom: 0 }]}>{title}</Text>
     </View>
@@ -135,7 +135,7 @@ function Footer({ pageNumber }: { pageNumber: number }) {
   return (
     <View style={baseStyles.footer} fixed>
       <View style={baseStyles.footerLeft}>
-        <Text style={baseStyles.footerLogo}>FORGE</Text>
+        <Text style={baseStyles.footerLogo}>ideationLab</Text>
         <View style={baseStyles.footerDivider} />
         <Text style={baseStyles.footerConfidential}>Confidential</Text>
       </View>

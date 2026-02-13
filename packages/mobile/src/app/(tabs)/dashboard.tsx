@@ -18,7 +18,7 @@ import { trpc } from '../../lib/trpc';
 import { useAuth } from '../../contexts/AuthContext';
 import { PromptHintSheet } from '../../components/PromptHintSheet';
 
-// Forge Design System Colors - inline for reliability
+// ideationLab Design System Colors - inline for reliability
 const colors = {
   background: '#11100E',
   card: '#1A1918',

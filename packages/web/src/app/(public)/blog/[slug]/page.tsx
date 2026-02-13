@@ -78,7 +78,7 @@ export async function generateMetadata({ params }: BlogPostPageProps) {
   }
 
   return {
-    title: `${post.title} | Forge Blog`,
+    title: `${post.title} | ideationLab Blog`,
     description: post.description,
   };
 }

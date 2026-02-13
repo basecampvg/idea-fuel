@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
-// Forge Design System Colors
+// ideationLab Design System Colors
 const colors = {
   primary: '#E91E8C',
   secondary: '#8B5CF6',

@@ -42,7 +42,7 @@ export default function LandingLayout({
       }}
     >
       {/* Minimal fixed header */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-5">
+      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-5 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center">

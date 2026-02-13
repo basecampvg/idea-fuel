@@ -36,10 +36,10 @@ export function NarrativeSection() {
             isInView ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
           }`}
         >
-          That took <span className="text-gradient">8 seconds</span>.
+          Don't waste <span className="text-gradient">6 months and $29K</span>
           <br className="sm:hidden" />
           <span className="text-muted-foreground">
-            {' '}Most founders spend 8 months guessing.
+            {' '}validating your idea.
           </span>
         </p>
 
