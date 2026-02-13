@@ -1491,6 +1491,10 @@ export class SlaTracker {
  * Extract structured insights from deep research report.
  * Uses GPT-5.2 to parse the raw research into SynthesizedInsights format.
  */
+/**
+ * Extract structured insights from deep research report.
+ * Uses AIProvider.extract() with Claude Sonnet for structured extraction.
+ */
 export async function extractInsights(
   deepResearch: DeepResearchOutput,
   input: ResearchInput,
@@ -1512,129 +1516,21 @@ ${deepResearch.citations.map((c, i) => `[${i + 1}] ${c.title}: ${c.url}`).join('
 
 ---
 
-Extract the key insights and return a structured JSON object with this exact format:
-{
-  "marketAnalysis": {
-    "size": "Market size with specific numbers if available (e.g., '$4.2B in 2024, projected $8.1B by 2028')",
-    "growth": "Growth trajectory with CAGR or % if available",
-    "trends": ["trend1", "trend2", "trend3"],
-    "opportunities": ["opportunity1", "opportunity2"],
-    "threats": ["threat1", "threat2"]
-  },
-  "competitors": [
-    {
-      "name": "Actual competitor name from research",
-      "description": "What they do",
-      "strengths": ["strength1", "strength2"],
-      "weaknesses": ["weakness1", "weakness2"],
-      "positioning": "How they position in market"
-    }
-  ],
-  "painPoints": [
-    {
-      "problem": "Specific pain point with evidence",
-      "severity": "high|medium|low",
-      "currentSolutions": ["How people currently solve this"],
-      "gaps": ["What's missing from current solutions"]
-    }
-  ],
-  "positioning": {
-    "uniqueValueProposition": "Clear UVP based on research gaps",
-    "targetAudience": "Specific target description",
-    "differentiators": ["diff1", "diff2"],
-    "messagingPillars": ["pillar1", "pillar2"]
-  },
-  "whyNow": {
-    "marketTriggers": ["Recent market change or event"],
-    "timingFactors": ["Why this is the right time"],
-    "urgencyScore": 0-100
-  },
-  "proofSignals": {
-    "demandIndicators": ["Evidence of demand from research"],
-    "validationOpportunities": ["How to validate further"],
-    "riskFactors": ["Identified risks"]
-  },
-  "keywords": {
-    "primary": ["main keywords from research"],
-    "secondary": ["related keywords"],
-    "longTail": ["long tail phrases"]
-  }
-}
+Extract the key insights and return structured JSON matching the schema exactly. Use ONLY information from the research report. Be specific and cite findings where relevant.`;
 
-Use ONLY information from the research report. Be specific and cite findings where relevant.`;
-
-  const aiParams = getAIParams('extractInsights', tier);
-
-  console.log('[Extract Insights] Calling OpenAI with model:', REPORT_MODEL);
+  const extractionProvider = getExtractionProvider(tier);
+  console.log('[Extract Insights] Using provider:', extractionProvider.name);
   console.log('[Extract Insights] Prompt length:', prompt.length, 'chars');
 
-  // Use exponential backoff for transient errors (5 attempts for extraction calls)
-  const response = await withExponentialBackoff(
-    () => openai.responses.create(
-      createResponsesParams({
-        model: REPORT_MODEL,
-        input: prompt,
-        response_format: { type: 'json_object' },
-        max_output_tokens: 25000, // Increased from 3500 to prevent truncation
-      }, aiParams)
-    ),
-    {
-      maxAttempts: 5,
-      initialDelayMs: 2000,
-      onRetry: (attempt, error, delayMs) => {
-        console.warn(`[Extract Insights] Retry ${attempt}/5 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
-      }
-    }
-  );
+  const { InsightsSchema } = await import('./research-schemas');
 
-  // Debug logging
-  const responseStatus = getResponseStatus(response);
-  console.log('[Extract Insights] Response received, status:', responseStatus);
-  console.log('[Extract Insights] Response keys:', Object.keys(response));
-
-  // Track token usage (fire-and-forget)
-  trackUsageFromResponse(response, {
-    functionName: 'extractInsights',
-    model: REPORT_MODEL,
+  const insights = await extractionProvider.extract(prompt, InsightsSchema, {
+    maxTokens: 25000,
+    temperature: 1.0,
   });
 
-  // Check for incomplete status (may have partial content)
-  if (responseStatus === 'incomplete') {
-    console.warn('[Extract Insights] Response marked incomplete - may have partial content');
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const responseAny = response as any;
-
-  // Log usage info for monitoring
-  if (responseAny.usage) {
-    console.log('[Extract Insights] Usage:', JSON.stringify(responseAny.usage));
-  }
-  if (responseAny.error) {
-    console.error('[Extract Insights] Response error:', responseAny.error);
-  }
-
-  // Use unified content extractor (handles both output_text and output[] array formats)
-  const content = extractResponseContent(response);
-
-  if (!content) {
-    throw new ResponseParseError(
-      `Failed to extract insights: no content found in response (status: ${responseStatus})`,
-      response
-    );
-  }
-
-  console.log('[Extract Insights] Successfully extracted content, length:', content.length);
-
-  try {
-    validateJsonCompleteness(content, 'extractInsights');
-    return JSON.parse(content) as SynthesizedInsights;
-  } catch (parseError) {
-    throw new ResponseParseError(
-      `Failed to parse insights JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
-      response
-    );
-  }
+  console.log('[Extract Insights] Successfully extracted insights');
+  return insights;
 }
 
 /**
@@ -1662,6 +1558,11 @@ export async function extractScores(
 
   // Pre-compute snippet to avoid repeated substring calls
   const researchSnippet = deepResearch.rawReport.substring(0, 4000);
+
+  const extractionProvider = getExtractionProvider(tier);
+  const { ScoresPassSchema } = await import('./research-schemas');
+
+  console.log('[Extract Scores] Using provider:', extractionProvider.name);
 
   // Run scoring pass
   const runPass = async (passNumber: number): Promise<RawScorePass> => {
@@ -1696,56 +1597,14 @@ IMPORTANT: Provide justification for each score explaining:
 2. What factors pulled the score up or down
 3. What uncertainties exist
 
-Return JSON:
-{
-  "opportunityScore": number (0-100),
-  "opportunityJustification": "2-3 sentences",
-  "problemScore": number (0-100),
-  "problemJustification": "2-3 sentences",
-  "feasibilityScore": number (0-100),
-  "feasibilityJustification": "2-3 sentences",
-  "whyNowScore": number (0-100),
-  "whyNowJustification": "2-3 sentences"
-}
-
 This is pass ${passNumber} - evaluate independently based on the research data.`;
 
-    const aiParams = getAIParams('extractScores', tier);
-
-    // Use exponential backoff for transient errors
-    const response = await withExponentialBackoff(
-      () => openai.responses.create(
-        createResponsesParams({
-          model: REPORT_MODEL,
-          input: prompt,
-          response_format: { type: 'json_object' },
-          max_output_tokens: 8000, // Increased from 4000 for buffer
-        }, aiParams)
-      ),
-      {
-        maxAttempts: 3,
-        initialDelayMs: 2000,
-        onRetry: (attempt, error, delayMs) => {
-          console.warn(`[Extract Scores] Pass ${passNumber} retry ${attempt}/3 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
-        }
-      }
-    );
-
-    // Track token usage (fire-and-forget)
-    trackUsageFromResponse(response, {
-      functionName: 'extractScores',
-      model: REPORT_MODEL,
+    const scorePass = await extractionProvider.extract(prompt, ScoresPassSchema, {
+      maxTokens: 8000,
+      temperature: 1.0,
     });
 
-    // Use unified content extractor (handles both output_text and output[] array formats)
-    const content = extractResponseContent(response);
-    if (!content) {
-      const responseStatus = getResponseStatus(response);
-      throw new Error(`Failed to calculate scores (pass ${passNumber}): no content (status: ${responseStatus})`);
-    }
-
-    validateJsonCompleteness(content, `extractScores pass ${passNumber}`);
-    return JSON.parse(content) as RawScorePass;
+    return scorePass;
   };
 
   // Run passes in parallel
@@ -1851,6 +1710,7 @@ This is pass ${passNumber} - evaluate independently based on the research data.`
 
 /**
  * Extract business metrics from deep research report.
+ * Uses AIProvider.extract() with Claude Sonnet for structured extraction.
  */
 export async function extractBusinessMetrics(
   deepResearch: DeepResearchOutput,
@@ -1885,70 +1745,20 @@ ${JSON.stringify(scores, null, 2)}
 ## MARKET INSIGHTS
 ${JSON.stringify(insights.marketAnalysis, null, 2)}
 
-Evaluate business metrics and return JSON:
-{
-  "revenuePotential": {
-    "rating": "high|medium|low",
-    "estimate": "Specific revenue estimate based on market data (e.g., '$10K-50K MRR potential')",
-    "confidence": 0-100
-  },
-  "executionDifficulty": {
-    "rating": "easy|moderate|hard",
-    "factors": ["factor1", "factor2"],
-    "soloFriendly": true|false
-  },
-  "gtmClarity": {
-    "rating": "clear|moderate|unclear",
-    "channels": ["channel1", "channel2"],
-    "confidence": 0-100
-  },
-  "founderFit": {
-    "percentage": 0-100,
-    "strengths": ["strength1"],
-    "gaps": ["gap1"]
-  }
-}
+Evaluate business metrics and return JSON matching the schema exactly. Base estimates on actual market data from research.`;
 
-Base estimates on the actual market data from research.`;
+  const extractionProvider = getExtractionProvider(tier);
+  console.log('[Extract Metrics] Using provider:', extractionProvider.name);
 
-  const aiParams = getAIParams('extractMetrics', tier);
+  const { BusinessMetricsSchema } = await import('./research-schemas');
 
-  // Use exponential backoff for transient errors
-  const response = await withExponentialBackoff(
-    () => openai.responses.create(
-      createResponsesParams({
-        model: REPORT_MODEL,
-        input: prompt,
-        response_format: { type: 'json_object' },
-        max_output_tokens: 8000, // Increased from 4000 for buffer
-      }, aiParams)
-    ),
-    {
-      maxAttempts: 3,
-      initialDelayMs: 2000,
-      onRetry: (attempt, error, delayMs) => {
-        console.warn(`[Extract Metrics] Retry ${attempt}/3 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
-      }
-    }
-  );
-
-  // Track token usage (fire-and-forget)
-  trackUsageFromResponse(response, {
-    functionName: 'extractBusinessMetrics',
-    model: REPORT_MODEL,
+  const metrics = await extractionProvider.extract(prompt, BusinessMetricsSchema, {
+    maxTokens: 8000,
+    temperature: 1.0,
   });
 
-  // Use unified content extractor (handles both output_text and output[] array formats)
-  const content = extractResponseContent(response);
-  if (!content) {
-    const responseStatus = getResponseStatus(response);
-    console.error('[Extract Metrics] Empty response:', responseStatus);
-    throw new Error(`Failed to extract business metrics: no content found in response (status: ${responseStatus})`);
-  }
-
   console.log('[Extract Metrics] Successfully calculated metrics');
-  validateJsonCompleteness(content, 'extractBusinessMetrics');
-  return JSON.parse(content) as BusinessMetrics;
+  return metrics;
 }
 
 // =============================================================================
