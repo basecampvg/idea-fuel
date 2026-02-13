@@ -141,3 +141,47 @@ export const MarketSizingSchema = z.object({
   })),
   methodology: z.string(),
 });
+
+// ============================================================================
+// Generation Output Schemas
+// ============================================================================
+
+export const UserStorySchema = z.object({
+  scenario: z.string(),
+  protagonist: z.string(),
+  problem: z.string(),
+  solution: z.string(),
+  outcome: z.string(),
+});
+
+export const ValueLadderSchema = z.object({
+  tiers: z.array(z.object({
+    name: z.string(),
+    price: z.string(),
+    description: z.string(),
+    features: z.array(z.string()),
+    targetCustomer: z.string(),
+  })),
+  strategy: z.string(),
+});
+
+export const ActionPromptsSchema = z.object({
+  prompts: z.array(z.object({
+    action: z.string(),
+    description: z.string(),
+    priority: z.enum(['high', 'medium', 'low']),
+    timeline: z.string(),
+    resources: z.array(z.string()).optional(),
+  })),
+});
+
+export const TechStackSchema = z.object({
+  recommendations: z.array(z.object({
+    category: z.string(),
+    technology: z.string(),
+    reasoning: z.string(),
+    alternatives: z.array(z.string()).optional(),
+  })),
+  architecture: z.string(),
+  estimatedComplexity: z.enum(['low', 'medium', 'high']),
+});

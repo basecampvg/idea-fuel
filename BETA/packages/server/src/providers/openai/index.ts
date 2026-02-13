@@ -6,6 +6,9 @@ import type {
   ResearchResponse,
   ProviderHealth,
   SearchProvider,
+  SearchOptions,
+  SearchResult,
+  SocialSearchResult,
 } from '../types';
 import { openai as openaiClient } from '../../lib/openai';
 import { runDeepResearchWithPolling } from '../../lib/deep-research';
@@ -196,7 +199,6 @@ export const openaiProvider = new Proxy({} as OpenAIProvider, {
 // OpenAI Search Provider (web_search_preview wrapper)
 // ============================================================================
 
-import type { SearchResult, SearchOptions, SocialSearchResult } from '../types';
 import type { SocialProofPost } from '../../services/research-ai';
 
 /**
@@ -205,8 +207,8 @@ import type { SocialProofPost } from '../../services/research-ai';
  * Wraps OpenAI's web_search_preview tool for SearchProvider interface
  * Used as fallback when Brave Search returns insufficient results
  */
-export class OpenAISearchProvider {
-  name: 'openai' as const = 'openai';
+export class OpenAISearchProvider implements SearchProvider {
+  name: 'openai' = 'openai';
 
   async isAvailable(): Promise<boolean> {
     // OpenAI search is available if the client is available

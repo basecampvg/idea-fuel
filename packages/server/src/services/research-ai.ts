@@ -3169,12 +3169,16 @@ Be realistic and consider the founder's background if mentioned in the interview
 }
 
 // Phase 5: Generate user story
+/**
+ * Generate user story illustrating the problem and solution.
+ * Uses AIProvider.extract() with Claude Sonnet for creative generation.
+ */
 export async function generateUserStory(
   input: ResearchInput,
   insights: SynthesizedInsights,
   tier: SubscriptionTier = 'ENTERPRISE'
 ): Promise<UserStory> {
-  const { ideaTitle, ideaDescription, interviewData } = input;
+  const { ideaTitle, ideaDescription } = input;
 
   // Get content guidelines from knowledge.json
   const userStoryGuidelines = KNOWLEDGE.contentGuidelines.userStory;
@@ -3194,61 +3198,19 @@ ${userStoryGuidelines.requirements.map(r => `- ${r}`).join('\n')}
 GOOD EXAMPLE: "${userStoryGuidelines.example.good}"
 BAD EXAMPLE (avoid this): "${userStoryGuidelines.example.bad}"
 
-Create a relatable, specific user story. Return a JSON object:
-{
-  "scenario": "A concise narrative (MAX 200 WORDS) that tells the full story - the protagonist's situation, their struggle with the problem, discovering and using the solution, and the positive outcome. Make it vivid and relatable but keep it tight.",
-  "protagonist": "Who the user is (e.g., 'Sarah, a busy marketing manager at a tech startup')",
-  "problem": "The specific pain they experience in 1-2 sentences",
-  "solution": "How this product/service solves their problem in 1-2 sentences",
-  "outcome": "The transformation and results they achieve in 1-2 sentences"
-}
+Create a relatable, specific user story matching the schema. Make the story feel real and emotionally resonant with specific details.`;
 
-Make the story feel real and emotionally resonant. Use specific details.`;
+  const generationProvider = getGenerationProvider(tier);
+  console.log('[Generate User Story] Using provider:', generationProvider.name);
 
-  // Get tier-based AI parameters
-  const aiParams = getAIParams('userStory', tier);
+  const { UserStorySchema } = await import('./research-schemas');
 
-  // Use Responses API with exponential backoff for transient errors
-  const response = await withExponentialBackoff(
-    () => openai.responses.create(
-      createResponsesParams({
-        model: REPORT_MODEL,
-        input: prompt,
-        response_format: { type: 'json_object' },
-        max_output_tokens: 8000, // Increased from 2500 - GPT-5.2 reasoning consumes tokens before content
-      }, aiParams)
-    ),
-    {
-      maxAttempts: 5,
-      onRetry: (attempt, error, delayMs) => {
-        console.warn(`[generateUserStory] Retry ${attempt}/5 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
-      }
-    }
-  );
-
-  // Track token usage (fire-and-forget)
-  trackUsageFromResponse(response, {
-    functionName: 'generateUserStory',
-    model: REPORT_MODEL,
+  const userStory = await generationProvider.extract(prompt, UserStorySchema, {
+    maxTokens: 8000,
+    temperature: 1.0,
   });
 
-  // Use unified content extractor (handles both output_text and output[] array formats)
-  const content = extractResponseContent(response);
-  if (!content) {
-    throw new ResponseParseError('Failed to generate user story: no content in response', response);
-  }
-
-  // Validate JSON completeness before parsing
-  validateJsonCompleteness(content, 'generateUserStory');
-
-  try {
-    return JSON.parse(content) as UserStory;
-  } catch (parseError) {
-    throw new ResponseParseError(
-      `Failed to parse user story JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
-      response
-    );
-  }
+  return userStory;
 }
 
 // Keyword trends configuration
@@ -4156,13 +4118,40 @@ A compelling 2-3 paragraph overview of the entire opportunity. Include the core 
 
 Write with authority and specificity. Every claim should be backed by data from the research. Use markdown formatting with headers, bullet points, bold text, and tables where appropriate. Aim for a comprehensive document that leaves no strategic question unanswered.`;
 
+  // Use Claude Opus for business plan generation (best long-form writing)
+  const businessPlanProvider = getBusinessPlanProvider(tier);
+  console.log('[Generate Business Plan] Using provider:', businessPlanProvider.name);
+
+  const businessPlan = await businessPlanProvider.generate(prompt, {
+    maxTokens: 50000,
+    temperature: 1.0,
+  });
+
+  return businessPlan;
+}
+
+// OLD IMPLEMENTATION (keep temporarily for reference)
+async function generateBusinessPlanOLD_DEPRECATED(
+  input: ResearchInput,
+  insights: SynthesizedInsights,
+  scores: ResearchScores | null,
+  metrics: BusinessMetrics | null,
+  marketSizing: MarketSizingData | null,
+  socialProof: SocialProof | null,
+  userStory: UserStory | null,
+  valueLadder: OfferTier[] | null,
+  techStack: TechStackData | null,
+  deepResearch: DeepResearchOutput | null,
+  tier: SubscriptionTier = 'ENTERPRISE'
+): Promise<string> {
+  // OLD OpenAI implementation - replaced by provider pattern above
   const aiParams = getAIParams('businessPlan', tier);
 
   const response = await withExponentialBackoff(
     () => openai.responses.create(
       createResponsesParams({
         model: REPORT_MODEL,
-        input: prompt,
+        input: '', // prompt removed
         max_output_tokens: 50000,
       }, aiParams)
     ),
