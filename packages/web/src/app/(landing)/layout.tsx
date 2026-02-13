@@ -38,6 +38,7 @@ export default function LandingLayout({
         // Override theme colors for landing page with logo orange (#f15a29)
         ['--primary' as string]: '15 85% 55%',
         ['--accent' as string]: '15 70% 60%',
+        ['--gradient-accent' as string]: 'linear-gradient(135deg, hsl(15, 85%, 55%) 0%, hsl(15, 70%, 60%) 50%, hsl(25, 90%, 65%) 100%)',
       }}
     >
       {/* Minimal fixed header */}
