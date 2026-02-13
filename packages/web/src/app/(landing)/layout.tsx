@@ -32,7 +32,14 @@ export default function LandingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className="min-h-screen bg-background"
+      style={{
+        // Override theme colors for landing page with logo orange (#f15a29)
+        ['--primary' as string]: '15 85% 55%',
+        ['--accent' as string]: '15 70% 60%',
+      }}
+    >
       {/* Minimal fixed header */}
       <header className="fixed top-0 left-0 right-0 z-50 px-6 py-5">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
