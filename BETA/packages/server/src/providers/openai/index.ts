@@ -81,19 +81,19 @@ export class OpenAIProvider implements AIProvider {
     });
 
     return {
-      content: result.rawReport || result.output,
+      content: result.content,
       citations: result.citations.map((c) => c.url),
       sources: result.sources || [],
       usage: {
-        inputTokens: result.usage?.inputTokens || 0,
-        outputTokens: result.usage?.outputTokens || 0,
-        totalTokens: result.usage?.totalTokens || 0,
+        inputTokens: 0, // Deep research usage tracking not available via this interface
+        outputTokens: 0,
+        totalTokens: 0,
       },
       metadata: {
         provider: 'openai',
         model,
-        responseId: result.responseId || `openai-${Date.now()}`,
-        status: result.status as 'completed' | 'incomplete' | 'failed',
+        responseId: `openai-${Date.now()}`,
+        status: 'completed',
       },
     };
   }

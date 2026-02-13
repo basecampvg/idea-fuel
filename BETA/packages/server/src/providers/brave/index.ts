@@ -223,7 +223,7 @@ export class BraveSearchProvider implements SearchProvider {
       return 'reddit';
     }
 
-    return platform;
+    return platform as 'reddit' | 'facebook' | 'twitter' | 'hackernews' | 'indiehackers' | 'producthunt' | 'linkedin';
   }
 }
 

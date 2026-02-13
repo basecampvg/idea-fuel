@@ -92,7 +92,7 @@ export function getResearchProvider(tier?: SubscriptionTier): AIProvider {
 
   // Check tier-specific override
   if (tier && configService.isInitialized()) {
-    const override = configService.getString(`ai.research.provider.${tier}`, null);
+    const override = configService.getString(`ai.research.provider.${tier}`, '');
     if (override) {
       const provider = aiProviders.get(override);
       if (provider) return provider;
@@ -123,7 +123,7 @@ export function getExtractionProvider(tier?: SubscriptionTier): AIProvider {
 
   // Check tier-specific override
   if (tier && configService.isInitialized()) {
-    const override = configService.getString(`ai.extraction.provider.${tier}`, null);
+    const override = configService.getString(`ai.extraction.provider.${tier}`, '');
     if (override) {
       const provider = aiProviders.get(override);
       if (provider) return provider;
@@ -154,7 +154,7 @@ export function getGenerationProvider(tier?: SubscriptionTier): AIProvider {
 
   // Check tier-specific override
   if (tier && configService.isInitialized()) {
-    const override = configService.getString(`ai.generation.provider.${tier}`, null);
+    const override = configService.getString(`ai.generation.provider.${tier}`, '');
     if (override) {
       const provider = aiProviders.get(override);
       if (provider) return provider;
@@ -186,7 +186,7 @@ export function getBusinessPlanProvider(tier?: SubscriptionTier): AIProvider {
 
   // Check tier-specific override
   if (tier && configService.isInitialized()) {
-    const override = configService.getString(`ai.businessPlan.provider.${tier}`, null);
+    const override = configService.getString(`ai.businessPlan.provider.${tier}`, '');
     if (override) {
       const provider = aiProviders.get(override);
       if (provider) return provider;

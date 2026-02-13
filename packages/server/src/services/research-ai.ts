@@ -206,7 +206,7 @@ export interface SocialProofPost {
   author: string;
   content: string;
   url: string;
-  engagement: {
+  engagement?: {
     likes?: number;
     comments?: number;
     shares?: number;
