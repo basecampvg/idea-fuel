@@ -97,7 +97,10 @@ export default function ProjectOverviewPage() {
   return (
     <>
       {/* Status-specific content */}
-      {project.status === 'CAPTURED' && <StatusCaptured project={project} />}
+      {project.status === 'CAPTURED' && project.research && (project.research as { status: string }).status === 'FAILED'
+        ? <StatusResearching project={project} />
+        : project.status === 'CAPTURED' && <StatusCaptured project={project} />
+      }
       {project.status === 'INTERVIEWING' && <StatusInterviewing project={project} />}
 
       {/* Spark researching - show progress component */}
