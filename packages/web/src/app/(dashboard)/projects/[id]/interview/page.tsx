@@ -78,6 +78,7 @@ export default function InterviewPage({
   const [responseInput, setResponseInput] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [isSkipping, setIsSkipping] = useState(false);
   const [animationState, setAnimationState] = useState<AnimationState>('entering');
   const [currentQuestion, setCurrentQuestion] = useState<string>('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -195,10 +196,12 @@ export default function InterviewPage({
   const handleCompleteInterview = async () => {
     if (!activeInterview) return;
 
+    setIsSkipping(true);
     try {
       await completeInterview.mutateAsync({ id: activeInterview.id });
     } catch (error) {
       console.error('Failed to complete interview:', error);
+      setIsSkipping(false);
     }
   };
 
@@ -206,7 +209,10 @@ export default function InterviewPage({
     return <LoadingScreen message="Loading interview..." />;
   }
 
-  if (!activeInterview) {
+  if (isSkipping || !activeInterview) {
+    if (isSkipping) {
+      return <LoadingScreen message="Starting research pipeline..." />;
+    }
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-6">
         <div className="text-center">
