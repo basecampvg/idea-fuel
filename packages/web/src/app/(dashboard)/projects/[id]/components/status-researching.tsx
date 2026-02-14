@@ -1,12 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import {
   FlaskConical,
-  CheckCircle2,
   FileText,
   Lock,
   Check,
@@ -20,19 +17,10 @@ import {
   PlayCircle,
 } from 'lucide-react';
 import {
-  INTERVIEW_MODE_LABELS,
   RESEARCH_PHASE_LABELS,
   RESEARCH_PHASE_DESCRIPTIONS,
   REPORT_TYPE_LABELS,
 } from '@forge/shared';
-
-interface Interview {
-  id: string;
-  mode: string;
-  status: string;
-  confidenceScore: number;
-  createdAt: Date;
-}
 
 interface Research {
   status: string;
@@ -51,7 +39,6 @@ interface StatusResearchingProps {
   project: {
     id: string;
     title: string;
-    interviews?: Interview[];
     research?: Research | null;
   };
 }
@@ -125,17 +112,9 @@ function estimateTimeRemaining(progress: number): string {
 }
 
 export function StatusResearching({ project }: StatusResearchingProps) {
-  const router = useRouter();
   const utils = trpc.useUtils();
-  const completedInterview = project.interviews?.find((i) => i.status === 'COMPLETE');
   const research = project.research;
   const [activeSubTask, setActiveSubTask] = useState(0);
-
-  const startInterview = trpc.project.startInterview.useMutation({
-    onSuccess: () => {
-      router.push(`/projects/${project.id}/interview`);
-    },
-  });
 
   const resetResearch = trpc.research.reset.useMutation({
     onSuccess: () => {
@@ -408,44 +387,6 @@ export function StatusResearching({ project }: StatusResearchingProps) {
           </div>
         </div>
       </div>
-      )}
-
-      {/* Completed Interview */}
-      {completedInterview && (
-        <div className="rounded-2xl bg-background border border-border p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-primary" />
-            </div>
-            <h2 className="text-lg font-semibold text-foreground">Interview Complete</h2>
-          </div>
-
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <span className="px-2.5 py-1 rounded-full bg-primary/20 text-primary text-xs font-medium">
-              {INTERVIEW_MODE_LABELS[completedInterview.mode] || completedInterview.mode}
-            </span>
-            <span>·</span>
-            <span>Confidence: {completedInterview.confidenceScore}</span>
-            <span>·</span>
-            <span>{new Date(completedInterview.createdAt).toLocaleDateString()}</span>
-          </div>
-
-          <div className="flex gap-3 mt-4">
-            <Link
-              href={`/projects/${project.id}/interview`}
-              className="px-4 py-2 text-sm rounded-xl bg-card hover:bg-muted border border-border text-foreground transition-colors"
-            >
-              View Interview
-            </Link>
-            <button
-              onClick={() => startInterview.mutate({ projectId: project.id, mode: 'IN_DEPTH' })}
-              disabled={startInterview.isPending}
-              className="px-4 py-2 text-sm rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-card transition-colors disabled:opacity-50"
-            >
-              Start Another
-            </button>
-          </div>
-        </div>
       )}
 
       {/* Locked Reports Grid */}
