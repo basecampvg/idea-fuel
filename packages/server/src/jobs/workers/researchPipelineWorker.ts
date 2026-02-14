@@ -252,8 +252,8 @@ export function createResearchPipelineWorker() {
           retryCount: sql`${research.retryCount} + 1`,
         }).where(eq(research.id, researchId));
 
-        // Reset project status so user isn't stuck
-        await db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, projectId)).catch(() => {});
+        // Keep project in RESEARCHING state so the failure UI shows with retry option
+        // (resetting to CAPTURED hides the progress and forces re-selection)
 
         throw error; // Re-throw so BullMQ can handle retries
       }

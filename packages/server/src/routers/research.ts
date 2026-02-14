@@ -172,11 +172,30 @@ export const researchRouter = router({
     // New pipeline starts with DEEP_RESEARCH phase
     let researchRecord = project.research;
     if (researchRecord) {
-      // Restart failed research
+      // Resume failed research from last completed phase
+      let resumePhase: 'DEEP_RESEARCH' | 'SOCIAL_RESEARCH' | 'SYNTHESIS' | 'REPORT_GENERATION' = 'DEEP_RESEARCH';
+      let resumeProgress = 0;
+
+      const rd = researchRecord as Record<string, unknown>;
+      if (rd.rawDeepResearch) {
+        resumePhase = 'SOCIAL_RESEARCH';
+        resumeProgress = 25;
+      }
+      if (rd.socialProof) {
+        resumePhase = 'SYNTHESIS';
+        resumeProgress = 50;
+      }
+      if (rd.synthesizedInsights && rd.opportunityScore != null) {
+        resumePhase = 'REPORT_GENERATION';
+        resumeProgress = 75;
+      }
+
+      console.log(`[Research] Resuming from phase ${resumePhase} (progress ${resumeProgress}%) — attempt ${researchRecord.retryCount + 1}`);
+
       const [updated] = await ctx.db.update(research).set({
         status: 'IN_PROGRESS',
-        currentPhase: 'DEEP_RESEARCH', // New 4-phase pipeline starts here
-        progress: 0,
+        currentPhase: resumePhase,
+        progress: resumeProgress,
         errorMessage: null,
         errorPhase: null,
         retryCount: researchRecord.retryCount + 1,
@@ -234,7 +253,7 @@ export const researchRouter = router({
         errorMessage: 'Failed to queue research pipeline. Please try again.',
         errorPhase: 'QUEUED',
       }).where(eq(research.id, researchRecord.id));
-      await ctx.db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, input.projectId)).catch(() => {});
+      // Keep project in RESEARCHING so failure UI shows with retry option
     }
 
     return researchRecord;
@@ -600,7 +619,7 @@ export const researchRouter = router({
           status: 'FAILED',
           errorMessage: 'Failed to queue Spark pipeline',
         }).where(eq(research.id, researchRecord.id));
-        await ctx.db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, input.projectId)).catch(() => {});
+        // Keep project in RESEARCHING so failure UI shows with retry option
       }
 
       return { jobId: researchRecord.id };
