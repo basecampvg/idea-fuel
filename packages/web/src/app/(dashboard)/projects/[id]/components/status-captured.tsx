@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Feather, Microscope, Sparkles, Clock, ArrowRight, Lightbulb, Lock, Pencil, Check, X } from 'lucide-react';
+import { Feather, Microscope, Sparkles, Zap, Clock, ArrowRight, Lightbulb, Lock, Pencil, Check, X } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 import { useSubscription } from '@/components/subscription/use-subscription';
 import { INTERVIEW_MODE_LABELS, INTERVIEW_MODE_DESCRIPTIONS, PROJECT_DESC_MAX, PROJECT_DESC_MIN } from '@forge/shared';
@@ -28,8 +28,14 @@ export function StatusCaptured({ project }: StatusCapturedProps) {
   const utils = trpc.useUtils();
 
   const startInterview = trpc.project.startInterview.useMutation({
-    onSuccess: () => {
-      router.push(`/projects/${project.id}/interview`);
+    onSuccess: (data) => {
+      if (data.skipToResearch) {
+        // Spark mode skips interview — go back to project page which will show researching state
+        utils.project.get.invalidate({ id: project.id });
+        router.push(`/projects/${project.id}`);
+      } else {
+        router.push(`/projects/${project.id}/interview`);
+      }
     },
   });
 
@@ -196,13 +202,51 @@ export function StatusCaptured({ project }: StatusCapturedProps) {
             <Sparkles className="w-6 h-6 text-primary" />
           </div>
           <h2 className="text-lg font-semibold text-foreground mb-2">Ready to Discover?</h2>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            Start an AI-powered interview to uncover market insights, validate your idea, and build a comprehensive business plan.
+          <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+            Run a quick Spark validation or start an AI-powered interview to uncover market insights, validate your idea, and build a comprehensive business plan.
           </p>
         </div>
 
         {/* Interview Mode Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Spark - Quick Validation (no interview) */}
+          <button
+            onClick={() => startInterview.mutate({ projectId: project.id, mode: 'SPARK' })}
+            disabled={startInterview.isPending}
+            className="group relative rounded-xl bg-card border border-border p-5 text-left transition-all duration-300 hover:border-amber-500/40 hover:shadow-lg hover:shadow-amber-500/5 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Zap className="w-5 h-5 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-foreground group-hover:text-amber-500 transition-colors">
+                  {INTERVIEW_MODE_LABELS.SPARK}
+                </h3>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Clock className="w-3 h-3" />
+                  <span>No interview</span>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+              {INTERVIEW_MODE_DESCRIPTIONS.SPARK}
+            </p>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                  Instant
+                </span>
+                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  Key Signals
+                </span>
+              </div>
+              <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
+            </div>
+          </button>
+
           {/* In-Depth Interview (Recommended) - may be locked for FREE tier */}
           <button
             onClick={handleInDepthClick}

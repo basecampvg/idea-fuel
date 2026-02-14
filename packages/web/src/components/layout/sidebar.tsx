@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { useSidebar, TOP_BAR_HEIGHT, type SidebarMode } from './sidebar-context';
+import { useSidebar, TOP_BAR_HEIGHT, COLLAPSED_WIDTH, EXPANDED_WIDTH, type SidebarMode } from './sidebar-context';
 import { ProjectMiniCard, ProjectMiniCardSkeleton, type ProjectMiniCardProps } from './project-mini-card';
 import {
   Plus,
@@ -270,7 +270,7 @@ export function Sidebar() {
   return (
     <aside
       className="fixed left-0 bottom-0 z-50 flex flex-col bg-background border-r border-border overflow-hidden transition-[width] duration-200 ease-out motion-reduce:duration-0"
-      style={{ width: sidebarWidth, top: TOP_BAR_HEIGHT }}
+      style={{ width: isExpanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH, top: TOP_BAR_HEIGHT }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >

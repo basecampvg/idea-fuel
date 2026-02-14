@@ -25,8 +25,8 @@ interface SidebarContextValue {
 }
 
 const STORAGE_KEY = 'forge_sidebar_mode';
-const COLLAPSED_WIDTH = 60;
-const EXPANDED_WIDTH = 240;
+export const COLLAPSED_WIDTH = 60;
+export const EXPANDED_WIDTH = 240;
 
 /** Height of the global top navigation bar in pixels */
 export const TOP_BAR_HEIGHT = 48;
@@ -87,10 +87,15 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const isAutoCollapsed = isProjectDetailRoute(pathname);
 
   const isExpanded =
-    !isAutoCollapsed &&
-    (mode === 'expanded' || (mode === 'hover' && hoverActive));
+    (mode === 'expanded' && !isAutoCollapsed) ||
+    (mode === 'hover' && hoverActive);
 
-  const sidebarWidth = isExpanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH;
+  // Layout width used by secondary nav and content area for positioning.
+  // Stays at COLLAPSED_WIDTH when auto-collapsed so the hover flyout overlays
+  // instead of pushing layout.
+  const sidebarWidth = isAutoCollapsed
+    ? COLLAPSED_WIDTH
+    : (isExpanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH);
 
   const onMouseEnter = useCallback(() => {
     if (hoverLeaveTimer.current) {
@@ -117,15 +122,17 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     return clearHoverTimers;
   }, [clearHoverTimers]);
 
-  // Reset hover when auto-collapsed
+  // When navigating to a project detail route, collapse the hover overlay
+  // so it doesn't stay open during page transitions.
   useEffect(() => {
     if (isAutoCollapsed) {
-      clearHoverTimers();
       setHoverActive(false);
     }
-  }, [isAutoCollapsed, clearHoverTimers]);
+    // Only run on route change, not on every isAutoCollapsed toggle
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
-  const hoverEnabled = mode === 'hover' && !isAutoCollapsed;
+  const hoverEnabled = mode === 'hover';
 
   const value = useMemo<SidebarContextValue>(() => ({
     mode,
