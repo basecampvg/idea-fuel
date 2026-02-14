@@ -138,7 +138,15 @@ function parseSerpApiDate(dateStr: string): string {
     return `${year}-${String(monthIndex + 1).padStart(2, '0')}-01`;
   }
 
-  // Handle date range format (e.g., "Jan 8 – 14, 2023") - use start date
+  // Handle cross-month date range (e.g., "Dec 26, 2021 – Jan 1, 2022") - use start date
+  const crossMonthRange = dateStr.match(/^([A-Za-z]+)\s+(\d+),\s*(\d{4})\s*[–-]/);
+  if (crossMonthRange) {
+    const [, month, day, year] = crossMonthRange;
+    const monthIndex = new Date(`${month} 1, 2000`).getMonth();
+    return `${year}-${String(monthIndex + 1).padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+
+  // Handle same-month date range (e.g., "Jan 8 – 14, 2023") - use start date
   const rangeMatch = dateStr.match(/^([A-Za-z]+)\s+(\d+)\s*[–-]/);
   if (rangeMatch) {
     const yearMatch = dateStr.match(/(\d{4})/);

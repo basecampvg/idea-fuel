@@ -1830,7 +1830,32 @@ ${JSON.stringify(scores, null, 2)}
 ## MARKET INSIGHTS
 ${JSON.stringify(insights.marketAnalysis, null, 2)}
 
-Evaluate business metrics and return JSON matching the schema exactly. Base estimates on actual market data from research.`;
+## REQUIRED OUTPUT SCHEMA
+Return a JSON object with EXACTLY this structure (all fields required):
+{
+  "revenuePotential": {
+    "rating": "high" | "medium" | "low",
+    "estimate": "<revenue estimate string>",
+    "confidence": <0-100>
+  },
+  "executionDifficulty": {
+    "rating": "easy" | "moderate" | "hard",
+    "factors": ["<factor1>", "<factor2>", ...],
+    "soloFriendly": true | false
+  },
+  "gtmClarity": {
+    "rating": "clear" | "moderate" | "unclear",
+    "channels": ["<channel1>", "<channel2>", ...],
+    "confidence": <0-100>
+  },
+  "founderFit": {
+    "percentage": <0-100>,
+    "strengths": ["<strength1>", ...],
+    "gaps": ["<gap1>", ...]
+  }
+}
+
+Evaluate business metrics and return JSON matching the schema above exactly. Base estimates on actual market data from research.`;
 
   const extractionProvider = getExtractionProvider(tier);
   console.log('[Extract Metrics] Using provider:', extractionProvider.name);
