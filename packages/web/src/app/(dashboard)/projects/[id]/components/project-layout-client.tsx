@@ -24,7 +24,7 @@ function ProjectLayoutInner({
     { id },
     {
       refetchInterval: (query) =>
-        query.state.data?.status === 'RESEARCHING' ? 3000 : false,
+        query.state.data?.status === 'RESEARCHING' ? 15000 : false,
     }
   );
 

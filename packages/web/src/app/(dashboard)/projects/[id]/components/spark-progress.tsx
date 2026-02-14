@@ -149,7 +149,7 @@ export function SparkProgress({ jobId, onComplete, onError }: SparkProgressProps
     { jobId },
     {
       enabled: pollEnabled,
-      refetchInterval: pollEnabled ? 3000 : false, // Poll every 3 seconds
+      refetchInterval: pollEnabled ? 15000 : false, // Poll every 15 seconds
     }
   );
 
