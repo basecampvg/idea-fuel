@@ -13,21 +13,21 @@ import type {
 /**
  * Anthropic Claude API Provider
  *
- * Implements AIProvider interface for Claude 3.7 Sonnet and Opus models
+ * Implements AIProvider interface for Claude Sonnet 4.5 and Opus 4.6 models
  * https://docs.anthropic.com/en/api/getting-started
  *
- * Claude 3.7 Strengths:
- * - Sonnet: Excellent structured extraction, fast, cost-effective (~$3 vs $15 for GPT-5.2)
- * - Opus: Best-in-class long-form writing, maintains coherence across 200k context
+ * Task-based model selection:
+ * - Sonnet 4.5: Structured extraction, social proof synthesis (fast, cost-effective)
+ * - Opus 4.6: Scoring, user stories, business plans, SWOT analysis (best reasoning + writing)
  */
 
 export class AnthropicProvider implements AIProvider {
   name: 'anthropic' = 'anthropic';
   private client: Anthropic;
 
-  // Model selection
+  // Model selection - latest Claude models
   private readonly SONNET_MODEL = 'claude-sonnet-4-5-20250929';
-  private readonly OPUS_MODEL = 'claude-sonnet-4-5-20250929';
+  private readonly OPUS_MODEL = 'claude-opus-4-6-20250514';
 
   constructor() {
     const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -151,12 +151,18 @@ export class AnthropicProvider implements AIProvider {
   // ============================================================================
 
   private selectModel(options?: AIRequestOptions): string {
-    // For business plan generation, always use Opus (best long-form writing)
+    // Task-based model selection: Opus for reasoning-heavy and creative tasks
+    const opusTasks: AIRequestOptions['task'][] = ['scoring', 'generation', 'business-plan', 'swot'];
+    if (options?.task && opusTasks.includes(options.task)) {
+      return this.OPUS_MODEL;
+    }
+
+    // Fallback: large output requests use Opus
     if (options?.maxTokens && options.maxTokens > 20000) {
       return this.OPUS_MODEL;
     }
 
-    // Default to Sonnet (faster, cheaper, excellent for most tasks)
+    // Default to Sonnet (faster, cheaper, excellent for extraction)
     return this.SONNET_MODEL;
   }
 

@@ -225,6 +225,7 @@ export function createResearchPipelineWorker() {
           ...(result.actionPrompts ? { actionPrompts: result.actionPrompts as object[] } : {}),
           socialProof: result.socialProof as object,
           ...(result.techStack ? { techStack: result.techStack as object } : {}),
+          ...(result.swot ? { swot: result.swot as object } : {}),
           ...(result.businessPlan ? { businessPlan: result.businessPlan } : {}),
           rawDeepResearch: result.deepResearch as object,
         }).where(eq(research.id, researchId));

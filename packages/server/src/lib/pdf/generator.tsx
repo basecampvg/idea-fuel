@@ -54,6 +54,7 @@ interface ResearchData {
   socialProof?: unknown;
   marketSizing?: unknown;
   techStack?: unknown;
+  swot?: unknown;
   synthesizedInsights?: unknown;
   sparkResult?: unknown;
 }
@@ -112,6 +113,7 @@ function parseResearchData(research: ResearchData | null | undefined) {
     socialProof: parse(research.socialProof),
     marketSizing: parse(research.marketSizing),
     techStack: parse(research.techStack),
+    swot: parse(research.swot),
     synthesizedInsights: parse(research.synthesizedInsights),
     sparkResult: parse(research.sparkResult),
     scores: {
@@ -416,7 +418,12 @@ function transformCompetitiveAnalysisData(
       weaknesses: string[];
       opportunities: string[];
       threats: string[];
-    }),
+    }) || (research.swot as {
+      strengths: string[];
+      weaknesses: string[];
+      opportunities: string[];
+      threats: string[];
+    } | null),
 
     competitiveAdvantages: (content.competitiveAdvantages as string[]),
     differentiators: (content.differentiators as string[]),

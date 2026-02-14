@@ -5,15 +5,14 @@ import { TRPCError } from '@trpc/server';
 import { INTERVIEW_SESSION, INTERVIEW_RESUME_MESSAGES } from '@forge/shared';
 import type { ChatMessage, InterviewDataPoints, InterviewMode } from '@forge/shared';
 import { interviews, projects, research, users } from '../db/schema';
-import { db } from '../db/drizzle';
 import {
   generateNextQuestion,
   extractDataPoints,
   mergeCollectedData,
   generateResumeContext,
 } from '../services/interview-ai';
-import { runResearchPipeline, type ResearchInput } from '../services/research-ai';
 import { logAuditAsync, formatResource } from '../lib/audit';
+import { enqueueResearchPipeline } from '../jobs';
 
 export const interviewRouter = router({
   /**
@@ -410,90 +409,54 @@ export const interviewRouter = router({
         // Update project status to researching
         await ctx.db.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, interview.projectId));
 
-        // Create research record and start pipeline
-        const [researchRecord] = await ctx.db.insert(research).values({
-          projectId: interview.projectId,
-          status: 'IN_PROGRESS',
-          currentPhase: 'DEEP_RESEARCH',
-          progress: 0,
-          startedAt: new Date(),
-          notesSnapshot: interview.project.notes,
-        }).returning();
+        // Create or update research record (handles re-runs after previous failure)
+        const existingChatResearch = await ctx.db.query.research.findFirst({
+          where: eq(research.projectId, interview.projectId),
+        });
 
-        const researchInput: ResearchInput = {
-          ideaTitle: interview.project.title,
-          ideaDescription: interview.project.description,
-          interviewData: mergedData as Partial<InterviewDataPoints> | null,
-          interviewMessages: messages,
-        };
+        let chatResearchRecord;
+        if (existingChatResearch) {
+          const [updated] = await ctx.db.update(research).set({
+            status: 'IN_PROGRESS',
+            currentPhase: 'DEEP_RESEARCH',
+            progress: 0,
+            errorMessage: null,
+            errorPhase: null,
+            retryCount: existingChatResearch.retryCount + 1,
+            startedAt: new Date(),
+            completedAt: null,
+            notesSnapshot: interview.project.notes,
+          }).where(eq(research.id, existingChatResearch.id)).returning();
+          chatResearchRecord = updated;
+        } else {
+          const [created] = await ctx.db.insert(research).values({
+            projectId: interview.projectId,
+            status: 'IN_PROGRESS',
+            currentPhase: 'DEEP_RESEARCH',
+            progress: 0,
+            startedAt: new Date(),
+            notesSnapshot: interview.project.notes,
+          }).returning();
+          chatResearchRecord = created;
+        }
 
-        // Run pipeline in background (non-blocking)
-        const researchId = researchRecord.id;
-        const projectId = interview.projectId;
-
-        (async () => {
-          let bgPhase: 'QUEUED' | 'DEEP_RESEARCH' | 'SOCIAL_RESEARCH' | 'SYNTHESIS' | 'REPORT_GENERATION' | 'BUSINESS_PLAN_GENERATION' | 'COMPLETE' = 'DEEP_RESEARCH';
-
-          try {
-            const result = await runResearchPipeline(researchInput, async (phase, progress) => {
-              bgPhase = phase as typeof bgPhase;
-              await db
-                .update(research)
-                .set({ currentPhase: phase as typeof bgPhase, progress })
-                .where(eq(research.id, researchId));
-            }, tier);
-
-            await db
-              .update(research)
-              .set({
-                status: 'COMPLETE',
-                currentPhase: 'COMPLETE',
-                progress: 100,
-                completedAt: new Date(),
-                generatedQueries: result.queries as object,
-                synthesizedInsights: result.insights as object,
-                marketAnalysis: result.insights.marketAnalysis as object,
-                competitors: result.insights.competitors as object[],
-                painPoints: result.insights.painPoints as object[],
-                positioning: result.insights.positioning as object,
-                whyNow: result.insights.whyNow as object,
-                proofSignals: result.insights.proofSignals as object,
-                keywords: result.insights.keywords as object,
-                ...(result.scores ? {
-                  opportunityScore: result.scores.opportunityScore,
-                  problemScore: result.scores.problemScore,
-                  feasibilityScore: result.scores.feasibilityScore,
-                  whyNowScore: result.scores.whyNowScore,
-                  scoreJustifications: result.scores.justifications as object,
-                  scoreMetadata: result.scores.metadata as object,
-                } : {}),
-                ...(result.metrics ? {
-                  revenuePotential: result.metrics.revenuePotential as object,
-                  executionDifficulty: result.metrics.executionDifficulty as object,
-                  gtmClarity: result.metrics.gtmClarity as object,
-                  founderFit: result.metrics.founderFit as object,
-                } : {}),
-                ...(result.userStory ? { userStory: result.userStory as object } : {}),
-                keywordTrends: result.keywordTrends as object[],
-                ...(result.valueLadder ? { valueLadder: result.valueLadder as object[] } : {}),
-                ...(result.actionPrompts ? { actionPrompts: result.actionPrompts as object[] } : {}),
-                socialProof: result.socialProof as object,
-              })
-              .where(eq(research.id, researchId));
-
-            await db.update(projects).set({ status: 'COMPLETE' }).where(eq(projects.id, projectId));
-          } catch (error) {
-            await db
-              .update(research)
-              .set({
-                status: 'FAILED',
-                errorMessage: error instanceof Error ? error.message : 'Unknown error',
-                errorPhase: bgPhase,
-              })
-              .where(eq(research.id, researchId));
-            await db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, projectId)).catch(() => {});
-          }
-        })();
+        // Queue research pipeline job via BullMQ (processed by worker, survives Vercel timeout)
+        try {
+          await enqueueResearchPipeline({
+            researchId: chatResearchRecord.id,
+            projectId: interview.projectId,
+            userId: ctx.userId,
+            interviewId: input.interviewId,
+          });
+        } catch (queueError) {
+          console.error('[Interview.chat] Failed to queue research pipeline:', queueError);
+          await ctx.db.update(research).set({
+            status: 'FAILED',
+            errorMessage: 'Failed to queue research pipeline. Please try again.',
+            errorPhase: 'QUEUED',
+          }).where(eq(research.id, chatResearchRecord.id));
+          await ctx.db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, interview.projectId)).catch(() => {});
+        }
 
         return {
           interview: { ...completedInterview, project: interview.project },
@@ -556,103 +519,54 @@ export const interviewRouter = router({
     // Update project status to researching
     await ctx.db.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, interview.projectId));
 
-    // Create research record and start pipeline
-    const [researchRecord] = await ctx.db.insert(research).values({
-      projectId: interview.projectId,
-      status: 'IN_PROGRESS',
-      currentPhase: 'DEEP_RESEARCH',
-      progress: 0,
-      startedAt: new Date(),
-      notesSnapshot: interview.project.notes,
-    }).returning();
-
-    // Prepare research input
-    const researchInput: ResearchInput = {
-      ideaTitle: interview.project.title,
-      ideaDescription: interview.project.description,
-      interviewData: interview.collectedData as Partial<InterviewDataPoints> | null,
-      interviewMessages: (interview.messages as unknown as ChatMessage[]) || [],
-    };
-
-    // Get user's subscription tier for AI parameters
-    const user = await ctx.db.query.users.findFirst({
-      where: eq(users.id, ctx.userId),
-      columns: { subscription: true },
+    // Create or update research record (handles re-runs after previous failure)
+    const existingResearch = await ctx.db.query.research.findFirst({
+      where: eq(research.projectId, interview.projectId),
     });
-    const userTier = user?.subscription ?? 'FREE';
 
-    // Run pipeline in background (non-blocking)
-    // Use module-level db import for background work (ctx may be garbage collected)
-    const researchId = researchRecord.id;
-    const projectId = interview.projectId;
+    let researchRecord;
+    if (existingResearch) {
+      const [updated] = await ctx.db.update(research).set({
+        status: 'IN_PROGRESS',
+        currentPhase: 'DEEP_RESEARCH',
+        progress: 0,
+        errorMessage: null,
+        errorPhase: null,
+        retryCount: existingResearch.retryCount + 1,
+        startedAt: new Date(),
+        completedAt: null,
+        notesSnapshot: interview.project.notes,
+      }).where(eq(research.id, existingResearch.id)).returning();
+      researchRecord = updated;
+    } else {
+      const [created] = await ctx.db.insert(research).values({
+        projectId: interview.projectId,
+        status: 'IN_PROGRESS',
+        currentPhase: 'DEEP_RESEARCH',
+        progress: 0,
+        startedAt: new Date(),
+        notesSnapshot: interview.project.notes,
+      }).returning();
+      researchRecord = created;
+    }
 
-    (async () => {
-      // Track current phase for accurate error reporting
-      let currentPhase: 'QUEUED' | 'DEEP_RESEARCH' | 'SOCIAL_RESEARCH' | 'SYNTHESIS' | 'REPORT_GENERATION' | 'BUSINESS_PLAN_GENERATION' | 'COMPLETE' = 'DEEP_RESEARCH';
-
-      try {
-        const result = await runResearchPipeline(researchInput, async (phase, progress) => {
-          currentPhase = phase as typeof currentPhase;
-          await db
-            .update(research)
-            .set({ currentPhase: phase as typeof currentPhase, progress })
-            .where(eq(research.id, researchId));
-        }, userTier);
-
-        // Save final results
-        await db
-          .update(research)
-          .set({
-            status: 'COMPLETE',
-            currentPhase: 'COMPLETE',
-            progress: 100,
-            completedAt: new Date(),
-            generatedQueries: result.queries as object,
-            synthesizedInsights: result.insights as object,
-            marketAnalysis: result.insights.marketAnalysis as object,
-            competitors: result.insights.competitors as object[],
-            painPoints: result.insights.painPoints as object[],
-            positioning: result.insights.positioning as object,
-            whyNow: result.insights.whyNow as object,
-            proofSignals: result.insights.proofSignals as object,
-            keywords: result.insights.keywords as object,
-            ...(result.scores ? {
-              opportunityScore: result.scores.opportunityScore,
-              problemScore: result.scores.problemScore,
-              feasibilityScore: result.scores.feasibilityScore,
-              whyNowScore: result.scores.whyNowScore,
-              scoreJustifications: result.scores.justifications as object,
-              scoreMetadata: result.scores.metadata as object,
-            } : {}),
-            ...(result.metrics ? {
-              revenuePotential: result.metrics.revenuePotential as object,
-              executionDifficulty: result.metrics.executionDifficulty as object,
-              gtmClarity: result.metrics.gtmClarity as object,
-              founderFit: result.metrics.founderFit as object,
-            } : {}),
-            ...(result.userStory ? { userStory: result.userStory as object } : {}),
-            keywordTrends: result.keywordTrends as object[],
-            ...(result.valueLadder ? { valueLadder: result.valueLadder as object[] } : {}),
-            ...(result.actionPrompts ? { actionPrompts: result.actionPrompts as object[] } : {}),
-            socialProof: result.socialProof as object,
-          })
-          .where(eq(research.id, researchId));
-
-        // Update project status to complete
-        await db.update(projects).set({ status: 'COMPLETE' }).where(eq(projects.id, projectId));
-      } catch (error) {
-        await db
-          .update(research)
-          .set({
-            status: 'FAILED',
-            errorMessage: error instanceof Error ? error.message : 'Unknown error',
-            errorPhase: currentPhase,
-          })
-          .where(eq(research.id, researchId));
-        // Reset project status so user isn't stuck in RESEARCHING
-        await db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, projectId)).catch(() => {}); // Best-effort
-      }
-    })();
+    // Queue research pipeline job via BullMQ (processed by worker, survives Vercel timeout)
+    try {
+      await enqueueResearchPipeline({
+        researchId: researchRecord.id,
+        projectId: interview.projectId,
+        userId: ctx.userId,
+        interviewId: input.id,
+      });
+    } catch (queueError) {
+      console.error('[Interview.complete] Failed to queue research pipeline:', queueError);
+      await ctx.db.update(research).set({
+        status: 'FAILED',
+        errorMessage: 'Failed to queue research pipeline. Please try again.',
+        errorPhase: 'QUEUED',
+      }).where(eq(research.id, researchRecord.id));
+      await ctx.db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, interview.projectId)).catch(() => {});
+    }
 
     return updatedInterview;
   }),
