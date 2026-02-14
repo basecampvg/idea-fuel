@@ -37,7 +37,7 @@ function PlatformIcon({ platform }: { platform: string }) {
     reddit: { color: '#ff4500', label: 'Reddit' },
     twitter: { color: '#1da1f2', label: 'Twitter' },
     facebook: { color: '#1877f2', label: 'Facebook' },
-  }[platform] || { color: 'hsl(10, 80%, 50%)', label: platform };
+  }[platform] || { color: 'hsl(10, 80%, 55%)', label: platform };
 
   return (
     <div
@@ -130,8 +130,8 @@ export function SocialProofSection({ socialProof, title = 'Social Proof', subtit
 
   return (
     <CollapsibleSection
-      icon={<MessageCircle className="w-5 h-5 text-primary/60" />}
-      iconBgColor="rgba(29, 161, 242, 0.2)"
+      icon={<MessageCircle className="w-5 h-5 text-primary" />}
+      iconBgColor="hsla(10, 80%, 55%, 0.15)"
       title={title}
       subtitle={subtitle}
     >

@@ -59,7 +59,7 @@ function getModeConfig(mode: string) {
   if (mode === 'IN_DEPTH') {
     return {
       Icon: Microscope,
-      color: 'hsl(10, 80%, 50%)',
+      color: 'hsl(10, 80%, 55%)',
       bgColor: 'bg-primary/20',
       borderColor: 'border-primary/30',
       glowColor: 'shadow-primary/20',
@@ -77,7 +77,7 @@ function getModeConfig(mode: string) {
   // SPARK
   return {
     Icon: Sparkles,
-    color: 'hsl(10, 80%, 50%)',
+    color: 'hsl(10, 80%, 55%)',
     bgColor: 'bg-primary/20',
     borderColor: 'border-primary/30',
     glowColor: 'shadow-primary/20',
@@ -256,7 +256,7 @@ export function StatusInterviewing({ project }: StatusInterviewingProps) {
         {/* Locked features preview */}
         <div className="grid grid-cols-2 gap-3">
           {[
-            { icon: BarChart3, label: 'Market Research', color: 'hsl(10, 80%, 50%)' },
+            { icon: BarChart3, label: 'Market Research', color: 'hsl(10, 80%, 55%)' },
             { icon: Users, label: 'Competitor Analysis', color: 'hsl(10, 70%, 55%)' },
             { icon: TrendingUp, label: 'Opportunity Scores', color: 'hsl(10, 60%, 60%)' },
             { icon: FileText, label: 'Business Reports', color: 'hsl(10, 50%, 65%)' },

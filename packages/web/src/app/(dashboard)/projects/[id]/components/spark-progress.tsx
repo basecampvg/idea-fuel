@@ -229,7 +229,7 @@ export function SparkProgress({ jobId, onComplete, onError }: SparkProgressProps
       <div className="space-y-2">
         <div className="h-2 w-full overflow-hidden rounded-full bg-border">
           <div
-            className="h-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-1000 shadow-[0_0_10px_hsla(160,84%,44%,0.5)]"
+            className="h-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-1000 shadow-[0_0_10px_hsla(10,80%,55%,0.5)]"
             style={{ width: `${displayProgress}%` }}
           />
         </div>

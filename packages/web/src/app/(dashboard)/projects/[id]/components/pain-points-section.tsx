@@ -82,8 +82,8 @@ export function PainPointsSection({ painPoints, title = 'Pain Points', subtitle 
 
   return (
     <CollapsibleSection
-      icon={<AlertCircle className="w-5 h-5 text-primary/50" />}
-      iconBgColor="hsla(160, 84%, 44%, 0.2)"
+      icon={<AlertCircle className="w-5 h-5 text-primary" />}
+      iconBgColor="hsla(10, 80%, 55%, 0.15)"
       title={title}
       subtitle={displaySubtitle}
     >

@@ -30,7 +30,7 @@ export function BusinessPlanSection({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-            <FileText className="w-5 h-5 text-primary/50" />
+            <FileText className="w-5 h-5 text-primary" />
           </div>
           <div>
             <h2 className="text-sm font-semibold text-foreground">{title}</h2>

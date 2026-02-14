@@ -293,8 +293,8 @@ export function KeywordChart({ keywordTrends: rawKeywordTrends, title, subtitle 
             <defs>
               {/* Gradient for area fill */}
               <linearGradient id="pinkGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(10, 80%, 50%)" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="hsl(10, 80%, 50%)" stopOpacity={0} />
+                <stop offset="0%" stopColor="hsl(10, 80%, 55%)" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="hsl(10, 80%, 55%)" stopOpacity={0} />
               </linearGradient>
               {/* Glow filter for line */}
               <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
@@ -338,7 +338,7 @@ export function KeywordChart({ keywordTrends: rawKeywordTrends, title, subtitle 
             <Area
               type="monotone"
               dataKey="value"
-              stroke="hsl(10, 80%, 50%)"
+              stroke="hsl(10, 80%, 55%)"
               strokeWidth={2}
               fill="url(#pinkGradient)"
               filter="url(#glow)"

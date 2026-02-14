@@ -17,7 +17,7 @@ interface WhyNowSectionProps {
 
 function UrgencyMeter({ score }: { score: number }) {
   const getColor = () => {
-    if (score >= 75) return 'hsl(10, 80%, 50%)';
+    if (score >= 75) return 'hsl(10, 80%, 55%)';
     if (score >= 50) return 'hsl(10, 60%, 60%)';
     return 'hsl(0, 84%, 60%)';
   };
@@ -51,8 +51,8 @@ export function WhyNowSection({ whyNow, title = 'Why Now?', subtitle }: WhyNowSe
 
   return (
     <CollapsibleSection
-      icon={<Zap className="w-5 h-5 text-primary/50" />}
-      iconBgColor="hsla(160, 84%, 44%, 0.2)"
+      icon={<Zap className="w-5 h-5 text-primary" />}
+      iconBgColor="hsla(10, 80%, 55%, 0.15)"
       title={title}
       subtitle={subtitle}
     >
@@ -85,13 +85,13 @@ export function WhyNowSection({ whyNow, title = 'Why Now?', subtitle }: WhyNowSe
         {whyNow.timingFactors.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Clock className="w-4 h-4 text-primary/60" />
+              <Clock className="w-4 h-4 text-primary" />
               <p className="text-sm font-medium text-foreground">Timing Factors</p>
             </div>
             <ul className="space-y-2">
               {whyNow.timingFactors.map((factor, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <span className="text-primary/60 mt-0.5">&#9679;</span>
+                  <span className="text-primary mt-0.5">&#9679;</span>
                   <span>{factor}</span>
                 </li>
               ))}

@@ -40,12 +40,12 @@ const COMPLEXITY_COLORS: Record<string, string> = {
 
 // Layer configuration with icons and colors
 const LAYER_CONFIG: Record<string, { label: string; color: string }> = {
-  frontend: { label: 'Frontend', color: 'hsl(10, 80%, 50%)' },
-  backend: { label: 'Backend', color: 'hsl(10, 70%, 55%)' },
-  database: { label: 'Database', color: 'hsl(10, 80%, 50%)' },
-  hosting: { label: 'Hosting', color: 'hsl(10, 60%, 60%)' },
-  devops: { label: 'DevOps', color: 'hsl(10, 50%, 65%)' },
-  thirdParty: { label: 'Third-Party', color: 'hsl(10, 40%, 70%)' },
+  frontend: { label: 'Frontend', color: 'hsl(10, 80%, 55%)' },
+  backend: { label: 'Backend', color: 'hsl(10, 70%, 58%)' },
+  database: { label: 'Database', color: 'hsl(10, 80%, 55%)' },
+  hosting: { label: 'Hosting', color: 'hsl(10, 65%, 60%)' },
+  devops: { label: 'DevOps', color: 'hsl(10, 55%, 63%)' },
+  thirdParty: { label: 'Third-Party', color: 'hsl(10, 45%, 66%)' },
 };
 
 function TechItem({ tech }: { tech: TechRecommendation }) {
@@ -96,7 +96,7 @@ function TechItem({ tech }: { tech: TechRecommendation }) {
 }
 
 function TechLayer({ layerKey, techs }: { layerKey: string; techs: TechRecommendation[] }) {
-  const config = LAYER_CONFIG[layerKey] || { label: layerKey, color: 'hsl(10, 80%, 50%)' };
+  const config = LAYER_CONFIG[layerKey] || { label: layerKey, color: 'hsl(10, 80%, 55%)' };
 
   if (!techs || techs.length === 0) return null;
 
@@ -148,7 +148,7 @@ export function TechStackSection({
         <div className="flex items-center gap-3">
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: 'hsla(160, 84%, 44%, 0.2)' }}
+            style={{ backgroundColor: 'hsla(10, 80%, 55%, 0.15)' }}
           >
             <Server className="w-5 h-5 text-primary" />
           </div>

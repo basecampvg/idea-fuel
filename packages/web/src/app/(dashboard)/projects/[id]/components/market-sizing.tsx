@@ -45,7 +45,7 @@ const cardStyles: Record<string, { gradient: string; border: string; accent: str
   tam: {
     gradient: 'from-primary/20 to-primary/5',
     border: 'border-primary/30',
-    accent: 'hsl(10, 80%, 50%)',
+    accent: 'hsl(10, 80%, 55%)',
   },
   sam: {
     gradient: 'from-primary/15 to-primary/5',
@@ -55,7 +55,7 @@ const cardStyles: Record<string, { gradient: string; border: string; accent: str
   som: {
     gradient: 'from-primary/20 to-primary/5',
     border: 'border-primary/30',
-    accent: 'hsl(10, 80%, 50%)',
+    accent: 'hsl(10, 80%, 55%)',
   },
 };
 
@@ -115,7 +115,7 @@ function SegmentBar({
   segment: MarketSegmentBreakdown;
   index: number;
 }) {
-  const colors = ['hsl(10, 80%, 50%)', 'hsl(10, 70%, 55%)', 'hsl(10, 50%, 65%)', 'hsl(10, 60%, 60%)', 'hsl(10, 40%, 70%)'];
+  const colors = ['hsl(10, 80%, 55%)', 'hsl(10, 70%, 55%)', 'hsl(10, 50%, 65%)', 'hsl(10, 60%, 60%)', 'hsl(10, 40%, 70%)'];
   const color = colors[index % colors.length];
 
   return (
@@ -153,8 +153,8 @@ export function MarketSizing({
 
   return (
     <CollapsibleSection
-      icon={<PieChart className="w-5 h-5 text-primary/70" />}
-      iconBgColor="hsla(10, 80%, 50%, 0.2)"
+      icon={<PieChart className="w-5 h-5 text-primary" />}
+      iconBgColor="hsla(10, 80%, 55%, 0.15)"
       title={title}
       subtitle={subtitle}
       defaultCollapsed={false}
@@ -228,7 +228,7 @@ export function MarketSizing({
             {data.assumptions && data.assumptions.length > 0 && (
               <div>
                 <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-primary/50" />
+                  <AlertCircle className="w-4 h-4 text-primary" />
                   Key Assumptions
                 </h4>
                 <ul className="space-y-2">

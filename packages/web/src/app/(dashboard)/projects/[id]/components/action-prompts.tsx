@@ -260,7 +260,7 @@ export function ActionPrompts({ actionPrompts: rawActionPrompts, ideaTitle, titl
     <div className="rounded-2xl bg-background border border-border p-5">
       {/* Header with star icon */}
       <div className="flex items-center gap-2 mb-4">
-        <Sparkles className="w-4 h-4 text-primary/50" />
+        <Sparkles className="w-4 h-4 text-primary" />
         <h2 className="text-sm font-semibold text-foreground">
           {title}
         </h2>
