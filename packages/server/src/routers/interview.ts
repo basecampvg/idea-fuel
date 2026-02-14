@@ -536,6 +536,13 @@ export const interviewRouter = router({
         startedAt: new Date(),
         completedAt: null,
         notesSnapshot: interview.project.notes,
+        // Clear Spark fields from previous validation run
+        sparkStatus: null,
+        sparkKeywords: null,
+        sparkResult: null,
+        sparkStartedAt: null,
+        sparkCompletedAt: null,
+        sparkError: null,
       }).where(eq(research.id, existingResearch.id)).returning();
       researchRecord = updated;
     } else {

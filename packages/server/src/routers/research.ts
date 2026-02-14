@@ -183,6 +183,13 @@ export const researchRouter = router({
         startedAt: new Date(),
         completedAt: null,
         notesSnapshot: project.notes, // Snapshot project notes
+        // Clear Spark fields from previous validation run
+        sparkStatus: null,
+        sparkKeywords: null,
+        sparkResult: null,
+        sparkStartedAt: null,
+        sparkCompletedAt: null,
+        sparkError: null,
       }).where(eq(research.id, researchRecord.id)).returning();
       researchRecord = updated;
     } else {

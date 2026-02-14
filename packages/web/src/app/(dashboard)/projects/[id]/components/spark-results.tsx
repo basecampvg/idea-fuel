@@ -59,7 +59,7 @@ function getVerdictConfig(verdict: string) {
         bgColor: 'bg-primary/20',
         borderColor: 'border-primary/30',
         textColor: 'text-primary',
-        iconBg: 'rgba(34, 197, 94, 0.2)',
+        iconBg: 'hsla(10, 80%, 55%, 0.15)',
       };
     case 'watchlist':
       return {
@@ -67,7 +67,7 @@ function getVerdictConfig(verdict: string) {
         bgColor: 'bg-primary/20',
         borderColor: 'border-primary/30',
         textColor: 'text-primary/50',
-        iconBg: 'rgba(245, 158, 11, 0.2)',
+        iconBg: 'hsla(10, 80%, 55%, 0.15)',
       };
     case 'drop':
       return {
@@ -75,7 +75,7 @@ function getVerdictConfig(verdict: string) {
         bgColor: 'bg-[#ef4444]/20',
         borderColor: 'border-[#ef4444]/30',
         textColor: 'text-[#ef4444]',
-        iconBg: 'rgba(239, 68, 68, 0.2)',
+        iconBg: 'hsla(0, 84%, 60%, 0.15)',
       };
     default:
       return {
@@ -83,7 +83,7 @@ function getVerdictConfig(verdict: string) {
         bgColor: 'bg-muted/20',
         borderColor: 'border-muted/30',
         textColor: 'text-muted-foreground',
-        iconBg: 'rgba(106, 106, 122, 0.2)',
+        iconBg: 'hsla(10, 80%, 55%, 0.1)',
       };
   }
 }
@@ -106,12 +106,12 @@ const tamCardStyles = {
   base: {
     gradient: 'from-primary/20 to-primary/5',
     border: 'border-primary/30',
-    accent: 'hsl(10, 80%, 50%)',
+    accent: 'hsl(10, 80%, 55%)',
   },
   high: {
     gradient: 'from-primary/20 to-primary/5',
     border: 'border-primary/30',
-    accent: 'hsl(10, 80%, 50%)',
+    accent: 'hsl(10, 80%, 55%)',
   },
 };
 
@@ -267,7 +267,7 @@ function DataQualityBanner({ quality }: { quality: DataQualityReport }) {
       <div className="flex items-center gap-3 mb-4">
         <div
           className="w-8 h-8 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: quality.overall === 'high' ? 'rgba(34, 197, 94, 0.15)' : quality.overall === 'medium' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)' }}
+          style={{ backgroundColor: 'hsla(10, 80%, 55%, 0.15)' }}
         >
           <overallConfig.Icon className={`w-4 h-4 ${overallConfig.color}`} />
         </div>
@@ -318,9 +318,9 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
         <div className="flex items-center gap-3 mb-5">
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: 'rgba(245, 158, 11, 0.2)' }}
+            style={{ backgroundColor: 'hsla(10, 80%, 55%, 0.15)' }}
           >
-            <Sparkles className="w-5 h-5 text-primary/50" />
+            <Sparkles className="w-5 h-5 text-primary" />
           </div>
           <div>
             <h2 className="text-sm font-semibold text-foreground">Spark Validation</h2>
@@ -366,8 +366,8 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
       {/* Search Strategy */}
       {result.keywords.expanded_queries && result.keywords.expanded_queries.length > 0 && (
         <CollapsibleSection
-          icon={<Search className="w-5 h-5 text-primary/60" />}
-          iconBgColor="hsla(160, 84%, 44%, 0.15)"
+          icon={<Search className="w-5 h-5 text-primary" />}
+          iconBgColor="hsla(10, 80%, 55%, 0.15)"
           title="Search Strategy"
           subtitle={`${result.keywords.expanded_queries.length} query variations used`}
         >
@@ -394,7 +394,7 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
         <div className="flex items-center gap-3 mb-5">
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: trendConfig.label === 'Rising' ? 'hsla(160, 84%, 44%, 0.2)' : trendConfig.label === 'Declining' ? 'rgba(239, 68, 68, 0.2)' : 'hsla(160, 84%, 44%, 0.15)' }}
+            style={{ backgroundColor: trendConfig.label === 'Declining' ? 'hsla(0, 84%, 60%, 0.15)' : 'hsla(10, 80%, 55%, 0.15)' }}
           >
             <trendConfig.Icon className={`w-5 h-5 ${trendConfig.color}`} />
           </div>
@@ -437,9 +437,9 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
         <div className="flex items-center gap-3 mb-5">
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: 'rgba(59, 130, 246, 0.2)' }}
+            style={{ backgroundColor: 'hsla(10, 80%, 55%, 0.15)' }}
           >
-            <Target className="w-5 h-5 text-primary/70" />
+            <Target className="w-5 h-5 text-primary" />
           </div>
           <div>
             <h2 className="text-sm font-semibold text-foreground">Keywords</h2>
@@ -471,7 +471,7 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
       {/* TAM Range */}
       <CollapsibleSection
         icon={<PieChart className="w-5 h-5 text-primary" />}
-        iconBgColor="rgba(34, 197, 94, 0.2)"
+        iconBgColor="hsla(10, 80%, 55%, 0.15)"
         title="Market Size (TAM)"
         subtitle="Total addressable market estimate"
         defaultCollapsed={false}
@@ -542,8 +542,8 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
 
       {/* Reddit Signals */}
       <CollapsibleSection
-        icon={<MessageSquare className="w-5 h-5 text-primary/60" />}
-        iconBgColor="hsla(160, 84%, 44%, 0.2)"
+        icon={<MessageSquare className="w-5 h-5 text-primary" />}
+        iconBgColor="hsla(10, 80%, 55%, 0.15)"
         title="Reddit Signals"
         subtitle="Community discussions and pain points"
       >
@@ -603,8 +603,8 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
 
       {/* Facebook Groups */}
       <CollapsibleSection
-        icon={<Users className="w-5 h-5 text-primary/70" />}
-        iconBgColor="hsla(160, 84%, 44%, 0.2)"
+        icon={<Users className="w-5 h-5 text-primary" />}
+        iconBgColor="hsla(10, 80%, 55%, 0.15)"
         title="Facebook Groups"
         subtitle="Relevant communities to explore"
       >

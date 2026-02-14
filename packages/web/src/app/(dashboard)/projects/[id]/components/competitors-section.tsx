@@ -79,7 +79,7 @@ export function CompetitorsSection({ competitors, title = 'Competitive Landscape
   return (
     <CollapsibleSection
       icon={<Swords className="w-5 h-5 text-primary" />}
-      iconBgColor="rgba(233, 30, 140, 0.2)"
+      iconBgColor="hsla(10, 80%, 55%, 0.15)"
       title={title}
       subtitle={displaySubtitle}
     >
