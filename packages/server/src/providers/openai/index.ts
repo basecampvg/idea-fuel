@@ -24,7 +24,7 @@ import { withExponentialBackoff } from '../../lib/deep-research';
  */
 
 export class OpenAIProvider implements AIProvider {
-  name: 'openai' = 'openai';
+  name = 'openai' as const;
 
   async isAvailable(): Promise<boolean> {
     try {
@@ -208,7 +208,7 @@ import type { SocialProofPost } from '../../services/research-ai';
  * Used as fallback when Brave Search returns insufficient results
  */
 export class OpenAISearchProvider implements SearchProvider {
-  name: 'openai' = 'openai';
+  name = 'openai' as const;
 
   async isAvailable(): Promise<boolean> {
     // OpenAI search is available if the client is available

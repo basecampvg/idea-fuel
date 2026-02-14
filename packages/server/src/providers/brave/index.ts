@@ -40,7 +40,7 @@ interface BraveSearchResponse {
 }
 
 export class BraveSearchProvider implements SearchProvider {
-  name: 'brave' = 'brave';
+  name = 'brave' as const;
   private config: BraveSearchConfig;
 
   constructor() {

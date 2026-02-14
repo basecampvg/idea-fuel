@@ -22,7 +22,7 @@ import type {
  */
 
 export class AnthropicProvider implements AIProvider {
-  name: 'anthropic' = 'anthropic';
+  name = 'anthropic' as const;
   private client: Anthropic;
 
   // Model selection - latest Claude models
