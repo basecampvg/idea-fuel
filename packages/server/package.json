@@ -13,6 +13,7 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "worker": "tsx --env-file=../../.env src/worker.ts",
+    "worker:start": "tsx src/worker.ts",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",

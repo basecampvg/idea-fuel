@@ -6,6 +6,7 @@
  * Usage: tsx --env-file=../../.env src/worker.ts
  */
 
+import { createServer } from 'http';
 import { isRedisConnected, closeRedisConnections } from './lib/redis';
 import {
   createResearchPipelineWorker,
@@ -37,6 +38,15 @@ async function main() {
   console.log('  - Research Cancel (concurrency: 5)');
   console.log('  - Report Generation (concurrency: 3)');
   console.log('[Worker] Waiting for jobs...');
+
+  // Health check server for Railway
+  const PORT = process.env.PORT || 3001;
+  createServer((_req, res) => {
+    res.writeHead(200);
+    res.end('OK');
+  }).listen(PORT, () => {
+    console.log(`[Worker] Health check listening on port ${PORT}`);
+  });
 
   // Graceful shutdown
   const shutdown = async (signal: string) => {
