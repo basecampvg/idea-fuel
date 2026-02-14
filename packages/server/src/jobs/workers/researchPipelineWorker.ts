@@ -108,11 +108,13 @@ export function createResearchPipelineWorker() {
           currentPhase = phase;
 
           // Check for cancellation before processing
+          // Only abort if explicitly cancelled by user (errorMessage contains 'Cancelled')
+          // Don't abort on FAILED from previous worker errors (BullMQ retries)
           const current = await db.query.research.findFirst({
             where: eq(research.id, researchId),
-            columns: { status: true },
+            columns: { status: true, errorMessage: true },
           });
-          if (current?.status === 'FAILED') {
+          if (current?.status === 'FAILED' && current.errorMessage?.includes('Cancelled by user')) {
             throw new Error('Research cancelled by user');
           }
 
