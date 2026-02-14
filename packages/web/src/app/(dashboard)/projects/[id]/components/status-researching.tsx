@@ -60,7 +60,7 @@ const phaseConfig: Record<string, { icon: typeof Clock; label: string }> = {
   REPORT_GENERATION: { icon: FileOutput, label: 'Generating Reports' },
 };
 
-// Sub-tasks for DEEP_RESEARCH phase - maps to actual chunked research
+// Sub-tasks per display phase — maps to actual pipeline steps
 const phaseSubTasks: Record<string, string[]> = {
   DEEP_RESEARCH: [
     'Analyzing market size & trends',
@@ -68,14 +68,42 @@ const phaseSubTasks: Record<string, string[]> = {
     'Gathering customer pain points',
     'Evaluating timing factors',
   ],
+  SYNTHESIS: [
+    'Extracting insights from research',
+    'Calculating opportunity scores',
+    'Evaluating business metrics',
+    'Sizing market opportunity',
+  ],
+  REPORT_GENERATION: [
+    'Crafting user story & value ladder',
+    'Building action plan & tech stack',
+    'Analyzing keyword trends',
+    'Writing business plan',
+  ],
 };
 
-// Get active subtask based on actual progress (not timer)
-function getActiveSubTaskFromProgress(progress: number): number {
-  if (progress < 12) return 0;
-  if (progress < 19) return 1;
-  if (progress < 25) return 2;
-  return 3;
+// Get active subtask based on real backend phase + progress
+function getActiveSubTask(phase: string, progress: number): number {
+  switch (phase) {
+    case 'DEEP_RESEARCH':
+      if (progress < 12) return 0;
+      if (progress < 19) return 1;
+      if (progress < 25) return 2;
+      return 3;
+    case 'SYNTHESIS':
+      if (progress < 63) return 0;
+      if (progress < 70) return 1;
+      if (progress < 76) return 2;
+      return 3;
+    case 'REPORT_GENERATION':
+      if (progress < 88) return 0;
+      if (progress < 92) return 1;
+      return 2;
+    case 'BUSINESS_PLAN_GENERATION':
+      return 3; // Always the last sub-task of the "Generating Reports" display
+    default:
+      return 0;
+  }
 }
 
 // All 10 report types
@@ -131,15 +159,10 @@ export function StatusResearching({ project }: StatusResearchingProps) {
   // Polling is handled by project-layout-client.tsx (refetchInterval: 3000)
   // No duplicate polling needed here.
 
-  // Calculate active subtask from progress
+  // Calculate active subtask from real backend phase + progress
   useEffect(() => {
-    if (research?.currentPhase !== 'DEEP_RESEARCH') {
-      setActiveSubTask(0);
-      return;
-    }
-
-    const newActiveSubTask = getActiveSubTaskFromProgress(research.progress);
-    setActiveSubTask(newActiveSubTask);
+    if (!research) return;
+    setActiveSubTask(getActiveSubTask(research.currentPhase, research.progress));
   }, [research?.currentPhase, research?.progress]);
 
   // When research completes, invalidate the query
