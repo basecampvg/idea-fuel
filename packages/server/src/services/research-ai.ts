@@ -1681,15 +1681,66 @@ IMPORTANT: Provide justification for each score explaining:
 2. What factors pulled the score up or down
 3. What uncertainties exist
 
+## REQUIRED JSON FORMAT
+Return EXACTLY this structure with these exact key names:
+{
+  "opportunityScore": <number 0-100>,
+  "opportunityJustification": "<string explaining the opportunity score>",
+  "problemScore": <number 0-100>,
+  "problemJustification": "<string explaining the problem score>",
+  "feasibilityScore": <number 0-100>,
+  "feasibilityJustification": "<string explaining the feasibility score>",
+  "whyNowScore": <number 0-100>,
+  "whyNowJustification": "<string explaining the why now score>"
+}
+
+CRITICAL: Use the EXACT key names above (e.g. "opportunityScore" NOT "opportunity"). All scores must be numbers. All justifications must be plain strings. Do NOT nest objects.
+
 This is pass ${passNumber} - evaluate independently based on the research data.`;
 
-    const scorePass = await extractionProvider.extract(prompt, ScoresPassSchema, {
+    // Use a coercing schema that handles Opus returning nested objects like
+    // {opportunity: {score: 75, justification: "..."}} instead of flat keys
+    const CoercingScoresSchema = z.preprocess((raw: unknown) => {
+      if (!raw || typeof raw !== 'object') return raw;
+      const obj = raw as Record<string, unknown>;
+
+      // If already has the correct flat keys, pass through
+      if ('opportunityScore' in obj && typeof obj.opportunityScore === 'number') return obj;
+
+      // Map nested structure to flat keys
+      const mapped: Record<string, unknown> = { ...obj };
+      const scoreFields = ['opportunity', 'problem', 'feasibility', 'whyNow'] as const;
+      for (const field of scoreFields) {
+        const val = obj[field];
+        if (val && typeof val === 'object') {
+          const nested = val as Record<string, unknown>;
+          // Extract score: could be nested.score, nested.value, or a direct number
+          if (!(`${field}Score` in mapped) || mapped[`${field}Score`] === undefined) {
+            mapped[`${field}Score`] = nested.score ?? nested.value ?? nested.rating;
+          }
+          // Extract justification: could be nested.justification, nested.reasoning, nested.explanation
+          if (!(`${field}Justification` in mapped) || mapped[`${field}Justification`] === undefined) {
+            const justText = nested.justification ?? nested.reasoning ?? nested.explanation ?? nested.rationale;
+            mapped[`${field}Justification`] = typeof justText === 'string' ? justText
+              : typeof justText === 'object' ? JSON.stringify(justText) : String(justText || '');
+          }
+        } else if (typeof val === 'number') {
+          // Model returned {opportunity: 75} directly
+          if (!(`${field}Score` in mapped) || mapped[`${field}Score`] === undefined) {
+            mapped[`${field}Score`] = val;
+          }
+        }
+      }
+      return mapped;
+    }, ScoresPassSchema);
+
+    const scorePass = await extractionProvider.extract(prompt, CoercingScoresSchema, {
       maxTokens: 8000,
       temperature: 1.0,
       task: 'scoring',
     });
 
-    return scorePass;
+    return scorePass as RawScorePass;
   };
 
   // Run passes in parallel

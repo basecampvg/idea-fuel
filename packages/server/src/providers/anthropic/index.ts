@@ -188,7 +188,7 @@ export class AnthropicProvider implements AIProvider {
 
   private selectModel(options?: AIRequestOptions): string {
     // Task-based model selection: Opus for reasoning-heavy and creative tasks
-    const opusTasks: AIRequestOptions['task'][] = ['scoring', 'generation', 'business-plan', 'swot'];
+    const opusTasks: AIRequestOptions['task'][] = ['generation', 'business-plan', 'swot'];
     if (options?.task && opusTasks.includes(options.task)) {
       return this.OPUS_MODEL;
     }
