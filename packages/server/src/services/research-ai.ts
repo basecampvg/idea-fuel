@@ -1516,7 +1516,57 @@ ${deepResearch.citations.map((c, i) => `[${i + 1}] ${c.title}: ${c.url}`).join('
 
 ---
 
-Extract the key insights and return structured JSON matching the schema exactly. Use ONLY information from the research report. Be specific and cite findings where relevant.`;
+Extract the key insights and return structured JSON matching this EXACT schema. Every field is required:
+
+{
+  "marketAnalysis": {
+    "size": "<string: market size description>",
+    "growth": "<string: growth rate description>",
+    "trends": ["<string>", ...],
+    "opportunities": ["<string>", ...],
+    "threats": ["<string>", ...]
+  },
+  "competitors": [
+    {
+      "name": "<string>",
+      "description": "<string>",
+      "strengths": ["<string>", ...],
+      "weaknesses": ["<string>", ...],
+      "positioning": "<string>"
+    }
+  ],
+  "painPoints": [
+    {
+      "problem": "<string>",
+      "severity": "high" | "medium" | "low",
+      "currentSolutions": ["<string>", ...],
+      "gaps": ["<string>", ...]
+    }
+  ],
+  "positioning": {
+    "uniqueValueProposition": "<string>",
+    "targetAudience": "<string>",
+    "differentiators": ["<string>", ...],
+    "messagingPillars": ["<string>", ...]
+  },
+  "whyNow": {
+    "marketTriggers": ["<string>", ...],
+    "timingFactors": ["<string>", ...],
+    "urgencyScore": <number 0-100>
+  },
+  "proofSignals": {
+    "demandIndicators": ["<string>", ...],
+    "validationOpportunities": ["<string>", ...],
+    "riskFactors": ["<string>", ...]
+  },
+  "keywords": {
+    "primary": ["<string>", ...],
+    "secondary": ["<string>", ...],
+    "longTail": ["<string>", ...]
+  }
+}
+
+Use ONLY information from the research report. Be specific and cite findings where relevant. Output ONLY the JSON object, no markdown or explanation.`;
 
   const extractionProvider = getExtractionProvider(tier);
   console.log('[Extract Insights] Using provider:', extractionProvider.name);
@@ -1524,11 +1574,44 @@ Extract the key insights and return structured JSON matching the schema exactly.
 
   const { InsightsSchema } = await import('./research-schemas');
 
-  const insights = await extractionProvider.extract(prompt, InsightsSchema, {
-    maxTokens: 25000,
-    temperature: 1.0,
-    task: 'extraction',
-  });
+  // Retry up to 3 times - extraction can fail if Claude returns incomplete/malformed JSON
+  const insights = await withExponentialBackoff(
+    async () => {
+      return await extractionProvider.extract(prompt, InsightsSchema, {
+        maxTokens: 25000,
+        temperature: 0.2,  // Low temperature for deterministic structured extraction
+        task: 'extraction',
+      });
+    },
+    {
+      maxAttempts: 3,
+      initialDelayMs: 3000,
+      // Retry on Zod validation errors AND transient network errors
+      isRetryable: (error: unknown) => {
+        // Retry Zod validation errors (Claude returned bad JSON)
+        if (error && typeof error === 'object' && 'issues' in error) {
+          console.warn('[Extract Insights] Zod validation failed, will retry...');
+          return true;
+        }
+        // Retry JSON parse errors
+        if (error instanceof Error && error.message.includes('Failed to parse JSON')) {
+          console.warn('[Extract Insights] JSON parse failed, will retry...');
+          return true;
+        }
+        // Also retry standard transient errors (502, 503, etc.)
+        if (error && typeof error === 'object') {
+          const err = error as Record<string, unknown>;
+          if (typeof err.status === 'number' && [429, 500, 502, 503, 504].includes(err.status)) {
+            return true;
+          }
+        }
+        return false;
+      },
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[Extract Insights] Retry ${attempt}/3 after ${delayMs}ms:`, error instanceof Error ? error.message : 'Zod validation error');
+      },
+    }
+  );
 
   console.log('[Extract Insights] Successfully extracted insights');
   return insights;
@@ -1756,7 +1839,7 @@ Evaluate business metrics and return JSON matching the schema exactly. Base esti
 
   const metrics = await extractionProvider.extract(prompt, BusinessMetricsSchema, {
     maxTokens: 8000,
-    temperature: 1.0,
+    temperature: 0.2,
     task: 'extraction',
   });
 
@@ -2326,7 +2409,7 @@ Return 4-6 items per quadrant as JSON matching the schema exactly.`;
 
   const swot = await extractionProvider.extract(prompt, SWOTSchema, {
     maxTokens: 8000,
-    temperature: 1.0,
+    temperature: 0.2,
     task: 'swot',
   });
 
@@ -2454,7 +2537,8 @@ Return your analysis as JSON:
 
       const synthesized = await extractionProvider.extract(synthesisPrompt, SocialProofSchema, {
         maxTokens: 16000,
-        temperature: 1.0,
+        temperature: 0.2,
+        task: 'extraction',
       });
 
       const elapsed = Math.round((Date.now() - startTime) / 1000);

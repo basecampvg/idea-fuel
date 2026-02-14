@@ -112,10 +112,10 @@ export class AnthropicProvider implements AIProvider {
     const response = await this.client.messages.create({
       model,
       max_tokens: options?.maxTokens || 16000,
-      temperature: options?.temperature ?? 1.0,
+      temperature: options?.temperature ?? 0.2,
       messages: [{ role: 'user', content: prompt }],
       system:
-        'You are a structured data extraction assistant. Output valid JSON matching the requested schema. Do not include markdown code blocks or explanations, just the raw JSON.',
+        'You are a structured data extraction assistant. Output valid JSON matching the requested schema. Do not include markdown code blocks or explanations, just the raw JSON. Every field in the schema is REQUIRED - do not omit any fields.',
     });
 
     const content = response.content[0];
@@ -123,9 +123,45 @@ export class AnthropicProvider implements AIProvider {
       throw new Error('Expected text response from Claude');
     }
 
+    // Log response metadata for debugging
+    console.log(`[Anthropic Extract] Model: ${model}, Stop reason: ${response.stop_reason}, Output tokens: ${response.usage.output_tokens}`);
+
+    // Check for truncation - if stop_reason is "max_tokens", the JSON is likely incomplete
+    if (response.stop_reason === 'max_tokens') {
+      console.error(`[Anthropic Extract] WARNING: Response was truncated (hit max_tokens). Output tokens: ${response.usage.output_tokens}/${options?.maxTokens || 16000}`);
+      console.error(`[Anthropic Extract] Response tail (last 200 chars): ${content.text.slice(-200)}`);
+    }
+
     // Parse and validate JSON
-    const rawJson = this.extractJson(content.text);
-    return schema.parse(rawJson);
+    let rawJson: unknown;
+    try {
+      rawJson = this.extractJson(content.text);
+    } catch (parseError) {
+      console.error(`[Anthropic Extract] JSON parse failed. Response length: ${content.text.length} chars`);
+      console.error(`[Anthropic Extract] Response preview (first 500 chars): ${content.text.slice(0, 500)}`);
+      console.error(`[Anthropic Extract] Response tail (last 500 chars): ${content.text.slice(-500)}`);
+      throw parseError;
+    }
+
+    // Use safeParse for better error reporting
+    const result = schema.safeParse(rawJson);
+    if (!result.success) {
+      const topLevelKeys = rawJson && typeof rawJson === 'object' ? Object.keys(rawJson as object) : [];
+      console.error(`[Anthropic Extract] Zod validation failed. Parsed JSON top-level keys: [${topLevelKeys.join(', ')}]`);
+      console.error(`[Anthropic Extract] Zod errors:`, JSON.stringify(result.error.issues.slice(0, 5), null, 2));
+      if (rawJson && typeof rawJson === 'object') {
+        // Log which top-level fields are undefined/null/missing
+        for (const issue of result.error.issues) {
+          if (issue.path.length === 1) {
+            const key = issue.path[0] as string;
+            console.error(`[Anthropic Extract] Field "${key}" value: ${JSON.stringify((rawJson as Record<string, unknown>)[key])?.slice(0, 100) ?? 'MISSING'}`);
+          }
+        }
+      }
+      throw result.error;
+    }
+
+    return result.data;
   }
 
   async generate(prompt: string, options?: AIRequestOptions): Promise<string> {
@@ -252,21 +288,72 @@ export class AnthropicProvider implements AIProvider {
     return results.map((r, i) => `[${i + 1}] ${r.title}\n${r.snippet}\nSource: ${r.url}\n`).join('\n');
   }
 
-  private extractJson(text: string): any {
+  private extractJson(text: string): unknown {
     // Remove markdown code blocks if present
     const jsonMatch = text.match(/```json\s*\n([\s\S]*?)\n```/) || text.match(/```\s*\n([\s\S]*?)\n```/);
     const jsonStr = jsonMatch ? jsonMatch[1] : text;
 
-    // Try to parse the JSON
+    // Try to parse the JSON directly
     try {
       return JSON.parse(jsonStr.trim());
-    } catch (error) {
-      // If parsing fails, try to find JSON object/array in the text
+    } catch (directError) {
+      // Try to find JSON object/array in the text
       const jsonObjectMatch = jsonStr.match(/\{[\s\S]*\}/) || jsonStr.match(/\[[\s\S]*\]/);
       if (jsonObjectMatch) {
-        return JSON.parse(jsonObjectMatch[0]);
+        try {
+          return JSON.parse(jsonObjectMatch[0]);
+        } catch (fallbackError) {
+          // JSON was found but is malformed (likely truncated) - try to repair
+          console.error(`[Anthropic extractJson] Found JSON-like content but it's malformed. Length: ${jsonObjectMatch[0].length}`);
+          const repaired = this.tryRepairJson(jsonObjectMatch[0]);
+          if (repaired !== null) {
+            console.log(`[Anthropic extractJson] JSON repair succeeded`);
+            return repaired;
+          }
+          throw new Error(`Failed to parse JSON from Claude response (malformed): ${fallbackError instanceof Error ? fallbackError.message : 'Unknown error'}`);
+        }
       }
-      throw new Error(`Failed to parse JSON from Claude response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to parse JSON from Claude response (no JSON found): ${directError instanceof Error ? directError.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Attempt to repair truncated JSON by closing open brackets/braces
+   */
+  private tryRepairJson(text: string): unknown | null {
+    try {
+      // Count open/close braces and brackets
+      let braces = 0;
+      let brackets = 0;
+      let inString = false;
+      let escaped = false;
+
+      for (const char of text) {
+        if (escaped) { escaped = false; continue; }
+        if (char === '\\') { escaped = true; continue; }
+        if (char === '"') { inString = !inString; continue; }
+        if (inString) continue;
+        if (char === '{') braces++;
+        else if (char === '}') braces--;
+        else if (char === '[') brackets++;
+        else if (char === ']') brackets--;
+      }
+
+      // If unbalanced, try closing open structures
+      if (braces > 0 || brackets > 0) {
+        // Remove any trailing partial key-value pair (e.g., "key": "partial...)
+        let repaired = text.replace(/,\s*"[^"]*"?\s*:?\s*"?[^"{}[\]]*$/, '');
+        // Remove trailing comma
+        repaired = repaired.replace(/,\s*$/, '');
+        // Close open brackets and braces
+        for (let i = 0; i < brackets; i++) repaired += ']';
+        for (let i = 0; i < braces; i++) repaired += '}';
+        return JSON.parse(repaired);
+      }
+
+      return null;
+    } catch {
+      return null;
     }
   }
 }
