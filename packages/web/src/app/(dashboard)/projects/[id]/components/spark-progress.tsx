@@ -14,6 +14,7 @@ import {
 import {
   SPARK_STATUS_LABELS,
   SPARK_STATUS_DESCRIPTIONS,
+  SPARK_STATUS_PROGRESS,
 } from '@forge/shared';
 
 interface SparkProgressProps {
@@ -39,7 +40,15 @@ function getStatusConfig(status: string | null) {
         bgColor: 'bg-primary/10',
         animate: true,
       };
-    case 'RUNNING_RESEARCH':
+    case 'RUNNING_RESEARCH': // Legacy
+    case 'RUNNING_PARALLEL':
+      return {
+        Icon: Sparkles,
+        color: 'text-primary',
+        bgColor: 'bg-primary/10',
+        animate: true,
+      };
+    case 'SYNTHESIZING':
       return {
         Icon: Sparkles,
         color: 'text-primary',
@@ -47,6 +56,7 @@ function getStatusConfig(status: string | null) {
         animate: true,
       };
     case 'COMPLETE':
+    case 'PARTIAL_COMPLETE':
       return {
         Icon: CheckCircle2,
         color: 'text-primary',
@@ -70,13 +80,52 @@ function getStatusConfig(status: string | null) {
   }
 }
 
-// Progress steps
+// Progress steps (matches actual pipeline: keywords → parallel research → synthesis → done)
 const progressSteps = [
-  { status: 'QUEUED', label: 'Queued' },
-  { status: 'RUNNING_KEYWORDS', label: 'Generating Keywords' },
-  { status: 'RUNNING_RESEARCH', label: 'Researching' },
-  { status: 'COMPLETE', label: 'Complete' },
+  { status: 'QUEUED', label: 'Queued', Icon: Loader2 },
+  { status: 'RUNNING_KEYWORDS', label: 'Generating Keywords', Icon: Search },
+  { status: 'RUNNING_PARALLEL', label: 'Researching', Icon: Sparkles },
+  { status: 'SYNTHESIZING', label: 'Analyzing Results', Icon: Sparkles },
+  { status: 'COMPLETE', label: 'Complete', Icon: CheckCircle2 },
 ];
+
+// Map legacy statuses to their equivalent step
+function normalizeStatus(status: string | null | undefined): string {
+  if (status === 'RUNNING_RESEARCH' || status === 'ENRICHING') return 'RUNNING_PARALLEL';
+  if (status === 'PARTIAL_COMPLETE') return 'COMPLETE';
+  return status || 'QUEUED';
+}
+
+// Interpolate progress within a phase based on elapsed time
+function interpolateProgress(
+  status: string | null | undefined,
+  dbProgress: number,
+  startedAt: Date | string | null,
+): number {
+  if (!status || !startedAt) return dbProgress;
+
+  const range = SPARK_STATUS_PROGRESS[status];
+  if (!range || range.start === range.end) return range?.start ?? dbProgress;
+
+  // Estimate time per phase (rough) to create smooth interpolation
+  const phaseMaxSeconds: Record<string, number> = {
+    QUEUED: 10,
+    RUNNING_KEYWORDS: 30,
+    RUNNING_PARALLEL: 600, // 10 minutes max
+    RUNNING_RESEARCH: 600,
+    SYNTHESIZING: 120,     // 2 minutes
+    ENRICHING: 60,
+  };
+
+  const maxSec = phaseMaxSeconds[status] || 120;
+  const elapsed = (Date.now() - new Date(startedAt).getTime()) / 1000;
+
+  // Use an easing function so progress starts fast then slows (never reaches 100% of range)
+  const t = Math.min(elapsed / maxSec, 0.95);
+  const eased = 1 - Math.pow(1 - t, 2); // ease-out quadratic
+
+  return Math.round(range.start + (range.end - range.start) * eased);
+}
 
 function formatDuration(startedAt: Date | string | null): string {
   if (!startedAt) return '';
@@ -127,7 +176,9 @@ export function SparkProgress({ jobId, onComplete, onError }: SparkProgressProps
   }, [data?.startedAt, data?.isComplete, data?.isFailed]);
 
   const statusConfig = getStatusConfig(data?.status ?? null);
-  const currentStepIndex = progressSteps.findIndex((s) => s.status === data?.status);
+  const normalized = normalizeStatus(data?.status);
+  const currentStepIndex = progressSteps.findIndex((s) => s.status === normalized);
+  const displayProgress = interpolateProgress(data?.status, data?.progress ?? 0, data?.startedAt ?? null);
 
   if (isLoading && !data) {
     return (
@@ -178,12 +229,12 @@ export function SparkProgress({ jobId, onComplete, onError }: SparkProgressProps
       <div className="space-y-2">
         <div className="h-2 w-full overflow-hidden rounded-full bg-border">
           <div
-            className="h-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-500 shadow-[0_0_10px_hsla(160,84%,44%,0.5)]"
-            style={{ width: `${data?.progress ?? 0}%` }}
+            className="h-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-1000 shadow-[0_0_10px_hsla(160,84%,44%,0.5)]"
+            style={{ width: `${displayProgress}%` }}
           />
         </div>
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{data?.progress ?? 0}% complete</span>
+          <span>{displayProgress}% complete</span>
           {data?.startedAt && !data?.isComplete && !data?.isFailed && (
             <span>Elapsed: {formatDuration(data.startedAt)}</span>
           )}
@@ -194,9 +245,9 @@ export function SparkProgress({ jobId, onComplete, onError }: SparkProgressProps
       <div className="space-y-2">
         {progressSteps.map((step, index) => {
           const isActive = index === currentStepIndex;
-          const isComplete = index < currentStepIndex || data?.status === 'COMPLETE';
+          const isComplete = index < currentStepIndex || normalized === 'COMPLETE';
           const isFailed = data?.status === 'FAILED' && index === currentStepIndex;
-          const StepIcon = index === 0 ? Loader2 : index === 1 ? Search : index === 2 ? Sparkles : CheckCircle2;
+          const StepIcon = step.Icon;
 
           return (
             <div
@@ -216,7 +267,7 @@ export function SparkProgress({ jobId, onComplete, onError }: SparkProgressProps
                   isComplete
                     ? 'bg-primary/20 text-primary'
                     : isActive
-                    ? 'bg-primary/20 text-primary/50'
+                    ? 'bg-primary/20 text-primary'
                     : isFailed
                     ? 'bg-red-500/20 text-red-500'
                     : 'bg-muted text-muted-foreground'
@@ -240,7 +291,7 @@ export function SparkProgress({ jobId, onComplete, onError }: SparkProgressProps
                 {step.label}
               </span>
               {isActive && (
-                <span className="ml-auto text-xs text-primary/50 font-medium">In Progress</span>
+                <span className="ml-auto text-xs text-primary/50 font-medium animate-pulse">In Progress</span>
               )}
               {isComplete && (
                 <span className="ml-auto text-xs text-primary font-medium">Done</span>
@@ -268,7 +319,9 @@ export function SparkProgress({ jobId, onComplete, onError }: SparkProgressProps
         <div className="p-4 bg-primary/10 border border-primary/30 rounded-xl">
           <div className="flex items-center gap-3">
             <CheckCircle2 className="h-5 w-5 text-primary" />
-            <p className="font-medium text-primary">Validation Complete!</p>
+            <p className="font-medium text-primary">
+              {data.isPartial ? 'Validation Complete (Partial Data)' : 'Validation Complete!'}
+            </p>
           </div>
         </div>
       )}

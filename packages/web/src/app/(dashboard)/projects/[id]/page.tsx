@@ -26,18 +26,15 @@ function isSparkResearch(research: unknown): boolean {
 function isSparkInProgress(research: unknown): boolean {
   if (!research || typeof research !== 'object') return false;
   const r = research as Record<string, unknown>;
-  return (
-    r.sparkStatus === 'QUEUED' ||
-    r.sparkStatus === 'RUNNING_KEYWORDS' ||
-    r.sparkStatus === 'RUNNING_RESEARCH'
-  );
+  const runningStatuses = ['QUEUED', 'RUNNING_KEYWORDS', 'RUNNING_RESEARCH', 'RUNNING_PARALLEL', 'SYNTHESIZING', 'ENRICHING'];
+  return runningStatuses.includes(r.sparkStatus as string);
 }
 
 // Check if Spark completed successfully
 function isSparkComplete(research: unknown): boolean {
   if (!research || typeof research !== 'object') return false;
   const r = research as Record<string, unknown>;
-  return r.sparkStatus === 'COMPLETE' && r.sparkResult !== null;
+  return (r.sparkStatus === 'COMPLETE' || r.sparkStatus === 'PARTIAL_COMPLETE') && r.sparkResult !== null;
 }
 
 export default function ProjectOverviewPage() {

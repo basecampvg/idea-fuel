@@ -18,6 +18,7 @@ import {
   type ResponseStatus,
 } from '../lib/deep-research';
 import type { SparkKeywords } from '@forge/shared';
+import { safeJsonParse } from './research-ai';
 
 // =============================================================================
 // TYPES
@@ -264,32 +265,33 @@ function parseCompetitorResult(rawContent: string): SparkCompetitorResult {
     jsonStr = jsonStr.slice(jsonStart, jsonEnd + 1);
   }
 
-  try {
-    const parsed = JSON.parse(jsonStr);
+  const result = safeJsonParse<Record<string, unknown>>(jsonStr);
 
-    // Validate and return with defaults
-    return {
-      competitors: Array.isArray(parsed.competitors)
-        ? parsed.competitors.map((c: Record<string, unknown>) => ({
-            name: String(c.name || ''),
-            description: String(c.description || ''),
-            strengths: Array.isArray(c.strengths) ? c.strengths.map(String) : [],
-            weaknesses: Array.isArray(c.weaknesses) ? c.weaknesses.map(String) : [],
-            positioning: String(c.positioning || ''),
-            website: c.website ? String(c.website) : undefined,
-            pricing_model: c.pricing_model ? String(c.pricing_model) : undefined,
-          }))
-        : [],
-      market_gaps: Array.isArray(parsed.market_gaps)
-        ? parsed.market_gaps.map(String)
-        : [],
-    };
-  } catch (error) {
-    console.error('[Spark:Competitors] Failed to parse response:', error);
-    // Return empty result on parse failure
+  if (!result.ok) {
+    console.error('[Spark:Competitors] Failed to parse response:', result.reason);
     return {
       competitors: [],
       market_gaps: [],
     };
   }
+
+  const parsed = result.data;
+
+  // Validate and return with defaults
+  return {
+    competitors: Array.isArray(parsed.competitors)
+      ? parsed.competitors.map((c: Record<string, unknown>) => ({
+          name: String(c.name || ''),
+          description: String(c.description || ''),
+          strengths: Array.isArray(c.strengths) ? c.strengths.map(String) : [],
+          weaknesses: Array.isArray(c.weaknesses) ? c.weaknesses.map(String) : [],
+          positioning: String(c.positioning || ''),
+          website: c.website ? String(c.website) : undefined,
+          pricing_model: c.pricing_model ? String(c.pricing_model) : undefined,
+        }))
+      : [],
+    market_gaps: Array.isArray(parsed.market_gaps)
+      ? parsed.market_gaps.map(String)
+      : [],
+  };
 }

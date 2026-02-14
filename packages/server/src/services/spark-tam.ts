@@ -17,6 +17,7 @@ import {
   type ResponseStatus,
 } from '../lib/deep-research';
 import type { SparkKeywords } from '@forge/shared';
+import { safeJsonParse } from './research-ai';
 
 // =============================================================================
 // TYPES
@@ -297,47 +298,10 @@ function parseTamResult(rawContent: string): SparkTamResult {
     jsonStr = jsonStr.slice(jsonStart, jsonEnd + 1);
   }
 
-  try {
-    const parsed = JSON.parse(jsonStr);
+  const result = safeJsonParse<Record<string, unknown>>(jsonStr);
 
-    // Validate direction enum
-    const direction = ['rising', 'flat', 'declining', 'unknown'].includes(
-      parsed.trend_signal?.direction
-    )
-      ? (parsed.trend_signal.direction as 'rising' | 'flat' | 'declining' | 'unknown')
-      : 'unknown';
-
-    // Validate and return with defaults
-    return {
-      tam: {
-        currency: String(parsed.tam?.currency || 'USD'),
-        low: Number(parsed.tam?.low) || 0,
-        base: Number(parsed.tam?.base) || 0,
-        high: Number(parsed.tam?.high) || 0,
-        method: String(parsed.tam?.method || 'estimated'),
-        assumptions: Array.isArray(parsed.tam?.assumptions)
-          ? parsed.tam.assumptions.map(String)
-          : [],
-        citations: Array.isArray(parsed.tam?.citations)
-          ? parsed.tam.citations.map((c: Record<string, unknown>) => ({
-              label: String(c.label || ''),
-              url: String(c.url || ''),
-            }))
-          : [],
-      },
-      trend_signal: {
-        direction,
-        evidence: Array.isArray(parsed.trend_signal?.evidence)
-          ? parsed.trend_signal.evidence.map((e: Record<string, unknown>) => ({
-              claim: String(e.claim || ''),
-              source_url: String(e.source_url || ''),
-            }))
-          : [],
-      },
-    };
-  } catch (error) {
-    console.error('[Spark:TAM] Failed to parse response:', error);
-    // Return empty result on parse failure
+  if (!result.ok) {
+    console.error('[Spark:TAM] Failed to parse response:', result.reason);
     return {
       tam: {
         currency: 'USD',
@@ -354,6 +318,46 @@ function parseTamResult(rawContent: string): SparkTamResult {
       },
     };
   }
+
+  const parsed = result.data;
+  const tam = (parsed.tam || {}) as Record<string, unknown>;
+  const trendSignal = (parsed.trend_signal || {}) as Record<string, unknown>;
+
+  // Validate direction enum
+  const direction = ['rising', 'flat', 'declining', 'unknown'].includes(
+    trendSignal.direction as string
+  )
+    ? (trendSignal.direction as 'rising' | 'flat' | 'declining' | 'unknown')
+    : 'unknown';
+
+  // Validate and return with defaults
+  return {
+    tam: {
+      currency: String(tam.currency || 'USD'),
+      low: Number(tam.low) || 0,
+      base: Number(tam.base) || 0,
+      high: Number(tam.high) || 0,
+      method: String(tam.method || 'estimated'),
+      assumptions: Array.isArray(tam.assumptions)
+        ? tam.assumptions.map(String)
+        : [],
+      citations: Array.isArray(tam.citations)
+        ? tam.citations.map((c: Record<string, unknown>) => ({
+            label: String(c.label || ''),
+            url: String(c.url || ''),
+          }))
+        : [],
+    },
+    trend_signal: {
+      direction,
+      evidence: Array.isArray(trendSignal.evidence)
+        ? trendSignal.evidence.map((e: Record<string, unknown>) => ({
+            claim: String(e.claim || ''),
+            source_url: String(e.source_url || ''),
+          }))
+        : [],
+    },
+  };
 }
 
 /**

@@ -18,6 +18,7 @@ import {
   type ResponseStatus,
 } from '../lib/deep-research';
 import type { SparkKeywords } from '@forge/shared';
+import { safeJsonParse } from './research-ai';
 
 // =============================================================================
 // TYPES
@@ -306,46 +307,10 @@ function parseDemandResult(rawContent: string): SparkDemandResult {
     jsonStr = jsonStr.slice(jsonStart, jsonEnd + 1);
   }
 
-  try {
-    const parsed = JSON.parse(jsonStr);
+  const result = safeJsonParse<Record<string, unknown>>(jsonStr);
 
-    // Validate and return with defaults
-    return {
-      reddit: {
-        top_threads: Array.isArray(parsed.reddit?.top_threads)
-          ? parsed.reddit.top_threads.map((t: Record<string, unknown>) => ({
-              title: String(t.title || ''),
-              subreddit: String(t.subreddit || ''),
-              url: String(t.url || ''),
-              upvotes: Number(t.upvotes) || 0,
-              comments: Number(t.comments) || 0,
-              posted: String(t.posted || ''),
-              signal: String(t.signal || ''),
-            }))
-          : [],
-        recurring_pains: Array.isArray(parsed.reddit?.recurring_pains)
-          ? parsed.reddit.recurring_pains.map(String)
-          : [],
-        willingness_to_pay_clues: Array.isArray(parsed.reddit?.willingness_to_pay_clues)
-          ? parsed.reddit.willingness_to_pay_clues.map(String)
-          : [],
-      },
-      facebook_groups: Array.isArray(parsed.facebook_groups)
-        ? parsed.facebook_groups.map((g: Record<string, unknown>) => ({
-            name: String(g.name || ''),
-            members: String(g.members || ''),
-            privacy: ['public', 'private'].includes(String(g.privacy))
-              ? (String(g.privacy) as 'public' | 'private')
-              : 'unknown',
-            url: String(g.url || ''),
-            fit_score: Math.min(3, Math.max(0, Number(g.fit_score) || 0)),
-            why_relevant: String(g.why_relevant || ''),
-          }))
-        : [],
-    };
-  } catch (error) {
-    console.error('[Spark:Demand] Failed to parse response:', error);
-    // Return empty result on parse failure
+  if (!result.ok) {
+    console.error('[Spark:Demand] Failed to parse response:', result.reason);
     return {
       reddit: {
         top_threads: [],
@@ -355,4 +320,42 @@ function parseDemandResult(rawContent: string): SparkDemandResult {
       facebook_groups: [],
     };
   }
+
+  const parsed = result.data;
+  const reddit = (parsed.reddit || {}) as Record<string, unknown>;
+
+  // Validate and return with defaults
+  return {
+    reddit: {
+      top_threads: Array.isArray(reddit.top_threads)
+        ? reddit.top_threads.map((t: Record<string, unknown>) => ({
+            title: String(t.title || ''),
+            subreddit: String(t.subreddit || ''),
+            url: String(t.url || ''),
+            upvotes: Number(t.upvotes) || 0,
+            comments: Number(t.comments) || 0,
+            posted: String(t.posted || ''),
+            signal: String(t.signal || ''),
+          }))
+        : [],
+      recurring_pains: Array.isArray(reddit.recurring_pains)
+        ? reddit.recurring_pains.map(String)
+        : [],
+      willingness_to_pay_clues: Array.isArray(reddit.willingness_to_pay_clues)
+        ? reddit.willingness_to_pay_clues.map(String)
+        : [],
+    },
+    facebook_groups: Array.isArray(parsed.facebook_groups)
+      ? parsed.facebook_groups.map((g: Record<string, unknown>) => ({
+          name: String(g.name || ''),
+          members: String(g.members || ''),
+          privacy: ['public', 'private'].includes(String(g.privacy))
+            ? (String(g.privacy) as 'public' | 'private')
+            : 'unknown',
+          url: String(g.url || ''),
+          fit_score: Math.min(3, Math.max(0, Number(g.fit_score) || 0)),
+          why_relevant: String(g.why_relevant || ''),
+        }))
+      : [],
+  };
 }
