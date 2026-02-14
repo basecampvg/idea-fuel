@@ -27,7 +27,7 @@ export class AnthropicProvider implements AIProvider {
 
   // Model selection - latest Claude models
   private readonly SONNET_MODEL = 'claude-sonnet-4-5-20250929';
-  private readonly OPUS_MODEL = 'claude-opus-4-6-20250514';
+  private readonly OPUS_MODEL = 'claude-opus-4-6';
 
   constructor() {
     const apiKey = process.env.ANTHROPIC_API_KEY;
