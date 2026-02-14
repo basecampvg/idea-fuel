@@ -151,7 +151,16 @@ export function StatusResearching({ project }: StatusResearchingProps) {
 
   if (!research) return null;
 
-  const currentPhaseIndex = researchPhases.indexOf(research.currentPhase);
+  // Map currentPhase to display index — BUSINESS_PLAN_GENERATION is a sub-phase
+  // of REPORT_GENERATION in the UI (the header text still shows "Writing Business Plan")
+  const currentPhaseIndex = (() => {
+    const idx = researchPhases.indexOf(research.currentPhase);
+    if (idx >= 0) return idx;
+    if (research.currentPhase === 'BUSINESS_PLAN_GENERATION') {
+      return researchPhases.indexOf('REPORT_GENERATION');
+    }
+    return 0; // Fallback for any unknown phase
+  })();
   const isFailed = research.status === 'FAILED';
 
   return (
