@@ -9,10 +9,12 @@ export {
   getReportGenerationQueue,
   getResearchPipelineQueue,
   getResearchCancelQueue,
+  getSparkPipelineQueue,
   getEmailSyncQueue,
   enqueueReportGeneration,
   enqueueResearchPipeline,
   enqueueResearchCancel,
+  enqueueSparkPipeline,
   getQueueStats,
   getAllQueueStats,
 } from './queues';
@@ -22,6 +24,7 @@ export type {
   QueueName,
   ReportGenerationJobData,
   ResearchPipelineJobData,
+  SparkPipelineJobData,
   ResearchCancelJobData,
   EmailSyncJobData,
 } from './queues';
@@ -31,4 +34,5 @@ export {
   createReportGenerationWorker,
   createResearchPipelineWorker,
   createResearchCancelWorker,
+  createSparkPipelineWorker,
 } from './workers';

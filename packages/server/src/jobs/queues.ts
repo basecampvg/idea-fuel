@@ -8,6 +8,7 @@ export const QUEUE_NAMES = {
   REPORT_GENERATION: 'report-generation',
   RESEARCH_PIPELINE: 'research-pipeline',
   RESEARCH_CANCEL: 'research-cancel',
+  SPARK_PIPELINE: 'spark-pipeline',
   EMAIL_SYNC: 'email-sync',
 } as const;
 
@@ -40,6 +41,17 @@ export interface ResearchPipelineJobData {
 }
 
 /**
+ * Spark Pipeline Job Data
+ */
+export interface SparkPipelineJobData {
+  researchId: string;
+  projectId: string;
+  userId: string;
+  description: string;
+  includeTrends: boolean;
+}
+
+/**
  * Research Cancel Job Data
  */
 export interface ResearchCancelJobData {
@@ -62,6 +74,7 @@ export interface EmailSyncJobData {
 let _reportGenerationQueue: Queue<ReportGenerationJobData> | null = null;
 let _researchPipelineQueue: Queue<ResearchPipelineJobData> | null = null;
 let _researchCancelQueue: Queue<ResearchCancelJobData> | null = null;
+let _sparkPipelineQueue: Queue<SparkPipelineJobData> | null = null;
 let _emailSyncQueue: Queue<EmailSyncJobData> | null = null;
 
 export function getReportGenerationQueue(): Queue<ReportGenerationJobData> {
@@ -114,6 +127,24 @@ export function getResearchCancelQueue(): Queue<ResearchCancelJobData> {
     );
   }
   return _researchCancelQueue;
+}
+
+export function getSparkPipelineQueue(): Queue<SparkPipelineJobData> {
+  if (!_sparkPipelineQueue) {
+    _sparkPipelineQueue = new Queue<SparkPipelineJobData>(
+      QUEUE_NAMES.SPARK_PIPELINE,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 2,
+          backoff: { type: 'exponential', delay: 10000 },
+          removeOnComplete: { count: 50, age: 24 * 60 * 60 },
+          removeOnFail: { count: 200, age: 7 * 24 * 60 * 60 },
+        },
+      }
+    );
+  }
+  return _sparkPipelineQueue;
 }
 
 export function getEmailSyncQueue(): Queue<EmailSyncJobData> {
@@ -187,6 +218,22 @@ export async function enqueueResearchCancel(
 }
 
 /**
+ * Add a Spark pipeline job to the queue
+ */
+export async function enqueueSparkPipeline(
+  data: SparkPipelineJobData
+): Promise<string> {
+  const job = await getSparkPipelineQueue().add(
+    `spark-${data.researchId}`,
+    data,
+    {
+      jobId: `spark-${data.researchId}`,
+    }
+  );
+  return job.id || '';
+}
+
+/**
  * Get queue stats for monitoring
  */
 export async function getQueueStats(queueName: QueueName) {
@@ -194,6 +241,7 @@ export async function getQueueStats(queueName: QueueName) {
     [QUEUE_NAMES.REPORT_GENERATION]: getReportGenerationQueue,
     [QUEUE_NAMES.RESEARCH_PIPELINE]: getResearchPipelineQueue,
     [QUEUE_NAMES.RESEARCH_CANCEL]: getResearchCancelQueue,
+    [QUEUE_NAMES.SPARK_PIPELINE]: getSparkPipelineQueue,
     [QUEUE_NAMES.EMAIL_SYNC]: getEmailSyncQueue,
   };
 

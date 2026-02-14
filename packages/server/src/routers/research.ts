@@ -3,16 +3,10 @@ import { eq, and } from 'drizzle-orm';
 import { router, protectedProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { RESEARCH_PHASE_PROGRESS, SPARK_STATUS_PROGRESS } from '@forge/shared';
-import type { ChatMessage, InterviewDataPoints, SparkJobStatus } from '@forge/shared';
 import { logAuditAsync, formatResource } from '../lib/audit';
-import { enqueueResearchCancel } from '../jobs';
+import { enqueueResearchCancel, enqueueResearchPipeline, enqueueSparkPipeline } from '../jobs';
 import { research, projects, users, interviews } from '../db/schema';
-import { db } from '../db/drizzle';
 import {
-  runResearchPipeline,
-  classifyResearchError,
-  logResearchError,
-  SlaTracker,
   extractInsights,
   extractScores,
   extractBusinessMetrics,
@@ -23,16 +17,11 @@ import {
   generateTechStack,
   type ResearchInput,
   type ExistingResearchData,
-  type IntermediateResearchData,
-  type ChunkedResearchData,
-  type ResearchError,
-  type ResearchPhase,
   type SynthesizedInsights,
   type ResearchScores,
   type BusinessMetrics,
   type DeepResearchOutput,
 } from '../services/research-ai';
-import { runSparkPipeline } from '../services/spark-ai';
 
 export const researchRouter = router({
   /**
@@ -220,223 +209,26 @@ export const researchRouter = router({
       metadata: { projectId: input.projectId, isRetry: project.research?.retryCount ? project.research.retryCount > 0 : false },
     });
 
-    // Prepare research input (include project notes as context)
-    const notesContext = project.notes ? `## FOUNDER'S NOTES\n${project.notes}` : undefined;
-
-    const researchInput: ResearchInput = {
-      ideaTitle: project.title,
-      ideaDescription: project.description,
-      interviewData: interview.collectedData as Partial<InterviewDataPoints> | null,
-      interviewMessages: (interview.messages as unknown as ChatMessage[]) || [],
-      canvasContext: notesContext,
-    };
-
-    // Get user's subscription tier for AI parameters
-    const user = await ctx.db.query.users.findFirst({
-      where: eq(users.id, ctx.userId),
-      columns: { subscription: true },
-    });
-    const userTier = user?.subscription ?? 'FREE';
-
-    // Build existing research data for resume functionality
-    // This allows the pipeline to skip completed phases (and chunks within phases)
-    const existingResearchData: ExistingResearchData | undefined = project.research ? {
-      rawDeepResearch: project.research.rawDeepResearch as ExistingResearchData['rawDeepResearch'],
-      researchChunks: project.research.researchChunks as ChunkedResearchData | null, // Chunk progress for resume
-      socialProof: project.research.socialProof as ExistingResearchData['socialProof'],
-      synthesizedInsights: project.research.synthesizedInsights as ExistingResearchData['synthesizedInsights'],
-      opportunityScore: project.research.opportunityScore,
-      problemScore: project.research.problemScore,
-      feasibilityScore: project.research.feasibilityScore,
-      whyNowScore: project.research.whyNowScore,
-      scoreJustifications: project.research.scoreJustifications as ExistingResearchData['scoreJustifications'],
-      scoreMetadata: project.research.scoreMetadata as ExistingResearchData['scoreMetadata'],
-      revenuePotential: project.research.revenuePotential as ExistingResearchData['revenuePotential'],
-      executionDifficulty: project.research.executionDifficulty as ExistingResearchData['executionDifficulty'],
-      gtmClarity: project.research.gtmClarity as ExistingResearchData['gtmClarity'],
-      founderFit: project.research.founderFit as ExistingResearchData['founderFit'],
-      marketSizing: project.research.marketSizing as ExistingResearchData['marketSizing'],
-      userStory: project.research.userStory as ExistingResearchData['userStory'],
-      valueLadder: project.research.valueLadder as ExistingResearchData['valueLadder'],
-      actionPrompts: project.research.actionPrompts as ExistingResearchData['actionPrompts'],
-      keywordTrends: project.research.keywordTrends as ExistingResearchData['keywordTrends'],
-      techStack: project.research.techStack as ExistingResearchData['techStack'],
-      businessPlan: project.research.businessPlan,
-    } : undefined;
-
-    // Run pipeline in background (non-blocking for MVP)
-    // In production, this would be a BullMQ job
-    const researchId = researchRecord.id;
-
-    // Run pipeline async without awaiting
-    (async () => {
-      // Track current phase for accurate error reporting
-      let currentPhase: 'QUEUED' | 'DEEP_RESEARCH' | 'SYNTHESIS' | 'SOCIAL_RESEARCH' | 'REPORT_GENERATION' | 'COMPLETE' = 'DEEP_RESEARCH';
-      const startTime = Date.now();
-
-      // Initialize SLA tracker for monitoring phase and total execution times
-      const slaTracker = new SlaTracker();
-
-      try {
-        const result = await runResearchPipeline(researchInput, async (phase, progress, intermediateData?: IntermediateResearchData) => {
-          // Track phase for error reporting
-          currentPhase = phase as typeof currentPhase;
-
-          // Update SLA tracking when phase changes
-          const researchPhase = phase as ResearchPhase;
-          if (researchPhase && ['DEEP_RESEARCH', 'SOCIAL_RESEARCH', 'SYNTHESIS', 'REPORT_GENERATION'].includes(researchPhase)) {
-            // End previous phase if any
-            slaTracker.endPhase();
-            // Start new phase
-            slaTracker.startPhase(researchPhase);
-          }
-
-          // Check SLAs periodically - warn but don't fail (soft limit)
-          slaTracker.checkTotalSla();
-
-          // Update progress in database
-          // New phases: DEEP_RESEARCH, SYNTHESIS, SOCIAL_RESEARCH, REPORT_GENERATION, COMPLETE
-          const updateData: Record<string, unknown> = {
-            currentPhase: phase as 'QUEUED' | 'DEEP_RESEARCH' | 'SYNTHESIS' | 'SOCIAL_RESEARCH' | 'REPORT_GENERATION' | 'COMPLETE',
-            progress,
-          };
-
-          // Save intermediate data for resume capability
-          // This allows resuming from the last completed phase (or chunk) if the pipeline fails
-          if (intermediateData) {
-            if (intermediateData.deepResearch) {
-              updateData.rawDeepResearch = intermediateData.deepResearch as object;
-
-              // Extract chunk data from deepResearch for granular resume capability
-              // The rawReport contains section markers that indicate which chunks completed
-              const rawReport = intermediateData.deepResearch.rawReport;
-              const chunkResults: Record<string, string> = {};
-
-              // Parse sections from combined report
-              const marketMatch = rawReport.match(/## Market Analysis\n\n([\s\S]*?)(?=\n\n---\n\n|$)/);
-              if (marketMatch) chunkResults.market = marketMatch[1].trim();
-
-              const competitorMatch = rawReport.match(/## Competitor Analysis\n\n([\s\S]*?)(?=\n\n---\n\n|$)/);
-              if (competitorMatch) chunkResults.competitors = competitorMatch[1].trim();
-
-              const painpointsMatch = rawReport.match(/## Customer Pain Points\n\n([\s\S]*?)(?=\n\n---\n\n|$)/);
-              if (painpointsMatch) chunkResults.painpoints = painpointsMatch[1].trim();
-
-              const timingMatch = rawReport.match(/## Timing & Validation\n\n([\s\S]*?)(?=\n\n---\n\n|$)/);
-              if (timingMatch) chunkResults.timing = timingMatch[1].trim();
-
-              // Save chunk progress for resume
-              if (Object.keys(chunkResults).length > 0) {
-                updateData.researchChunks = {
-                  chunkResults,
-                  citations: intermediateData.deepResearch.citations,
-                  sources: intermediateData.deepResearch.sources,
-                } as object;
-              }
-            }
-            if (intermediateData.socialProof) {
-              updateData.socialProof = intermediateData.socialProof as object;
-            }
-            if (intermediateData.insights) {
-              updateData.synthesizedInsights = intermediateData.insights as object;
-            }
-            if (intermediateData.scores) {
-              updateData.opportunityScore = intermediateData.scores.opportunityScore;
-              updateData.problemScore = intermediateData.scores.problemScore;
-              updateData.feasibilityScore = intermediateData.scores.feasibilityScore;
-              updateData.whyNowScore = intermediateData.scores.whyNowScore;
-              updateData.scoreJustifications = intermediateData.scores.justifications as object;
-              updateData.scoreMetadata = intermediateData.scores.metadata as object;
-            }
-            if (intermediateData.metrics) {
-              updateData.revenuePotential = intermediateData.metrics.revenuePotential as object;
-              updateData.executionDifficulty = intermediateData.metrics.executionDifficulty as object;
-              updateData.gtmClarity = intermediateData.metrics.gtmClarity as object;
-              updateData.founderFit = intermediateData.metrics.founderFit as object;
-            }
-            if (intermediateData.marketSizing) {
-              updateData.marketSizing = intermediateData.marketSizing as object;
-            }
-          }
-
-          await db.update(research).set(updateData as typeof research.$inferInsert).where(eq(research.id, researchId));
-        }, userTier, existingResearchData);
-
-        // Save final results
-        // Include rawDeepResearch for resume capability (allows skipping Phase 1 on restart)
-        await db.update(research).set({
-          status: 'COMPLETE',
-          currentPhase: 'COMPLETE',
-          progress: 100,
-          completedAt: new Date(),
-          generatedQueries: result.queries as object,
-          synthesizedInsights: result.insights as object,
-          marketAnalysis: result.insights.marketAnalysis as object,
-          competitors: result.insights.competitors as object[],
-          painPoints: result.insights.painPoints as object[],
-          positioning: result.insights.positioning as object,
-          whyNow: result.insights.whyNow as object,
-          proofSignals: result.insights.proofSignals as object,
-          keywords: result.insights.keywords as object,
-          // Scores (nullable - may have failed independently)
-          ...(result.scores ? {
-            opportunityScore: result.scores.opportunityScore,
-            problemScore: result.scores.problemScore,
-            feasibilityScore: result.scores.feasibilityScore,
-            whyNowScore: result.scores.whyNowScore,
-            scoreJustifications: result.scores.justifications as object,
-            scoreMetadata: result.scores.metadata as object,
-          } : {}),
-          // Metrics (nullable)
-          ...(result.metrics ? {
-            revenuePotential: result.metrics.revenuePotential as object,
-            executionDifficulty: result.metrics.executionDifficulty as object,
-            gtmClarity: result.metrics.gtmClarity as object,
-            founderFit: result.metrics.founderFit as object,
-          } : {}),
-          // Market sizing (nullable)
-          ...(result.marketSizing ? { marketSizing: result.marketSizing as object } : {}),
-          // Creative generation fields (nullable)
-          ...(result.userStory ? { userStory: result.userStory as object } : {}),
-          keywordTrends: result.keywordTrends as object[],
-          ...(result.valueLadder ? { valueLadder: result.valueLadder as object[] } : {}),
-          ...(result.actionPrompts ? { actionPrompts: result.actionPrompts as object[] } : {}),
-          socialProof: result.socialProof as object,
-          ...(result.techStack ? { techStack: result.techStack as object } : {}),
-          // Business plan (nullable - extensive markdown document)
-          ...(result.businessPlan ? { businessPlan: result.businessPlan } : {}),
-          // Raw deep research output for resume capability
-          rawDeepResearch: result.deepResearch as object,
-        }).where(eq(research.id, researchId));
-
-        // Update project status to complete
-        await db.update(projects).set({ status: 'COMPLETE' }).where(eq(projects.id, input.projectId));
-      } catch (error) {
-        const duration = Date.now() - startTime;
-
-        // Classify the error for better handling and logging
-        const classifiedError = classifyResearchError(error, currentPhase, duration);
-        logResearchError(classifiedError);
-
-        // Store detailed error info in database
-        const errorDetails = {
-          type: classifiedError.type,
-          retryable: classifiedError.retryable,
-          elapsed: classifiedError.elapsed,
-          ...(classifiedError.type === 'rate_limit' && { retryAfterMs: classifiedError.retryAfterMs }),
-          ...(classifiedError.type === 'transient' && { statusCode: classifiedError.statusCode }),
-          ...(classifiedError.type === 'parse_error' && { rawResponsePreview: classifiedError.rawResponse.substring(0, 500) }),
-        };
-
-        await db.update(research).set({
-          status: 'FAILED',
-          errorMessage: `[${classifiedError.type}] ${classifiedError.message}`,
-          errorPhase: currentPhase,
-        }).where(eq(research.id, researchId));
-        // Reset project status so user isn't stuck in RESEARCHING
-        await db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, input.projectId)).catch(() => {}); // Best-effort
-      }
-    })();
+    // Queue research pipeline job via BullMQ
+    // Worker process handles the long-running pipeline (30-60+ min)
+    try {
+      await enqueueResearchPipeline({
+        researchId: researchRecord.id,
+        projectId: input.projectId,
+        userId: ctx.userId,
+        interviewId: interview.id,
+        mode: interview.mode as 'LIGHT' | 'IN_DEPTH' | 'SPARK' | undefined,
+      });
+    } catch (queueError) {
+      console.error('[Research] Failed to queue pipeline:', queueError);
+      // Mark research as failed so it doesn't stay stuck
+      await ctx.db.update(research).set({
+        status: 'FAILED',
+        errorMessage: 'Failed to queue research pipeline. Please try again.',
+        errorPhase: 'QUEUED',
+      }).where(eq(research.id, researchRecord.id));
+      await ctx.db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, input.projectId)).catch(() => {});
+    }
 
     return researchRecord;
   }),
@@ -783,52 +575,26 @@ export const researchRouter = router({
         ? `${project.description}\n\n## FOUNDER'S NOTES\n${project.notes}`
         : project.description;
 
-      // Run Spark pipeline asynchronously (fire and forget)
-      (async () => {
-        try {
-          const result = await runSparkPipeline(sparkDescription, {
-            onStatusChange: async (status: SparkJobStatus) => {
-              await db.update(research).set({
-                sparkStatus: status,
-                progress: SPARK_STATUS_PROGRESS[status]?.start || 0,
-              }).where(eq(research.id, researchRecord.id));
-            },
-            includeTrends: true,
-          });
-
-          // Save successful result
-          // Note: sparkStatus is already set by onStatusChange (COMPLETE or PARTIAL_COMPLETE)
-          // We fetch the current status to preserve it
-          const currentResearch = await db.query.research.findFirst({
-            where: eq(research.id, researchRecord.id),
-            columns: { sparkStatus: true },
-          });
-
-          await db.update(research).set({
-            // Preserve the status set by the pipeline (COMPLETE or PARTIAL_COMPLETE)
-            sparkStatus: currentResearch?.sparkStatus || 'COMPLETE',
-            sparkResult: result as object,
-            sparkKeywords: result.keywords as object,
-            sparkCompletedAt: new Date(),
-            progress: currentResearch?.sparkStatus === 'PARTIAL_COMPLETE' ? 90 : 100,
-            status: 'COMPLETE', // Research overall is complete even if partial
-          }).where(eq(research.id, researchRecord.id));
-
-          // Update project status
-          await db.update(projects).set({ status: 'COMPLETE' }).where(eq(projects.id, input.projectId));
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
-          await db.update(research).set({
-            sparkStatus: 'FAILED',
-            sparkError: errorMessage,
-            status: 'FAILED',
-            errorMessage: `Spark validation failed: ${errorMessage}`,
-          }).where(eq(research.id, researchRecord.id));
-          // Reset project status so user isn't stuck in RESEARCHING
-          await db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, input.projectId)).catch(() => {}); // Best-effort
-        }
-      })();
+      // Queue Spark pipeline job via BullMQ
+      // Worker process handles the pipeline (5-15 min)
+      try {
+        await enqueueSparkPipeline({
+          researchId: researchRecord.id,
+          projectId: input.projectId,
+          userId: ctx.userId,
+          description: sparkDescription,
+          includeTrends: true,
+        });
+      } catch (queueError) {
+        console.error('[Research] Failed to queue Spark pipeline:', queueError);
+        await ctx.db.update(research).set({
+          sparkStatus: 'FAILED',
+          sparkError: 'Failed to queue Spark pipeline. Please try again.',
+          status: 'FAILED',
+          errorMessage: 'Failed to queue Spark pipeline',
+        }).where(eq(research.id, researchRecord.id));
+        await ctx.db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, input.projectId)).catch(() => {});
+      }
 
       return { jobId: researchRecord.id };
     }),

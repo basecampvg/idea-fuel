@@ -8,3 +8,4 @@ export {
   createResearchPipelineWorker,
   createResearchCancelWorker,
 } from './researchPipelineWorker';
+export { createSparkPipelineWorker } from './sparkPipelineWorker';
