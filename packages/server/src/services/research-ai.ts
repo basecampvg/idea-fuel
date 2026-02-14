@@ -3385,20 +3385,65 @@ ${userStoryGuidelines.requirements.map(r => `- ${r}`).join('\n')}
 GOOD EXAMPLE: "${userStoryGuidelines.example.good}"
 BAD EXAMPLE (avoid this): "${userStoryGuidelines.example.bad}"
 
-Create a relatable, specific user story matching the schema. Make the story feel real and emotionally resonant with specific details.`;
+## REQUIRED JSON FORMAT
+Return EXACTLY this structure with all values as plain strings (NOT objects):
+{
+  "scenario": "A 1-2 sentence setup describing the context and setting",
+  "protagonist": "A 1-2 sentence description of the main character and their role",
+  "problem": "A 2-3 sentence description of the challenge they face",
+  "solution": "A 2-3 sentence description of how the product solves their problem",
+  "outcome": "A 2-3 sentence description of the positive results achieved"
+}
+
+CRITICAL: Every field must be a plain string. Do NOT use nested objects or arrays. Do NOT add extra fields like "callToAction".
+
+Create a relatable, specific user story matching the schema above. Make the story feel real and emotionally resonant with specific details.`;
 
   const generationProvider = getGenerationProvider(tier);
   console.log('[Generate User Story] Using provider:', generationProvider.name);
 
   const { UserStorySchema } = await import('./research-schemas');
 
-  const userStory = await generationProvider.extract(prompt, UserStorySchema, {
+  // Use a coercing schema that flattens objects to strings if the model returns them.
+  // AI models sometimes return {name: "...", role: "..."} instead of a flat string.
+  const flattenToString = (val: unknown): unknown => {
+    if (typeof val === 'string') return val;
+    if (val && typeof val === 'object') {
+      // Concatenate all string values from the object
+      const parts = Object.values(val as Record<string, unknown>)
+        .map(v => {
+          if (typeof v === 'string') return v;
+          if (Array.isArray(v)) return v.filter(i => typeof i === 'string').join('. ');
+          return '';
+        })
+        .filter(Boolean);
+      return parts.join(' ');
+    }
+    return val;
+  };
+
+  const CoercingUserStorySchema = z.object({
+    scenario: z.preprocess(flattenToString, z.string()).optional().default(''),
+    protagonist: z.preprocess(flattenToString, z.string()),
+    problem: z.preprocess(flattenToString, z.string()),
+    solution: z.preprocess(flattenToString, z.string()),
+    outcome: z.preprocess(flattenToString, z.string()),
+  });
+
+  const userStory = await generationProvider.extract(prompt, CoercingUserStorySchema, {
     maxTokens: 8000,
     temperature: 1.0,
     task: 'generation',
   });
 
-  return userStory;
+  // If scenario came back empty (model omitted it), synthesize from other fields
+  if (!userStory.scenario) {
+    userStory.scenario = `${userStory.protagonist} ${userStory.problem}`;
+    console.log('[Generate User Story] Synthesized missing "scenario" from protagonist + problem');
+  }
+
+  // Validate against the strict schema to ensure type compatibility
+  return UserStorySchema.parse(userStory);
 }
 
 // Keyword trends configuration
