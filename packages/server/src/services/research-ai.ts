@@ -1527,6 +1527,7 @@ Extract the key insights and return structured JSON matching the schema exactly.
   const insights = await extractionProvider.extract(prompt, InsightsSchema, {
     maxTokens: 25000,
     temperature: 1.0,
+    task: 'extraction',
   });
 
   console.log('[Extract Insights] Successfully extracted insights');
@@ -1602,6 +1603,7 @@ This is pass ${passNumber} - evaluate independently based on the research data.`
     const scorePass = await extractionProvider.extract(prompt, ScoresPassSchema, {
       maxTokens: 8000,
       temperature: 1.0,
+      task: 'scoring',
     });
 
     return scorePass;
@@ -1755,6 +1757,7 @@ Evaluate business metrics and return JSON matching the schema exactly. Base esti
   const metrics = await extractionProvider.extract(prompt, BusinessMetricsSchema, {
     maxTokens: 8000,
     temperature: 1.0,
+    task: 'extraction',
   });
 
   console.log('[Extract Metrics] Successfully calculated metrics');
@@ -2255,6 +2258,81 @@ export async function extractMarketSizing(
   }
 
   throw new Error(`Failed to extract market sizing after ${MAX_RETRIES + 1} attempts. Last error: ${lastError}. Check logs for diagnostics.`);
+}
+
+// =============================================================================
+// SWOT ANALYSIS EXTRACTION
+// =============================================================================
+
+/**
+ * Extract SWOT analysis from deep research output.
+ * Synthesizes across all research chunks (market, competitors, pain points, timing, sizing)
+ * to produce a comprehensive Strengths/Weaknesses/Opportunities/Threats analysis
+ * for the specific business idea — not just the market.
+ *
+ * Uses Opus 4.6 for cross-chunk reasoning quality.
+ */
+export type SWOTAnalysis = {
+  strengths: string[];
+  weaknesses: string[];
+  opportunities: string[];
+  threats: string[];
+};
+
+export async function extractSWOT(
+  deepResearch: DeepResearchOutput,
+  input: ResearchInput,
+  insights: SynthesizedInsights,
+  tier: SubscriptionTier
+): Promise<SWOTAnalysis> {
+  const { ideaTitle, ideaDescription } = input;
+
+  const prompt = `You are a strategic business analyst. Based on the deep research below, create a SWOT analysis for this specific business idea:
+
+## Business Idea
+**${ideaTitle}**
+${ideaDescription}
+
+## Research Data
+${deepResearch.rawReport.substring(0, 15000)}
+
+## Key Insights Already Extracted
+- Market size: ${insights.marketAnalysis.size}
+- Market growth: ${insights.marketAnalysis.growth}
+- Competitors: ${insights.competitors.map(c => c.name).join(', ')}
+- Key pain points: ${insights.painPoints.map(p => p.problem).join('; ')}
+- Differentiators: ${insights.positioning.differentiators.join(', ')}
+- Why-now factors: ${insights.whyNow.marketTriggers.join(', ')}
+
+## Instructions
+Analyze the STRENGTHS, WEAKNESSES, OPPORTUNITIES, and THREATS for this specific business idea:
+
+- **Strengths**: Internal advantages this idea has (unique value prop, market fit, timing, technical feasibility, founder advantages)
+- **Weaknesses**: Internal disadvantages or gaps (resource constraints, technical complexity, market education needed, dependency risks)
+- **Opportunities**: External factors that could be leveraged (market trends, regulatory changes, competitor weaknesses, emerging technologies, underserved segments)
+- **Threats**: External factors that could hurt the business (strong incumbents, market saturation, regulatory risk, economic headwinds, technology shifts)
+
+Each item should be:
+- Specific and data-backed (reference market data, competitor names, or trends from the research)
+- Actionable (not generic platitudes like "strong market demand")
+- 1-2 sentences max
+
+Return 4-6 items per quadrant as JSON matching the schema exactly.`;
+
+  const extractionProvider = getExtractionProvider(tier);
+  console.log('[Extract SWOT] Using provider:', extractionProvider.name);
+
+  const { SWOTSchema } = await import('./research-schemas');
+
+  const swot = await extractionProvider.extract(prompt, SWOTSchema, {
+    maxTokens: 8000,
+    temperature: 1.0,
+    task: 'swot',
+  });
+
+  console.log(`[Extract SWOT] Complete: ${swot.strengths.length}S / ${swot.weaknesses.length}W / ${swot.opportunities.length}O / ${swot.threats.length}T`);
+
+  return swot;
 }
 
 // =============================================================================
@@ -3208,6 +3286,7 @@ Create a relatable, specific user story matching the schema. Make the story feel
   const userStory = await generationProvider.extract(prompt, UserStorySchema, {
     maxTokens: 8000,
     temperature: 1.0,
+    task: 'generation',
   });
 
   return userStory;
@@ -4125,6 +4204,7 @@ Write with authority and specificity. Every claim should be backed by data from 
   const businessPlan = await businessPlanProvider.generate(prompt, {
     maxTokens: 50000,
     temperature: 1.0,
+    task: 'business-plan',
   });
 
   return businessPlan;
@@ -4207,6 +4287,7 @@ export async function runResearchPipeline(
   techStack: TechStackData | null;
   deepResearch?: DeepResearchOutput; // New: raw research data
   businessPlan: string | null;
+  swot: SWOTAnalysis | null;
 }> {
   console.log('[Research Pipeline] Starting NEW 4-phase pipeline for:', input.ideaTitle);
   console.log('[Research Pipeline] Using tier:', tier);
@@ -4292,6 +4373,7 @@ export async function runResearchPipeline(
   let scores: ResearchScores | null;
   let metrics: BusinessMetrics | null;
   let marketSizing: MarketSizingData | null;
+  let swot: SWOTAnalysis | null;
 
   if (hasPhase3 && existingResearch?.synthesizedInsights && existingResearch?.opportunityScore != null && existingResearch?.scoreJustifications && existingResearch?.revenuePotential && existingResearch?.marketSizing) {
     console.log('[Research Pipeline] === PHASE 3: SKIPPED (resuming from existing data) ===');
@@ -4311,6 +4393,7 @@ export async function runResearchPipeline(
       founderFit: existingResearch.founderFit || { percentage: 0, strengths: [], gaps: [] },
     };
     marketSizing = existingResearch.marketSizing;
+    swot = (existingResearch as any).swot || null;
     await onProgress?.('SYNTHESIS', 80);
   } else {
     await onProgress?.('SYNTHESIS', 58);
@@ -4329,8 +4412,9 @@ export async function runResearchPipeline(
       extractScores(deepResearch, input, insights, tier),
       extractBusinessMetrics(deepResearch, input, insights, { opportunityScore: 0, problemScore: 0, feasibilityScore: 0, whyNowScore: 0, justifications: {} as ResearchScores['justifications'], metadata: {} as ResearchScores['metadata'] }, tier),
       extractMarketSizing(deepResearch, input, insights, tier),
+      extractSWOT(deepResearch, input, insights, tier),
     ]);
-    const phase3Names = ['extractScores', 'extractBusinessMetrics', 'extractMarketSizing'] as const;
+    const phase3Names = ['extractScores', 'extractBusinessMetrics', 'extractMarketSizing', 'extractSWOT'] as const;
     phase3Results.forEach((r, i) => {
       if (r.status === 'rejected') {
         console.error(`[Research Pipeline] Phase 3 FAILED: ${phase3Names[i]}:`, r.reason instanceof Error ? r.reason.message : r.reason);
@@ -4339,10 +4423,11 @@ export async function runResearchPipeline(
     scores = phase3Results[0].status === 'fulfilled' ? phase3Results[0].value : null;
     metrics = phase3Results[1].status === 'fulfilled' ? phase3Results[1].value : null;
     marketSizing = phase3Results[2].status === 'fulfilled' ? phase3Results[2].value : null;
+    swot = phase3Results[3].status === 'fulfilled' ? phase3Results[3].value : null;
     // Pass all extraction results for immediate persistence (enables resume if Phase 4 fails)
     await onProgress?.('SYNTHESIS', 80, { insights, scores: scores ?? undefined, metrics: metrics ?? undefined, marketSizing: marketSizing ?? undefined });
     const phase3Succeeded = phase3Results.filter(r => r.status === 'fulfilled').length;
-    console.log(`[Research Pipeline] Phase 3 complete: ${phase3Succeeded}/3 succeeded`);
+    console.log(`[Research Pipeline] Phase 3 complete: ${phase3Succeeded}/4 succeeded`);
   }
 
   // =========================================================================
@@ -4469,6 +4554,7 @@ export async function runResearchPipeline(
     techStack,
     deepResearch, // Include raw research for debugging/display
     businessPlan,
+    swot,
   };
 }
 

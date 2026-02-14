@@ -232,6 +232,7 @@ export const research = pgTable('Research', {
   socialProof: jsonb(),
   marketSizing: jsonb(),
   techStack: jsonb(),
+  swot: jsonb(),
   businessPlan: text(),
   sparkStatus: sparkJobStatusEnum(),
   sparkKeywords: jsonb(),

@@ -185,3 +185,14 @@ export const TechStackSchema = z.object({
   architecture: z.string(),
   estimatedComplexity: z.enum(['low', 'medium', 'high']),
 });
+
+// ============================================================================
+// SWOT Analysis Schema
+// ============================================================================
+
+export const SWOTSchema = z.object({
+  strengths: z.array(z.string()).min(3).max(8),
+  weaknesses: z.array(z.string()).min(3).max(8),
+  opportunities: z.array(z.string()).min(3).max(8),
+  threats: z.array(z.string()).min(3).max(8),
+});
