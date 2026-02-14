@@ -175,12 +175,11 @@ export function getEmailSyncQueue(): Queue<EmailSyncJobData> {
 export async function enqueueReportGeneration(
   data: ReportGenerationJobData
 ): Promise<string> {
+  const jobId = `report-${data.reportId}-${Date.now()}`;
   const job = await getReportGenerationQueue().add(
     `report-${data.reportId}`,
     data,
-    {
-      jobId: `report-${data.reportId}`,
-    }
+    { jobId }
   );
   return job.id || '';
 }
@@ -191,12 +190,11 @@ export async function enqueueReportGeneration(
 export async function enqueueResearchPipeline(
   data: ResearchPipelineJobData
 ): Promise<string> {
+  const jobId = `research-${data.researchId}-${Date.now()}`;
   const job = await getResearchPipelineQueue().add(
     `research-${data.researchId}`,
     data,
-    {
-      jobId: `research-${data.researchId}`,
-    }
+    { jobId }
   );
   return job.id || '';
 }
@@ -207,12 +205,11 @@ export async function enqueueResearchPipeline(
 export async function enqueueResearchCancel(
   data: ResearchCancelJobData
 ): Promise<string> {
+  const jobId = `cancel-${data.researchId}-${Date.now()}`;
   const job = await getResearchCancelQueue().add(
     `cancel-${data.researchId}`,
     data,
-    {
-      jobId: `cancel-${data.researchId}`,
-    }
+    { jobId }
   );
   return job.id || '';
 }
@@ -223,12 +220,11 @@ export async function enqueueResearchCancel(
 export async function enqueueSparkPipeline(
   data: SparkPipelineJobData
 ): Promise<string> {
+  const jobId = `spark-${data.researchId}-${Date.now()}`;
   const job = await getSparkPipelineQueue().add(
     `spark-${data.researchId}`,
     data,
-    {
-      jobId: `spark-${data.researchId}`,
-    }
+    { jobId }
   );
   return job.id || '';
 }
