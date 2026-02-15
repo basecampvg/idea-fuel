@@ -40,7 +40,7 @@ const severityColors: Record<string, string> = {
 
 function DemandBar({ score }: { score: number }) {
   const getColor = () => {
-    if (score >= 70) return 'bg-green-500';
+    if (score >= 70) return 'bg-primary';
     if (score >= 40) return 'bg-amber-500';
     return 'bg-red-500';
   };
@@ -71,7 +71,7 @@ export function ProofSignals({ proofSignals, title = 'Proof Signals', subtitle }
   return (
     <CollapsibleSection
       icon={<Signal className="w-5 h-5 text-primary" />}
-      iconBgColor="hsla(10, 80%, 55%, 0.15)"
+      iconBgColor="hsl(var(--primary) / 0.15)"
       title={title}
       subtitle={subtitle}
     >
@@ -129,7 +129,7 @@ export function ProofSignals({ proofSignals, title = 'Proof Signals', subtitle }
                   <p className="text-xs font-medium text-foreground mb-1">{exp.experiment}</p>
                   <p className="text-xs text-muted-foreground mb-2">{exp.hypothesis}</p>
                   <div className="flex items-center gap-3">
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20">
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
                       {exp.cost}
                     </span>
                     <span className="text-[10px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">

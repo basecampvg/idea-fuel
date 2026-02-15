@@ -53,7 +53,7 @@ function CompetitorCard({ competitor }: { competitor: Competitor }) {
             </span>
           )}
           {competitor.estimatedRevenue && (
-            <span className="text-[10px] px-2 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20">
+            <span className="text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
               {competitor.estimatedRevenue}
             </span>
           )}
@@ -142,7 +142,7 @@ export function CompetitorsSection({ competitors, title = 'Competitive Landscape
   return (
     <CollapsibleSection
       icon={<Swords className="w-5 h-5 text-primary" />}
-      iconBgColor="hsla(10, 80%, 55%, 0.15)"
+      iconBgColor="hsl(var(--primary) / 0.15)"
       title={title}
       subtitle={displaySubtitle}
     >

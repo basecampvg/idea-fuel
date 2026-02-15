@@ -28,66 +28,84 @@
 }
 
 /* ===== LIGHT THEME ===== */
-/* Base: #d9d9d9 (background), #c4c4c4 (card) */
+/* Palette: #FBF9F6 bg, #D24421 accent, #2D2D2C text, #D4D3D1 border, #E5E5E5 card */
 
 html.light {
   /* Core Colors */
-  --background: 0 0% 85%;
-  --foreground: 0 0% 10%;
-  --card: 0 0% 77%;
-  --card-foreground: 0 0% 10%;
-  --popover: 0 0% 85%;
-  --popover-foreground: 0 0% 10%;
+  --background: 40 33% 97%;
+  --foreground: 0 0% 17%;
+  --card: 0 0% 90%;
+  --card-foreground: 0 0% 17%;
+  --popover: 0 0% 90%;
+  --popover-foreground: 0 0% 17%;
 
-  /* Primary (Logo Orange) - for buttons and accents */
-  --primary: 10 80% 50%;
+  /* Primary (#D24421) - buttons and accents */
+  --primary: 13 73% 48%;
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary (Muted Orange) */
-  --secondary: 10 40% 35%;
+  /* Secondary (darkened accent) */
+  --secondary: 13 73% 38%;
   --secondary-foreground: 0 0% 100%;
 
-  /* Accent (Logo Orange) - links and highlights */
-  --accent: 10 80% 50%;
+  /* Accent (same as primary) */
+  --accent: 13 73% 48%;
   --accent-foreground: 0 0% 100%;
 
   /* Muted */
-  --muted: 0 0% 72%;
-  --muted-foreground: 0 0% 35%;
+  --muted: 30 5% 93%;
+  --muted-foreground: 0 0% 45%;
 
-  /* Borders & Inputs - subtle, just a few shades lighter than background */
-  --border: 0 0% 80%;
-  --input: 0 0% 80%;
-  --ring: 10 80% 50%;
+  /* Borders & Inputs (#D4D3D1) */
+  --border: 30 3% 82%;
+  --input: 30 3% 82%;
+  --ring: 13 73% 48%;
 
   /* Status Colors */
-  --destructive: 0 84% 60%;
+  --destructive: 0 84% 50%;
   --destructive-foreground: 0 0% 100%;
-  --success: 10 80% 50%;
+  --success: 142 71% 40%;
   --success-foreground: 0 0% 100%;
   --warning: 38 92% 50%;
   --warning-foreground: 222 47% 11%;
-  --info: 217 91% 60%;
+  --info: 217 91% 50%;
   --info-foreground: 0 0% 100%;
 
-  /* Score Colors - remain vibrant */
-  --score-opportunity: 10 70% 40%;
-  --score-problem: 326 75% 45%;
-  --score-feasibility: 10 60% 45%;
-  --score-whynow: 260 55% 50%;
+  /* Score Colors - darkened for warm bg visibility */
+  --score-opportunity: 10 80% 35%;
+  --score-problem: 326 75% 42%;
+  --score-feasibility: 10 75% 40%;
+  --score-whynow: 260 60% 45%;
 
   /* Chart Colors */
-  --chart-1: 10 80% 50%;
+  --chart-1: 13 73% 48%;
   --chart-2: 260 55% 50%;
   --chart-3: 200 75% 45%;
   --chart-4: 180 65% 40%;
   --chart-5: 45 90% 45%;
 
-  /* Accent Gradient - lighter version */
+  /* Chart Element Colors */
+  --chart-stroke: 13 73% 48%;
+  --chart-axis: 0 0% 45%;
+  --chart-grid: 30 3% 82%;
+  --chart-tooltip-bg: 0 0% 95%;
+  --chart-tooltip-border: 30 3% 82%;
+  --chart-tooltip-text: 0 0% 17%;
+
+  /* Sidebar */
+  --sidebar: 40 20% 95%;
+  --sidebar-foreground: 0 0% 17%;
+  --sidebar-primary: 13 73% 48%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 30 10% 90%;
+  --sidebar-accent-foreground: 0 0% 17%;
+  --sidebar-border: 30 3% 82%;
+  --sidebar-ring: 13 73% 48%;
+
+  /* Accent Gradient - warm, pops against off-white */
   --gradient-accent: linear-gradient(135deg,
-    hsl(10, 70%, 50%) 0%,
-    hsl(10, 60%, 60%) 50%,
-    hsl(10, 45%, 70%) 100%);
+    hsl(13, 73%, 48%) 0%,
+    hsl(20, 80%, 55%) 50%,
+    hsl(30, 85%, 62%) 100%);
 }
 
 /* ===== BASE STYLES ===== */
@@ -842,6 +860,12 @@ body {
   --color-chart-3: hsl(var(--chart-3));
   --color-chart-4: hsl(var(--chart-4));
   --color-chart-5: hsl(var(--chart-5));
+  --color-chart-stroke: hsl(var(--chart-stroke));
+  --color-chart-axis: hsl(var(--chart-axis));
+  --color-chart-grid: hsl(var(--chart-grid));
+  --color-chart-tooltip-bg: hsl(var(--chart-tooltip-bg));
+  --color-chart-tooltip-border: hsl(var(--chart-tooltip-border));
+  --color-chart-tooltip-text: hsl(var(--chart-tooltip-text));
   --color-sidebar: hsl(var(--sidebar));
   --color-sidebar-foreground: hsl(var(--sidebar-foreground));
   --color-sidebar-primary: hsl(var(--sidebar-primary));
@@ -907,6 +931,14 @@ body {
   --chart-3: 180 70% 45%;
   --chart-4: 142 76% 36%;
   --chart-5: 38 92% 50%;
+
+  /* Chart Element Colors */
+  --chart-stroke: 10 80% 55%;
+  --chart-axis: 40 5% 55%;
+  --chart-grid: 0 0% 100% / 0.08;
+  --chart-tooltip-bg: 40 8% 9%;
+  --chart-tooltip-border: 40 6% 18%;
+  --chart-tooltip-text: 0 0% 100%;
 
   /* Sidebar */
   --sidebar: 40 8% 10%;

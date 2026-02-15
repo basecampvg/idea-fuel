@@ -48,13 +48,13 @@ interface BusinessFitProps {
 }
 
 const ratingColors: Record<string, string> = {
-  high: 'bg-green-500/10 text-green-400 border-green-500/20',
+  high: 'bg-primary/10 text-primary border-primary/20',
   medium: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
   low: 'bg-red-500/10 text-red-400 border-red-500/20',
-  easy: 'bg-green-500/10 text-green-400 border-green-500/20',
+  easy: 'bg-primary/10 text-primary border-primary/20',
   moderate: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
   hard: 'bg-red-500/10 text-red-400 border-red-500/20',
-  clear: 'bg-green-500/10 text-green-400 border-green-500/20',
+  clear: 'bg-primary/10 text-primary border-primary/20',
   unclear: 'bg-red-500/10 text-red-400 border-red-500/20',
 };
 
@@ -68,7 +68,7 @@ function RatingBadge({ rating }: { rating: string }) {
 
 function ConfidenceBar({ value }: { value: number }) {
   const getColor = () => {
-    if (value >= 70) return 'bg-green-400';
+    if (value >= 70) return 'bg-primary';
     if (value >= 40) return 'bg-amber-400';
     return 'bg-red-400';
   };
@@ -111,8 +111,8 @@ function RevenueCard({ data }: { data: RevenuePotential }) {
     <div className="p-4 rounded-xl bg-card border border-border">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-green-500/15">
-            <DollarSign className="w-4 h-4 text-green-400" />
+          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-primary/15">
+            <DollarSign className="w-4 h-4 text-primary" />
           </div>
           <div>
             <p className="text-sm font-medium text-foreground">Revenue Potential</p>
@@ -130,7 +130,7 @@ function RevenueCard({ data }: { data: RevenuePotential }) {
       {(data.revenueModel || data.timeToFirstRevenue || data.unitEconomics) && (
         <div className="flex flex-wrap gap-1.5">
           {data.revenueModel && (
-            <MetaStat icon={<TrendingUp className="w-2.5 h-2.5 text-green-400" />} label="Model" value={data.revenueModel} />
+            <MetaStat icon={<TrendingUp className="w-2.5 h-2.5 text-primary" />} label="Model" value={data.revenueModel} />
           )}
           {data.timeToFirstRevenue && (
             <MetaStat icon={<Clock className="w-2.5 h-2.5 text-amber-400" />} label="Time to Revenue" value={data.timeToFirstRevenue} />
@@ -262,7 +262,7 @@ function GTMCard({ data }: { data: GTMClarity }) {
 
 function FounderFitCard({ data }: { data: FounderFit }) {
   const getColor = () => {
-    if (data.percentage >= 70) return 'text-green-400';
+    if (data.percentage >= 70) return 'text-primary';
     if (data.percentage >= 40) return 'text-amber-400';
     return 'text-red-400';
   };
@@ -291,7 +291,7 @@ function FounderFitCard({ data }: { data: FounderFit }) {
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Strengths</p>
           <ul className="space-y-1">
             {data.strengths.map((s, i) => (
-              <li key={i} className="text-xs text-green-400/80 flex items-start gap-1.5">
+              <li key={i} className="text-xs text-primary/80 flex items-start gap-1.5">
                 <span className="mt-0.5">&#10003;</span>
                 <span>{s}</span>
               </li>
@@ -348,7 +348,7 @@ export function BusinessFit({
   return (
     <CollapsibleSection
       icon={<Target className="w-5 h-5 text-primary" />}
-      iconBgColor="hsla(270, 60%, 55%, 0.15)"
+      iconBgColor="hsl(var(--primary) / 0.15)"
       title={title}
       subtitle={subtitle}
     >

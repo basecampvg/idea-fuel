@@ -35,9 +35,9 @@ const impactColors: Record<string, string> = {
 
 function UrgencyMeter({ score }: { score: number }) {
   const getColor = () => {
-    if (score >= 75) return 'hsl(10, 80%, 55%)';
-    if (score >= 50) return 'hsl(10, 60%, 60%)';
-    return 'hsl(0, 84%, 60%)';
+    if (score >= 75) return 'hsl(var(--primary))';
+    if (score >= 50) return 'hsl(var(--primary) / 0.7)';
+    return 'hsl(var(--destructive))';
   };
 
   const getLabel = () => {
@@ -70,7 +70,7 @@ export function WhyNowSection({ whyNow, title = 'Why Now?', subtitle }: WhyNowSe
   return (
     <CollapsibleSection
       icon={<Zap className="w-5 h-5 text-primary" />}
-      iconBgColor="hsla(10, 80%, 55%, 0.15)"
+      iconBgColor="hsl(var(--primary) / 0.15)"
       title={title}
       subtitle={subtitle}
     >
@@ -99,7 +99,7 @@ export function WhyNowSection({ whyNow, title = 'Why Now?', subtitle }: WhyNowSe
               <div className="flex items-center gap-3 mb-2">
                 <div className="text-center">
                   <p className="text-[10px] text-muted-foreground uppercase">Opens</p>
-                  <p className="text-xs font-medium text-green-400">{whyNow.windowOfOpportunity.opens}</p>
+                  <p className="text-xs font-medium text-primary">{whyNow.windowOfOpportunity.opens}</p>
                 </div>
                 <ArrowRight className="w-3 h-3 text-muted-foreground shrink-0" />
                 <div className="text-center">

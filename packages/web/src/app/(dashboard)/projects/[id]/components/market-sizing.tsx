@@ -41,21 +41,18 @@ function getConfidenceLabel(confidence: 'high' | 'medium' | 'low'): string {
 }
 
 // Card styling for each market level
-const cardStyles: Record<string, { gradient: string; border: string; accent: string }> = {
+const cardStyles: Record<string, { gradient: string; border: string }> = {
   tam: {
     gradient: 'from-primary/20 to-primary/5',
     border: 'border-primary/30',
-    accent: 'hsl(10, 80%, 55%)',
   },
   sam: {
     gradient: 'from-primary/15 to-primary/5',
     border: 'border-primary/25',
-    accent: 'hsl(10, 70%, 55%)',
   },
   som: {
     gradient: 'from-primary/20 to-primary/5',
     border: 'border-primary/30',
-    accent: 'hsl(10, 80%, 55%)',
   },
 };
 
@@ -115,7 +112,13 @@ function SegmentBar({
   segment: MarketSegmentBreakdown;
   index: number;
 }) {
-  const colors = ['hsl(10, 80%, 55%)', 'hsl(10, 70%, 55%)', 'hsl(10, 50%, 65%)', 'hsl(10, 60%, 60%)', 'hsl(10, 40%, 70%)'];
+  const colors = [
+    'hsl(var(--primary))',
+    'hsl(var(--primary) / 0.8)',
+    'hsl(var(--primary) / 0.6)',
+    'hsl(var(--primary) / 0.5)',
+    'hsl(var(--primary) / 0.4)',
+  ];
   const color = colors[index % colors.length];
 
   return (
@@ -154,7 +157,7 @@ export function MarketSizing({
   return (
     <CollapsibleSection
       icon={<PieChart className="w-5 h-5 text-primary" />}
-      iconBgColor="hsla(10, 80%, 55%, 0.15)"
+      iconBgColor="hsl(var(--primary) / 0.15)"
       title={title}
       subtitle={subtitle}
       defaultCollapsed={false}

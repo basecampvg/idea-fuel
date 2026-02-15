@@ -36,7 +36,7 @@ interface MarketAnalysisProps {
 
 const stageBadgeColors: Record<string, string> = {
   emerging: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  growing: 'bg-green-500/20 text-green-400 border-green-500/30',
+  growing: 'bg-primary/20 text-primary border-primary/30',
   mature: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
   declining: 'bg-red-500/20 text-red-400 border-red-500/30',
 };
@@ -47,7 +47,7 @@ export function MarketAnalysis({ marketAnalysis, title = 'Market Analysis', subt
   return (
     <CollapsibleSection
       icon={<BarChart3 className="w-5 h-5 text-accent" />}
-      iconBgColor="rgba(0, 212, 255, 0.2)"
+      iconBgColor="hsl(var(--accent) / 0.15)"
       title={title}
       subtitle={subtitle}
     >

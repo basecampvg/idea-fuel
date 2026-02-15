@@ -34,7 +34,7 @@ export function UserStory({ userStory, title = 'The Story', subtitle }: UserStor
   return (
     <CollapsibleSection
       icon={<BookOpen className="w-5 h-5 text-primary" />}
-      iconBgColor="hsla(200, 60%, 50%, 0.15)"
+      iconBgColor="hsl(var(--primary) / 0.15)"
       title={title}
       subtitle={subtitle}
     >
@@ -71,7 +71,7 @@ export function UserStory({ userStory, title = 'The Story', subtitle }: UserStor
               <Clock className="w-4 h-4 text-primary" />
               <p className="text-sm font-medium text-foreground">A Day in the Life</p>
               {userStory.dayInTheLife.timeSaved && (
-                <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 font-medium">
+                <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium">
                   Saves {userStory.dayInTheLife.timeSaved}
                 </span>
               )}
@@ -81,8 +81,8 @@ export function UserStory({ userStory, title = 'The Story', subtitle }: UserStor
                 <p className="text-[10px] text-red-400 uppercase tracking-wider mb-1">Before</p>
                 <p className="text-xs text-muted-foreground">{userStory.dayInTheLife.before}</p>
               </div>
-              <div className="p-3 rounded-lg bg-green-500/5 border border-green-500/10">
-                <p className="text-[10px] text-green-400 uppercase tracking-wider mb-1">After</p>
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+                <p className="text-[10px] text-primary uppercase tracking-wider mb-1">After</p>
                 <p className="text-xs text-muted-foreground">{userStory.dayInTheLife.after}</p>
               </div>
             </div>
@@ -109,7 +109,7 @@ export function UserStory({ userStory, title = 'The Story', subtitle }: UserStor
                 <ArrowRight className="w-3 h-3 text-muted-foreground" />
               </div>
               <div className="flex-1 p-3 rounded-lg bg-card border border-border">
-                <p className="text-[10px] text-green-400 uppercase tracking-wider mb-1">Relief</p>
+                <p className="text-[10px] text-primary uppercase tracking-wider mb-1">Relief</p>
                 <p className="text-xs text-muted-foreground">{userStory.emotionalArc.relief}</p>
               </div>
             </div>

@@ -200,7 +200,7 @@ export function SparkKeywordChart({
                 growth >= 500
                   ? 'text-primary' // Pink for emerging/new trends
                   : growth > 0
-                  ? 'text-primary' // Green for positive growth
+                  ? 'text-primary' // Positive growth
                   : growth < 0
                   ? 'text-[#ef4444]' // Red for negative growth
                   : 'text-muted-foreground' // Gray for no growth
@@ -224,8 +224,8 @@ export function SparkKeywordChart({
             <defs>
               {/* Gradient for area fill */}
               <linearGradient id="sparkPinkGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(10, 80%, 55%)" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="hsl(10, 80%, 55%)" stopOpacity={0} />
+                <stop offset="0%" stopColor="hsl(var(--chart-stroke))" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="hsl(var(--chart-stroke))" stopOpacity={0} />
               </linearGradient>
               {/* Glow filter for line */}
               <filter id="sparkGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -237,20 +237,20 @@ export function SparkKeywordChart({
               </filter>
             </defs>
             <CartesianGrid
-              stroke="rgba(255,255,255,0.08)"
+              stroke="hsl(var(--chart-grid))"
               strokeDasharray="0"
               vertical={false}
             />
             <XAxis
               dataKey="index"
-              tick={{ fill: 'hsl(40, 5%, 55%)', fontSize: 10 }}
+              tick={{ fill: 'hsl(var(--chart-axis))', fontSize: 10 }}
               tickLine={false}
               axisLine={false}
               ticks={tickIndices}
               tickFormatter={(index) => chartData[index]?.year || ''}
             />
             <YAxis
-              tick={{ fill: 'hsl(40, 5%, 55%)', fontSize: 10 }}
+              tick={{ fill: 'hsl(var(--chart-axis))', fontSize: 10 }}
               tickLine={false}
               axisLine={false}
               domain={[0, 100]}
@@ -258,19 +258,19 @@ export function SparkKeywordChart({
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: 'hsl(40 8% 9%)',
-                borderColor: 'hsl(40 6% 18%)',
+                backgroundColor: 'hsl(var(--chart-tooltip-bg))',
+                borderColor: 'hsl(var(--chart-tooltip-border))',
                 borderRadius: '8px',
-                color: '#ffffff',
+                color: 'hsl(var(--chart-tooltip-text))',
               }}
-              labelStyle={{ color: 'hsl(40, 5%, 55%)' }}
+              labelStyle={{ color: 'hsl(var(--chart-axis))' }}
               labelFormatter={(index) => chartData[index as number]?.monthYear || ''}
               formatter={(value) => [value, 'Interest']}
             />
             <Area
               type="monotone"
               dataKey="value"
-              stroke="hsl(10, 80%, 55%)"
+              stroke="hsl(var(--chart-stroke))"
               strokeWidth={2}
               fill="url(#sparkPinkGradient)"
               filter="url(#sparkGlow)"
