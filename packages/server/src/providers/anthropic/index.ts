@@ -38,7 +38,7 @@ export class AnthropicProvider implements AIProvider {
 
     this.client = new Anthropic({
       apiKey,
-      timeout: 600000, // 10 minute timeout
+      timeout: 1200000, // 20 minute timeout (Opus + large extraction prompts need >10min)
       maxRetries: 2,
     });
   }
@@ -191,6 +191,12 @@ export class AnthropicProvider implements AIProvider {
     const opusTasks: AIRequestOptions['task'][] = ['generation', 'business-plan', 'swot'];
     if (options?.task && opusTasks.includes(options.task)) {
       return this.OPUS_MODEL;
+    }
+
+    // Sonnet tasks — always use Sonnet regardless of token count
+    const sonnetTasks: AIRequestOptions['task'][] = ['scoring'];
+    if (options?.task && sonnetTasks.includes(options.task)) {
+      return this.SONNET_MODEL;
     }
 
     // Fallback: large output requests use Opus
