@@ -101,6 +101,9 @@ html.light {
   --sidebar-border: 30 3% 82%;
   --sidebar-ring: 13 73% 48%;
 
+  /* Aurora Background - light subtle fade */
+  --aurora-end: 30 10% 90%;
+
   /* Accent Gradient - warm, pops against off-white */
   --gradient-accent: linear-gradient(135deg,
     hsl(13, 73%, 48%) 0%,
@@ -128,7 +131,7 @@ body {
 
 .aurora-background {
   position: relative;
-  background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(40 8% 12%) 100%);
+  background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--aurora-end)) 100%);
   min-height: 100vh;
 }
 
@@ -939,6 +942,9 @@ body {
   --chart-tooltip-bg: 40 8% 9%;
   --chart-tooltip-border: 40 6% 18%;
   --chart-tooltip-text: 0 0% 100%;
+
+  /* Aurora Background - dark fade */
+  --aurora-end: 40 8% 12%;
 
   /* Sidebar */
   --sidebar: 40 8% 10%;
