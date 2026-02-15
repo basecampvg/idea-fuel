@@ -144,7 +144,6 @@ export default function ProjectOverviewPage() {
             whyNowScore={research?.whyNowScore}
             scoreJustifications={research?.scoreJustifications as any}
             scoreMetadata={research?.scoreMetadata as any}
-            layout="horizontal"
           />
         </div>
       )}

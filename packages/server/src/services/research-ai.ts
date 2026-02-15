@@ -318,6 +318,7 @@ export interface DeepResearchOutput {
   citations: Array<{ title: string; url: string; snippet?: string }>;
   sources: string[];
   searchQueriesUsed: string[];
+  chunkResults?: Record<string, string>;
 }
 
 // =============================================================================
@@ -529,9 +530,109 @@ export type ChunkedProgressCallback = (
   intermediateData?: IntermediateResearchData
 ) => Promise<void>;
 
+// =============================================================================
+// PROMPT REWRITING PRE-STEP (GPT-4.1)
+// =============================================================================
+
+const PROMPT_REWRITE_MODEL = 'gpt-4.1';
+
 /**
- * Run chunked deep research - breaks large research into smaller sequential calls.
- * This avoids the 200k TPM rate limit by making 4 focused calls with delays between them.
+ * Rewrite chunk prompts into focused research briefs using GPT-4.1.
+ * Incorporates founder context (interview data, canvas notes) and query expansion
+ * to produce tailored search angles for each research chunk.
+ *
+ * Non-fatal: returns empty object on failure, allowing default prompts to be used.
+ */
+async function rewriteResearchBriefs(
+  input: ResearchInput,
+  chunks: typeof RESEARCH_CHUNKS,
+  expansionContext: string
+): Promise<Record<string, string>> {
+  const { ideaTitle, ideaDescription, interviewData, interviewMessages, canvasContext } = input;
+
+  const interviewSummary = interviewMessages
+    .filter(m => m.role !== 'system')
+    .slice(-10) // Last 10 messages for context
+    .map(m => `${m.role}: ${m.content}`)
+    .join('\n');
+
+  const chunkList = chunks.map(c => `- ${c.id}: ${c.name} — ${c.focus}`).join('\n');
+
+  const prompt = `You are a research strategist preparing focused briefs for a market research team.
+
+## BUSINESS IDEA
+**${ideaTitle}**
+${ideaDescription}
+
+${canvasContext ? `## FOUNDER'S NOTES\n${canvasContext}\n` : ''}
+## INTERVIEW INSIGHTS
+${interviewData ? JSON.stringify(interviewData, null, 2) : 'None'}
+
+## RECENT INTERVIEW MESSAGES
+${interviewSummary || 'None'}
+
+${expansionContext || ''}
+
+## RESEARCH CHUNKS TO BRIEF
+${chunkList}
+
+## YOUR TASK
+For each chunk ID, write a tailored research brief (3-5 sentences) that:
+1. Narrows the research focus based on what the founder actually cares about
+2. Incorporates specific angles from the interview data and founder's notes
+3. Suggests specific companies, markets, or data points to investigate
+4. Keeps the original chunk's domain focus intact
+
+Output ONLY valid JSON: an object keyed by chunk ID, where each value is the rewritten research brief string.
+
+Example format:
+{
+  "market": "Research the market size and growth rate for...",
+  "competitors": "Identify direct competitors in the... space, focusing on..."
+}`;
+
+  const params = createResponsesParams(
+    {
+      model: PROMPT_REWRITE_MODEL,
+      input: [
+        { role: 'user', content: prompt },
+      ],
+      max_output_tokens: 3000,
+      response_format: { type: 'json_object' },
+    },
+    { reasoning: 'low', verbosity: 'low' }
+  );
+
+  const startTime = Date.now();
+  const response = await withExponentialBackoff(
+    () => openai.responses.create(params),
+    { maxAttempts: 2, initialDelayMs: 2000 }
+  );
+
+  const elapsed = Math.round((Date.now() - startTime) / 1000);
+  console.log(`[Prompt Rewriting] GPT-4.1 completed in ${elapsed}s`);
+
+  // Extract text from response
+  const text = response.output_text || '';
+
+  if (!text) {
+    console.warn('[Prompt Rewriting] Empty response from GPT-4.1');
+    return {};
+  }
+
+  try {
+    const briefs = JSON.parse(text) as Record<string, string>;
+    return briefs;
+  } catch {
+    console.warn('[Prompt Rewriting] Failed to parse JSON response');
+    return {};
+  }
+}
+
+/**
+ * Run chunked deep research - fires all chunks in parallel using background mode.
+ * Pre-computes query expansion, then launches all chunks simultaneously via Promise.allSettled.
+ * Each chunk uses OpenAI background mode with polling, so OpenAI handles queuing server-side.
  *
  * @param input Research input with idea and interview data
  * @param tier Subscription tier (FREE uses mini model, PRO/ENTERPRISE use full)
@@ -547,7 +648,7 @@ export async function runChunkedDeepResearch(
 ): Promise<DeepResearchOutput> {
   const { ideaTitle, ideaDescription, interviewData, interviewMessages, canvasContext } = input;
 
-  console.log('[Chunked Research] Starting chunked market research...');
+  console.log('[Chunked Research] Starting parallel deep research...');
   console.log('[Chunked Research] Tier:', tier);
   console.log('[Chunked Research] Chunks:', RESEARCH_CHUNKS.length);
 
@@ -561,9 +662,9 @@ export async function runChunkedDeepResearch(
   const allSources: string[] = existingChunks?.sources ? [...existingChunks.sources] : [];
 
   // Check for existing chunks to resume from
-  const completedChunks = Object.keys(results);
-  if (completedChunks.length > 0) {
-    console.log('[Chunked Research] RESUME MODE - Found', completedChunks.length, 'completed chunks:', completedChunks.join(', '));
+  const completedChunkIds = Object.keys(results);
+  if (completedChunkIds.length > 0) {
+    console.log('[Chunked Research] RESUME MODE - Found', completedChunkIds.length, 'completed chunks:', completedChunkIds.join(', '));
   }
 
   // Build interview context once (shared across chunks)
@@ -572,62 +673,72 @@ export async function runChunkedDeepResearch(
     .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
     .join('\n\n');
 
-  // Fire off query expansion concurrently — don't block the first research chunk.
-  // The expansion result will enrich chunks 2+ while chunk 1 starts immediately.
+  // --- Pre-step: Query expansion (await before firing chunks) ---
   const keyPhrases = extractKeyPhrases(ideaTitle, ideaDescription);
   let expansionContext = '';
-  const expansionPromise = expandQueries(keyPhrases, [], {
-    maxTemplateQueries: 20,
-    maxSerpApiQueries: 8,
-    serpApiEnabled: true,
-  }).then((expansion) => {
+  try {
+    const expansion = await expandQueries(keyPhrases, [], {
+      maxTemplateQueries: 20,
+      maxSerpApiQueries: 8,
+      serpApiEnabled: true,
+    });
     if (expansion.totalUnique > 0) {
       const expandedStrings = getExpandedQueryStrings(expansion);
       expansionContext = formatQueriesForPrompt(expandedStrings, 'ADDITIONAL SEARCH ANGLES');
       console.log(`[Chunked Research] Query expansion: ${expansion.totalUnique} queries (${expansion.templateCount} template, ${expansion.serpApiCount} SerpAPI) in ${expansion.elapsedMs}ms`);
     }
-  }).catch((err) => {
+  } catch (err) {
     console.warn('[Chunked Research] Query expansion failed (non-fatal):', err instanceof Error ? err.message : err);
-  });
+  }
 
-  // Process each chunk sequentially
-  for (let i = 0; i < RESEARCH_CHUNKS.length; i++) {
-    const chunk = RESEARCH_CHUNKS[i];
+  // --- Pre-step: Prompt rewriting via GPT-4.1 ---
+  let rewrittenBriefs: Record<string, string> = {};
+  try {
+    rewrittenBriefs = await rewriteResearchBriefs(input, RESEARCH_CHUNKS, expansionContext);
+    console.log(`[Chunked Research] Prompt rewriting complete: ${Object.keys(rewrittenBriefs).length} briefs generated`);
+  } catch (err) {
+    console.warn('[Chunked Research] Prompt rewriting failed (non-fatal, using default prompts):', err instanceof Error ? err.message : err);
+  }
 
-    // Skip if chunk already completed (resume support)
-    if (results[chunk.id]) {
-      console.log(`[Chunked Research] Skipping ${chunk.name} (already completed)`);
-      await onProgress?.('DEEP_RESEARCH', chunk.progressEnd);
-      continue;
-    }
+  // Filter to only chunks that still need to run
+  const chunksToRun = RESEARCH_CHUNKS.filter(chunk => !results[chunk.id]);
+  console.log(`[Chunked Research] Firing ${chunksToRun.length} chunks in parallel...`);
 
-    // Wait for expansion before chunk 2+ (chunk 1 proceeds without it)
-    if (i === 1) {
-      await expansionPromise;
-    }
+  if (chunksToRun.length === 0) {
+    console.log('[Chunked Research] All chunks already completed (full resume)');
+    return {
+      rawReport: combineChunkResults(results),
+      citations: allCitations,
+      sources: [...new Set(allSources)],
+      searchQueriesUsed: [],
+    };
+  }
 
-    console.log(`[Chunked Research] === Starting: ${chunk.name} ===`);
-    await onProgress?.('DEEP_RESEARCH', chunk.progressStart);
+  await onProgress?.('DEEP_RESEARCH', 5);
 
-    // Run focused research for this chunk
+  // Track completed count for progress reporting
+  let completedCount = completedChunkIds.length;
+  const totalChunks = RESEARCH_CHUNKS.length;
+
+  // Fire all chunks in parallel
+  const chunkPromises = chunksToRun.map(chunk => {
     const startTime = Date.now();
     const heartbeat = setInterval(() => {
       const elapsed = Math.round((Date.now() - startTime) / 1000);
       console.log(`[Chunked Research] [${chunk.name}] Still researching... (${elapsed}s elapsed)`);
-    }, 15000);
+    }, 30000); // Less frequent heartbeat since we have multiple chunks
 
-    try {
-      const chunkResult = await runSingleResearchChunk(
-        ideaTitle,
-        ideaDescription,
-        interviewData,
-        interviewContext,
-        chunk,
-        model,
-        expansionContext,
-        canvasContext
-      );
-
+    return runSingleResearchChunk(
+      ideaTitle,
+      ideaDescription,
+      interviewData,
+      interviewContext,
+      chunk,
+      model,
+      expansionContext,
+      canvasContext,
+      rewrittenBriefs[chunk.id]
+    ).then(async (chunkResult) => {
       clearInterval(heartbeat);
       const elapsed = Math.round((Date.now() - startTime) / 1000);
       console.log(`[Chunked Research] [${chunk.name}] Complete after ${elapsed}s - ${chunkResult.content.length} chars`);
@@ -637,9 +748,10 @@ export async function runChunkedDeepResearch(
       allCitations.push(...chunkResult.citations);
       allSources.push(...chunkResult.sources);
 
-      // Save intermediate progress for resume (passes combined results so far)
-      // Format as IntermediateResearchData with deepResearch field
-      await onProgress?.('DEEP_RESEARCH', chunk.progressEnd, {
+      // Update progress as each chunk completes
+      completedCount++;
+      const progress = Math.round((completedCount / totalChunks) * 30);
+      await onProgress?.('DEEP_RESEARCH', progress, {
         deepResearch: {
           rawReport: combineChunkResults(results),
           citations: allCitations,
@@ -648,17 +760,33 @@ export async function runChunkedDeepResearch(
         },
       });
 
-      // Delay before next chunk (skip after last chunk)
-      if (i < RESEARCH_CHUNKS.length - 1) {
-        console.log(`[Chunked Research] Waiting ${INTER_CHUNK_DELAY_MS / 1000}s before next chunk (rate limit recovery)...`);
-        await sleep(INTER_CHUNK_DELAY_MS);
-      }
-    } catch (error) {
+      return { chunkId: chunk.id, success: true as const };
+    }).catch((error) => {
       clearInterval(heartbeat);
       const elapsed = Math.round((Date.now() - startTime) / 1000);
       console.error(`[Chunked Research] [${chunk.name}] Error after ${elapsed}s:`, error);
-      throw error;
+      return { chunkId: chunk.id, success: false as const, error };
+    });
+  });
+
+  const settled = await Promise.all(chunkPromises);
+
+  // Check for failures
+  const failures = settled.filter(r => !r.success);
+  if (failures.length > 0) {
+    const failedNames = failures.map(f => f.chunkId).join(', ');
+    console.error(`[Chunked Research] ${failures.length} chunk(s) failed: ${failedNames}`);
+
+    // If all chunks failed, throw the first error
+    if (failures.length === chunksToRun.length) {
+      const firstFailure = failures[0] as { chunkId: string; success: false; error: unknown };
+      throw firstFailure.error instanceof Error
+        ? firstFailure.error
+        : new Error(`All research chunks failed. First error: ${firstFailure.error}`);
     }
+
+    // Partial failure: log but continue with what we have
+    console.warn(`[Chunked Research] Continuing with ${settled.length - failures.length}/${chunksToRun.length} successful chunks`);
   }
 
   console.log('[Chunked Research] === All chunks complete ===');
@@ -670,6 +798,7 @@ export async function runChunkedDeepResearch(
     citations: allCitations,
     sources: [...new Set(allSources)],
     searchQueriesUsed: [],
+    chunkResults: results,
   };
 }
 
@@ -684,12 +813,16 @@ async function runSingleResearchChunk(
   chunk: typeof RESEARCH_CHUNKS[number],
   model: string,
   expansionContext: string = '',
-  canvasContext?: string
+  canvasContext?: string,
+  rewrittenBrief?: string
 ): Promise<DeepResearchResult> {
+  // Use rewritten brief if available, otherwise fall back to default focus
+  const researchFocus = rewrittenBrief || chunk.focus;
+
   const systemPrompt = `You are a market research analyst conducting focused research.
 
 ## YOUR SPECIFIC TASK
-Research ONLY: ${chunk.focus}
+Research ONLY: ${researchFocus}
 
 ## GUIDELINES
 - Be thorough but focused on this specific research area
@@ -713,7 +846,7 @@ ${interviewContext || 'No interview transcript available.'}
 ---
 
 ## RESEARCH FOCUS: ${chunk.name.toUpperCase()}
-${chunk.focus}
+${researchFocus}
 
 Provide specific, actionable insights with citations. Focus only on this research area.
 ${expansionContext}`;
@@ -769,6 +902,9 @@ function combineChunkResults(results: Record<string, string>): string {
   }
   if (results.timing) {
     sections.push(`## Timing & Validation\n\n${results.timing}`);
+  }
+  if (results.marketsizing) {
+    sections.push(`## Market Sizing\n\n${results.marketsizing}`);
   }
 
   return sections.join('\n\n---\n\n');
@@ -1793,6 +1929,469 @@ Use ONLY information from the research report. Be thorough — include specific 
   return insights;
 }
 
+// =============================================================================
+// PER-CHUNK EXTRACTION FUNCTIONS
+// Each function extracts specific schema sections from a single research chunk
+// =============================================================================
+
+/**
+ * Extract market analysis + keywords from the market research chunk.
+ */
+async function extractChunkMarket(
+  chunkText: string,
+  input: ResearchInput,
+  tier: SubscriptionTier
+): Promise<{ marketAnalysis: SynthesizedInsights['marketAnalysis']; keywords: SynthesizedInsights['keywords'] }> {
+  console.log('[Extract:Market] Extracting market analysis + keywords...');
+
+  const prompt = `You are extracting structured market analysis data from a focused market research report.
+
+## BUSINESS IDEA
+**Title:** ${input.ideaTitle}
+**Description:** ${input.ideaDescription}
+
+## MARKET RESEARCH DATA
+${chunkText}
+
+---
+
+Extract comprehensive market analysis and relevant keywords from the research above. Preserve specific data points, statistics, dollar figures, and citations. Return structured JSON matching this EXACT schema:
+
+{
+  "marketAnalysis": {
+    "size": "<string: detailed market size with dollar figures, segments, and geographic scope>",
+    "growth": "<string: growth rate with CAGR, projections, and drivers>",
+    "trends": ["<string: describe each trend in 1-2 sentences with specific data>", ...],
+    "opportunities": ["<string: describe each opportunity in 1-2 sentences with reasoning>", ...],
+    "threats": ["<string: describe each threat in 1-2 sentences with specific examples>", ...],
+    "marketDynamics": {
+      "stage": "emerging" | "growing" | "mature" | "declining",
+      "consolidationLevel": "<string: fragmented/consolidating/concentrated>",
+      "entryBarriers": ["<string: specific barrier with context>", ...],
+      "regulatoryEnvironment": "<string: key regulations or policy trends>"
+    },
+    "keyMetrics": {
+      "cagr": "<string: compound annual growth rate with timeframe>",
+      "avgDealSize": "<string: average contract/deal value>",
+      "customerAcquisitionCost": "<string: industry average CAC estimate>",
+      "lifetimeValue": "<string: industry average customer LTV estimate>"
+    },
+    "adjacentMarkets": [
+      {
+        "name": "<string: adjacent market name>",
+        "relevance": "<string: why this market is relevant>",
+        "crossoverOpportunity": "<string: specific expansion opportunity>"
+      }
+    ]
+  },
+  "keywords": {
+    "primary": ["<string: primary search keyword>", ...],
+    "secondary": ["<string: secondary keyword>", ...],
+    "longTail": ["<string: long-tail keyword phrase>", ...]
+  }
+}
+
+Use ONLY information from the research data. Be thorough — include specific dollar figures, percentages, and data points. Output ONLY the JSON object.`;
+
+  const extractionProvider = getExtractionProvider(tier);
+  const { MarketChunkSchema } = await import('./research-schemas');
+
+  return await withExponentialBackoff(
+    () => extractionProvider.extract(prompt, MarketChunkSchema, {
+      maxTokens: 12000,
+      temperature: 0.2,
+      task: 'extraction',
+    }),
+    {
+      maxAttempts: 3,
+      initialDelayMs: 3000,
+      isRetryable: chunkExtractionRetryable,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[Extract:Market] Retry ${attempt}/3 after ${delayMs}ms:`, error instanceof Error ? error.message : 'Validation error');
+      },
+    }
+  );
+}
+
+/**
+ * Extract competitor profiles + positioning from the competitor research chunk.
+ */
+async function extractChunkCompetitors(
+  chunkText: string,
+  input: ResearchInput,
+  tier: SubscriptionTier
+): Promise<{ competitors: SynthesizedInsights['competitors']; positioning: SynthesizedInsights['positioning'] }> {
+  console.log('[Extract:Competitors] Extracting competitor profiles + positioning...');
+
+  const prompt = `You are extracting structured competitor and positioning data from a focused competitor research report.
+
+## BUSINESS IDEA
+**Title:** ${input.ideaTitle}
+**Description:** ${input.ideaDescription}
+
+## COMPETITOR RESEARCH DATA
+${chunkText}
+
+---
+
+Extract detailed competitor profiles and derive positioning strategy based on the competitive landscape. For each competitor, analyze their actual pricing, technical architecture choices, user complaints, and strategic vulnerabilities. Then derive positioning that exploits gaps in the competitive landscape.
+
+Return structured JSON matching this EXACT schema:
+
+{
+  "competitors": [
+    {
+      "name": "<string: company name>",
+      "description": "<string: what they do and their market position>",
+      "strengths": ["<string: specific strength with evidence>", ...],
+      "weaknesses": ["<string: specific weakness or limitation>", ...],
+      "positioning": "<string: how they position themselves>",
+      "website": "<string: OPTIONAL - company URL>",
+      "fundingStage": "<string: OPTIONAL - e.g. 'Series B, $45M raised'>",
+      "estimatedRevenue": "<string: OPTIONAL - e.g. '$10-50M ARR'>",
+      "targetSegment": "<string: OPTIONAL - primary customer segment>",
+      "pricingModel": "<string: OPTIONAL - e.g. 'Freemium, $49-299/mo'>",
+      "keyDifferentiator": "<string: OPTIONAL - biggest competitive advantage>",
+      "vulnerability": "<string: OPTIONAL - strategic weakness to exploit>"
+    }
+  ],
+  "positioning": {
+    "uniqueValueProposition": "<string: clear, specific value prop referencing competitive gaps>",
+    "targetAudience": "<string: detailed description of primary target audience>",
+    "differentiators": ["<string: specific differentiator vs competitors>", ...],
+    "messagingPillars": ["<string: core messaging theme>", ...],
+    "idealCustomerProfile": {
+      "persona": "<string: named persona>",
+      "demographics": "<string: company size, industry, role, budget>",
+      "psychographics": "<string: motivations, fears, buying behavior>",
+      "buyingTriggers": ["<string: event that triggers purchase intent>", ...]
+    },
+    "competitivePositioning": {
+      "category": "<string: market category>",
+      "against": "<string: 'Unlike [Competitor X], we [key difference]'>",
+      "anchorBenefit": "<string: single most important benefit>",
+      "proofPoint": "<string: evidence backing the positioning>"
+    },
+    "messagingFramework": {
+      "headline": "<string: primary one-line headline>",
+      "subheadline": "<string: supporting statement>",
+      "elevatorPitch": "<string: 2-3 sentence pitch>",
+      "objectionHandlers": [{"objection": "<string>", "response": "<string>"}, ...]
+    }
+  }
+}
+
+Use ONLY information from the research data. Be thorough with competitor details. Output ONLY the JSON object.`;
+
+  const extractionProvider = getExtractionProvider(tier);
+  const { CompetitorsChunkSchema } = await import('./research-schemas');
+
+  return await withExponentialBackoff(
+    () => extractionProvider.extract(prompt, CompetitorsChunkSchema, {
+      maxTokens: 15000,
+      temperature: 0.2,
+      task: 'extraction',
+    }),
+    {
+      maxAttempts: 3,
+      initialDelayMs: 3000,
+      isRetryable: chunkExtractionRetryable,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[Extract:Competitors] Retry ${attempt}/3 after ${delayMs}ms:`, error instanceof Error ? error.message : 'Validation error');
+      },
+    }
+  );
+}
+
+/**
+ * Extract customer pain points from the pain points research chunk.
+ */
+async function extractChunkPainPoints(
+  chunkText: string,
+  input: ResearchInput,
+  tier: SubscriptionTier
+): Promise<{ painPoints: SynthesizedInsights['painPoints'] }> {
+  console.log('[Extract:PainPoints] Extracting customer pain points...');
+
+  const prompt = `You are extracting structured customer pain point data from focused customer research.
+
+## BUSINESS IDEA
+**Title:** ${input.ideaTitle}
+**Description:** ${input.ideaDescription}
+
+## CUSTOMER PAIN POINT RESEARCH
+${chunkText}
+
+---
+
+Extract detailed customer pain points with evidence and severity analysis. Pay close attention to severity ratings, affected segments, evidence quotes, and the cost of inaction. Each pain point should be grounded in specific findings from the research.
+
+Return structured JSON matching this EXACT schema:
+
+{
+  "painPoints": [
+    {
+      "problem": "<string: specific problem statement>",
+      "severity": "high" | "medium" | "low",
+      "currentSolutions": ["<string: existing solution or workaround>", ...],
+      "gaps": ["<string: what current solutions fail to address>", ...],
+      "affectedSegment": "<string: OPTIONAL - which customer segment feels this most>",
+      "frequencyOfOccurrence": "<string: OPTIONAL - how often, e.g. 'daily', 'during onboarding'>",
+      "costOfInaction": "<string: OPTIONAL - quantified cost, e.g. '$500/month wasted'>",
+      "emotionalImpact": "<string: OPTIONAL - the frustration or fear this causes>",
+      "evidenceQuotes": ["<string: OPTIONAL - direct findings from research>", ...]
+    }
+  ]
+}
+
+Use ONLY information from the research data. Be thorough — include as many distinct pain points as the data supports. Output ONLY the JSON object.`;
+
+  const extractionProvider = getExtractionProvider(tier);
+  const { PainPointsChunkSchema } = await import('./research-schemas');
+
+  return await withExponentialBackoff(
+    () => extractionProvider.extract(prompt, PainPointsChunkSchema, {
+      maxTokens: 10000,
+      temperature: 0.2,
+      task: 'extraction',
+    }),
+    {
+      maxAttempts: 3,
+      initialDelayMs: 3000,
+      isRetryable: chunkExtractionRetryable,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[Extract:PainPoints] Retry ${attempt}/3 after ${delayMs}ms:`, error instanceof Error ? error.message : 'Validation error');
+      },
+    }
+  );
+}
+
+/**
+ * Extract why-now triggers + proof signals from the timing research chunk.
+ */
+async function extractChunkTiming(
+  chunkText: string,
+  input: ResearchInput,
+  tier: SubscriptionTier
+): Promise<{ whyNow: SynthesizedInsights['whyNow']; proofSignals: SynthesizedInsights['proofSignals'] }> {
+  console.log('[Extract:Timing] Extracting why-now triggers + proof signals...');
+
+  const prompt = `You are extracting structured timing and validation data from focused market timing research.
+
+## BUSINESS IDEA
+**Title:** ${input.ideaTitle}
+**Description:** ${input.ideaDescription}
+
+## TIMING & VALIDATION RESEARCH
+${chunkText}
+
+---
+
+Extract market timing factors, urgency analysis, demand signals, and validation opportunities. Assess why NOW is the right time to build this business and what signals indicate real demand.
+
+Return structured JSON matching this EXACT schema:
+
+{
+  "whyNow": {
+    "marketTriggers": ["<string: specific market trigger with context>", ...],
+    "timingFactors": ["<string: timing factor with evidence>", ...],
+    "urgencyScore": <number 0-100>,
+    "windowOfOpportunity": {
+      "opens": "<string: OPTIONAL - when the window opens>",
+      "closesBy": "<string: OPTIONAL - when it closes>",
+      "reasoning": "<string: OPTIONAL - why this window exists>"
+    },
+    "catalysts": [
+      {
+        "event": "<string: OPTIONAL - specific catalyst event>",
+        "impact": "high" | "medium" | "low",
+        "timeframe": "<string: when this catalyst takes effect>",
+        "howToLeverage": "<string: specific action to capitalize on this>"
+      }
+    ],
+    "urgencyNarrative": "<string: OPTIONAL - 2-3 sentence narrative of why acting now matters>"
+  },
+  "proofSignals": {
+    "demandIndicators": ["<string: specific indicator with data point>", ...],
+    "validationOpportunities": ["<string: actionable validation step>", ...],
+    "riskFactors": ["<string: specific risk with context>", ...],
+    "demandStrength": {
+      "score": <number: OPTIONAL - 0-100 overall demand confidence>,
+      "searchVolumeSignal": "<string: OPTIONAL - search volume evidence>",
+      "communitySignal": "<string: OPTIONAL - community discussion evidence>",
+      "spendingSignal": "<string: OPTIONAL - willingness to pay evidence>"
+    },
+    "validationExperiments": [
+      {
+        "experiment": "<string: OPTIONAL - specific low-cost experiment>",
+        "hypothesis": "<string: what result would validate demand>",
+        "cost": "<string: estimated cost>",
+        "timeframe": "<string: how long to run>"
+      }
+    ],
+    "riskMitigation": [
+      {
+        "risk": "<string: OPTIONAL - specific risk>",
+        "severity": "high" | "medium" | "low",
+        "mitigation": "<string: concrete mitigation strategy>"
+      }
+    ]
+  }
+}
+
+Use ONLY information from the research data. Be thorough with timing factors and demand evidence. Output ONLY the JSON object.`;
+
+  const extractionProvider = getExtractionProvider(tier);
+  const { TimingChunkSchema } = await import('./research-schemas');
+
+  return await withExponentialBackoff(
+    () => extractionProvider.extract(prompt, TimingChunkSchema, {
+      maxTokens: 12000,
+      temperature: 0.2,
+      task: 'extraction',
+    }),
+    {
+      maxAttempts: 3,
+      initialDelayMs: 3000,
+      isRetryable: chunkExtractionRetryable,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[Extract:Timing] Retry ${attempt}/3 after ${delayMs}ms:`, error instanceof Error ? error.message : 'Validation error');
+      },
+    }
+  );
+}
+
+/** Shared retry predicate for all chunk extraction calls */
+function chunkExtractionRetryable(error: unknown): boolean {
+  // Retry Zod validation errors (model returned bad JSON)
+  if (error && typeof error === 'object' && 'issues' in error) return true;
+  // Retry JSON parse errors
+  if (error instanceof Error && error.message.includes('Failed to parse JSON')) return true;
+  // Retry timeout errors
+  if (error instanceof Error && error.message.includes('timed out')) return true;
+  // Retry transient HTTP errors
+  if (error && typeof error === 'object') {
+    const err = error as Record<string, unknown>;
+    if (typeof err.status === 'number' && [429, 500, 502, 503, 504].includes(err.status)) return true;
+  }
+  return false;
+}
+
+// =============================================================================
+// PARALLEL EXTRACTION ORCHESTRATOR
+// =============================================================================
+
+/** Default values for failed extractions — enables graceful degradation */
+const EMPTY_MARKET_ANALYSIS: SynthesizedInsights['marketAnalysis'] = {
+  size: 'Data unavailable',
+  growth: 'Data unavailable',
+  trends: [],
+  opportunities: [],
+  threats: [],
+};
+
+const EMPTY_POSITIONING: SynthesizedInsights['positioning'] = {
+  uniqueValueProposition: '',
+  targetAudience: '',
+  differentiators: [],
+  messagingPillars: [],
+};
+
+const EMPTY_WHY_NOW: SynthesizedInsights['whyNow'] = {
+  marketTriggers: [],
+  timingFactors: [],
+  urgencyScore: 50,
+};
+
+const EMPTY_PROOF_SIGNALS: SynthesizedInsights['proofSignals'] = {
+  demandIndicators: [],
+  validationOpportunities: [],
+  riskFactors: [],
+};
+
+const EMPTY_KEYWORDS: SynthesizedInsights['keywords'] = {
+  primary: [],
+  secondary: [],
+  longTail: [],
+};
+
+/**
+ * Extract insights from deep research chunks in parallel.
+ * Each chunk extracts its relevant schema sections independently,
+ * then results are merged into a single SynthesizedInsights object.
+ *
+ * Falls back gracefully — if a chunk extraction fails, empty defaults
+ * are used for those sections so downstream functions can still run.
+ */
+export async function extractInsightsParallel(
+  chunkResults: Record<string, string>,
+  input: ResearchInput,
+  tier: SubscriptionTier = 'ENTERPRISE'
+): Promise<SynthesizedInsights> {
+  console.log('[Extract Parallel] Starting 4 parallel chunk extractions...');
+  console.log('[Extract Parallel] Available chunks:', Object.keys(chunkResults).join(', '));
+
+  const chunkNames = ['market', 'competitors', 'painpoints', 'timing'] as const;
+
+  const results = await Promise.allSettled([
+    chunkResults.market
+      ? extractChunkMarket(chunkResults.market, input, tier)
+      : Promise.reject(new Error('No market chunk data')),
+    chunkResults.competitors
+      ? extractChunkCompetitors(chunkResults.competitors, input, tier)
+      : Promise.reject(new Error('No competitors chunk data')),
+    chunkResults.painpoints
+      ? extractChunkPainPoints(chunkResults.painpoints, input, tier)
+      : Promise.reject(new Error('No painpoints chunk data')),
+    chunkResults.timing
+      ? extractChunkTiming(chunkResults.timing, input, tier)
+      : Promise.reject(new Error('No timing chunk data')),
+  ]);
+
+  // Log results
+  results.forEach((r, i) => {
+    if (r.status === 'rejected') {
+      console.error(`[Extract Parallel] FAILED: ${chunkNames[i]}:`, r.reason instanceof Error ? r.reason.message : r.reason);
+    } else {
+      console.log(`[Extract Parallel] OK: ${chunkNames[i]}`);
+    }
+  });
+
+  const succeeded = results.filter(r => r.status === 'fulfilled').length;
+  console.log(`[Extract Parallel] ${succeeded}/4 chunk extractions succeeded`);
+
+  // Merge results with fallback defaults for failed chunks
+  const insights = mergeChunkInsights(results);
+
+  console.log('[Extract Parallel] Merged insights assembled');
+  return insights;
+}
+
+/**
+ * Merge per-chunk extraction results into a single SynthesizedInsights object.
+ * Uses empty defaults for any chunks that failed extraction.
+ */
+function mergeChunkInsights(
+  results: [
+    PromiseSettledResult<{ marketAnalysis: SynthesizedInsights['marketAnalysis']; keywords: SynthesizedInsights['keywords'] }>,
+    PromiseSettledResult<{ competitors: SynthesizedInsights['competitors']; positioning: SynthesizedInsights['positioning'] }>,
+    PromiseSettledResult<{ painPoints: SynthesizedInsights['painPoints'] }>,
+    PromiseSettledResult<{ whyNow: SynthesizedInsights['whyNow']; proofSignals: SynthesizedInsights['proofSignals'] }>,
+  ]
+): SynthesizedInsights {
+  const [marketResult, competitorsResult, painPointsResult, timingResult] = results;
+
+  return {
+    marketAnalysis: marketResult.status === 'fulfilled' ? marketResult.value.marketAnalysis : EMPTY_MARKET_ANALYSIS,
+    keywords: marketResult.status === 'fulfilled' ? marketResult.value.keywords : EMPTY_KEYWORDS,
+    competitors: competitorsResult.status === 'fulfilled' ? competitorsResult.value.competitors : [],
+    positioning: competitorsResult.status === 'fulfilled' ? competitorsResult.value.positioning : EMPTY_POSITIONING,
+    painPoints: painPointsResult.status === 'fulfilled' ? painPointsResult.value.painPoints : [],
+    whyNow: timingResult.status === 'fulfilled' ? timingResult.value.whyNow : EMPTY_WHY_NOW,
+    proofSignals: timingResult.status === 'fulfilled' ? timingResult.value.proofSignals : EMPTY_PROOF_SIGNALS,
+  };
+}
+
 /**
  * Calculate research scores from deep research report.
  * Uses multi-pass validation for reliability.
@@ -2383,8 +2982,7 @@ export async function extractMarketSizing(
 
   // Prepare inputs
   const researchSnippet = deepResearch.rawReport;
-  const marketSizingChunk = (deepResearch as DeepResearchOutput & { chunkResults?: Record<string, string> })
-    ?.chunkResults?.marketsizing || '';
+  const marketSizingChunk = deepResearch.chunkResults?.marketsizing || '';
   const insightsJson = JSON.stringify(insights.marketAnalysis, null, 2);
 
   console.log('[Extract Market Sizing] Research snippet length:', researchSnippet.length);
@@ -4828,9 +5426,17 @@ export async function runResearchPipeline(
     await onProgress?.('SYNTHESIS', 58);
     console.log('[Research Pipeline] === PHASE 3: Extraction & Synthesis (GPT-5.2) ===');
 
-    // Step 1: Extract structured insights from raw deep research (moved from Phase 2)
-    console.log('[Research Pipeline] Extracting insights from deep research...');
-    insights = await extractInsights(deepResearch, input, tier);
+    // Step 1: Extract structured insights from raw deep research
+    // Use per-chunk parallel extraction when chunk results are available (4 parallel calls × ~25K each)
+    // Falls back to monolithic extraction (1 call × ~125K) for legacy data without chunks
+    if (deepResearch.chunkResults && Object.keys(deepResearch.chunkResults).length > 0) {
+      console.log('[Research Pipeline] Extracting insights via parallel per-chunk extraction...');
+      console.log(`[Research Pipeline] Available chunks: ${Object.keys(deepResearch.chunkResults).join(', ')}`);
+      insights = await extractInsightsParallel(deepResearch.chunkResults, input, tier);
+    } else {
+      console.log('[Research Pipeline] Extracting insights from deep research (monolithic fallback)...');
+      insights = await extractInsights(deepResearch, input, tier);
+    }
     await onProgress?.('SYNTHESIS', 65, { insights });
     console.log('[Research Pipeline] Insights extracted successfully');
 

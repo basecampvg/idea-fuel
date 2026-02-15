@@ -238,7 +238,6 @@ export function StatusComplete({ project, onDelete, isDeleting }: StatusComplete
           whyNowScore={research?.whyNowScore}
           scoreJustifications={research?.scoreJustifications as ScoreJustifications | null | undefined}
           scoreMetadata={research?.scoreMetadata as ScoreMetadata | null | undefined}
-          layout="horizontal"
           title={panes.scoreCards.title}
           subtitle={panes.scoreCards.subtitle}
         />

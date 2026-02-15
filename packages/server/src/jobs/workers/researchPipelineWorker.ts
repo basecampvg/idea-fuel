@@ -149,6 +149,8 @@ export function createResearchPipelineWorker() {
               if (painpointsMatch) chunkResults.painpoints = painpointsMatch[1].trim();
               const timingMatch = rawReport.match(/## Timing & Validation\n\n([\s\S]*?)(?=\n\n---\n\n|$)/);
               if (timingMatch) chunkResults.timing = timingMatch[1].trim();
+              const marketsizingMatch = rawReport.match(/## Market Sizing\n\n([\s\S]*?)(?=\n\n---\n\n|$)/);
+              if (marketsizingMatch) chunkResults.marketsizing = marketsizingMatch[1].trim();
 
               if (Object.keys(chunkResults).length > 0) {
                 updateData.researchChunks = {

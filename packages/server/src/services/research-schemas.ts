@@ -133,6 +133,30 @@ export const InsightsSchema = z.object({
 });
 
 // ============================================================================
+// Per-Chunk Extraction Schemas (derived from InsightsSchema to prevent drift)
+// Each chunk extracts its relevant sections independently in parallel
+// ============================================================================
+
+export const MarketChunkSchema = z.object({
+  marketAnalysis: InsightsSchema.shape.marketAnalysis,
+  keywords: InsightsSchema.shape.keywords,
+});
+
+export const CompetitorsChunkSchema = z.object({
+  competitors: InsightsSchema.shape.competitors,
+  positioning: InsightsSchema.shape.positioning,
+});
+
+export const PainPointsChunkSchema = z.object({
+  painPoints: InsightsSchema.shape.painPoints,
+});
+
+export const TimingChunkSchema = z.object({
+  whyNow: InsightsSchema.shape.whyNow,
+  proofSignals: InsightsSchema.shape.proofSignals,
+});
+
+// ============================================================================
 // Scores Extraction Schema (single pass)
 // ============================================================================
 
