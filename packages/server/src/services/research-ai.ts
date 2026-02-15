@@ -770,6 +770,9 @@ function combineChunkResults(results: Record<string, string>): string {
   if (results.timing) {
     sections.push(`## Timing & Validation\n\n${results.timing}`);
   }
+  if (results.marketsizing) {
+    sections.push(`## Market Sizing\n\n${results.marketsizing}`);
+  }
 
   return sections.join('\n\n---\n\n');
 }
