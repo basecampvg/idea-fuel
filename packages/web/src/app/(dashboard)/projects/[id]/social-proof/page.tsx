@@ -11,5 +11,14 @@ export default function SocialProofPage() {
 
   if (!data) return <SectionEmptyState section="Social Proof" />;
 
+  if (!data.posts || data.posts.length === 0) {
+    return (
+      <SectionEmptyState
+        section="Social Proof"
+        message="No relevant social discussions were found for this topic. This can happen when the topic is too niche or broad for the AI to find specific community posts."
+      />
+    );
+  }
+
   return <SocialProofSection socialProof={data} />;
 }
