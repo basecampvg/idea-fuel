@@ -70,7 +70,8 @@ const phaseSubTasks: Record<string, string[]> = {
     'Sizing market opportunity',
   ],
   SYNTHESIS: [
-    'Extracting insights from research',
+    'Extracting market & competitor insights',
+    'Extracting pain points & timing signals',
     'Calculating opportunity scores',
     'Evaluating business metrics',
     'Sizing market opportunity',
@@ -94,10 +95,11 @@ function getActiveSubTask(phase: string, progress: number): number {
       if (progress < 26) return 3;
       return 4;
     case 'SYNTHESIS':
-      if (progress < 63) return 0;
-      if (progress < 70) return 1;
-      if (progress < 76) return 2;
-      return 3;
+      if (progress < 61) return 0;
+      if (progress < 65) return 1;
+      if (progress < 70) return 2;
+      if (progress < 76) return 3;
+      return 4;
     case 'REPORT_GENERATION':
       if (progress < 88) return 0;
       if (progress < 92) return 1;

@@ -318,6 +318,7 @@ export interface DeepResearchOutput {
   citations: Array<{ title: string; url: string; snippet?: string }>;
   sources: string[];
   searchQueriesUsed: string[];
+  chunkResults?: Record<string, string>;
 }
 
 // =============================================================================
@@ -797,6 +798,7 @@ export async function runChunkedDeepResearch(
     citations: allCitations,
     sources: [...new Set(allSources)],
     searchQueriesUsed: [],
+    chunkResults: results,
   };
 }
 
@@ -1927,6 +1929,469 @@ Use ONLY information from the research report. Be thorough — include specific 
   return insights;
 }
 
+// =============================================================================
+// PER-CHUNK EXTRACTION FUNCTIONS
+// Each function extracts specific schema sections from a single research chunk
+// =============================================================================
+
+/**
+ * Extract market analysis + keywords from the market research chunk.
+ */
+async function extractChunkMarket(
+  chunkText: string,
+  input: ResearchInput,
+  tier: SubscriptionTier
+): Promise<{ marketAnalysis: SynthesizedInsights['marketAnalysis']; keywords: SynthesizedInsights['keywords'] }> {
+  console.log('[Extract:Market] Extracting market analysis + keywords...');
+
+  const prompt = `You are extracting structured market analysis data from a focused market research report.
+
+## BUSINESS IDEA
+**Title:** ${input.ideaTitle}
+**Description:** ${input.ideaDescription}
+
+## MARKET RESEARCH DATA
+${chunkText}
+
+---
+
+Extract comprehensive market analysis and relevant keywords from the research above. Preserve specific data points, statistics, dollar figures, and citations. Return structured JSON matching this EXACT schema:
+
+{
+  "marketAnalysis": {
+    "size": "<string: detailed market size with dollar figures, segments, and geographic scope>",
+    "growth": "<string: growth rate with CAGR, projections, and drivers>",
+    "trends": ["<string: describe each trend in 1-2 sentences with specific data>", ...],
+    "opportunities": ["<string: describe each opportunity in 1-2 sentences with reasoning>", ...],
+    "threats": ["<string: describe each threat in 1-2 sentences with specific examples>", ...],
+    "marketDynamics": {
+      "stage": "emerging" | "growing" | "mature" | "declining",
+      "consolidationLevel": "<string: fragmented/consolidating/concentrated>",
+      "entryBarriers": ["<string: specific barrier with context>", ...],
+      "regulatoryEnvironment": "<string: key regulations or policy trends>"
+    },
+    "keyMetrics": {
+      "cagr": "<string: compound annual growth rate with timeframe>",
+      "avgDealSize": "<string: average contract/deal value>",
+      "customerAcquisitionCost": "<string: industry average CAC estimate>",
+      "lifetimeValue": "<string: industry average customer LTV estimate>"
+    },
+    "adjacentMarkets": [
+      {
+        "name": "<string: adjacent market name>",
+        "relevance": "<string: why this market is relevant>",
+        "crossoverOpportunity": "<string: specific expansion opportunity>"
+      }
+    ]
+  },
+  "keywords": {
+    "primary": ["<string: primary search keyword>", ...],
+    "secondary": ["<string: secondary keyword>", ...],
+    "longTail": ["<string: long-tail keyword phrase>", ...]
+  }
+}
+
+Use ONLY information from the research data. Be thorough — include specific dollar figures, percentages, and data points. Output ONLY the JSON object.`;
+
+  const extractionProvider = getExtractionProvider(tier);
+  const { MarketChunkSchema } = await import('./research-schemas');
+
+  return await withExponentialBackoff(
+    () => extractionProvider.extract(prompt, MarketChunkSchema, {
+      maxTokens: 12000,
+      temperature: 0.2,
+      task: 'extraction',
+    }),
+    {
+      maxAttempts: 3,
+      initialDelayMs: 3000,
+      isRetryable: chunkExtractionRetryable,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[Extract:Market] Retry ${attempt}/3 after ${delayMs}ms:`, error instanceof Error ? error.message : 'Validation error');
+      },
+    }
+  );
+}
+
+/**
+ * Extract competitor profiles + positioning from the competitor research chunk.
+ */
+async function extractChunkCompetitors(
+  chunkText: string,
+  input: ResearchInput,
+  tier: SubscriptionTier
+): Promise<{ competitors: SynthesizedInsights['competitors']; positioning: SynthesizedInsights['positioning'] }> {
+  console.log('[Extract:Competitors] Extracting competitor profiles + positioning...');
+
+  const prompt = `You are extracting structured competitor and positioning data from a focused competitor research report.
+
+## BUSINESS IDEA
+**Title:** ${input.ideaTitle}
+**Description:** ${input.ideaDescription}
+
+## COMPETITOR RESEARCH DATA
+${chunkText}
+
+---
+
+Extract detailed competitor profiles and derive positioning strategy based on the competitive landscape. For each competitor, analyze their actual pricing, technical architecture choices, user complaints, and strategic vulnerabilities. Then derive positioning that exploits gaps in the competitive landscape.
+
+Return structured JSON matching this EXACT schema:
+
+{
+  "competitors": [
+    {
+      "name": "<string: company name>",
+      "description": "<string: what they do and their market position>",
+      "strengths": ["<string: specific strength with evidence>", ...],
+      "weaknesses": ["<string: specific weakness or limitation>", ...],
+      "positioning": "<string: how they position themselves>",
+      "website": "<string: OPTIONAL - company URL>",
+      "fundingStage": "<string: OPTIONAL - e.g. 'Series B, $45M raised'>",
+      "estimatedRevenue": "<string: OPTIONAL - e.g. '$10-50M ARR'>",
+      "targetSegment": "<string: OPTIONAL - primary customer segment>",
+      "pricingModel": "<string: OPTIONAL - e.g. 'Freemium, $49-299/mo'>",
+      "keyDifferentiator": "<string: OPTIONAL - biggest competitive advantage>",
+      "vulnerability": "<string: OPTIONAL - strategic weakness to exploit>"
+    }
+  ],
+  "positioning": {
+    "uniqueValueProposition": "<string: clear, specific value prop referencing competitive gaps>",
+    "targetAudience": "<string: detailed description of primary target audience>",
+    "differentiators": ["<string: specific differentiator vs competitors>", ...],
+    "messagingPillars": ["<string: core messaging theme>", ...],
+    "idealCustomerProfile": {
+      "persona": "<string: named persona>",
+      "demographics": "<string: company size, industry, role, budget>",
+      "psychographics": "<string: motivations, fears, buying behavior>",
+      "buyingTriggers": ["<string: event that triggers purchase intent>", ...]
+    },
+    "competitivePositioning": {
+      "category": "<string: market category>",
+      "against": "<string: 'Unlike [Competitor X], we [key difference]'>",
+      "anchorBenefit": "<string: single most important benefit>",
+      "proofPoint": "<string: evidence backing the positioning>"
+    },
+    "messagingFramework": {
+      "headline": "<string: primary one-line headline>",
+      "subheadline": "<string: supporting statement>",
+      "elevatorPitch": "<string: 2-3 sentence pitch>",
+      "objectionHandlers": [{"objection": "<string>", "response": "<string>"}, ...]
+    }
+  }
+}
+
+Use ONLY information from the research data. Be thorough with competitor details. Output ONLY the JSON object.`;
+
+  const extractionProvider = getExtractionProvider(tier);
+  const { CompetitorsChunkSchema } = await import('./research-schemas');
+
+  return await withExponentialBackoff(
+    () => extractionProvider.extract(prompt, CompetitorsChunkSchema, {
+      maxTokens: 15000,
+      temperature: 0.2,
+      task: 'extraction',
+    }),
+    {
+      maxAttempts: 3,
+      initialDelayMs: 3000,
+      isRetryable: chunkExtractionRetryable,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[Extract:Competitors] Retry ${attempt}/3 after ${delayMs}ms:`, error instanceof Error ? error.message : 'Validation error');
+      },
+    }
+  );
+}
+
+/**
+ * Extract customer pain points from the pain points research chunk.
+ */
+async function extractChunkPainPoints(
+  chunkText: string,
+  input: ResearchInput,
+  tier: SubscriptionTier
+): Promise<{ painPoints: SynthesizedInsights['painPoints'] }> {
+  console.log('[Extract:PainPoints] Extracting customer pain points...');
+
+  const prompt = `You are extracting structured customer pain point data from focused customer research.
+
+## BUSINESS IDEA
+**Title:** ${input.ideaTitle}
+**Description:** ${input.ideaDescription}
+
+## CUSTOMER PAIN POINT RESEARCH
+${chunkText}
+
+---
+
+Extract detailed customer pain points with evidence and severity analysis. Pay close attention to severity ratings, affected segments, evidence quotes, and the cost of inaction. Each pain point should be grounded in specific findings from the research.
+
+Return structured JSON matching this EXACT schema:
+
+{
+  "painPoints": [
+    {
+      "problem": "<string: specific problem statement>",
+      "severity": "high" | "medium" | "low",
+      "currentSolutions": ["<string: existing solution or workaround>", ...],
+      "gaps": ["<string: what current solutions fail to address>", ...],
+      "affectedSegment": "<string: OPTIONAL - which customer segment feels this most>",
+      "frequencyOfOccurrence": "<string: OPTIONAL - how often, e.g. 'daily', 'during onboarding'>",
+      "costOfInaction": "<string: OPTIONAL - quantified cost, e.g. '$500/month wasted'>",
+      "emotionalImpact": "<string: OPTIONAL - the frustration or fear this causes>",
+      "evidenceQuotes": ["<string: OPTIONAL - direct findings from research>", ...]
+    }
+  ]
+}
+
+Use ONLY information from the research data. Be thorough — include as many distinct pain points as the data supports. Output ONLY the JSON object.`;
+
+  const extractionProvider = getExtractionProvider(tier);
+  const { PainPointsChunkSchema } = await import('./research-schemas');
+
+  return await withExponentialBackoff(
+    () => extractionProvider.extract(prompt, PainPointsChunkSchema, {
+      maxTokens: 10000,
+      temperature: 0.2,
+      task: 'extraction',
+    }),
+    {
+      maxAttempts: 3,
+      initialDelayMs: 3000,
+      isRetryable: chunkExtractionRetryable,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[Extract:PainPoints] Retry ${attempt}/3 after ${delayMs}ms:`, error instanceof Error ? error.message : 'Validation error');
+      },
+    }
+  );
+}
+
+/**
+ * Extract why-now triggers + proof signals from the timing research chunk.
+ */
+async function extractChunkTiming(
+  chunkText: string,
+  input: ResearchInput,
+  tier: SubscriptionTier
+): Promise<{ whyNow: SynthesizedInsights['whyNow']; proofSignals: SynthesizedInsights['proofSignals'] }> {
+  console.log('[Extract:Timing] Extracting why-now triggers + proof signals...');
+
+  const prompt = `You are extracting structured timing and validation data from focused market timing research.
+
+## BUSINESS IDEA
+**Title:** ${input.ideaTitle}
+**Description:** ${input.ideaDescription}
+
+## TIMING & VALIDATION RESEARCH
+${chunkText}
+
+---
+
+Extract market timing factors, urgency analysis, demand signals, and validation opportunities. Assess why NOW is the right time to build this business and what signals indicate real demand.
+
+Return structured JSON matching this EXACT schema:
+
+{
+  "whyNow": {
+    "marketTriggers": ["<string: specific market trigger with context>", ...],
+    "timingFactors": ["<string: timing factor with evidence>", ...],
+    "urgencyScore": <number 0-100>,
+    "windowOfOpportunity": {
+      "opens": "<string: OPTIONAL - when the window opens>",
+      "closesBy": "<string: OPTIONAL - when it closes>",
+      "reasoning": "<string: OPTIONAL - why this window exists>"
+    },
+    "catalysts": [
+      {
+        "event": "<string: OPTIONAL - specific catalyst event>",
+        "impact": "high" | "medium" | "low",
+        "timeframe": "<string: when this catalyst takes effect>",
+        "howToLeverage": "<string: specific action to capitalize on this>"
+      }
+    ],
+    "urgencyNarrative": "<string: OPTIONAL - 2-3 sentence narrative of why acting now matters>"
+  },
+  "proofSignals": {
+    "demandIndicators": ["<string: specific indicator with data point>", ...],
+    "validationOpportunities": ["<string: actionable validation step>", ...],
+    "riskFactors": ["<string: specific risk with context>", ...],
+    "demandStrength": {
+      "score": <number: OPTIONAL - 0-100 overall demand confidence>,
+      "searchVolumeSignal": "<string: OPTIONAL - search volume evidence>",
+      "communitySignal": "<string: OPTIONAL - community discussion evidence>",
+      "spendingSignal": "<string: OPTIONAL - willingness to pay evidence>"
+    },
+    "validationExperiments": [
+      {
+        "experiment": "<string: OPTIONAL - specific low-cost experiment>",
+        "hypothesis": "<string: what result would validate demand>",
+        "cost": "<string: estimated cost>",
+        "timeframe": "<string: how long to run>"
+      }
+    ],
+    "riskMitigation": [
+      {
+        "risk": "<string: OPTIONAL - specific risk>",
+        "severity": "high" | "medium" | "low",
+        "mitigation": "<string: concrete mitigation strategy>"
+      }
+    ]
+  }
+}
+
+Use ONLY information from the research data. Be thorough with timing factors and demand evidence. Output ONLY the JSON object.`;
+
+  const extractionProvider = getExtractionProvider(tier);
+  const { TimingChunkSchema } = await import('./research-schemas');
+
+  return await withExponentialBackoff(
+    () => extractionProvider.extract(prompt, TimingChunkSchema, {
+      maxTokens: 12000,
+      temperature: 0.2,
+      task: 'extraction',
+    }),
+    {
+      maxAttempts: 3,
+      initialDelayMs: 3000,
+      isRetryable: chunkExtractionRetryable,
+      onRetry: (attempt, error, delayMs) => {
+        console.warn(`[Extract:Timing] Retry ${attempt}/3 after ${delayMs}ms:`, error instanceof Error ? error.message : 'Validation error');
+      },
+    }
+  );
+}
+
+/** Shared retry predicate for all chunk extraction calls */
+function chunkExtractionRetryable(error: unknown): boolean {
+  // Retry Zod validation errors (model returned bad JSON)
+  if (error && typeof error === 'object' && 'issues' in error) return true;
+  // Retry JSON parse errors
+  if (error instanceof Error && error.message.includes('Failed to parse JSON')) return true;
+  // Retry timeout errors
+  if (error instanceof Error && error.message.includes('timed out')) return true;
+  // Retry transient HTTP errors
+  if (error && typeof error === 'object') {
+    const err = error as Record<string, unknown>;
+    if (typeof err.status === 'number' && [429, 500, 502, 503, 504].includes(err.status)) return true;
+  }
+  return false;
+}
+
+// =============================================================================
+// PARALLEL EXTRACTION ORCHESTRATOR
+// =============================================================================
+
+/** Default values for failed extractions — enables graceful degradation */
+const EMPTY_MARKET_ANALYSIS: SynthesizedInsights['marketAnalysis'] = {
+  size: 'Data unavailable',
+  growth: 'Data unavailable',
+  trends: [],
+  opportunities: [],
+  threats: [],
+};
+
+const EMPTY_POSITIONING: SynthesizedInsights['positioning'] = {
+  uniqueValueProposition: '',
+  targetAudience: '',
+  differentiators: [],
+  messagingPillars: [],
+};
+
+const EMPTY_WHY_NOW: SynthesizedInsights['whyNow'] = {
+  marketTriggers: [],
+  timingFactors: [],
+  urgencyScore: 50,
+};
+
+const EMPTY_PROOF_SIGNALS: SynthesizedInsights['proofSignals'] = {
+  demandIndicators: [],
+  validationOpportunities: [],
+  riskFactors: [],
+};
+
+const EMPTY_KEYWORDS: SynthesizedInsights['keywords'] = {
+  primary: [],
+  secondary: [],
+  longTail: [],
+};
+
+/**
+ * Extract insights from deep research chunks in parallel.
+ * Each chunk extracts its relevant schema sections independently,
+ * then results are merged into a single SynthesizedInsights object.
+ *
+ * Falls back gracefully — if a chunk extraction fails, empty defaults
+ * are used for those sections so downstream functions can still run.
+ */
+export async function extractInsightsParallel(
+  chunkResults: Record<string, string>,
+  input: ResearchInput,
+  tier: SubscriptionTier = 'ENTERPRISE'
+): Promise<SynthesizedInsights> {
+  console.log('[Extract Parallel] Starting 4 parallel chunk extractions...');
+  console.log('[Extract Parallel] Available chunks:', Object.keys(chunkResults).join(', '));
+
+  const chunkNames = ['market', 'competitors', 'painpoints', 'timing'] as const;
+
+  const results = await Promise.allSettled([
+    chunkResults.market
+      ? extractChunkMarket(chunkResults.market, input, tier)
+      : Promise.reject(new Error('No market chunk data')),
+    chunkResults.competitors
+      ? extractChunkCompetitors(chunkResults.competitors, input, tier)
+      : Promise.reject(new Error('No competitors chunk data')),
+    chunkResults.painpoints
+      ? extractChunkPainPoints(chunkResults.painpoints, input, tier)
+      : Promise.reject(new Error('No painpoints chunk data')),
+    chunkResults.timing
+      ? extractChunkTiming(chunkResults.timing, input, tier)
+      : Promise.reject(new Error('No timing chunk data')),
+  ]);
+
+  // Log results
+  results.forEach((r, i) => {
+    if (r.status === 'rejected') {
+      console.error(`[Extract Parallel] FAILED: ${chunkNames[i]}:`, r.reason instanceof Error ? r.reason.message : r.reason);
+    } else {
+      console.log(`[Extract Parallel] OK: ${chunkNames[i]}`);
+    }
+  });
+
+  const succeeded = results.filter(r => r.status === 'fulfilled').length;
+  console.log(`[Extract Parallel] ${succeeded}/4 chunk extractions succeeded`);
+
+  // Merge results with fallback defaults for failed chunks
+  const insights = mergeChunkInsights(results);
+
+  console.log('[Extract Parallel] Merged insights assembled');
+  return insights;
+}
+
+/**
+ * Merge per-chunk extraction results into a single SynthesizedInsights object.
+ * Uses empty defaults for any chunks that failed extraction.
+ */
+function mergeChunkInsights(
+  results: [
+    PromiseSettledResult<{ marketAnalysis: SynthesizedInsights['marketAnalysis']; keywords: SynthesizedInsights['keywords'] }>,
+    PromiseSettledResult<{ competitors: SynthesizedInsights['competitors']; positioning: SynthesizedInsights['positioning'] }>,
+    PromiseSettledResult<{ painPoints: SynthesizedInsights['painPoints'] }>,
+    PromiseSettledResult<{ whyNow: SynthesizedInsights['whyNow']; proofSignals: SynthesizedInsights['proofSignals'] }>,
+  ]
+): SynthesizedInsights {
+  const [marketResult, competitorsResult, painPointsResult, timingResult] = results;
+
+  return {
+    marketAnalysis: marketResult.status === 'fulfilled' ? marketResult.value.marketAnalysis : EMPTY_MARKET_ANALYSIS,
+    keywords: marketResult.status === 'fulfilled' ? marketResult.value.keywords : EMPTY_KEYWORDS,
+    competitors: competitorsResult.status === 'fulfilled' ? competitorsResult.value.competitors : [],
+    positioning: competitorsResult.status === 'fulfilled' ? competitorsResult.value.positioning : EMPTY_POSITIONING,
+    painPoints: painPointsResult.status === 'fulfilled' ? painPointsResult.value.painPoints : [],
+    whyNow: timingResult.status === 'fulfilled' ? timingResult.value.whyNow : EMPTY_WHY_NOW,
+    proofSignals: timingResult.status === 'fulfilled' ? timingResult.value.proofSignals : EMPTY_PROOF_SIGNALS,
+  };
+}
+
 /**
  * Calculate research scores from deep research report.
  * Uses multi-pass validation for reliability.
@@ -2517,8 +2982,7 @@ export async function extractMarketSizing(
 
   // Prepare inputs
   const researchSnippet = deepResearch.rawReport;
-  const marketSizingChunk = (deepResearch as DeepResearchOutput & { chunkResults?: Record<string, string> })
-    ?.chunkResults?.marketsizing || '';
+  const marketSizingChunk = deepResearch.chunkResults?.marketsizing || '';
   const insightsJson = JSON.stringify(insights.marketAnalysis, null, 2);
 
   console.log('[Extract Market Sizing] Research snippet length:', researchSnippet.length);
@@ -4962,9 +5426,17 @@ export async function runResearchPipeline(
     await onProgress?.('SYNTHESIS', 58);
     console.log('[Research Pipeline] === PHASE 3: Extraction & Synthesis (GPT-5.2) ===');
 
-    // Step 1: Extract structured insights from raw deep research (moved from Phase 2)
-    console.log('[Research Pipeline] Extracting insights from deep research...');
-    insights = await extractInsights(deepResearch, input, tier);
+    // Step 1: Extract structured insights from raw deep research
+    // Use per-chunk parallel extraction when chunk results are available (4 parallel calls × ~25K each)
+    // Falls back to monolithic extraction (1 call × ~125K) for legacy data without chunks
+    if (deepResearch.chunkResults && Object.keys(deepResearch.chunkResults).length > 0) {
+      console.log('[Research Pipeline] Extracting insights via parallel per-chunk extraction...');
+      console.log(`[Research Pipeline] Available chunks: ${Object.keys(deepResearch.chunkResults).join(', ')}`);
+      insights = await extractInsightsParallel(deepResearch.chunkResults, input, tier);
+    } else {
+      console.log('[Research Pipeline] Extracting insights from deep research (monolithic fallback)...');
+      insights = await extractInsights(deepResearch, input, tier);
+    }
     await onProgress?.('SYNTHESIS', 65, { insights });
     console.log('[Research Pipeline] Insights extracted successfully');
 
