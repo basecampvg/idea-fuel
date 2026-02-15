@@ -187,25 +187,13 @@ export class AnthropicProvider implements AIProvider {
   // ============================================================================
 
   private selectModel(options?: AIRequestOptions): string {
-    // Task-based model selection: Opus for reasoning-heavy and creative tasks
-    const opusTasks: AIRequestOptions['task'][] = ['generation', 'business-plan', 'swot'];
+    // Opus opt-in: only reasoning-heavy creative tasks use Opus
+    const opusTasks: AIRequestOptions['task'][] = ['generation', 'business-plan'];
     if (options?.task && opusTasks.includes(options.task)) {
       return this.OPUS_MODEL;
     }
 
-    // Sonnet tasks — always use Sonnet regardless of token count
-    // Extraction is Sonnet's strength: fast structured JSON output, even at high token counts
-    const sonnetTasks: AIRequestOptions['task'][] = ['scoring', 'extraction'];
-    if (options?.task && sonnetTasks.includes(options.task)) {
-      return this.SONNET_MODEL;
-    }
-
-    // Fallback: large output requests use Opus
-    if (options?.maxTokens && options.maxTokens > 20000) {
-      return this.OPUS_MODEL;
-    }
-
-    // Default to Sonnet (faster, cheaper, excellent for extraction)
+    // Everything else defaults to Sonnet (faster, cheaper, excellent for extraction)
     return this.SONNET_MODEL;
   }
 

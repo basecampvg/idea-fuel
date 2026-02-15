@@ -2616,7 +2616,7 @@ export async function extractMarketSizing(
  * to produce a comprehensive Strengths/Weaknesses/Opportunities/Threats analysis
  * for the specific business idea — not just the market.
  *
- * Uses Opus 4.6 for cross-chunk reasoning quality.
+ * Uses Sonnet for fast structured extraction with enriched prompt.
  */
 export type SWOTAnalysis = {
   strengths: string[];
@@ -2633,7 +2633,7 @@ export async function extractSWOT(
 ): Promise<SWOTAnalysis> {
   const { ideaTitle, ideaDescription } = input;
 
-  const prompt = `You are a strategic business analyst. Based on the deep research below, create a SWOT analysis for this specific business idea:
+  const prompt = `You are a strategic business analyst performing a SWOT analysis. Think carefully about the business idea and research data before producing your analysis.
 
 ## Business Idea
 **${ideaTitle}**
@@ -2650,20 +2650,35 @@ ${deepResearch.rawReport.substring(0, 15000)}
 - Differentiators: ${insights.positioning.differentiators.join(', ')}
 - Why-now factors: ${insights.whyNow.marketTriggers.join(', ')}
 
-## Instructions
-Analyze the STRENGTHS, WEAKNESSES, OPPORTUNITIES, and THREATS for this specific business idea:
+## SWOT Framework
 
-- **Strengths**: Internal advantages this idea has (unique value prop, market fit, timing, technical feasibility, founder advantages)
-- **Weaknesses**: Internal disadvantages or gaps (resource constraints, technical complexity, market education needed, dependency risks)
-- **Opportunities**: External factors that could be leveraged (market trends, regulatory changes, competitor weaknesses, emerging technologies, underserved segments)
-- **Threats**: External factors that could hurt the business (strong incumbents, market saturation, regulatory risk, economic headwinds, technology shifts)
+Map findings from the research into four quadrants. Each item MUST reference specific data from the research above (competitor names, market figures, trend data, or user pain points).
 
-Each item should be:
-- Specific and data-backed (reference market data, competitor names, or trends from the research)
-- Actionable (not generic platitudes like "strong market demand")
-- 1-2 sentences max
+**Strengths** (Internal advantages):
+Unique value proposition, market fit evidence, timing advantages, technical feasibility, cost structure advantages, founder/team strengths.
+- GOOD example: "15-minute setup vs. Competitor X's 2-week onboarding creates immediate switching incentive for SMBs"
+- BAD example: "Strong market demand" (too generic, no evidence)
 
-Return 4-6 items per quadrant as JSON matching the schema exactly.`;
+**Weaknesses** (Internal disadvantages):
+Resource constraints, technical complexity, market education burden, dependency risks, go-to-market gaps.
+- GOOD example: "Requires integration with 3 legacy EHR systems (Epic, Cerner, Meditech) that average 6-month certification cycles"
+- BAD example: "Limited resources" (vague, applies to any startup)
+
+**Opportunities** (External factors to leverage):
+Market trends, regulatory tailwinds, competitor gaps, emerging tech, underserved segments, distribution channels.
+- GOOD example: "Competitor Y's recent 40% price increase has driven 2,300+ complaints on G2, creating a switching window"
+- BAD example: "Growing market" (generic, no specifics)
+
+**Threats** (External risks):
+Strong incumbents, market saturation, regulatory headwinds, economic conditions, technology disruption, platform risk.
+- GOOD example: "Google's March 2026 announcement of a competing API could commoditize the core feature within 12 months"
+- BAD example: "Competition" (obvious, no analysis)
+
+## Output Requirements
+- Return 4-6 items per quadrant
+- Each item: 1-2 sentences, citing specific data points from the research
+- Do NOT include generic platitudes — every item must be grounded in evidence from the research data above
+- Return valid JSON matching the schema exactly`;
 
   const extractionProvider = getExtractionProvider(tier);
   console.log('[Extract SWOT] Using provider:', extractionProvider.name);
@@ -2673,7 +2688,7 @@ Return 4-6 items per quadrant as JSON matching the schema exactly.`;
   const swot = await extractionProvider.extract(prompt, SWOTSchema, {
     maxTokens: 8000,
     temperature: 0.2,
-    task: 'swot',
+    task: 'extraction',
   });
 
   console.log(`[Extract SWOT] Complete: ${swot.strengths.length}S / ${swot.weaknesses.length}W / ${swot.opportunities.length}O / ${swot.threats.length}T`);

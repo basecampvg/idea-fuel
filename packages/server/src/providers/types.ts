@@ -96,7 +96,7 @@ export interface AIRequestOptions {
   responseFormat?: 'text' | 'json';
   background?: boolean; // Run in background with polling
   timeout?: number; // Request timeout in milliseconds
-  task?: 'extraction' | 'scoring' | 'generation' | 'business-plan' | 'swot'; // Hints model selection
+  task?: 'extraction' | 'scoring' | 'generation' | 'business-plan'; // Hints model selection
 }
 
 export interface AIResponse {
