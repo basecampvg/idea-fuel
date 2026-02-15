@@ -67,6 +67,7 @@ const phaseSubTasks: Record<string, string[]> = {
     'Researching competitors',
     'Gathering customer pain points',
     'Evaluating timing factors',
+    'Sizing market opportunity',
   ],
   SYNTHESIS: [
     'Extracting insights from research',
@@ -83,13 +84,15 @@ const phaseSubTasks: Record<string, string[]> = {
 };
 
 // Get active subtask based on real backend phase + progress
+// DEEP_RESEARCH: 5 parallel chunks, each adds ~6% progress (total 0-30%)
 function getActiveSubTask(phase: string, progress: number): number {
   switch (phase) {
     case 'DEEP_RESEARCH':
-      if (progress < 12) return 0;
-      if (progress < 19) return 1;
-      if (progress < 25) return 2;
-      return 3;
+      if (progress < 8) return 0;
+      if (progress < 14) return 1;
+      if (progress < 20) return 2;
+      if (progress < 26) return 3;
+      return 4;
     case 'SYNTHESIS':
       if (progress < 63) return 0;
       if (progress < 70) return 1;
@@ -133,7 +136,7 @@ function formatTimeAgo(date: Date | null): string {
 }
 
 function estimateTimeRemaining(progress: number): string {
-  const totalMinutes = 25;
+  const totalMinutes = 18; // ~10-15 min deep research (parallel) + ~5 min remaining phases
   const remainingMinutes = Math.round((1 - progress / 100) * totalMinutes);
   if (remainingMinutes <= 1) return '~1 minute';
   return `~${remainingMinutes} minutes`;
