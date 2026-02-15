@@ -911,6 +911,34 @@ function combineChunkResults(results: Record<string, string>): string {
 }
 
 /**
+ * Reconstruct individual chunk results from a combined report.
+ * Used when resuming research that was stored before chunkResults were persisted.
+ */
+function reconstructChunkResults(rawReport: string): Record<string, string> {
+  const chunks: Record<string, string> = {};
+  const sectionMap: [string, string][] = [
+    ['## Market Analysis', 'market'],
+    ['## Competitor Analysis', 'competitors'],
+    ['## Customer Pain Points', 'painpoints'],
+    ['## Timing & Validation', 'timing'],
+    ['## Market Sizing', 'marketsizing'],
+  ];
+
+  for (const [header, key] of sectionMap) {
+    const start = rawReport.indexOf(header);
+    if (start === -1) continue;
+
+    const contentStart = start + header.length;
+    // Find the next section separator or end of report
+    const nextSep = rawReport.indexOf('\n\n---\n\n', contentStart);
+    const content = (nextSep === -1 ? rawReport.slice(contentStart) : rawReport.slice(contentStart, nextSep)).trim();
+    if (content) chunks[key] = content;
+  }
+
+  return chunks;
+}
+
+/**
  * Sleep helper for delays between chunks
  */
 function sleep(ms: number): Promise<void> {
@@ -5350,6 +5378,11 @@ export async function runResearchPipeline(
   if (hasPhase1 && existingResearch?.rawDeepResearch) {
     console.log('[Research Pipeline] === PHASE 1: SKIPPED (resuming from existing data) ===');
     deepResearch = existingResearch.rawDeepResearch;
+    // Reconstruct chunkResults for resumed data that predates parallel extraction
+    if (!deepResearch.chunkResults && deepResearch.rawReport) {
+      deepResearch.chunkResults = reconstructChunkResults(deepResearch.rawReport);
+      console.log(`[Research Pipeline] Reconstructed ${Object.keys(deepResearch.chunkResults).length} chunks from combined report`);
+    }
     await onProgress?.('DEEP_RESEARCH', 30);
   } else {
     await onProgress?.('DEEP_RESEARCH', 5);
