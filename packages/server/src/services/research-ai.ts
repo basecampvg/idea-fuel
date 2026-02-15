@@ -1769,6 +1769,11 @@ Use ONLY information from the research report. Be thorough — include specific 
           console.warn('[Extract Insights] JSON parse failed, will retry...');
           return true;
         }
+        // Retry timeout errors (APIConnectionTimeoutError from Anthropic SDK)
+        if (error instanceof Error && error.message.includes('timed out')) {
+          console.warn('[Extract Insights] Request timed out, will retry...');
+          return true;
+        }
         // Also retry standard transient errors (502, 503, etc.)
         if (error && typeof error === 'object') {
           const err = error as Record<string, unknown>;

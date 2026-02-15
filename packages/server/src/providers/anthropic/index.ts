@@ -194,7 +194,8 @@ export class AnthropicProvider implements AIProvider {
     }
 
     // Sonnet tasks — always use Sonnet regardless of token count
-    const sonnetTasks: AIRequestOptions['task'][] = ['scoring'];
+    // Extraction is Sonnet's strength: fast structured JSON output, even at high token counts
+    const sonnetTasks: AIRequestOptions['task'][] = ['scoring', 'extraction'];
     if (options?.task && sonnetTasks.includes(options.task)) {
       return this.SONNET_MODEL;
     }
