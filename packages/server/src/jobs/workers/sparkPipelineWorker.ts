@@ -88,6 +88,8 @@ export function createSparkPipelineWorker() {
       concurrency: 2,          // Spark is lighter, can run 2 concurrent
       lockDuration: 120000,     // 2 min lock (Spark is faster)
       lockRenewTime: 60000,     // Renew every 1 min
+      stalledInterval: 1800000, // Check stalled every 30 min (Spark runs 5-15 min)
+      drainDelay: 60000,        // Wait 60s between polls when idle (saves Upstash requests)
     }
   );
 

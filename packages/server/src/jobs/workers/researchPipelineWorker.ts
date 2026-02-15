@@ -264,6 +264,7 @@ export function createResearchPipelineWorker() {
       lockDuration: 300000,     // 5 min lock duration (long-running jobs)
       lockRenewTime: 150000,    // Renew lock every 2.5 min
       stalledInterval: 600000,  // Check for stalled jobs every 10 min
+      drainDelay: 60000,        // Wait 60s between polls when idle (saves Upstash requests)
     }
   );
 
@@ -305,6 +306,8 @@ export function createResearchCancelWorker() {
     {
       connection: createRedisConnection(),
       concurrency: 5,
+      drainDelay: 60000,           // Wait 60s between polls when idle (saves Upstash requests)
+      stalledInterval: 3600000,    // Check stalled every 1h (cancel jobs are instant)
     }
   );
 

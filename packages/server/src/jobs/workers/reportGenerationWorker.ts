@@ -94,6 +94,8 @@ export function createReportGenerationWorker() {
         max: 10, // Max 10 jobs per minute to avoid rate limits
         duration: 60000,
       },
+      stalledInterval: 1800000, // Check stalled every 30 min
+      drainDelay: 60000,        // Wait 60s between polls when idle (saves Upstash requests)
     }
   );
 
