@@ -1,6 +1,7 @@
 'use client';
 
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Clock, Quote, ArrowRight } from 'lucide-react';
+import { CollapsibleSection } from './collapsible-section';
 
 export interface UserStoryData {
   scenario: string;
@@ -8,6 +9,17 @@ export interface UserStoryData {
   problem: string;
   solution: string;
   outcome: string;
+  dayInTheLife?: {
+    before: string;
+    after: string;
+    timeSaved: string;
+  };
+  emotionalArc?: {
+    frustration: string;
+    discovery: string;
+    relief: string;
+  };
+  quote?: string;
 }
 
 interface UserStoryProps {
@@ -20,43 +32,100 @@ export function UserStory({ userStory, title = 'The Story', subtitle }: UserStor
   if (!userStory) return null;
 
   return (
-    <div className="rounded-2xl bg-background border border-border p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-          <BookOpen className="w-5 h-5 text-accent" />
-        </div>
-        <div>
-          <h2 className="text-sm font-semibold text-foreground">{title}</h2>
-          {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
-        </div>
-      </div>
-
-      <div className="space-y-4">
+    <CollapsibleSection
+      icon={<BookOpen className="w-5 h-5 text-primary" />}
+      iconBgColor="hsla(200, 60%, 50%, 0.15)"
+      title={title}
+      subtitle={subtitle}
+    >
+      <div className="space-y-5">
         {/* Scenario - Main narrative */}
-        <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+        <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
           {userStory.scenario}
         </p>
 
-        {/* Key elements in a subtle grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border">
-          <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">The User</p>
+        {/* Key elements grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-3 rounded-lg bg-card border border-border">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">The User</p>
             <p className="text-sm text-foreground">{userStory.protagonist}</p>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Their Problem</p>
+          <div className="p-3 rounded-lg bg-card border border-border">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Their Problem</p>
             <p className="text-sm text-muted-foreground">{userStory.problem}</p>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">The Solution</p>
+          <div className="p-3 rounded-lg bg-card border border-border">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">The Solution</p>
             <p className="text-sm text-muted-foreground">{userStory.solution}</p>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">The Outcome</p>
+          <div className="p-3 rounded-lg bg-card border border-border">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">The Outcome</p>
             <p className="text-sm text-primary">{userStory.outcome}</p>
           </div>
         </div>
+
+        {/* Day in the Life - Before/After */}
+        {userStory.dayInTheLife && (
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="w-4 h-4 text-primary" />
+              <p className="text-sm font-medium text-foreground">A Day in the Life</p>
+              {userStory.dayInTheLife.timeSaved && (
+                <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 font-medium">
+                  Saves {userStory.dayInTheLife.timeSaved}
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg bg-red-500/5 border border-red-500/10">
+                <p className="text-[10px] text-red-400 uppercase tracking-wider mb-1">Before</p>
+                <p className="text-xs text-muted-foreground">{userStory.dayInTheLife.before}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-green-500/5 border border-green-500/10">
+                <p className="text-[10px] text-green-400 uppercase tracking-wider mb-1">After</p>
+                <p className="text-xs text-muted-foreground">{userStory.dayInTheLife.after}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Emotional Arc */}
+        {userStory.emotionalArc && (
+          <div>
+            <p className="text-sm font-medium text-foreground mb-3">Emotional Journey</p>
+            <div className="flex flex-col sm:flex-row items-stretch gap-2">
+              <div className="flex-1 p-3 rounded-lg bg-card border border-border">
+                <p className="text-[10px] text-red-400 uppercase tracking-wider mb-1">Frustration</p>
+                <p className="text-xs text-muted-foreground">{userStory.emotionalArc.frustration}</p>
+              </div>
+              <div className="hidden sm:flex items-center shrink-0">
+                <ArrowRight className="w-3 h-3 text-muted-foreground" />
+              </div>
+              <div className="flex-1 p-3 rounded-lg bg-card border border-border">
+                <p className="text-[10px] text-amber-400 uppercase tracking-wider mb-1">Discovery</p>
+                <p className="text-xs text-muted-foreground">{userStory.emotionalArc.discovery}</p>
+              </div>
+              <div className="hidden sm:flex items-center shrink-0">
+                <ArrowRight className="w-3 h-3 text-muted-foreground" />
+              </div>
+              <div className="flex-1 p-3 rounded-lg bg-card border border-border">
+                <p className="text-[10px] text-green-400 uppercase tracking-wider mb-1">Relief</p>
+                <p className="text-xs text-muted-foreground">{userStory.emotionalArc.relief}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Testimonial Quote */}
+        {userStory.quote && (
+          <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
+            <div className="flex items-start gap-2">
+              <Quote className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+              <p className="text-sm text-foreground/80 italic leading-relaxed">{userStory.quote}</p>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </CollapsibleSection>
   );
 }

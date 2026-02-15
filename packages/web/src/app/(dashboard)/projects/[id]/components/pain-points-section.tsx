@@ -1,6 +1,7 @@
 'use client';
 
-import { AlertCircle } from 'lucide-react';
+import { useState } from 'react';
+import { AlertCircle, ChevronDown, ChevronUp, Users, Clock, DollarSign } from 'lucide-react';
 import { CollapsibleSection } from './collapsible-section';
 
 export interface PainPoint {
@@ -8,6 +9,11 @@ export interface PainPoint {
   severity: 'high' | 'medium' | 'low';
   currentSolutions: string[];
   gaps: string[];
+  affectedSegment?: string;
+  frequencyOfOccurrence?: string;
+  costOfInaction?: string;
+  emotionalImpact?: string;
+  evidenceQuotes?: string[];
 }
 
 interface PainPointsSectionProps {
@@ -31,12 +37,47 @@ function SeverityBadge({ severity }: { severity: string }) {
 }
 
 function PainPointCard({ painPoint }: { painPoint: PainPoint }) {
+  const [showEvidence, setShowEvidence] = useState(false);
+  const hasEvidence = painPoint.evidenceQuotes && painPoint.evidenceQuotes.length > 0;
+  const hasEnrichedMeta = painPoint.affectedSegment || painPoint.frequencyOfOccurrence || painPoint.costOfInaction;
+
   return (
     <div className="p-4 rounded-xl bg-card border border-border">
       <div className="flex items-start justify-between gap-3 mb-3">
         <p className="text-sm text-foreground font-medium">{painPoint.problem}</p>
         <SeverityBadge severity={painPoint.severity} />
       </div>
+
+      {/* Enriched metadata row */}
+      {hasEnrichedMeta && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          {painPoint.affectedSegment && (
+            <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              <Users className="w-2.5 h-2.5" />
+              {painPoint.affectedSegment}
+            </span>
+          )}
+          {painPoint.frequencyOfOccurrence && (
+            <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <Clock className="w-2.5 h-2.5" />
+              {painPoint.frequencyOfOccurrence}
+            </span>
+          )}
+          {painPoint.costOfInaction && (
+            <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">
+              <DollarSign className="w-2.5 h-2.5" />
+              {painPoint.costOfInaction}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Emotional impact */}
+      {painPoint.emotionalImpact && (
+        <p className="text-xs text-muted-foreground/80 italic mb-3">
+          &ldquo;{painPoint.emotionalImpact}&rdquo;
+        </p>
+      )}
 
       {painPoint.currentSolutions.length > 0 && (
         <div className="mb-3">
@@ -52,7 +93,7 @@ function PainPointCard({ painPoint }: { painPoint: PainPoint }) {
       )}
 
       {painPoint.gaps.length > 0 && (
-        <div>
+        <div className="mb-2">
           <p className="text-xs text-muted-foreground mb-1">Solution Gaps</p>
           <ul className="space-y-1">
             {painPoint.gaps.map((gap, i) => (
@@ -62,6 +103,28 @@ function PainPointCard({ painPoint }: { painPoint: PainPoint }) {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {/* Evidence quotes (expandable) */}
+      {hasEvidence && (
+        <div className="mt-2 pt-2 border-t border-border/50">
+          <button
+            onClick={() => setShowEvidence(!showEvidence)}
+            className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {showEvidence ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            {painPoint.evidenceQuotes!.length} evidence point{painPoint.evidenceQuotes!.length !== 1 ? 's' : ''}
+          </button>
+          {showEvidence && (
+            <ul className="mt-2 space-y-1.5">
+              {painPoint.evidenceQuotes!.map((quote, i) => (
+                <li key={i} className="text-xs text-muted-foreground/70 pl-3 border-l-2 border-accent/20">
+                  {quote}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
     </div>

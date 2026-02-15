@@ -280,6 +280,28 @@ export interface MarketAnalysis {
   growthRate: number;
   segments: MarketSegment[];
   trends: string[];
+  // Enriched fields (from extractInsights pipeline)
+  size?: string;
+  growth?: string;
+  opportunities?: string[];
+  threats?: string[];
+  marketDynamics?: {
+    stage: 'emerging' | 'growing' | 'mature' | 'declining';
+    consolidationLevel: string;
+    entryBarriers: string[];
+    regulatoryEnvironment: string;
+  };
+  keyMetrics?: {
+    cagr: string;
+    avgDealSize: string;
+    customerAcquisitionCost: string;
+    lifetimeValue: string;
+  };
+  adjacentMarkets?: Array<{
+    name: string;
+    relevance: string;
+    crossoverOpportunity: string;
+  }>;
 }
 
 export interface MarketSegment {
@@ -296,6 +318,15 @@ export interface CompetitorData {
   weaknesses: string[];
   marketShare: number | null;
   pricing: string | null;
+  // Enriched fields (from extractInsights pipeline)
+  positioning?: string;
+  website?: string;
+  fundingStage?: string;
+  estimatedRevenue?: string;
+  targetSegment?: string;
+  pricingModel?: string;
+  keyDifferentiator?: string;
+  vulnerability?: string;
 }
 
 export interface PainPoint {
@@ -303,24 +334,67 @@ export interface PainPoint {
   description: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
   affectedSegments: string[];
+  // Enriched fields (from extractInsights pipeline)
+  problem?: string;
+  currentSolutions?: string[];
+  gaps?: string[];
+  affectedSegment?: string;
+  frequencyOfOccurrence?: string;
+  costOfInaction?: string;
+  emotionalImpact?: string;
+  evidenceQuotes?: string[];
 }
 
 export interface PositioningData {
   valueProposition: string;
+  uniqueValueProposition?: string;
   targetAudience: string;
   differentiators: string[];
   competitiveAdvantage: string;
+  messagingPillars?: string[];
+  idealCustomerProfile?: {
+    persona: string;
+    demographics: string;
+    psychographics: string;
+    buyingTriggers: string[];
+  };
+  competitivePositioning?: {
+    category: string;
+    against: string;
+    anchorBenefit: string;
+    proofPoint: string;
+  };
+  messagingFramework?: {
+    headline: string;
+    subheadline: string;
+    elevatorPitch: string;
+    objectionHandlers: Array<{ objection: string; response: string }>;
+  };
 }
 
 // Why Now / Market Timing data
 export interface WhyNowData {
-  marketTriggers: MarketTrigger[];
+  marketTriggers: MarketTrigger[] | string[];
   technologyShifts: string[];
   regulatoryChanges: string[];
   consumerBehaviorTrends: string[];
   competitiveLandscapeChanges: string[];
-  urgencyScore: number; // 1-10 rating
+  urgencyScore: number;
   summary: string;
+  // Enriched fields (from extractInsights pipeline)
+  timingFactors?: string[];
+  windowOfOpportunity?: {
+    opens: string;
+    closesBy: string;
+    reasoning: string;
+  };
+  catalysts?: Array<{
+    event: string;
+    impact: 'high' | 'medium' | 'low';
+    timeframe: string;
+    howToLeverage: string;
+  }>;
+  urgencyNarrative?: string;
 }
 
 export interface MarketTrigger {
@@ -339,6 +413,27 @@ export interface ProofSignalsData {
   marketValidation: string[];
   demandScore: number; // 1-10 rating
   summary: string;
+  // Enriched fields (from extractInsights pipeline)
+  demandIndicators?: string[];
+  validationOpportunities?: string[];
+  riskFactors?: string[];
+  demandStrength?: {
+    score: number;
+    searchVolumeSignal: string;
+    communitySignal: string;
+    spendingSignal: string;
+  };
+  validationExperiments?: Array<{
+    experiment: string;
+    hypothesis: string;
+    cost: string;
+    timeframe: string;
+  }>;
+  riskMitigation?: Array<{
+    risk: string;
+    severity: 'high' | 'medium' | 'low';
+    mitigation: string;
+  }>;
 }
 
 export interface SocialMention {

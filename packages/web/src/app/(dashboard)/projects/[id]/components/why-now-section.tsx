@@ -1,12 +1,24 @@
 'use client';
 
-import { Zap, Clock, TrendingUp } from 'lucide-react';
+import { Zap, Clock, TrendingUp, Timer, ArrowRight } from 'lucide-react';
 import { CollapsibleSection } from './collapsible-section';
 
 export interface WhyNowData {
   marketTriggers: string[];
   timingFactors: string[];
   urgencyScore: number;
+  windowOfOpportunity?: {
+    opens: string;
+    closesBy: string;
+    reasoning: string;
+  };
+  catalysts?: Array<{
+    event: string;
+    impact: 'high' | 'medium' | 'low';
+    timeframe: string;
+    howToLeverage: string;
+  }>;
+  urgencyNarrative?: string;
 }
 
 interface WhyNowSectionProps {
@@ -14,6 +26,12 @@ interface WhyNowSectionProps {
   title?: string;
   subtitle?: string;
 }
+
+const impactColors: Record<string, string> = {
+  high: 'bg-red-500/10 text-red-400 border-red-500/20',
+  medium: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  low: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+};
 
 function UrgencyMeter({ score }: { score: number }) {
   const getColor = () => {
@@ -62,6 +80,63 @@ export function WhyNowSection({ whyNow, title = 'Why Now?', subtitle }: WhyNowSe
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Market Urgency</p>
           <UrgencyMeter score={whyNow.urgencyScore} />
         </div>
+
+        {/* Urgency Narrative */}
+        {whyNow.urgencyNarrative && (
+          <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+            <p className="text-xs text-foreground/80 italic">{whyNow.urgencyNarrative}</p>
+          </div>
+        )}
+
+        {/* Window of Opportunity */}
+        {whyNow.windowOfOpportunity && (
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Timer className="w-4 h-4 text-accent" />
+              <p className="text-sm font-medium text-foreground">Window of Opportunity</p>
+            </div>
+            <div className="p-4 rounded-xl bg-card border border-border">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase">Opens</p>
+                  <p className="text-xs font-medium text-green-400">{whyNow.windowOfOpportunity.opens}</p>
+                </div>
+                <ArrowRight className="w-3 h-3 text-muted-foreground shrink-0" />
+                <div className="text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase">Closes By</p>
+                  <p className="text-xs font-medium text-red-400">{whyNow.windowOfOpportunity.closesBy}</p>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">{whyNow.windowOfOpportunity.reasoning}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Catalysts */}
+        {whyNow.catalysts && whyNow.catalysts.length > 0 && (
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Zap className="w-4 h-4 text-primary" />
+              <p className="text-sm font-medium text-foreground">Catalysts</p>
+            </div>
+            <div className="space-y-2">
+              {whyNow.catalysts.map((catalyst, i) => (
+                <div key={i} className="p-3 rounded-lg bg-card border border-border">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <p className="text-xs font-medium text-foreground">{catalyst.event}</p>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded border ${impactColors[catalyst.impact] || ''}`}>
+                        {catalyst.impact}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">{catalyst.timeframe}</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{catalyst.howToLeverage}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Market Triggers */}
         {whyNow.marketTriggers.length > 0 && (

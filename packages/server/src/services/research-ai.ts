@@ -63,6 +63,23 @@ export interface SynthesizedInsights {
     trends: string[];
     opportunities: string[];
     threats: string[];
+    marketDynamics?: {
+      stage: 'emerging' | 'growing' | 'mature' | 'declining';
+      consolidationLevel: string;
+      entryBarriers: string[];
+      regulatoryEnvironment: string;
+    };
+    keyMetrics?: {
+      cagr: string;
+      avgDealSize: string;
+      customerAcquisitionCost: string;
+      lifetimeValue: string;
+    };
+    adjacentMarkets?: Array<{
+      name: string;
+      relevance: string;
+      crossoverOpportunity: string;
+    }>;
   };
   competitors: Array<{
     name: string;
@@ -70,28 +87,87 @@ export interface SynthesizedInsights {
     strengths: string[];
     weaknesses: string[];
     positioning: string;
+    website?: string;
+    fundingStage?: string;
+    estimatedRevenue?: string;
+    targetSegment?: string;
+    pricingModel?: string;
+    keyDifferentiator?: string;
+    vulnerability?: string;
   }>;
   painPoints: Array<{
     problem: string;
     severity: 'high' | 'medium' | 'low';
     currentSolutions: string[];
     gaps: string[];
+    affectedSegment?: string;
+    frequencyOfOccurrence?: string;
+    costOfInaction?: string;
+    emotionalImpact?: string;
+    evidenceQuotes?: string[];
   }>;
   positioning: {
     uniqueValueProposition: string;
     targetAudience: string;
     differentiators: string[];
     messagingPillars: string[];
+    idealCustomerProfile?: {
+      persona: string;
+      demographics: string;
+      psychographics: string;
+      buyingTriggers: string[];
+    };
+    competitivePositioning?: {
+      category: string;
+      against: string;
+      anchorBenefit: string;
+      proofPoint: string;
+    };
+    messagingFramework?: {
+      headline: string;
+      subheadline: string;
+      elevatorPitch: string;
+      objectionHandlers: Array<{ objection: string; response: string }>;
+    };
   };
   whyNow: {
     marketTriggers: string[];
     timingFactors: string[];
     urgencyScore: number;
+    windowOfOpportunity?: {
+      opens: string;
+      closesBy: string;
+      reasoning: string;
+    };
+    catalysts?: Array<{
+      event: string;
+      impact: 'high' | 'medium' | 'low';
+      timeframe: string;
+      howToLeverage: string;
+    }>;
+    urgencyNarrative?: string;
   };
   proofSignals: {
     demandIndicators: string[];
     validationOpportunities: string[];
     riskFactors: string[];
+    demandStrength?: {
+      score: number;
+      searchVolumeSignal: string;
+      communitySignal: string;
+      spendingSignal: string;
+    };
+    validationExperiments?: Array<{
+      experiment: string;
+      hypothesis: string;
+      cost: string;
+      timeframe: string;
+    }>;
+    riskMitigation?: Array<{
+      risk: string;
+      severity: 'high' | 'medium' | 'low';
+      mitigation: string;
+    }>;
   };
   keywords: {
     primary: string[];
@@ -172,6 +248,17 @@ export interface UserStory {
   problem: string;
   solution: string;
   outcome: string;
+  dayInTheLife?: {
+    before: string;
+    after: string;
+    timeSaved: string;
+  };
+  emotionalArc?: {
+    frustration: string;
+    discovery: string;
+    relief: string;
+  };
+  quote?: string;
 }
 
 // Keyword Trends - for the chart display
@@ -1516,48 +1603,132 @@ ${deepResearch.citations.map((c, i) => `[${i + 1}] ${c.title}: ${c.url}`).join('
 
 ---
 
-Extract the key insights and return structured JSON matching this EXACT schema. Every field is required:
+Extract comprehensive, detailed insights from the research report. Preserve specific data points, statistics, dollar figures, and citations. Return structured JSON matching this EXACT schema. Every top-level field is required; fields marked OPTIONAL may be omitted only if the research lacks sufficient data:
 
 {
   "marketAnalysis": {
-    "size": "<string: market size description>",
-    "growth": "<string: growth rate description>",
-    "trends": ["<string>", ...],
-    "opportunities": ["<string>", ...],
-    "threats": ["<string>", ...]
+    "size": "<string: detailed market size with dollar figures, segments, and geographic scope>",
+    "growth": "<string: growth rate with CAGR, projections, and drivers>",
+    "trends": ["<string: describe each trend in 1-2 sentences with specific data>", ...],
+    "opportunities": ["<string: describe each opportunity in 1-2 sentences with reasoning>", ...],
+    "threats": ["<string: describe each threat in 1-2 sentences with specific examples>", ...],
+    "marketDynamics": {
+      "stage": "emerging" | "growing" | "mature" | "declining",
+      "consolidationLevel": "<string: fragmented/consolidating/concentrated — describe the competitive density>",
+      "entryBarriers": ["<string: specific barrier with context>", ...],
+      "regulatoryEnvironment": "<string: key regulations, compliance requirements, or policy trends affecting the market>"
+    },
+    "keyMetrics": {
+      "cagr": "<string: compound annual growth rate with timeframe, e.g. '12.5% CAGR 2024-2030'>",
+      "avgDealSize": "<string: average contract/deal value, e.g. '$15,000/year'>",
+      "customerAcquisitionCost": "<string: industry average CAC estimate>",
+      "lifetimeValue": "<string: industry average customer LTV estimate>"
+    },
+    "adjacentMarkets": [
+      {
+        "name": "<string: adjacent market name>",
+        "relevance": "<string: why this market is relevant>",
+        "crossoverOpportunity": "<string: specific opportunity to expand into this market>"
+      }
+    ]
   },
   "competitors": [
     {
-      "name": "<string>",
-      "description": "<string>",
-      "strengths": ["<string>", ...],
-      "weaknesses": ["<string>", ...],
-      "positioning": "<string>"
+      "name": "<string: company name>",
+      "description": "<string: what they do and their market position>",
+      "strengths": ["<string: specific strength with evidence>", ...],
+      "weaknesses": ["<string: specific weakness or limitation>", ...],
+      "positioning": "<string: how they position themselves in the market>",
+      "website": "<string: OPTIONAL - company URL>",
+      "fundingStage": "<string: OPTIONAL - e.g. 'Series B, $45M raised' or 'Bootstrapped'>",
+      "estimatedRevenue": "<string: OPTIONAL - e.g. '$10-50M ARR'>",
+      "targetSegment": "<string: OPTIONAL - primary customer segment>",
+      "pricingModel": "<string: OPTIONAL - e.g. 'Freemium, $49-299/mo'>",
+      "keyDifferentiator": "<string: OPTIONAL - their single biggest competitive advantage>",
+      "vulnerability": "<string: OPTIONAL - strategic weakness that can be exploited>"
     }
   ],
   "painPoints": [
     {
-      "problem": "<string>",
+      "problem": "<string: specific problem statement>",
       "severity": "high" | "medium" | "low",
-      "currentSolutions": ["<string>", ...],
-      "gaps": ["<string>", ...]
+      "currentSolutions": ["<string: existing solution or workaround>", ...],
+      "gaps": ["<string: what current solutions fail to address>", ...],
+      "affectedSegment": "<string: OPTIONAL - which customer segment feels this most>",
+      "frequencyOfOccurrence": "<string: OPTIONAL - how often this occurs, e.g. 'daily', 'during onboarding'>",
+      "costOfInaction": "<string: OPTIONAL - quantified cost, e.g. '$500/month wasted' or '10 hours/week lost'>",
+      "emotionalImpact": "<string: OPTIONAL - the frustration or fear this causes>",
+      "evidenceQuotes": ["<string: OPTIONAL - direct findings or data points from research>", ...]
     }
   ],
   "positioning": {
-    "uniqueValueProposition": "<string>",
-    "targetAudience": "<string>",
-    "differentiators": ["<string>", ...],
-    "messagingPillars": ["<string>", ...]
+    "uniqueValueProposition": "<string: clear, specific value prop referencing the market gap>",
+    "targetAudience": "<string: detailed description of primary target audience>",
+    "differentiators": ["<string: specific differentiator with reasoning>", ...],
+    "messagingPillars": ["<string: core messaging theme>", ...],
+    "idealCustomerProfile": {
+      "persona": "<string: named persona e.g. 'Sarah, 35, Head of Marketing at a 50-person SaaS company'>",
+      "demographics": "<string: company size, industry, role, budget range>",
+      "psychographics": "<string: motivations, fears, aspirations, buying behavior>",
+      "buyingTriggers": ["<string: specific event that triggers purchase intent>", ...]
+    },
+    "competitivePositioning": {
+      "category": "<string: market category being created or entered>",
+      "against": "<string: 'Unlike [Competitor X], we [key difference]' positioning statement>",
+      "anchorBenefit": "<string: single most important benefit>",
+      "proofPoint": "<string: evidence or data backing the positioning>"
+    },
+    "messagingFramework": {
+      "headline": "<string: primary one-line headline>",
+      "subheadline": "<string: supporting statement>",
+      "elevatorPitch": "<string: 2-3 sentence pitch>",
+      "objectionHandlers": [{"objection": "<string>", "response": "<string>"}, ...]
+    }
   },
   "whyNow": {
-    "marketTriggers": ["<string>", ...],
-    "timingFactors": ["<string>", ...],
-    "urgencyScore": <number 0-100>
+    "marketTriggers": ["<string: specific market trigger with context>", ...],
+    "timingFactors": ["<string: timing factor with evidence>", ...],
+    "urgencyScore": <number 0-100>,
+    "windowOfOpportunity": {
+      "opens": "<string: OPTIONAL - when the window opens, e.g. 'Now' or 'Q3 2026'>",
+      "closesBy": "<string: OPTIONAL - when it closes, e.g. '18 months' or 'When [competitor] launches X'>",
+      "reasoning": "<string: OPTIONAL - why this window exists and what closes it>"
+    },
+    "catalysts": [
+      {
+        "event": "<string: OPTIONAL - specific catalyst event>",
+        "impact": "high" | "medium" | "low",
+        "timeframe": "<string: when this catalyst takes effect>",
+        "howToLeverage": "<string: specific action to capitalize on this>"
+      }
+    ],
+    "urgencyNarrative": "<string: OPTIONAL - 2-3 sentence narrative of why acting now matters>"
   },
   "proofSignals": {
-    "demandIndicators": ["<string>", ...],
-    "validationOpportunities": ["<string>", ...],
-    "riskFactors": ["<string>", ...]
+    "demandIndicators": ["<string: specific indicator with data point>", ...],
+    "validationOpportunities": ["<string: actionable validation step>", ...],
+    "riskFactors": ["<string: specific risk with context>", ...],
+    "demandStrength": {
+      "score": <number: OPTIONAL - 0-100 overall demand confidence>,
+      "searchVolumeSignal": "<string: OPTIONAL - search volume evidence>",
+      "communitySignal": "<string: OPTIONAL - community/forum discussion evidence>",
+      "spendingSignal": "<string: OPTIONAL - evidence of willingness to pay>"
+    },
+    "validationExperiments": [
+      {
+        "experiment": "<string: OPTIONAL - specific low-cost experiment to run>",
+        "hypothesis": "<string: what result would validate demand>",
+        "cost": "<string: estimated cost, e.g. '$50-100'>",
+        "timeframe": "<string: how long to run, e.g. '1 week'>"
+      }
+    ],
+    "riskMitigation": [
+      {
+        "risk": "<string: OPTIONAL - specific risk>",
+        "severity": "high" | "medium" | "low",
+        "mitigation": "<string: concrete mitigation strategy>"
+      }
+    ]
   },
   "keywords": {
     "primary": ["<string>", ...],
@@ -1566,7 +1737,7 @@ Extract the key insights and return structured JSON matching this EXACT schema. 
   }
 }
 
-Use ONLY information from the research report. Be specific and cite findings where relevant. Output ONLY the JSON object, no markdown or explanation.`;
+Use ONLY information from the research report. Be thorough — include specific dollar figures, percentages, company names, and data points from the research. Longer, more detailed responses are preferred over brief summaries. Output ONLY the JSON object, no markdown or explanation.`;
 
   const extractionProvider = getExtractionProvider(tier);
   console.log('[Extract Insights] Using provider:', extractionProvider.name);
@@ -1578,7 +1749,7 @@ Use ONLY information from the research report. Be specific and cite findings whe
   const insights = await withExponentialBackoff(
     async () => {
       return await extractionProvider.extract(prompt, InsightsSchema, {
-        maxTokens: 25000,
+        maxTokens: 50000,
         temperature: 0.2,  // Low temperature for deterministic structured extraction
         task: 'extraction',
       });
@@ -1641,7 +1812,7 @@ export async function extractScores(
   console.log('[Extract Scores] Research report length:', deepResearch.rawReport.length);
 
   // Pre-compute snippet to avoid repeated substring calls
-  const researchSnippet = deepResearch.rawReport.substring(0, 4000);
+  const researchSnippet = deepResearch.rawReport.substring(0, 15000);
 
   const extractionProvider = getExtractionProvider(tier);
   const { ScoresPassSchema } = await import('./research-schemas');
@@ -1863,7 +2034,7 @@ export async function extractBusinessMetrics(
     throw new Error('Failed to extract business metrics: missing research data (rawReport is empty)');
   }
 
-  const researchSnippet = deepResearch.rawReport.substring(0, 3000);
+  const researchSnippet = deepResearch.rawReport.substring(0, 15000);
   console.log('[Extract Metrics] Research snippet length:', researchSnippet.length);
 
   const prompt = `You are evaluating business viability metrics based on deep market research.
@@ -1882,31 +2053,42 @@ ${JSON.stringify(scores, null, 2)}
 ${JSON.stringify(insights.marketAnalysis, null, 2)}
 
 ## REQUIRED OUTPUT SCHEMA
-Return a JSON object with EXACTLY this structure (all fields required):
+Return a JSON object with EXACTLY this structure. Top-level fields are required; OPTIONAL fields may be omitted if insufficient data:
 {
   "revenuePotential": {
     "rating": "high" | "medium" | "low",
-    "estimate": "<revenue estimate string>",
-    "confidence": <0-100>
+    "estimate": "<string: detailed revenue estimate with dollar figures and timeframe>",
+    "confidence": <0-100>,
+    "revenueModel": "<string: OPTIONAL - primary revenue model, e.g. 'SaaS subscriptions' or 'Marketplace take-rate'>",
+    "timeToFirstRevenue": "<string: OPTIONAL - e.g. '2-3 months post-launch'>",
+    "unitEconomics": "<string: OPTIONAL - estimated LTV:CAC ratio and key unit economics>"
   },
   "executionDifficulty": {
     "rating": "easy" | "moderate" | "hard",
-    "factors": ["<factor1>", "<factor2>", ...],
-    "soloFriendly": true | false
+    "factors": ["<string: specific execution factor>", ...],
+    "soloFriendly": true | false,
+    "mvpTimeEstimate": "<string: OPTIONAL - e.g. '4-6 weeks for core features'>",
+    "criticalPath": ["<string: OPTIONAL - must-build-first item>", ...],
+    "biggestRisk": "<string: OPTIONAL - single biggest execution risk>"
   },
   "gtmClarity": {
     "rating": "clear" | "moderate" | "unclear",
-    "channels": ["<channel1>", "<channel2>", ...],
-    "confidence": <0-100>
+    "channels": ["<string: specific GTM channel>", ...],
+    "confidence": <0-100>,
+    "primaryChannel": "<string: OPTIONAL - single best channel to start with and why>",
+    "estimatedCAC": "<string: OPTIONAL - e.g. '$50-100 per customer'>",
+    "firstMilestone": "<string: OPTIONAL - e.g. '100 users in 60 days via [channel]'>"
   },
   "founderFit": {
     "percentage": <0-100>,
-    "strengths": ["<strength1>", ...],
-    "gaps": ["<gap1>", ...]
+    "strengths": ["<string: specific strength>", ...],
+    "gaps": ["<string: specific gap>", ...],
+    "criticalSkillNeeded": "<string: OPTIONAL - most important skill to acquire or hire for>",
+    "recommendedFirstHire": "<string: OPTIONAL - e.g. 'Technical co-founder' or 'Growth marketer'>"
   }
 }
 
-Evaluate business metrics and return JSON matching the schema above exactly. Base estimates on actual market data from research.`;
+Evaluate business metrics thoroughly using actual market data, competitor pricing, and research findings. Be specific with dollar figures and timeframes.`;
 
   const extractionProvider = getExtractionProvider(tier);
   console.log('[Extract Metrics] Using provider:', extractionProvider.name);
@@ -1914,7 +2096,7 @@ Evaluate business metrics and return JSON matching the schema above exactly. Bas
   const { BusinessMetricsSchema } = await import('./research-schemas');
 
   const metrics = await extractionProvider.extract(prompt, BusinessMetricsSchema, {
-    maxTokens: 8000,
+    maxTokens: 12000,
     temperature: 0.2,
     task: 'extraction',
   });
@@ -3443,12 +3625,23 @@ Return EXACTLY this structure with all values as plain strings (NOT objects):
   "protagonist": "A 1-2 sentence description of the main character and their role",
   "problem": "A 2-3 sentence description of the challenge they face",
   "solution": "A 2-3 sentence description of how the product solves their problem",
-  "outcome": "A 2-3 sentence description of the positive results achieved"
+  "outcome": "A 2-3 sentence description of the positive results achieved",
+  "dayInTheLife": {                          // OPTIONAL — before/after contrast
+    "before": "Describe a typical day BEFORE using the product — specific pain, wasted time, frustration",
+    "after": "Describe the same day AFTER using the product — what changed, how it feels",
+    "timeSaved": "Quantified time/money saved, e.g. '2 hours/day' or '$500/month'"
+  },
+  "emotionalArc": {                          // OPTIONAL — emotional journey
+    "frustration": "The specific frustration the user felt before",
+    "discovery": "The moment they found the solution — what triggered it",
+    "relief": "The emotional relief and confidence after adopting the product"
+  },
+  "quote": "A hypothetical testimonial quote from the protagonist, e.g. 'I used to spend 3 hours on reports — now it takes 10 minutes.'"
 }
 
-CRITICAL: Every field must be a plain string. Do NOT use nested objects or arrays. Do NOT add extra fields like "callToAction".
+CRITICAL: Every field must be a plain string. Do NOT use nested objects or arrays for the top-level fields (scenario, protagonist, problem, solution, outcome, quote). The dayInTheLife and emotionalArc objects contain only string values.
 
-Create a relatable, specific user story matching the schema above. Make the story feel real and emotionally resonant with specific details.`;
+Create a relatable, specific user story matching the schema above. Make the story feel real and emotionally resonant with specific details. Include the dayInTheLife, emotionalArc, and quote fields to make it vivid and compelling.`;
 
   const generationProvider = getGenerationProvider(tier);
   console.log('[Generate User Story] Using provider:', generationProvider.name);
@@ -3479,10 +3672,21 @@ Create a relatable, specific user story matching the schema above. Make the stor
     problem: z.preprocess(flattenToString, z.string()),
     solution: z.preprocess(flattenToString, z.string()),
     outcome: z.preprocess(flattenToString, z.string()),
+    dayInTheLife: z.object({
+      before: z.string(),
+      after: z.string(),
+      timeSaved: z.string(),
+    }).optional(),
+    emotionalArc: z.object({
+      frustration: z.string(),
+      discovery: z.string(),
+      relief: z.string(),
+    }).optional(),
+    quote: z.preprocess(flattenToString, z.string()).optional(),
   });
 
   const userStory = await generationProvider.extract(prompt, CoercingUserStorySchema, {
-    maxTokens: 8000,
+    maxTokens: 12000,
     temperature: 1.0,
     task: 'generation',
   });

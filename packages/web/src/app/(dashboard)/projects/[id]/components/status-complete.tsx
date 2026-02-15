@@ -50,24 +50,35 @@ interface RevenuePotential {
   rating: 'high' | 'medium' | 'low';
   estimate: string;
   confidence: number;
+  revenueModel?: string;
+  timeToFirstRevenue?: string;
+  unitEconomics?: string;
 }
 
 interface ExecutionDifficulty {
-  rating: 'easy' | 'medium' | 'hard';
+  rating: 'easy' | 'moderate' | 'hard';
   factors: string[];
   soloFriendly: boolean;
+  mvpTimeEstimate?: string;
+  criticalPath?: string[];
+  biggestRisk?: string;
 }
 
 interface GTMClarity {
-  rating: 'strong' | 'moderate' | 'weak';
+  rating: 'clear' | 'moderate' | 'unclear';
   channels: string[];
   confidence: number;
+  primaryChannel?: string;
+  estimatedCAC?: string;
+  firstMilestone?: string;
 }
 
 interface FounderFit {
   percentage: number;
   strengths: string[];
   gaps: string[];
+  criticalSkillNeeded?: string;
+  recommendedFirstHire?: string;
 }
 
 interface ScoreWithJustification {
