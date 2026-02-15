@@ -529,9 +529,109 @@ export type ChunkedProgressCallback = (
   intermediateData?: IntermediateResearchData
 ) => Promise<void>;
 
+// =============================================================================
+// PROMPT REWRITING PRE-STEP (GPT-4.1)
+// =============================================================================
+
+const PROMPT_REWRITE_MODEL = 'gpt-4.1';
+
 /**
- * Run chunked deep research - breaks large research into smaller sequential calls.
- * This avoids the 200k TPM rate limit by making 4 focused calls with delays between them.
+ * Rewrite chunk prompts into focused research briefs using GPT-4.1.
+ * Incorporates founder context (interview data, canvas notes) and query expansion
+ * to produce tailored search angles for each research chunk.
+ *
+ * Non-fatal: returns empty object on failure, allowing default prompts to be used.
+ */
+async function rewriteResearchBriefs(
+  input: ResearchInput,
+  chunks: typeof RESEARCH_CHUNKS,
+  expansionContext: string
+): Promise<Record<string, string>> {
+  const { ideaTitle, ideaDescription, interviewData, interviewMessages, canvasContext } = input;
+
+  const interviewSummary = interviewMessages
+    .filter(m => m.role !== 'system')
+    .slice(-10) // Last 10 messages for context
+    .map(m => `${m.role}: ${m.content}`)
+    .join('\n');
+
+  const chunkList = chunks.map(c => `- ${c.id}: ${c.name} — ${c.focus}`).join('\n');
+
+  const prompt = `You are a research strategist preparing focused briefs for a market research team.
+
+## BUSINESS IDEA
+**${ideaTitle}**
+${ideaDescription}
+
+${canvasContext ? `## FOUNDER'S NOTES\n${canvasContext}\n` : ''}
+## INTERVIEW INSIGHTS
+${interviewData ? JSON.stringify(interviewData, null, 2) : 'None'}
+
+## RECENT INTERVIEW MESSAGES
+${interviewSummary || 'None'}
+
+${expansionContext || ''}
+
+## RESEARCH CHUNKS TO BRIEF
+${chunkList}
+
+## YOUR TASK
+For each chunk ID, write a tailored research brief (3-5 sentences) that:
+1. Narrows the research focus based on what the founder actually cares about
+2. Incorporates specific angles from the interview data and founder's notes
+3. Suggests specific companies, markets, or data points to investigate
+4. Keeps the original chunk's domain focus intact
+
+Output ONLY valid JSON: an object keyed by chunk ID, where each value is the rewritten research brief string.
+
+Example format:
+{
+  "market": "Research the market size and growth rate for...",
+  "competitors": "Identify direct competitors in the... space, focusing on..."
+}`;
+
+  const params = createResponsesParams(
+    {
+      model: PROMPT_REWRITE_MODEL,
+      input: [
+        { role: 'user', content: prompt },
+      ],
+      max_output_tokens: 3000,
+      response_format: { type: 'json_object' },
+    },
+    { reasoning: 'low', verbosity: 'low' }
+  );
+
+  const startTime = Date.now();
+  const response = await withExponentialBackoff(
+    () => openai.responses.create(params),
+    { maxAttempts: 2, initialDelayMs: 2000 }
+  );
+
+  const elapsed = Math.round((Date.now() - startTime) / 1000);
+  console.log(`[Prompt Rewriting] GPT-4.1 completed in ${elapsed}s`);
+
+  // Extract text from response
+  const text = response.output_text || '';
+
+  if (!text) {
+    console.warn('[Prompt Rewriting] Empty response from GPT-4.1');
+    return {};
+  }
+
+  try {
+    const briefs = JSON.parse(text) as Record<string, string>;
+    return briefs;
+  } catch {
+    console.warn('[Prompt Rewriting] Failed to parse JSON response');
+    return {};
+  }
+}
+
+/**
+ * Run chunked deep research - fires all chunks in parallel using background mode.
+ * Pre-computes query expansion, then launches all chunks simultaneously via Promise.allSettled.
+ * Each chunk uses OpenAI background mode with polling, so OpenAI handles queuing server-side.
  *
  * @param input Research input with idea and interview data
  * @param tier Subscription tier (FREE uses mini model, PRO/ENTERPRISE use full)
@@ -547,7 +647,7 @@ export async function runChunkedDeepResearch(
 ): Promise<DeepResearchOutput> {
   const { ideaTitle, ideaDescription, interviewData, interviewMessages, canvasContext } = input;
 
-  console.log('[Chunked Research] Starting chunked market research...');
+  console.log('[Chunked Research] Starting parallel deep research...');
   console.log('[Chunked Research] Tier:', tier);
   console.log('[Chunked Research] Chunks:', RESEARCH_CHUNKS.length);
 
@@ -561,9 +661,9 @@ export async function runChunkedDeepResearch(
   const allSources: string[] = existingChunks?.sources ? [...existingChunks.sources] : [];
 
   // Check for existing chunks to resume from
-  const completedChunks = Object.keys(results);
-  if (completedChunks.length > 0) {
-    console.log('[Chunked Research] RESUME MODE - Found', completedChunks.length, 'completed chunks:', completedChunks.join(', '));
+  const completedChunkIds = Object.keys(results);
+  if (completedChunkIds.length > 0) {
+    console.log('[Chunked Research] RESUME MODE - Found', completedChunkIds.length, 'completed chunks:', completedChunkIds.join(', '));
   }
 
   // Build interview context once (shared across chunks)
@@ -572,62 +672,72 @@ export async function runChunkedDeepResearch(
     .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
     .join('\n\n');
 
-  // Fire off query expansion concurrently — don't block the first research chunk.
-  // The expansion result will enrich chunks 2+ while chunk 1 starts immediately.
+  // --- Pre-step: Query expansion (await before firing chunks) ---
   const keyPhrases = extractKeyPhrases(ideaTitle, ideaDescription);
   let expansionContext = '';
-  const expansionPromise = expandQueries(keyPhrases, [], {
-    maxTemplateQueries: 20,
-    maxSerpApiQueries: 8,
-    serpApiEnabled: true,
-  }).then((expansion) => {
+  try {
+    const expansion = await expandQueries(keyPhrases, [], {
+      maxTemplateQueries: 20,
+      maxSerpApiQueries: 8,
+      serpApiEnabled: true,
+    });
     if (expansion.totalUnique > 0) {
       const expandedStrings = getExpandedQueryStrings(expansion);
       expansionContext = formatQueriesForPrompt(expandedStrings, 'ADDITIONAL SEARCH ANGLES');
       console.log(`[Chunked Research] Query expansion: ${expansion.totalUnique} queries (${expansion.templateCount} template, ${expansion.serpApiCount} SerpAPI) in ${expansion.elapsedMs}ms`);
     }
-  }).catch((err) => {
+  } catch (err) {
     console.warn('[Chunked Research] Query expansion failed (non-fatal):', err instanceof Error ? err.message : err);
-  });
+  }
 
-  // Process each chunk sequentially
-  for (let i = 0; i < RESEARCH_CHUNKS.length; i++) {
-    const chunk = RESEARCH_CHUNKS[i];
+  // --- Pre-step: Prompt rewriting via GPT-4.1 ---
+  let rewrittenBriefs: Record<string, string> = {};
+  try {
+    rewrittenBriefs = await rewriteResearchBriefs(input, RESEARCH_CHUNKS, expansionContext);
+    console.log(`[Chunked Research] Prompt rewriting complete: ${Object.keys(rewrittenBriefs).length} briefs generated`);
+  } catch (err) {
+    console.warn('[Chunked Research] Prompt rewriting failed (non-fatal, using default prompts):', err instanceof Error ? err.message : err);
+  }
 
-    // Skip if chunk already completed (resume support)
-    if (results[chunk.id]) {
-      console.log(`[Chunked Research] Skipping ${chunk.name} (already completed)`);
-      await onProgress?.('DEEP_RESEARCH', chunk.progressEnd);
-      continue;
-    }
+  // Filter to only chunks that still need to run
+  const chunksToRun = RESEARCH_CHUNKS.filter(chunk => !results[chunk.id]);
+  console.log(`[Chunked Research] Firing ${chunksToRun.length} chunks in parallel...`);
 
-    // Wait for expansion before chunk 2+ (chunk 1 proceeds without it)
-    if (i === 1) {
-      await expansionPromise;
-    }
+  if (chunksToRun.length === 0) {
+    console.log('[Chunked Research] All chunks already completed (full resume)');
+    return {
+      rawReport: combineChunkResults(results),
+      citations: allCitations,
+      sources: [...new Set(allSources)],
+      searchQueriesUsed: [],
+    };
+  }
 
-    console.log(`[Chunked Research] === Starting: ${chunk.name} ===`);
-    await onProgress?.('DEEP_RESEARCH', chunk.progressStart);
+  await onProgress?.('DEEP_RESEARCH', 5);
 
-    // Run focused research for this chunk
+  // Track completed count for progress reporting
+  let completedCount = completedChunkIds.length;
+  const totalChunks = RESEARCH_CHUNKS.length;
+
+  // Fire all chunks in parallel
+  const chunkPromises = chunksToRun.map(chunk => {
     const startTime = Date.now();
     const heartbeat = setInterval(() => {
       const elapsed = Math.round((Date.now() - startTime) / 1000);
       console.log(`[Chunked Research] [${chunk.name}] Still researching... (${elapsed}s elapsed)`);
-    }, 15000);
+    }, 30000); // Less frequent heartbeat since we have multiple chunks
 
-    try {
-      const chunkResult = await runSingleResearchChunk(
-        ideaTitle,
-        ideaDescription,
-        interviewData,
-        interviewContext,
-        chunk,
-        model,
-        expansionContext,
-        canvasContext
-      );
-
+    return runSingleResearchChunk(
+      ideaTitle,
+      ideaDescription,
+      interviewData,
+      interviewContext,
+      chunk,
+      model,
+      expansionContext,
+      canvasContext,
+      rewrittenBriefs[chunk.id]
+    ).then(async (chunkResult) => {
       clearInterval(heartbeat);
       const elapsed = Math.round((Date.now() - startTime) / 1000);
       console.log(`[Chunked Research] [${chunk.name}] Complete after ${elapsed}s - ${chunkResult.content.length} chars`);
@@ -637,9 +747,10 @@ export async function runChunkedDeepResearch(
       allCitations.push(...chunkResult.citations);
       allSources.push(...chunkResult.sources);
 
-      // Save intermediate progress for resume (passes combined results so far)
-      // Format as IntermediateResearchData with deepResearch field
-      await onProgress?.('DEEP_RESEARCH', chunk.progressEnd, {
+      // Update progress as each chunk completes
+      completedCount++;
+      const progress = Math.round((completedCount / totalChunks) * 30);
+      await onProgress?.('DEEP_RESEARCH', progress, {
         deepResearch: {
           rawReport: combineChunkResults(results),
           citations: allCitations,
@@ -648,17 +759,33 @@ export async function runChunkedDeepResearch(
         },
       });
 
-      // Delay before next chunk (skip after last chunk)
-      if (i < RESEARCH_CHUNKS.length - 1) {
-        console.log(`[Chunked Research] Waiting ${INTER_CHUNK_DELAY_MS / 1000}s before next chunk (rate limit recovery)...`);
-        await sleep(INTER_CHUNK_DELAY_MS);
-      }
-    } catch (error) {
+      return { chunkId: chunk.id, success: true as const };
+    }).catch((error) => {
       clearInterval(heartbeat);
       const elapsed = Math.round((Date.now() - startTime) / 1000);
       console.error(`[Chunked Research] [${chunk.name}] Error after ${elapsed}s:`, error);
-      throw error;
+      return { chunkId: chunk.id, success: false as const, error };
+    });
+  });
+
+  const settled = await Promise.all(chunkPromises);
+
+  // Check for failures
+  const failures = settled.filter(r => !r.success);
+  if (failures.length > 0) {
+    const failedNames = failures.map(f => f.chunkId).join(', ');
+    console.error(`[Chunked Research] ${failures.length} chunk(s) failed: ${failedNames}`);
+
+    // If all chunks failed, throw the first error
+    if (failures.length === chunksToRun.length) {
+      const firstFailure = failures[0] as { chunkId: string; success: false; error: unknown };
+      throw firstFailure.error instanceof Error
+        ? firstFailure.error
+        : new Error(`All research chunks failed. First error: ${firstFailure.error}`);
     }
+
+    // Partial failure: log but continue with what we have
+    console.warn(`[Chunked Research] Continuing with ${settled.length - failures.length}/${chunksToRun.length} successful chunks`);
   }
 
   console.log('[Chunked Research] === All chunks complete ===');
@@ -684,12 +811,16 @@ async function runSingleResearchChunk(
   chunk: typeof RESEARCH_CHUNKS[number],
   model: string,
   expansionContext: string = '',
-  canvasContext?: string
+  canvasContext?: string,
+  rewrittenBrief?: string
 ): Promise<DeepResearchResult> {
+  // Use rewritten brief if available, otherwise fall back to default focus
+  const researchFocus = rewrittenBrief || chunk.focus;
+
   const systemPrompt = `You are a market research analyst conducting focused research.
 
 ## YOUR SPECIFIC TASK
-Research ONLY: ${chunk.focus}
+Research ONLY: ${researchFocus}
 
 ## GUIDELINES
 - Be thorough but focused on this specific research area
@@ -713,7 +844,7 @@ ${interviewContext || 'No interview transcript available.'}
 ---
 
 ## RESEARCH FOCUS: ${chunk.name.toUpperCase()}
-${chunk.focus}
+${researchFocus}
 
 Provide specific, actionable insights with citations. Focus only on this research area.
 ${expansionContext}`;
