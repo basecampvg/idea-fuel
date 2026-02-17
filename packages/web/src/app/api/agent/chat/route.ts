@@ -21,6 +21,7 @@ import { eq, and } from 'drizzle-orm';
 import { users, projects, agentConversations } from '@forge/server/db/schema';
 import { createAgentTools } from '@forge/server/services/agent-tools';
 import { agentChatRequestSchema } from '@forge/shared/validators';
+import { checkAgentRateLimit } from '@forge/server/lib/agent-rate-limit';
 import type { AgentMessageRow } from '@forge/server/db/schema';
 
 export const maxDuration = 60;
@@ -45,6 +46,28 @@ export async function POST(req: Request) {
   });
   if (!user || user.subscription === 'FREE') {
     return new Response('PRO subscription required', { status: 403 });
+  }
+
+  // 2b. Rate limit check
+  const rateLimit = await checkAgentRateLimit(user.id, user.subscription);
+  if (!rateLimit.allowed) {
+    const retryAfter = Math.ceil((rateLimit.resetAt.getTime() - Date.now()) / 1000);
+    return new Response(
+      JSON.stringify({
+        error: 'Rate limit exceeded',
+        remaining: 0,
+        resetAt: rateLimit.resetAt.toISOString(),
+      }),
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          'Retry-After': String(retryAfter),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': rateLimit.resetAt.toISOString(),
+        },
+      }
+    );
   }
 
   // 3. Parse + validate request
