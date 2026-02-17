@@ -1,11 +1,12 @@
 'use client';
 
-import { use, Suspense } from 'react';
+import { use, Suspense, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { LoadingScreen } from '@/components/ui/spinner';
 import { ProjectSecondaryNav } from './project-secondary-nav';
 import { ProjectHeader } from './project-header';
+import { useAgentSidebar } from '@/components/agent/agent-sidebar-context';
 
 const SECONDARY_NAV_WIDTH = 240;
 
@@ -19,6 +20,13 @@ function ProjectLayoutInner({
   const { id } = use(params);
   const pathname = usePathname();
   const isInterviewPage = pathname?.includes('/interview');
+  const { setProjectId } = useAgentSidebar();
+
+  // Sync project ID to agent sidebar context
+  useEffect(() => {
+    setProjectId(id);
+    return () => setProjectId(null);
+  }, [id, setProjectId]);
 
   const { data: project, isLoading, error } = trpc.project.get.useQuery(
     { id },

@@ -3,12 +3,13 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Settings } from 'lucide-react';
+import { Settings, Bot } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 import { TOP_BAR_HEIGHT } from './sidebar-context';
 import { ProjectSelector } from './project-selector';
 import { useSubscriptionContext } from '@/components/subscription/subscription-context';
 import type { SubscriptionTier } from '@forge/shared';
+import { useAgentSidebar } from '@/components/agent/agent-sidebar-context';
 
 // ideationLab bulb logo
 function LogoBulb({ className }: { className?: string }) {
@@ -66,6 +67,7 @@ export function TopNavBar() {
   const isSettings = pathname?.startsWith('/settings');
   const { data: user } = trpc.user.me.useQuery(undefined, { staleTime: 60_000 });
   const { tier } = useSubscriptionContext();
+  const { isOpen: agentOpen, toggle: toggleAgent } = useAgentSidebar();
 
   const userName = user?.name ?? user?.email?.split('@')[0];
   const userImage = user?.image;
@@ -125,6 +127,19 @@ export function TopNavBar() {
 
       {/* Right section: actions */}
       <div className="flex items-center gap-1">
+        <button
+          onClick={toggleAgent}
+          className={`
+            flex h-8 w-8 items-center justify-center rounded-lg transition-colors
+            ${agentOpen
+              ? 'bg-primary/15 text-primary'
+              : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+            }
+          `}
+          title="AI Agent (Ctrl+J)"
+        >
+          <Bot className="w-4 h-4" />
+        </button>
         <Link
           href="/settings"
           className={`

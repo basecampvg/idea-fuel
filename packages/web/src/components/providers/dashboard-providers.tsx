@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { SubscriptionProvider } from '@/components/subscription/subscription-context';
 import { UpgradeModalContainer } from '@/components/subscription/upgrade-modal';
 import { SidebarProvider } from '@/components/layout/sidebar-context';
+import { AgentSidebarProvider } from '@/components/agent/agent-sidebar-context';
 
 interface DashboardProvidersProps {
   children: ReactNode;
@@ -17,8 +18,10 @@ export function DashboardProviders({ children }: DashboardProvidersProps) {
   return (
     <SidebarProvider>
       <SubscriptionProvider>
-        {children}
-        <UpgradeModalContainer />
+        <AgentSidebarProvider>
+          {children}
+          <UpgradeModalContainer />
+        </AgentSidebarProvider>
       </SubscriptionProvider>
     </SidebarProvider>
   );
