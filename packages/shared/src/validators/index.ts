@@ -300,10 +300,10 @@ export const agentMessageSchema = z.object({
 export const agentChatRequestSchema = z.object({
   messages: z.array(z.object({
     id: z.string(),
-    role: z.enum(['user', 'assistant', 'system']),
-    parts: z.array(z.record(z.unknown())),
+    role: z.enum(['user', 'assistant']),  // Block 'system' and 'tool' roles from client
+    parts: z.array(z.record(z.unknown())).max(50),
     metadata: z.unknown().optional(),
-  })).max(100),
+  })).min(1).max(100),
   projectId: entityId,
   // AI SDK v6 also sends these fields
   id: z.string().optional(),

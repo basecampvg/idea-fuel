@@ -626,6 +626,7 @@ export interface AgentMessageRow {
 export const agentInsights = pgTable('AgentInsight', {
   id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
   projectId: text().notNull(),
+  userId: text().notNull(),
   reportId: text(),
   conversationId: text().notNull(),
   title: text().notNull(),
@@ -633,13 +634,20 @@ export const agentInsights = pgTable('AgentInsight', {
   prompt: text().notNull(),
   order: integer().default(0).notNull(),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull().$onUpdate(() => new Date()),
 }, (table) => [
   index('AgentInsight_projectId_idx').on(table.projectId),
+  index('AgentInsight_userId_idx').on(table.userId),
   index('AgentInsight_reportId_idx').on(table.reportId),
   foreignKey({
     columns: [table.projectId],
     foreignColumns: [projects.id],
     name: 'AgentInsight_projectId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+  foreignKey({
+    columns: [table.userId],
+    foreignColumns: [users.id],
+    name: 'AgentInsight_userId_fkey',
   }).onUpdate('cascade').onDelete('cascade'),
   foreignKey({
     columns: [table.reportId],
@@ -650,6 +658,29 @@ export const agentInsights = pgTable('AgentInsight', {
     columns: [table.conversationId],
     foreignColumns: [agentConversations.id],
     name: 'AgentInsight_conversationId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
+// AGENT MESSAGE — normalized conversation messages (replaces JSONB array)
+// =============================================================================
+
+export const agentMessages = pgTable('AgentMessage', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  conversationId: text().notNull(),
+  role: text().$type<'user' | 'assistant' | 'tool'>().notNull(),
+  content: text().notNull(),
+  toolCalls: jsonb().$type<Array<{ id: string; name: string; args: Record<string, unknown> }>>(),
+  toolResults: jsonb().$type<Array<{ toolCallId: string; result: unknown; isError?: boolean }>>(),
+  tokenCount: integer(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('AgentMessage_conversationId_idx').on(table.conversationId),
+  index('AgentMessage_conversationId_createdAt_idx').on(table.conversationId, table.createdAt),
+  foreignKey({
+    columns: [table.conversationId],
+    foreignColumns: [agentConversations.id],
+    name: 'AgentMessage_conversationId_fkey',
   }).onUpdate('cascade').onDelete('cascade'),
 ]);
 
@@ -692,6 +723,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   auditLogs: many(auditLogs),
   blogPosts: many(blogPosts),
   agentConversations: many(agentConversations),
+  agentInsights: many(agentInsights),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -757,12 +789,18 @@ export const agentConversationsRelations = relations(agentConversations, ({ one,
   project: one(projects, { fields: [agentConversations.projectId], references: [projects.id] }),
   user: one(users, { fields: [agentConversations.userId], references: [users.id] }),
   agentInsights: many(agentInsights),
+  agentMessages: many(agentMessages),
 }));
 
 export const agentInsightsRelations = relations(agentInsights, ({ one }) => ({
   project: one(projects, { fields: [agentInsights.projectId], references: [projects.id] }),
+  user: one(users, { fields: [agentInsights.userId], references: [users.id] }),
   report: one(reports, { fields: [agentInsights.reportId], references: [reports.id] }),
   conversation: one(agentConversations, { fields: [agentInsights.conversationId], references: [agentConversations.id] }),
+}));
+
+export const agentMessagesRelations = relations(agentMessages, ({ one }) => ({
+  conversation: one(agentConversations, { fields: [agentMessages.conversationId], references: [agentConversations.id] }),
 }));
 
 export const embeddingsRelations = relations(embeddings, ({ one }) => ({

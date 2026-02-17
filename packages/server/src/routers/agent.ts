@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { eq, and, desc, asc, sql } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { router, protectedProcedure } from '../trpc';
-import { agentConversations, agentInsights, projects, reports } from '../db/schema';
+import { agentConversations, agentInsights, agentMessages, projects, reports } from '../db/schema';
 
 export const agentRouter = router({
   /**
@@ -39,7 +39,23 @@ export const agentRouter = router({
         ),
       });
 
-      return conversation ?? null;
+      if (!conversation) return null;
+
+      // Load messages from normalized table
+      const messages = await ctx.db.query.agentMessages.findMany({
+        where: eq(agentMessages.conversationId, conversation.id),
+        orderBy: [asc(agentMessages.createdAt)],
+      });
+
+      return {
+        ...conversation,
+        messages: messages.map((m) => ({
+          id: m.id,
+          role: m.role,
+          content: m.content,
+          timestamp: m.createdAt.toISOString(),
+        })),
+      };
     }),
 
   /**
@@ -117,6 +133,7 @@ export const agentRouter = router({
 
       const [insight] = await ctx.db.insert(agentInsights).values({
         projectId: input.projectId,
+        userId: ctx.userId,
         conversationId: input.conversationId,
         reportId: input.reportId ?? null,
         title: input.title,
