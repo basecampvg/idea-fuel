@@ -9,7 +9,9 @@ import {
   doublePrecision,
   index,
   uniqueIndex,
+  unique,
   foreignKey,
+  vector,
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
@@ -42,6 +44,8 @@ export const dailyRunStatusEnum = pgEnum('DailyRunStatus', ['SUCCESS', 'PARTIAL'
 export const dailyPickStatusEnum = pgEnum('DailyPickStatus', ['ACTIVE', 'ARCHIVED']);
 export const blogPostStatusEnum = pgEnum('BlogPostStatus', ['DRAFT', 'PUBLISHED', 'ARCHIVED']);
 export const aiClassificationTargetTypeEnum = pgEnum('AIClassificationTargetType', ['QUERY', 'CLUSTER', 'WINNER_REPORT']);
+export const agentConversationStatusEnum = pgEnum('AgentConversationStatus', ['ACTIVE', 'ARCHIVED']);
+export const embeddingSourceTypeEnum = pgEnum('EmbeddingSourceType', ['REPORT', 'RESEARCH', 'INTERVIEW', 'NOTES', 'SERPAPI']);
 
 // TypeScript types derived from enums
 export type SubscriptionTier = (typeof subscriptionTierEnum.enumValues)[number];
@@ -60,6 +64,8 @@ export type DailyRunStatus = (typeof dailyRunStatusEnum.enumValues)[number];
 export type DailyPickStatus = (typeof dailyPickStatusEnum.enumValues)[number];
 export type BlogPostStatus = (typeof blogPostStatusEnum.enumValues)[number];
 export type AIClassificationTargetType = (typeof aiClassificationTargetTypeEnum.enumValues)[number];
+export type AgentConversationStatus = (typeof agentConversationStatusEnum.enumValues)[number];
+export type EmbeddingSourceType = (typeof embeddingSourceTypeEnum.enumValues)[number];
 
 // =============================================================================
 // AUTH TABLES (User, Account, Session, VerificationToken)
@@ -572,6 +578,108 @@ export const emailCaptures = pgTable('EmailCapture', {
 ]);
 
 // =============================================================================
+// AGENT CONVERSATION — one per project per user
+// =============================================================================
+
+export const agentConversations = pgTable('AgentConversation', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  projectId: text().notNull(),
+  userId: text().notNull(),
+  status: agentConversationStatusEnum().default('ACTIVE').notNull(),
+  messages: jsonb().notNull().$type<AgentMessageRow[]>().default([]),
+  summary: text(),
+  messageCount: integer().default(0).notNull(),
+  totalTokensUsed: integer().default(0).notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+}, (table) => [
+  index('AgentConversation_projectId_idx').on(table.projectId),
+  index('AgentConversation_userId_idx').on(table.userId),
+  unique('AgentConversation_projectId_userId_key').on(table.projectId, table.userId),
+  foreignKey({
+    columns: [table.projectId],
+    foreignColumns: [projects.id],
+    name: 'AgentConversation_projectId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+  foreignKey({
+    columns: [table.userId],
+    foreignColumns: [users.id],
+    name: 'AgentConversation_userId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// Type for the JSONB messages array rows
+export interface AgentMessageRow {
+  id: string;
+  role: 'user' | 'assistant' | 'tool';
+  content: string;
+  toolCalls?: Array<{ id: string; name: string; args: Record<string, unknown> }>;
+  toolResults?: Array<{ toolCallId: string; result: unknown; isError?: boolean }>;
+  tokenCount?: number;
+  timestamp: string;
+}
+
+// =============================================================================
+// AGENT INSIGHT — content blocks added to reports
+// =============================================================================
+
+export const agentInsights = pgTable('AgentInsight', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  projectId: text().notNull(),
+  reportId: text(),
+  conversationId: text().notNull(),
+  title: text().notNull(),
+  content: text().notNull(),
+  prompt: text().notNull(),
+  order: integer().default(0).notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('AgentInsight_projectId_idx').on(table.projectId),
+  index('AgentInsight_reportId_idx').on(table.reportId),
+  foreignKey({
+    columns: [table.projectId],
+    foreignColumns: [projects.id],
+    name: 'AgentInsight_projectId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+  foreignKey({
+    columns: [table.reportId],
+    foreignColumns: [reports.id],
+    name: 'AgentInsight_reportId_fkey',
+  }).onUpdate('cascade').onDelete('set null'),
+  foreignKey({
+    columns: [table.conversationId],
+    foreignColumns: [agentConversations.id],
+    name: 'AgentInsight_conversationId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
+// EMBEDDING — pgvector chunks of project data for RAG
+// =============================================================================
+
+export const embeddings = pgTable('Embedding', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  projectId: text().notNull(),
+  sourceType: embeddingSourceTypeEnum().notNull(),
+  sourceId: text().notNull(),
+  chunkIndex: integer().default(0).notNull(),
+  content: text().notNull(),
+  embedding: vector('embedding', { dimensions: 1536 }),
+  metadata: jsonb().$type<Record<string, unknown>>(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('Embedding_projectId_idx').on(table.projectId),
+  index('Embedding_source_idx').on(table.sourceType, table.sourceId),
+  unique('Embedding_source_chunk_key').on(table.sourceType, table.sourceId, table.chunkIndex),
+  index('Embedding_vector_idx').using('hnsw', table.embedding.op('vector_cosine_ops')),
+  foreignKey({
+    columns: [table.projectId],
+    foreignColumns: [projects.id],
+    name: 'Embedding_projectId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
 // RELATIONS
 // =============================================================================
 
@@ -583,6 +691,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
   auditLogs: many(auditLogs),
   blogPosts: many(blogPosts),
+  agentConversations: many(agentConversations),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -598,6 +707,9 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   interviews: many(interviews),
   reports: many(reports),
   research: one(research, { fields: [projects.id], references: [research.projectId] }),
+  agentConversations: many(agentConversations),
+  agentInsights: many(agentInsights),
+  embeddings: many(embeddings),
 }));
 
 export const interviewsRelations = relations(interviews, ({ one }) => ({
@@ -609,9 +721,10 @@ export const researchRelations = relations(research, ({ one }) => ({
   project: one(projects, { fields: [research.projectId], references: [projects.id] }),
 }));
 
-export const reportsRelations = relations(reports, ({ one }) => ({
+export const reportsRelations = relations(reports, ({ one, many }) => ({
   project: one(projects, { fields: [reports.projectId], references: [projects.id] }),
   user: one(users, { fields: [reports.userId], references: [users.id] }),
+  agentInsights: many(agentInsights),
 }));
 
 export const blogPostsRelations = relations(blogPosts, ({ one }) => ({
@@ -638,4 +751,20 @@ export const clustersRelations = relations(clusters, ({ one, many }) => ({
 
 export const dailyPicksRelations = relations(dailyPicks, ({ one }) => ({
   winnerCluster: one(clusters, { fields: [dailyPicks.winnerClusterId], references: [clusters.id] }),
+}));
+
+export const agentConversationsRelations = relations(agentConversations, ({ one, many }) => ({
+  project: one(projects, { fields: [agentConversations.projectId], references: [projects.id] }),
+  user: one(users, { fields: [agentConversations.userId], references: [users.id] }),
+  agentInsights: many(agentInsights),
+}));
+
+export const agentInsightsRelations = relations(agentInsights, ({ one }) => ({
+  project: one(projects, { fields: [agentInsights.projectId], references: [projects.id] }),
+  report: one(reports, { fields: [agentInsights.reportId], references: [reports.id] }),
+  conversation: one(agentConversations, { fields: [agentInsights.conversationId], references: [agentConversations.id] }),
+}));
+
+export const embeddingsRelations = relations(embeddings, ({ one }) => ({
+  project: one(projects, { fields: [embeddings.projectId], references: [projects.id] }),
 }));

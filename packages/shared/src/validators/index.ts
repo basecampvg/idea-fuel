@@ -273,3 +273,52 @@ export const paginationSchema = z.object({
 });
 
 export type PaginationInput = z.infer<typeof paginationSchema>;
+
+// ============================================
+// Agent validators
+// ============================================
+export const embeddingSourceTypeSchema = z.enum(['REPORT', 'RESEARCH', 'INTERVIEW', 'NOTES', 'SERPAPI']);
+
+export const agentMessageSchema = z.object({
+  id: z.string(),
+  role: z.enum(['user', 'assistant', 'tool']),
+  content: z.string(),
+  toolCalls: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    args: z.record(z.unknown()),
+  })).optional(),
+  toolResults: z.array(z.object({
+    toolCallId: z.string(),
+    result: z.unknown(),
+    isError: z.boolean().optional(),
+  })).optional(),
+  tokenCount: z.number().optional(),
+  timestamp: z.string(),
+});
+
+export const agentChatRequestSchema = z.object({
+  messages: z.array(z.object({
+    id: z.string(),
+    role: z.enum(['user', 'assistant']),
+    content: z.string().max(10000),
+    parts: z.array(z.unknown()).optional(),
+    createdAt: z.string().optional(),
+  })).max(100),
+  projectId: entityId,
+});
+
+export const confirmInsightSchema = z.object({
+  projectId: entityId,
+  conversationId: entityId,
+  title: z.string().min(1).max(200),
+  content: z.string().min(1).max(50000),
+  prompt: z.string().min(1).max(10000),
+  reportId: entityId.optional(),
+});
+export type ConfirmInsightInput = z.infer<typeof confirmInsightSchema>;
+
+export const reorderInsightsSchema = z.object({
+  insightIds: z.array(entityId).min(1).max(100),
+});
+export type ReorderInsightsInput = z.infer<typeof reorderInsightsSchema>;

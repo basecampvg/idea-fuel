@@ -751,3 +751,67 @@ export interface QueryVariation {
   source: QuerySource;
   category?: string;  // e.g., "problem-framing", "purchase-intent"
 }
+
+// =============================================================================
+// Agent Types
+// =============================================================================
+
+export type AgentConversationStatus = 'ACTIVE' | 'ARCHIVED';
+export type EmbeddingSourceType = 'REPORT' | 'RESEARCH' | 'INTERVIEW' | 'NOTES' | 'SERPAPI';
+
+export interface AgentMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'tool';
+  content: string;
+  toolCalls?: AgentToolCall[];
+  toolResults?: AgentToolResult[];
+  tokenCount?: number;
+  timestamp: string;
+}
+
+export interface AgentToolCall {
+  id: string;
+  name: string;
+  args: Record<string, unknown>;
+}
+
+export interface AgentToolResult {
+  toolCallId: string;
+  result: unknown;
+  isError?: boolean;
+}
+
+export interface AgentInsightData {
+  id: string;
+  title: string;
+  content: string;
+  prompt: string;
+  reportId?: string | null;
+  order: number;
+  createdAt: string;
+}
+
+// Tool result types for the agent
+export interface AgentInsightPreview {
+  preview: true;
+  title: string;
+  content: string;
+  reportId?: string;
+  action: 'CONFIRM_INSIGHT';
+}
+
+export interface AgentProjectContext {
+  id: string;
+  title: string;
+  description: string;
+  status: ProjectStatus;
+  reports: Array<{ id: string; type: string; tier: string; status: string }>;
+  research: { id: string; status: string; currentPhase: string } | null;
+  interviews: Array<{ id: string; mode: string; status: string }>;
+}
+
+export interface AgentSearchResult {
+  content: string;
+  source: EmbeddingSourceType;
+  relevance: string;
+}
