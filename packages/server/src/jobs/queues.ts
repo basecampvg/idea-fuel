@@ -10,6 +10,7 @@ export const QUEUE_NAMES = {
   RESEARCH_CANCEL: 'research-cancel',
   SPARK_PIPELINE: 'spark-pipeline',
   EMAIL_SYNC: 'email-sync',
+  EMBEDDING_GENERATION: 'embedding-generation',
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -67,6 +68,17 @@ export interface EmailSyncJobData {
   source: string;
 }
 
+/**
+ * Embedding Generation Job Data
+ */
+export interface EmbeddingGenerationJobData {
+  projectId: string;
+  sources: Array<{
+    type: 'REPORT' | 'RESEARCH' | 'INTERVIEW' | 'NOTES' | 'SERPAPI';
+    id: string;
+  }>;
+}
+
 // ============================================================================
 // QUEUE INSTANCES (lazy-initialized to avoid Redis connections at import time)
 // ============================================================================
@@ -76,6 +88,7 @@ let _researchPipelineQueue: Queue<ResearchPipelineJobData> | null = null;
 let _researchCancelQueue: Queue<ResearchCancelJobData> | null = null;
 let _sparkPipelineQueue: Queue<SparkPipelineJobData> | null = null;
 let _emailSyncQueue: Queue<EmailSyncJobData> | null = null;
+let _embeddingGenerationQueue: Queue<EmbeddingGenerationJobData> | null = null;
 
 export function getReportGenerationQueue(): Queue<ReportGenerationJobData> {
   if (!_reportGenerationQueue) {
@@ -165,6 +178,24 @@ export function getEmailSyncQueue(): Queue<EmailSyncJobData> {
   return _emailSyncQueue;
 }
 
+export function getEmbeddingGenerationQueue(): Queue<EmbeddingGenerationJobData> {
+  if (!_embeddingGenerationQueue) {
+    _embeddingGenerationQueue = new Queue<EmbeddingGenerationJobData>(
+      QUEUE_NAMES.EMBEDDING_GENERATION,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 5000 },
+          removeOnComplete: { count: 200, age: 24 * 60 * 60 },
+          removeOnFail: { count: 500, age: 7 * 24 * 60 * 60 },
+        },
+      }
+    );
+  }
+  return _embeddingGenerationQueue;
+}
+
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
@@ -230,6 +261,21 @@ export async function enqueueSparkPipeline(
 }
 
 /**
+ * Add an embedding generation job to the queue
+ */
+export async function enqueueEmbeddingGeneration(
+  data: EmbeddingGenerationJobData
+): Promise<string> {
+  const jobId = `embed-${data.projectId}-${Date.now()}`;
+  const job = await getEmbeddingGenerationQueue().add(
+    `embed-${data.projectId}`,
+    data,
+    { jobId }
+  );
+  return job.id || '';
+}
+
+/**
  * Get queue stats for monitoring
  */
 export async function getQueueStats(queueName: QueueName) {
@@ -239,6 +285,7 @@ export async function getQueueStats(queueName: QueueName) {
     [QUEUE_NAMES.RESEARCH_CANCEL]: getResearchCancelQueue,
     [QUEUE_NAMES.SPARK_PIPELINE]: getSparkPipelineQueue,
     [QUEUE_NAMES.EMAIL_SYNC]: getEmailSyncQueue,
+    [QUEUE_NAMES.EMBEDDING_GENERATION]: getEmbeddingGenerationQueue,
   };
 
   const getQueue = getters[queueName];

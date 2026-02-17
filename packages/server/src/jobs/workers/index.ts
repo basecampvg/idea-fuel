@@ -9,3 +9,4 @@ export {
   createResearchCancelWorker,
 } from './researchPipelineWorker';
 export { createSparkPipelineWorker } from './sparkPipelineWorker';
+export { createEmbeddingWorker } from './embeddingWorker';
