@@ -12,17 +12,13 @@ import {
   convertToModelMessages,
   type UIMessage,
   stepCountIs,
-  createIdGenerator,
 } from 'ai';
 import { anthropic } from '@ai-sdk/anthropic';
 import { auth } from '@/lib/auth';
-import { db } from '@forge/server/db/drizzle';
+import { db, schema, createAgentTools, checkAgentRateLimit } from '@forge/server';
+import type { AgentMessageRow } from '@forge/server';
 import { eq, and } from 'drizzle-orm';
-import { users, projects, agentConversations } from '@forge/server/db/schema';
-import { createAgentTools } from '@forge/server/services/agent-tools';
 import { agentChatRequestSchema } from '@forge/shared/validators';
-import { checkAgentRateLimit } from '@forge/server/lib/agent-rate-limit';
-import type { AgentMessageRow } from '@forge/server/db/schema';
 
 export const maxDuration = 60;
 
@@ -35,13 +31,14 @@ export async function POST(req: Request) {
 
   // 1. Auth check
   const session = await auth();
-  if (!session?.user?.id) {
+  const userId = session?.user?.id;
+  if (!userId) {
     return new Response('Unauthorized', { status: 401 });
   }
 
   // 2. Subscription check (PRO+)
   const user = await db.query.users.findFirst({
-    where: eq(users.id, session.user.id),
+    where: eq(schema.users.id, userId),
     columns: { id: true, subscription: true },
   });
   if (!user || user.subscription === 'FREE') {
@@ -85,7 +82,7 @@ export async function POST(req: Request) {
 
   // 4. Ownership check
   const project = await db.query.projects.findFirst({
-    where: and(eq(projects.id, projectId), eq(projects.userId, session.user.id)),
+    where: and(eq(schema.projects.id, projectId), eq(schema.projects.userId, userId)),
     columns: { id: true, title: true, description: true, status: true, notes: true },
   });
   if (!project) {
@@ -93,7 +90,7 @@ export async function POST(req: Request) {
   }
 
   // 5. Create tools scoped to this project
-  const tools = createAgentTools(projectId, session.user.id);
+  const tools = createAgentTools(projectId, userId);
 
   // 6. Build system prompt
   const systemPrompt = buildSystemPrompt(project);
@@ -104,19 +101,18 @@ export async function POST(req: Request) {
     system: systemPrompt,
     messages: await convertToModelMessages(messages as UIMessage[]),
     tools,
-    maxSteps: 10,
+    stopWhen: stepCountIs(10),
   });
 
   // Server-side persistence: save after stream completes (even if client disconnects)
   return result.toUIMessageStreamResponse({
-    sendReasoning: false,
-    onFinish: async ({ response }) => {
+    onFinish: async ({ responseMessage }) => {
       try {
         await saveConversation(
           projectId,
-          session.user!.id,
+          userId,
           messages,
-          response.messages
+          responseMessage
         );
       } catch (error) {
         console.error('[AgentChat] Failed to save conversation:', error);
@@ -157,17 +153,25 @@ ${project.notes ? `- **Notes:** ${project.notes.slice(0, 500)}${project.notes.le
 - Use bullet points for lists of findings`;
 }
 
+/** Extract text from a UIMessage's parts array */
+function getTextFromParts(parts: Array<Record<string, unknown>>): string {
+  return parts
+    .filter((p) => p.type === 'text')
+    .map((p) => (p.text as string) || '')
+    .join('');
+}
+
 async function saveConversation(
   projectId: string,
   userId: string,
-  userMessages: Array<{ id: string; role: string; content: string }>,
-  assistantMessages: Array<{ role: string; content: Array<{ type: string; text?: string }> }>
+  userMessages: Array<{ id: string; role: string; parts: Array<Record<string, unknown>> }>,
+  responseMessage: UIMessage
 ) {
   // Get or create conversation
   const existing = await db.query.agentConversations.findFirst({
     where: and(
-      eq(agentConversations.projectId, projectId),
-      eq(agentConversations.userId, userId),
+      eq(schema.agentConversations.projectId, projectId),
+      eq(schema.agentConversations.userId, userId),
     ),
   });
 
@@ -176,30 +180,27 @@ async function saveConversation(
     ...(existing?.messages as AgentMessageRow[] || []),
   ];
 
-  // Add new user message (last one)
+  // Add new user message (last one from request)
   const lastUserMsg = userMessages[userMessages.length - 1];
   if (lastUserMsg && lastUserMsg.role === 'user') {
     allMessages.push({
       id: lastUserMsg.id,
       role: 'user',
-      content: lastUserMsg.content,
+      content: getTextFromParts(lastUserMsg.parts),
       timestamp: new Date().toISOString(),
     });
   }
 
-  // Add assistant response
-  for (const msg of assistantMessages) {
-    if (msg.role === 'assistant') {
-      const textParts = msg.content?.filter((p) => p.type === 'text') || [];
-      const text = textParts.map((p) => p.text || '').join('');
-      if (text) {
-        allMessages.push({
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: text,
-          timestamp: new Date().toISOString(),
-        });
-      }
+  // Extract text from the assistant response UIMessage parts
+  if (responseMessage.role === 'assistant' && responseMessage.parts) {
+    const text = getTextFromParts(responseMessage.parts as Array<{ type: string; text?: string }>);
+    if (text) {
+      allMessages.push({
+        id: responseMessage.id || crypto.randomUUID(),
+        role: 'assistant',
+        content: text,
+        timestamp: new Date().toISOString(),
+      });
     }
   }
 
@@ -207,14 +208,14 @@ async function saveConversation(
 
   if (existing) {
     await db
-      .update(agentConversations)
+      .update(schema.agentConversations)
       .set({
         messages: allMessages,
         messageCount,
       })
-      .where(eq(agentConversations.id, existing.id));
+      .where(eq(schema.agentConversations.id, existing.id));
   } else {
-    await db.insert(agentConversations).values({
+    await db.insert(schema.agentConversations).values({
       projectId,
       userId,
       messages: allMessages,

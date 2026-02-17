@@ -1,7 +1,8 @@
 'use client';
 
-import { useRef, useEffect, useCallback, useState } from 'react';
-import { useChat } from 'ai/react';
+import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport, type UIMessage } from 'ai';
 import { X, Bot, RotateCcw } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 import { useAgentSidebar, AGENT_SIDEBAR_WIDTH } from './agent-sidebar-context';
@@ -17,6 +18,14 @@ const SUGGESTED_PROMPTS = [
   'What market trends support this idea?',
   'Write an elevator pitch based on my research',
 ];
+
+/** Extract text content from a UIMessage's parts array */
+function getMessageText(message: UIMessage): string {
+  return message.parts
+    .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+    .map((p) => p.text)
+    .join('');
+}
 
 export function AgentSidebar() {
   const { isOpen, close, projectId } = useAgentSidebar();
@@ -41,30 +50,44 @@ export function AgentSidebar() {
   // Archive conversation mutation
   const archiveConversation = trpc.agent.archiveConversation.useMutation();
 
-  // AI SDK chat hook
+  // Convert stored messages to UIMessage format
+  const initialMessages = useMemo<UIMessage[]>(() => {
+    if (!conversation?.messages) return [];
+    return (conversation.messages as Array<{ id: string; role: string; content: string }>).map(
+      (m) => ({
+        id: m.id,
+        role: m.role as 'user' | 'assistant',
+        parts: [{ type: 'text' as const, text: m.content }],
+      })
+    );
+  }, [conversation?.messages]);
+
+  // Create transport with projectId in body
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: '/api/agent/chat',
+        body: { projectId },
+      }),
+    [projectId]
+  );
+
+  // AI SDK v6 chat hook
   const {
     messages,
-    isLoading,
+    status,
     stop,
-    append,
+    sendMessage,
     setMessages,
   } = useChat({
-    api: '/api/agent/chat',
-    body: { projectId },
-    initialMessages: conversation?.messages
-      ? (conversation.messages as Array<{ id: string; role: 'user' | 'assistant'; content: string }>).map(
-          (m) => ({
-            id: m.id,
-            role: m.role as 'user' | 'assistant',
-            content: m.content,
-          })
-        )
-      : [],
-    onFinish(message) {
+    transport,
+    messages: initialMessages,
+    onFinish({ message }) {
       setChatError(null);
-      if (message.content.includes('CONFIRM_INSIGHT')) {
+      const text = getMessageText(message);
+      if (text.includes('CONFIRM_INSIGHT')) {
         try {
-          const match = message.content.match(/\{[^}]*"action"\s*:\s*"CONFIRM_INSIGHT"[^}]*\}/);
+          const match = text.match(/\{[^}]*"action"\s*:\s*"CONFIRM_INSIGHT"[^}]*\}/);
           if (match) {
             const insight = JSON.parse(match[0]);
             setPendingInsight({
@@ -78,7 +101,7 @@ export function AgentSidebar() {
         }
       }
     },
-    onError(error) {
+    onError(error: Error) {
       if (error.message.includes('429') || error.message.includes('Rate limit')) {
         setChatError('You\'ve reached the message limit. Please wait a few minutes before sending another message.');
       } else if (error.message.includes('504') || error.message.includes('timeout')) {
@@ -88,6 +111,8 @@ export function AgentSidebar() {
       }
     },
   });
+
+  const isLoading = status === 'submitted' || status === 'streaming';
 
   // Confirm insight mutation
   const utils = trpc.useUtils();
@@ -108,27 +133,24 @@ export function AgentSidebar() {
   // Reset messages when conversation data loads
   useEffect(() => {
     if (conversation?.messages) {
-      const msgs = (conversation.messages as Array<{ id: string; role: string; content: string }>).map(
+      const msgs: UIMessage[] = (conversation.messages as Array<{ id: string; role: string; content: string }>).map(
         (m) => ({
           id: m.id,
           role: m.role as 'user' | 'assistant',
-          content: m.content,
+          parts: [{ type: 'text' as const, text: m.content }],
         })
       );
       setMessages(msgs);
     }
-  }, [conversation?.id]); // Only when conversation ID changes
+  }, [conversation?.id, setMessages]);
 
   const handleSend = useCallback(
     (text: string) => {
       if (!projectId) return;
       setChatError(null);
-      append({
-        role: 'user',
-        content: text,
-      });
+      sendMessage({ text });
     },
-    [projectId, append]
+    [projectId, sendMessage]
   );
 
   const handleClearChat = useCallback(() => {
@@ -150,12 +172,13 @@ export function AgentSidebar() {
 
   const handleConfirmInsight = useCallback(() => {
     if (!pendingInsight || !projectId || !conversation?.id) return;
+    const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
     confirmInsight.mutate({
       projectId,
       conversationId: conversation.id,
       title: pendingInsight.title,
       content: pendingInsight.content,
-      prompt: messages[messages.length - 2]?.content || '',
+      prompt: lastUserMsg ? getMessageText(lastUserMsg) : '',
       reportId: pendingInsight.reportId,
     });
   }, [pendingInsight, projectId, conversation?.id, confirmInsight, messages]);
@@ -248,7 +271,7 @@ export function AgentSidebar() {
               <AgentMessage
                 key={message.id}
                 role={message.role as 'user' | 'assistant'}
-                content={message.content}
+                content={getMessageText(message)}
               />
             ))}
 

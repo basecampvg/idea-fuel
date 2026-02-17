@@ -20,7 +20,7 @@ export function createAgentTools(projectId: string, userId: string) {
         'Search the project knowledge base for relevant information. ' +
         'Searches across research data, reports, interview transcripts, and notes ' +
         'using semantic similarity. Use when user asks about their project data.',
-      parameters: z.object({
+      inputSchema: z.object({
         query: z.string().describe('Natural language search query'),
         sourceTypes: z
           .array(z.enum(['REPORT', 'RESEARCH', 'INTERVIEW', 'NOTES', 'SERPAPI']))
@@ -48,7 +48,7 @@ export function createAgentTools(projectId: string, userId: string) {
         'Generate a content block to add to the report Agent Insights section. ' +
         'Use when user asks you to write analysis, summaries, or new content ' +
         'for their report. Returns a preview — user must confirm before saving.',
-      parameters: z.object({
+      inputSchema: z.object({
         title: z.string().describe('Short title for the insight block'),
         content: z.string().describe('Full content in Markdown format'),
         reportId: z.string().optional().describe('Target report ID'),
@@ -68,7 +68,7 @@ export function createAgentTools(projectId: string, userId: string) {
       description:
         'Get the current project metadata, status, and available reports/research. ' +
         'Use to understand what data is available before answering questions.',
-      parameters: z.object({}),
+      inputSchema: z.object({}),
       execute: async () => {
         const project = await db.query.projects.findFirst({
           where: eq(projects.id, projectId),
@@ -108,7 +108,7 @@ export function createAgentTools(projectId: string, userId: string) {
       description:
         'Explain a Forge product feature or concept. Use when users ask about ' +
         'interview modes, report types, research phases, or general product guidance.',
-      parameters: z.object({
+      inputSchema: z.object({
         topic: z.string().describe('Feature or concept to explain'),
       }),
       execute: async ({ topic }) => {

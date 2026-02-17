@@ -19,3 +19,8 @@ export {
 
 // Config service for runtime configuration
 export { configService, DEFAULT_CONFIGS, type ConfigDefinition } from './services/config';
+
+// Agent tools and utilities
+export { createAgentTools } from './services/agent-tools';
+export { checkAgentRateLimit } from './lib/agent-rate-limit';
+export type { AgentMessageRow } from './db/schema';
