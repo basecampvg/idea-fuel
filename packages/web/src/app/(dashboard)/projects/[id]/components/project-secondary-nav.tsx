@@ -23,6 +23,7 @@ import {
   Compass,
   BarChart3,
   ArrowLeft,
+  Sparkles,
 } from 'lucide-react';
 
 interface NavItem {
@@ -87,6 +88,7 @@ function getReportItems(projectId: string): NavItem[] {
     { label: 'Business Plan', href: `${base}/business-plan`, icon: FileText },
     { label: 'Positioning', href: `${base}/positioning`, icon: Compass },
     { label: 'Competitive Analysis', href: `${base}/competitive-analysis`, icon: BarChart3 },
+    { label: 'AI Insights', href: `/projects/${projectId}/insights`, icon: Sparkles },
   ];
 }
 

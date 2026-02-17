@@ -4,3 +4,4 @@ export { AgentMessage, AgentTypingIndicator } from './agent-message';
 export { AgentInput } from './agent-input';
 export { AgentInsightPreview } from './agent-insight-preview';
 export { AgentUpgradePrompt } from './agent-upgrade-prompt';
+export { AgentInsightsSection } from './agent-insights-section';

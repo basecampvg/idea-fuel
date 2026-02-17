@@ -11,6 +11,7 @@ import { NextStepPromotion } from './components/next-step-promotion';
 import { UserStory, type UserStoryData } from './components/user-story';
 import { ScoreCards } from './components/score-cards';
 import { DownloadsSection } from './components/download-card';
+import { AgentInsightsSection } from '@/components/agent/agent-insights-section';
 import { Trash2 } from 'lucide-react';
 import type { SparkResult, InterviewMode } from '@forge/shared';
 import { getResearchJourneyState } from '@forge/shared';
@@ -147,6 +148,9 @@ export default function ProjectOverviewPage() {
           />
         </div>
       )}
+
+      {/* Agent Insights — shown for any complete project */}
+      {project.status === 'COMPLETE' && <AgentInsightsSection />}
 
       {/* Delete button */}
       <div className="pt-4 border-t border-border">
