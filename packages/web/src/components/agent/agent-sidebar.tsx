@@ -11,6 +11,7 @@ import { AgentInput } from './agent-input';
 import { AgentInsightPreview } from './agent-insight-preview';
 import { AgentUpgradePrompt } from './agent-upgrade-prompt';
 import { TOP_BAR_HEIGHT } from '@/components/layout/sidebar-context';
+import { useSubscriptionContext } from '@/components/subscription/subscription-context';
 
 const SUGGESTED_PROMPTS = [
   'What are the biggest pain points my research identified?',
@@ -37,9 +38,9 @@ export function AgentSidebar() {
   } | null>(null);
   const [chatError, setChatError] = useState<string | null>(null);
 
-  // Check subscription tier
-  const { data: user } = trpc.user.me.useQuery(undefined, { staleTime: 60_000 });
-  const isPro = user?.subscription !== 'FREE';
+  // Check subscription tier (uses same context as nav bar, respects dev override)
+  const { tier } = useSubscriptionContext();
+  const isPro = tier !== 'FREE';
 
   // Load existing conversation
   const { data: conversation } = trpc.agent.getConversation.useQuery(
