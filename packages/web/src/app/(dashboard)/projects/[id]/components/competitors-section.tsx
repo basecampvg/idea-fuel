@@ -1,7 +1,8 @@
 'use client';
 
-import { Swords, ThumbsUp, ThumbsDown, ExternalLink, Target } from 'lucide-react';
+import { Swords, Building2, ExternalLink, Check, X } from 'lucide-react';
 import { CollapsibleSection } from './collapsible-section';
+import { ThreatBar } from './ui/threat-bar';
 
 export interface Competitor {
   name: string;
@@ -24,112 +25,96 @@ interface CompetitorsSectionProps {
   subtitle?: string;
 }
 
-function CompetitorCard({ competitor }: { competitor: Competitor }) {
-  const hasMeta = competitor.fundingStage || competitor.estimatedRevenue || competitor.pricingModel || competitor.targetSegment;
+function deriveThreatScore(competitor: Competitor, index: number): number {
+  const vuln = (competitor.vulnerability ?? '').toLowerCase();
+  if (vuln.includes('direct') || vuln.includes('primary')) return 8;
+
+  const funding = (competitor.fundingStage ?? '').toLowerCase();
+  if (funding.includes('series')) return 7;
+
+  const desc = (competitor.description ?? '').toLowerCase();
+  const pricing = (competitor.pricingModel ?? '').toLowerCase();
+  if (desc.includes('free') || pricing === 'free' || pricing.includes('freemium')) return 5;
+
+  // Fall back to position-based: earlier = more threatening
+  return Math.max(4, 8 - index);
+}
+
+function truncate(text: string, max: number): string {
+  if (text.length <= max) return text;
+  return text.slice(0, max - 1).trimEnd() + '\u2026';
+}
+
+function CompetitorCard({ competitor, index }: { competitor: Competitor; index: number }) {
+  const threatScore = deriveThreatScore(competitor, index);
 
   return (
-    <div className="p-4 rounded-xl bg-card border border-border">
-      <div className="flex items-start justify-between gap-2 mb-1">
-        <h3 className="text-sm font-semibold text-foreground">{competitor.name}</h3>
-        {competitor.website && (
-          <a
-            href={competitor.website}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
-          >
-            <ExternalLink className="w-3 h-3" />
-          </a>
-        )}
-      </div>
-      <p className="text-xs text-muted-foreground mb-3">{competitor.description}</p>
-
-      {/* Metadata badges */}
-      {hasMeta && (
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {competitor.fundingStage && (
-            <span className="text-[10px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
-              {competitor.fundingStage}
-            </span>
-          )}
-          {competitor.estimatedRevenue && (
-            <span className="text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
-              {competitor.estimatedRevenue}
-            </span>
-          )}
-          {competitor.pricingModel && (
-            <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              {competitor.pricingModel}
-            </span>
-          )}
-          {competitor.targetSegment && (
-            <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
-              <Target className="w-2.5 h-2.5" />
-              {competitor.targetSegment}
-            </span>
+    <div className="flex items-center gap-6 p-4 rounded-lg bg-card border border-border hover:shadow-sm transition-shadow">
+      {/* Left: info */}
+      <div className="flex-1 min-w-0">
+        <div className="font-semibold text-sm flex items-center gap-1.5">
+          <Building2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+          <span className="truncate">{competitor.name}</span>
+          {competitor.website && (
+            <a
+              href={competitor.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+            >
+              <ExternalLink className="w-3 h-3" />
+            </a>
           )}
         </div>
-      )}
+        {(competitor.fundingStage || competitor.pricingModel) && (
+          <div className="text-[11px] text-muted-foreground font-mono mt-0.5 flex gap-4">
+            {competitor.fundingStage && <span>{competitor.fundingStage}</span>}
+            {competitor.pricingModel && <span>{competitor.pricingModel}</span>}
+          </div>
+        )}
+        {competitor.description && (
+          <div className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">
+            {competitor.description}
+          </div>
+        )}
+      </div>
 
-      {competitor.positioning && (
-        <p className="text-xs text-muted-foreground italic mb-3">
-          &ldquo;{competitor.positioning}&rdquo;
-        </p>
-      )}
+      {/* Middle: threat bar */}
+      <ThreatBar score={threatScore} />
 
-      <div className="grid grid-cols-2 gap-3">
-        {/* Strengths */}
+      {/* Right: strengths/weaknesses */}
+      <div className="hidden md:flex gap-6 text-[11px] shrink-0">
         {competitor.strengths.length > 0 && (
           <div>
-            <div className="flex items-center gap-1 mb-2">
-              <ThumbsUp className="w-3 h-3 text-primary" />
-              <span className="text-xs text-muted-foreground">Strengths</span>
-            </div>
-            <ul className="space-y-1">
-              {competitor.strengths.map((strength, i) => (
-                <li key={i} className="text-xs text-muted-foreground flex items-start gap-1">
-                  <span className="text-primary shrink-0">+</span>
-                  <span>{strength}</span>
+            <h5 className="text-[9px] font-bold uppercase tracking-wider text-emerald-500 font-mono mb-0.5">
+              Strengths
+            </h5>
+            <ul className="space-y-0.5">
+              {competitor.strengths.slice(0, 2).map((s, i) => (
+                <li key={i} className="flex items-start gap-1 text-muted-foreground">
+                  <Check className="w-3 h-3 text-emerald-500 mt-0.5 shrink-0" />
+                  <span>{truncate(s, 24)}</span>
                 </li>
               ))}
             </ul>
           </div>
         )}
-
-        {/* Weaknesses */}
         {competitor.weaknesses.length > 0 && (
           <div>
-            <div className="flex items-center gap-1 mb-2">
-              <ThumbsDown className="w-3 h-3 text-[#ef4444]" />
-              <span className="text-xs text-muted-foreground">Weaknesses</span>
-            </div>
-            <ul className="space-y-1">
-              {competitor.weaknesses.map((weakness, i) => (
-                <li key={i} className="text-xs text-muted-foreground flex items-start gap-1">
-                  <span className="text-[#ef4444] shrink-0">-</span>
-                  <span>{weakness}</span>
+            <h5 className="text-[9px] font-bold uppercase tracking-wider text-red-500 font-mono mb-0.5">
+              Weaknesses
+            </h5>
+            <ul className="space-y-0.5">
+              {competitor.weaknesses.slice(0, 2).map((w, i) => (
+                <li key={i} className="flex items-start gap-1 text-muted-foreground">
+                  <X className="w-3 h-3 text-red-500 mt-0.5 shrink-0" />
+                  <span>{truncate(w, 24)}</span>
                 </li>
               ))}
             </ul>
           </div>
         )}
       </div>
-
-      {/* Key Differentiator */}
-      {competitor.keyDifferentiator && (
-        <div className="mt-3 pt-2 border-t border-border/50">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Key Differentiator</p>
-          <p className="text-xs text-foreground/80">{competitor.keyDifferentiator}</p>
-        </div>
-      )}
-
-      {/* Vulnerability */}
-      {competitor.vulnerability && (
-        <div className="mt-2 p-2 rounded-lg bg-red-500/5 border border-red-500/10">
-          <p className="text-[10px] text-red-400/80 uppercase tracking-wider mb-0.5">Vulnerability</p>
-          <p className="text-xs text-red-400/70">{competitor.vulnerability}</p>
-        </div>
-      )}
     </div>
   );
 }
@@ -146,9 +131,9 @@ export function CompetitorsSection({ competitors, title = 'Competitive Landscape
       title={title}
       subtitle={displaySubtitle}
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="flex flex-col gap-2">
         {competitors.map((competitor, i) => (
-          <CompetitorCard key={i} competitor={competitor} />
+          <CompetitorCard key={i} competitor={competitor} index={i} />
         ))}
       </div>
     </CollapsibleSection>

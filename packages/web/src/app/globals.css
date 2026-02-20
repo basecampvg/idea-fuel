@@ -3,6 +3,8 @@
 /* Fonts loaded via next/font in layout.tsx — no external CSS needed */
 @import "tw-animate-css";
 
+@plugin '@tailwindcss/typography';
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -10,16 +12,16 @@
 
   /* Accent Gradient */
   --gradient-accent: linear-gradient(135deg,
-    hsl(10, 80%, 50%) 0%,
-    hsl(10, 70%, 55%) 50%,
-    hsl(10, 50%, 65%) 100%);
+    hsl(7, 80%, 52%) 0%,
+    hsl(7, 70%, 57%) 50%,
+    hsl(7, 50%, 65%) 100%);
 
   /* Radius */
   --radius: 0.625rem;
 
   /* Typography — values injected by next/font CSS variables */
-  --font-sans: var(--font-sans, 'Inter', system-ui, sans-serif);
-  --font-display: var(--font-display, 'Space Grotesk', 'Inter', system-ui, sans-serif);
+  --font-sans: var(--font-sans, 'Geist', system-ui, sans-serif);
+  --font-mono: var(--font-mono, 'Geist Mono', monospace);
 
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -32,35 +34,35 @@
 
 html.light {
   /* Core Colors */
-  --background: 40 33% 97%;
-  --foreground: 0 0% 17%;
-  --card: 0 0% 90%;
-  --card-foreground: 0 0% 17%;
-  --popover: 0 0% 90%;
-  --popover-foreground: 0 0% 17%;
+  --background: 36 56% 97%;
+  --foreground: 0 0% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 10%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 10%;
 
-  /* Primary (#D24421) - buttons and accents */
-  --primary: 13 73% 48%;
+  /* Primary - #E8513D */
+  --primary: 7 80% 57%;
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary (darkened accent) */
-  --secondary: 13 73% 38%;
+  /* Secondary */
+  --secondary: 7 73% 47%;
   --secondary-foreground: 0 0% 100%;
 
-  /* Accent (same as primary) */
-  --accent: 13 73% 48%;
+  /* Accent */
+  --accent: 7 80% 57%;
   --accent-foreground: 0 0% 100%;
 
   /* Muted */
-  --muted: 30 5% 93%;
-  --muted-foreground: 0 0% 45%;
+  --muted: 33 10% 93%;
+  --muted-foreground: 0 0% 40%;
 
-  /* Borders & Inputs (#D4D3D1) */
-  --border: 30 3% 82%;
-  --input: 30 3% 82%;
-  --ring: 13 73% 48%;
+  /* Borders & Inputs */
+  --border: 33 19% 89%;
+  --input: 33 19% 89%;
+  --ring: 7 80% 57%;
 
-  /* Status Colors */
+  /* Status Colors - keep existing */
   --destructive: 0 84% 50%;
   --destructive-foreground: 0 0% 100%;
   --success: 142 71% 40%;
@@ -70,45 +72,45 @@ html.light {
   --info: 217 91% 50%;
   --info-foreground: 0 0% 100%;
 
-  /* Score Colors - darkened for warm bg visibility */
-  --score-opportunity: 10 80% 35%;
+  /* Score Colors */
+  --score-opportunity: 7 80% 35%;
   --score-problem: 326 75% 42%;
-  --score-feasibility: 10 75% 40%;
+  --score-feasibility: 7 75% 40%;
   --score-whynow: 260 60% 45%;
 
   /* Chart Colors */
-  --chart-1: 13 73% 48%;
+  --chart-1: 7 80% 57%;
   --chart-2: 260 55% 50%;
   --chart-3: 200 75% 45%;
   --chart-4: 180 65% 40%;
   --chart-5: 45 90% 45%;
 
   /* Chart Element Colors */
-  --chart-stroke: 13 73% 48%;
+  --chart-stroke: 7 80% 57%;
   --chart-axis: 0 0% 45%;
-  --chart-grid: 30 3% 82%;
+  --chart-grid: 33 19% 89%;
   --chart-tooltip-bg: 0 0% 95%;
-  --chart-tooltip-border: 30 3% 82%;
-  --chart-tooltip-text: 0 0% 17%;
+  --chart-tooltip-border: 33 19% 89%;
+  --chart-tooltip-text: 0 0% 10%;
 
   /* Sidebar */
-  --sidebar: 40 20% 95%;
-  --sidebar-foreground: 0 0% 17%;
-  --sidebar-primary: 13 73% 48%;
+  --sidebar: 36 30% 95%;
+  --sidebar-foreground: 0 0% 10%;
+  --sidebar-primary: 7 80% 57%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 30 10% 90%;
-  --sidebar-accent-foreground: 0 0% 17%;
-  --sidebar-border: 30 3% 82%;
-  --sidebar-ring: 13 73% 48%;
+  --sidebar-accent: 33 10% 90%;
+  --sidebar-accent-foreground: 0 0% 10%;
+  --sidebar-border: 33 19% 89%;
+  --sidebar-ring: 7 80% 57%;
 
-  /* Aurora Background - light subtle fade */
-  --aurora-end: 30 10% 90%;
+  /* Aurora Background */
+  --aurora-end: 33 10% 90%;
 
-  /* Accent Gradient - warm, pops against off-white */
+  /* Accent Gradient */
   --gradient-accent: linear-gradient(135deg,
-    hsl(13, 73%, 48%) 0%,
-    hsl(20, 80%, 55%) 50%,
-    hsl(30, 85%, 62%) 100%);
+    hsl(7, 80%, 57%) 0%,
+    hsl(15, 75%, 60%) 50%,
+    hsl(25, 70%, 65%) 100%);
 }
 
 /* ===== BASE STYLES ===== */
@@ -148,6 +150,9 @@ body {
 /* ===== TAILWIND THEME EXTENSIONS ===== */
 
 @theme {
+  /* Font families */
+  --font-family-mono: var(--font-mono);
+
   /* Colors using HSL variables */
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -880,42 +885,42 @@ body {
 }
 
 /* ===== DARK THEME (Default) ===== */
-/* Base: #11100E (near-black with warm undertone) */
+/* Base: #121211 (near-black, neutral) */
 .dark,
 :root {
   /* Core Colors */
-  --background: 40 10% 6%;
-  --foreground: 40 5% 90%;
-  --card: 40 8% 10%;
-  --card-foreground: 40 5% 90%;
-  --popover: 40 8% 10%;
-  --popover-foreground: 40 5% 90%;
+  --background: 60 3% 7%;
+  --foreground: 0 0% 91%;
+  --card: 0 0% 8%;
+  --card-foreground: 0 0% 91%;
+  --popover: 0 0% 8%;
+  --popover-foreground: 0 0% 91%;
 
-  /* Primary (Logo Orange) - ideationLab button, active states */
-  --primary: 10 80% 55%;
+  /* Primary - #E8513D */
+  --primary: 7 80% 57%;
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary (Muted Orange) */
-  --secondary: 10 40% 35%;
+  /* Secondary */
+  --secondary: 7 40% 35%;
   --secondary-foreground: 0 0% 100%;
 
-  /* Accent (Logo Orange) - Links, report pills */
-  --accent: 10 80% 55%;
+  /* Accent - same as primary */
+  --accent: 7 80% 57%;
   --accent-foreground: 0 0% 100%;
 
-  /* Muted - Tertiary text */
-  --muted: 40 6% 15%;
-  --muted-foreground: 40 5% 55%;
+  /* Muted */
+  --muted: 0 0% 12%;
+  --muted-foreground: 0 0% 55%;
 
-  /* Borders & Inputs - very subtle, barely visible separation */
-  --border: 40 6% 8%;
-  --input: 40 6% 12%;
-  --ring: 10 80% 55%;
+  /* Borders & Inputs */
+  --border: 0 0% 16%;
+  --input: 0 0% 12%;
+  --ring: 7 80% 57%;
 
   /* Status Colors */
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --success: 10 80% 50%;
+  --success: 142 71% 40%;
   --success-foreground: 0 0% 100%;
   --warning: 38 92% 50%;
   --warning-foreground: 222 47% 11%;
@@ -923,9 +928,9 @@ body {
   --info-foreground: 0 0% 100%;
 
   /* Score Colors */
-  --score-opportunity: 10 76% 45%;
+  --score-opportunity: 7 76% 45%;
   --score-problem: 350 80% 60%;
-  --score-feasibility: 10 70% 50%;
+  --score-feasibility: 7 70% 50%;
   --score-whynow: 260 60% 55%;
 
   /* Chart Colors */
@@ -936,24 +941,24 @@ body {
   --chart-5: 38 92% 50%;
 
   /* Chart Element Colors */
-  --chart-stroke: 10 80% 55%;
-  --chart-axis: 40 5% 55%;
+  --chart-stroke: 7 80% 57%;
+  --chart-axis: 0 0% 55%;
   --chart-grid: 0 0% 100% / 0.08;
-  --chart-tooltip-bg: 40 8% 9%;
-  --chart-tooltip-border: 40 6% 18%;
+  --chart-tooltip-bg: 0 0% 6%;
+  --chart-tooltip-border: 0 0% 18%;
   --chart-tooltip-text: 0 0% 100%;
 
-  /* Aurora Background - dark fade */
-  --aurora-end: 40 8% 12%;
+  /* Aurora Background */
+  --aurora-end: 0 0% 8%;
 
   /* Sidebar */
-  --sidebar: 40 8% 10%;
-  --sidebar-foreground: 40 5% 90%;
+  --sidebar: 0 0% 7%;
+  --sidebar-foreground: 0 0% 91%;
   --sidebar-primary: 160 84% 44%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 40 6% 15%;
-  --sidebar-accent-foreground: 40 5% 90%;
-  --sidebar-border: 40 6% 8%;
+  --sidebar-accent: 0 0% 12%;
+  --sidebar-accent-foreground: 0 0% 91%;
+  --sidebar-border: 0 0% 16%;
   --sidebar-ring: 160 84% 44%;
 }
 
