@@ -8,6 +8,7 @@ import { WaitlistForm } from './components/waitlist-form';
 import { FlameHero } from './components/flame-hero';
 import { PhoneMockup } from './components/phone-mockup';
 import { ScrollingReportGrid } from './components/scrolling-report-grid';
+import { ReportDashboard } from './components/report-dashboard';
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -87,34 +88,48 @@ export default function LandingPage() {
             scrub: 1,
             anticipatePin: 1,
             invalidateOnRefresh: true,
-            end: () => `+=${window.innerWidth * (panels.length - 1) * 1.5}`,
+            end: () => {
+              const isMobile = window.innerWidth < 768;
+              const base = isMobile ? window.innerHeight : window.innerWidth;
+              const multiplier = isMobile ? 2.5 : 1.5;
+              return `+=${base * (panels.length - 1) * multiplier}`;
+            },
           },
         });
 
-        // Timeline segments:
-        // 0.00 → 0.25 : Slide 1 → Slide 2 transition
-        // 0.25 → 0.70 : Dwell on slide 2 (read content)
-        // 0.70 → 0.92 : Slide 2 → Slide 3 transition
-        // 0.92 → 1.00 : Dwell on slide 3
+        // Timeline segments (4 slides):
+        // 0.00 → 0.10 : Slide 1 → Slide 2 transition
+        // 0.10 → 0.38 : Dwell on slide 2 (read content)
+        // 0.38 → 0.48 : Slide 2 → Slide 3 transition
+        // 0.48 → 0.68 : Dwell on slide 3
+        // 0.68 → 0.78 : Slide 3 → Slide 4 transition
+        // 0.78 → 1.00 : Dwell on slide 4
 
         // Slide 1 → 2
         slideTl.to(panels, {
           xPercent: -100,
           ease: 'none',
-          duration: 0.25,
+          duration: 0.10,
         }, 0);
 
-        // Slide 2 → 3 (after longer dwell)
+        // Slide 2 → 3
         slideTl.to(panels, {
-          xPercent: -100 * (panels.length - 1),
+          xPercent: -200,
           ease: 'none',
-          duration: 0.22,
-        }, 0.70);
+          duration: 0.10,
+        }, 0.38);
+
+        // Slide 3 → 4
+        slideTl.to(panels, {
+          xPercent: -300,
+          ease: 'none',
+          duration: 0.10,
+        }, 0.68);
 
         // Scale up the flame during the first transition
         slideTl.to('[data-anim="flame"]', {
           scale: 2.5,
-          duration: 0.25,
+          duration: 0.10,
           ease: 'power1.in',
         }, 0);
 
@@ -141,8 +156,8 @@ export default function LandingPage() {
             .to('[data-anim="s2-title"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.03')
             .to('[data-anim="s2-body"]', { opacity: 1, y: 0, duration: 0.15 }, '-=0.05');
 
-          // Animate in during the first transition (~10%)
-          slideTl.add(s2Tl, 0.1);
+          // Animate in during the first transition (~5%)
+          slideTl.add(s2Tl, 0.05);
         });
 
         // ─── 4. Slide 3 entrance animations ───
@@ -168,8 +183,35 @@ export default function LandingPage() {
             .to('[data-anim="s3-title"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.03')
             .to('[data-anim="s3-body"]', { opacity: 1, y: 0, duration: 0.15 }, '-=0.05');
 
-          // Animate in during the second transition (~75%)
-          slideTl.add(s3Tl, 0.75);
+          // Animate in during the second transition (~40%)
+          slideTl.add(s3Tl, 0.40);
+        });
+
+        // ─── 5. Slide 4 entrance animations ───
+        mm.add('(prefers-reduced-motion: no-preference)', () => {
+          gsap.set(
+            [
+              '[data-anim="s4-sub"]',
+              '[data-anim="s4-headline"]',
+              '[data-anim="s4-divider"]',
+              '[data-anim="s4-title"]',
+              '[data-anim="s4-body"]',
+            ],
+            { opacity: 0, y: 30 }
+          );
+          gsap.set('[data-anim="s4-dashboard"]', { opacity: 0, scale: 0.95, x: 40 });
+
+          const s4Tl = gsap.timeline();
+          s4Tl
+            .to('[data-anim="s4-sub"]', { opacity: 1, y: 0, duration: 0.15 })
+            .to('[data-anim="s4-headline"]', { opacity: 1, y: 0, duration: 0.15 }, 0.05)
+            .to('[data-anim="s4-dashboard"]', { opacity: 1, scale: 1, x: 0, duration: 0.25 }, 0.1)
+            .to('[data-anim="s4-divider"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.05')
+            .to('[data-anim="s4-title"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.03')
+            .to('[data-anim="s4-body"]', { opacity: 1, y: 0, duration: 0.15 }, '-=0.05');
+
+          // Animate in during the third transition (~70%)
+          slideTl.add(s4Tl, 0.70);
         });
       }
 
@@ -378,6 +420,65 @@ export default function LandingPage() {
               style={{ width: '45%', height: 'calc(100vh - 88px)' }}
             >
               <ScrollingReportGrid className="h-full" />
+            </div>
+          </div>
+        </section>
+
+        {/* ─── Slide 4: Your Report ─── */}
+        <section data-slide className="slide bg-[#161513] pt-[88px]">
+          <div className="mx-auto flex h-[calc(100vh-88px)] w-full max-w-[1800px] items-center gap-12 px-6 lg:gap-20 lg:px-20">
+            {/* Left Column: Text */}
+            <div className="flex-1">
+              <p
+                data-anim="s4-sub"
+                className="font-mono text-base font-light uppercase tracking-[3px] text-[#d4d4d4] sm:text-xl"
+              >
+                what you get
+              </p>
+              <h2
+                data-anim="s4-headline"
+                className="mt-2 font-display text-5xl font-black uppercase leading-[0.9] tracking-[-1.5px] text-[#d4d4d4] sm:text-7xl lg:text-[96px]"
+              >
+                <span className="block">your full</span>
+                <span className="block text-gradient-brand">report</span>
+              </h2>
+
+              {/* Decorative divider */}
+              <div data-anim="s4-divider" className="mt-8 flex max-w-[380px] items-center">
+                <div className="h-[2px] flex-1 bg-[#d4d4d4]" />
+                <div className="ml-1 h-[10px] w-[10px] rounded-full bg-[#e32b1a]" />
+              </div>
+
+              {/* Section title */}
+              <h3
+                data-anim="s4-title"
+                className="mt-10 font-sans text-sm font-bold uppercase tracking-[2px] text-[#e32b1a]"
+              >
+                15+ Report Sections
+              </h3>
+
+              {/* Body copy */}
+              <div data-anim="s4-body" className="mt-4 max-w-[560px] space-y-5 text-sm leading-[27px] text-[#d4d4d4] sm:text-base">
+                <p>
+                  Scores, market sizing, competitor landscapes, positioning
+                  strategy, timing catalysts, and pricing tiers &mdash; all
+                  generated from your interview and deep research pipeline.
+                </p>
+                <p>
+                  Every section is backed by real data, sourced evidence,
+                  and actionable next steps you can execute{' '}
+                  <span className="font-extrabold text-[#e32b1a]">today.</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Right Column: Report Dashboard */}
+            <div
+              data-anim="s4-dashboard"
+              className="hidden flex-shrink-0 lg:block"
+              style={{ width: '45%' }}
+            >
+              <ReportDashboard />
             </div>
           </div>
         </section>
