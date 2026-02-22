@@ -24,12 +24,13 @@ import {
   BarChart3,
   ArrowLeft,
   Sparkles,
+  type LucideIcon,
 } from 'lucide-react';
 
 interface NavItem {
   label: string;
   href: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
 }
 
 interface NavSection {
