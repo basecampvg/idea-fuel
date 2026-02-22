@@ -19,9 +19,13 @@
   /* Radius */
   --radius: 0.625rem;
 
-  /* Typography — values injected by next/font CSS variables */
-  --font-sans: var(--font-sans, 'Geist', system-ui, sans-serif);
-  --font-mono: var(--font-mono, 'Geist Mono', monospace);
+  /* Typography — next/font injects --font-sans, --font-mono, --font-display
+     via classes on <html>. These are just fallbacks if fonts fail to load. */
+
+  /* IDEA FUEL Brand Colors */
+  --brand-red: #e32b1a;
+  --brand-red-end: #db4d40;
+  --brand-bg: #161513;
 
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -150,7 +154,9 @@ body {
 /* ===== TAILWIND THEME EXTENSIONS ===== */
 
 @theme {
-  /* Font families */
+  /* Font families — mono uses var() override of built-in Tailwind utility.
+     Display font can't use var() here (Tailwind resolves @theme at build time,
+     but next/font sets --font-display at runtime). Defined as @layer utility below. */
   --font-family-mono: var(--font-mono);
 
   /* Colors using HSL variables */
@@ -576,6 +582,16 @@ body {
   opacity: 0.8;
 }
 
+/* ===== HORIZONTAL SLIDE PANELS ===== */
+
+.slide {
+  min-width: 100vw;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
 /* ===== LANDING PAGE GLASSMORPHISM ===== */
 
 .landing-glass {
@@ -633,6 +649,33 @@ body {
 }
 
 /* ===== ANIMATIONS ===== */
+
+@keyframes record-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* Scrolls one full SVG width (553px) so the two-copy ticker loops seamlessly */
+@keyframes waveform-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-553px); }
+}
+
+@keyframes scroll-up {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-33.333%); }
+}
+
+@keyframes scroll-down {
+  0%   { transform: translateY(-33.333%); }
+  100% { transform: translateY(0); }
+}
 
 @keyframes fade-in-up {
   from {
@@ -732,8 +775,11 @@ body {
   background-clip: text;
 }
 
-.font-display {
-  font-family: var(--font-display);
+.text-gradient-brand {
+  background: linear-gradient(to right, var(--brand-red) 34%, var(--brand-red-end) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* ===== FOCUS STATES ===== */
@@ -968,5 +1014,11 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
   }
 }

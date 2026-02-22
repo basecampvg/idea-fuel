@@ -2,68 +2,72 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'IdeationLab — Validate Your Business Idea with AI',
+  title: 'Idea Fuel — Stop Guessing. Start Building.',
   description:
-    'Stop guessing. IdeationLab uses AI-powered deep research to validate your business idea in minutes. Market analysis, competitor intel, and timing signals.',
-  metadataBase: new URL('https://ideationlab.ai'),
+    'Idea Fuel replaces the chaos with structured interviews, real research, and comprehensive reports you can put to use immediately.',
+  metadataBase: new URL('https://ideafuel.ai'),
   openGraph: {
-    title: 'IdeationLab — Validate Your Business Idea with AI',
+    title: 'Idea Fuel — Stop Guessing. Start Building.',
     description:
-      'Stop guessing. AI-powered market research validates your business idea in minutes, not months.',
-    url: 'https://ideationlab.ai',
-    siteName: 'IdeationLab',
+      'Structured interviews, real research, and comprehensive reports to validate your business idea.',
+    url: 'https://ideafuel.ai',
+    siteName: 'Idea Fuel',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'IdeationLab — Validate Your Business Idea with AI',
+    title: 'Idea Fuel — Stop Guessing. Start Building.',
     description:
-      'Stop guessing. AI-powered market research validates your business idea in minutes, not months.',
+      'Structured interviews, real research, and comprehensive reports to validate your business idea.',
   },
 };
 
-/**
- * Landing page layout - minimal header, no sidebar
- * Forces dark mode + overrides accent to IdeationLab orange
- */
 export default function LandingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div
-      className="dark min-h-screen bg-background"
-      style={{
-        // Override theme colors for landing page with logo orange (#f15a29)
-        ['--primary' as string]: '15 85% 55%',
-        ['--accent' as string]: '15 70% 60%',
-        ['--gradient-accent' as string]: 'linear-gradient(135deg, hsl(15, 85%, 55%) 0%, hsl(15, 70%, 60%) 50%, hsl(25, 90%, 65%) 100%)',
-      }}
-    >
-      {/* Minimal fixed header with glassmorphism */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-background/80 px-6 py-5 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
+    <div className="min-h-screen bg-[#161513]">
+      {/* Fixed nav — outside ScrollSmoother */}
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#333] bg-[#161513]">
+        <div className="mx-auto flex h-[88px] max-w-[1800px] items-center justify-between px-6 lg:px-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center">
+          <Link href="/" className="flex items-center gap-2.5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/logo.svg"
-              alt="IdeationLab"
-              className="h-16 w-auto sm:h-20"
+              src="/ideafuel-logo.svg"
+              alt="Idea Fuel"
+              className="h-8 w-auto"
             />
+            {/* Brand text */}
+            <span className="font-mono text-xl font-medium uppercase tracking-[3px]">
+              <span className="text-white">idea</span>
+              <span className="text-gradient-brand">fuel</span>
+            </span>
           </Link>
 
-          {/* CTA */}
-          <Link
-            href={
-              process.env.NODE_ENV === 'production'
-                ? `https://app.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'ideationlab.ai'}`
-                : '/dashboard'
-            }
-            className="btn-ideationlab"
-          >
-            Launch App
-          </Link>
+          {/* Nav links */}
+          <nav className="hidden items-center gap-0 sm:flex">
+            <a
+              href="#how-it-works"
+              className="px-5 py-2 text-sm font-semibold uppercase tracking-[1px] text-white transition-colors hover:text-[#e32b1a]"
+            >
+              How It Works
+            </a>
+            <a
+              href="#pricing"
+              className="px-5 py-2 text-sm font-semibold uppercase tracking-[1px] text-white transition-colors hover:text-[#e32b1a]"
+            >
+              Pricing
+            </a>
+            <a
+              href="#start"
+              className="ml-2 px-5 py-2 text-sm font-semibold uppercase tracking-[1px] text-gradient-brand transition-opacity hover:opacity-80"
+            >
+              Start for Free
+            </a>
+          </nav>
         </div>
       </header>
 
@@ -71,27 +75,21 @@ export default function LandingLayout({
       <main>{children}</main>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 px-6 py-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
-          <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} IdeationLab. All rights reserved.
+      <footer className="border-t border-[#333] py-8">
+        <div className="mx-auto flex max-w-[1800px] flex-col items-center justify-between gap-4 px-6 sm:flex-row lg:px-20">
+          <p className="text-sm text-[#928e87]">
+            &copy; {new Date().getFullYear()} Idea Fuel. All rights reserved.
           </p>
           <div className="flex gap-6">
             <Link
-              href="/blog"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Blog
-            </Link>
-            <Link
               href="#"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              className="text-sm text-[#928e87] transition-colors hover:text-white"
             >
               Privacy
             </Link>
             <Link
               href="#"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              className="text-sm text-[#928e87] transition-colors hover:text-white"
             >
               Terms
             </Link>
