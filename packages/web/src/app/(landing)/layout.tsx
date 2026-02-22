@@ -34,7 +34,6 @@ export default function LandingLayout({
         <div className="mx-auto flex h-[88px] max-w-[1800px] items-center justify-between px-6 lg:px-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/ideafuel-logo.svg"
               alt="Idea Fuel"

@@ -24,7 +24,6 @@ export function FlameHero({ className = '' }: { className?: string }) {
 
   return (
     <div ref={containerRef} className={className}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/ideafuel-logo.svg"
         alt="Idea Fuel flame"

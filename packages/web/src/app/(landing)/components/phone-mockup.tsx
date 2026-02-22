@@ -8,7 +8,6 @@ export function PhoneMockup({ className = '' }: { className?: string }) {
       {/* Container — sized to match the iPhone frame aspect ratio (633×1309) */}
       <div className="relative mx-auto w-[300px]">
         {/* iPhone 16 Pro frame image */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/phone/iphone-frame.png"
           alt=""
@@ -33,8 +32,7 @@ export function PhoneMockup({ className = '' }: { className?: string }) {
 
           {/* Flame logo — large and centered */}
           <div className="flex flex-1 items-center justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+                <img
               src="/ideafuel-logo.svg"
               alt="Idea Fuel flame"
               className="h-[175px] w-auto drop-shadow-[0_0_50px_rgba(227,43,26,0.4)]"
@@ -51,15 +49,13 @@ export function PhoneMockup({ className = '' }: { className?: string }) {
           {/* Soundwave — infinite scroll ticker */}
           <div className="mb-4 w-full overflow-hidden" aria-hidden="true">
             <div className="flex w-max animate-[waveform-scroll_8s_linear_infinite]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+                    <img
                 src="/phone/soundwave.svg"
                 alt=""
                 className="h-[55px] w-[553px] shrink-0"
                 draggable={false}
               />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+                    <img
                 src="/phone/soundwave.svg"
                 alt=""
                 className="h-[55px] w-[553px] shrink-0"
