@@ -17,6 +17,7 @@ import {
   ArrowLeft,
   ChevronDown,
   Sparkles,
+  type LucideIcon,
 } from 'lucide-react';
 
 // ideationLab bulb logo
@@ -66,7 +67,7 @@ interface NavSection {
 interface NavItem {
   id: string;
   label: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   href?: string;
   badge?: number;
 }

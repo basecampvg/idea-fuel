@@ -19,6 +19,7 @@ import {
   Columns2,
   PanelLeftOpen,
   MousePointer,
+  type LucideIcon,
 } from 'lucide-react';
 
 // Navigation items
@@ -71,7 +72,7 @@ function ModeSelector() {
     setOpen(false);
   }, [sidebarWidth]);
 
-  const options: { value: SidebarMode; label: string; icon: React.ElementType }[] = [
+  const options: { value: SidebarMode; label: string; icon: LucideIcon }[] = [
     { value: 'collapsed', label: 'Collapsed', icon: Columns2 },
     { value: 'expanded', label: 'Expanded', icon: PanelLeftOpen },
     { value: 'hover', label: 'Auto (hover)', icon: MousePointer },
