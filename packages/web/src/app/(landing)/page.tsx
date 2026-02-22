@@ -187,7 +187,7 @@ export default function LandingPage() {
       <div data-slides className="relative flex overflow-hidden">
         {/* ─── Slide 1: Hero ─── */}
         <section data-slide className="slide pt-[88px]">
-          <div className="mx-auto flex h-[calc(100vh-88px)] w-full max-w-[1800px] items-center gap-12 px-6 lg:gap-20 lg:px-20">
+          <div className="mx-auto flex h-[calc(100vh-88px)] w-full max-w-[1800px] items-start gap-12 px-6 pt-8 md:items-center md:pt-0 lg:gap-20 lg:px-20">
             {/* Left Column: Text + Form */}
             <div className="flex-1">
               {/* Subheading */}
