@@ -19,7 +19,7 @@ export default function LandingPage() {
     () => {
       const mm = gsap.matchMedia();
 
-      // ─── 1. Entrance animations (desktop, motion-ok) ───
+      // ─── 1. Entrance animations for slide 1 (all sizes) ───
       mm.add('(prefers-reduced-motion: no-preference)', () => {
         const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
@@ -77,10 +77,13 @@ export default function LandingPage() {
           );
       });
 
-      // ─── 2. Horizontal slide transition ───
-      const panels = gsap.utils.toArray<HTMLElement>('[data-slide]');
+      // ─── 2. Desktop: horizontal slide transitions (4 main panels) ───
+      mm.add('(min-width: 1024px)', () => {
+        const panels = gsap.utils.toArray<HTMLElement>(
+          '[data-slide]:not([data-mobile-only])'
+        );
+        if (panels.length <= 1) return;
 
-      if (panels.length > 1) {
         const slideTl = gsap.timeline({
           scrollTrigger: {
             trigger: '[data-slides]',
@@ -88,53 +91,37 @@ export default function LandingPage() {
             scrub: 1,
             anticipatePin: 1,
             invalidateOnRefresh: true,
-            end: () => {
-              const isMobile = window.innerWidth < 768;
-              const base = isMobile ? window.innerHeight : window.innerWidth;
-              const multiplier = isMobile ? 2.5 : 1.5;
-              return `+=${base * (panels.length - 1) * multiplier}`;
-            },
+            end: () =>
+              `+=${window.innerWidth * (panels.length - 1) * 1.5}`,
           },
         });
 
-        // Timeline segments (4 slides):
-        // 0.00 → 0.10 : Slide 1 → Slide 2 transition
-        // 0.10 → 0.38 : Dwell on slide 2 (read content)
-        // 0.38 → 0.48 : Slide 2 → Slide 3 transition
+        // Desktop timeline (4 slides):
+        // 0.00 → 0.10 : Slide 1 → Slide 2
+        // 0.10 → 0.38 : Dwell on slide 2
+        // 0.38 → 0.48 : Slide 2 → Slide 3
         // 0.48 → 0.68 : Dwell on slide 3
-        // 0.68 → 0.78 : Slide 3 → Slide 4 transition
+        // 0.68 → 0.78 : Slide 3 → Slide 4
         // 0.78 → 1.00 : Dwell on slide 4
 
-        // Slide 1 → 2
-        slideTl.to(panels, {
-          xPercent: -100,
-          ease: 'none',
-          duration: 0.10,
-        }, 0);
+        slideTl.to(panels, { xPercent: -100, ease: 'none', duration: 0.10 }, 0);
+        slideTl.to(panels, { xPercent: -200, ease: 'none', duration: 0.10 }, 0.38);
+        slideTl.to(panels, { xPercent: -300, ease: 'none', duration: 0.10 }, 0.68);
 
-        // Slide 2 → 3
-        slideTl.to(panels, {
-          xPercent: -200,
-          ease: 'none',
-          duration: 0.10,
-        }, 0.38);
-
-        // Slide 3 → 4
-        slideTl.to(panels, {
-          xPercent: -300,
-          ease: 'none',
-          duration: 0.10,
-        }, 0.68);
-
-        // Scale up the flame during the first transition
+        // Scale flame during first transition
         slideTl.to('[data-anim="flame"]', {
           scale: 2.5,
           duration: 0.10,
           ease: 'power1.in',
         }, 0);
 
-        // ─── 3. Slide 2 entrance animations ───
-        mm.add('(prefers-reduced-motion: no-preference)', () => {
+        // ── Desktop entrance animations ──
+        const motionOk = window.matchMedia(
+          '(prefers-reduced-motion: no-preference)'
+        ).matches;
+
+        if (motionOk) {
+          // Slide 2 entrance
           gsap.set(
             [
               '[data-anim="s2-headline"]',
@@ -155,13 +142,9 @@ export default function LandingPage() {
             .to('[data-anim="s2-divider"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.05')
             .to('[data-anim="s2-title"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.03')
             .to('[data-anim="s2-body"]', { opacity: 1, y: 0, duration: 0.15 }, '-=0.05');
-
-          // Animate in during the first transition (~5%)
           slideTl.add(s2Tl, 0.05);
-        });
 
-        // ─── 4. Slide 3 entrance animations ───
-        mm.add('(prefers-reduced-motion: no-preference)', () => {
+          // Slide 3 entrance
           gsap.set(
             [
               '[data-anim="s3-headline"]',
@@ -182,13 +165,9 @@ export default function LandingPage() {
             .to('[data-anim="s3-divider"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.05')
             .to('[data-anim="s3-title"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.03')
             .to('[data-anim="s3-body"]', { opacity: 1, y: 0, duration: 0.15 }, '-=0.05');
-
-          // Animate in during the second transition (~40%)
           slideTl.add(s3Tl, 0.40);
-        });
 
-        // ─── 5. Slide 4 entrance animations ───
-        mm.add('(prefers-reduced-motion: no-preference)', () => {
+          // Slide 4 entrance
           gsap.set(
             [
               '[data-anim="s4-sub"]',
@@ -209,11 +188,167 @@ export default function LandingPage() {
             .to('[data-anim="s4-divider"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.05')
             .to('[data-anim="s4-title"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.03')
             .to('[data-anim="s4-body"]', { opacity: 1, y: 0, duration: 0.15 }, '-=0.05');
-
-          // Animate in during the third transition (~70%)
           slideTl.add(s4Tl, 0.70);
+        }
+      });
+
+      // ─── 3. Mobile/Tablet: horizontal slide transitions (7 panels) ───
+      mm.add('(max-width: 1023px)', () => {
+        const panels = gsap.utils.toArray<HTMLElement>('[data-slide]');
+        if (panels.length <= 1) return;
+
+        const slideTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: '[data-slides]',
+            pin: true,
+            scrub: 1,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            end: () =>
+              `+=${window.innerHeight * (panels.length - 1)}`,
+          },
         });
-      }
+
+        // Mobile timeline (7 slides):
+        // Hero → Capture text → Phone → Research text → Grid → Report text → Dashboard
+        //
+        // 0.00 → 0.07 : Hero → Capture text
+        // 0.07 → 0.17 : Dwell (read capture text)
+        // 0.17 → 0.24 : Capture text → Phone
+        // 0.24 → 0.34 : Dwell (view phone)
+        // 0.34 → 0.41 : Phone → Research text
+        // 0.41 → 0.51 : Dwell (read research text)
+        // 0.51 → 0.58 : Research text → Grid
+        // 0.58 → 0.68 : Dwell (view grid)
+        // 0.68 → 0.75 : Grid → Report text
+        // 0.75 → 0.85 : Dwell (read report text)
+        // 0.85 → 0.92 : Report text → Dashboard
+        // 0.92 → 1.00 : Dwell (view dashboard)
+
+        const t = 0.07; // transition duration
+
+        slideTl.to(panels, { xPercent: -100, ease: 'none', duration: t }, 0);
+        slideTl.to(panels, { xPercent: -200, ease: 'none', duration: t }, 0.17);
+        slideTl.to(panels, { xPercent: -300, ease: 'none', duration: t }, 0.34);
+        slideTl.to(panels, { xPercent: -400, ease: 'none', duration: t }, 0.51);
+        slideTl.to(panels, { xPercent: -500, ease: 'none', duration: t }, 0.68);
+        slideTl.to(panels, { xPercent: -600, ease: 'none', duration: t }, 0.85);
+
+        // Scale flame during first transition
+        slideTl.to('[data-anim="flame"]', {
+          scale: 2.5,
+          duration: t,
+          ease: 'power1.in',
+        }, 0);
+
+        // ── Mobile entrance animations ──
+        const motionOk = window.matchMedia(
+          '(prefers-reduced-motion: no-preference)'
+        ).matches;
+
+        if (motionOk) {
+          // Slide 2: Capture text entrance (~0.03)
+          gsap.set(
+            [
+              '[data-anim="s2-headline"]',
+              '[data-anim="s2-sub2"]',
+              '[data-anim="s2-divider"]',
+              '[data-anim="s2-title"]',
+              '[data-anim="s2-body"]',
+            ],
+            { opacity: 0, y: 30 }
+          );
+
+          const s2Tl = gsap.timeline();
+          s2Tl
+            .to('[data-anim="s2-headline"]', { opacity: 1, y: 0, duration: 0.15 })
+            .to('[data-anim="s2-sub2"]', { opacity: 1, y: 0, duration: 0.15 }, 0.1)
+            .to('[data-anim="s2-divider"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.05')
+            .to('[data-anim="s2-title"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.03')
+            .to('[data-anim="s2-body"]', { opacity: 1, y: 0, duration: 0.15 }, '-=0.05');
+          slideTl.add(s2Tl, 0.03);
+
+          // Slide 2b: Phone entrance (~0.19)
+          gsap.set('[data-anim="s2b-phone"]', { opacity: 0, scale: 0.9, y: 30 });
+
+          const s2bTl = gsap.timeline();
+          s2bTl.to('[data-anim="s2b-phone"]', {
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            duration: 0.3,
+            ease: 'power2.out',
+          });
+          slideTl.add(s2bTl, 0.19);
+
+          // Slide 3: Research text entrance (~0.36)
+          gsap.set(
+            [
+              '[data-anim="s3-headline"]',
+              '[data-anim="s3-sub"]',
+              '[data-anim="s3-divider"]',
+              '[data-anim="s3-title"]',
+              '[data-anim="s3-body"]',
+            ],
+            { opacity: 0, y: 30 }
+          );
+
+          const s3Tl = gsap.timeline();
+          s3Tl
+            .to('[data-anim="s3-headline"]', { opacity: 1, y: 0, duration: 0.15 })
+            .to('[data-anim="s3-sub"]', { opacity: 1, y: 0, duration: 0.15 }, 0.1)
+            .to('[data-anim="s3-divider"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.05')
+            .to('[data-anim="s3-title"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.03')
+            .to('[data-anim="s3-body"]', { opacity: 1, y: 0, duration: 0.15 }, '-=0.05');
+          slideTl.add(s3Tl, 0.36);
+
+          // Slide 3b: Grid entrance (~0.53)
+          gsap.set('[data-anim="s3b-grid"]', { opacity: 0, y: 30 });
+
+          const s3bTl = gsap.timeline();
+          s3bTl.to('[data-anim="s3b-grid"]', {
+            opacity: 1,
+            y: 0,
+            duration: 0.3,
+            ease: 'power2.out',
+          });
+          slideTl.add(s3bTl, 0.53);
+
+          // Slide 4: Report text entrance (~0.70)
+          gsap.set(
+            [
+              '[data-anim="s4-sub"]',
+              '[data-anim="s4-headline"]',
+              '[data-anim="s4-divider"]',
+              '[data-anim="s4-title"]',
+              '[data-anim="s4-body"]',
+            ],
+            { opacity: 0, y: 30 }
+          );
+
+          const s4Tl = gsap.timeline();
+          s4Tl
+            .to('[data-anim="s4-sub"]', { opacity: 1, y: 0, duration: 0.15 })
+            .to('[data-anim="s4-headline"]', { opacity: 1, y: 0, duration: 0.15 }, 0.05)
+            .to('[data-anim="s4-divider"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.05')
+            .to('[data-anim="s4-title"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.03')
+            .to('[data-anim="s4-body"]', { opacity: 1, y: 0, duration: 0.15 }, '-=0.05');
+          slideTl.add(s4Tl, 0.70);
+
+          // Slide 4b: Dashboard entrance (~0.87)
+          gsap.set('[data-anim="s4b-dashboard"]', { opacity: 0, scale: 0.95, y: 30 });
+
+          const s4bTl = gsap.timeline();
+          s4bTl.to('[data-anim="s4b-dashboard"]', {
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            duration: 0.3,
+            ease: 'power2.out',
+          });
+          slideTl.add(s4bTl, 0.87);
+        }
+      });
 
       return () => {
         mm.revert();
@@ -283,7 +418,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Right Column: Flame Graphic */}
+            {/* Right Column: Flame Graphic (desktop only) */}
             <div
               data-anim="flame"
               className="hidden flex-shrink-0 lg:block"
@@ -294,12 +429,11 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ─── Slide 2: Capture Your Idea ─── */}
+        {/* ─── Slide 2: Capture Your Idea (text) ─── */}
         <section data-slide className="slide bg-[#161513] pt-[88px]">
           <div className="mx-auto flex h-[calc(100vh-88px)] w-full max-w-[1800px] items-center gap-12 px-6 lg:gap-20 lg:px-20">
             {/* Left Column: Text */}
             <div className="flex-1">
-              {/* Headline — CAPTURE / YOUR IDEA */}
               <h2
                 data-anim="s2-headline"
                 className="font-display text-5xl font-black uppercase leading-[0.9] tracking-[-1.5px] text-[#d4d4d4] sm:text-7xl lg:text-[96px]"
@@ -308,7 +442,6 @@ export default function LandingPage() {
                 <span className="block text-gradient-brand">your idea</span>
               </h2>
 
-              {/* Sub-subheading */}
               <p
                 data-anim="s2-sub2"
                 className="mt-4 font-mono text-base font-light uppercase tracking-[3px] text-[#d4d4d4] sm:text-xl"
@@ -316,13 +449,11 @@ export default function LandingPage() {
                 on our mobile or web app
               </p>
 
-              {/* Decorative divider */}
               <div data-anim="s2-divider" className="mt-8 flex max-w-[380px] items-center">
                 <div className="h-[2px] flex-1 bg-[#d4d4d4]" />
                 <div className="ml-1 h-[10px] w-[10px] rounded-full bg-[#e32b1a]" />
               </div>
 
-              {/* Section title */}
               <h3
                 data-anim="s2-title"
                 className="mt-10 font-sans text-sm font-bold uppercase tracking-[2px] text-[#e32b1a]"
@@ -330,7 +461,6 @@ export default function LandingPage() {
                 The Highway Moment
               </h3>
 
-              {/* Body copy */}
               <div data-anim="s2-body" className="mt-4 max-w-[560px] space-y-5 text-sm leading-[27px] text-[#d4d4d4] sm:text-base">
                 <p>
                   You&apos;re three hours into a family road trip. The kids are
@@ -353,7 +483,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Right Column: Phone mockup */}
+            {/* Right Column: Phone mockup (desktop only) */}
             <div
               data-anim="s2-phone"
               className="hidden flex-shrink-0 lg:flex lg:items-center lg:justify-start"
@@ -364,12 +494,20 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ─── Slide 3: Research & Validate ─── */}
+        {/* ─── Slide 2b: Phone Mockup (mobile/tablet only) ─── */}
+        <section data-slide data-mobile-only className="slide bg-[#161513] pt-[88px] lg:hidden">
+          <div className="flex h-[calc(100vh-88px)] w-full items-center justify-center px-6">
+            <div data-anim="s2b-phone" className="w-full max-w-[320px]">
+              <PhoneMockup />
+            </div>
+          </div>
+        </section>
+
+        {/* ─── Slide 3: Research & Validate (text) ─── */}
         <section data-slide className="slide bg-[#161513] pt-[88px]">
           <div className="mx-auto flex h-[calc(100vh-88px)] w-full max-w-[1800px] items-center gap-12 px-6 lg:gap-20 lg:px-20">
             {/* Left Column: Text */}
             <div className="flex-1">
-              {/* Headline — RESEARCH & VALIDATE */}
               <p
                 data-anim="s3-sub"
                 className="font-mono text-base font-light uppercase tracking-[3px] text-[#d4d4d4] sm:text-xl"
@@ -384,13 +522,11 @@ export default function LandingPage() {
                 <span className="block text-gradient-brand">&amp; validate</span>
               </h2>
 
-              {/* Decorative divider */}
               <div data-anim="s3-divider" className="mt-8 flex max-w-[380px] items-center">
                 <div className="h-[2px] flex-1 bg-[#d4d4d4]" />
                 <div className="ml-1 h-[10px] w-[10px] rounded-full bg-[#e32b1a]" />
               </div>
 
-              {/* Section title */}
               <h3
                 data-anim="s3-title"
                 className="mt-10 font-sans text-sm font-bold uppercase tracking-[2px] text-[#e32b1a]"
@@ -398,7 +534,6 @@ export default function LandingPage() {
                 Deep Research
               </h3>
 
-              {/* Body copy */}
               <div data-anim="s3-body" className="mt-4 max-w-[560px] space-y-5 text-sm leading-[27px] text-[#d4d4d4] sm:text-base">
                 <p>
                   No more midnight Google rabbit holes. We built a custom research
@@ -413,7 +548,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Right Column: Scrolling report cards */}
+            {/* Right Column: Scrolling report cards (desktop only) */}
             <div
               data-anim="s3-grid"
               className="hidden flex-shrink-0 overflow-hidden lg:block"
@@ -424,7 +559,16 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ─── Slide 4: Your Report ─── */}
+        {/* ─── Slide 3b: Scrolling Report Grid (mobile/tablet only) ─── */}
+        <section data-slide data-mobile-only className="slide bg-[#161513] pt-[88px] lg:hidden">
+          <div className="flex h-[calc(100vh-88px)] w-full items-center justify-center overflow-hidden px-4">
+            <div data-anim="s3b-grid" className="h-[70vh] w-full max-w-[400px]">
+              <ScrollingReportGrid className="h-full" />
+            </div>
+          </div>
+        </section>
+
+        {/* ─── Slide 4: Your Report (text) ─── */}
         <section data-slide className="slide bg-[#161513] pt-[88px]">
           <div className="mx-auto flex h-[calc(100vh-88px)] w-full max-w-[1800px] items-center gap-12 px-6 lg:gap-20 lg:px-20">
             {/* Left Column: Text */}
@@ -443,13 +587,11 @@ export default function LandingPage() {
                 <span className="block text-gradient-brand">report</span>
               </h2>
 
-              {/* Decorative divider */}
               <div data-anim="s4-divider" className="mt-8 flex max-w-[380px] items-center">
                 <div className="h-[2px] flex-1 bg-[#d4d4d4]" />
                 <div className="ml-1 h-[10px] w-[10px] rounded-full bg-[#e32b1a]" />
               </div>
 
-              {/* Section title */}
               <h3
                 data-anim="s4-title"
                 className="mt-10 font-sans text-sm font-bold uppercase tracking-[2px] text-[#e32b1a]"
@@ -457,7 +599,6 @@ export default function LandingPage() {
                 15+ Report Sections
               </h3>
 
-              {/* Body copy */}
               <div data-anim="s4-body" className="mt-4 max-w-[560px] space-y-5 text-sm leading-[27px] text-[#d4d4d4] sm:text-base">
                 <p>
                   Scores, market sizing, competitor landscapes, positioning
@@ -472,12 +613,21 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Right Column: Report Dashboard */}
+            {/* Right Column: Report Dashboard (desktop only) */}
             <div
               data-anim="s4-dashboard"
               className="hidden flex-shrink-0 lg:block"
               style={{ width: '45%' }}
             >
+              <ReportDashboard />
+            </div>
+          </div>
+        </section>
+
+        {/* ─── Slide 4b: Report Dashboard (mobile/tablet only) ─── */}
+        <section data-slide data-mobile-only className="slide bg-[#161513] pt-[88px] lg:hidden">
+          <div className="flex h-[calc(100vh-88px)] w-full items-center justify-center overflow-hidden px-4">
+            <div data-anim="s4b-dashboard" className="w-full max-w-[400px]">
               <ReportDashboard />
             </div>
           </div>
