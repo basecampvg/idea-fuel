@@ -136,12 +136,12 @@ export default function LandingPage() {
 
           const s2Tl = gsap.timeline();
           s2Tl
-            .to('[data-anim="s2-headline"]', { opacity: 1, y: 0, duration: 0.15 })
-            .to('[data-anim="s2-phone"]', { opacity: 1, scale: 1, x: 0, duration: 0.25 }, 0.15)
-            .to('[data-anim="s2-sub2"]', { opacity: 1, y: 0, duration: 0.15 }, 0.1)
-            .to('[data-anim="s2-divider"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.05')
-            .to('[data-anim="s2-title"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.03')
-            .to('[data-anim="s2-body"]', { opacity: 1, y: 0, duration: 0.15 }, '-=0.05');
+            .to('[data-anim="s2-headline"]', { opacity: 1, y: 0, duration: 0.08 }, 0)
+            .to('[data-anim="s2-phone"]', { opacity: 1, scale: 1, x: 0, duration: 0.15 }, 0.02)
+            .to('[data-anim="s2-sub2"]', { opacity: 1, y: 0, duration: 0.08 }, 0.02)
+            .to('[data-anim="s2-divider"]', { opacity: 1, y: 0, duration: 0.05 }, 0.07)
+            .to('[data-anim="s2-title"]', { opacity: 1, y: 0, duration: 0.05 }, 0.10)
+            .to('[data-anim="s2-body"]', { opacity: 1, y: 0, duration: 0.08 }, 0.12);
           slideTl.add(s2Tl, 0.05);
 
           // Slide 3 entrance
@@ -159,12 +159,12 @@ export default function LandingPage() {
 
           const s3Tl = gsap.timeline();
           s3Tl
-            .to('[data-anim="s3-headline"]', { opacity: 1, y: 0, duration: 0.15 })
-            .to('[data-anim="s3-grid"]', { opacity: 1, x: 0, duration: 0.25 }, 0.1)
-            .to('[data-anim="s3-sub"]', { opacity: 1, y: 0, duration: 0.15 }, 0.1)
-            .to('[data-anim="s3-divider"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.05')
-            .to('[data-anim="s3-title"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.03')
-            .to('[data-anim="s3-body"]', { opacity: 1, y: 0, duration: 0.15 }, '-=0.05');
+            .to('[data-anim="s3-headline"]', { opacity: 1, y: 0, duration: 0.08 }, 0)
+            .to('[data-anim="s3-grid"]', { opacity: 1, x: 0, duration: 0.15 }, 0.02)
+            .to('[data-anim="s3-sub"]', { opacity: 1, y: 0, duration: 0.08 }, 0.02)
+            .to('[data-anim="s3-divider"]', { opacity: 1, y: 0, duration: 0.05 }, 0.07)
+            .to('[data-anim="s3-title"]', { opacity: 1, y: 0, duration: 0.05 }, 0.10)
+            .to('[data-anim="s3-body"]', { opacity: 1, y: 0, duration: 0.08 }, 0.12);
           slideTl.add(s3Tl, 0.40);
 
           // Slide 4 entrance
@@ -182,12 +182,12 @@ export default function LandingPage() {
 
           const s4Tl = gsap.timeline();
           s4Tl
-            .to('[data-anim="s4-sub"]', { opacity: 1, y: 0, duration: 0.15 })
-            .to('[data-anim="s4-headline"]', { opacity: 1, y: 0, duration: 0.15 }, 0.05)
-            .to('[data-anim="s4-dashboard"]', { opacity: 1, scale: 1, x: 0, duration: 0.25 }, 0.1)
-            .to('[data-anim="s4-divider"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.05')
-            .to('[data-anim="s4-title"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.03')
-            .to('[data-anim="s4-body"]', { opacity: 1, y: 0, duration: 0.15 }, '-=0.05');
+            .to('[data-anim="s4-sub"]', { opacity: 1, y: 0, duration: 0.08 }, 0)
+            .to('[data-anim="s4-headline"]', { opacity: 1, y: 0, duration: 0.08 }, 0.02)
+            .to('[data-anim="s4-dashboard"]', { opacity: 1, scale: 1, x: 0, duration: 0.15 }, 0.02)
+            .to('[data-anim="s4-divider"]', { opacity: 1, y: 0, duration: 0.05 }, 0.07)
+            .to('[data-anim="s4-title"]', { opacity: 1, y: 0, duration: 0.05 }, 0.10)
+            .to('[data-anim="s4-body"]', { opacity: 1, y: 0, duration: 0.08 }, 0.12);
           slideTl.add(s4Tl, 0.70);
         }
       });
@@ -261,11 +261,11 @@ export default function LandingPage() {
 
           const s2Tl = gsap.timeline();
           s2Tl
-            .to('[data-anim="s2-headline"]', { opacity: 1, y: 0, duration: 0.15 })
-            .to('[data-anim="s2-sub2"]', { opacity: 1, y: 0, duration: 0.15 }, 0.1)
-            .to('[data-anim="s2-divider"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.05')
-            .to('[data-anim="s2-title"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.03')
-            .to('[data-anim="s2-body"]', { opacity: 1, y: 0, duration: 0.15 }, '-=0.05');
+            .to('[data-anim="s2-headline"]', { opacity: 1, y: 0, duration: 0.04 }, 0)
+            .to('[data-anim="s2-sub2"]', { opacity: 1, y: 0, duration: 0.04 }, 0.01)
+            .to('[data-anim="s2-divider"]', { opacity: 1, y: 0, duration: 0.03 }, 0.03)
+            .to('[data-anim="s2-title"]', { opacity: 1, y: 0, duration: 0.03 }, 0.05)
+            .to('[data-anim="s2-body"]', { opacity: 1, y: 0, duration: 0.04 }, 0.06);
           slideTl.add(s2Tl, 0.03);
 
           // Slide 2b: Phone entrance (~0.19)
@@ -295,11 +295,11 @@ export default function LandingPage() {
 
           const s3Tl = gsap.timeline();
           s3Tl
-            .to('[data-anim="s3-headline"]', { opacity: 1, y: 0, duration: 0.15 })
-            .to('[data-anim="s3-sub"]', { opacity: 1, y: 0, duration: 0.15 }, 0.1)
-            .to('[data-anim="s3-divider"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.05')
-            .to('[data-anim="s3-title"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.03')
-            .to('[data-anim="s3-body"]', { opacity: 1, y: 0, duration: 0.15 }, '-=0.05');
+            .to('[data-anim="s3-headline"]', { opacity: 1, y: 0, duration: 0.04 }, 0)
+            .to('[data-anim="s3-sub"]', { opacity: 1, y: 0, duration: 0.04 }, 0.01)
+            .to('[data-anim="s3-divider"]', { opacity: 1, y: 0, duration: 0.03 }, 0.03)
+            .to('[data-anim="s3-title"]', { opacity: 1, y: 0, duration: 0.03 }, 0.05)
+            .to('[data-anim="s3-body"]', { opacity: 1, y: 0, duration: 0.04 }, 0.06);
           slideTl.add(s3Tl, 0.36);
 
           // Slide 3b: Grid entrance (~0.53)
@@ -328,11 +328,11 @@ export default function LandingPage() {
 
           const s4Tl = gsap.timeline();
           s4Tl
-            .to('[data-anim="s4-sub"]', { opacity: 1, y: 0, duration: 0.15 })
-            .to('[data-anim="s4-headline"]', { opacity: 1, y: 0, duration: 0.15 }, 0.05)
-            .to('[data-anim="s4-divider"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.05')
-            .to('[data-anim="s4-title"]', { opacity: 1, y: 0, duration: 0.1 }, '-=0.03')
-            .to('[data-anim="s4-body"]', { opacity: 1, y: 0, duration: 0.15 }, '-=0.05');
+            .to('[data-anim="s4-sub"]', { opacity: 1, y: 0, duration: 0.04 }, 0)
+            .to('[data-anim="s4-headline"]', { opacity: 1, y: 0, duration: 0.04 }, 0.01)
+            .to('[data-anim="s4-divider"]', { opacity: 1, y: 0, duration: 0.03 }, 0.03)
+            .to('[data-anim="s4-title"]', { opacity: 1, y: 0, duration: 0.03 }, 0.05)
+            .to('[data-anim="s4-body"]', { opacity: 1, y: 0, duration: 0.04 }, 0.06);
           slideTl.add(s4Tl, 0.70);
 
           // Slide 4b: Dashboard entrance (~0.87)
@@ -570,9 +570,9 @@ export default function LandingPage() {
 
         {/* ─── Slide 4: Your Report (text) ─── */}
         <section data-slide className="slide bg-[#161513] pt-[88px]">
-          <div className="mx-auto flex h-[calc(100vh-88px)] w-full max-w-[1800px] items-center gap-12 px-6 lg:gap-20 lg:px-20">
-            {/* Left Column: Text */}
-            <div className="flex-1">
+          <div className="mx-auto flex h-[calc(100vh-88px)] w-full max-w-[1800px] items-center px-6 lg:px-20">
+            {/* Left Column: Text (narrow) */}
+            <div className="w-full shrink-0 lg:w-[30%]">
               <p
                 data-anim="s4-sub"
                 className="font-mono text-base font-light uppercase tracking-[3px] text-[#d4d4d4] sm:text-xl"
@@ -581,13 +581,13 @@ export default function LandingPage() {
               </p>
               <h2
                 data-anim="s4-headline"
-                className="mt-2 font-display text-5xl font-black uppercase leading-[0.9] tracking-[-1.5px] text-[#d4d4d4] sm:text-7xl lg:text-[96px]"
+                className="mt-2 font-display text-5xl font-black uppercase leading-[0.9] tracking-[-1.5px] text-[#d4d4d4] sm:text-7xl lg:text-[80px]"
               >
                 <span className="block">your full</span>
                 <span className="block text-gradient-brand">report</span>
               </h2>
 
-              <div data-anim="s4-divider" className="mt-8 flex max-w-[380px] items-center">
+              <div data-anim="s4-divider" className="mt-8 flex max-w-[320px] items-center">
                 <div className="h-[2px] flex-1 bg-[#d4d4d4]" />
                 <div className="ml-1 h-[10px] w-[10px] rounded-full bg-[#e32b1a]" />
               </div>
@@ -599,7 +599,7 @@ export default function LandingPage() {
                 15+ Report Sections
               </h3>
 
-              <div data-anim="s4-body" className="mt-4 max-w-[560px] space-y-5 text-sm leading-[27px] text-[#d4d4d4] sm:text-base">
+              <div data-anim="s4-body" className="mt-4 max-w-[420px] space-y-5 text-sm leading-[27px] text-[#d4d4d4] sm:text-base">
                 <p>
                   Scores, market sizing, competitor landscapes, positioning
                   strategy, timing catalysts, and pricing tiers &mdash; all
@@ -613,11 +613,14 @@ export default function LandingPage() {
               </div>
             </div>
 
+            {/* Vertical Divider (desktop only) */}
+            <div className="mx-8 hidden h-[70vh] w-px bg-gradient-to-b from-transparent via-[#2a2a2a] to-transparent lg:block" />
+
             {/* Right Column: Report Dashboard (desktop only) */}
             <div
               data-anim="s4-dashboard"
-              className="hidden flex-shrink-0 lg:block"
-              style={{ width: '45%' }}
+              className="hidden min-w-0 flex-1 lg:block"
+              style={{ height: 'calc(100vh - 160px)' }}
             >
               <ReportDashboard />
             </div>
