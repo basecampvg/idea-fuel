@@ -826,7 +826,7 @@ function AdminPageContent() {
             {activeCategory === 'limits' && 'Subscription tier limits'}
             {activeCategory === 'features' && 'Toggle feature flags'}
             {activeCategory === 'domains' && 'Configure search domains'}
-            {activeCategory === 'analytics' && 'View token usage analytics'}
+            {activeCategory === 'analytics' && 'Analytics tracking & token usage'}
             {activeCategory === 'dashboard' && 'Configure dashboard pane settings'}
             {activeCategory === 'dailyPick' && 'Daily trend pick pipeline control'}
           </p>
@@ -890,7 +890,7 @@ function AdminPageContent() {
       {/* Main Content Area */}
       <div className="space-y-4">
         {/* Reset button for config categories */}
-        {!['analytics', 'dailyPick'].includes(activeCategory) && currentConfigs.length > 0 && (
+        {!['dailyPick'].includes(activeCategory) && currentConfigs.length > 0 && (
           <div className="flex justify-end">
             <Button
               variant="ghost"
@@ -905,9 +905,34 @@ function AdminPageContent() {
           </div>
         )}
 
-        {/* Special rendering for Analytics category - Token Usage */}
+        {/* Special rendering for Analytics category - Config fields + Token Usage */}
         {activeCategory === 'analytics' ? (
-          <TokenUsageAnalytics />
+          <>
+            {/* Analytics config fields (Pixel, GA4, enabled toggle) */}
+            {currentConfigs.length > 0 && (
+              <div className="space-y-3">
+                {currentConfigs.map((item: ConfigItem) => (
+                  <div
+                    key={item.key}
+                    className="flex items-center justify-between rounded-xl border border-border bg-card p-4 transition-colors hover:border-border/80"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground text-sm">{item.label}</p>
+                      {item.description && (
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{item.description}</p>
+                      )}
+                      <code className="text-[10px] text-muted-foreground/70 font-mono mt-1 block">{item.key}</code>
+                    </div>
+                    <div className="ml-4 flex-shrink-0">
+                      {renderConfigValue(item)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {/* Token usage stats */}
+            <TokenUsageAnalytics />
+          </>
         ) : activeCategory === 'dashboard' ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {groupDashboardPaneConfigs(currentConfigs).map(([paneName, paneConfig]) => (
