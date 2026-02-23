@@ -24,6 +24,7 @@ import {
   BarChart3,
   ArrowLeft,
   Sparkles,
+  Settings2,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -72,6 +73,12 @@ function getNavSections(projectId: string): NavSection[] {
         { label: 'Offer / Value Ladder', href: `${base}/offer`, icon: Layers },
         { label: 'Tech Stack', href: `${base}/tech-stack`, icon: Code },
         { label: 'Action Prompts', href: `${base}/action-prompts`, icon: Zap },
+      ],
+    },
+    {
+      title: 'Financials',
+      items: [
+        { label: 'Assumptions', href: `${base}/assumptions`, icon: Settings2 },
       ],
     },
     {
