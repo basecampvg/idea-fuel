@@ -336,39 +336,55 @@ export const DEFAULT_CONFIGS: ConfigDefinition[] = [
   },
 
   // =========================================================================
-  // Tier Limits
+  // Tier Limits (reports by mode)
   // =========================================================================
   {
-    key: 'limits.free.maxIdeas',
-    value: 3,
-    type: 'NUMBER',
-    category: 'limits',
-    label: 'Max Ideas (FREE)',
-    description: 'Maximum ideas for FREE tier users',
-  },
-  {
-    key: 'limits.free.maxReports',
+    key: 'limits.pro.sparkReports',
     value: 5,
     type: 'NUMBER',
     category: 'limits',
-    label: 'Max Reports (FREE)',
-    description: 'Maximum reports per idea for FREE tier',
+    label: 'Spark Reports (PRO)',
+    description: 'Number of Spark reports for PRO tier',
   },
   {
-    key: 'limits.pro.maxIdeas',
-    value: 20,
+    key: 'limits.pro.lightReports',
+    value: 3,
     type: 'NUMBER',
     category: 'limits',
-    label: 'Max Ideas (PRO)',
-    description: 'Maximum ideas for PRO tier users',
+    label: 'Light Reports (PRO)',
+    description: 'Number of Light interview reports for PRO tier',
   },
   {
-    key: 'limits.pro.maxReports',
+    key: 'limits.pro.inDepthReports',
+    value: 1,
+    type: 'NUMBER',
+    category: 'limits',
+    label: 'In-Depth Reports (PRO)',
+    description: 'Number of In-Depth interview reports for PRO tier',
+  },
+  {
+    key: 'limits.enterprise.sparkReports',
     value: 10,
     type: 'NUMBER',
     category: 'limits',
-    label: 'Max Reports (PRO)',
-    description: 'Maximum reports per idea for PRO tier',
+    label: 'Spark Reports (ENTERPRISE)',
+    description: 'Number of Spark reports for ENTERPRISE tier',
+  },
+  {
+    key: 'limits.enterprise.lightReports',
+    value: 5,
+    type: 'NUMBER',
+    category: 'limits',
+    label: 'Light Reports (ENTERPRISE)',
+    description: 'Number of Light interview reports for ENTERPRISE tier',
+  },
+  {
+    key: 'limits.enterprise.inDepthReports',
+    value: 2,
+    type: 'NUMBER',
+    category: 'limits',
+    label: 'In-Depth Reports (ENTERPRISE)',
+    description: 'Number of In-Depth interview reports for ENTERPRISE tier',
   },
 
   // =========================================================================

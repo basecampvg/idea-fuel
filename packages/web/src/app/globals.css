@@ -766,6 +766,15 @@ body {
   animation: hint-slide-in 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
+@keyframes bounce-arrow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+.animate-bounce-arrow {
+  animation: bounce-arrow 1.5s ease-in-out infinite;
+}
+
 /* ===== TEXT UTILITIES ===== */
 
 .text-gradient {

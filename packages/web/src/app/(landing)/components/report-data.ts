@@ -6,7 +6,7 @@
    TAB CONFIGURATION
    ════════════════════════════════════════════════════════ */
 export const REPORT_TABS = [
-  { id: 'scores', label: 'Scores' },
+  { id: 'summary', label: 'Summary' },
   { id: 'market', label: 'Market' },
   { id: 'competitors', label: 'Competitors' },
   { id: 'pain', label: 'Pain Points' },

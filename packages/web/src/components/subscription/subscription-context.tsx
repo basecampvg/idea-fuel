@@ -9,8 +9,8 @@ import {
   SUBSCRIPTION_FEATURES,
   canAccessInterviewMode,
   canAccessReportTier as checkReportTierAccess,
-  canCreateIdea as checkCanCreateIdea,
-  getIdeasRemaining,
+  canCreateReport as checkCanCreateReport,
+  getReportsRemaining,
 } from '@forge/shared';
 
 interface SubscriptionContextValue {
@@ -21,13 +21,8 @@ interface SubscriptionContextValue {
 
   // Convenience check methods
   canAccessMode: (mode: InterviewMode) => boolean;
-  canCreateIdea: (currentCount: number) => boolean;
+  canCreateReport: (mode: InterviewMode, currentModeCount: number) => boolean;
   canAccessReportTier: (tier: ReportTier) => boolean;
-
-  // Limit info
-  projectsRemaining: number;
-  isAtProjectLimit: boolean;
-  currentProjectCount: number;
 
   // Upgrade modal controls
   showUpgradePrompt: (reason: UpgradeReason) => void;
@@ -56,22 +51,13 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     }
   );
 
-  // Fetch user stats for idea count
-  const { data: statsData, isLoading: statsLoading } = trpc.user.stats.useQuery(undefined, {
-    staleTime: 30 * 1000, // Cache for 30 seconds (ideas change more frequently)
-    retry: 1,
-  });
-
-  const isLoading = subLoading || statsLoading;
+  const isLoading = subLoading;
 
   // Derive values from fetched data
   // In development, always use ENTERPRISE tier for testing
   const isDev = process.env.NODE_ENV === 'development';
   const tier: SubscriptionTier = isDev ? 'ENTERPRISE' : (subscriptionData?.tier ?? 'FREE');
   const features: SubscriptionFeatures = SUBSCRIPTION_FEATURES[tier];
-  const currentProjectCount = statsData?.totalProjects ?? 0;
-  const projectsRemaining = getIdeasRemaining(tier, currentProjectCount);
-  const isAtProjectLimit = projectsRemaining === 0;
 
   // Check methods using shared helpers
   const canAccessMode = useCallback(
@@ -79,8 +65,8 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     [tier]
   );
 
-  const canCreateIdeaCheck = useCallback(
-    (currentCount: number) => checkCanCreateIdea(tier, currentCount),
+  const canCreateReportCheck = useCallback(
+    (mode: InterviewMode, currentModeCount: number) => checkCanCreateReport(tier, mode, currentModeCount),
     [tier]
   );
 
@@ -106,11 +92,8 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     features,
     isLoading,
     canAccessMode,
-    canCreateIdea: canCreateIdeaCheck,
+    canCreateReport: canCreateReportCheck,
     canAccessReportTier: canAccessReportTierCheck,
-    projectsRemaining,
-    isAtProjectLimit,
-    currentProjectCount,
     showUpgradePrompt,
     hideUpgradePrompt,
     upgradeReason,

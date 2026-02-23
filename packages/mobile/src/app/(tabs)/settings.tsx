@@ -201,22 +201,29 @@ export default function SettingsScreen() {
                 <View style={styles.divider} />
                 <View style={styles.featuresGrid}>
                   <View style={styles.featureItem}>
-                    <Ionicons name="bulb-outline" size={20} color={colors.muted} />
+                    <Ionicons name="flash-outline" size={20} color={colors.muted} />
                     <View style={styles.featureContent}>
-                      <Text style={styles.featureLabel}>Ideas Limit</Text>
+                      <Text style={styles.featureLabel}>Spark Reports</Text>
                       <Text style={styles.featureValue}>
-                        {subscription.features.maxIdeas === -1
-                          ? 'Unlimited'
-                          : subscription.features.maxIdeas}
+                        {subscription.features.reportLimits.SPARK}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.featureItem}>
+                    <Ionicons name="chatbubble-outline" size={20} color={colors.muted} />
+                    <View style={styles.featureContent}>
+                      <Text style={styles.featureLabel}>Light Reports</Text>
+                      <Text style={styles.featureValue}>
+                        {subscription.features.reportLimits.LIGHT}
                       </Text>
                     </View>
                   </View>
                   <View style={styles.featureItem}>
                     <Ionicons name="document-text-outline" size={20} color={colors.muted} />
                     <View style={styles.featureContent}>
-                      <Text style={styles.featureLabel}>Reports per Idea</Text>
+                      <Text style={styles.featureLabel}>In-Depth Reports</Text>
                       <Text style={styles.featureValue}>
-                        {subscription.features.maxReportsPerIdea}
+                        {subscription.features.reportLimits.IN_DEPTH}
                       </Text>
                     </View>
                   </View>

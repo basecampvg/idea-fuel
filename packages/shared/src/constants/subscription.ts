@@ -3,9 +3,14 @@
 
 import type { SubscriptionTier, InterviewMode, ReportTier } from '../types';
 
+export interface ReportLimitsByMode {
+  SPARK: number;
+  LIGHT: number;
+  IN_DEPTH: number;
+}
+
 export interface SubscriptionFeatures {
-  maxIdeas: number; // -1 = unlimited
-  maxReportsPerIdea: number;
+  reportLimits: ReportLimitsByMode;
   reportTierAccess: readonly ReportTier[];
   interviewModes: readonly InterviewMode[];
   prioritySupport: boolean;
@@ -14,24 +19,21 @@ export interface SubscriptionFeatures {
 
 export const SUBSCRIPTION_FEATURES: Record<SubscriptionTier, SubscriptionFeatures> = {
   FREE: {
-    maxIdeas: -1, // Unlimited drafts
-    maxReportsPerIdea: 0,
+    reportLimits: { SPARK: 0, LIGHT: 0, IN_DEPTH: 0 },
     reportTierAccess: [] as const,
     interviewModes: [] as const,
     prioritySupport: false,
     aiQuality: 'standard',
   },
   PRO: {
-    maxIdeas: 20,
-    maxReportsPerIdea: 10,
+    reportLimits: { SPARK: 5, LIGHT: 3, IN_DEPTH: 1 },
     reportTierAccess: ['BASIC', 'PRO'] as const,
     interviewModes: ['SPARK', 'LIGHT', 'IN_DEPTH'] as const,
     prioritySupport: true,
     aiQuality: 'enhanced',
   },
   ENTERPRISE: {
-    maxIdeas: -1, // Unlimited
-    maxReportsPerIdea: 10,
+    reportLimits: { SPARK: 10, LIGHT: 5, IN_DEPTH: 2 },
     reportTierAccess: ['BASIC', 'PRO', 'FULL'] as const,
     interviewModes: ['SPARK', 'LIGHT', 'IN_DEPTH'] as const,
     prioritySupport: true,
@@ -63,60 +65,28 @@ export interface TierFeature {
 
 export const TIER_FEATURES: TierFeature[] = [
   {
-    id: 'ideas',
-    name: 'Business Ideas',
-    description: 'Number of ideas you can explore',
-    free: 'Unlimited drafts',
-    pro: '20 ideas',
-    enterprise: 'Unlimited',
-  },
-  {
-    id: 'reports',
-    name: 'Reports per Idea',
-    description: 'Documents generated for each idea',
+    id: 'spark',
+    name: 'Spark Reports',
+    description: 'Quick validation - demand signals & market sizing',
     free: false,
-    pro: '10 reports',
+    pro: '5 reports',
     enterprise: '10 reports',
   },
   {
-    id: 'spark',
-    name: 'Spark Mode',
-    description: 'Quick validation - demand signals & market sizing',
-    free: false,
-    pro: true,
-    enterprise: true,
-  },
-  {
     id: 'light',
-    name: 'Light Interview',
-    description: 'Quick discovery with 10 questions',
+    name: 'Light Interview Reports',
+    description: 'Quick discovery with 10 questions + enhanced analysis',
     free: false,
-    pro: true,
-    enterprise: true,
+    pro: '3 reports',
+    enterprise: '5 reports',
   },
   {
     id: 'in_depth',
-    name: 'In-Depth Interview',
-    description: 'Comprehensive 65-question discovery',
+    name: 'In-Depth Interview Reports',
+    description: 'Comprehensive 65-question discovery + full analysis',
     free: false,
-    pro: true,
-    enterprise: true,
-  },
-  {
-    id: 'basic_reports',
-    name: 'Basic Reports',
-    description: 'Core insights and essential analysis',
-    free: false,
-    pro: true,
-    enterprise: true,
-  },
-  {
-    id: 'pro_reports',
-    name: 'Pro Reports',
-    description: 'Enhanced analysis with deeper research',
-    free: false,
-    pro: true,
-    enterprise: true,
+    pro: '1 report',
+    enterprise: '2 reports',
   },
   {
     id: 'full_reports',
@@ -145,7 +115,7 @@ export const TIER_FEATURES: TierFeature[] = [
 ];
 
 // Upgrade reason types for modal content
-export type UpgradeReasonType = 'interview_mode' | 'idea_limit' | 'report_tier' | 'feature';
+export type UpgradeReasonType = 'interview_mode' | 'report_limit' | 'report_tier' | 'feature';
 
 export interface UpgradeReason {
   type: UpgradeReasonType;
@@ -183,15 +153,15 @@ export function getUpgradePromptContent(
         recommendedTier: 'PRO',
       };
 
-    case 'idea_limit':
+    case 'report_limit':
       return {
-        title: 'Idea Limit Reached',
-        description: `You've used all ${reason.limit} ideas on the ${currentTier} plan. Upgrade to explore more opportunities.`,
+        title: 'Report Limit Reached',
+        description: `You've used all your ${reason.mode ? reason.mode.replace('_', '-').toLowerCase() : ''} reports on the ${currentTier} plan. Upgrade for more.`,
         benefits: [
-          currentTier === 'FREE' ? 'Explore up to 20 ideas' : 'Unlimited ideas',
-          'In-depth interviews available',
+          'More Spark reports for quick validation',
+          'More Light interview reports',
+          'More In-Depth interview reports',
           'Enhanced AI analysis',
-          'Priority support',
         ],
         recommendedTier: currentTier === 'FREE' ? 'PRO' : 'ENTERPRISE',
       };
@@ -217,7 +187,7 @@ export function getUpgradePromptContent(
         title: 'Upgrade Your Plan',
         description: 'Get access to premium features and take your business planning to the next level.',
         benefits: [
-          'More ideas to explore',
+          'More reports across all modes',
           'In-depth interviews',
           'Higher quality reports',
           'Priority support',
@@ -242,13 +212,20 @@ export function canAccessReportTier(
   return SUBSCRIPTION_FEATURES[subscriptionTier].reportTierAccess.includes(reportTier);
 }
 
-export function canCreateIdea(tier: SubscriptionTier, currentCount: number): boolean {
-  const maxIdeas = SUBSCRIPTION_FEATURES[tier].maxIdeas;
-  return maxIdeas === -1 || currentCount < maxIdeas;
+export function canCreateReport(
+  tier: SubscriptionTier,
+  mode: InterviewMode,
+  currentModeCount: number
+): boolean {
+  const limit = SUBSCRIPTION_FEATURES[tier].reportLimits[mode];
+  return currentModeCount < limit;
 }
 
-export function getIdeasRemaining(tier: SubscriptionTier, currentCount: number): number {
-  const maxIdeas = SUBSCRIPTION_FEATURES[tier].maxIdeas;
-  if (maxIdeas === -1) return Infinity;
-  return Math.max(0, maxIdeas - currentCount);
+export function getReportsRemaining(
+  tier: SubscriptionTier,
+  mode: InterviewMode,
+  currentModeCount: number
+): number {
+  const limit = SUBSCRIPTION_FEATURES[tier].reportLimits[mode];
+  return Math.max(0, limit - currentModeCount);
 }

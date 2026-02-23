@@ -7,7 +7,7 @@ import {
   StatCard,
   Badge,
   ScoreGauge,
-  ProgressBar as BarChart,
+  MarketFunnel,
   ViewFullReportCTA,
 } from './report-ui';
 import {
@@ -27,6 +27,7 @@ import {
   USER_STORY,
   PROOF_SIGNALS,
   KEYWORDS,
+  KEYWORD_TRENDS,
   TECH_STACK,
 } from './report-data';
 
@@ -34,17 +35,19 @@ const CYCLE_DURATION = 6;
 const TRANSITION_DURATION = 0.3;
 
 /* ────────────────────────────────────────────────────────
-   Panel 1: Scores (trimmed — gauges + metadata only)
+   Panel 1: Summary (scores + keyword analysis)
    ──────────────────────────────────────────────────────── */
-function ScoresPanel() {
+function SummaryPanel() {
   return (
     <div className="space-y-4">
+      {/* Score Gauges */}
       <div className="flex items-center justify-between gap-2">
         {SCORES.map((s) => (
           <ScoreGauge key={s.label} {...s} />
         ))}
       </div>
 
+      {/* Score Metadata */}
       <div className="flex gap-3 rounded-lg bg-[#161513] p-3">
         <div className="flex-1 text-center">
           <p className="font-display text-base font-black text-[#d4d4d4]">{SCORE_METADATA.averageConfidence}%</p>
@@ -60,6 +63,40 @@ function ScoresPanel() {
           <p className="font-display text-base font-black text-[#d4d4d4]">&plusmn;{SCORE_METADATA.maxDeviation}</p>
           <p className="text-[10px] uppercase tracking-[1px] text-[#928e87]">Max Deviation</p>
         </div>
+      </div>
+
+      {/* Keyword Analysis */}
+      <SectionLabel>Keyword Analysis</SectionLabel>
+
+      {/* Trending Keywords with volume + growth */}
+      {KEYWORD_TRENDS.length > 0 && (
+        <div className="space-y-2">
+          {KEYWORD_TRENDS.map((t) => (
+            <div key={t.keyword} className="flex items-center justify-between rounded-lg border border-[#2a2a2a] bg-[#161513] px-3 py-2">
+              <span className="text-sm font-bold text-[#d4d4d4]">{t.keyword}</span>
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-xs text-[#928e87]">{t.volume.toLocaleString()} vol</span>
+                <span className="font-mono text-xs font-bold text-[#6b8a6b]">+{t.growth}%</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Primary Keywords */}
+      <p className="text-[10px] font-bold uppercase tracking-[1.5px] text-[#928e87]">Primary</p>
+      <div className="flex flex-wrap gap-1.5">
+        {KEYWORDS.primary.map((k) => (
+          <span key={k} className="rounded bg-[#2a2220] px-2 py-1 text-xs font-medium text-[#e32b1a]/90">{k}</span>
+        ))}
+      </div>
+
+      {/* Long-Tail Keywords */}
+      <p className="text-[10px] font-bold uppercase tracking-[1.5px] text-[#928e87]">Long-Tail</p>
+      <div className="flex flex-wrap gap-1.5">
+        {KEYWORDS.longTail.slice(0, 8).map((k) => (
+          <span key={k} className="rounded bg-[#161513] px-2 py-1 text-xs text-[#928e87]">{k}</span>
+        ))}
       </div>
 
       <ViewFullReportCTA />
@@ -79,11 +116,11 @@ function MarketPanel() {
       </div>
 
       <SectionLabel>Market Sizing</SectionLabel>
-      <div className="space-y-3">
-        <BarChart value={MARKET_SIZING.tam.value} max={700} label="TAM" />
-        <BarChart value={MARKET_SIZING.sam.value} max={700} label="SAM" />
-        <BarChart value={MARKET_SIZING.som.value} max={700} label="SOM" />
-      </div>
+      <MarketFunnel
+        tam={{ value: MARKET_SIZING.tam.value, label: MARKET_SIZING.tam.formatted }}
+        sam={{ value: MARKET_SIZING.sam.value, label: MARKET_SIZING.sam.formatted }}
+        som={{ value: MARKET_SIZING.som.value, label: MARKET_SIZING.som.formatted }}
+      />
 
       <SectionLabel>Target Segments</SectionLabel>
       <div className="space-y-2">
@@ -390,7 +427,7 @@ function BlueprintPanel() {
    Panel Registry
    ──────────────────────────────────────────────────────── */
 const PANELS = [
-  ScoresPanel,
+  SummaryPanel,
   MarketPanel,
   CompetitorsPanel,
   PainPointsPanel,

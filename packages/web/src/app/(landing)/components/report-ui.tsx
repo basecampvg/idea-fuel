@@ -93,6 +93,63 @@ export function ProgressBar({ value, max, label }: { value: number; max: number;
   );
 }
 
+export function MarketFunnel({
+  tam,
+  sam,
+  som,
+}: {
+  tam: { value: number; label: string };
+  sam: { value: number; label: string };
+  som: { value: number; label: string };
+}) {
+  const tiers = [
+    { ...tam, tag: 'TAM', opacity: 1, widthPct: 100 },
+    { ...sam, tag: 'SAM', opacity: 0.7, widthPct: 72 },
+    { ...som, tag: 'SOM', opacity: 0.4, widthPct: 18 },
+  ];
+
+  return (
+    <div className="space-y-3">
+      {tiers.map((tier) => (
+        <div key={tier.tag} className="flex items-center gap-4">
+          {/* Tag */}
+          <span className="w-10 shrink-0 font-mono text-xs font-bold tracking-[1.5px] text-[#928e87]">
+            {tier.tag}
+          </span>
+
+          {/* Bar container */}
+          <div className="relative flex-1">
+            <div className="h-10 w-full rounded-lg bg-[#2a2a2a]/40" />
+            <div
+              className="absolute inset-y-0 left-0 flex items-center rounded-lg"
+              style={{
+                width: `${tier.widthPct}%`,
+                backgroundColor: `rgba(227, 43, 26, ${tier.opacity})`,
+                minWidth: '48px',
+              }}
+            >
+              {tier.widthPct > 30 && (
+                <span className="pl-3 text-xs font-bold text-white/90">{tier.label}</span>
+              )}
+            </div>
+          </div>
+
+          {/* Value */}
+          <span className="w-20 shrink-0 text-right font-display text-lg font-black text-[#d4d4d4]">
+            ${tier.value}M
+          </span>
+        </div>
+      ))}
+
+      {/* Scale context */}
+      <div className="flex items-center justify-between px-14 pt-1">
+        <span className="text-[10px] uppercase tracking-[1px] text-[#928e87]/50">Addressable</span>
+        <span className="text-[10px] uppercase tracking-[1px] text-[#928e87]/50">Total Market</span>
+      </div>
+    </div>
+  );
+}
+
 export function ViewFullReportCTA() {
   return (
     <div className="mt-6 border-t border-[#2a2a2a] pt-4">

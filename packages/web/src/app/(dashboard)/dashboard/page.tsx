@@ -178,7 +178,7 @@ const isDev = process.env.NODE_ENV === 'development';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { canCreateIdea, canAccessMode, showUpgradePrompt, currentProjectCount, features } = useSubscription();
+  const { canAccessMode, showUpgradePrompt } = useSubscription();
   const [ideaDescription, setIdeaDescription] = useState('');
   const [selectedMode, setSelectedMode] = useState<string>('IN_DEPTH');
   const [hoveredMode, setHoveredMode] = useState<string | null>(null);
@@ -248,16 +248,6 @@ export default function DashboardPage() {
   const executeSelectedMode = async () => {
     if (!canSubmit || isSubmitting) return;
     setSubmitError(null);
-
-    // Check idea limit
-    if (!canCreateIdea(currentProjectCount)) {
-      showUpgradePrompt({
-        type: 'idea_limit',
-        currentCount: currentProjectCount,
-        limit: features.maxIdeas,
-      });
-      return;
-    }
 
     // Check interview mode access (for IN_DEPTH)
     if (selectedMode === 'IN_DEPTH' && !canAccessMode('IN_DEPTH')) {

@@ -59,39 +59,19 @@ export function TierCard({
 
   const featureList = [
     {
-      name: 'Ideas',
-      value: features.maxIdeas === -1 ? 'Unlimited' : `${features.maxIdeas} ideas`,
-      included: true,
+      name: 'Spark Reports',
+      value: features.reportLimits.SPARK > 0 ? `${features.reportLimits.SPARK} reports` : null,
+      included: features.reportLimits.SPARK > 0,
     },
     {
-      name: 'Reports per Idea',
-      value: `${features.maxReportsPerIdea} reports`,
-      included: true,
+      name: 'Light Interview Reports',
+      value: features.reportLimits.LIGHT > 0 ? `${features.reportLimits.LIGHT} reports` : null,
+      included: features.reportLimits.LIGHT > 0,
     },
     {
-      name: 'Spark Mode',
-      value: null,
-      included: features.interviewModes.includes('SPARK'),
-    },
-    {
-      name: 'Light Interview',
-      value: null,
-      included: features.interviewModes.includes('LIGHT'),
-    },
-    {
-      name: 'In-Depth Interview',
-      value: null,
-      included: features.interviewModes.includes('IN_DEPTH'),
-    },
-    {
-      name: 'Basic Reports',
-      value: null,
-      included: features.reportTierAccess.includes('BASIC'),
-    },
-    {
-      name: 'Pro Reports',
-      value: null,
-      included: features.reportTierAccess.includes('PRO'),
+      name: 'In-Depth Interview Reports',
+      value: features.reportLimits.IN_DEPTH > 0 ? `${features.reportLimits.IN_DEPTH === 1 ? '1 report' : `${features.reportLimits.IN_DEPTH} reports`}` : null,
+      included: features.reportLimits.IN_DEPTH > 0,
     },
     {
       name: 'Full Reports',

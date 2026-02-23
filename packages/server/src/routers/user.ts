@@ -101,34 +101,12 @@ export const userRouter = router({
       return null;
     }
 
-    // Return subscription info with feature flags
-    const features = {
-      FREE: {
-        maxIdeas: 3,
-        maxReportsPerIdea: 5,
-        reportTierAccess: ['BASIC'] as const,
-        interviewModes: ['SPARK', 'LIGHT'] as const,
-        prioritySupport: false,
-      },
-      PRO: {
-        maxIdeas: 20,
-        maxReportsPerIdea: 10,
-        reportTierAccess: ['BASIC', 'PRO'] as const,
-        interviewModes: ['SPARK', 'LIGHT', 'IN_DEPTH'] as const,
-        prioritySupport: true,
-      },
-      ENTERPRISE: {
-        maxIdeas: -1, // Unlimited
-        maxReportsPerIdea: 10,
-        reportTierAccess: ['BASIC', 'PRO', 'FULL'] as const,
-        interviewModes: ['SPARK', 'LIGHT', 'IN_DEPTH'] as const,
-        prioritySupport: true,
-      },
-    };
+    // Use the centralized subscription features from @forge/shared
+    const { SUBSCRIPTION_FEATURES } = await import('@forge/shared');
 
     return {
       tier: user.subscription,
-      features: features[user.subscription],
+      features: SUBSCRIPTION_FEATURES[user.subscription],
     };
   }),
 });

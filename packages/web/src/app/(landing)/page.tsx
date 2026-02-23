@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -9,11 +9,15 @@ import { FlameHero } from './components/flame-hero';
 import { PhoneMockup } from './components/phone-mockup';
 import { ScrollingReportGrid } from './components/scrolling-report-grid';
 import { ReportDashboard } from './components/report-dashboard';
+import { PricingSection } from './components/pricing-section';
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 export default function LandingPage() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const indicatorRef = useRef<HTMLDivElement>(null);
+  const counterRef = useRef<HTMLSpanElement>(null);
+  const arrowRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
@@ -74,6 +78,15 @@ export default function LandingPage() {
               ease: 'power2.out',
             },
             '-=0.6'
+          )
+          .from(
+            '[data-anim="indicator"]',
+            {
+              opacity: 0,
+              y: 10,
+              duration: 0.5,
+            },
+            '-=0.3'
           );
       });
 
@@ -93,6 +106,19 @@ export default function LandingPage() {
             invalidateOnRefresh: true,
             end: () =>
               `+=${window.innerWidth * (panels.length - 1) * 1.5}`,
+            onUpdate: (self) => {
+              if (!counterRef.current || !arrowRef.current) return;
+              const p = self.progress;
+              const slide = p < 0.10 ? 1 : p < 0.48 ? 2 : p < 0.78 ? 3 : 4;
+              counterRef.current.textContent = `${slide} / 4`;
+              arrowRef.current.style.opacity = p > 0.02 ? '0' : '1';
+            },
+            onLeave: () => {
+              if (indicatorRef.current) gsap.to(indicatorRef.current, { opacity: 0, duration: 0.3 });
+            },
+            onEnterBack: () => {
+              if (indicatorRef.current) gsap.to(indicatorRef.current, { opacity: 1, duration: 0.3 });
+            },
           },
         });
 
@@ -206,6 +232,19 @@ export default function LandingPage() {
             invalidateOnRefresh: true,
             end: () =>
               `+=${window.innerHeight * (panels.length - 1)}`,
+            onUpdate: (self) => {
+              if (!counterRef.current || !arrowRef.current) return;
+              const p = self.progress;
+              const slide = p < 0.07 ? 1 : p < 0.41 ? 2 : p < 0.75 ? 3 : 4;
+              counterRef.current.textContent = `${slide} / 4`;
+              arrowRef.current.style.opacity = p > 0.02 ? '0' : '1';
+            },
+            onLeave: () => {
+              if (indicatorRef.current) gsap.to(indicatorRef.current, { opacity: 0, duration: 0.3 });
+            },
+            onEnterBack: () => {
+              if (indicatorRef.current) gsap.to(indicatorRef.current, { opacity: 1, duration: 0.3 });
+            },
           },
         });
 
@@ -357,6 +396,28 @@ export default function LandingPage() {
     },
     { scope: containerRef }
   );
+
+  // Intercept #how-it-works clicks — native anchor scroll breaks inside pinned containers
+  useEffect(() => {
+    function handleHashClick(e: MouseEvent) {
+      const anchor = (e.target as HTMLElement).closest('a[href="#how-it-works"]');
+      if (!anchor) return;
+      e.preventDefault();
+
+      const slidesTrigger = ScrollTrigger.getAll().find((st) => st.pin);
+      if (slidesTrigger) {
+        const { start, end } = slidesTrigger;
+        // Desktop: slide 2 dwells at progress ~0.12, Mobile: ~0.09
+        const isDesktop = window.innerWidth >= 1024;
+        const progress = isDesktop ? 0.12 : 0.09;
+        const targetScroll = start + (end - start) * progress;
+        window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+      }
+    }
+
+    document.addEventListener('click', handleHashClick);
+    return () => document.removeEventListener('click', handleHashClick);
+  }, []);
 
   return (
     <div ref={containerRef}>
@@ -635,6 +696,38 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+      </div>
+
+      {/* ─── Section 5: Pricing ─── */}
+      <PricingSection />
+
+      {/* ─── Slide Indicator (fixed overlay) ─── */}
+      <div
+        ref={indicatorRef}
+        data-anim="indicator"
+        className="fixed bottom-8 left-1/2 z-40 flex -translate-x-1/2 flex-col items-center gap-2"
+        aria-hidden="true"
+      >
+        {/* Bounce arrow */}
+        <div ref={arrowRef} className="animate-bounce-arrow transition-opacity duration-300">
+          <svg width="20" height="20" viewBox="0 0 20 20" className="text-[#928e87]">
+            <path
+              d="M4 7l6 6 6-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+        {/* Counter */}
+        <span
+          ref={counterRef}
+          className="font-mono text-[11px] tracking-[3px] text-[#928e87]"
+        >
+          1 / 4
+        </span>
       </div>
     </div>
   );

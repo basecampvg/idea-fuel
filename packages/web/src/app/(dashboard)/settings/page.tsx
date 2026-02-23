@@ -166,17 +166,21 @@ export default function SettingsPage() {
           {subscription?.features && (
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <div className="rounded-lg border border-border p-3">
-                <p className="text-sm text-muted-foreground">Ideas Limit</p>
+                <p className="text-sm text-muted-foreground">Spark Reports</p>
                 <p className="font-medium text-foreground">
-                  {subscription.features.maxIdeas === -1
-                    ? 'Unlimited'
-                    : subscription.features.maxIdeas}
+                  {subscription.features.reportLimits.SPARK}
                 </p>
               </div>
               <div className="rounded-lg border border-border p-3">
-                <p className="text-sm text-muted-foreground">Reports per Idea</p>
+                <p className="text-sm text-muted-foreground">Light Reports</p>
                 <p className="font-medium text-foreground">
-                  {subscription.features.maxReportsPerIdea}
+                  {subscription.features.reportLimits.LIGHT}
+                </p>
+              </div>
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-sm text-muted-foreground">In-Depth Reports</p>
+                <p className="font-medium text-foreground">
+                  {subscription.features.reportLimits.IN_DEPTH}
                 </p>
               </div>
               <div className="rounded-lg border border-border p-3">
