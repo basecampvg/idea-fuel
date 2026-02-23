@@ -5,9 +5,9 @@ import type { NextRequest } from 'next/server';
  * Subdomain routing middleware for IdeationLab
  *
  * Routes:
- * - ideationlab.ai (root) → Landing page
- * - app.ideationlab.ai → Main application dashboard
- * - admin.ideationlab.ai → Admin panel (IP whitelist + role check)
+ * - ideafuel.ai (root) → Landing page
+ * - app.ideafuel.ai → Main application dashboard
+ * - admin.ideafuel.ai → Admin panel (IP whitelist + role check)
  */
 
 // IP whitelist for admin subdomain (comma-separated in env)
@@ -17,7 +17,7 @@ const ADMIN_IP_WHITELIST = (process.env.ADMIN_IP_WHITELIST || '')
   .filter(Boolean);
 
 // Root domain for production
-const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'ideationlab.ai';
+const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'ideafuel.ai';
 
 /**
  * Extract subdomain from host header
@@ -48,7 +48,7 @@ function getSubdomain(host: string): string | null {
   // Production subdomain detection
   const parts = hostname.split('.');
   if (parts.length > 2) {
-    // Has subdomain (e.g., app.ideationlab.ai)
+    // Has subdomain (e.g., app.ideafuel.ai)
     return parts[0];
   }
 
@@ -95,7 +95,7 @@ export function middleware(request: NextRequest) {
   }
 
   // =========================================================================
-  // ADMIN SUBDOMAIN (admin.ideationlab.ai)
+  // ADMIN SUBDOMAIN (admin.ideafuel.ai)
   // =========================================================================
   if (subdomain === 'admin') {
     // 1. IP Whitelist Check (if configured)
@@ -137,7 +137,7 @@ export function middleware(request: NextRequest) {
   }
 
   // =========================================================================
-  // APP SUBDOMAIN (app.ideationlab.ai)
+  // APP SUBDOMAIN (app.ideafuel.ai)
   // =========================================================================
   if (subdomain === 'app') {
     // Redirect root to dashboard
@@ -150,7 +150,7 @@ export function middleware(request: NextRequest) {
   }
 
   // =========================================================================
-  // ROOT DOMAIN (ideationlab.ai) - Landing Page
+  // ROOT DOMAIN (ideafuel.ai) - Landing Page
   // =========================================================================
   if (!subdomain) {
     // Allow public paths
