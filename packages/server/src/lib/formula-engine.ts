@@ -11,6 +11,11 @@ import { create, all, type MathJsInstance, type EvalFunction } from 'mathjs';
 // Create a hardened math.js instance with only number support
 const math: MathJsInstance = create(all, { number: 'number' });
 
+// Save references before disabling — we need import/parse/compile for our own code
+const safeImport = math.import.bind(math);
+const safeParse = math.parse.bind(math);
+const safeCompile = math.compile.bind(math);
+
 // Disable ALL dangerous functions to prevent formula injection (CVE-2025-12735 on expr-eval)
 const DISABLED_FUNCTIONS = [
   'import', 'evaluate', 'parse', 'simplify', 'derivative',
@@ -18,7 +23,7 @@ const DISABLED_FUNCTIONS = [
 ] as const;
 
 for (const fn of DISABLED_FUNCTIONS) {
-  math.import(
+  safeImport(
     { [fn]: () => { throw new Error(`Function "${fn}" is disabled`); } },
     { override: true },
   );
@@ -35,7 +40,7 @@ function compileFormula(formula: string): EvalFunction {
   const cached = compiledCache.get(formula);
   if (cached) return cached;
 
-  const compiled = math.compile(formula);
+  const compiled = safeCompile(formula);
   compiledCache.set(formula, compiled);
   return compiled;
 }
@@ -71,7 +76,7 @@ export function validateFormula(
 ): { valid: boolean; error?: string } {
   try {
     // Try to parse the formula
-    const node = math.parse(formula);
+    const node = safeParse(formula);
 
     // Extract all referenced variable names
     const refs = extractDependenciesFromNode(node);
@@ -97,7 +102,7 @@ export function validateFormula(
  */
 export function extractDependencies(formula: string): string[] {
   try {
-    const node = math.parse(formula);
+    const node = safeParse(formula);
     return extractDependenciesFromNode(node);
   } catch {
     return [];
