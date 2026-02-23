@@ -265,6 +265,63 @@ export type SparkResultInput = z.infer<typeof sparkResultSchema>;
 export type StartSparkInput = z.infer<typeof startSparkSchema>;
 
 // ============================================
+// Assumption validators
+// ============================================
+export const assumptionCategorySchema = z.enum([
+  'PRICING', 'ACQUISITION', 'RETENTION', 'MARKET', 'COSTS', 'FUNDING', 'TIMELINE',
+]);
+export const assumptionConfidenceSchema = z.enum([
+  'USER', 'RESEARCHED', 'AI_ESTIMATE', 'CALCULATED',
+]);
+export const assumptionValueTypeSchema = z.enum([
+  'NUMBER', 'PERCENTAGE', 'CURRENCY', 'TEXT', 'DATE', 'SELECT',
+]);
+export const assumptionTierSchema = z.enum(['SPARK', 'LIGHT', 'IN_DEPTH']);
+
+// Reserved keys that cannot be used as assumption keys (prototype pollution protection)
+const RESERVED_KEYS = ['__proto__', 'constructor', 'prototype', 'toString', 'valueOf', 'hasOwnProperty'];
+
+export const assumptionKeySchema = z.string()
+  .min(1, 'Key is required')
+  .max(64, 'Key too long')
+  .regex(/^[a-z][a-z0-9_]*$/, 'Key must be lowercase snake_case')
+  .refine((key) => !RESERVED_KEYS.includes(key), 'Reserved key name');
+
+export const updateAssumptionSchema = z.object({
+  id: entityId,
+  projectId: entityId,
+  value: z.string().max(1000).nullable().optional(),
+  confidence: assumptionConfidenceSchema.optional(),
+  source: z.string().max(500).optional(),
+  sourceUrl: z.string().url().max(2000).nullable().optional(),
+  formula: z.string().max(500).nullable().optional(),
+});
+export type UpdateAssumptionInput = z.infer<typeof updateAssumptionSchema>;
+
+export const batchUpdateAssumptionSchema = z.object({
+  projectId: entityId,
+  updates: z.array(z.object({
+    key: assumptionKeySchema,
+    value: z.string().max(1000).nullable(),
+    confidence: assumptionConfidenceSchema.optional(),
+    source: z.string().max(500).optional(),
+  })).min(1).max(24),
+});
+export type BatchUpdateAssumptionInput = z.infer<typeof batchUpdateAssumptionSchema>;
+
+export const createCustomAssumptionSchema = z.object({
+  projectId: entityId,
+  name: z.string().min(1).max(200),
+  key: assumptionKeySchema,
+  category: assumptionCategorySchema,
+  valueType: assumptionValueTypeSchema,
+  unit: z.string().max(20).nullable().optional(),
+  value: z.string().max(1000).nullable().optional(),
+  formula: z.string().max(500).nullable().optional(),
+});
+export type CreateCustomAssumptionInput = z.infer<typeof createCustomAssumptionSchema>;
+
+// ============================================
 // Pagination validator
 // ============================================
 export const paginationSchema = z.object({

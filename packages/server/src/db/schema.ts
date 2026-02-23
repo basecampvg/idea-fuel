@@ -47,6 +47,20 @@ export const aiClassificationTargetTypeEnum = pgEnum('AIClassificationTargetType
 export const agentConversationStatusEnum = pgEnum('AgentConversationStatus', ['ACTIVE', 'ARCHIVED']);
 export const embeddingSourceTypeEnum = pgEnum('EmbeddingSourceType', ['REPORT', 'RESEARCH', 'INTERVIEW', 'NOTES', 'SERPAPI']);
 
+// Assumptions Engine enums
+export const assumptionCategoryEnum = pgEnum('AssumptionCategory', [
+  'PRICING', 'ACQUISITION', 'RETENTION', 'MARKET', 'COSTS', 'FUNDING', 'TIMELINE',
+]);
+export const assumptionConfidenceEnum = pgEnum('AssumptionConfidence', [
+  'USER', 'RESEARCHED', 'AI_ESTIMATE', 'CALCULATED',
+]);
+export const assumptionValueTypeEnum = pgEnum('AssumptionValueType', [
+  'NUMBER', 'PERCENTAGE', 'CURRENCY', 'TEXT', 'DATE', 'SELECT',
+]);
+export const assumptionTierEnum = pgEnum('AssumptionTier', [
+  'SPARK', 'LIGHT', 'IN_DEPTH',
+]);
+
 // TypeScript types derived from enums
 export type SubscriptionTier = (typeof subscriptionTierEnum.enumValues)[number];
 export type UserRole = (typeof userRoleEnum.enumValues)[number];
@@ -66,6 +80,10 @@ export type BlogPostStatus = (typeof blogPostStatusEnum.enumValues)[number];
 export type AIClassificationTargetType = (typeof aiClassificationTargetTypeEnum.enumValues)[number];
 export type AgentConversationStatus = (typeof agentConversationStatusEnum.enumValues)[number];
 export type EmbeddingSourceType = (typeof embeddingSourceTypeEnum.enumValues)[number];
+export type AssumptionCategory = (typeof assumptionCategoryEnum.enumValues)[number];
+export type AssumptionConfidence = (typeof assumptionConfidenceEnum.enumValues)[number];
+export type AssumptionValueType = (typeof assumptionValueTypeEnum.enumValues)[number];
+export type AssumptionTier = (typeof assumptionTierEnum.enumValues)[number];
 
 // =============================================================================
 // AUTH TABLES (User, Account, Session, VerificationToken)
@@ -711,6 +729,63 @@ export const embeddings = pgTable('Embedding', {
 ]);
 
 // =============================================================================
+// ASSUMPTIONS ENGINE
+// =============================================================================
+
+export const assumptions = pgTable('Assumption', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  projectId: text().notNull(),
+  category: assumptionCategoryEnum().notNull(),
+  name: text().notNull(),
+  key: text().notNull(),
+  value: text(),
+  valueType: assumptionValueTypeEnum().notNull(),
+  unit: text(),
+  confidence: assumptionConfidenceEnum().default('AI_ESTIMATE').notNull(),
+  source: text().default('System default').notNull(),
+  sourceUrl: text(),
+  formula: text(),
+  dependsOn: text().array().default(sql`'{}'::text[]`).notNull(),
+  tier: assumptionTierEnum(),
+  isSensitive: boolean().default(false).notNull(),
+  isRequired: boolean().default(true).notNull(),
+  updatedByActor: text().default('system').notNull(),
+  updatedByUserId: text(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+}, (table) => [
+  unique('Assumption_projectId_key_key').on(table.projectId, table.key),
+  index('Assumption_projectId_idx').on(table.projectId),
+  index('Assumption_projectId_category_idx').on(table.projectId, table.category),
+  foreignKey({
+    columns: [table.projectId],
+    foreignColumns: [projects.id],
+    name: 'Assumption_projectId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+export const assumptionHistory = pgTable('AssumptionHistory', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  assumptionId: text().notNull(),
+  oldValue: text(),
+  newValue: text(),
+  oldConfidence: assumptionConfidenceEnum(),
+  newConfidence: assumptionConfidenceEnum(),
+  changedByActor: text().notNull(),
+  changedByUserId: text(),
+  reason: text(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('AssumptionHistory_assumptionId_idx').on(table.assumptionId),
+  index('AssumptionHistory_createdAt_idx').on(table.createdAt),
+  foreignKey({
+    columns: [table.assumptionId],
+    foreignColumns: [assumptions.id],
+    name: 'AssumptionHistory_assumptionId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
 // RELATIONS
 // =============================================================================
 
@@ -739,6 +814,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   interviews: many(interviews),
   reports: many(reports),
   research: one(research, { fields: [projects.id], references: [research.projectId] }),
+  assumptions: many(assumptions),
   agentConversations: many(agentConversations),
   agentInsights: many(agentInsights),
   embeddings: many(embeddings),
@@ -805,4 +881,13 @@ export const agentMessagesRelations = relations(agentMessages, ({ one }) => ({
 
 export const embeddingsRelations = relations(embeddings, ({ one }) => ({
   project: one(projects, { fields: [embeddings.projectId], references: [projects.id] }),
+}));
+
+export const assumptionsRelations = relations(assumptions, ({ one, many }) => ({
+  project: one(projects, { fields: [assumptions.projectId], references: [projects.id] }),
+  history: many(assumptionHistory),
+}));
+
+export const assumptionHistoryRelations = relations(assumptionHistory, ({ one }) => ({
+  assumption: one(assumptions, { fields: [assumptionHistory.assumptionId], references: [assumptions.id] }),
 }));

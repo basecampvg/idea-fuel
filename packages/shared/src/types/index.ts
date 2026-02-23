@@ -753,6 +753,81 @@ export interface QueryVariation {
 }
 
 // =============================================================================
+// Assumptions Engine Types
+// =============================================================================
+
+export type AssumptionCategory = 'PRICING' | 'ACQUISITION' | 'RETENTION' | 'MARKET' | 'COSTS' | 'FUNDING' | 'TIMELINE';
+export type AssumptionConfidence = 'USER' | 'RESEARCHED' | 'AI_ESTIMATE' | 'CALCULATED';
+export type AssumptionValueType = 'NUMBER' | 'PERCENTAGE' | 'CURRENCY' | 'TEXT' | 'DATE' | 'SELECT';
+export type AssumptionTier = 'SPARK' | 'LIGHT' | 'IN_DEPTH';
+
+export interface Assumption {
+  id: string;
+  projectId: string;
+  category: AssumptionCategory;
+  name: string;
+  key: string;
+  value: string | null;
+  valueType: AssumptionValueType;
+  unit: string | null;
+  confidence: AssumptionConfidence;
+  source: string;
+  sourceUrl: string | null;
+  formula: string | null;
+  dependsOn: string[];
+  tier: AssumptionTier | null;
+  isSensitive: boolean;
+  isRequired: boolean;
+  updatedByActor: string;
+  updatedByUserId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AssumptionHistory {
+  id: string;
+  assumptionId: string;
+  oldValue: string | null;
+  newValue: string | null;
+  oldConfidence: AssumptionConfidence | null;
+  newConfidence: AssumptionConfidence | null;
+  changedByActor: string;
+  changedByUserId: string | null;
+  reason: string | null;
+  createdAt: Date;
+}
+
+// Discriminated union for cascade results
+export interface CascadeChange {
+  key: string;
+  oldValue: string | null;
+  newValue: string;
+}
+
+export interface CascadeSuccess {
+  status: 'success';
+  changedKey: string;
+  updatedAssumptions: CascadeChange[];
+  impactedSections: Array<{ sectionKey: string; reportType: string }>;
+}
+
+export interface CascadeFailure {
+  status: 'error';
+  changedKey: string;
+  errorType: 'circular_dependency' | 'formula_error' | 'missing_dependency' | 'invalid_value';
+  errorMessage: string;
+  errorAtKey: string | null;
+}
+
+export type CascadeResult = CascadeSuccess | CascadeFailure;
+
+export interface StalenessInfo {
+  isStale: boolean;
+  reason?: string;
+  daysSinceUpdate?: number;
+}
+
+// =============================================================================
 // Agent Types
 // =============================================================================
 
