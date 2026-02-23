@@ -38,18 +38,18 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'ideationLab',
-    template: '%s | ideationLab',
+    default: 'Idea Fuel',
+    template: '%s | Idea Fuel',
   },
   description: 'AI-powered business validation platform',
   openGraph: {
-    title: 'ideationLab',
+    title: 'Idea Fuel',
     description: 'AI-powered business validation platform',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ideationLab',
+    title: 'Idea Fuel',
     description: 'AI-powered business validation platform',
   },
 };

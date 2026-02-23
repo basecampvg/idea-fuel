@@ -29,7 +29,7 @@ export const COLLAPSED_WIDTH = 60;
 export const EXPANDED_WIDTH = 240;
 
 /** Height of the global top navigation bar in pixels */
-export const TOP_BAR_HEIGHT = 48;
+export const TOP_BAR_HEIGHT = 88;
 const HOVER_ENTER_DELAY = 200;
 const HOVER_LEAVE_DELAY = 300;
 
