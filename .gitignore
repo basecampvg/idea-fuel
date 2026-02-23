@@ -30,6 +30,7 @@ web-build/
 
 # Claude plans and local settings
 .claude/
+CLAUDE.md
 
 # Temp/personal files
 *.docx

@@ -690,8 +690,12 @@ export default function LandingPage() {
 
         {/* ─── Slide 4b: Report Dashboard (mobile/tablet only) ─── */}
         <section data-slide data-mobile-only className="slide bg-[#161513] pt-[88px] lg:hidden">
-          <div className="flex h-[calc(100vh-88px)] w-full items-center justify-center overflow-hidden px-4">
-            <div data-anim="s4b-dashboard" className="w-full max-w-[400px]">
+          <div className="flex h-[calc(100vh-88px)] w-full items-center justify-center overflow-hidden px-3">
+            <div
+              data-anim="s4b-dashboard"
+              className="w-full max-w-[480px] rounded-xl border border-[#2a2a2a] bg-[#0e0d0c]"
+              style={{ height: 'calc(100vh - 120px)' }}
+            >
               <ReportDashboard />
             </div>
           </div>
