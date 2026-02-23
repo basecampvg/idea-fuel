@@ -7,21 +7,6 @@ import { db } from '../db/drizzle';
 
 export const adminRouter = router({
   /**
-   * Public endpoint for analytics config (no auth required).
-   * Returns only analytics-related config values — safe for unauthenticated access.
-   */
-  analyticsConfig: publicProcedure.query(async () => {
-    if (!configService.isInitialized()) {
-      await configService.init(db);
-    }
-
-    const enabled = configService.get('analytics.enabled', false);
-    const facebookPixelId = configService.get('analytics.facebookPixelId', null) as string | null;
-    const googleTagSnippet = configService.get('analytics.googleTagSnippet', null) as string | null;
-
-    return { enabled, facebookPixelId, googleTagSnippet };
-  }),
-  /**
    * List all configs grouped by category
    */
   list: superAdminProcedure.query(async ({ ctx }) => {

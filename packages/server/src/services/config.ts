@@ -799,33 +799,6 @@ export const DEFAULT_CONFIGS: ConfigDefinition[] = [
     description: 'Subtitle for Pain Points section (optional)',
   },
 
-  // =========================================================================
-  // Analytics & Tracking
-  // =========================================================================
-  {
-    key: 'analytics.facebookPixelId',
-    value: '',
-    type: 'STRING',
-    category: 'analytics',
-    label: 'Facebook Pixel ID',
-    description: 'Your Facebook Pixel ID for conversion tracking (e.g., 123456789012345)',
-  },
-  {
-    key: 'analytics.googleTagSnippet',
-    value: '',
-    type: 'STRING',
-    category: 'analytics',
-    label: 'Google Tag Snippet',
-    description: 'Your Google Tag (gtag.js) code snippet - paste the full script',
-  },
-  {
-    key: 'analytics.enabled',
-    value: false,
-    type: 'BOOLEAN',
-    category: 'analytics',
-    label: 'Enable Analytics',
-    description: 'Enable analytics tracking scripts on the frontend',
-  },
 ];
 
 // =============================================================================
