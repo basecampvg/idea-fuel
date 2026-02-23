@@ -9,7 +9,7 @@ import { FlameHero } from './components/flame-hero';
 import { PhoneMockup } from './components/phone-mockup';
 import { ScrollingReportGrid } from './components/scrolling-report-grid';
 import { ReportDashboard } from './components/report-dashboard';
-import { PricingSection } from './components/pricing-section';
+// import { PricingSection } from './components/pricing-section';
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 

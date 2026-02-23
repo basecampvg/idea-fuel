@@ -1,7 +1,5 @@
-'use client';
-
-import { useState } from 'react';
-import { PieChart, TrendingUp, ChevronDown, ExternalLink, AlertCircle } from 'lucide-react';
+import { TrendingUp, ExternalLink, AlertCircle, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { CollapsibleSection } from './collapsible-section';
 import type {
   MarketSizingData,
@@ -76,13 +74,23 @@ function MarketCard({
 
   return (
     <div
-      className={`p-5 rounded-xl bg-gradient-to-b ${styles.gradient} border ${styles.border} transition-all duration-200 hover:scale-[1.02]`}
+      className={`p-4 rounded-xl bg-gradient-to-b ${styles.gradient} border ${styles.border} transition-all duration-200 hover:scale-[1.02]`}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-          {label}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-bold uppercase tracking-widest text-foreground">
+            {label}
+          </span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="w-3 h-3 text-muted-foreground/50" />
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[200px] text-xs">
+              {description}
+            </TooltipContent>
+          </Tooltip>
+        </div>
         <div
           className={`w-2 h-2 rounded-full ${getConfidenceColor(metric.confidence)}`}
           title={getConfidenceLabel(metric.confidence)}
@@ -93,14 +101,11 @@ function MarketCard({
       <div className="text-2xl font-semibold text-foreground mb-1">{metric.formattedValue}</div>
 
       {/* Growth Rate */}
-      <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+      <div className="flex items-center gap-1 text-sm text-muted-foreground">
         <TrendingUp className="w-3 h-3 text-primary" />
         <span>{metric.growthRate}% CAGR</span>
         <span className="text-xs">({metric.timeframe})</span>
       </div>
-
-      {/* Description */}
-      <p className="text-xs text-muted-foreground">{description}</p>
     </div>
   );
 }
@@ -136,7 +141,7 @@ function SegmentBar({
           }}
         />
       </div>
-      <p className="text-xs text-muted-foreground">{segment.description}</p>
+      <p className="text-sm text-muted-foreground">{segment.description}</p>
     </div>
   );
 }
@@ -146,7 +151,6 @@ export function MarketSizing({
   title = 'Market Sizing',
   subtitle,
 }: MarketSizingProps) {
-  const [showDetails, setShowDetails] = useState(false);
 
   if (!marketSizing) return null;
 
@@ -156,11 +160,7 @@ export function MarketSizing({
 
   return (
     <CollapsibleSection
-      icon={<PieChart className="w-5 h-5 text-primary" />}
-      iconBgColor="hsl(var(--primary) / 0.15)"
       title={title}
-      subtitle={subtitle}
-      defaultCollapsed={false}
     >
       <div className="space-y-5">
         {/* Three Cards: TAM | SAM | SOM */}
@@ -173,7 +173,7 @@ export function MarketSizing({
         {/* Segments Breakdown (always visible) */}
         {data.segments && data.segments.length > 0 && (
           <div className="space-y-3">
-            <h4 className="text-sm font-medium text-foreground">Market Segments</h4>
+            <h4 className="text-sm font-medium uppercase text-primary">Market Segments</h4>
             <div className="space-y-3">
               {data.segments.slice(0, 4).map((segment, i) => (
                 <SegmentBar key={segment.name} segment={segment} index={i} />
@@ -182,29 +182,13 @@ export function MarketSizing({
           </div>
         )}
 
-        {/* Expandable Details Toggle */}
-        <button
-          onClick={() => setShowDetails(!showDetails)}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ChevronDown
-            className={`w-4 h-4 transition-transform duration-200 ${showDetails ? 'rotate-180' : ''}`}
-          />
-          {showDetails ? 'Hide' : 'Show'} methodology & sources
-        </button>
-
-        {/* Expandable Details Content */}
-        <div
-          className={`overflow-hidden transition-all duration-300 ${
-            showDetails ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
-          }`}
-        >
-          <div className="space-y-4 pt-3 border-t border-border">
+        {/* Methodology & Sources */}
+        <div className="space-y-4 pt-3 border-t border-border">
             {/* Methodology */}
             {data.methodology && (
               <div>
-                <h4 className="text-sm font-medium text-foreground mb-2">Methodology</h4>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <h4 className="text-sm font-medium uppercase text-primary mb-2">Methodology</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {data.methodology}
                 </p>
               </div>
@@ -213,7 +197,7 @@ export function MarketSizing({
             {/* Geographic Breakdown */}
             {data.geographicBreakdown && data.geographicBreakdown.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-foreground mb-2">Geographic Focus</h4>
+                <h4 className="text-sm font-medium uppercase text-primary mb-2">Geographic Focus</h4>
                 <div className="flex flex-wrap gap-2">
                   {data.geographicBreakdown.map((geo) => (
                     <span
@@ -230,13 +214,13 @@ export function MarketSizing({
             {/* Key Assumptions */}
             {data.assumptions && data.assumptions.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+                <h4 className="text-sm font-medium uppercase text-primary mb-2 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-primary" />
                   Key Assumptions
                 </h4>
                 <ul className="space-y-2">
                   {data.assumptions.map((assumption, i) => (
-                    <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                    <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
                       <span
                         className={`font-medium uppercase text-xs px-1.5 py-0.5 rounded ${
                           assumption.level === 'tam'
@@ -269,7 +253,7 @@ export function MarketSizing({
             {/* Sources */}
             {data.sources && data.sources.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-foreground mb-2">Sources</h4>
+                <h4 className="text-sm font-medium uppercase text-primary mb-2">Sources</h4>
                 <ul className="space-y-1">
                   {data.sources.map((source, i) => (
                     <li key={i}>
@@ -304,7 +288,6 @@ export function MarketSizing({
               </p>
             )}
           </div>
-        </div>
       </div>
     </CollapsibleSection>
   );
