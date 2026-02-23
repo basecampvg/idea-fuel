@@ -105,19 +105,19 @@ export const REPORT_CARDS: ReportCardData[] = [
 
 export function ReportCard({ icon: Icon, title, subtitle, tags }: ReportCardData) {
   return (
-    <div className="w-[220px] shrink-0 rounded-xl border border-[#2a2a2a] bg-[#1a1816] px-4 py-4 shadow-[0_4px_24px_rgba(0,0,0,0.3)]">
+    <div className="w-full min-w-0 rounded-xl border border-[#2a2a2a] bg-[#1a1816] px-3 py-4 shadow-[0_4px_24px_rgba(0,0,0,0.3)] lg:px-4">
       {/* Icon */}
       <div className="mb-2 flex justify-center">
         <Icon className="h-4 w-4 text-[#e32b1a]/70" strokeWidth={1.5} />
       </div>
 
       {/* Title */}
-      <h4 className="text-center font-display text-xs font-bold tracking-wide text-[#d4d4d4]">
+      <h4 className="truncate text-center font-display text-xs font-bold tracking-wide text-[#d4d4d4]">
         {title}
       </h4>
 
       {/* Subtitle */}
-      <p className="mt-0.5 text-center text-[10px] text-[#888]">
+      <p className="mt-0.5 truncate text-center text-[10px] text-[#888]">
         {subtitle}
       </p>
 
@@ -126,7 +126,7 @@ export function ReportCard({ icon: Icon, title, subtitle, tags }: ReportCardData
         {tags.map((tag) => (
           <span
             key={tag}
-            className="rounded-full bg-[#2a2220] px-2 py-[2px] text-[9px] font-medium text-[#e32b1a]/90"
+            className="truncate rounded-full bg-[#2a2220] px-2 py-[2px] text-[9px] font-medium text-[#e32b1a]/90"
           >
             {tag}
           </span>

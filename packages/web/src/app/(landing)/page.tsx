@@ -622,8 +622,8 @@ export default function LandingPage() {
 
         {/* ─── Slide 3b: Scrolling Report Grid (mobile/tablet only) ─── */}
         <section data-slide data-mobile-only className="slide bg-[#161513] pt-[88px] lg:hidden">
-          <div className="flex h-[calc(100vh-88px)] w-full items-center justify-center overflow-hidden px-4">
-            <div data-anim="s3b-grid" className="h-[70vh] w-full max-w-[400px]">
+          <div className="flex h-[calc(100vh-88px)] w-full items-center justify-center overflow-hidden px-3">
+            <div data-anim="s3b-grid" className="h-[70vh] w-full">
               <ScrollingReportGrid className="h-full" />
             </div>
           </div>
