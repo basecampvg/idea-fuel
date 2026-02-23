@@ -62,11 +62,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${geist.variable} ${geistMono.variable} ${outfit.variable}`}>
       <body className="antialiased" suppressHydrationWarning>
+        <AnalyticsScripts />
         <ThemeProvider>
           <SessionProvider>
             <TRPCProvider>
               {children}
-              <AnalyticsScripts />
             </TRPCProvider>
           </SessionProvider>
         </ThemeProvider>
