@@ -8,12 +8,13 @@ import {
   assumptionKeySchema,
 } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
-import { assumptions, assumptionHistory, projects } from '../db/schema';
+import { assumptions, assumptionHistory, projects, reports } from '../db/schema';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { DEFAULT_ASSUMPTIONS } from '../services/assumption-defaults';
 import { executeCascade, detectCycles } from '../lib/cascade-engine';
 import { validateFormula, extractDependencies } from '../lib/formula-engine';
 import { getEffectiveConfidence, getStalenessInfo } from '../lib/confidence-engine';
+import { enqueueSectionRegen } from '../jobs/queues';
 import type { Assumption } from '@forge/shared';
 import type { Context } from '../context';
 
@@ -408,5 +409,56 @@ export const assumptionRouter = router({
 
         return { results };
       });
+    }),
+
+  /**
+   * Queue section regeneration for impacted report sections.
+   * Finds the latest BUSINESS_PLAN report and queues a BullMQ job.
+   */
+  regenerateSections: protectedProcedure
+    .input(z.object({
+      projectId: entityId,
+      sectionKeys: z.array(z.string().min(1)).min(1).max(20),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      await verifyProjectOwnership(ctx.db, input.projectId, ctx.userId);
+
+      // Find the latest BUSINESS_PLAN report for this project
+      const report = await ctx.db.query.reports.findFirst({
+        where: and(
+          eq(reports.projectId, input.projectId),
+          eq(reports.type, 'BUSINESS_PLAN'),
+        ),
+        orderBy: (r, { desc }) => desc(r.createdAt),
+        columns: { id: true },
+      });
+
+      if (!report) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'No business plan report found. Generate a report first.',
+        });
+      }
+
+      const jobId = await enqueueSectionRegen({
+        projectId: input.projectId,
+        userId: ctx.userId,
+        sectionKeys: input.sectionKeys,
+        reportId: report.id,
+      });
+
+      logAuditAsync({
+        userId: ctx.userId,
+        action: 'PROJECT_UPDATE',
+        resource: formatResource('project', input.projectId),
+        metadata: {
+          action: 'regenerate_sections',
+          sectionKeys: input.sectionKeys,
+          reportId: report.id,
+          jobId,
+        },
+      });
+
+      return { jobId, reportId: report.id, sectionCount: input.sectionKeys.length };
     }),
 });

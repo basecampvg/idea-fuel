@@ -11,6 +11,7 @@ export const QUEUE_NAMES = {
   SPARK_PIPELINE: 'spark-pipeline',
   EMAIL_SYNC: 'email-sync',
   EMBEDDING_GENERATION: 'embedding-generation',
+  SECTION_REGEN: 'section-regen',
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -79,6 +80,16 @@ export interface EmbeddingGenerationJobData {
   }>;
 }
 
+/**
+ * Section Regeneration Job Data
+ */
+export interface SectionRegenJobData {
+  projectId: string;
+  userId: string;
+  sectionKeys: string[];
+  reportId: string;
+}
+
 // ============================================================================
 // QUEUE INSTANCES (lazy-initialized to avoid Redis connections at import time)
 // ============================================================================
@@ -89,6 +100,7 @@ let _researchCancelQueue: Queue<ResearchCancelJobData> | null = null;
 let _sparkPipelineQueue: Queue<SparkPipelineJobData> | null = null;
 let _emailSyncQueue: Queue<EmailSyncJobData> | null = null;
 let _embeddingGenerationQueue: Queue<EmbeddingGenerationJobData> | null = null;
+let _sectionRegenQueue: Queue<SectionRegenJobData> | null = null;
 
 export function getReportGenerationQueue(): Queue<ReportGenerationJobData> {
   if (!_reportGenerationQueue) {
@@ -196,6 +208,24 @@ export function getEmbeddingGenerationQueue(): Queue<EmbeddingGenerationJobData>
   return _embeddingGenerationQueue;
 }
 
+export function getSectionRegenQueue(): Queue<SectionRegenJobData> {
+  if (!_sectionRegenQueue) {
+    _sectionRegenQueue = new Queue<SectionRegenJobData>(
+      QUEUE_NAMES.SECTION_REGEN,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 2,
+          backoff: { type: 'exponential', delay: 5000 },
+          removeOnComplete: { count: 100, age: 24 * 60 * 60 },
+          removeOnFail: { count: 200, age: 7 * 24 * 60 * 60 },
+        },
+      }
+    );
+  }
+  return _sectionRegenQueue;
+}
+
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
@@ -276,6 +306,21 @@ export async function enqueueEmbeddingGeneration(
 }
 
 /**
+ * Add a section regeneration job to the queue
+ */
+export async function enqueueSectionRegen(
+  data: SectionRegenJobData
+): Promise<string> {
+  const jobId = `section-regen-${data.reportId}-${Date.now()}`;
+  const job = await getSectionRegenQueue().add(
+    `section-regen-${data.reportId}`,
+    data,
+    { jobId }
+  );
+  return job.id || '';
+}
+
+/**
  * Get queue stats for monitoring
  */
 export async function getQueueStats(queueName: QueueName) {
@@ -286,6 +331,7 @@ export async function getQueueStats(queueName: QueueName) {
     [QUEUE_NAMES.SPARK_PIPELINE]: getSparkPipelineQueue,
     [QUEUE_NAMES.EMAIL_SYNC]: getEmailSyncQueue,
     [QUEUE_NAMES.EMBEDDING_GENERATION]: getEmbeddingGenerationQueue,
+    [QUEUE_NAMES.SECTION_REGEN]: getSectionRegenQueue,
   };
 
   const getQueue = getters[queueName];
