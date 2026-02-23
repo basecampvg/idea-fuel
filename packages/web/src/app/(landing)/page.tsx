@@ -702,8 +702,8 @@ export default function LandingPage() {
         </section>
       </div>
 
-      {/* ─── Section 5: Pricing ─── */}
-      <PricingSection />
+      {/* ─── Section 5: Pricing (hidden for now) ─── */}
+      {/* <PricingSection /> */}
 
       {/* ─── Slide Indicator (fixed overlay) ─── */}
       <div

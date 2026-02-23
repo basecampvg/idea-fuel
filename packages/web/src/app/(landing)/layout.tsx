@@ -54,12 +54,12 @@ export default function LandingLayout({
             >
               How It Works
             </a>
-            <a
-              href="#pricing"
+            <Link
+              href="/demo-report"
               className="px-5 py-2 text-sm font-semibold uppercase tracking-[1px] text-white transition-colors hover:text-[#e32b1a]"
             >
-              Pricing
-            </a>
+              Sample Report
+            </Link>
             <a
               href="#start"
               className="ml-2 px-5 py-2 text-sm font-semibold uppercase tracking-[1px] text-gradient-brand transition-opacity hover:opacity-80"
