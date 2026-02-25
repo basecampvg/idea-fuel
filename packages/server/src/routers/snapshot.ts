@@ -12,6 +12,35 @@ import {
 import { logAuditAsync, formatResource } from '../lib/audit';
 import type { Context } from '../context';
 
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+/** Transaction type extracted from Drizzle's db.transaction() callback. */
+type DbTransaction = Parameters<Parameters<Context['db']['transaction']>[0]>[0];
+
+/** Snapshot assumption data shape for serialization/deserialization. */
+interface SnapshotScenarioData {
+  name: string;
+  isBase: boolean;
+  assumptions: Array<{
+    key: string;
+    name: string;
+    value: string | null;
+    numericValue: string | null;
+    category: string;
+    valueType: string;
+    formula: string | null;
+    confidence: string;
+  }>;
+}
+
+type SnapshotAssumptionData = Record<string, SnapshotScenarioData>;
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
 /**
  * Verify model ownership.
  */
@@ -32,27 +61,26 @@ async function verifyModelOwnership(
 
 /**
  * Capture the current state of all scenario assumptions for a model.
- * Accepts either a db instance or a transaction (both support .query and .select).
+ * Accepts a Drizzle transaction (used within db.transaction callbacks).
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function captureAssumptionData(db: any, modelId: string) {
-  const modelScenarios = await db.query.scenarios.findMany({
+async function captureAssumptionData(tx: DbTransaction, modelId: string): Promise<SnapshotAssumptionData> {
+  const modelScenarios = await tx.query.scenarios.findMany({
     where: eq(scenarios.modelId, modelId),
     columns: { id: true, name: true, isBase: true },
   });
 
-  const data: Record<string, unknown> = {};
+  const data: SnapshotAssumptionData = {};
   for (const scenario of modelScenarios) {
-    const rows = await db
+    const rows = await tx
       .select()
       .from(assumptions)
       .where(eq(assumptions.scenarioId, scenario.id));
     data[scenario.id] = {
       name: scenario.name,
       isBase: scenario.isBase,
-      assumptions: rows.map((a: Record<string, unknown>) => ({
+      assumptions: rows.map((a) => ({
         key: a.key,
-        name: a.name,
+        name: a.name ?? '',
         value: a.value,
         numericValue: a.numericValue,
         category: a.category,
@@ -130,11 +158,13 @@ export const snapshotRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Snapshot not found' });
       }
 
-      // Verify both snapshots belong to same model and user owns it
+      // Verify ownership first, then check same model
+      await verifyModelOwnership(ctx.db, snap1.modelId, ctx.userId);
       if (snap1.modelId !== snap2.modelId) {
+        // Also verify the second model (prevents info leak about other models)
+        await verifyModelOwnership(ctx.db, snap2.modelId, ctx.userId);
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Snapshots must belong to the same model' });
       }
-      await verifyModelOwnership(ctx.db, snap1.modelId, ctx.userId);
 
       return {
         snapshot1: { id: snap1.id, name: snap1.name, createdAt: snap1.createdAt },
@@ -170,20 +200,14 @@ export const snapshotRouter = router({
           createdByAction: 'AUTO_SAVE',
         });
 
-        // Restore assumptions from snapshot data
-        const snapshotData = snapshot.assumptionData as Record<string, {
-          name: string;
-          isBase: boolean;
-          assumptions: Array<{
-            key: string;
-            value: string | null;
-            numericValue: string | null;
-            formula: string | null;
-            confidence: string;
-          }>;
-        }>;
+        // Validate and restore assumptions from snapshot data
+        const snapshotData = snapshot.assumptionData as SnapshotAssumptionData | null;
+        if (!snapshotData || typeof snapshotData !== 'object') {
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Snapshot data is corrupted' });
+        }
 
         for (const [scenarioId, scenarioData] of Object.entries(snapshotData)) {
+          if (!scenarioData?.assumptions || !Array.isArray(scenarioData.assumptions)) continue;
           for (const a of scenarioData.assumptions) {
             await tx
               .update(assumptions)
