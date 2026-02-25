@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { useSubscription } from '@/components/subscription/use-subscription';
 import { LoadingScreen } from '@/components/ui/spinner';
-import { Flame, Feather, Zap, Bookmark, ArrowUp, TrendingUp, Paperclip, Sparkles, Lock, Info } from 'lucide-react';
+import { Flame, Feather, Zap, Bookmark, ArrowUp, TrendingUp, Paperclip, Sparkles, Lock, Info, X } from 'lucide-react';
 import { PROJECT_TITLE_MAX } from '@forge/shared';
 
 type InterviewMode = 'SPARK' | 'LIGHT' | 'IN_DEPTH';
@@ -197,6 +197,17 @@ export default function DashboardPage() {
   const [animationState, setAnimationState] = useState<AnimationState>('visible');
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Onboarding tooltip for first-time users
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  useEffect(() => {
+    const seen = localStorage.getItem('forge_onboarding_seen');
+    if (!seen) setShowOnboarding(true);
+  }, []);
+  const dismissOnboarding = useCallback(() => {
+    setShowOnboarding(false);
+    localStorage.setItem('forge_onboarding_seen', '1');
+  }, []);
 
   const { data: user, isLoading: userLoading, error: userError } = trpc.user.me.useQuery(
     undefined,
@@ -510,7 +521,27 @@ export default function DashboardPage() {
       </div>
 
       {/* Idea Input Card */}
-      <div className="w-full max-w-[1120px] animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+      <div className="w-full max-w-[1120px] animate-fade-in-up relative" style={{ animationDelay: '100ms' }}>
+        {/* Onboarding tooltip */}
+        {showOnboarding && (
+          <div className="absolute -top-16 left-10 z-20 animate-onboarding-enter">
+            <div className="animate-onboarding-sway">
+              <div className="relative flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/30">
+                <Sparkles className="w-4 h-4 shrink-0" />
+                <span className="text-sm font-semibold whitespace-nowrap">Start here</span>
+                <button
+                  onClick={dismissOnboarding}
+                  className="ml-1 p-0.5 rounded-md hover:bg-white/20 transition-colors"
+                  aria-label="Dismiss tooltip"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+                {/* Arrow pointing down */}
+                <div className="absolute -bottom-2 left-6 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-primary" />
+              </div>
+            </div>
+          </div>
+        )}
         <div
           className={`
             relative rounded-2xl bg-card/80 backdrop-blur-sm border transition-all duration-500
@@ -538,7 +569,7 @@ export default function DashboardPage() {
                 onChange={(e) => {
                   if (e.target.value.length <= PROJECT_TITLE_MAX) setIdeaTitle(e.target.value);
                 }}
-                onFocus={() => setIsFocused(true)}
+                onFocus={() => { setIsFocused(true); if (showOnboarding) dismissOnboarding(); }}
                 onBlur={() => setIsFocused(false)}
                 placeholder="Name your idea"
                 className="
@@ -565,7 +596,7 @@ export default function DashboardPage() {
               <textarea
                 value={ideaDescription}
                 onChange={(e) => setIdeaDescription(e.target.value)}
-                onFocus={() => setIsFocused(true)}
+                onFocus={() => { setIsFocused(true); if (showOnboarding) dismissOnboarding(); }}
                 onBlur={() => setIsFocused(false)}
                 placeholder="Describe your business idea in a few sentences..."
                 className="

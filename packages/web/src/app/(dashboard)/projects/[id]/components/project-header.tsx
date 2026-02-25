@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronDown, ChevronUp, Pencil, Check, X } from 'lucide-react';
+import { Lightbulb, Pencil, Check, X } from 'lucide-react';
 import { type ProjectStatus, projectStatusConfig } from '@/lib/project-status';
 import { PROJECT_TITLE_MAX } from '@forge/shared';
 import { trpc } from '@/lib/trpc/client';
@@ -41,7 +41,6 @@ interface ProjectHeaderProps {
 }
 
 export function ProjectHeader({ project }: ProjectHeaderProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(project.title);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -179,33 +178,15 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
           </div>
         </div>
 
-        {/* Expandable full description */}
+        {/* Idea description callout */}
         {hasDescription && (
-          <div className="mt-4">
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {isExpanded ? (
-                <>
-                  <ChevronUp className="h-4 w-4" />
-                  <span>Hide description</span>
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="h-4 w-4" />
-                  <span>Show description</span>
-                </>
-              )}
-            </button>
-
-            {isExpanded && (
-              <div className="mt-3 p-4 rounded-xl bg-card/50 border border-border">
-                <p className="text-sm text-foreground/80 whitespace-pre-wrap leading-relaxed">
-                  {project.description}
-                </p>
-              </div>
-            )}
+          <div className="mt-4 rounded-xl bg-primary/10 border border-primary/20 p-4">
+            <div className="flex gap-3">
+              <Lightbulb className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+              <p className="text-sm text-foreground/80 whitespace-pre-wrap leading-relaxed">
+                {project.description}
+              </p>
+            </div>
           </div>
         )}
       </div>

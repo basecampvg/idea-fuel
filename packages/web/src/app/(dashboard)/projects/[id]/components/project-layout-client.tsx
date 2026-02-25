@@ -20,7 +20,8 @@ function ProjectLayoutInner({
 }) {
   const { id } = use(params);
   const pathname = usePathname();
-  const isInterviewPage = pathname?.includes('/interview');
+  // Only hide sidebar for the active interview chat, not interview-summary
+  const isInterviewPage = pathname?.endsWith('/interview');
   const { setProjectId } = useAgentSidebar();
 
   // Sync project ID to agent sidebar context

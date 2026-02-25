@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-02-25
+
+### UI: Redesign interview summary page to show full conversation inline
+
+- **Problem:** Interview summary page only showed a tiny metadata card with a "View Full Interview" link, requiring an extra click to see any content.
+- **Fix:** Rewrote the page to fetch the full interview (including messages) and render the entire conversation inline as a chat thread with assistant/user bubbles, stats header (confidence, turns, data points), and a "Redo Interview" action.
+- **File:** `packages/web/src/app/(dashboard)/projects/[id]/interview-summary/page.tsx`
+
 ## 2026-02-11
 
 ### Perf: Sitewide performance audit and optimization

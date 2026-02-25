@@ -21,7 +21,7 @@ import { CompetitorsSection, type Competitor } from './competitors-section';
 import { PainPointsSection, type PainPoint } from './pain-points-section';
 import { TechStackSection } from './tech-stack-section';
 import type { TechStackData } from '@forge/shared';
-import { ChevronRight, MessageSquare, Download, Share2, Trash2, RefreshCw } from 'lucide-react';
+import { ChevronRight, MessageSquare, Trash2, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { useDashboardConfig } from '@/hooks/use-dashboard-config';
 import { NextStepPromotion } from './next-step-promotion';
@@ -426,20 +426,6 @@ export function StatusComplete({ project, onDelete, isDeleting }: StatusComplete
 
       <div className="rounded-2xl bg-background border border-border p-5">
         <div className="flex flex-wrap gap-3">
-          <button
-            disabled
-            className="flex items-center gap-2 px-4 py-2 text-sm rounded-xl bg-card border border-border text-muted-foreground opacity-50 cursor-not-allowed"
-          >
-            <Download className="w-4 h-4" />
-            Export All
-          </button>
-          <button
-            disabled
-            className="flex items-center gap-2 px-4 py-2 text-sm rounded-xl bg-card border border-border text-muted-foreground opacity-50 cursor-not-allowed"
-          >
-            <Share2 className="w-4 h-4" />
-            Share
-          </button>
           <button
             onClick={onDelete}
             disabled={isDeleting}

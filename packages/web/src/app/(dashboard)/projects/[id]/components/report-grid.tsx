@@ -61,6 +61,9 @@ const ALL_REPORT_TYPES = [
   'GO_TO_MARKET',
 ];
 
+// Reports that are not yet available
+const COMING_SOON_TYPES = new Set(['BUSINESS_PLAN', 'POSITIONING', 'COMPETITIVE_ANALYSIS']);
+
 export function ReportGrid({ reports, projectId, locked = false }: ReportGridProps) {
   // If locked, show all report types as locked cards
   if (locked) {
@@ -94,6 +97,26 @@ export function ReportGrid({ reports, projectId, locked = false }: ReportGridPro
         const isGenerating = report?.status === 'GENERATING';
         const isComplete = report?.status === 'COMPLETE';
         const isFailed = report?.status === 'FAILED';
+
+        // Coming soon placeholder
+        if (COMING_SOON_TYPES.has(type)) {
+          return (
+            <div
+              key={type}
+              className="p-4 rounded-xl bg-card border border-border border-dashed opacity-60"
+            >
+              <div className="flex flex-col items-center text-center">
+                <Icon className="w-6 h-6 mb-2 text-muted-foreground" />
+                <span className="text-xs font-medium text-muted-foreground line-clamp-2">
+                  {REPORT_TYPE_LABELS[type] || type}
+                </span>
+                <span className="text-xs text-accent/70 mt-1">
+                  Coming soon
+                </span>
+              </div>
+            </div>
+          );
+        }
 
         if (!report) {
           // No report generated for this type yet

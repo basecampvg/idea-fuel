@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import {
   BarChart3,
@@ -14,8 +13,6 @@ import {
   Signal,
   Rocket,
   FileText,
-  Download,
-  Loader2,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -24,20 +21,8 @@ import {
   REPORT_TIER_LABELS,
   REPORT_STATUS_LABELS,
 } from '@forge/shared';
-import { trpc } from '@/lib/trpc/client';
 
 type ReportStatus = 'DRAFT' | 'GENERATING' | 'COMPLETE' | 'FAILED';
-type ReportType =
-  | 'BUSINESS_PLAN'
-  | 'POSITIONING'
-  | 'COMPETITIVE_ANALYSIS'
-  | 'WHY_NOW'
-  | 'PROOF_SIGNALS'
-  | 'KEYWORDS_SEO'
-  | 'CUSTOMER_PROFILE'
-  | 'VALUE_EQUATION'
-  | 'VALUE_LADDER'
-  | 'GO_TO_MARKET';
 
 // Report type icons using Lucide React
 const reportIcons: Record<string, LucideIcon> = {
@@ -108,52 +93,9 @@ interface ReportHeaderProps {
 }
 
 export function ReportHeader({ report }: ReportHeaderProps) {
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [downloadError, setDownloadError] = useState<string | null>(null);
-
   const Icon = reportIcons[report.type] || FileText;
   const status = statusConfig[report.status as ReportStatus] || statusConfig.DRAFT;
   const tier = tierConfig[report.tier] || tierConfig.BASIC;
-
-  const downloadPDF = trpc.report.downloadPDF.useMutation({
-    onSuccess: (data) => {
-      // Convert base64 to blob and trigger download
-      const byteCharacters = atob(data.data);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/pdf' });
-
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = data.filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      setIsDownloading(false);
-      setDownloadError(null);
-    },
-    onError: (err) => {
-      console.error('PDF download error:', err);
-      setDownloadError(err.message || 'Failed to generate PDF');
-      setIsDownloading(false);
-    },
-  });
-
-  const handleDownload = () => {
-    setIsDownloading(true);
-    setDownloadError(null);
-    downloadPDF.mutate({
-      projectId: report.projectId,
-      reportType: report.type as ReportType,
-    });
-  };
 
   // Get project title for back link
   const projectTitle = report.project?.title || report.project?.description?.slice(0, 40) || 'Project';
@@ -213,41 +155,7 @@ export function ReportHeader({ report }: ReportHeaderProps) {
             </p>
           </div>
 
-          {/* Download PDF button */}
-          {report.status === 'COMPLETE' && (
-            <button
-              onClick={handleDownload}
-              disabled={isDownloading}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                downloadError
-                  ? 'bg-destructive/15 text-destructive hover:bg-destructive/25'
-                  : 'bg-accent/15 text-accent hover:bg-accent/25'
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {isDownloading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Generating...</span>
-                </>
-              ) : downloadError ? (
-                <>
-                  <Download className="w-4 h-4" />
-                  <span>Retry Download</span>
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4" />
-                  <span>Download PDF</span>
-                </>
-              )}
-            </button>
-          )}
         </div>
-
-        {/* Download error message */}
-        {downloadError && (
-          <p className="mt-2 text-xs text-destructive">{downloadError}</p>
-        )}
       </div>
     </div>
   );

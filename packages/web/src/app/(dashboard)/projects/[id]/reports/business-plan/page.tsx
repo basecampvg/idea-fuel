@@ -1,31 +1,17 @@
 'use client';
 
-import { useProjectSection, useProject } from '../../components/use-project-section';
-import { BusinessPlanSection } from '../../components/business-plan-section';
-import { SectionEmptyState } from '../../components/section-empty-state';
-import { DownloadCard } from '../../components/download-card';
+import { BarChart3 } from 'lucide-react';
 
 export default function BusinessPlanReportPage() {
-  const { data: businessPlan } = useProjectSection(
-    (project) => project.research?.businessPlan as string | null | undefined
-  );
-  const { project } = useProject();
-
-  if (!businessPlan) return <SectionEmptyState section="Business Plan" />;
-
   return (
-    <div className="space-y-5">
-      <BusinessPlanSection businessPlan={businessPlan} />
-
-      {project && (
-        <div className="max-w-md">
-          <DownloadCard
-            type="BUSINESS_PLAN"
-            projectId={project.id}
-            status={project.research?.status === 'COMPLETE' ? 'ready' : 'locked'}
-          />
-        </div>
-      )}
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mb-4">
+        <BarChart3 className="w-7 h-7 text-accent/50" />
+      </div>
+      <h2 className="text-lg font-semibold text-foreground">Business Plan</h2>
+      <p className="mt-2 text-sm text-muted-foreground max-w-sm">
+        Coming soon. This report will provide a comprehensive business plan for your idea.
+      </p>
     </div>
   );
 }

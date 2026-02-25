@@ -779,6 +779,31 @@ p {
   animation: bounce-arrow 1.5s ease-in-out infinite;
 }
 
+@keyframes onboarding-sway {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+@keyframes onboarding-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-onboarding-sway {
+  animation: onboarding-sway 2.4s ease-in-out infinite;
+}
+
+.animate-onboarding-enter {
+  animation: onboarding-fade-in 0.4s ease-out forwards;
+}
+
 /* ===== TEXT UTILITIES ===== */
 
 .text-gradient {
