@@ -44,9 +44,22 @@ const valueTypeSuffixes: Record<ValueType, string> = {
   TEXT: '',
 };
 
+/** Validate numeric input based on value type. Returns error message or null. */
+function validateInput(value: string, valueType: string): string | null {
+  if (!value || value.trim() === '') return null;
+  const num = parseFloat(value);
+  if (isNaN(num)) return 'Must be a number';
+  if (valueType === 'CURRENCY' && num < 0) return 'Cannot be negative';
+  if (valueType === 'CURRENCY' && num > 999_999_999) return 'Maximum $999,999,999';
+  if (valueType === 'PERCENTAGE' && num < 0) return 'Cannot be negative';
+  if (valueType === 'PERCENTAGE' && num > 1000) return 'Maximum 1000%';
+  return null;
+}
+
 export function AssumptionRow({ assumption, onValueChange, isUpdating }: AssumptionRowProps) {
   const [editValue, setEditValue] = useState(assumption.value ?? '');
   const [isFocused, setIsFocused] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const isCalculated = !!assumption.formula;
   const confidence = confidenceConfig[assumption.confidence as Confidence] ?? confidenceConfig.AI_ESTIMATE;
@@ -66,30 +79,37 @@ export function AssumptionRow({ assumption, onValueChange, isUpdating }: Assumpt
       const newValue = e.target.value;
       setEditValue(newValue);
 
-      // Debounce auto-save (3 seconds)
+      // Validate
+      const error = validateInput(newValue, assumption.valueType);
+      setValidationError(error);
+
+      // Only auto-save valid values
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        onValueChange(assumption.id, newValue);
-      }, 3000);
+      if (!error) {
+        debounceRef.current = setTimeout(() => {
+          onValueChange(assumption.id, newValue);
+        }, 3000);
+      }
     },
-    [assumption.id, onValueChange],
+    [assumption.id, assumption.valueType, onValueChange],
   );
 
   const handleBlur = useCallback(() => {
     setIsFocused(false);
-    // Save immediately on blur
+    // Save immediately on blur if valid
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (editValue !== (assumption.value ?? '')) {
+    const error = validateInput(editValue, assumption.valueType);
+    if (!error && editValue !== (assumption.value ?? '')) {
       onValueChange(assumption.id, editValue);
     }
-  }, [assumption.id, assumption.value, editValue, onValueChange]);
+  }, [assumption.id, assumption.value, assumption.valueType, editValue, onValueChange]);
 
   const displayValue = assumption.numericValue ?? assumption.value;
 
   return (
     <div
       className={`
-        group flex items-center gap-3 px-4 py-3 rounded-xl border transition-all
+        relative group flex items-center gap-3 px-4 py-3 rounded-xl border transition-all
         ${isFocused
           ? 'border-primary/30 bg-primary/5 ring-1 ring-primary/10'
           : 'border-border bg-card hover:border-border/80 hover:bg-card/80'
@@ -151,6 +171,16 @@ export function AssumptionRow({ assumption, onValueChange, isUpdating }: Assumpt
       {isUpdating && (
         <div className="w-4 flex-shrink-0">
           <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+        </div>
+      )}
+
+      {/* Validation error */}
+      {validationError && isFocused && (
+        <div className="absolute right-0 top-full mt-1 z-10">
+          <div className="flex items-center gap-1 px-2 py-1 rounded bg-red-500/10 border border-red-500/20 text-red-400 text-[11px]">
+            <AlertCircle className="w-3 h-3" />
+            {validationError}
+          </div>
         </div>
       )}
     </div>

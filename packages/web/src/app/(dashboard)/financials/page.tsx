@@ -1,5 +1,8 @@
 'use client';
 
+// Feature flag — set to false to disable financial modeling module
+const FINANCIAL_MODELING_ENABLED = true;
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';

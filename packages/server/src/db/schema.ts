@@ -837,6 +837,7 @@ export const financialModels = pgTable('FinancialModel', {
   index('FinancialModel_userId_idx').on(table.userId),
   index('FinancialModel_projectId_idx').on(table.projectId),
   index('FinancialModel_status_idx').on(table.status),
+  index('FinancialModel_userId_status_idx').on(table.userId, table.status),
   foreignKey({
     columns: [table.userId],
     foreignColumns: [users.id],
@@ -889,6 +890,7 @@ export const modelSnapshots = pgTable('ModelSnapshot', {
 }, (table) => [
   index('ModelSnapshot_modelId_idx').on(table.modelId),
   index('ModelSnapshot_createdAt_idx').on(table.createdAt),
+  index('ModelSnapshot_modelId_createdAt_idx').on(table.modelId, table.createdAt),
   foreignKey({
     columns: [table.modelId],
     foreignColumns: [financialModels.id],
@@ -939,6 +941,7 @@ export const erpConnections = pgTable('ERPConnection', {
 }, (table) => [
   index('ERPConnection_userId_idx').on(table.userId),
   index('ERPConnection_status_idx').on(table.status),
+  index('ERPConnection_userId_provider_idx').on(table.userId, table.provider),
   foreignKey({
     columns: [table.userId],
     foreignColumns: [users.id],
@@ -965,6 +968,7 @@ export const budgetLineItems = pgTable('BudgetLineItem', {
 }, (table) => [
   index('BudgetLineItem_modelId_idx').on(table.modelId),
   index('BudgetLineItem_category_idx').on(table.category),
+  index('BudgetLineItem_modelId_category_idx').on(table.modelId, table.category),
   foreignKey({
     columns: [table.modelId],
     foreignColumns: [financialModels.id],
