@@ -54,8 +54,9 @@ function compileFormula(formula: string): EvalFunction {
 export function evaluateFormula(formula: string, scope: Record<string, number>): number | null {
   try {
     const compiled = compileFormula(formula);
-    // Isolated scope — no prototype chain
-    const isolatedScope = Object.create(null) as Record<string, number>;
+    // Shallow copy for scope isolation between calls.
+    // Note: Object.create(null) is incompatible with math.js v14's createMap.
+    const isolatedScope: Record<string, number> = {};
     for (const [key, val] of Object.entries(scope)) {
       isolatedScope[key] = val;
     }

@@ -148,12 +148,11 @@ export function topologicalSortDownstream(
     const a = assumptionMap.get(key);
     if (!a) continue;
     for (const dep of a.dependsOn) {
-      if (downstreamSet.has(key)) {
+      // Only count deps on OTHER downstream nodes (not the changedKey,
+      // which is already resolved and acts as the cascade trigger).
+      if (downstreamSet.has(dep)) {
         const current = inDegree.get(key) ?? 0;
-        // Only count deps that are either the changedKey or in downstream
-        if (dep === changedKey || downstreamSet.has(dep)) {
-          inDegree.set(key, current + 1);
-        }
+        inDegree.set(key, current + 1);
       }
     }
   }
