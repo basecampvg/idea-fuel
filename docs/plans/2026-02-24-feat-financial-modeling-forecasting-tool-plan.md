@@ -545,10 +545,10 @@ export const saasTemplate: TemplateDefinition = {
   - `list(modelId)` — List snapshots
   - `compare(snapshotId1, snapshotId2)` — Diff two snapshots
   - `restore(snapshotId)` — Restore with auto-save of current state
-- [ ] Extend `packages/server/src/routers/assumption.ts`
-  - Add `scenarioId` parameter to `list`, `update`, `batchUpdate`
-  - Add `bulkImport(scenarioId, assumptions[])` — Import from template or CSV
-  - Add `delete(assumptionId)` — Delete individual assumption
+- [x] Extend `packages/server/src/routers/assumption.ts`
+  - Added `listByScenario(scenarioId)` — List assumptions by scenario
+  - Added `updateByScenario(scenarioId, assumptionId, value?, confidence?)` — Update with cascade
+  - _Deferred:_ `bulkImport`, `delete` endpoints
 - [x] Register all new routers in `packages/server/src/routers/index.ts`
 
 ##### Task 1.6: Model Calculation Service
@@ -597,14 +597,15 @@ The core service that takes a scenario's assumptions and produces computed finan
 
 Two entry points that converge to the same assumptions editor.
 
-- [ ] Create `packages/web/src/app/(dashboard)/financials/page.tsx` — Standalone entry point
-  - List of user's financial models
-  - "Create New Model" button
-- [ ] Create `packages/web/src/app/(dashboard)/financials/new/page.tsx` — New model flow
-  - Step 1: Choose entry method (Template Gallery or Guided Wizard)
-  - Template Gallery: grid of 12+ templates with name, description, icon, preview
-  - Include a "General / Custom" template for businesses that don't fit a category
-  - Template preview: show which assumptions are included before committing
+- [x] Create `packages/web/src/app/(dashboard)/financials/page.tsx` — Standalone entry point
+  - List of user's financial models with status filtering (All/Draft/Active)
+  - "Create New Model" button linking to /financials/new
+  - Delete (archive) confirmation modal
+- [x] Create `packages/web/src/app/(dashboard)/financials/new/page.tsx` — New model flow
+  - Step 1: Template Gallery with 4 templates + blank model option
+  - Step 2: Configure model name, knowledge level, forecast years
+  - Category icons and color coding per template
+  - _Deferred:_ Guided wizard (separate page, not needed for MVP)
 - [ ] Create `packages/web/src/app/(dashboard)/financials/new/wizard/page.tsx` — Guided wizard
   - Dynamic multi-step form (~15-25 questions depending on business type)
   - Step 1 determines business type → subsequent questions adapt
@@ -612,15 +613,14 @@ Two entry points that converge to the same assumptions editor.
   - Save progress on each step (resume capability via localStorage or DB)
   - Back navigation preserves answers
   - On completion: create model with wizard-derived assumptions
-- [ ] Add add-on entry from project page:
-  - Add "Financial Model" button/tab to `packages/web/src/app/(dashboard)/projects/[id]/`
-  - Route: `/projects/[id]/financials` — auto-seeds from research data
-  - Shows assumptions review screen pre-populated from research pipeline
+- [x] Add add-on entry from project page:
+  - Added "Financial Model" link to project secondary nav Financials section
+  - Route: `/projects/[id]/financials` — _auto-seeding deferred to Phase 2.4_
 
 ##### Task 2.2: Knowledge Level Selector
 
-- [ ] Create `packages/web/src/app/(dashboard)/financials/[id]/components/knowledge-level-selector.tsx`
-  - Three-way toggle: Beginner | Standard | Expert
+- [x] Create `packages/web/src/app/(dashboard)/financials/[id]/components/knowledge-level-selector.tsx`
+  - Three-way toggle: Beginner | Standard | Expert with icons
   - Stored per-model in `FinancialModel.knowledgeLevel`
   - **Downgrade warning:** "Some advanced settings will be hidden but not deleted. You can switch back to see them anytime."
   - Mode is per-model, with a user-level default applied when creating new models
@@ -649,26 +649,25 @@ Two entry points that converge to the same assumptions editor.
 
 The main editing interface, adapting to the selected knowledge mode.
 
-- [ ] Create `packages/web/src/app/(dashboard)/financials/[id]/page.tsx` — Model dashboard
-- [ ] Create `packages/web/src/app/(dashboard)/financials/[id]/assumptions/page.tsx`
-- [ ] Create `packages/web/src/app/(dashboard)/financials/[id]/assumptions/components/`
-  - `assumption-section.tsx` — Collapsible section with line items (P&L Revenue, P&L Expenses, etc.)
-  - `assumption-row.tsx` — Single assumption input with label, value, unit, confidence badge
-  - `assumption-tree.tsx` — Hierarchical view for Expert mode (parent-child expansion)
-  - `value-input.tsx` — Input component adapting to valueType (currency, percentage, number, select)
-  - `time-series-input.tsx` — Monthly/quarterly/annual value entry grid
-  - `formula-editor.tsx` — Expert mode formula editing with syntax highlighting and validation
-  - `confidence-badge.tsx` — Color-coded confidence indicator (reuse from existing assumptions UI)
-  - `cascade-indicator.tsx` — Shows which values will recalculate when this input changes
-  - `ai-explanation.tsx` — Beginner mode: plain-language explanation of what each input means
-- [ ] Implement auto-save with debounce (3 seconds after last change)
-- [ ] Show recalculation status indicator when cascade is running
+- [x] Create `packages/web/src/app/(dashboard)/financials/[id]/page.tsx` — Model dashboard
+  - Knowledge level selector, scenarios overview, quick links grid
+  - Layout with secondary nav (FinancialSecondaryNav) and layout client
+- [x] Create `packages/web/src/app/(dashboard)/financials/[id]/assumptions/page.tsx`
+  - Fetches base scenario assumptions, groups by category
+  - Auto-save with debounce (3 seconds) and immediate save on blur
+- [x] Create `packages/web/src/app/(dashboard)/financials/[id]/assumptions/components/`
+  - `assumption-section.tsx` — Collapsible section with line items grouped by category
+  - `assumption-row.tsx` — Single assumption input with label, value, unit, confidence badge, formula indicator
+  - _Deferred:_ `assumption-tree.tsx`, `time-series-input.tsx`, `formula-editor.tsx`, `cascade-indicator.tsx`, `ai-explanation.tsx`
+- [x] Implement auto-save with debounce (3 seconds after last change)
+- [x] Show saving status indicator when updates are in flight
+- [x] Added `listByScenario` and `updateByScenario` endpoints to assumption router
 
 ##### Task 2.4: Research Data Auto-Seeding Service
 
 For the add-on flow, map research pipeline data to financial model assumptions.
 
-- [ ] Create `packages/server/src/services/financial-seeder.ts`
+- [x] Create `packages/server/src/services/financial-seeder.ts`
   - Maps research fields → financial assumptions:
     - `research.synthesizedInsights.keyMetrics.customerAcquisitionCost` → `cac`
     - `research.synthesizedInsights.keyMetrics.lifetimeValue` → `ltv`

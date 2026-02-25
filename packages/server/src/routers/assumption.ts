@@ -8,7 +8,7 @@ import {
   assumptionKeySchema,
 } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
-import { assumptions, assumptionHistory, projects, reports } from '../db/schema';
+import { assumptions, assumptionHistory, projects, reports, scenarios, financialModels } from '../db/schema';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { DEFAULT_ASSUMPTIONS } from '../services/assumption-defaults';
 import { executeCascade, detectCycles } from '../lib/cascade-engine';
@@ -34,6 +34,24 @@ async function verifyProjectOwnership(
     throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found' });
   }
   return project;
+}
+
+/**
+ * Verify scenario ownership through its parent financial model.
+ */
+async function verifyScenarioOwnership(
+  db: Context['db'],
+  scenarioId: string,
+  userId: string,
+) {
+  const scenario = await db.query.scenarios.findFirst({
+    where: eq(scenarios.id, scenarioId),
+    with: { model: { columns: { userId: true } } },
+  });
+  if (!scenario || scenario.model.userId !== userId) {
+    throw new TRPCError({ code: 'NOT_FOUND', message: 'Scenario not found' });
+  }
+  return scenario;
 }
 
 export const assumptionRouter = router({
@@ -460,5 +478,135 @@ export const assumptionRouter = router({
       });
 
       return { jobId, reportId: report.id, sectionCount: input.sectionKeys.length };
+    }),
+
+  // =========================================================================
+  // Scenario-based endpoints (for Financial Models)
+  // =========================================================================
+
+  /**
+   * List assumptions for a specific scenario (financial model context).
+   */
+  listByScenario: protectedProcedure
+    .input(z.object({ scenarioId: entityId }))
+    .query(async ({ ctx, input }) => {
+      await verifyScenarioOwnership(ctx.db, input.scenarioId, ctx.userId);
+
+      const rows = await ctx.db
+        .select()
+        .from(assumptions)
+        .where(eq(assumptions.scenarioId, input.scenarioId))
+        .orderBy(assumptions.category, assumptions.displayOrder);
+
+      const allAssumptions = rows as unknown as Assumption[];
+
+      return allAssumptions.map((a) => ({
+        ...a,
+        effectiveConfidence: getEffectiveConfidence(a, allAssumptions),
+        staleness: getStalenessInfo(a),
+      }));
+    }),
+
+  /**
+   * Update a single assumption's value within a scenario.
+   */
+  updateByScenario: protectedProcedure
+    .input(z.object({
+      scenarioId: entityId,
+      assumptionId: entityId,
+      value: z.string().nullable().optional(),
+      confidence: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      await verifyScenarioOwnership(ctx.db, input.scenarioId, ctx.userId);
+
+      const target = await ctx.db
+        .select()
+        .from(assumptions)
+        .where(and(eq(assumptions.id, input.assumptionId), eq(assumptions.scenarioId, input.scenarioId)))
+        .limit(1);
+
+      if (target.length === 0) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Assumption not found' });
+      }
+
+      const assumption = target[0];
+
+      return ctx.db.transaction(async (tx) => {
+        const allAssumptions = await tx
+          .select()
+          .from(assumptions)
+          .where(eq(assumptions.scenarioId, input.scenarioId));
+
+        const updates: Record<string, unknown> = {
+          updatedByActor: 'user',
+          updatedByUserId: ctx.userId,
+        };
+        if (input.value !== undefined) {
+          updates.value = input.value;
+          // Parse numeric value
+          if (input.value != null) {
+            const num = parseFloat(input.value);
+            if (!isNaN(num)) {
+              updates.numericValue = String(num);
+            }
+          } else {
+            updates.numericValue = null;
+          }
+          // Mark as user confidence when user edits directly
+          updates.confidence = 'USER';
+        }
+        if (input.confidence !== undefined) updates.confidence = input.confidence;
+
+        await tx
+          .update(assumptions)
+          .set(updates)
+          .where(eq(assumptions.id, input.assumptionId));
+
+        // Log history
+        await tx.insert(assumptionHistory).values({
+          assumptionId: input.assumptionId,
+          oldValue: assumption.value,
+          newValue: input.value ?? assumption.value,
+          oldConfidence: assumption.confidence,
+          newConfidence: (updates.confidence ?? assumption.confidence) as typeof assumption.confidence,
+          changedByActor: 'user',
+          changedByUserId: ctx.userId,
+          reason: null,
+        });
+
+        // Execute cascade if value changed
+        let cascadeResult = null;
+        if (input.value !== undefined && input.value !== assumption.value) {
+          const refreshed = allAssumptions.map((a) =>
+            a.id === input.assumptionId ? { ...a, ...updates } : a,
+          ) as unknown as Assumption[];
+
+          cascadeResult = executeCascade(refreshed, assumption.key, input.value ?? '');
+
+          if (cascadeResult.status === 'success') {
+            for (const change of cascadeResult.updatedAssumptions) {
+              if (change.key === assumption.key) continue;
+
+              await tx
+                .update(assumptions)
+                .set({
+                  value: change.newValue === 'null' ? null : change.newValue,
+                  updatedByActor: 'system',
+                  updatedByUserId: ctx.userId,
+                })
+                .where(and(
+                  eq(assumptions.scenarioId, input.scenarioId),
+                  eq(assumptions.key, change.key),
+                ));
+            }
+          }
+        }
+
+        return {
+          assumption: { ...assumption, ...updates },
+          cascade: cascadeResult,
+        };
+      });
     }),
 });

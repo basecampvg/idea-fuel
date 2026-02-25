@@ -19,12 +19,14 @@ import {
   Columns2,
   PanelLeftOpen,
   MousePointer,
+  BarChart3,
   type LucideIcon,
 } from 'lucide-react';
 
 // Navigation items
 const mainNav = [
   { name: 'New', href: '/dashboard', icon: Plus, isAction: true },
+  { name: 'Financial Models', href: '/financials', icon: BarChart3 },
 ];
 
 const bottomNav = [

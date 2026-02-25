@@ -79,6 +79,7 @@ function getNavSections(projectId: string): NavSection[] {
       title: 'Financials',
       items: [
         { label: 'Assumptions', href: `${base}/assumptions`, icon: Settings2 },
+        { label: 'Financial Model', href: `${base}/financials`, icon: BarChart3 },
       ],
     },
     {
