@@ -6,6 +6,7 @@ import { trpc } from '@/lib/trpc/client';
 import { LoadingScreen } from '@/components/ui/spinner';
 import { ProjectSecondaryNav } from './project-secondary-nav';
 import { ProjectHeader } from './project-header';
+import { ProjectDashboardNav, DASHBOARD_NAV_HEIGHT } from './project-dashboard-nav';
 import { useAgentSidebar } from '@/components/agent/agent-sidebar-context';
 
 const SECONDARY_NAV_WIDTH = 240;
@@ -64,7 +65,8 @@ function ProjectLayoutInner({
   return (
     <>
       <ProjectSecondaryNav project={project} />
-      <div className="min-h-screen" style={{ marginLeft: SECONDARY_NAV_WIDTH }}>
+      <div className="min-h-screen" style={{ marginLeft: SECONDARY_NAV_WIDTH, paddingTop: DASHBOARD_NAV_HEIGHT }}>
+        <ProjectDashboardNav projectId={project.id} />
         <div className="max-w-[1120px] mx-auto px-6 py-8 space-y-6">
           <ProjectHeader project={project} />
           {children}

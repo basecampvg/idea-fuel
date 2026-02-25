@@ -38,7 +38,17 @@ interface NavSection {
   items: NavItem[];
 }
 
-function getNavSections(projectId: string): NavSection[] {
+/** Routes that belong to the Go to Market dashboard */
+const GTM_ROUTES = ['/offer', '/tech-stack', '/action-prompts'];
+
+function getActiveDashboard(pathname: string | null, projectId: string): 'research' | 'gtm' {
+  if (!pathname) return 'research';
+  const relative = pathname.replace(`/projects/${projectId}`, '');
+  if (GTM_ROUTES.some((r) => relative.startsWith(r))) return 'gtm';
+  return 'research';
+}
+
+function getResearchSections(projectId: string): NavSection[] {
   const base = `/projects/${projectId}`;
   return [
     {
@@ -67,17 +77,23 @@ function getNavSections(projectId: string): NavSection[] {
       ],
     },
     {
+      title: 'History',
+      items: [
+        { label: 'Interview Summary', href: `${base}/interview-summary`, icon: MessageSquare },
+      ],
+    },
+  ];
+}
+
+function getGtmSections(projectId: string): NavSection[] {
+  const base = `/projects/${projectId}`;
+  return [
+    {
       title: 'Strategy',
       items: [
         { label: 'Offer / Value Ladder', href: `${base}/offer`, icon: Layers },
         { label: 'Tech Stack', href: `${base}/tech-stack`, icon: Code },
         { label: 'Action Prompts', href: `${base}/action-prompts`, icon: Zap },
-      ],
-    },
-    {
-      title: 'History',
-      items: [
-        { label: 'Interview Summary', href: `${base}/interview-summary`, icon: MessageSquare },
       ],
     },
   ];
@@ -104,7 +120,10 @@ interface ProjectSecondaryNavProps {
 export function ProjectSecondaryNav({ project }: ProjectSecondaryNavProps) {
   const pathname = usePathname();
   const { sidebarWidth } = useSidebar();
-  const navSections = getNavSections(project.id);
+  const activeDashboard = getActiveDashboard(pathname, project.id);
+  const navSections = activeDashboard === 'gtm'
+    ? getGtmSections(project.id)
+    : getResearchSections(project.id);
   const reportItems = getReportItems(project.id);
   const status = projectStatusConfig[project.status as ProjectStatus] || projectStatusConfig.CAPTURED;
 
@@ -172,10 +191,9 @@ export function ProjectSecondaryNav({ project }: ProjectSecondaryNavProps) {
           </div>
         ))}
 
-        {/* Separator */}
+        {/* Reports — only shown on Research dashboard */}
+        {activeDashboard === 'research' && <>
         <div className="my-4 mx-3 h-px bg-border" />
-
-        {/* Reports Section */}
         <div>
           <div className="px-3 mb-1.5">
             <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
@@ -208,6 +226,7 @@ export function ProjectSecondaryNav({ project }: ProjectSecondaryNavProps) {
             })}
           </div>
         </div>
+        </>}
       </nav>
     </aside>
   );

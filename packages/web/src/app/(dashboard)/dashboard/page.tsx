@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { useSubscription } from '@/components/subscription/use-subscription';
 import { LoadingScreen } from '@/components/ui/spinner';
-import { Flame, Feather, Zap, Bookmark, ArrowUp, TrendingUp, Paperclip, Sparkles, FileText, Target, TrendingUp as TrendUp, DollarSign, Lock, Info } from 'lucide-react';
+import { Flame, Feather, Zap, Bookmark, ArrowUp, TrendingUp, Paperclip, Sparkles, Lock, Info } from 'lucide-react';
 import { PROJECT_TITLE_MAX } from '@forge/shared';
 
 type InterviewMode = 'SPARK' | 'LIGHT' | 'IN_DEPTH';
@@ -166,13 +166,6 @@ const actionButtons: ActionButton[] = [
   },
 ];
 
-// Report type indicators with icons
-const reportTypes = [
-  { name: 'Business Plan', icon: FileText },
-  { name: 'Positioning', icon: Target },
-  { name: 'Competitive Analysis', icon: TrendUp },
-  { name: 'Financial Model', icon: DollarSign },
-];
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -184,7 +177,7 @@ export default function DashboardPage() {
   const [hoveredMode, setHoveredMode] = useState<string | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  const [showPromptHint, setShowPromptHint] = useState(false);
+  const [showPromptHint, setShowPromptHint] = useState(true);
   const [promptHintDismissed, setPromptHintDismissed] = useState(false);
   const [hintWiggle, setHintWiggle] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -223,17 +216,14 @@ export default function DashboardPage() {
     }
   }, [interviewActive, animationState, currentQuestion]);
 
-  // Periodic wiggle on the info button to hint it's there
+  // Periodic wiggle on the info button when hint is collapsed
   useEffect(() => {
     if (showPromptHint || promptHintDismissed) return;
-    // Initial wiggle after 2s
-    const initialTimeout = setTimeout(() => setHintWiggle(true), 2000);
-    // Repeat every 8s
     const interval = setInterval(() => {
       setHintWiggle(true);
       setTimeout(() => setHintWiggle(false), 700);
     }, 8000);
-    return () => { clearTimeout(initialTimeout); clearInterval(interval); };
+    return () => { clearInterval(interval); };
   }, [showPromptHint, promptHintDismissed]);
 
   if (userLoading && !userError) {
@@ -740,27 +730,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Report Types */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-6 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-          <span className="text-xs text-muted-foreground/60 mr-1">Generates:</span>
-          {reportTypes.map((report, index) => {
-            const Icon = report.icon;
-            return (
-              <div
-                key={report.name}
-                className="
-                  inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full
-                  text-xs font-medium
-                  bg-accent/10 text-accent/80
-                  border border-accent/20
-                "
-              >
-                <Icon className="w-3 h-3" />
-                <span>{report.name}</span>
-              </div>
-            );
-          })}
-        </div>
       </div>
 
       {/* Footer */}

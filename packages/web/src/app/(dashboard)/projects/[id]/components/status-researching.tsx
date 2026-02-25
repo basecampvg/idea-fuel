@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react';
 import { trpc } from '@/lib/trpc/client';
 import {
   FlaskConical,
-  FileText,
-  Lock,
   Check,
   Search,
   MessageSquare,
@@ -19,7 +17,6 @@ import {
 import {
   RESEARCH_PHASE_LABELS,
   RESEARCH_PHASE_DESCRIPTIONS,
-  REPORT_TYPE_LABELS,
 } from '@forge/shared';
 
 interface Research {
@@ -110,20 +107,6 @@ function getActiveSubTask(phase: string, progress: number): number {
       return 0;
   }
 }
-
-// All 10 report types
-const reportTypes = [
-  'BUSINESS_PLAN',
-  'POSITIONING',
-  'COMPETITIVE_ANALYSIS',
-  'WHY_NOW',
-  'PROOF_SIGNALS',
-  'KEYWORDS_SEO',
-  'CUSTOMER_PROFILE',
-  'VALUE_EQUATION',
-  'VALUE_LADDER',
-  'GO_TO_MARKET',
-];
 
 function formatTimeAgo(date: Date | null): string {
   if (!date) return 'Not started';
@@ -426,38 +409,6 @@ export function StatusResearching({ project }: StatusResearchingProps) {
       </div>
       )}
 
-      {/* Locked Reports Grid */}
-      <div className="rounded-2xl bg-background border border-border p-6">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-            <FileText className="w-5 h-5 text-accent" />
-          </div>
-          <h2 className="text-lg font-semibold text-foreground">Reports</h2>
-          <span className="text-sm text-muted-foreground">({reportTypes.length})</span>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          {reportTypes.map((type) => (
-            <div
-              key={type}
-              className="p-4 rounded-xl bg-card border border-border opacity-60 cursor-not-allowed"
-            >
-              <div className="flex flex-col items-center text-center">
-                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mb-2">
-                  <Lock className="w-5 h-5 text-primary/50" />
-                </div>
-                <span className="text-xs font-medium text-muted-foreground line-clamp-2">
-                  {REPORT_TYPE_LABELS[type] || type}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <p className="text-xs text-muted-foreground mt-5 text-center">
-          Reports will be available when research completes
-        </p>
-      </div>
     </div>
   );
 }

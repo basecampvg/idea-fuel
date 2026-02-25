@@ -10,7 +10,7 @@ import { SparkProgress } from './components/spark-progress';
 import { NextStepPromotion } from './components/next-step-promotion';
 import { UserStory, type UserStoryData } from './components/user-story';
 import { ScoreCards } from './components/score-cards';
-import { DownloadsSection } from './components/download-card';
+
 import { AgentInsightsSection } from '@/components/agent/agent-insights-section';
 import { Trash2 } from 'lucide-react';
 import type { SparkResult, InterviewMode } from '@forge/shared';
@@ -137,7 +137,6 @@ export default function ProjectOverviewPage() {
       {project.status === 'COMPLETE' && !sparkMode && (
         <div className="space-y-5">
           <UserStory userStory={research?.userStory as UserStoryData | null | undefined} />
-          <DownloadsSection projectId={project.id} hasResearch={research?.status === 'COMPLETE'} />
           <ScoreCards
             opportunityScore={research?.opportunityScore}
             problemScore={research?.problemScore}

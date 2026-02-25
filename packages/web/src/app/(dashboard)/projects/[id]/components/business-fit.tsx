@@ -134,23 +134,25 @@ function ArcGauge({ score, label, sublabel }: { score: number; label: string; su
   const r = 56;
   const startAngle = 180;
   const endAngle = 360;
-  const scoreAngle = startAngle + (animatedScore / 100) * (endAngle - startAngle);
 
   const trackPath = describeArc(cx, cy, r, startAngle, endAngle);
-  const fillPath = describeArc(cx, cy, r, startAngle, Math.max(scoreAngle, startAngle + 1));
+  const totalLength = Math.PI * r;
+  const dashOffset = totalLength * (1 - animatedScore / 100);
 
   return (
     <div className="flex flex-col items-center">
       <svg width={160} height={90} viewBox="0 0 160 90" className="overflow-visible">
         <path d={trackPath} fill="none" stroke="hsl(var(--border))" strokeWidth={8} strokeLinecap="round" />
         <path
-          d={fillPath}
+          d={trackPath}
           fill="none"
           stroke="hsl(var(--primary))"
           strokeWidth={8}
           strokeLinecap="round"
+          strokeDasharray={totalLength}
+          strokeDashoffset={dashOffset}
           style={{
-            transition: 'd 800ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+            transition: 'stroke-dashoffset 800ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
             filter: 'drop-shadow(0 0 6px hsl(var(--primary) / 0.4))',
           }}
         />
