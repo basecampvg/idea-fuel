@@ -190,10 +190,10 @@ describe('getDownstream', () => {
     expect(getDownstream('nonexistent', graph)).toEqual([]);
   });
 
-  it('respects MAX_CASCADE_DEPTH (currently 10)', () => {
-    // Build a chain of 15 nodes: a0 → a1 → a2 → ... → a14
+  it('respects MAX_CASCADE_DEPTH (currently 50)', () => {
+    // Build a chain of 60 nodes: a0 → a1 → a2 → ... → a59
     const assumptions: Assumption[] = [];
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 60; i++) {
       assumptions.push(
         makeAssumption({
           key: `a${i}`,
@@ -204,12 +204,12 @@ describe('getDownstream', () => {
     const graph = buildGraph(assumptions);
     const downstream = getDownstream('a0', graph);
 
-    // Should stop at depth 10 — a1 through a10 are within depth, a11+ are not
-    expect(downstream.length).toBeLessThanOrEqual(10);
+    // Should stop at depth 50 — a1 through a50 are within depth, a51+ are not
+    expect(downstream.length).toBeLessThanOrEqual(50);
     expect(downstream).toContain('a1');
-    expect(downstream).toContain('a10');
-    // a11+ should be excluded (depth > MAX_CASCADE_DEPTH)
-    expect(downstream).not.toContain('a11');
+    expect(downstream).toContain('a50');
+    // a51+ should be excluded (depth > MAX_CASCADE_DEPTH)
+    expect(downstream).not.toContain('a51');
   });
 });
 
@@ -446,6 +446,122 @@ describe('executeCascade', () => {
       // b has no formula, so it should not change even though it depends on a
       const bChange = result.updatedAssumptions.find((c) => c.key === 'b');
       expect(bChange).toBeUndefined();
+    }
+  });
+});
+
+// ── Performance Benchmark ──────────────────────────────
+
+describe('cascade performance', () => {
+  it('executes cascade with 200+ assumptions in under 100ms', () => {
+    // Build a wide + deep graph: 200 assumptions with layered dependencies
+    // Layer 0: 10 root assumptions (no deps)
+    // Layer 1: 40 assumptions each depending on 2 roots
+    // Layer 2: 80 assumptions each depending on 2 from layer 1
+    // Layer 3: 70 assumptions each depending on 2 from layer 2
+    const assumptions: Assumption[] = [];
+
+    // Layer 0: roots
+    for (let i = 0; i < 10; i++) {
+      assumptions.push(
+        makeAssumption({ key: `root_${i}`, value: String(10 + i) }),
+      );
+    }
+
+    // Layer 1: 40 nodes, each depends on 2 roots, has formula
+    for (let i = 0; i < 40; i++) {
+      const dep1 = `root_${i % 10}`;
+      const dep2 = `root_${(i + 1) % 10}`;
+      assumptions.push(
+        makeAssumption({
+          key: `l1_${i}`,
+          value: '20',
+          formula: `${dep1} + ${dep2}`,
+          dependsOn: [dep1, dep2],
+        }),
+      );
+    }
+
+    // Layer 2: 80 nodes, each depends on 2 from layer 1
+    for (let i = 0; i < 80; i++) {
+      const dep1 = `l1_${i % 40}`;
+      const dep2 = `l1_${(i + 1) % 40}`;
+      assumptions.push(
+        makeAssumption({
+          key: `l2_${i}`,
+          value: '40',
+          formula: `${dep1} + ${dep2}`,
+          dependsOn: [dep1, dep2],
+        }),
+      );
+    }
+
+    // Layer 3: 70 nodes, each depends on 2 from layer 2
+    for (let i = 0; i < 70; i++) {
+      const dep1 = `l2_${i % 80}`;
+      const dep2 = `l2_${(i + 1) % 80}`;
+      assumptions.push(
+        makeAssumption({
+          key: `l3_${i}`,
+          value: '80',
+          formula: `${dep1} + ${dep2}`,
+          dependsOn: [dep1, dep2],
+        }),
+      );
+    }
+
+    expect(assumptions.length).toBe(200);
+
+    const start = performance.now();
+    const result = executeCascade(assumptions, 'root_0', '100');
+    const elapsed = performance.now() - start;
+
+    expect(result.status).toBe('success');
+    expect(elapsed).toBeLessThan(100); // sub-100ms
+
+    if (result.status === 'success') {
+      // Verify cascade actually propagated through all layers
+      const l1Changes = result.updatedAssumptions.filter((c) => c.key.startsWith('l1_'));
+      const l2Changes = result.updatedAssumptions.filter((c) => c.key.startsWith('l2_'));
+      const l3Changes = result.updatedAssumptions.filter((c) => c.key.startsWith('l3_'));
+      expect(l1Changes.length).toBeGreaterThan(0);
+      expect(l2Changes.length).toBeGreaterThan(0);
+      expect(l3Changes.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('handles deep chain of 50 cascading formulas', () => {
+    // a0=100, a1=a0*2, a2=a1*1.01, a3=a2*1.01, ...
+    const assumptions: Assumption[] = [
+      makeAssumption({ key: 'a0', value: '100' }),
+    ];
+    for (let i = 1; i <= 50; i++) {
+      assumptions.push(
+        makeAssumption({
+          key: `a${i}`,
+          value: String(100 * Math.pow(1.01, i)),
+          formula: `a${i - 1} * 1.01`,
+          dependsOn: [`a${i - 1}`],
+        }),
+      );
+    }
+
+    const start = performance.now();
+    const result = executeCascade(assumptions, 'a0', '200');
+    const elapsed = performance.now() - start;
+
+    expect(result.status).toBe('success');
+    expect(elapsed).toBeLessThan(100);
+
+    if (result.status === 'success') {
+      // a1 = 200 * 1.01 = 202
+      const a1Change = result.updatedAssumptions.find((c) => c.key === 'a1');
+      expect(a1Change).toBeDefined();
+      expect(parseFloat(a1Change!.newValue)).toBeCloseTo(202, 2);
+
+      // a50 should exist and be updated
+      const a50Change = result.updatedAssumptions.find((c) => c.key === 'a50');
+      expect(a50Change).toBeDefined();
     }
   });
 });

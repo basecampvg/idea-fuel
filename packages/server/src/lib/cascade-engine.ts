@@ -14,7 +14,7 @@ import type { Assumption, CascadeResult, CascadeChange } from '@forge/shared';
 import { evaluateFormula } from './formula-engine';
 import { ASSUMPTION_IMPACT_MAP } from './assumption-impact-map';
 
-const MAX_CASCADE_DEPTH = 10;
+const MAX_CASCADE_DEPTH = 50;
 
 /**
  * Build an adjacency list (forward edges) from assumptions.
