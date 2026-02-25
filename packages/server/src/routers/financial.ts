@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, ne } from 'drizzle-orm';
 import { router, protectedProcedure } from '../trpc';
 import {
   entityId,
@@ -109,7 +109,7 @@ export const financialRouter = router({
             const now = new Date();
             await tx.insert(assumptions).values(
               templateAssumptions.map((a, idx) => ({
-                projectId: input.projectId ?? model.id, // Use model ID as pseudo-project if standalone
+                projectId: input.projectId ?? null,
                 scenarioId: baseScenario.id,
                 category: a.category ?? ('COSTS' as const),
                 name: a.name,
@@ -174,7 +174,7 @@ export const financialRouter = router({
       const offset = (page - 1) * limit;
 
       const models = await ctx.db.query.financialModels.findMany({
-        where: eq(financialModels.userId, ctx.userId),
+        where: and(eq(financialModels.userId, ctx.userId), ne(financialModels.status, 'ARCHIVED')),
         orderBy: desc(financialModels.updatedAt),
         limit,
         offset,

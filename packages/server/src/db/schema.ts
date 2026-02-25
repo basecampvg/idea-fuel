@@ -752,7 +752,7 @@ export const embeddings = pgTable('Embedding', {
 
 export const assumptions = pgTable('Assumption', {
   id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
-  projectId: text().notNull(),
+  projectId: text(),
   scenarioId: text(),
   parentId: text(),
   category: assumptionCategoryEnum().notNull(),
@@ -777,7 +777,7 @@ export const assumptions = pgTable('Assumption', {
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
 }, (table) => [
-  unique('Assumption_projectId_key_key').on(table.projectId, table.key),
+  unique('Assumption_scenarioId_key_key').on(table.scenarioId, table.key),
   index('Assumption_projectId_idx').on(table.projectId),
   index('Assumption_projectId_category_idx').on(table.projectId, table.category),
   index('Assumption_scenarioId_idx').on(table.scenarioId),

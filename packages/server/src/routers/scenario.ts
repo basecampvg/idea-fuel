@@ -80,6 +80,17 @@ export const scenarioRouter = router({
 
         // Clone assumptions if requested
         if (input.cloneFromScenarioId) {
+          // Verify source scenario belongs to the same model
+          const sourceScenario = await tx.query.scenarios.findFirst({
+            where: and(
+              eq(scenarios.id, input.cloneFromScenarioId),
+              eq(scenarios.modelId, input.modelId),
+            ),
+          });
+          if (!sourceScenario) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: 'Source scenario not found in this model' });
+          }
+
           const sourceAssumptions = await tx
             .select()
             .from(assumptions)
@@ -158,6 +169,13 @@ export const scenarioRouter = router({
         .set(updates)
         .where(eq(scenarios.id, input.id))
         .returning();
+
+      logAuditAsync({
+        userId: ctx.userId,
+        action: 'SCENARIO_UPDATE',
+        resource: formatResource('scenario', input.id),
+        metadata: { updates: Object.keys(updates) },
+      });
 
       return updated;
     }),

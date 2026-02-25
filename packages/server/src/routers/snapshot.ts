@@ -74,14 +74,19 @@ export const snapshotRouter = router({
     .mutation(async ({ ctx, input }) => {
       await verifyModelOwnership(ctx.db, input.modelId, ctx.userId);
 
-      const assumptionData = await captureAssumptionData(ctx.db, input.modelId);
+      // Wrap in transaction to ensure snapshot is a consistent point-in-time
+      const snapshot = await ctx.db.transaction(async (tx) => {
+        const assumptionData = await captureAssumptionData(tx, input.modelId);
 
-      const [snapshot] = await ctx.db.insert(modelSnapshots).values({
-        modelId: input.modelId,
-        name: input.name,
-        assumptionData,
-        createdByAction: 'MANUAL',
-      }).returning();
+        const [snap] = await tx.insert(modelSnapshots).values({
+          modelId: input.modelId,
+          name: input.name,
+          assumptionData,
+          createdByAction: 'MANUAL',
+        }).returning();
+
+        return snap;
+      });
 
       logAuditAsync({
         userId: ctx.userId,

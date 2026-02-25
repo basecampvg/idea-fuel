@@ -36,7 +36,6 @@ interface LineResult {
   values: number[];
   isSubtotal?: boolean;
   isTotal?: boolean;
-  parentKey?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -117,19 +116,6 @@ function periodStartMonths(forecastYears: number): number[] {
 // ---------------------------------------------------------------------------
 
 /**
- * Evaluate a single line item's formula across all periods.
- * The scope includes assumption values and previously computed line items.
- */
-function evaluateLine(
-  formula: string,
-  scope: Record<string, number>,
-  _periodIndex: number,
-): number {
-  const result = evaluateFormula(formula, scope);
-  return result ?? 0;
-}
-
-/**
  * Evaluate all line items for a statement across all periods.
  */
 function evaluateStatement(
@@ -165,7 +151,7 @@ function evaluateStatement(
         scope[key] = vals[p];
       }
 
-      const value = evaluateLine(line.formula, scope, p);
+      const value = evaluateFormula(line.formula, scope) ?? 0;
       values.push(value);
     }
 
@@ -194,17 +180,24 @@ function computeWorkingCapitalChanges(
   bsResults: LineResult[],
 ): Record<string, number[]> {
   const changes: Record<string, number[]> = {};
-  const wcKeys = ['accounts_receivable', 'accounts_payable', 'inventory', 'deferred_revenue'];
 
-  for (const key of wcKeys) {
-    const line = bsResults.find((l) => l.key === key);
+  // Explicit mapping from BS key to CF change key
+  const wcKeyMap: Record<string, string> = {
+    accounts_receivable: 'change_ar',
+    accounts_payable: 'change_ap',
+    inventory: 'change_inventory',
+    deferred_revenue: 'change_deferred_rev',
+  };
+
+  for (const [bsKey, cfKey] of Object.entries(wcKeyMap)) {
+    const line = bsResults.find((l) => l.key === bsKey);
     if (!line) continue;
 
     const deltas: number[] = [];
     for (let p = 0; p < line.values.length; p++) {
       deltas.push(p === 0 ? line.values[p] : line.values[p] - line.values[p - 1]);
     }
-    changes[`change_${key.replace('accounts_', 'a')}`] = deltas;
+    changes[cfKey] = deltas;
   }
 
   return changes;
@@ -286,18 +279,9 @@ export function calculateStatements(
   // 3. Link: Retained earnings from P&L net income
   const retainedEarnings = computeRetainedEarnings(plResults, 0);
   const reLine = bsResults.find((l) => l.key === 'retained_earnings');
-  if (reLine) reLine.values = retainedEarnings;
+  if (reLine) reLine.values = [...retainedEarnings];
 
-  // Recompute BS totals that depend on retained earnings
-  const equityLine = bsResults.find((l) => l.key === 'total_equity');
-  if (equityLine && reLine) {
-    equityLine.values = retainedEarnings.map((v) => v);
-  }
-  const totalLELine = bsResults.find((l) => l.key === 'total_liabilities_equity');
-  const totalLiabLine = bsResults.find((l) => l.key === 'total_liabilities');
-  if (totalLELine && totalLiabLine && equityLine) {
-    totalLELine.values = totalLiabLine.values.map((v, i) => v + (equityLine.values[i] ?? 0));
-  }
+  // Note: BS totals recomputed after cash injection below (step 6)
 
   // 4. Compute working capital changes for CF
   const wcChanges = computeWorkingCapitalChanges(bsResults);
@@ -347,7 +331,7 @@ export function calculateStatements(
           values.push(0);
         }
       } else {
-        values.push(evaluateLine(line.formula, scope, p));
+        values.push(evaluateFormula(line.formula, scope) ?? 0);
       }
     }
 
@@ -365,12 +349,17 @@ export function calculateStatements(
   const startingCash = assumptionValues.starting_cash ?? 0;
   const endingCash = computeEndingCash(cfResults, startingCash);
   const endingCashLine = cfResults.find((l) => l.key === 'ending_cash');
-  if (endingCashLine) endingCashLine.values = endingCash;
+  if (endingCashLine) endingCashLine.values = [...endingCash];
 
   const bsCashLine = bsResults.find((l) => l.key === 'cash');
-  if (bsCashLine) bsCashLine.values = endingCash;
+  if (bsCashLine) bsCashLine.values = [...endingCash];
 
-  // Recompute BS total assets with updated cash
+  // 7. Recompute all BS totals with updated cash and retained earnings
+  const equityLine = bsResults.find((l) => l.key === 'total_equity');
+  if (equityLine && reLine) {
+    equityLine.values = [...reLine.values];
+  }
+
   const totalCurrentAssets = bsResults.find((l) => l.key === 'total_current_assets');
   if (totalCurrentAssets && bsCashLine) {
     const arLine = bsResults.find((l) => l.key === 'accounts_receivable');
@@ -385,7 +374,8 @@ export function calculateStatements(
     totalAssets.values = totalCurrentAssets.values.map((v, i) => v + (fixedAssets?.values[i] ?? 0));
   }
 
-  // Rebuild total L&E
+  const totalLiabLine = bsResults.find((l) => l.key === 'total_liabilities');
+  const totalLELine = bsResults.find((l) => l.key === 'total_liabilities_equity');
   if (totalLELine && totalLiabLine && equityLine) {
     totalLELine.values = totalLiabLine.values.map((v, i) => v + (equityLine.values[i] ?? 0));
   }

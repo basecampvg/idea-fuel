@@ -30,6 +30,7 @@ export type AuditAction =
   | 'FINANCIAL_MODEL_DELETE'
   // Scenario lifecycle
   | 'SCENARIO_CREATE'
+  | 'SCENARIO_UPDATE'
   | 'SCENARIO_DELETE'
   // Snapshot lifecycle
   | 'SNAPSHOT_CREATE'

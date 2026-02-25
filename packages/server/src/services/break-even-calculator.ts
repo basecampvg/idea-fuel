@@ -18,7 +18,7 @@ export type RevenueModel = 'unit' | 'subscription' | 'services';
 
 export interface BreakEvenInput {
   revenueModel: RevenueModel;
-  fixedCostsMontly: number;
+  fixedCostsMonthly: number;
 
   // Unit-based
   pricePerUnit?: number;
@@ -70,15 +70,13 @@ function computeUnitBreakEven(input: BreakEvenInput): BreakEvenResult {
   const price = input.pricePerUnit ?? 0;
   const vc = input.variableCostPerUnit ?? 0;
   const units = input.unitsPerMonth ?? 0;
-  const fixed = input.fixedCostsMontly;
+  const fixed = input.fixedCostsMonthly;
 
   const contribution = price - vc;
   const breakEvenPoint = contribution > 0 ? Math.ceil(fixed / contribution) : Infinity;
 
-  const trajectory = buildTrajectory(TRAJECTORY_MONTHS, (month) => {
-    const revenue = units * price * (month + 1) / (month + 1); // constant
-    const variableCosts = units * vc;
-    return { revenue: units * price, variableCosts };
+  const trajectory = buildTrajectory(TRAJECTORY_MONTHS, () => {
+    return { revenue: units * price, variableCosts: units * vc };
   }, fixed);
 
   return {
@@ -99,7 +97,7 @@ function computeSubscriptionBreakEven(input: BreakEvenInput): BreakEvenResult {
   const churn = input.monthlyChurnRate ?? 0;
   const newCust = input.newCustomersPerMonth ?? 0;
   const startCust = input.startingCustomers ?? 0;
-  const fixed = input.fixedCostsMontly;
+  const fixed = input.fixedCostsMonthly;
 
   // Static break-even: subscribers needed at steady state
   const breakEvenPoint = arpu > 0 ? Math.ceil(fixed / arpu) : Infinity;
@@ -128,7 +126,7 @@ function computeServicesBreakEven(input: BreakEvenInput): BreakEvenResult {
   const rate = input.hourlyRate ?? 0;
   const vcHour = input.variableCostPerHour ?? 0;
   const hours = input.billableHoursPerMonth ?? 0;
-  const fixed = input.fixedCostsMontly;
+  const fixed = input.fixedCostsMonthly;
 
   const contribution = rate - vcHour;
   const breakEvenPoint = contribution > 0 ? Math.ceil(fixed / contribution) : Infinity;
