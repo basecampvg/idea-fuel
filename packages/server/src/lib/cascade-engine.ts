@@ -10,7 +10,13 @@
  * All exports are plain functions — no classes.
  */
 
-import type { Assumption, CascadeResult, CascadeChange } from '@forge/shared';
+import type {
+  Assumption,
+  CascadeResult,
+  CascadeChange,
+  BatchCascadeResult,
+  CascadeMetrics,
+} from '@forge/shared';
 import { evaluateFormula } from './formula-engine';
 import { ASSUMPTION_IMPACT_MAP } from './assumption-impact-map';
 
@@ -309,5 +315,230 @@ export function executeCascade(
     changedKey,
     updatedAssumptions: changes,
     impactedSections: impactedSectionsList,
+  };
+}
+
+/**
+ * Build a reverse dependency map: childKey -> [parentKey1, parentKey2, ...]
+ * For O(1) lookup of "who depends on this key?"
+ */
+export function buildReverseDependencyMap(
+  assumptions: Assumption[],
+): Map<string, string[]> {
+  const reverse = new Map<string, string[]>();
+
+  for (const a of assumptions) {
+    if (!reverse.has(a.key)) {
+      reverse.set(a.key, []);
+    }
+  }
+
+  for (const a of assumptions) {
+    for (const dep of a.dependsOn) {
+      if (!reverse.has(dep)) {
+        reverse.set(dep, []);
+      }
+      reverse.get(dep)!.push(a.key);
+    }
+  }
+
+  return reverse;
+}
+
+/**
+ * Execute a batch cascade: update multiple assumptions at once,
+ * then cascade all downstream effects in a single pass.
+ *
+ * More efficient than multiple executeCascade calls because:
+ * 1. Single cycle detection pass
+ * 2. Single topological sort over the combined downstream set
+ * 3. Each downstream node is recalculated exactly once
+ */
+export function executeBatchCascade(
+  assumptions: Assumption[],
+  updates: Array<{ key: string; value: string }>,
+): BatchCascadeResult {
+  const startTime = performance.now();
+  const changedKeys = updates.map((u) => u.key);
+  const assumptionMap = new Map(assumptions.map((a) => [a.key, a]));
+
+  // Validate all keys exist
+  for (const update of updates) {
+    if (!assumptionMap.has(update.key)) {
+      return {
+        status: 'error',
+        changedKeys,
+        errorType: 'missing_dependency',
+        errorMessage: `Assumption "${update.key}" not found`,
+        errorAtKey: update.key,
+      };
+    }
+  }
+
+  // Check for cycles
+  const cycleMembers = detectCycles(assumptions);
+  if (cycleMembers) {
+    return {
+      status: 'error',
+      changedKeys,
+      errorType: 'circular_dependency',
+      errorMessage: `Circular dependency detected: ${cycleMembers.join(' -> ')}`,
+      errorAtKey: cycleMembers[0],
+    };
+  }
+
+  // Build graph once
+  const adjacency = buildGraph(assumptions);
+
+  // Find combined downstream set for all changed keys
+  const allDownstream = new Set<string>();
+  for (const update of updates) {
+    for (const key of getDownstream(update.key, adjacency)) {
+      allDownstream.add(key);
+    }
+  }
+
+  // Remove changed keys from downstream (they are direct updates, not cascaded)
+  const changedKeySet = new Set(changedKeys);
+  for (const key of changedKeySet) {
+    allDownstream.delete(key);
+  }
+
+  // Build in-degree for topological sort on the combined downstream set
+  const downstreamArray = [...allDownstream];
+  const inDegree = new Map<string, number>();
+  for (const key of downstreamArray) {
+    inDegree.set(key, 0);
+  }
+
+  for (const key of downstreamArray) {
+    const a = assumptionMap.get(key);
+    if (!a) continue;
+    for (const dep of a.dependsOn) {
+      // Count deps that are in the downstream set (not in changedKeys, those are resolved)
+      if (allDownstream.has(dep)) {
+        const current = inDegree.get(key) ?? 0;
+        inDegree.set(key, current + 1);
+      }
+    }
+  }
+
+  // Kahn's algorithm on the combined subgraph
+  const queue: string[] = [];
+  for (const [key, degree] of inDegree) {
+    if (degree === 0) queue.push(key);
+  }
+
+  const sorted: string[] = [];
+  while (queue.length > 0) {
+    queue.sort(); // deterministic
+    const current = queue.shift()!;
+    sorted.push(current);
+
+    const children = adjacency.get(current) ?? [];
+    for (const child of children) {
+      if (!allDownstream.has(child)) continue;
+      const deg = (inDegree.get(child) ?? 1) - 1;
+      inDegree.set(child, deg);
+      if (deg === 0) queue.push(child);
+    }
+  }
+
+  // Build mutable values map
+  const currentValues = new Map<string, string | null>();
+  for (const a of assumptions) {
+    currentValues.set(a.key, a.value);
+  }
+
+  const changes: CascadeChange[] = [];
+
+  // Apply all direct changes first
+  for (const update of updates) {
+    const a = assumptionMap.get(update.key)!;
+    if (a.value !== update.value) {
+      changes.push({ key: update.key, oldValue: a.value, newValue: update.value });
+    }
+    currentValues.set(update.key, update.value);
+  }
+
+  // Recalculate downstream in topological order
+  for (const key of sorted) {
+    const a = assumptionMap.get(key);
+    if (!a?.formula) continue;
+
+    const scope: Record<string, number> = {};
+    let missingDep = false;
+
+    for (const dep of a.dependsOn) {
+      const val = currentValues.get(dep);
+      if (val === null || val === undefined) {
+        missingDep = true;
+        break;
+      }
+      const numVal = parseFloat(val);
+      if (isNaN(numVal)) {
+        missingDep = true;
+        break;
+      }
+      scope[dep] = numVal;
+    }
+
+    if (missingDep) {
+      const oldValue = a.value;
+      if (oldValue !== null) {
+        currentValues.set(key, null);
+        changes.push({ key, oldValue, newValue: 'null' });
+      }
+      continue;
+    }
+
+    const result = evaluateFormula(a.formula, scope);
+    if (result === null) {
+      const oldValue = a.value;
+      currentValues.set(key, null);
+      if (oldValue !== null) {
+        changes.push({ key, oldValue, newValue: 'null' });
+      }
+      continue;
+    }
+
+    const newVal = String(result);
+    const oldValue = a.value;
+    if (oldValue !== newVal) {
+      currentValues.set(key, newVal);
+      changes.push({ key, oldValue, newValue: newVal });
+    }
+  }
+
+  // Gather impacted sections
+  const impactedSections = new Set<string>();
+  const impactedSectionsList: Array<{ sectionKey: string; reportType: string }> = [];
+
+  for (const change of changes) {
+    const sections = ASSUMPTION_IMPACT_MAP[change.key];
+    if (sections) {
+      for (const sectionKey of sections) {
+        const composite = `BUSINESS_PLAN:${sectionKey}`;
+        if (!impactedSections.has(composite)) {
+          impactedSections.add(composite);
+          impactedSectionsList.push({ sectionKey, reportType: 'BUSINESS_PLAN' });
+        }
+      }
+    }
+  }
+
+  const metrics: CascadeMetrics = {
+    totalAssumptions: assumptions.length,
+    downstreamCount: sorted.length,
+    updatedCount: changes.length,
+    elapsedMs: performance.now() - startTime,
+  };
+
+  return {
+    status: 'success',
+    changedKeys,
+    updatedAssumptions: changes,
+    impactedSections: impactedSectionsList,
+    metrics,
   };
 }

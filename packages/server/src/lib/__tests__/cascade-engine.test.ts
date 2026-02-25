@@ -6,6 +6,8 @@ import {
   getDownstream,
   topologicalSortDownstream,
   executeCascade,
+  buildReverseDependencyMap,
+  executeBatchCascade,
 } from '../cascade-engine';
 
 // ── Test Helpers ────────────────────────────────────────
@@ -562,6 +564,230 @@ describe('cascade performance', () => {
       // a50 should exist and be updated
       const a50Change = result.updatedAssumptions.find((c) => c.key === 'a50');
       expect(a50Change).toBeDefined();
+    }
+  });
+});
+
+// ── buildReverseDependencyMap ───────────────────────────
+
+describe('buildReverseDependencyMap', () => {
+  it('builds reverse map from assumptions', () => {
+    const assumptions = [
+      makeAssumption({ key: 'a' }),
+      makeAssumption({ key: 'b', dependsOn: ['a'] }),
+      makeAssumption({ key: 'c', dependsOn: ['a', 'b'] }),
+    ];
+    const reverse = buildReverseDependencyMap(assumptions);
+
+    // a is depended on by b and c
+    expect(reverse.get('a')).toContain('b');
+    expect(reverse.get('a')).toContain('c');
+    // b is depended on by c
+    expect(reverse.get('b')).toContain('c');
+    // c has no dependents
+    expect(reverse.get('c')).toEqual([]);
+  });
+
+  it('handles independent nodes', () => {
+    const assumptions = [
+      makeAssumption({ key: 'x' }),
+      makeAssumption({ key: 'y' }),
+    ];
+    const reverse = buildReverseDependencyMap(assumptions);
+    expect(reverse.get('x')).toEqual([]);
+    expect(reverse.get('y')).toEqual([]);
+  });
+
+  it('handles empty input', () => {
+    const reverse = buildReverseDependencyMap([]);
+    expect(reverse.size).toBe(0);
+  });
+});
+
+// ── executeBatchCascade ─────────────────────────────────
+
+describe('executeBatchCascade', () => {
+  it('handles single update (equivalent to executeCascade)', () => {
+    const assumptions = [
+      makeAssumption({ key: 'price', value: '100' }),
+      makeAssumption({
+        key: 'revenue',
+        value: '1000',
+        formula: 'price * 10',
+        dependsOn: ['price'],
+      }),
+    ];
+
+    const result = executeBatchCascade(assumptions, [{ key: 'price', value: '200' }]);
+    expect(result.status).toBe('success');
+    if (result.status === 'success') {
+      expect(result.changedKeys).toEqual(['price']);
+      const revChange = result.updatedAssumptions.find((c) => c.key === 'revenue');
+      expect(revChange).toBeDefined();
+      expect(revChange!.newValue).toBe('2000');
+      expect(result.metrics.elapsedMs).toBeLessThan(100);
+    }
+  });
+
+  it('batches multiple updates with shared downstream', () => {
+    const assumptions = [
+      makeAssumption({ key: 'price', value: '100' }),
+      makeAssumption({ key: 'quantity', value: '10' }),
+      makeAssumption({
+        key: 'revenue',
+        value: '1000',
+        formula: 'price * quantity',
+        dependsOn: ['price', 'quantity'],
+      }),
+    ];
+
+    const result = executeBatchCascade(assumptions, [
+      { key: 'price', value: '200' },
+      { key: 'quantity', value: '20' },
+    ]);
+    expect(result.status).toBe('success');
+    if (result.status === 'success') {
+      expect(result.changedKeys).toEqual(['price', 'quantity']);
+      const revChange = result.updatedAssumptions.find((c) => c.key === 'revenue');
+      expect(revChange).toBeDefined();
+      expect(revChange!.newValue).toBe('4000'); // 200 * 20
+    }
+  });
+
+  it('calculates downstream only once for overlapping changes', () => {
+    // a, b both feed into c; changing both a and b should recalculate c once
+    const assumptions = [
+      makeAssumption({ key: 'a', value: '10' }),
+      makeAssumption({ key: 'b', value: '20' }),
+      makeAssumption({
+        key: 'c',
+        value: '30',
+        formula: 'a + b',
+        dependsOn: ['a', 'b'],
+      }),
+    ];
+
+    const result = executeBatchCascade(assumptions, [
+      { key: 'a', value: '100' },
+      { key: 'b', value: '200' },
+    ]);
+    expect(result.status).toBe('success');
+    if (result.status === 'success') {
+      const cChange = result.updatedAssumptions.find((c) => c.key === 'c');
+      expect(cChange).toBeDefined();
+      expect(cChange!.newValue).toBe('300'); // 100 + 200
+      // c should appear only once in changes
+      const cChanges = result.updatedAssumptions.filter((c) => c.key === 'c');
+      expect(cChanges).toHaveLength(1);
+    }
+  });
+
+  it('returns error for missing assumption', () => {
+    const result = executeBatchCascade([], [{ key: 'nonexistent', value: '100' }]);
+    expect(result.status).toBe('error');
+    if (result.status === 'error') {
+      expect(result.errorType).toBe('missing_dependency');
+    }
+  });
+
+  it('returns error for circular dependency', () => {
+    const assumptions = [
+      makeAssumption({ key: 'a', value: '1', dependsOn: ['b'], formula: 'b + 1' }),
+      makeAssumption({ key: 'b', value: '2', dependsOn: ['a'], formula: 'a + 1' }),
+    ];
+    const result = executeBatchCascade(assumptions, [{ key: 'a', value: '5' }]);
+    expect(result.status).toBe('error');
+    if (result.status === 'error') {
+      expect(result.errorType).toBe('circular_dependency');
+    }
+  });
+
+  it('includes performance metrics', () => {
+    const assumptions = [
+      makeAssumption({ key: 'a', value: '10' }),
+      makeAssumption({
+        key: 'b',
+        value: '20',
+        formula: 'a * 2',
+        dependsOn: ['a'],
+      }),
+    ];
+
+    const result = executeBatchCascade(assumptions, [{ key: 'a', value: '100' }]);
+    expect(result.status).toBe('success');
+    if (result.status === 'success') {
+      expect(result.metrics.totalAssumptions).toBe(2);
+      expect(result.metrics.downstreamCount).toBe(1);
+      expect(result.metrics.updatedCount).toBeGreaterThan(0);
+      expect(typeof result.metrics.elapsedMs).toBe('number');
+    }
+  });
+
+  it('skips unchanged direct updates', () => {
+    const assumptions = [
+      makeAssumption({ key: 'a', value: '10' }),
+    ];
+    // Update a to the same value
+    const result = executeBatchCascade(assumptions, [{ key: 'a', value: '10' }]);
+    expect(result.status).toBe('success');
+    if (result.status === 'success') {
+      // No changes because value is the same
+      expect(result.updatedAssumptions).toHaveLength(0);
+    }
+  });
+
+  it('handles batch cascade at scale (200+ assumptions)', () => {
+    const assumptions: Assumption[] = [];
+
+    // 10 roots
+    for (let i = 0; i < 10; i++) {
+      assumptions.push(makeAssumption({ key: `root_${i}`, value: String(10 + i) }));
+    }
+
+    // 90 nodes depending on roots with formulas
+    for (let i = 0; i < 90; i++) {
+      const dep1 = `root_${i % 10}`;
+      const dep2 = `root_${(i + 3) % 10}`;
+      assumptions.push(
+        makeAssumption({
+          key: `calc_${i}`,
+          value: '20',
+          formula: `${dep1} + ${dep2}`,
+          dependsOn: [dep1, dep2],
+        }),
+      );
+    }
+
+    // 100 more nodes depending on calc nodes
+    for (let i = 0; i < 100; i++) {
+      const dep = `calc_${i % 90}`;
+      assumptions.push(
+        makeAssumption({
+          key: `leaf_${i}`,
+          value: '40',
+          formula: `${dep} * 2`,
+          dependsOn: [dep],
+        }),
+      );
+    }
+
+    expect(assumptions.length).toBe(200);
+
+    // Batch update 5 roots at once
+    const updates = [
+      { key: 'root_0', value: '100' },
+      { key: 'root_1', value: '100' },
+      { key: 'root_2', value: '100' },
+      { key: 'root_3', value: '100' },
+      { key: 'root_4', value: '100' },
+    ];
+
+    const result = executeBatchCascade(assumptions, updates);
+    expect(result.status).toBe('success');
+    if (result.status === 'success') {
+      expect(result.metrics.elapsedMs).toBeLessThan(100);
+      expect(result.metrics.downstreamCount).toBeGreaterThan(0);
+      expect(result.updatedAssumptions.length).toBeGreaterThan(5);
     }
   });
 });

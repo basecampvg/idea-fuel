@@ -821,6 +821,31 @@ export interface CascadeFailure {
 
 export type CascadeResult = CascadeSuccess | CascadeFailure;
 
+export interface BatchCascadeSuccess {
+  status: 'success';
+  changedKeys: string[];
+  updatedAssumptions: CascadeChange[];
+  impactedSections: Array<{ sectionKey: string; reportType: string }>;
+  metrics: CascadeMetrics;
+}
+
+export interface BatchCascadeFailure {
+  status: 'error';
+  changedKeys: string[];
+  errorType: 'circular_dependency' | 'formula_error' | 'missing_dependency' | 'invalid_value';
+  errorMessage: string;
+  errorAtKey: string | null;
+}
+
+export type BatchCascadeResult = BatchCascadeSuccess | BatchCascadeFailure;
+
+export interface CascadeMetrics {
+  totalAssumptions: number;
+  downstreamCount: number;
+  updatedCount: number;
+  elapsedMs: number;
+}
+
 export interface StalenessInfo {
   isStale: boolean;
   reason?: string;
