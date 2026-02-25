@@ -220,6 +220,7 @@ export const researchRouter = router({
         progress: 0,
         startedAt: new Date(),
         notesSnapshot: project.notes, // Snapshot project notes
+        researchEngine: interview.researchEngine || 'OPENAI',
       }).returning();
       researchRecord = created;
     }
@@ -238,12 +239,14 @@ export const researchRouter = router({
     // Queue research pipeline job via BullMQ
     // Worker process handles the long-running pipeline (30-60+ min)
     try {
+      const engine = (interview.researchEngine as 'OPENAI' | 'PERPLEXITY') || 'OPENAI';
       await enqueueResearchPipeline({
         researchId: researchRecord.id,
         projectId: input.projectId,
         userId: ctx.userId,
         interviewId: interview.id,
         mode: interview.mode as 'LIGHT' | 'IN_DEPTH' | 'SPARK' | undefined,
+        engine,
       });
     } catch (queueError) {
       console.error('[Research] Failed to queue pipeline:', queueError);

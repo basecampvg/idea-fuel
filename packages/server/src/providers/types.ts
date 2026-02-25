@@ -113,6 +113,7 @@ export interface AIResponse {
 export interface ResearchOptions extends AIRequestOptions {
   searchProvider?: SearchProvider;
   domains?: string[]; // Domain filtering for web search
+  systemPrompt?: string; // Chunk-specific research context
 }
 
 export interface ResearchResponse extends AIResponse {
@@ -122,7 +123,7 @@ export interface ResearchResponse extends AIResponse {
 }
 
 export interface AIProvider extends BaseProvider {
-  name: 'openai' | 'anthropic';
+  name: 'openai' | 'anthropic' | 'perplexity';
 
   /**
    * Deep research with optional web search
@@ -174,10 +175,10 @@ export interface ProviderConfig {
 
   // AI provider configuration
   ai: {
-    research: 'openai' | 'anthropic';
-    extraction: 'openai' | 'anthropic';
-    generation: 'openai' | 'anthropic';
-    businessPlan: 'openai' | 'anthropic'; // Specific override for business plan generation
+    research: 'openai' | 'anthropic' | 'perplexity';
+    extraction: 'openai' | 'anthropic' | 'perplexity';
+    generation: 'openai' | 'anthropic' | 'perplexity';
+    businessPlan: 'openai' | 'anthropic' | 'perplexity';
   };
 
   // Tier-based overrides

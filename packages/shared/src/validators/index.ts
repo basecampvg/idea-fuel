@@ -44,9 +44,13 @@ export const sparkJobStatusSchema = z.enum([
 ]);
 export const interviewStatusSchema = z.enum(['IN_PROGRESS', 'COMPLETE', 'ABANDONED']);
 
+export const researchEngineSchema = z.enum(['OPENAI', 'PERPLEXITY']);
+export type ResearchEngine = z.infer<typeof researchEngineSchema>;
+
 export const startInterviewSchema = z.object({
   projectId: entityId,
   mode: interviewModeSchema.default('LIGHT'),
+  researchEngine: researchEngineSchema.default('OPENAI'),
 });
 
 export const chatMessageSchema = z.object({
