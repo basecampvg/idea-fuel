@@ -177,15 +177,14 @@ export class PerplexityProvider implements AIProvider {
   // Private Helpers
   // ============================================================================
 
-  private parseAsyncResponse(
-    result: { response?: { choices?: Array<{ message?: { content?: string | null } }>; citations?: Array<string> | null; search_results?: Array<{ url: string; title: string; snippet?: string }> | null; usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | null } | null },
-    requestId: string,
-  ): ResearchResponse {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private parseAsyncResponse(result: any, requestId: string): ResearchResponse {
     const response = result.response;
 
-    // Extract content from first choice
-    const content = response?.choices?.[0]?.message?.content;
-    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+    // Extract text content from first choice (SDK message.content can be string or content chunk array)
+    const rawContent = response?.choices?.[0]?.message?.content;
+    const content = typeof rawContent === 'string' ? rawContent : null;
+    if (!content || content.trim().length === 0) {
       throw new ProviderError(
         'Perplexity returned empty or malformed response',
         'perplexity',
@@ -200,7 +199,7 @@ export class PerplexityProvider implements AIProvider {
     )];
 
     // Extract source URLs from search_results
-    const sources = (response?.search_results || []).map(r => r.url);
+    const sources = (response?.search_results || []).map((r: { url: string }) => r.url);
 
     // Combine inline citation markers + search result URLs
     const citations = sources.length > 0 ? sources : inlineCitations;
