@@ -35,6 +35,9 @@ export type AuditAction =
   // Snapshot lifecycle
   | 'SNAPSHOT_CREATE'
   | 'SNAPSHOT_RESTORE'
+  // Export lifecycle
+  | 'EXPORT_EXCEL'
+  | 'EXPORT_PDF'
   // User settings
   | 'SETTINGS_UPDATE'
   | 'SUBSCRIPTION_CHANGE';

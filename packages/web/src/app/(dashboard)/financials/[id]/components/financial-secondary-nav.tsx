@@ -10,6 +10,7 @@ import {
   GitCompare,
   Camera,
   Target,
+  Download,
   ArrowLeft,
   type LucideIcon,
 } from 'lucide-react';
@@ -42,6 +43,12 @@ function getNavSections(modelId: string): NavSection[] {
         { label: 'Break-Even', href: `${base}/analysis/break-even`, icon: Target },
         { label: 'Scenarios', href: `${base}/scenarios`, icon: GitCompare },
         { label: 'Snapshots', href: `${base}/snapshots`, icon: Camera },
+      ],
+    },
+    {
+      title: 'Output',
+      items: [
+        { label: 'Export', href: `${base}/export`, icon: Download },
       ],
     },
   ];
