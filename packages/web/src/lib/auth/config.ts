@@ -54,10 +54,13 @@ export const authConfig: NextAuthConfig = {
      */
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
       const isOnAuth = nextUrl.pathname.startsWith('/auth');
 
-      if (isOnDashboard) {
+      // All routes that require authentication
+      const protectedPrefixes = ['/dashboard', '/projects', '/reports', '/plans', '/daily-pick', '/settings', '/admin'];
+      const isProtectedRoute = protectedPrefixes.some((p) => nextUrl.pathname.startsWith(p));
+
+      if (isProtectedRoute) {
         if (isLoggedIn) return true;
         return false; // Redirect unauthenticated users to login
       } else if (isOnAuth) {

@@ -1,7 +1,10 @@
 'use client';
 
-import { DollarSign, Settings, Rocket, Target, Clock, AlertTriangle, Users, TrendingUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { CollapsibleSection } from './collapsible-section';
+
+// ---------- Types ----------
 
 export interface RevenuePotential {
   rating: 'high' | 'medium' | 'low';
@@ -44,56 +47,10 @@ interface BusinessFitProps {
   gtmClarity?: GTMClarity | null;
   founderFit?: FounderFit | null;
   title?: string;
-  subtitle?: string;
 }
 
-const ratingColors: Record<string, string> = {
-  high: 'bg-primary/10 text-primary border-primary/20',
-  medium: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  low: 'bg-red-500/10 text-red-400 border-red-500/20',
-  easy: 'bg-primary/10 text-primary border-primary/20',
-  moderate: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  hard: 'bg-red-500/10 text-red-400 border-red-500/20',
-  clear: 'bg-primary/10 text-primary border-primary/20',
-  unclear: 'bg-red-500/10 text-red-400 border-red-500/20',
-};
+// ---------- Helpers ----------
 
-function RatingBadge({ rating }: { rating: string }) {
-  return (
-    <span className={`px-2 py-0.5 text-xs font-medium rounded-full border ${ratingColors[rating] || 'bg-muted text-muted-foreground border-border'}`}>
-      {rating}
-    </span>
-  );
-}
-
-function ConfidenceBar({ value }: { value: number }) {
-  const getColor = () => {
-    if (value >= 70) return 'bg-primary';
-    if (value >= 40) return 'bg-amber-400';
-    return 'bg-red-400';
-  };
-
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 rounded-full bg-border overflow-hidden">
-        <div className={`h-full rounded-full ${getColor()}`} style={{ width: `${value}%` }} />
-      </div>
-      <span className="text-[10px] text-muted-foreground tabular-nums">{value}%</span>
-    </div>
-  );
-}
-
-function MetaStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="flex items-center gap-1.5 text-[10px] px-2 py-1 rounded bg-card border border-border">
-      {icon}
-      <span className="text-muted-foreground">{label}:</span>
-      <span className="text-foreground font-medium">{value}</span>
-    </div>
-  );
-}
-
-// Helper to parse JSON if it's a string
 function parseJson<T>(data: T | string | null | undefined): T | null {
   if (!data) return null;
   if (typeof data === 'string') {
@@ -106,228 +63,117 @@ function parseJson<T>(data: T | string | null | undefined): T | null {
   return data as T;
 }
 
-function RevenueCard({ data }: { data: RevenuePotential }) {
-  return (
-    <div className="p-4 rounded-xl bg-card border border-border">
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-primary/15">
-            <DollarSign className="w-4 h-4 text-primary" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">Revenue Potential</p>
-            <p className="text-xs text-muted-foreground">{data.estimate}</p>
-          </div>
-        </div>
-        <RatingBadge rating={data.rating} />
-      </div>
-
-      <div className="mb-3">
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Confidence</p>
-        <ConfidenceBar value={data.confidence} />
-      </div>
-
-      {(data.revenueModel || data.timeToFirstRevenue || data.unitEconomics) && (
-        <div className="flex flex-wrap gap-1.5">
-          {data.revenueModel && (
-            <MetaStat icon={<TrendingUp className="w-2.5 h-2.5 text-primary" />} label="Model" value={data.revenueModel} />
-          )}
-          {data.timeToFirstRevenue && (
-            <MetaStat icon={<Clock className="w-2.5 h-2.5 text-amber-400" />} label="Time to Revenue" value={data.timeToFirstRevenue} />
-          )}
-          {data.unitEconomics && (
-            <MetaStat icon={<DollarSign className="w-2.5 h-2.5 text-blue-400" />} label="Unit Economics" value={data.unitEconomics} />
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ExecutionCard({ data }: { data: ExecutionDifficulty }) {
-  return (
-    <div className="p-4 rounded-xl bg-card border border-border">
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-amber-500/15">
-            <Settings className="w-4 h-4 text-amber-400" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">Execution Difficulty</p>
-            <p className="text-xs text-muted-foreground">
-              {data.soloFriendly ? 'Solo-friendly' : 'Team recommended'}
-            </p>
-          </div>
-        </div>
-        <RatingBadge rating={data.rating} />
-      </div>
-
-      {/* Factors */}
-      {data.factors.length > 0 && (
-        <div className="mb-3">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Key Factors</p>
-          <ul className="space-y-1">
-            {data.factors.map((factor, i) => (
-              <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
-                <span className="text-primary mt-0.5">&#8226;</span>
-                <span>{factor}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {(data.mvpTimeEstimate || data.biggestRisk) && (
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {data.mvpTimeEstimate && (
-            <MetaStat icon={<Clock className="w-2.5 h-2.5 text-blue-400" />} label="MVP Timeline" value={data.mvpTimeEstimate} />
-          )}
-          {data.biggestRisk && (
-            <MetaStat icon={<AlertTriangle className="w-2.5 h-2.5 text-red-400" />} label="Biggest Risk" value={data.biggestRisk} />
-          )}
-        </div>
-      )}
-
-      {/* Critical Path */}
-      {data.criticalPath && data.criticalPath.length > 0 && (
-        <div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Critical Path</p>
-          <div className="space-y-1">
-            {data.criticalPath.map((step, i) => (
-              <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-                <span className="text-[10px] text-primary font-medium tabular-nums shrink-0">{i + 1}.</span>
-                <span>{step}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function GTMCard({ data }: { data: GTMClarity }) {
-  return (
-    <div className="p-4 rounded-xl bg-card border border-border">
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-500/15">
-            <Rocket className="w-4 h-4 text-blue-400" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">Go-To-Market</p>
-            {data.primaryChannel && (
-              <p className="text-xs text-muted-foreground">Primary: {data.primaryChannel}</p>
-            )}
-          </div>
-        </div>
-        <RatingBadge rating={data.rating} />
-      </div>
-
-      <div className="mb-3">
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Confidence</p>
-        <ConfidenceBar value={data.confidence} />
-      </div>
-
-      {/* Channels */}
-      {data.channels.length > 0 && (
-        <div className="mb-3">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Channels</p>
-          <div className="flex flex-wrap gap-1">
-            {data.channels.map((channel, i) => (
-              <span key={i} className="text-xs px-2 py-0.5 rounded bg-border text-muted-foreground">
-                {channel}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {(data.estimatedCAC || data.firstMilestone) && (
-        <div className="space-y-1.5">
-          {data.estimatedCAC && (
-            <MetaStat icon={<DollarSign className="w-2.5 h-2.5 text-amber-400" />} label="Est. CAC" value={data.estimatedCAC} />
-          )}
-          {data.firstMilestone && (
-            <div className="p-2 rounded-lg bg-primary/5 border border-primary/10">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">First Milestone</p>
-              <p className="text-xs text-foreground">{data.firstMilestone}</p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function FounderFitCard({ data }: { data: FounderFit }) {
-  const getColor = () => {
-    if (data.percentage >= 70) return 'text-primary';
-    if (data.percentage >= 40) return 'text-amber-400';
-    return 'text-red-400';
+function ratingToScore(rating: string): number {
+  const map: Record<string, number> = {
+    high: 85, medium: 55, low: 25,
+    easy: 85, moderate: 55, hard: 25,
+    clear: 85, unclear: 25,
   };
+  return map[rating] ?? 50;
+}
+
+function capitalise(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// ---------- AccordionItem ----------
+
+function AccordionItem({
+  title,
+  children,
+  defaultOpen = false,
+}: {
+  title: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <div className="p-4 rounded-xl bg-card border border-border">
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-purple-500/15">
-            <Target className="w-4 h-4 text-purple-400" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">Founder Fit</p>
-          </div>
-        </div>
-        <span className={`text-lg font-bold tabular-nums ${getColor()}`}>{data.percentage}%</span>
-      </div>
-
-      <div className="mb-3">
-        <ConfidenceBar value={data.percentage} />
-      </div>
-
-      {/* Strengths */}
-      {data.strengths.length > 0 && (
-        <div className="mb-3">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Strengths</p>
-          <ul className="space-y-1">
-            {data.strengths.map((s, i) => (
-              <li key={i} className="text-xs text-primary/80 flex items-start gap-1.5">
-                <span className="mt-0.5">&#10003;</span>
-                <span>{s}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Gaps */}
-      {data.gaps.length > 0 && (
-        <div className="mb-3">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Gaps</p>
-          <ul className="space-y-1">
-            {data.gaps.map((g, i) => (
-              <li key={i} className="text-xs text-red-400/80 flex items-start gap-1.5">
-                <span className="mt-0.5">&#8594;</span>
-                <span>{g}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {(data.criticalSkillNeeded || data.recommendedFirstHire) && (
-        <div className="flex flex-wrap gap-1.5">
-          {data.criticalSkillNeeded && (
-            <MetaStat icon={<AlertTriangle className="w-2.5 h-2.5 text-amber-400" />} label="Critical Skill" value={data.criticalSkillNeeded} />
-          )}
-          {data.recommendedFirstHire && (
-            <MetaStat icon={<Users className="w-2.5 h-2.5 text-blue-400" />} label="First Hire" value={data.recommendedFirstHire} />
-          )}
-        </div>
-      )}
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between pb-2 border-b border-border cursor-pointer"
+      >
+        <span className="font-mono text-xs font-light uppercase tracking-[1px] text-primary">
+          {title}
+        </span>
+        <ChevronDown
+          className={`w-4 h-4 text-primary transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {open && <div className="pt-3">{children}</div>}
     </div>
   );
 }
+
+// ---------- Arc Gauge ----------
+
+function describeArc(cx: number, cy: number, r: number, startAngle: number, endAngle: number) {
+  const startRad = (Math.PI / 180) * startAngle;
+  const endRad = (Math.PI / 180) * endAngle;
+  const x1 = cx + r * Math.cos(startRad);
+  const y1 = cy + r * Math.sin(startRad);
+  const x2 = cx + r * Math.cos(endRad);
+  const y2 = cy + r * Math.sin(endRad);
+  const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+  return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
+}
+
+function ArcGauge({ score, label, sublabel }: { score: number; label: string; sublabel: string }) {
+  const [animatedScore, setAnimatedScore] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setAnimatedScore(score), 50);
+    return () => clearTimeout(timer);
+  }, [score]);
+
+  const cx = 80;
+  const cy = 72;
+  const r = 56;
+  const startAngle = 180;
+  const endAngle = 360;
+  const scoreAngle = startAngle + (animatedScore / 100) * (endAngle - startAngle);
+
+  const trackPath = describeArc(cx, cy, r, startAngle, endAngle);
+  const fillPath = describeArc(cx, cy, r, startAngle, Math.max(scoreAngle, startAngle + 1));
+
+  return (
+    <div className="flex flex-col items-center">
+      <svg width={160} height={90} viewBox="0 0 160 90" className="overflow-visible">
+        <path d={trackPath} fill="none" stroke="hsl(var(--border))" strokeWidth={8} strokeLinecap="round" />
+        <path
+          d={fillPath}
+          fill="none"
+          stroke="hsl(var(--primary))"
+          strokeWidth={8}
+          strokeLinecap="round"
+          style={{
+            transition: 'd 800ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+            filter: 'drop-shadow(0 0 6px hsl(var(--primary) / 0.4))',
+          }}
+        />
+        <text
+          x={cx} y={cy - 4}
+          textAnchor="middle" dominantBaseline="middle"
+          className="fill-primary"
+          style={{ fontSize: 28, fontFamily: 'var(--font-display)', fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}
+        >
+          {score}
+        </text>
+        <text x={cx} y={cy + 16} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 10 }}>
+          {sublabel}
+        </text>
+      </svg>
+      <span className="text-xs font-bold uppercase tracking-widest text-foreground mt-1">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+// ---------- Main Component ----------
 
 export function BusinessFit({
   revenuePotential: rawRevenuePotential,
@@ -335,7 +181,6 @@ export function BusinessFit({
   gtmClarity: rawGtmClarity,
   founderFit: rawFounderFit,
   title = 'Business Fit',
-  subtitle,
 }: BusinessFitProps) {
   const revenuePotential = parseJson<RevenuePotential>(rawRevenuePotential);
   const executionDifficulty = parseJson<ExecutionDifficulty>(rawExecutionDifficulty);
@@ -345,18 +190,191 @@ export function BusinessFit({
   const hasData = revenuePotential || executionDifficulty || gtmClarity || founderFit;
   if (!hasData) return null;
 
+  // Build gauge entries from available data
+  const gauges: { score: number; label: string; sublabel: string }[] = [];
+  if (revenuePotential) gauges.push({ score: revenuePotential.confidence, label: 'Revenue', sublabel: capitalise(revenuePotential.rating) });
+  if (executionDifficulty) gauges.push({ score: ratingToScore(executionDifficulty.rating), label: 'Execution', sublabel: capitalise(executionDifficulty.rating) });
+  if (gtmClarity) gauges.push({ score: gtmClarity.confidence, label: 'GTM', sublabel: capitalise(gtmClarity.rating) });
+  if (founderFit) gauges.push({ score: founderFit.percentage, label: 'Founder Fit', sublabel: `${founderFit.percentage}%` });
+
+  const gridCols = gauges.length <= 2 ? 'grid-cols-2' : gauges.length === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4';
+
   return (
-    <CollapsibleSection
-      icon={<Target className="w-5 h-5 text-primary" />}
-      iconBgColor="hsl(var(--primary) / 0.15)"
-      title={title}
-      subtitle={subtitle}
-    >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {revenuePotential && <RevenueCard data={revenuePotential} />}
-        {executionDifficulty && <ExecutionCard data={executionDifficulty} />}
-        {gtmClarity && <GTMCard data={gtmClarity} />}
-        {founderFit && <FounderFitCard data={founderFit} />}
+    <CollapsibleSection title={title}>
+      <div className="space-y-10">
+        {/* Scorecard gauges */}
+        {gauges.length > 0 && (
+          <div className="bg-background border border-border rounded-xl p-4 pb-3">
+            <div className={`grid ${gridCols} gap-x-2 gap-y-1`}>
+              {gauges.map((g) => (
+                <ArcGauge key={g.label} score={g.score} label={g.label} sublabel={g.sublabel} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Revenue Potential */}
+        {revenuePotential && (
+          <div>
+            <h2 className="font-display text-lg font-extrabold uppercase text-foreground mb-4">
+              Revenue Potential
+            </h2>
+            {revenuePotential.estimate && (
+              <p className="text-sm text-muted-foreground leading-relaxed mb-5">
+                {revenuePotential.estimate}
+              </p>
+            )}
+            <div className="space-y-6">
+              {revenuePotential.revenueModel && (
+                <AccordionItem title="Revenue Model" defaultOpen>
+                  <p className="text-sm text-foreground">{revenuePotential.revenueModel}</p>
+                </AccordionItem>
+              )}
+              {revenuePotential.timeToFirstRevenue && (
+                <AccordionItem title="Time to Revenue">
+                  <p className="text-sm text-foreground">{revenuePotential.timeToFirstRevenue}</p>
+                </AccordionItem>
+              )}
+              {revenuePotential.unitEconomics && (
+                <AccordionItem title="Unit Economics">
+                  <p className="text-sm text-foreground">{revenuePotential.unitEconomics}</p>
+                </AccordionItem>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Execution Difficulty */}
+        {executionDifficulty && (
+          <div>
+            <h2 className="font-display text-lg font-extrabold uppercase text-foreground mb-4">
+              Execution Difficulty
+            </h2>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-5">
+              {executionDifficulty.soloFriendly ? 'Solo-friendly build.' : 'Team recommended.'}{' '}
+              Rated <span className="text-foreground font-medium">{executionDifficulty.rating}</span>.
+            </p>
+            <div className="space-y-6">
+              {executionDifficulty.factors.length > 0 && (
+                <AccordionItem title="Key Factors" defaultOpen>
+                  <ul className="space-y-1">
+                    {executionDifficulty.factors.map((factor, i) => (
+                      <li key={i} className="text-sm text-foreground flex items-start gap-1.5">
+                        <span className="text-primary mt-0.5">&#8226;</span>
+                        <span>{factor}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionItem>
+              )}
+              {executionDifficulty.mvpTimeEstimate && (
+                <AccordionItem title="MVP Timeline">
+                  <p className="text-sm text-foreground">{executionDifficulty.mvpTimeEstimate}</p>
+                </AccordionItem>
+              )}
+              {executionDifficulty.biggestRisk && (
+                <AccordionItem title="Biggest Risk">
+                  <p className="text-sm text-foreground">{executionDifficulty.biggestRisk}</p>
+                </AccordionItem>
+              )}
+              {executionDifficulty.criticalPath && executionDifficulty.criticalPath.length > 0 && (
+                <AccordionItem title="Critical Path">
+                  <div className="space-y-1">
+                    {executionDifficulty.criticalPath.map((step, i) => (
+                      <div key={i} className="flex items-start gap-2 text-sm text-foreground">
+                        <span className="text-xs text-primary font-medium tabular-nums shrink-0">{i + 1}.</span>
+                        <span>{step}</span>
+                      </div>
+                    ))}
+                  </div>
+                </AccordionItem>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Go-To-Market */}
+        {gtmClarity && (
+          <div>
+            <h2 className="font-display text-lg font-extrabold uppercase text-foreground mb-4">
+              Go-To-Market
+            </h2>
+            {gtmClarity.primaryChannel && (
+              <p className="text-sm text-muted-foreground leading-relaxed mb-5">
+                Primary channel: <span className="text-foreground font-medium">{gtmClarity.primaryChannel}</span>
+              </p>
+            )}
+            <div className="space-y-6">
+              {gtmClarity.channels.length > 0 && (
+                <AccordionItem title="Channels" defaultOpen>
+                  <ul className="space-y-1">
+                    {gtmClarity.channels.map((channel, i) => (
+                      <li key={i} className="text-sm text-foreground flex items-start gap-1.5">
+                        <span className="text-primary mt-0.5">&#8226;</span>
+                        <span>{channel}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionItem>
+              )}
+              {gtmClarity.estimatedCAC && (
+                <AccordionItem title="Estimated CAC">
+                  <p className="text-sm text-foreground">{gtmClarity.estimatedCAC}</p>
+                </AccordionItem>
+              )}
+              {gtmClarity.firstMilestone && (
+                <AccordionItem title="First Milestone">
+                  <p className="text-sm text-foreground">{gtmClarity.firstMilestone}</p>
+                </AccordionItem>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Founder Fit */}
+        {founderFit && (
+          <div>
+            <h2 className="font-display text-lg font-extrabold uppercase text-foreground mb-4">
+              Founder Fit
+            </h2>
+            <div className="space-y-6">
+              {founderFit.strengths.length > 0 && (
+                <AccordionItem title="Strengths" defaultOpen>
+                  <ul className="space-y-1">
+                    {founderFit.strengths.map((s, i) => (
+                      <li key={i} className="text-sm text-primary/80 flex items-start gap-1.5">
+                        <span className="mt-0.5">&#10003;</span>
+                        <span>{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionItem>
+              )}
+              {founderFit.gaps.length > 0 && (
+                <AccordionItem title="Gaps">
+                  <ul className="space-y-1">
+                    {founderFit.gaps.map((g, i) => (
+                      <li key={i} className="text-sm text-muted-foreground flex items-start gap-1.5">
+                        <span className="mt-0.5">&#8594;</span>
+                        <span>{g}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionItem>
+              )}
+              {founderFit.criticalSkillNeeded && (
+                <AccordionItem title="Critical Skill Needed">
+                  <p className="text-sm text-foreground">{founderFit.criticalSkillNeeded}</p>
+                </AccordionItem>
+              )}
+              {founderFit.recommendedFirstHire && (
+                <AccordionItem title="Recommended First Hire">
+                  <p className="text-sm text-foreground">{founderFit.recommendedFirstHire}</p>
+                </AccordionItem>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </CollapsibleSection>
   );

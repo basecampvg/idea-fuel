@@ -11,7 +11,6 @@ import { KeywordChart, type KeywordTrend } from './keyword-chart';
 import { OfferSection, type OfferTier } from './offer-section';
 import { ActionPrompts, type ActionPrompt } from './action-prompts';
 import { UserStory, type UserStoryData } from './user-story';
-import { DownloadsSection } from './download-card';
 import { MarketSizing } from './market-sizing';
 import type { MarketSizingData } from '@forge/shared';
 import { MarketAnalysis, type MarketAnalysisData } from './market-analysis';
@@ -221,15 +220,6 @@ export function StatusComplete({ project, onDelete, isDeleting }: StatusComplete
         businessPlan={research?.businessPlan as string | null | undefined}
       />
 
-      {panes.downloads.visible && (
-        <DownloadsSection
-          projectId={project.id}
-          hasResearch={research?.status === 'COMPLETE'}
-          title={panes.downloads.title}
-          subtitle={panes.downloads.subtitle}
-        />
-      )}
-
       {panes.scoreCards.visible && (
         <ScoreCards
           opportunityScore={research?.opportunityScore}
@@ -266,7 +256,6 @@ export function StatusComplete({ project, onDelete, isDeleting }: StatusComplete
           gtmClarity={research?.gtmClarity as GTMClarity | null | undefined}
           founderFit={research?.founderFit as FounderFit | null | undefined}
           title={panes.businessFit.title}
-          subtitle={panes.businessFit.subtitle}
         />
       )}
 

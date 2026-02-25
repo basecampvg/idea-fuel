@@ -20,7 +20,7 @@ export function ThreatBar({ score, label = 'Threat Level' }: ThreatBarProps) {
 
   return (
     <div className="w-[120px] shrink-0">
-      <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground font-mono mb-0.5">
+      <div className="text-xs font-bold uppercase tracking-widest text-foreground mb-0.5">
         {label}
       </div>
       <div className="h-1.5 bg-border/50 rounded-full overflow-hidden">
@@ -30,7 +30,7 @@ export function ThreatBar({ score, label = 'Threat Level' }: ThreatBarProps) {
         />
       </div>
       <div
-        className={`text-[11px] font-semibold font-mono mt-0.5 text-right ${textColor}`}
+        className={`text-[11px] font-semibold mt-0.5 text-right ${textColor}`}
       >
         {score}/10
       </div>

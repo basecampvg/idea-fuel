@@ -3,13 +3,12 @@
 import {
   TrendingUp,
   AlertTriangle,
-  BarChart3,
-  Activity,
   CheckCircle2,
   ArrowRight,
 } from 'lucide-react';
 import { CollapsibleSection } from './collapsible-section';
 import { ProseBlock } from './ui/prose-block';
+import { SectionHeader } from './ui/section-header';
 import { SparklineCard } from './ui/sparkline-card';
 
 export interface MarketAnalysisData {
@@ -67,7 +66,7 @@ function highlightStats(text: string): React.ReactNode {
       return (
         <span
           key={i}
-          className="font-mono font-semibold text-[13px] text-foreground"
+          className="font-semibold text-sm text-foreground"
         >
           {part}
         </span>
@@ -173,17 +172,13 @@ export function MarketAnalysis({
 
   return (
     <CollapsibleSection
-      icon={<BarChart3 className="w-5 h-5 text-accent" />}
-      iconBgColor="hsl(var(--accent) / 0.15)"
       title={title}
-      subtitle={subtitle}
     >
       <div>
         {/* 1. Market Size prose */}
         {marketAnalysis.size && (
           <ProseBlock
             label="Market Size"
-            icon={<BarChart3 className="w-3.5 h-3.5" />}
           >
             {highlightStats(marketAnalysis.size)}
           </ProseBlock>
@@ -193,7 +188,6 @@ export function MarketAnalysis({
         {marketAnalysis.growth && (
           <ProseBlock
             label="Market Growth"
-            icon={<TrendingUp className="w-3.5 h-3.5" />}
           >
             {highlightStats(marketAnalysis.growth)}
           </ProseBlock>
@@ -202,7 +196,7 @@ export function MarketAnalysis({
         {/* 3. Bar chart card */}
         {bars.length > 0 && (
           <div className="rounded-xl bg-card border border-border p-4 mb-6">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono mb-3">
+            <div className="text-xs font-bold uppercase tracking-widest text-foreground mb-3">
               {marketAnalysis.adjacentMarkets && marketAnalysis.adjacentMarkets.length > 0
                 ? 'Adjacent Markets'
                 : 'Entry Barriers'}
@@ -214,7 +208,7 @@ export function MarketAnalysis({
                     <span className="text-xs text-muted-foreground truncate max-w-[70%]">
                       {bar.label}
                     </span>
-                    <span className="text-[11px] font-mono font-semibold text-foreground/70">
+                    <span className="text-[11px] font-semibold text-foreground/70">
                       {bar.pct}%
                     </span>
                   </div>
@@ -231,7 +225,7 @@ export function MarketAnalysis({
             {marketAnalysis.adjacentMarkets && marketAnalysis.adjacentMarkets.length > 0 && (
               <div className="mt-3 pt-3 border-t border-border space-y-1.5">
                 {marketAnalysis.adjacentMarkets.map((m, i) => (
-                  <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                  <div key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
                     <ArrowRight className="w-3 h-3 mt-0.5 shrink-0 text-primary/60" />
                     <span>
                       <span className="font-medium text-foreground/80">{m.name}:</span>{' '}
@@ -264,10 +258,9 @@ export function MarketAnalysis({
         {marketAnalysis.marketDynamics && dynamicsBody && (
           <ProseBlock
             label="Market Dynamics"
-            icon={<Activity className="w-3.5 h-3.5" />}
             badge={
               <span
-                className={`px-2 py-0.5 text-[10px] font-medium rounded-full border ${stageBadgeColors[marketAnalysis.marketDynamics.stage] || 'bg-muted text-muted-foreground border-border'}`}
+                className={`px-2 py-0.5 text-xs font-medium rounded-full border ${stageBadgeColors[marketAnalysis.marketDynamics.stage] || 'bg-muted text-muted-foreground border-border'}`}
               >
                 {marketAnalysis.marketDynamics.stage.charAt(0).toUpperCase() +
                   marketAnalysis.marketDynamics.stage.slice(1)}
@@ -281,16 +274,14 @@ export function MarketAnalysis({
         {/* 6. Trends list */}
         {marketAnalysis.trends && marketAnalysis.trends.length > 0 && (
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[.07em] text-muted-foreground font-mono mb-2">
-              Trends
-            </div>
-            <ul className="space-y-1.5 mb-6">
+            <SectionHeader>Trends</SectionHeader>
+            <ul className="space-y-3 mb-6">
               {marketAnalysis.trends.map((trend, i) => (
                 <li
                   key={i}
                   className="flex items-start gap-2 text-sm text-muted-foreground"
                 >
-                  <TrendingUp className="w-3.5 h-3.5 mt-0.5 shrink-0 text-primary/60" />
+                  <TrendingUp className="w-3.5 h-3.5 mt-1 shrink-0 text-primary/60" />
                   <span>{trend}</span>
                 </li>
               ))}
@@ -301,20 +292,18 @@ export function MarketAnalysis({
         {/* 7. Two-col Opportunities / Threats */}
         {((marketAnalysis.opportunities && marketAnalysis.opportunities.length > 0) ||
           (marketAnalysis.threats && marketAnalysis.threats.length > 0)) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Opportunities */}
             {marketAnalysis.opportunities && marketAnalysis.opportunities.length > 0 && (
               <div>
-                <div className="text-[11px] font-semibold uppercase tracking-[.07em] text-muted-foreground font-mono mb-2">
-                  Opportunities
-                </div>
-                <ul className="space-y-1.5">
+                <SectionHeader>Opportunities</SectionHeader>
+                <ul className="space-y-3">
                   {marketAnalysis.opportunities.map((opp, i) => (
                     <li
                       key={i}
                       className="flex items-start gap-2 text-sm text-muted-foreground"
                     >
-                      <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 shrink-0 text-emerald-500" />
+                      <CheckCircle2 className="w-3.5 h-3.5 mt-1 shrink-0 text-success" />
                       <span>{opp}</span>
                     </li>
                   ))}
@@ -325,16 +314,14 @@ export function MarketAnalysis({
             {/* Threats */}
             {marketAnalysis.threats && marketAnalysis.threats.length > 0 && (
               <div>
-                <div className="text-[11px] font-semibold uppercase tracking-[.07em] text-muted-foreground font-mono mb-2">
-                  Threats
-                </div>
-                <ul className="space-y-1.5">
+                <SectionHeader>Threats</SectionHeader>
+                <ul className="space-y-3">
                   {marketAnalysis.threats.map((threat, i) => (
                     <li
                       key={i}
                       className="flex items-start gap-2 text-sm text-muted-foreground"
                     >
-                      <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" />
+                      <AlertTriangle className="w-3.5 h-3.5 mt-1 shrink-0 text-amber-500" />
                       <span>{threat}</span>
                     </li>
                   ))}

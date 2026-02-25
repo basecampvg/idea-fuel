@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageCircle, ThumbsUp, MessageSquare, Share2, ArrowUp, ExternalLink } from 'lucide-react';
+import { ThumbsUp, MessageSquare, Share2, ArrowUp, ExternalLink } from 'lucide-react';
 import { CollapsibleSection } from './collapsible-section';
 
 export interface SocialProofPost {
@@ -130,28 +130,25 @@ export function SocialProofSection({ socialProof, title = 'Social Proof', subtit
 
   return (
     <CollapsibleSection
-      icon={<MessageCircle className="w-5 h-5 text-primary" />}
-      iconBgColor="hsla(10, 80%, 55%, 0.15)"
       title={title}
-      subtitle={subtitle}
     >
       {/* Summary */}
-      <p className="text-sm text-muted-foreground mb-5 p-3 rounded-lg bg-card border-l-2 border-primary/60">
+      <p className="text-sm text-muted-foreground mb-5 p-4 rounded-xl bg-card border-l-2 border-primary/60">
         {socialProof.summary}
       </p>
 
       {/* Posts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-5">
         {socialProof.posts.slice(0, 6).map((post, i) => (
           <PostCard key={i} post={post} />
         ))}
       </div>
 
       {/* Validated Pain Points & Demand Signals */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-4 border-t border-border">
         {socialProof.painPointsValidated.length > 0 && (
           <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Pain Points Validated</p>
+            <p className="text-sm font-medium uppercase text-primary mb-2">Pain Points Validated</p>
             <div className="flex flex-wrap gap-2">
               {socialProof.painPointsValidated.map((point, i) => (
                 <span key={i} className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
@@ -163,7 +160,7 @@ export function SocialProofSection({ socialProof, title = 'Social Proof', subtit
         )}
         {socialProof.demandSignals.length > 0 && (
           <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Demand Signals</p>
+            <p className="text-sm font-medium uppercase text-primary mb-2">Demand Signals</p>
             <div className="flex flex-wrap gap-2">
               {socialProof.demandSignals.map((signal, i) => (
                 <span key={i} className="text-xs px-2 py-1 rounded-full bg-accent/10 text-accent">

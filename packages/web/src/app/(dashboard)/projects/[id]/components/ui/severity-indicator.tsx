@@ -9,5 +9,5 @@ export function SeverityIndicator({ level }: SeverityIndicatorProps) {
     low: 'bg-blue-500',
   }[level];
 
-  return <div className={`w-1 h-7 rounded-sm shrink-0 ${color}`} />;
+  return <div className={`w-1 self-stretch rounded-sm shrink-0 ${color}`} />;
 }

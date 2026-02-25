@@ -1,7 +1,7 @@
 'use client';
 
-import { Signal } from 'lucide-react';
 import { CollapsibleSection } from './collapsible-section';
+import { SectionHeader } from './ui/section-header';
 
 export interface ProofSignalsData {
   demandIndicators: string[];
@@ -70,29 +70,26 @@ export function ProofSignals({ proofSignals, title = 'Proof Signals', subtitle }
 
   return (
     <CollapsibleSection
-      icon={<Signal className="w-5 h-5 text-primary" />}
-      iconBgColor="hsl(var(--primary) / 0.15)"
       title={title}
-      subtitle={subtitle}
     >
       <div className="space-y-5">
         {/* Demand Strength Summary */}
         {proofSignals.demandStrength && (
           <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Demand Confidence</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-foreground mb-2">Demand Confidence</p>
             <DemandBar score={proofSignals.demandStrength.score} />
             <div className="grid grid-cols-3 gap-3 mt-3">
-              <div className="p-2 rounded-lg bg-card border border-border">
-                <p className="text-[10px] text-muted-foreground uppercase mb-0.5">Search Volume</p>
-                <p className="text-xs text-foreground/80">{proofSignals.demandStrength.searchVolumeSignal}</p>
+              <div className="p-4 rounded-xl bg-card border border-border">
+                <p className="text-xs font-bold uppercase tracking-widest text-foreground mb-1">Search Volume</p>
+                <p className="text-sm text-foreground/80">{proofSignals.demandStrength.searchVolumeSignal}</p>
               </div>
-              <div className="p-2 rounded-lg bg-card border border-border">
-                <p className="text-[10px] text-muted-foreground uppercase mb-0.5">Community</p>
-                <p className="text-xs text-foreground/80">{proofSignals.demandStrength.communitySignal}</p>
+              <div className="p-4 rounded-xl bg-card border border-border">
+                <p className="text-xs font-bold uppercase tracking-widest text-foreground mb-1">Community</p>
+                <p className="text-sm text-foreground/80">{proofSignals.demandStrength.communitySignal}</p>
               </div>
-              <div className="p-2 rounded-lg bg-card border border-border">
-                <p className="text-[10px] text-muted-foreground uppercase mb-0.5">Spending</p>
-                <p className="text-xs text-foreground/80">{proofSignals.demandStrength.spendingSignal}</p>
+              <div className="p-4 rounded-xl bg-card border border-border">
+                <p className="text-xs font-bold uppercase tracking-widest text-foreground mb-1">Spending</p>
+                <p className="text-sm text-foreground/80">{proofSignals.demandStrength.spendingSignal}</p>
               </div>
             </div>
           </div>
@@ -101,10 +98,8 @@ export function ProofSignals({ proofSignals, title = 'Proof Signals', subtitle }
         {/* Demand Indicators */}
         {proofSignals.demandIndicators.length > 0 && (
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[.07em] text-muted-foreground font-mono mb-2">
-              Demand Indicators
-            </div>
-            <ul className="space-y-1.5 mb-6">
+            <SectionHeader>Demand Indicators</SectionHeader>
+            <ul className="space-y-3 mb-6">
               {proofSignals.demandIndicators.map((indicator, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
                   <span className="text-primary mt-0.5">&#10003;</span>
@@ -118,19 +113,17 @@ export function ProofSignals({ proofSignals, title = 'Proof Signals', subtitle }
         {/* Validation Experiments */}
         {proofSignals.validationExperiments && proofSignals.validationExperiments.length > 0 && (
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[.07em] text-muted-foreground font-mono mb-2">
-              Validation Experiments
-            </div>
+            <SectionHeader>Validation Experiments</SectionHeader>
             <div className="space-y-2">
               {proofSignals.validationExperiments.map((exp, i) => (
-                <div key={i} className="p-3 rounded-lg bg-card border border-border">
-                  <p className="text-xs font-medium text-foreground mb-1">{exp.experiment}</p>
-                  <p className="text-xs text-muted-foreground mb-2">{exp.hypothesis}</p>
+                <div key={i} className="p-4 rounded-xl bg-card border border-border">
+                  <p className="text-sm font-medium text-foreground mb-1">{exp.experiment}</p>
+                  <p className="text-sm text-muted-foreground mb-2">{exp.hypothesis}</p>
                   <div className="flex items-center gap-3">
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+                    <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
                       {exp.cost}
                     </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    <span className="text-xs px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
                       {exp.timeframe}
                     </span>
                   </div>
@@ -143,10 +136,8 @@ export function ProofSignals({ proofSignals, title = 'Proof Signals', subtitle }
         {/* Validation Opportunities (legacy flat list) */}
         {proofSignals.validationOpportunities.length > 0 && !proofSignals.validationExperiments?.length && (
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[.07em] text-muted-foreground font-mono mb-2">
-              Validation Opportunities
-            </div>
-            <ul className="space-y-1.5 mb-6">
+            <SectionHeader>Validation Opportunities</SectionHeader>
+            <ul className="space-y-3 mb-6">
               {proofSignals.validationOpportunities.map((opp, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
                   <span className="text-accent mt-0.5">&#9733;</span>
@@ -160,29 +151,25 @@ export function ProofSignals({ proofSignals, title = 'Proof Signals', subtitle }
         {/* Risk Mitigation (rich) or Risk Factors (flat legacy) */}
         {proofSignals.riskMitigation && proofSignals.riskMitigation.length > 0 ? (
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[.07em] text-muted-foreground font-mono mb-2">
-              Risk Mitigation
-            </div>
+            <SectionHeader>Risk Mitigation</SectionHeader>
             <div className="space-y-2">
               {proofSignals.riskMitigation.map((rm, i) => (
-                <div key={i} className="p-3 rounded-lg bg-card border border-border">
+                <div key={i} className="p-4 rounded-xl bg-card border border-border">
                   <div className="flex items-start justify-between gap-2 mb-1">
-                    <p className="text-xs font-medium text-foreground">{rm.risk}</p>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded border shrink-0 ${severityColors[rm.severity] || ''}`}>
+                    <p className="text-sm font-medium text-foreground">{rm.risk}</p>
+                    <span className={`text-xs px-1.5 py-0.5 rounded border shrink-0 ${severityColors[rm.severity] || ''}`}>
                       {rm.severity}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground">{rm.mitigation}</p>
+                  <p className="text-sm text-muted-foreground">{rm.mitigation}</p>
                 </div>
               ))}
             </div>
           </div>
         ) : proofSignals.riskFactors.length > 0 ? (
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[.07em] text-muted-foreground font-mono mb-2">
-              Risk Factors
-            </div>
-            <ul className="space-y-1.5 mb-6">
+            <SectionHeader>Risk Factors</SectionHeader>
+            <ul className="space-y-3 mb-6">
               {proofSignals.riskFactors.map((risk, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
                   <span className="text-[#ef4444] mt-0.5">&#9888;</span>

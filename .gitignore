@@ -36,6 +36,8 @@ CLAUDE.md
 *.docx
 extract_*.ps1
 nul
+_*.mjs
+_*.json
 
 # Debug
 npm-debug.log*

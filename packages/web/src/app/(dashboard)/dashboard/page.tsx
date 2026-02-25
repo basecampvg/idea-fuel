@@ -144,13 +144,13 @@ const actionButtons: ActionButton[] = [
     id: 'IN_DEPTH',
     icon: <Flame className="h-4 w-4" />,
     label: 'Forge',
-    description: '65 questions - comprehensive analysis',
+    description: '18 questions - comprehensive analysis',
   },
   {
     id: 'LIGHT',
     icon: <Feather className="h-4 w-4" />,
     label: 'Light',
-    description: '10 questions - essential insights',
+    description: '10 questions - quick insights',
   },
   {
     id: 'SPARK',

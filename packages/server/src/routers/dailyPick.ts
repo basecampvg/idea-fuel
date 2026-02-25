@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { eq, and, desc, count, sql } from 'drizzle-orm';
-import { router, publicProcedure, protectedProcedure } from '../trpc';
+import { router, publicProcedure, superAdminProcedure } from '../trpc';
 import { runDailyTrendPick, getRunStatus } from '../jobs/dailyTrendPickJob';
 import { formatInTimeZone } from 'date-fns-tz';
 import { dailyPicks, clusters, aiClassifications, trendSeries, dailyRuns, queryCandidates } from '../db/schema';
@@ -15,7 +15,7 @@ export const dailyPickRouter = router({
   /**
    * Manually trigger the Daily Pick job (admin only)
    */
-  runJob: protectedProcedure
+  runJob: superAdminProcedure
     .input(
       z
         .object({
@@ -165,7 +165,7 @@ export const dailyPickRouter = router({
   /**
    * Get recent runs (for admin monitoring)
    */
-  listRuns: protectedProcedure
+  listRuns: superAdminProcedure
     .input(
       z
         .object({
@@ -202,7 +202,7 @@ export const dailyPickRouter = router({
   /**
    * Get stats for a specific run
    */
-  getRunDetails: protectedProcedure
+  getRunDetails: superAdminProcedure
     .input(z.object({ runId: z.string() }))
     .query(async ({ ctx, input }) => {
       const run = await ctx.db.query.dailyRuns.findFirst({

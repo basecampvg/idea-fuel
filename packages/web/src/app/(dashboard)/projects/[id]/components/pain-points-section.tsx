@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertCircle, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { CollapsibleSection } from './collapsible-section';
 import { SeverityIndicator } from './ui/severity-indicator';
 
@@ -61,10 +61,7 @@ export function PainPointsSection({ painPoints, title = 'Pain Points', subtitle 
 
   return (
     <CollapsibleSection
-      icon={<AlertCircle className="w-5 h-5 text-primary" />}
-      iconBgColor="hsla(10, 80%, 55%, 0.15)"
       title={title}
-      subtitle={displaySubtitle}
     >
       <div className="flex flex-col gap-2">
         {sortedPainPoints.map((pp, i) => {
@@ -80,37 +77,46 @@ export function PainPointsSection({ painPoints, title = 'Pain Points', subtitle 
               className="rounded-lg bg-card border border-border overflow-hidden group"
               open={i === 0 ? true : undefined}
             >
-              <summary className="flex items-center gap-4 px-5 py-4 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
+              <summary className="flex gap-4 px-5 py-4 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
                 <SeverityIndicator level={level} />
-                <span className="flex-1 font-semibold text-sm">{pp.problem}</span>
-                {pp.costOfInaction && (
-                  <span className="font-mono text-xs font-semibold text-primary">
-                    {pp.costOfInaction}
-                  </span>
-                )}
-                {pp.frequencyOfOccurrence && (
-                  <span className="text-[11px] text-muted-foreground font-mono">
-                    {pp.frequencyOfOccurrence}
-                  </span>
-                )}
-                <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full ${badgeClasses}`}>
-                  {pp.severity}
-                </span>
-                <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="flex-1 font-semibold text-sm leading-relaxed">{pp.problem}</span>
+                    <div className="flex items-center gap-2 shrink-0 pt-0.5">
+                      <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${badgeClasses}`}>
+                        {pp.severity}
+                      </span>
+                      <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
+                    </div>
+                  </div>
+                  {(pp.costOfInaction || pp.frequencyOfOccurrence) && (
+                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                      {pp.costOfInaction && (
+                        <span className="text-primary/80 font-medium">{pp.costOfInaction}</span>
+                      )}
+                      {pp.costOfInaction && pp.frequencyOfOccurrence && (
+                        <span className="text-border">·</span>
+                      )}
+                      {pp.frequencyOfOccurrence && (
+                        <span>{pp.frequencyOfOccurrence}</span>
+                      )}
+                    </div>
+                  )}
+                </div>
               </summary>
 
               <div className="px-5 pb-5 border-t border-border/50">
                 {firstQuote && (
-                  <blockquote className="italic text-[13px] text-muted-foreground border-l-2 border-amber-500 pl-4 my-3 leading-relaxed">
+                  <blockquote className="italic text-sm text-muted-foreground border-l-2 border-amber-500 pl-4 my-3 leading-relaxed">
                     &ldquo;{firstQuote}&rdquo;
                   </blockquote>
                 )}
 
                 {(hasSolutions || hasGaps) && (
-                  <div className="grid grid-cols-2 gap-3 text-xs mt-3">
+                  <div className="grid grid-cols-2 gap-3 text-sm mt-3">
                     {hasSolutions && (
                       <div>
-                        <h5 className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground font-mono mb-1">
+                        <h5 className="text-xs font-bold uppercase tracking-widest text-foreground mb-1">
                           Current Solutions
                         </h5>
                         <ul className="space-y-0.5">
@@ -122,12 +128,12 @@ export function PainPointsSection({ painPoints, title = 'Pain Points', subtitle 
                     )}
                     {hasGaps && (
                       <div>
-                        <h5 className="text-[9px] font-bold uppercase tracking-wider text-red-500 font-mono mb-1">
+                        <h5 className="text-xs font-bold uppercase tracking-widest text-primary mb-1">
                           Gaps
                         </h5>
                         <ul className="space-y-0.5">
                           {pp.gaps.map((g, gi) => (
-                            <li key={gi} className="text-red-400">{g}</li>
+                            <li key={gi} className="text-primary/80">{g}</li>
                           ))}
                         </ul>
                       </div>

@@ -133,6 +133,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+p {
+  line-height: 1.575;
+}
+
 /* ===== BACKGROUND ===== */
 
 .aurora-background {
@@ -975,7 +979,7 @@ body {
   /* Status Colors */
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --success: 142 71% 40%;
+  --success: 72 83% 49%;
   --success-foreground: 0 0% 100%;
   --warning: 38 92% 50%;
   --warning-foreground: 222 47% 11%;

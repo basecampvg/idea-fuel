@@ -4,5 +4,9 @@
   "regions": ["pdx1"],
   "buildCommand": "pnpm vercel-build",
   "installCommand": "pnpm install",
-  "outputDirectory": "packages/web/.next"
+  "outputDirectory": "packages/web/.next",
+  "routes": [
+    { "src": "/api/dev/(.*)", "status": 404 },
+    { "src": "/design-system(.*)", "status": 404 }
+  ]
 }

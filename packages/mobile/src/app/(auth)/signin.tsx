@@ -18,9 +18,8 @@ const colors = {
 };
 
 export default function SignInScreen() {
-  const { signInWithGoogle, devLogin } = useAuth();
+  const { signInWithGoogle } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [isDevLoading, setIsDevLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -34,21 +33,6 @@ export default function SignInScreen() {
       );
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleDevLogin = async () => {
-    try {
-      setIsDevLoading(true);
-      await devLogin();
-    } catch (error) {
-      Alert.alert(
-        'Dev Login Failed',
-        'Unable to login as dev user. Is the server running?',
-        [{ text: 'OK' }]
-      );
-    } finally {
-      setIsDevLoading(false);
     }
   };
 
@@ -107,21 +91,6 @@ export default function SignInScreen() {
           >
             Continue with Google
           </Button>
-
-          {/* Dev Login - only shown in development */}
-          {__DEV__ && (
-            <View style={styles.devButtonWrapper}>
-              <Button
-                onPress={handleDevLogin}
-                isLoading={isDevLoading}
-                size="lg"
-                variant="outline"
-                leftIcon={<Ionicons name="code-slash" size={20} color={colors.muted} />}
-              >
-                Dev Login (Skip OAuth)
-              </Button>
-            </View>
-          )}
 
           <Text style={styles.terms}>
             By continuing, you agree to our{'\n'}Terms of Service and Privacy Policy
@@ -235,9 +204,6 @@ const styles = StyleSheet.create({
   },
   buttons: {
     marginTop: 'auto',
-  },
-  devButtonWrapper: {
-    marginTop: 12,
   },
   terms: {
     fontSize: 12,

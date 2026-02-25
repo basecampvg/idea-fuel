@@ -101,7 +101,7 @@ export function WhyNowSection({ whyNow, title = 'Why Now?', subtitle }: WhyNowSe
                 <ArrowRight className="w-3 h-3 text-muted-foreground shrink-0" />
                 <div className="text-center">
                   <p className="text-xs font-bold uppercase tracking-widest text-foreground">Closes By</p>
-                  <p className="text-sm font-medium text-red-400">{whyNow.windowOfOpportunity.closesBy}</p>
+                  <p className="text-sm font-medium text-primary">{whyNow.windowOfOpportunity.closesBy}</p>
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">{whyNow.windowOfOpportunity.reasoning}</p>

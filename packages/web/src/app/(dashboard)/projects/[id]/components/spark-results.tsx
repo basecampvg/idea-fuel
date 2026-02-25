@@ -8,19 +8,17 @@ import {
   Minus,
   HelpCircle,
   ExternalLink,
-  Users,
   MessageSquare,
   Target,
   ChevronDown,
   CheckCircle2,
   AlertTriangle,
   XCircle,
-  PieChart,
   ArrowUp,
   Shield,
   ShieldCheck,
   ShieldAlert,
-  Search,
+  DollarSign,
 } from 'lucide-react';
 import type { SparkResult, SparkRedditThread, DataQualityReport, SectionQuality } from '@forge/shared';
 import {
@@ -128,9 +126,9 @@ function TAMCard({
 
   return (
     <div
-      className={`p-5 rounded-xl bg-gradient-to-b ${styles.gradient} border ${styles.border} transition-all duration-200 hover:scale-[1.02]`}
+      className={`p-4 rounded-xl bg-gradient-to-b ${styles.gradient} border ${styles.border} transition-all duration-200 hover:scale-[1.02]`}
     >
-      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+      <span className="text-xs font-bold uppercase tracking-widest text-foreground">
         {label}
       </span>
       <div className={`text-2xl font-semibold mt-2 ${type === 'base' ? 'text-primary/70' : 'text-foreground'}`}>
@@ -291,14 +289,14 @@ function DataQualityBanner({ quality }: { quality: DataQualityReport }) {
               <div className="h-1.5 rounded-full bg-muted/30 overflow-hidden">
                 <div className={`h-full rounded-full ${config.barColor} ${config.barWidth} transition-all duration-500`} />
               </div>
-              <p className="text-[10px] text-muted-foreground/70">{section.details}</p>
+              <p className="text-xs text-muted-foreground/70">{section.details}</p>
             </div>
           );
         })}
       </div>
 
       {quality.queriedTopics.length > 0 && (
-        <p className="text-[10px] text-muted-foreground/50 mt-3 pt-3 border-t border-border/50">
+        <p className="text-xs text-muted-foreground/50 mt-3 pt-3 border-t border-border/50">
           Searched {quality.queriedTopics.length} query variations across all sections
         </p>
       )}
@@ -366,10 +364,7 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
       {/* Search Strategy */}
       {result.keywords.expanded_queries && result.keywords.expanded_queries.length > 0 && (
         <CollapsibleSection
-          icon={<Search className="w-5 h-5 text-primary" />}
-          iconBgColor="hsla(10, 80%, 55%, 0.15)"
           title="Search Strategy"
-          subtitle={`${result.keywords.expanded_queries.length} query variations used`}
         >
           <div className="space-y-3">
             {result.keywords.expansion_notes && (
@@ -409,7 +404,7 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
             {result.trend_signal.evidence.slice(0, 5).map((evidence, i) => (
               <div
                 key={i}
-                className="p-3 rounded-xl bg-card border border-border flex items-start gap-3"
+                className="p-4 rounded-xl bg-card border border-border flex items-start gap-3"
               >
                 <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${trendConfig.color.replace('text-', 'bg-')}`} />
                 <div className="flex-1">
@@ -470,11 +465,7 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
 
       {/* TAM Range */}
       <CollapsibleSection
-        icon={<PieChart className="w-5 h-5 text-primary" />}
-        iconBgColor="hsla(10, 80%, 55%, 0.15)"
         title="Market Size (TAM)"
-        subtitle="Total addressable market estimate"
-        defaultCollapsed={false}
       >
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -502,7 +493,7 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
               >
                 <div className="space-y-4 pt-3 border-t border-border">
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Assumptions</p>
+                    <p className="text-sm font-medium uppercase text-primary mb-2">Assumptions</p>
                     <ul className="space-y-2">
                       {result.tam.assumptions.map((assumption, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -515,7 +506,7 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
 
                   {result.tam.citations.length > 0 && (
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Sources</p>
+                      <p className="text-sm font-medium uppercase text-primary mb-2">Sources</p>
                       <ul className="space-y-1">
                         {result.tam.citations.map((citation, i) => (
                           <li key={i}>
@@ -542,16 +533,13 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
 
       {/* Reddit Signals */}
       <CollapsibleSection
-        icon={<MessageSquare className="w-5 h-5 text-primary" />}
-        iconBgColor="hsla(10, 80%, 55%, 0.15)"
         title="Reddit Signals"
-        subtitle="Community discussions and pain points"
       >
         <div className="space-y-5">
           {result.reddit.top_threads.length > 0 && (
             <div className="space-y-3">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Top Threads</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <p className="text-sm font-medium uppercase text-primary">Top Threads</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {result.reddit.top_threads.map((thread, i) => (
                   <SparkPostCard key={i} thread={thread} />
                 ))}
@@ -561,7 +549,7 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
 
           {result.reddit.recurring_pains.length > 0 && (
             <div className="pt-4 border-t border-border">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Recurring Pains</p>
+              <p className="text-sm font-medium uppercase text-primary mb-3">Recurring Pains</p>
               <div className="flex flex-wrap gap-2">
                 {result.reddit.recurring_pains.map((pain, i) => (
                   <span
@@ -577,15 +565,16 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
 
           {result.reddit.willingness_to_pay_clues.length > 0 && (
             <div className="pt-4 border-t border-border">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Willingness to Pay Clues</p>
-              <div className="flex flex-wrap gap-2">
+              <p className="text-sm font-medium uppercase text-primary mb-3">Willingness to Pay Clues</p>
+              <div className="space-y-2">
                 {result.reddit.willingness_to_pay_clues.map((clue, i) => (
-                  <span
+                  <div
                     key={i}
-                    className="px-3 py-1.5 text-xs rounded-full bg-primary/10 text-primary border border-primary/20"
+                    className="flex items-start gap-3 py-3 px-4 rounded-lg bg-primary/5 border-l-3 border-primary"
                   >
-                    {clue}
-                  </span>
+                    <DollarSign className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    <p className="text-sm text-primary">{clue}</p>
+                  </div>
                 ))}
               </div>
             </div>
@@ -603,13 +592,10 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
 
       {/* Facebook Groups */}
       <CollapsibleSection
-        icon={<Users className="w-5 h-5 text-primary" />}
-        iconBgColor="hsla(10, 80%, 55%, 0.15)"
         title="Facebook Groups"
-        subtitle="Relevant communities to explore"
       >
         {result.facebook_groups.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {result.facebook_groups.map((group, i) => (
               <div key={i} className="p-4 rounded-xl bg-card border border-border">
                 <div className="flex items-start justify-between gap-3">

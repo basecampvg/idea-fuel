@@ -5,6 +5,7 @@ import { SubscriptionProvider } from '@/components/subscription/subscription-con
 import { UpgradeModalContainer } from '@/components/subscription/upgrade-modal';
 import { SidebarProvider } from '@/components/layout/sidebar-context';
 import { AgentSidebarProvider } from '@/components/agent/agent-sidebar-context';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 interface DashboardProvidersProps {
   children: ReactNode;
@@ -16,13 +17,15 @@ interface DashboardProvidersProps {
  */
 export function DashboardProviders({ children }: DashboardProvidersProps) {
   return (
-    <SidebarProvider>
-      <SubscriptionProvider>
-        <AgentSidebarProvider>
-          {children}
-          <UpgradeModalContainer />
-        </AgentSidebarProvider>
-      </SubscriptionProvider>
-    </SidebarProvider>
+    <TooltipProvider delayDuration={300}>
+      <SidebarProvider>
+        <SubscriptionProvider>
+          <AgentSidebarProvider>
+            {children}
+            <UpgradeModalContainer />
+          </AgentSidebarProvider>
+        </SubscriptionProvider>
+      </SidebarProvider>
+    </TooltipProvider>
   );
 }

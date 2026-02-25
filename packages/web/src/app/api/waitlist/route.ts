@@ -1,8 +1,38 @@
 import { NextResponse } from 'next/server';
 import { db, schema } from '@forge/server';
 import { eq, count } from 'drizzle-orm';
+import { headers } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
+
+// ---------------------------------------------------------------------------
+// Simple in-memory rate limiter: max 5 requests per IP per hour
+// ---------------------------------------------------------------------------
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_MAX = 5;
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
+    return false;
+  }
+
+  entry.count++;
+  return entry.count > RATE_LIMIT_MAX;
+}
+
+function getClientIp(hdrs: Headers): string {
+  return (
+    hdrs.get('x-forwarded-for')?.split(',')[0].trim() ||
+    hdrs.get('x-real-ip') ||
+    hdrs.get('x-vercel-forwarded-for')?.split(',')[0].trim() ||
+    'unknown'
+  );
+}
 
 /**
  * POST /api/waitlist
@@ -10,6 +40,16 @@ export const dynamic = 'force-dynamic';
  */
 export async function POST(request: Request) {
   try {
+    const hdrs = await headers();
+    const clientIp = getClientIp(hdrs);
+
+    if (isRateLimited(clientIp)) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
+    }
+
     const { email, source = 'landing', metadata } = await request.json();
 
     // Validate email
