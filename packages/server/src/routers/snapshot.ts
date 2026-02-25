@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, notInArray } from 'drizzle-orm';
 import { router, protectedProcedure } from '../trpc';
 import { entityId, createSnapshotSchema } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
@@ -20,19 +20,30 @@ import type { Context } from '../context';
 type DbTransaction = Parameters<Parameters<Context['db']['transaction']>[0]>[0];
 
 /** Snapshot assumption data shape for serialization/deserialization. */
+interface SnapshotAssumption {
+  key: string;
+  name: string;
+  value: string | null;
+  numericValue: string | null;
+  category: string;
+  valueType: string;
+  formula: string | null;
+  confidence: string;
+  timeSeries: { monthly?: number[]; quarterly?: number[]; annual?: number[] } | null;
+  unit: string | null;
+  source: string;
+  sourceUrl: string | null;
+  dependsOn: string[];
+  tier: string | null;
+  isSensitive: boolean;
+  isRequired: boolean;
+  displayOrder: number;
+}
+
 interface SnapshotScenarioData {
   name: string;
   isBase: boolean;
-  assumptions: Array<{
-    key: string;
-    name: string;
-    value: string | null;
-    numericValue: string | null;
-    category: string;
-    valueType: string;
-    formula: string | null;
-    confidence: string;
-  }>;
+  assumptions: SnapshotAssumption[];
 }
 
 type SnapshotAssumptionData = Record<string, SnapshotScenarioData>;
@@ -87,6 +98,15 @@ async function captureAssumptionData(tx: DbTransaction, modelId: string): Promis
         valueType: a.valueType,
         formula: a.formula,
         confidence: a.confidence,
+        timeSeries: a.timeSeries ?? null,
+        unit: a.unit ?? null,
+        source: a.source,
+        sourceUrl: a.sourceUrl ?? null,
+        dependsOn: a.dependsOn ?? [],
+        tier: a.tier ?? null,
+        isSensitive: a.isSensitive,
+        isRequired: a.isRequired,
+        displayOrder: a.displayOrder,
       })),
     };
   }
@@ -208,21 +228,69 @@ export const snapshotRouter = router({
 
         for (const [scenarioId, scenarioData] of Object.entries(snapshotData)) {
           if (!scenarioData?.assumptions || !Array.isArray(scenarioData.assumptions)) continue;
+
+          // Verify scenario still exists
+          const scenarioExists = await tx.query.scenarios.findFirst({
+            where: eq(scenarios.id, scenarioId),
+            columns: { id: true },
+          });
+          if (!scenarioExists) continue; // Skip deleted scenarios gracefully
+
+          const snapshotKeys = scenarioData.assumptions.map((a) => a.key);
+
+          // 1. Delete assumptions that were added after the snapshot
+          if (snapshotKeys.length > 0) {
+            await tx.delete(assumptions).where(
+              and(
+                eq(assumptions.scenarioId, scenarioId),
+                notInArray(assumptions.key, snapshotKeys),
+              ),
+            );
+          } else {
+            // Snapshot had zero assumptions — remove all current ones
+            await tx.delete(assumptions).where(eq(assumptions.scenarioId, scenarioId));
+          }
+
+          // 2. Upsert each assumption from the snapshot (update if exists, insert if missing)
           for (const a of scenarioData.assumptions) {
-            await tx
-              .update(assumptions)
-              .set({
-                value: a.value,
-                numericValue: a.numericValue,
-                formula: a.formula,
-                updatedByActor: 'system',
-              })
-              .where(
-                and(
-                  eq(assumptions.scenarioId, scenarioId),
-                  eq(assumptions.key, a.key),
-                ),
-              );
+            const existing = await tx.query.assumptions.findFirst({
+              where: and(
+                eq(assumptions.scenarioId, scenarioId),
+                eq(assumptions.key, a.key),
+              ),
+              columns: { id: true },
+            });
+
+            const fields = {
+              value: a.value,
+              numericValue: a.numericValue,
+              formula: a.formula,
+              confidence: a.confidence as 'USER' | 'RESEARCHED' | 'AI_ESTIMATE' | 'CALCULATED',
+              timeSeries: a.timeSeries,
+              unit: a.unit,
+              source: a.source,
+              sourceUrl: a.sourceUrl,
+              dependsOn: a.dependsOn,
+              isSensitive: a.isSensitive,
+              isRequired: a.isRequired,
+              displayOrder: a.displayOrder,
+              updatedByActor: 'system' as const,
+            };
+
+            if (existing) {
+              await tx.update(assumptions).set(fields).where(eq(assumptions.id, existing.id));
+            } else {
+              await tx.insert(assumptions).values({
+                scenarioId,
+                category: a.category as 'PRICING' | 'ACQUISITION' | 'RETENTION' | 'MARKET' | 'COSTS' | 'FUNDING' | 'TIMELINE',
+                name: a.name,
+                key: a.key,
+                valueType: a.valueType as 'NUMBER' | 'PERCENTAGE' | 'CURRENCY' | 'TEXT' | 'DATE' | 'SELECT',
+                tier: a.tier as 'SPARK' | 'LIGHT' | 'IN_DEPTH' | null,
+                ...fields,
+                updatedAt: new Date(),
+              });
+            }
           }
         }
 

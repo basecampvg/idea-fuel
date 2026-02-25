@@ -98,11 +98,16 @@ export const scenarioRouter = router({
 
           if (sourceAssumptions.length > 0) {
             const now = new Date();
-            await tx.insert(assumptions).values(
-              sourceAssumptions.map((a) => ({
+            // Build old ID → new ID mapping so parentId references stay within the clone
+            const idMap = new Map<string, string>();
+            const clonedValues = sourceAssumptions.map((a) => {
+              const newId = crypto.randomUUID();
+              idMap.set(a.id, newId);
+              return {
+                id: newId,
                 projectId: a.projectId,
                 scenarioId: scenario.id,
-                parentId: a.parentId,
+                parentId: null as string | null, // will remap below
                 category: a.category,
                 name: a.name,
                 key: a.key,
@@ -122,8 +127,18 @@ export const scenarioRouter = router({
                 displayOrder: a.displayOrder,
                 updatedByActor: 'system',
                 updatedAt: now,
-              })),
-            );
+              };
+            });
+
+            // Remap parentId references to the new cloned IDs
+            for (const cv of clonedValues) {
+              const source = sourceAssumptions.find((a) => idMap.get(a.id) === cv.id);
+              if (source?.parentId) {
+                cv.parentId = idMap.get(source.parentId) ?? null;
+              }
+            }
+
+            await tx.insert(assumptions).values(clonedValues);
           }
         }
 
