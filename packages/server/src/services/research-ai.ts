@@ -34,6 +34,7 @@ import {
   getExtractionProvider,
   getGenerationProvider,
   getBusinessPlanProvider,
+  type SocialSearchResult,
 } from '../providers';
 import { z } from 'zod';
 
@@ -3352,30 +3353,39 @@ export async function fetchSocialProof(
     const searchProvider = getSearchProvider();
     console.log(`[Social Proof] Using search provider: ${searchProvider.name}`);
 
-    // Step 2: Perform social platform search
+    // Step 2: Perform social platform search (wrapped in its own try/catch
+    // so that provider failures fall through to the deep research fallback
+    // instead of bailing the entire function)
     const platforms = ['reddit', 'twitter', 'hackernews', 'indiehackers', 'producthunt', 'linkedin'];
     const searchQuery = `${input.ideaTitle} ${input.ideaDescription.substring(0, 200)}`;
 
-    console.log(`[Social Proof] Searching platforms: ${platforms.join(', ')}`);
-    const searchResult = await searchProvider.searchSocial(searchQuery, platforms);
+    let searchResult: SocialSearchResult | null = null;
+    try {
+      console.log(`[Social Proof] Searching platforms: ${platforms.join(', ')}`);
+      searchResult = await searchProvider.searchSocial(searchQuery, platforms);
+      console.log(`[Social Proof] Search returned ${searchResult.totalResults} posts from ${searchResult.provider}`);
+    } catch (searchError) {
+      console.warn(`[Social Proof] Search provider '${searchProvider.name}' failed, falling back to deep research:`, searchError instanceof Error ? searchError.message : searchError);
+    }
 
-    console.log(`[Social Proof] Search returned ${searchResult.totalResults} posts from ${searchResult.provider}`);
+    // Step 3: Validate quality thresholds (only if search succeeded)
+    let qualityPassed = false;
+    if (searchResult) {
+      const minPosts = configService.getNumber('search.fallback.minPosts', 5);
+      const minWordCount = configService.getNumber('search.fallback.minWordCount', 500);
 
-    // Step 3: Validate quality thresholds
-    const minPosts = configService.getNumber('search.fallback.minPosts', 5);
-    const minWordCount = configService.getNumber('search.fallback.minWordCount', 500);
+      const totalWordCount = searchResult.posts.reduce((sum, post) => {
+        return sum + (post.content?.split(/\s+/).length || 0);
+      }, 0);
 
-    const totalWordCount = searchResult.posts.reduce((sum, post) => {
-      return sum + (post.content?.split(/\s+/).length || 0);
-    }, 0);
+      qualityPassed = searchResult.totalResults >= minPosts && totalWordCount >= minWordCount;
 
-    const qualityPassed = searchResult.totalResults >= minPosts && totalWordCount >= minWordCount;
-
-    console.log(`[Social Proof] Quality check: ${searchResult.totalResults} posts, ${totalWordCount} words (need ${minPosts}/${minWordCount})`);
-    console.log(`[Social Proof] Quality passed: ${qualityPassed}`);
+      console.log(`[Social Proof] Quality check: ${searchResult.totalResults} posts, ${totalWordCount} words (need ${minPosts}/${minWordCount})`);
+      console.log(`[Social Proof] Quality passed: ${qualityPassed}`);
+    }
 
     // Step 4: If quality passes, synthesize with Claude Sonnet
-    if (qualityPassed && searchProvider.name === 'brave') {
+    if (qualityPassed && searchResult && searchProvider.name === 'brave') {
       console.log('[Social Proof] Using Claude Sonnet for synthesis...');
 
       const extractionProvider = getExtractionProvider(tier);
