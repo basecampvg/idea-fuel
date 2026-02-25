@@ -160,6 +160,36 @@ describe('evaluateFormula', () => {
   it('handles modulo operations', () => {
     expect(evaluateFormula('mod(17, 5)', {})).toBe(2);
   });
+
+  // Financial functions via formula engine
+  it('evaluates PMT through formula engine', () => {
+    const result = evaluateFormula('PMT(0.05/12, 360, 200000)', {});
+    expect(result).not.toBeNull();
+    expect(result!).toBeCloseTo(-1073.64, 1);
+  });
+
+  it('evaluates PMT with scope variables', () => {
+    const result = evaluateFormula('PMT(rate/12, months, principal)', {
+      rate: 0.06, months: 360, principal: 200000,
+    });
+    expect(result).not.toBeNull();
+    expect(result!).toBeCloseTo(-1199.10, 1);
+  });
+
+  it('evaluates NPV through formula engine', () => {
+    const result = evaluateFormula('NPV(0.10, -10000, 3000, 4200, 6800)', {});
+    expect(result).not.toBeNull();
+    expect(result!).toBeCloseTo(1188.44, 1);
+  });
+
+  it('evaluates SLN through formula engine', () => {
+    expect(evaluateFormula('SLN(30000, 7500, 10)', {})).toBe(2250);
+  });
+
+  it('returns null for financial function errors via formula', () => {
+    // PMT with nper=0 → returns NaN → sanitized to null
+    expect(evaluateFormula('PMT(0.05, 0, 10000)', {})).toBeNull();
+  });
 });
 
 // ── validateFormula ─────────────────────────────────────
@@ -276,6 +306,22 @@ describe('extractDependencies', () => {
     expect(deps).toContain('budget');
     expect(deps).not.toContain('max');
     expect(deps).not.toContain('min');
+  });
+
+  it('excludes financial function names from dependencies', () => {
+    const deps = extractDependencies('PMT(rate, nper, principal)');
+    expect(deps).toContain('rate');
+    expect(deps).toContain('nper');
+    expect(deps).toContain('principal');
+    expect(deps).not.toContain('PMT');
+  });
+
+  it('excludes all financial functions from dependencies', () => {
+    const deps = extractDependencies('NPV(discount_rate, cf1, cf2) + SLN(cost, salvage, life)');
+    expect(deps).not.toContain('NPV');
+    expect(deps).not.toContain('SLN');
+    expect(deps).toContain('discount_rate');
+    expect(deps).toContain('cf1');
   });
 });
 

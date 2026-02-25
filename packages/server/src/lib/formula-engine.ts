@@ -29,6 +29,34 @@ for (const fn of DISABLED_FUNCTIONS) {
   );
 }
 
+// Register financial functions as safe custom functions in math.js scope
+import { PMT, PV, FV, NPV, IRR, XIRR, NPER, SLN, DB } from './financial-functions';
+
+// Wrapper functions that convert null results to NaN (math.js sanitizes NaN → null downstream)
+safeImport({
+  PMT: (rate: number, nper: number, pv: number, fv?: number, type?: number) =>
+    PMT(rate, nper, pv, fv ?? 0, type ?? 0) ?? NaN,
+  PV: (rate: number, nper: number, pmt: number, fv?: number, type?: number) =>
+    PV(rate, nper, pmt, fv ?? 0, type ?? 0) ?? NaN,
+  FV: (rate: number, nper: number, pmt: number, pv?: number, type?: number) =>
+    FV(rate, nper, pmt, pv ?? 0, type ?? 0) ?? NaN,
+  NPV: (rate: number, ...cashflows: number[]) =>
+    NPV(rate, cashflows) ?? NaN,
+  IRR: (...cashflows: number[]) =>
+    IRR(cashflows) ?? NaN,
+  NPER: (rate: number, pmt: number, pv: number, fv?: number, type?: number) =>
+    NPER(rate, pmt, pv, fv ?? 0, type ?? 0) ?? NaN,
+  SLN: (cost: number, salvage: number, life: number) =>
+    SLN(cost, salvage, life) ?? NaN,
+  DB: (cost: number, salvage: number, life: number, period: number, month?: number) =>
+    DB(cost, salvage, life, period, month ?? 12) ?? NaN,
+}, { override: true });
+
+// Financial function names to exclude from dependency extraction
+const FINANCIAL_FUNCTION_NAMES = [
+  'PMT', 'PV', 'FV', 'NPV', 'IRR', 'XIRR', 'NPER', 'SLN', 'DB',
+] as const;
+
 // Formula compilation cache — compile once, evaluate many
 const compiledCache = new Map<string, EvalFunction>();
 
@@ -116,11 +144,12 @@ export function extractDependencies(formula: string): string[] {
 function extractDependenciesFromNode(node: math.MathNode): string[] {
   const refs = new Set<string>();
 
-  // Math.js built-in constants and functions to exclude
+  // Math.js built-in constants, functions, and registered financial functions to exclude
   const builtins = new Set([
     'pi', 'e', 'i', 'Infinity', 'NaN', 'null', 'undefined', 'true', 'false',
     'abs', 'ceil', 'floor', 'round', 'sqrt', 'pow', 'log', 'log2', 'log10',
     'min', 'max', 'exp', 'mod',
+    ...FINANCIAL_FUNCTION_NAMES,
   ]);
 
   node.traverse((child) => {
