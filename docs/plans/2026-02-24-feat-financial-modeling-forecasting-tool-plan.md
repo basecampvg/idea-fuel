@@ -849,8 +849,8 @@ Map ERP Chart of Accounts to the tool's line-item structure.
 
 ##### Task 5.1: Excel Export (Fully Interactive)
 
-- [ ] Add `exceljs` dependency to `packages/server/package.json`
-- [ ] Create `packages/server/src/lib/excel/generator.ts`
+- [x] Add `exceljs` dependency to `packages/server/package.json`
+- [x] Create `packages/server/src/lib/excel/generator.ts`
   - Sheet structure:
     - **Dashboard** — Summary metrics with charts
     - **Assumptions** — All input assumptions with data validation dropdowns for adjustable values
@@ -864,7 +864,7 @@ Map ERP Chart of Accounts to the tool's line-item structure.
   - Data validation: dropdowns for scenario selection, constrained ranges for key inputs
   - Formatting: currency format, percentage format, conditional formatting for negative values
   - Charts: basic Excel charts for P&L summary, Cash Flow waterfall
-- [ ] Create `packages/server/src/lib/excel/formula-translator.ts`
+- [x] Create `packages/server/src/lib/excel/formula-translator.ts`
   - Map math.js functions → Excel equivalents:
     - `PMT(rate, nper, pv)` → `=PMT(rate, nper, pv)`
     - `SUM(array)` → `=SUM(B2:M2)` (with cell range resolution)
@@ -874,14 +874,14 @@ Map ERP Chart of Accounts to the tool's line-item structure.
 - [ ] Create BullMQ queue: `QUEUE_NAMES.EXCEL_GENERATION`
   - Worker generates workbook, uploads to Vercel Blob/S3, returns download URL
   - Job timeout: 60 seconds
-- [ ] Create `packages/server/src/routers/export.ts`
+- [x] Create `packages/server/src/routers/export.ts`
   - `generateExcel(modelId, scenarioIds?)` — Enqueue Excel generation
   - `getExportStatus(jobId)` — Poll for completion
   - `getDownloadUrl(jobId)` — Get signed download URL
 
 ##### Task 5.2: PDF Export (Investor Deck)
 
-- [ ] Create `packages/server/src/lib/pdf/templates/financial-model.tsx`
+- [x] Create `packages/server/src/lib/pdf/templates/financial-model.tsx`
   - Extends existing @react-pdf/renderer patterns and base-styles
   - Sections:
     - Cover page (company name, date, "Financial Projections")
@@ -921,7 +921,7 @@ Map ERP Chart of Accounts to the tool's line-item structure.
 
 ##### Task 5.4: AI Narrative Generator
 
-- [ ] Create `packages/server/src/services/financial-narrator.ts`
+- [x] Create `packages/server/src/services/financial-narrator.ts`
   - Uses Claude (via existing AI provider abstraction) to generate narrative sections:
     - Executive Summary: 2-3 paragraph overview of the financial story
     - Revenue Analysis: explain growth drivers and assumptions
@@ -933,7 +933,7 @@ Map ERP Chart of Accounts to the tool's line-item structure.
   - Uses background mode for long generations
   - Follows existing retry pattern (3 attempts, downgrade reasoning on retry)
   - Adapts tone based on purpose: "investor pitch" vs "loan application" vs "internal planning"
-- [ ] Add **preview/edit step** in the export UI:
+- [x] Add **preview/edit step** in the export UI:
   - User sees AI-generated narratives before export
   - Can edit text inline
   - Can regenerate specific sections
@@ -941,7 +941,7 @@ Map ERP Chart of Accounts to the tool's line-item structure.
 
 ##### Task 5.5: Export UI
 
-- [ ] Create `packages/web/src/app/(dashboard)/financials/[id]/export/page.tsx`
+- [x] Create `packages/web/src/app/(dashboard)/financials/[id]/export/page.tsx`
   - Export options: Excel | PDF (Investor Deck) | PowerPoint
   - For PDF/PPTX: show narrative preview/edit step
   - Purpose selector: "Investor Pitch" | "Loan Application" | "Internal Planning"
@@ -991,14 +991,14 @@ Build the tracking infrastructure. Specific limits can be configured post-launch
 
 ##### Task 6.3: Navigation Updates
 
-- [ ] Update `packages/web/src/app/(dashboard)/layout.tsx` — Add "Financials" to sidebar navigation
-- [ ] Update `packages/web/src/app/(dashboard)/projects/[id]/components/project-secondary-nav.tsx` — Add "Financial Model" tab
+- [x] Update `packages/web/src/app/(dashboard)/layout.tsx` — Add "Financials" to sidebar navigation
+- [x] Update `packages/web/src/app/(dashboard)/projects/[id]/components/project-secondary-nav.tsx` — Add "Financial Model" tab
 - [ ] Add breadcrumb navigation for deep financial model pages
-- [ ] Add model-level secondary nav: Assumptions | Statements | Scenarios | Analysis | Budget | Snapshots | Export
+- [x] Add model-level secondary nav: Assumptions | Statements | Scenarios | Analysis | Budget | Snapshots | Export
 
 ##### Task 6.4: Performance Optimization
 
-- [ ] Add composite database indexes:
+- [x] Add composite database indexes:
   - `FinancialModel(userId, status)` — for model listing
   - `Scenario(modelId, isBase)` — for base scenario lookup
   - `Assumption(scenarioId, category)` — for grouped assumption queries
@@ -1019,7 +1019,7 @@ Build the tracking infrastructure. Specific limits can be configured post-launch
 
 ##### Task 6.5: Feature Flag & Audit Logging
 
-- [ ] Add feature flag: `const FINANCIAL_MODELING_ENABLED = true` at top of entry files (easy rollback per CLAUDE.md convention)
+- [x] Add feature flag: `const FINANCIAL_MODELING_ENABLED = true` at top of entry files (easy rollback per CLAUDE.md convention)
 - [ ] Add AdminConfig keys: `dashboard.panes.financials`, `dashboard.panes.financials.title`
 - [ ] Add audit log actions:
   - `FINANCIAL_MODEL_CREATE`, `FINANCIAL_MODEL_UPDATE`, `FINANCIAL_MODEL_DELETE`
@@ -1030,7 +1030,7 @@ Build the tracking infrastructure. Specific limits can be configured post-launch
 
 ##### Task 6.6: Input Validation & Error Handling
 
-- [ ] Add validation rules to assumption inputs:
+- [x] Add validation rules to assumption inputs:
   - Currency: min 0, max 999,999,999
   - Percentage: min 0, max 100 (or configurable max for growth rates)
   - Number: min 0 (or allow negative for specific fields like Net Income)
