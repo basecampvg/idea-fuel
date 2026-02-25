@@ -103,79 +103,94 @@ export const AI_PRESETS = {
     FREE: { reasoning: 'medium', verbosity: 'low' },
     PRO: { reasoning: 'medium', verbosity: 'low' },
     ENTERPRISE: { reasoning: 'medium', verbosity: 'low' },
+    TESTER: { reasoning: 'medium', verbosity: 'low' },
   },
   dataExtraction: {
     FREE: { reasoning: 'medium', verbosity: 'medium' },
     PRO: { reasoning: 'high', verbosity: 'medium' },
     ENTERPRISE: { reasoning: 'xhigh', verbosity: 'medium' },
+    TESTER: { reasoning: 'xhigh', verbosity: 'medium' },
   },
   // Research functions
   searchQueries: {
     FREE: { reasoning: 'low', verbosity: 'low' },
     PRO: { reasoning: 'medium', verbosity: 'low' },
     ENTERPRISE: { reasoning: 'high', verbosity: 'low' },
+    TESTER: { reasoning: 'high', verbosity: 'low' },
   },
   synthesizeInsights: {
     FREE: { reasoning: 'medium', verbosity: 'medium' },
     PRO: { reasoning: 'high', verbosity: 'high' },
     ENTERPRISE: { reasoning: 'xhigh', verbosity: 'high' },
+    TESTER: { reasoning: 'xhigh', verbosity: 'high' },
   },
   calculateScores: {
     FREE: { reasoning: 'medium', verbosity: 'low' },
     PRO: { reasoning: 'high', verbosity: 'low' },
     ENTERPRISE: { reasoning: 'xhigh', verbosity: 'low' },
+    TESTER: { reasoning: 'xhigh', verbosity: 'low' },
   },
   businessMetrics: {
     FREE: { reasoning: 'medium', verbosity: 'low' },
     PRO: { reasoning: 'high', verbosity: 'low' },
     ENTERPRISE: { reasoning: 'xhigh', verbosity: 'low' },
+    TESTER: { reasoning: 'xhigh', verbosity: 'low' },
   },
   userStory: {
     FREE: { reasoning: 'low', verbosity: 'high' },
     PRO: { reasoning: 'medium', verbosity: 'high' },
     ENTERPRISE: { reasoning: 'high', verbosity: 'high' },
+    TESTER: { reasoning: 'high', verbosity: 'high' },
   },
   keywordTrends: {
     FREE: { reasoning: 'low', verbosity: 'medium' },
     PRO: { reasoning: 'medium', verbosity: 'medium' },
     ENTERPRISE: { reasoning: 'high', verbosity: 'medium' },
+    TESTER: { reasoning: 'high', verbosity: 'medium' },
   },
   valueLadder: {
     FREE: { reasoning: 'medium', verbosity: 'medium' },
     PRO: { reasoning: 'high', verbosity: 'high' },
     ENTERPRISE: { reasoning: 'xhigh', verbosity: 'high' },
+    TESTER: { reasoning: 'xhigh', verbosity: 'high' },
   },
   actionPrompts: {
     FREE: { reasoning: 'low', verbosity: 'high' },
     PRO: { reasoning: 'medium', verbosity: 'high' },
     ENTERPRISE: { reasoning: 'high', verbosity: 'high' },
+    TESTER: { reasoning: 'high', verbosity: 'high' },
   },
   socialProof: {
     FREE: { reasoning: 'none', verbosity: 'high' },
     PRO: { reasoning: 'low', verbosity: 'high' },
     ENTERPRISE: { reasoning: 'medium', verbosity: 'high' },
+    TESTER: { reasoning: 'medium', verbosity: 'high' },
   },
   // New presets for deep research extraction phase
   extractInsights: {
     FREE: { reasoning: 'medium', verbosity: 'medium' },
     PRO: { reasoning: 'high', verbosity: 'high' },
     ENTERPRISE: { reasoning: 'xhigh', verbosity: 'high' },
+    TESTER: { reasoning: 'xhigh', verbosity: 'high' },
   },
   extractScores: {
     FREE: { reasoning: 'high', verbosity: 'low' },
     PRO: { reasoning: 'high', verbosity: 'low' },
     ENTERPRISE: { reasoning: 'xhigh', verbosity: 'low' },
+    TESTER: { reasoning: 'xhigh', verbosity: 'low' },
   },
   extractMetrics: {
     FREE: { reasoning: 'medium', verbosity: 'medium' },
     PRO: { reasoning: 'high', verbosity: 'medium' },
     ENTERPRISE: { reasoning: 'xhigh', verbosity: 'medium' },
+    TESTER: { reasoning: 'xhigh', verbosity: 'medium' },
   },
   businessPlan: {
     // Plain text output (not JSON) — safe to use xhigh reasoning without truncation risk
     FREE: { reasoning: 'xhigh', verbosity: 'high' },
     PRO: { reasoning: 'xhigh', verbosity: 'high' },
     ENTERPRISE: { reasoning: 'xhigh', verbosity: 'high' },
+    TESTER: { reasoning: 'xhigh', verbosity: 'high' },
   },
   extractMarketSizing: {
     // IMPORTANT: For JSON mode, avoid xhigh reasoning - it consumes tokens on hidden reasoning
@@ -183,6 +198,7 @@ export const AI_PRESETS = {
     FREE: { reasoning: 'medium', verbosity: 'low' },
     PRO: { reasoning: 'medium', verbosity: 'low' },
     ENTERPRISE: { reasoning: 'high', verbosity: 'low' },  // Downgraded from xhigh
+    TESTER: { reasoning: 'high', verbosity: 'low' },
   },
   // Tech stack recommendations preset
   techStack: {
@@ -191,12 +207,14 @@ export const AI_PRESETS = {
     FREE: { reasoning: 'low', verbosity: 'medium' },
     PRO: { reasoning: 'medium', verbosity: 'medium' },
     ENTERPRISE: { reasoning: 'high', verbosity: 'medium' },  // Downgraded from xhigh
+    TESTER: { reasoning: 'high', verbosity: 'medium' },
   },
   // Spark enrichment - GPT-5.2 post-processing for quick validation
   enrichSparkResult: {
     FREE: { reasoning: 'medium', verbosity: 'medium' },
     PRO: { reasoning: 'high', verbosity: 'high' },
     ENTERPRISE: { reasoning: 'high', verbosity: 'high' },
+    TESTER: { reasoning: 'high', verbosity: 'high' },
   },
 } as const;
 

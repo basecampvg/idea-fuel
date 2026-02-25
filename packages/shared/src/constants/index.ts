@@ -175,12 +175,14 @@ export const SUBSCRIPTION_TIER_LABELS: Record<string, string> = {
   FREE: 'Free',
   PRO: 'Pro',
   ENTERPRISE: 'Enterprise',
+  TESTER: 'Tester',
 };
 
 export const SUBSCRIPTION_TIER_DESCRIPTIONS: Record<string, string> = {
   FREE: 'Basic reports with core insights',
   PRO: 'Pro-level reports with enhanced analysis',
   ENTERPRISE: 'Full reports with all premium features',
+  TESTER: 'Full access with 1 report per mode',
 };
 
 // Report type labels (10 report types)
@@ -238,14 +240,17 @@ export const REPORT_TIER_MATRIX: Record<string, Record<string, string>> = {
   SPARK: {
     PRO: 'BASIC',
     ENTERPRISE: 'BASIC',
+    TESTER: 'BASIC',
   },
   LIGHT: {
     PRO: 'PRO',
     ENTERPRISE: 'PRO',
+    TESTER: 'PRO',
   },
   IN_DEPTH: {
     PRO: 'FULL',
     ENTERPRISE: 'FULL',
+    TESTER: 'FULL',
   },
 };
 

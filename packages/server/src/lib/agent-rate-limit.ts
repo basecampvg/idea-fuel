@@ -10,6 +10,7 @@ import { redis } from './redis';
 const RATE_LIMITS: Record<string, { messages: number; windowSeconds: number }> = {
   PRO: { messages: 50, windowSeconds: 3600 },
   ENTERPRISE: { messages: 200, windowSeconds: 3600 },
+  TESTER: { messages: 200, windowSeconds: 3600 },
 };
 
 export interface RateLimitResult {

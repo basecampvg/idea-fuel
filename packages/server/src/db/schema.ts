@@ -19,7 +19,7 @@ import { relations, sql } from 'drizzle-orm';
 // ENUMS
 // =============================================================================
 
-export const subscriptionTierEnum = pgEnum('SubscriptionTier', ['FREE', 'PRO', 'ENTERPRISE']);
+export const subscriptionTierEnum = pgEnum('SubscriptionTier', ['FREE', 'PRO', 'ENTERPRISE', 'TESTER']);
 export const userRoleEnum = pgEnum('UserRole', ['USER', 'EDITOR', 'ADMIN', 'SUPER_ADMIN']);
 export const projectStatusEnum = pgEnum('ProjectStatus', ['CAPTURED', 'INTERVIEWING', 'RESEARCHING', 'COMPLETE']);
 export const interviewModeEnum = pgEnum('InterviewMode', ['SPARK', 'LIGHT', 'IN_DEPTH']);
