@@ -7,6 +7,7 @@ import { useSubscription } from '@/components/subscription/use-subscription';
 import { LoadingScreen } from '@/components/ui/spinner';
 import { Flame, Feather, Zap, Bookmark, ArrowUp, TrendingUp, Paperclip, Sparkles, FileText, Target, TrendingUp as TrendUp, DollarSign, Lock, Info } from 'lucide-react';
 import { PROJECT_TITLE_MAX } from '@forge/shared';
+import type { ResearchEngine } from '@forge/shared';
 
 type InterviewMode = 'SPARK' | 'LIGHT' | 'IN_DEPTH';
 
@@ -181,6 +182,7 @@ export default function DashboardPage() {
   const { canAccessMode, showUpgradePrompt } = useSubscription();
   const [ideaDescription, setIdeaDescription] = useState('');
   const [selectedMode, setSelectedMode] = useState<string>('IN_DEPTH');
+  const [researchEngine, setResearchEngine] = useState<ResearchEngine>('OPENAI');
   const [hoveredMode, setHoveredMode] = useState<string | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -267,14 +269,15 @@ export default function DashboardPage() {
         router.push(`/projects/${project.id}`);
       } else if (selectedMode === 'SPARK') {
         // Spark mode - quick validation pipeline
-        await startInterview.mutateAsync({ projectId: project.id, mode: 'SPARK' });
+        await startInterview.mutateAsync({ projectId: project.id, mode: 'SPARK', researchEngine: 'OPENAI' });
         await startSpark.mutateAsync({ projectId: project.id });
         router.push(`/projects/${project.id}`);
       } else {
         // LIGHT or IN_DEPTH - start inline interview
         const result = await startInterview.mutateAsync({
           projectId: project.id,
-          mode: selectedMode as InterviewMode
+          mode: selectedMode as InterviewMode,
+          researchEngine,
         });
 
         // Extract first AI message as the current question
@@ -647,6 +650,36 @@ export default function DashboardPage() {
                     </div>
                   );
                 })}
+              </div>
+
+              {/* Research Engine Toggle */}
+              <div className="flex gap-0.5 p-0.5 rounded-lg bg-muted/30 border border-border/50">
+                <button
+                  onClick={() => setResearchEngine('OPENAI')}
+                  className={`
+                    px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-200
+                    ${researchEngine === 'OPENAI'
+                      ? 'bg-background text-foreground shadow-sm border border-border/80'
+                      : 'text-muted-foreground/50 hover:text-foreground'
+                    }
+                  `}
+                  title="OpenAI o3 Deep Research"
+                >
+                  OpenAI
+                </button>
+                <button
+                  onClick={() => setResearchEngine('PERPLEXITY')}
+                  className={`
+                    px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-200
+                    ${researchEngine === 'PERPLEXITY'
+                      ? 'bg-background text-foreground shadow-sm border border-border/80'
+                      : 'text-muted-foreground/50 hover:text-foreground'
+                    }
+                  `}
+                  title="Perplexity Sonar Deep Research"
+                >
+                  Perplexity
+                </button>
               </div>
 
               <div className="flex items-center gap-2">
