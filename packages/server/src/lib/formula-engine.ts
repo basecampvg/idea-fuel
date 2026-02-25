@@ -52,9 +52,79 @@ safeImport({
     DB(cost, salvage, life, period, month ?? 12) ?? NaN,
 }, { override: true });
 
-// Financial function names to exclude from dependency extraction
+// Register time-series and conditional functions
+safeImport({
+  // IF(condition, trueVal, falseVal) — ternary conditional
+  IF: (condition: number | boolean, trueVal: number | number[], falseVal: number | number[]) => {
+    return condition ? trueVal : falseVal;
+  },
+
+  // GROWTH(baseValue, rate, periods) — generates a growth time-series array
+  // Returns [baseValue, baseValue*(1+rate), baseValue*(1+rate)^2, ...]
+  GROWTH: (baseValue: number, rate: number, periods: number): number[] => {
+    if (!Number.isFinite(baseValue) || !Number.isFinite(rate) || !Number.isFinite(periods)) return [];
+    const n = Math.max(0, Math.floor(periods));
+    const result: number[] = [];
+    for (let i = 0; i < n; i++) {
+      result.push(baseValue * Math.pow(1 + rate, i));
+    }
+    return result;
+  },
+
+  // CUMSUM(array) — cumulative sum of an array
+  CUMSUM: (arr: number[]): number[] => {
+    if (!Array.isArray(arr)) return [];
+    const result: number[] = [];
+    let sum = 0;
+    for (const v of arr) {
+      sum += typeof v === 'number' ? v : 0;
+      result.push(sum);
+    }
+    return result;
+  },
+
+  // SLICE(array, start, end) — extract a portion of an array (0-indexed)
+  SLICE: (arr: number[], start: number, end?: number): number[] => {
+    if (!Array.isArray(arr)) return [];
+    return arr.slice(start, end);
+  },
+
+  // SUM and AVERAGE are already in math.js as sum() and mean(),
+  // but register uppercase versions for formula consistency
+  SUM: (...args: Array<number | number[]>): number => {
+    let total = 0;
+    for (const arg of args) {
+      if (Array.isArray(arg)) {
+        for (const v of arg) total += v;
+      } else {
+        total += arg;
+      }
+    }
+    return total;
+  },
+
+  AVERAGE: (...args: Array<number | number[]>): number => {
+    let total = 0;
+    let count = 0;
+    for (const arg of args) {
+      if (Array.isArray(arg)) {
+        for (const v of arg) { total += v; count++; }
+      } else {
+        total += arg;
+        count++;
+      }
+    }
+    return count === 0 ? NaN : total / count;
+  },
+}, { override: true });
+
+// Function names to exclude from dependency extraction
 const FINANCIAL_FUNCTION_NAMES = [
   'PMT', 'PV', 'FV', 'NPV', 'IRR', 'XIRR', 'NPER', 'SLN', 'DB',
+] as const;
+
+const TIME_SERIES_FUNCTION_NAMES = [
+  'IF', 'GROWTH', 'CUMSUM', 'SLICE', 'SUM', 'AVERAGE',
 ] as const;
 
 // Formula compilation cache — compile once, evaluate many
@@ -93,6 +163,57 @@ export function evaluateFormula(formula: string, scope: Record<string, number>):
   } catch {
     return null;
   }
+}
+
+/** Scope type for time-series formulas: values can be scalars or arrays. */
+export type TimeSeriesScope = Record<string, number | number[]>;
+
+/** Result type for time-series evaluation. */
+export type TimeSeriesResult = number | number[] | null;
+
+/**
+ * Evaluate a formula with time-series (array) support.
+ * Scope values can be numbers or number arrays.
+ * Returns number, number[], or null on error.
+ */
+export function evaluateTimeSeriesFormula(
+  formula: string,
+  scope: TimeSeriesScope,
+): TimeSeriesResult {
+  try {
+    const compiled = compileFormula(formula);
+    const isolatedScope: Record<string, number | number[]> = {};
+    for (const [key, val] of Object.entries(scope)) {
+      isolatedScope[key] = val;
+    }
+    const result = compiled.evaluate(isolatedScope);
+    return sanitizeTimeSeriesResult(result);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Sanitize a time-series result — accept finite numbers or arrays of finite numbers.
+ */
+export function sanitizeTimeSeriesResult(result: unknown): TimeSeriesResult {
+  if (typeof result === 'number') {
+    return Number.isFinite(result) ? result : null;
+  }
+  if (Array.isArray(result)) {
+    const arr: number[] = [];
+    for (const v of result) {
+      if (typeof v !== 'number' || !Number.isFinite(v)) return null;
+      arr.push(v);
+    }
+    return arr;
+  }
+  // math.js may return a Matrix object — convert to array
+  if (result && typeof result === 'object' && 'toArray' in result) {
+    const asArray = (result as { toArray(): unknown[] }).toArray();
+    return sanitizeTimeSeriesResult(asArray);
+  }
+  return null;
 }
 
 /**
@@ -150,6 +271,7 @@ function extractDependenciesFromNode(node: math.MathNode): string[] {
     'abs', 'ceil', 'floor', 'round', 'sqrt', 'pow', 'log', 'log2', 'log10',
     'min', 'max', 'exp', 'mod',
     ...FINANCIAL_FUNCTION_NAMES,
+    ...TIME_SERIES_FUNCTION_NAMES,
   ]);
 
   node.traverse((child) => {

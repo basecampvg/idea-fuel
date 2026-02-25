@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   evaluateFormula,
+  evaluateTimeSeriesFormula,
   validateFormula,
   extractDependencies,
   sanitizeResult,
+  sanitizeTimeSeriesResult,
   clearFormulaCache,
 } from '../formula-engine';
 
@@ -350,5 +352,170 @@ describe('sanitizeResult', () => {
     expect(sanitizeResult({})).toBeNull();
     expect(sanitizeResult([])).toBeNull();
     expect(sanitizeResult(true)).toBeNull();
+  });
+});
+
+// ── evaluateTimeSeriesFormula ───────────────────────────
+
+describe('evaluateTimeSeriesFormula', () => {
+  it('evaluates scalar formulas (backwards compatible)', () => {
+    expect(evaluateTimeSeriesFormula('5 + 3', {})).toBe(8);
+  });
+
+  it('evaluates with scalar scope variables', () => {
+    expect(evaluateTimeSeriesFormula('x * 2', { x: 10 })).toBe(20);
+  });
+
+  it('returns null for invalid formula', () => {
+    expect(evaluateTimeSeriesFormula('5 +* 3', {})).toBeNull();
+  });
+
+  it('handles array scope values in arithmetic', () => {
+    const result = evaluateTimeSeriesFormula('revenue * 0.3', {
+      revenue: [100, 200, 300],
+    });
+    expect(result).toEqual([30, 60, 90]);
+  });
+
+  it('handles element-wise operations on two arrays', () => {
+    const result = evaluateTimeSeriesFormula('revenue - costs', {
+      revenue: [100, 200, 300],
+      costs: [40, 80, 120],
+    });
+    expect(result).toEqual([60, 120, 180]);
+  });
+
+  // GROWTH function
+  it('generates growth time-series with GROWTH()', () => {
+    const result = evaluateTimeSeriesFormula('GROWTH(1000, 0.05, 4)', {});
+    expect(Array.isArray(result)).toBe(true);
+    const arr = result as number[];
+    expect(arr).toHaveLength(4);
+    expect(arr[0]).toBeCloseTo(1000, 4);
+    expect(arr[1]).toBeCloseTo(1050, 4);
+    expect(arr[2]).toBeCloseTo(1102.5, 4);
+    expect(arr[3]).toBeCloseTo(1157.625, 4);
+  });
+
+  it('generates growth from scope variables', () => {
+    const result = evaluateTimeSeriesFormula('GROWTH(base, rate, months)', {
+      base: 500, rate: 0.10, months: 3,
+    });
+    expect(Array.isArray(result)).toBe(true);
+    const arr = result as number[];
+    expect(arr).toHaveLength(3);
+    expect(arr[0]).toBeCloseTo(500, 4);
+    expect(arr[1]).toBeCloseTo(550, 4);
+    expect(arr[2]).toBeCloseTo(605, 4);
+  });
+
+  // CUMSUM function
+  it('computes cumulative sum with CUMSUM()', () => {
+    const result = evaluateTimeSeriesFormula('CUMSUM(cashflows)', {
+      cashflows: [100, 200, 300, 400],
+    });
+    expect(result).toEqual([100, 300, 600, 1000]);
+  });
+
+  // SLICE function
+  it('slices an array with SLICE()', () => {
+    const result = evaluateTimeSeriesFormula('SLICE(data, 1, 3)', {
+      data: [10, 20, 30, 40, 50],
+    });
+    expect(result).toEqual([20, 30]);
+  });
+
+  // SUM function
+  it('sums an array with SUM()', () => {
+    const result = evaluateTimeSeriesFormula('SUM(revenue)', {
+      revenue: [100, 200, 300],
+    });
+    expect(result).toBe(600);
+  });
+
+  it('sums multiple scalar args with SUM()', () => {
+    const result = evaluateTimeSeriesFormula('SUM(10, 20, 30)', {});
+    expect(result).toBe(60);
+  });
+
+  // AVERAGE function
+  it('averages an array with AVERAGE()', () => {
+    const result = evaluateTimeSeriesFormula('AVERAGE(values)', {
+      values: [10, 20, 30],
+    });
+    expect(result).toBe(20);
+  });
+
+  // IF function
+  it('evaluates IF(true, a, b)', () => {
+    expect(evaluateTimeSeriesFormula('IF(1, 100, 200)', {})).toBe(100);
+  });
+
+  it('evaluates IF(false, a, b)', () => {
+    expect(evaluateTimeSeriesFormula('IF(0, 100, 200)', {})).toBe(200);
+  });
+
+  it('evaluates IF with comparison', () => {
+    const result = evaluateTimeSeriesFormula('IF(rate > 0.05, 1000, 500)', { rate: 0.10 });
+    expect(result).toBe(1000);
+  });
+
+  // Combined usage
+  it('combines GROWTH and SUM for total revenue', () => {
+    const result = evaluateTimeSeriesFormula('SUM(GROWTH(1000, 0.05, 12))', {});
+    expect(typeof result).toBe('number');
+    expect(result as number).toBeGreaterThan(12000); // 12 months of growing revenue
+  });
+
+  it('combines GROWTH and CUMSUM', () => {
+    const result = evaluateTimeSeriesFormula('CUMSUM(GROWTH(100, 0, 3))', {});
+    expect(result).toEqual([100, 200, 300]);
+  });
+
+  // 60-month time-series (plan requirement)
+  it('handles 60-month time-series computation', () => {
+    const result = evaluateTimeSeriesFormula('GROWTH(base_revenue, monthly_growth, 60)', {
+      base_revenue: 10000,
+      monthly_growth: 0.03,
+    });
+    expect(Array.isArray(result)).toBe(true);
+    const arr = result as number[];
+    expect(arr).toHaveLength(60);
+    expect(arr[0]).toBeCloseTo(10000, 2);
+    expect(arr[59]).toBeCloseTo(10000 * Math.pow(1.03, 59), 2);
+  });
+});
+
+// ── sanitizeTimeSeriesResult ────────────────────────────
+
+describe('sanitizeTimeSeriesResult', () => {
+  it('accepts valid numbers', () => {
+    expect(sanitizeTimeSeriesResult(42)).toBe(42);
+  });
+
+  it('accepts valid number arrays', () => {
+    expect(sanitizeTimeSeriesResult([1, 2, 3])).toEqual([1, 2, 3]);
+  });
+
+  it('rejects NaN scalar', () => {
+    expect(sanitizeTimeSeriesResult(NaN)).toBeNull();
+  });
+
+  it('rejects array with NaN', () => {
+    expect(sanitizeTimeSeriesResult([1, NaN, 3])).toBeNull();
+  });
+
+  it('rejects array with Infinity', () => {
+    expect(sanitizeTimeSeriesResult([1, Infinity])).toBeNull();
+  });
+
+  it('rejects non-number types', () => {
+    expect(sanitizeTimeSeriesResult('hello')).toBeNull();
+    expect(sanitizeTimeSeriesResult(null)).toBeNull();
+    expect(sanitizeTimeSeriesResult(undefined)).toBeNull();
+  });
+
+  it('accepts empty array', () => {
+    expect(sanitizeTimeSeriesResult([])).toEqual([]);
   });
 });
