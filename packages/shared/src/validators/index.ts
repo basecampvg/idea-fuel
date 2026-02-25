@@ -382,3 +382,74 @@ export const reorderInsightsSchema = z.object({
   insightIds: z.array(entityId).min(1).max(100),
 });
 export type ReorderInsightsInput = z.infer<typeof reorderInsightsSchema>;
+
+// ============================================
+// Financial Model validators
+// ============================================
+export const knowledgeLevelSchema = z.enum(['BEGINNER', 'STANDARD', 'EXPERT']);
+export const financialModelStatusSchema = z.enum(['DRAFT', 'ACTIVE', 'ARCHIVED']);
+export const erpProviderSchema = z.enum(['QUICKBOOKS', 'XERO']);
+export const erpConnectionStatusSchema = z.enum(['ACTIVE', 'EXPIRED', 'REVOKED']);
+export const snapshotActionSchema = z.enum(['MANUAL', 'AUTO_SAVE']);
+export const templateCategorySchema = z.enum([
+  'TECH', 'SERVICES', 'RETAIL', 'FOOD', 'CONSTRUCTION',
+  'HEALTHCARE', 'REAL_ESTATE', 'MANUFACTURING', 'NONPROFIT', 'FREELANCER',
+]);
+export const statementTypeSchema = z.enum(['PL', 'BS', 'CF']);
+
+export const createFinancialModelSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(200, 'Name too long'),
+  templateSlug: z.string().min(1).max(50).optional(),
+  projectId: entityId.optional(),
+  knowledgeLevel: knowledgeLevelSchema.default('BEGINNER'),
+  forecastYears: z.number().int().min(1).max(10).default(5),
+  settings: z.record(z.unknown()).optional(),
+});
+export type CreateFinancialModelInput = z.infer<typeof createFinancialModelSchema>;
+
+export const updateFinancialModelSchema = z.object({
+  id: entityId,
+  name: z.string().min(1).max(200).optional(),
+  knowledgeLevel: knowledgeLevelSchema.optional(),
+  forecastYears: z.number().int().min(1).max(10).optional(),
+  status: financialModelStatusSchema.optional(),
+  settings: z.record(z.unknown()).optional(),
+});
+export type UpdateFinancialModelInput = z.infer<typeof updateFinancialModelSchema>;
+
+export const createScenarioSchema = z.object({
+  modelId: entityId,
+  name: z.string().min(1, 'Name is required').max(200, 'Name too long'),
+  cloneFromScenarioId: entityId.optional(),
+});
+export type CreateScenarioInput = z.infer<typeof createScenarioSchema>;
+
+export const updateScenarioSchema = z.object({
+  id: entityId,
+  name: z.string().min(1).max(200).optional(),
+  description: z.string().max(1000).nullable().optional(),
+});
+export type UpdateScenarioInput = z.infer<typeof updateScenarioSchema>;
+
+export const createSnapshotSchema = z.object({
+  modelId: entityId,
+  name: z.string().min(1, 'Name is required').max(200, 'Name too long'),
+});
+export type CreateSnapshotInput = z.infer<typeof createSnapshotSchema>;
+
+export const erpConnectSchema = z.object({
+  provider: erpProviderSchema,
+  accessToken: z.string().min(1),
+  refreshToken: z.string().optional(),
+  realmId: z.string().optional(),
+  tenantId: z.string().optional(),
+  companyName: z.string().optional(),
+  tokenExpiresAt: z.string().datetime().optional(),
+});
+export type ERPConnectInput = z.infer<typeof erpConnectSchema>;
+
+export const erpSyncSchema = z.object({
+  connectionId: entityId,
+  modelId: entityId,
+});
+export type ERPSyncInput = z.infer<typeof erpSyncSchema>;
