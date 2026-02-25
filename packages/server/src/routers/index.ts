@@ -9,6 +9,9 @@ import { dailyPickRouter } from './dailyPick';
 import { blogRouter } from './blog';
 import { agentRouter } from './agent';
 import { assumptionRouter } from './assumption';
+import { financialRouter } from './financial';
+import { scenarioRouter } from './scenario';
+import { snapshotRouter } from './snapshot';
 
 /**
  * Main application router
@@ -25,6 +28,9 @@ export const appRouter = router({
   blog: blogRouter,
   agent: agentRouter,
   assumption: assumptionRouter,
+  financial: financialRouter,
+  scenario: scenarioRouter,
+  snapshot: snapshotRouter,
 });
 
 // Export type definition for client usage
