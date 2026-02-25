@@ -16,6 +16,9 @@ import {
 } from '../db/schema';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { getTemplate, listTemplates } from '../services/financial-templates';
+import { calculateStatements, assumptionsToMap } from '../services/financial-calculator';
+import { calculateBreakEven } from '../services/break-even-calculator';
+import type { RevenueModel } from '../services/break-even-calculator';
 import type { Context } from '../context';
 
 /**
@@ -86,7 +89,7 @@ export const financialRouter = router({
           name: input.name,
           knowledgeLevel: input.knowledgeLevel,
           forecastYears: input.forecastYears,
-          settings: input.settings ?? {},
+          settings: { ...(input.settings ?? {}), templateSlug: input.templateSlug ?? 'general' },
           updatedAt: new Date(),
         }).returning();
 
@@ -234,5 +237,93 @@ export const financialRouter = router({
       });
 
       return { success: true };
+    }),
+
+  /**
+   * Compute financial statements (P&L, Balance Sheet, Cash Flow) for a scenario.
+   */
+  computeStatements: protectedProcedure
+    .input(z.object({ scenarioId: entityId }))
+    .query(async ({ ctx, input }) => {
+      // Find scenario → model
+      const scenario = await ctx.db.query.scenarios.findFirst({
+        where: eq(scenarios.id, input.scenarioId),
+        with: { model: true },
+      });
+      if (!scenario || scenario.model.userId !== ctx.userId) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Scenario not found' });
+      }
+
+      const model = scenario.model;
+      const templateSlug = (model.settings as Record<string, unknown>)?.templateSlug as string ?? 'general';
+      const template = getTemplate(templateSlug);
+      if (!template) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: `Template "${templateSlug}" not found` });
+      }
+
+      // Fetch assumptions for this scenario
+      const rows = await ctx.db
+        .select()
+        .from(assumptions)
+        .where(eq(assumptions.scenarioId, input.scenarioId));
+
+      const assumptionMap = assumptionsToMap(rows);
+      const statements = calculateStatements(assumptionMap, template, model.forecastYears);
+
+      return statements;
+    }),
+
+  /**
+   * Compute break-even analysis for a scenario.
+   */
+  computeBreakEven: protectedProcedure
+    .input(z.object({ scenarioId: entityId }))
+    .query(async ({ ctx, input }) => {
+      const scenario = await ctx.db.query.scenarios.findFirst({
+        where: eq(scenarios.id, input.scenarioId),
+        with: { model: true },
+      });
+      if (!scenario || scenario.model.userId !== ctx.userId) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Scenario not found' });
+      }
+
+      // Fetch assumptions
+      const rows = await ctx.db
+        .select()
+        .from(assumptions)
+        .where(eq(assumptions.scenarioId, input.scenarioId));
+
+      const map = assumptionsToMap(rows);
+
+      // Detect revenue model from assumptions
+      let revenueModel: RevenueModel = 'unit';
+      if (map.arpu || map.monthly_churn || map.new_customers_per_month) {
+        revenueModel = 'subscription';
+      } else if (map.hourly_rate || map.billable_hours) {
+        revenueModel = 'services';
+      }
+
+      // Compute total monthly fixed costs from available assumptions
+      const fixedCostsMonthly = (map.rent ?? 0)
+        + (map.salaries ?? 0)
+        + (map.infrastructure_costs ?? 0)
+        + (map.marketing_budget ?? 0)
+        + (map.other_fixed_costs ?? 0)
+        + (map.total_opex ?? map.operating_expenses ?? 0);
+
+      return calculateBreakEven({
+        revenueModel,
+        fixedCostsMonthly: fixedCostsMonthly || map.fixed_costs_monthly || 10000,
+        pricePerUnit: map.unit_price ?? map.price_per_unit,
+        variableCostPerUnit: map.variable_cost ?? map.cogs_per_unit,
+        unitsPerMonth: map.units_per_month,
+        arpu: map.arpu,
+        monthlyChurnRate: map.monthly_churn,
+        newCustomersPerMonth: map.new_customers_per_month,
+        startingCustomers: map.starting_customers ?? 0,
+        hourlyRate: map.hourly_rate,
+        variableCostPerHour: map.variable_cost_per_hour,
+        billableHoursPerMonth: map.billable_hours,
+      });
     }),
 });

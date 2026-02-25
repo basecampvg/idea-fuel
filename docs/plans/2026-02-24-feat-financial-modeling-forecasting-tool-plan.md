@@ -701,47 +701,40 @@ For the add-on flow, map research pipeline data to financial model assumptions.
 
 ##### Task 3.1: 3-Statement Dashboard
 
-- [ ] Create `packages/web/src/app/(dashboard)/financials/[id]/statements/page.tsx`
+- [x] Create `packages/web/src/app/(dashboard)/financials/[id]/statements/page.tsx`
   - Tab navigation: P&L | Balance Sheet | Cash Flow | Summary
-  - Period toggle: Monthly (Y1) | Quarterly (Y2) | Annual (Y3-5) | All
-- [ ] Create `financials/[id]/statements/components/`
+  - Period toggle: Monthly | Quarterly | Annual
+- [x] Create `financials/[id]/statements/components/`
   - `statement-table.tsx` — Financial statement table with expandable line items
     - Rows: line items (collapsible hierarchy)
     - Columns: time periods (monthly/quarterly/annual)
     - Totals and subtotals auto-calculated
     - Color-coded for positive/negative values
-    - Click on any cell to see the formula and inputs
-  - `statement-chart.tsx` — Recharts visualizations for each statement
-    - P&L: Revenue vs Expenses stacked area chart, Net Income line
-    - Balance Sheet: Assets vs Liabilities stacked bar chart
-    - Cash Flow: Waterfall chart showing sources and uses
   - `summary-dashboard.tsx` — Key metrics overview
     - Cards: Revenue, Net Income, Cash Balance, Burn Rate, Runway
-    - Trend sparklines for each metric
-    - YoY comparison
   - `period-selector.tsx` — Time period granularity toggle
+  - _Deferred: statement-chart.tsx (Recharts visualizations), cell formula inspector, YoY comparison, sparklines_
 
 ##### Task 3.2: Scenario Management UI
 
-- [ ] Create `packages/web/src/app/(dashboard)/financials/[id]/scenarios/page.tsx`
-  - List of scenarios with key metrics (Revenue, Net Income, Cash Balance)
+- [x] Create `packages/web/src/app/(dashboard)/financials/[id]/scenarios/page.tsx`
+  - List of scenarios with delete support
   - "Add Scenario" button → name input, option to clone from existing
-  - Scenario comparison view: side-by-side tables and overlaid charts
-  - Active scenario selector (dropdown in top bar)
-- [ ] Create `financials/[id]/scenarios/components/`
+  - Scenario comparison view: side-by-side assumption delta table
+- [x] Create `financials/[id]/scenarios/components/`
   - `scenario-card.tsx` — Summary card for each scenario
-  - `scenario-comparison.tsx` — Side-by-side delta view
-  - `scenario-selector.tsx` — Dropdown to switch active scenario (appears in model header)
+  - `scenario-comparison.tsx` — Side-by-side delta view grouped by category
+  - _Deferred: scenario-selector.tsx (dropdown in header), overlaid charts, key metric preview_
 
 ##### Task 3.3: Break-Even Analysis
 
-- [ ] Create `packages/web/src/app/(dashboard)/financials/[id]/analysis/break-even/page.tsx`
-  - Break-even chart: Revenue line and Total Cost line, intersection point marked
+- [x] Create `packages/web/src/app/(dashboard)/financials/[id]/analysis/break-even/page.tsx`
+  - Revenue vs Cost area chart with break-even reference line
+  - Cumulative P&L chart
+  - Key metrics: break-even point, month reached, 36-month P&L
   - Adapts to revenue model (unit-based, subscription, services)
-  - Interactive sliders for key variables (price, variable cost, fixed costs)
-  - Real-time recalculation (client-side for slider interactivity, confirmed via server)
   - "Break-even not achievable" state: clear message with suggestions
-  - Multi-product view: blended break-even or per-product
+  - _Deferred: interactive sliders for key variables, multi-product view_
 
 ##### Task 3.4: What-If & Sensitivity Analysis
 
@@ -754,12 +747,12 @@ For the add-on flow, map research pipeline data to financial model assumptions.
 
 ##### Task 3.5: Snapshot Management
 
-- [ ] Create `packages/web/src/app/(dashboard)/financials/[id]/snapshots/page.tsx`
-  - List of named snapshots with timestamps and summary metrics
+- [x] Create `packages/web/src/app/(dashboard)/financials/[id]/snapshots/page.tsx`
+  - List of named snapshots with timestamps and auto-save indicator
   - "Create Snapshot" button with name input
-  - Compare button: select two snapshots for side-by-side diff
-  - Restore button: revert to snapshot state (with confirmation dialog that creates a new snapshot of current state first)
-  - Auto-save indicator in model header ("Saved" / "Saving...")
+  - Compare button: select two snapshots for diff view
+  - Restore button: revert to snapshot state (with confirmation dialog, auto-saves current state first)
+  - _Deferred: auto-save indicator in model header_
 
 **Success criteria:**
 - 3-statement views render correctly with expandable line items

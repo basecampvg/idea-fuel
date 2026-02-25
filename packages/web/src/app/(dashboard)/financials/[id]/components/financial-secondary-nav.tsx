@@ -9,6 +9,7 @@ import {
   BarChart3,
   GitCompare,
   Camera,
+  Target,
   ArrowLeft,
   type LucideIcon,
 } from 'lucide-react';
@@ -38,6 +39,7 @@ function getNavSections(modelId: string): NavSection[] {
       title: 'Analysis',
       items: [
         { label: 'Statements', href: `${base}/statements`, icon: BarChart3 },
+        { label: 'Break-Even', href: `${base}/analysis/break-even`, icon: Target },
         { label: 'Scenarios', href: `${base}/scenarios`, icon: GitCompare },
         { label: 'Snapshots', href: `${base}/snapshots`, icon: Camera },
       ],
