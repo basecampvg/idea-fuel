@@ -7,9 +7,8 @@ export default function SplashScreen() {
   const router = useRouter();
 
   useEffect(() => {
-    // Skip auth, go straight to dashboard
     const timer = setTimeout(() => {
-      router.replace('/(tabs)/dashboard');
+      router.replace('/(tabs)/capture' as any);
     }, 500);
 
     return () => clearTimeout(timer);

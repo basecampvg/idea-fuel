@@ -4,17 +4,12 @@ import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-// ideationLab Design System Colors
 const colors = {
   background: '#11100E',
-  card: '#1A1918',
-  border: '#1F1E1C',
   foreground: '#E8E4DC',
-  muted: '#8A8680',
-  primary: '#E91E8C',
 };
 
-export default function IdeasStackLayout() {
+export default function VaultStackLayout() {
   const router = useRouter();
 
   return (
@@ -52,27 +47,9 @@ export default function IdeasStackLayout() {
         }}
       />
       <Stack.Screen
-        name="new"
-        options={{
-          title: 'New Project',
-          headerStyle: {
-            backgroundColor: colors.background,
-          },
-        }}
-      />
-      <Stack.Screen
         name="[id]/index"
         options={{
-          title: '',
-        }}
-      />
-      <Stack.Screen
-        name="[id]/interview"
-        options={{
-          title: 'Interview',
-          headerStyle: {
-            backgroundColor: colors.card,
-          },
+          headerShown: false,
         }}
       />
     </Stack>

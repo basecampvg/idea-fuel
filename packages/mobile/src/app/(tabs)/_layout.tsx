@@ -63,17 +63,17 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="dashboard"
+        name="capture"
         options={{
-          title: 'ideationLab',
+          title: 'Capture',
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="flame" size={size} color={color} />
+            <Ionicons name="flash-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="ideas"
+        name="vault"
         options={{
           title: 'Vault',
           headerShown: false,
@@ -83,28 +83,10 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="reports"
-        options={{
-          title: 'Reports',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="document-text-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="daily-pick"
-        options={{
-          title: 'Trends',
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="trending-up" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" size={size} color={color} />
           ),
