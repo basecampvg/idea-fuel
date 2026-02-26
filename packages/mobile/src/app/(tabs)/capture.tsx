@@ -14,13 +14,14 @@ import {
   Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Mic, Square, Zap, PenLine } from 'lucide-react-native';
 import { triggerHaptic } from '../../components/ui/Button';
 import { trpc } from '../../lib/trpc';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { RecentDrafts } from '../../components/RecentDrafts';
 import { IdeaFuelLogo } from '../../components/IdeaFuelLogo';
+import { SloganSVG } from '../../components/SloganSVG';
 import { colors } from '../../lib/theme';
 
 // expo-speech-recognition requires a dev build — safely handle Expo Go
@@ -105,13 +106,10 @@ export default function CaptureScreen() {
     const transcript = event.results[0]?.transcript || '';
     if (transcript) {
       setIdeaText((prev) => {
-        // If this is a final result, append. If partial, replace last segment.
         if (event.isFinal) {
           return prev ? `${prev} ${transcript}` : transcript;
         }
-        // For partial results, show what we have so far
         const lines = prev.split('\n');
-        // Replace the last partial line
         if (lines.length > 0 && !prev.endsWith('\n')) {
           return transcript;
         }
@@ -205,7 +203,6 @@ export default function CaptureScreen() {
     const { title, description } = extractTitleAndDescription(trimmed);
     if (!title) return;
 
-    // Stop listening if active
     if (isListening) {
       SpeechModule.stop();
       setIsListening(false);
@@ -258,84 +255,81 @@ export default function CaptureScreen() {
 
           {mode === 'voice' ? (
             <View style={styles.voiceContainer}>
-              {/* Flame logo */}
-              <View style={styles.flameContainer}>
-                <IdeaFuelLogo size={140} />
+              {/* ── Top section: logo + slogan ── */}
+              <View style={styles.voiceTopSection}>
+                <View style={styles.flameContainer}>
+                  <IdeaFuelLogo size={120} />
+                </View>
+                <SloganSVG width={260} />
               </View>
 
-              {/* Tagline */}
-              <Text style={styles.tagline}>
-                DON'T LET YOUR IDEAS{' '}
-                <Text style={{ color: colors.brand }}>DIE</Text>
-              </Text>
-
-              {/* Transcription display */}
-              {ideaText.length > 0 && (
-                <View style={styles.transcriptBox}>
-                  <Text style={styles.transcriptText} numberOfLines={4}>
-                    {ideaText}
-                  </Text>
-                </View>
-              )}
-
-              {/* Soundwave placeholder (animated bars) */}
-              <View style={styles.soundwaveContainer}>
-                {isListening && (
-                  <View style={styles.soundwaveBars}>
-                    {Array.from({ length: 24 }).map((_, i) => (
-                      <SoundBar key={i} index={i} active={isListening} />
-                    ))}
+              {/* ── Middle section: transcript + soundwave ── */}
+              <View style={styles.voiceMiddleSection}>
+                {ideaText.length > 0 && (
+                  <View style={styles.transcriptBox}>
+                    <Text style={styles.transcriptText} numberOfLines={4}>
+                      {ideaText}
+                    </Text>
                   </View>
                 )}
-              </View>
 
-              {/* Record button with pulse rings */}
-              <View style={styles.recordButtonWrapper}>
-                {/* Pulse ring */}
-                <Animated.View
-                  style={[
-                    styles.pulseRing,
-                    {
-                      transform: [{ scale: pulseAnim }],
-                      opacity: pulseOpacity,
-                    },
-                  ]}
-                />
-                <TouchableOpacity
-                  style={[
-                    styles.recordButton,
-                    isListening && styles.recordButtonActive,
-                  ]}
-                  onPress={toggleListening}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons
-                    name={isListening ? 'stop' : 'mic'}
-                    size={28}
-                    color="#fff"
-                  />
-                </TouchableOpacity>
-              </View>
-
-              {/* Status label */}
-              <Text style={styles.statusLabel}>
-                {isListening ? 'listening...' : 'tap to speak'}
-              </Text>
-
-              {/* Capture button (appears when there's text) */}
-              {canCapture && !isListening && (
-                <TouchableOpacity
-                  style={styles.captureButtonSmall}
-                  onPress={handleCapture}
-                  activeOpacity={0.7}
-                >
-                  {isSubmitting ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={styles.captureButtonSmallText}>Save Idea</Text>
+                <View style={styles.soundwaveContainer}>
+                  {isListening && (
+                    <View style={styles.soundwaveBars}>
+                      {Array.from({ length: 24 }).map((_, i) => (
+                        <SoundBar key={i} index={i} active={isListening} />
+                      ))}
+                    </View>
                   )}
-                </TouchableOpacity>
-              )}
+                </View>
+              </View>
+
+              {/* ── Bottom section: record button + save + status ── */}
+              <View style={styles.voiceBottomSection}>
+                {canCapture && !isListening && (
+                  <TouchableOpacity
+                    style={styles.captureButtonSmall}
+                    onPress={handleCapture}
+                    activeOpacity={0.7}
+                  >
+                    {isSubmitting ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text style={styles.captureButtonSmallText}>Save Idea</Text>
+                    )}
+                  </TouchableOpacity>
+                )}
+
+                <View style={styles.recordButtonWrapper}>
+                  <Animated.View
+                    style={[
+                      styles.pulseRing,
+                      {
+                        transform: [{ scale: pulseAnim }],
+                        opacity: pulseOpacity,
+                      },
+                    ]}
+                  />
+                  <TouchableOpacity
+                    style={[
+                      styles.recordButton,
+                      isListening && styles.recordButtonActive,
+                    ]}
+                    onPress={toggleListening}
+                    activeOpacity={0.8}
+                  >
+                    {isListening ? (
+                      <Square size={22} color="#fff" fill="#fff" />
+                    ) : (
+                      <Mic size={26} color="#fff" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.statusLabel}>
+                  {isListening ? 'listening...' : 'tap to speak'}
+                </Text>
+              </View>
             </View>
           ) : (
             /* ─── Text Mode ─── */
@@ -371,7 +365,6 @@ export default function CaptureScreen() {
 
               <RecentDrafts />
 
-              {/* Capture button */}
               <View style={styles.textBottomSection}>
                 <TouchableOpacity
                   style={[
@@ -386,7 +379,7 @@ export default function CaptureScreen() {
                     <ActivityIndicator size="small" color="#FFFFFF" />
                   ) : (
                     <>
-                      <Ionicons name="flash" size={20} color="#FFFFFF" />
+                      <Zap size={18} color="#FFFFFF" />
                       <Text style={styles.captureButtonText}>Capture</Text>
                     </>
                   )}
@@ -410,9 +403,8 @@ export default function CaptureScreen() {
                 setMode('voice');
               }}
             >
-              <Ionicons
-                name="mic"
-                size={16}
+              <Mic
+                size={15}
                 color={mode === 'voice' ? colors.brand : colors.mutedDim}
               />
               <Text
@@ -437,9 +429,8 @@ export default function CaptureScreen() {
                 setMode('text');
               }}
             >
-              <Ionicons
-                name="create"
-                size={16}
+              <PenLine
+                size={15}
                 color={mode === 'text' ? colors.brand : colors.mutedDim}
               />
               <Text
@@ -480,7 +471,6 @@ function SoundBar({ index, active }: { index: number; active: boolean }) {
           }),
         ])
       );
-      // Stagger start
       const timer = setTimeout(() => animation.start(), index * 40);
       return () => {
         clearTimeout(timer);
@@ -540,20 +530,20 @@ const styles = StyleSheet.create({
   // ── Voice Mode ──
   voiceContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     paddingHorizontal: 24,
   },
-  flameContainer: {
-    marginBottom: 8,
+  voiceTopSection: {
+    alignItems: 'center',
+    paddingTop: 24,
+    gap: 24,
   },
-  tagline: {
-    fontSize: 11,
-    fontWeight: '500',
-    letterSpacing: 3,
-    color: '#BCBCBC',
-    textAlign: 'center',
-    marginBottom: 24,
+  flameContainer: {
+    marginBottom: 0,
+  },
+  voiceMiddleSection: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   transcriptBox: {
     backgroundColor: colors.card,
@@ -562,7 +552,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    marginBottom: 20,
+    marginBottom: 16,
     maxWidth: '100%',
     width: '100%',
   },
@@ -577,7 +567,6 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
   },
   soundwaveBars: {
     flexDirection: 'row',
@@ -585,10 +574,14 @@ const styles = StyleSheet.create({
     gap: 3,
     height: 50,
   },
+  voiceBottomSection: {
+    alignItems: 'center',
+    paddingBottom: 8,
+    gap: 8,
+  },
   recordButtonWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
   },
   pulseRing: {
     position: 'absolute',
@@ -619,15 +612,12 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     color: colors.mutedDim,
     textTransform: 'lowercase',
-    marginTop: 8,
-    marginBottom: 16,
   },
   captureButtonSmall: {
     backgroundColor: colors.brand,
     borderRadius: 12,
     paddingHorizontal: 32,
     paddingVertical: 12,
-    marginTop: 8,
   },
   captureButtonSmallText: {
     color: '#fff',

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { FolderOpen } from 'lucide-react-native';
 import { colors } from '../../lib/theme';
 
 const localColors = {
@@ -8,14 +8,14 @@ const localColors = {
 };
 
 interface EmptyStateProps {
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: React.ReactNode;
   title: string;
   description?: string;
   action?: React.ReactNode;
 }
 
 export function EmptyState({
-  icon = 'folder-open-outline',
+  icon,
   title,
   description,
   action,
@@ -23,7 +23,7 @@ export function EmptyState({
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
-        <Ionicons name={icon} size={36} color={colors.muted} />
+        {icon ?? <FolderOpen size={36} color={colors.muted} />}
       </View>
       <Text style={styles.title}>{title}</Text>
       {description && (

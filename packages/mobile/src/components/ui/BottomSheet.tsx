@@ -10,7 +10,7 @@ import {
   Dimensions,
   Keyboard,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { X } from 'lucide-react-native';
 
 import { colors } from '../../lib/theme';
 
@@ -165,7 +165,7 @@ export function BottomSheet({
                   style={styles.closeButton}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                  <Ionicons name="close" size={20} color={colors.muted} />
+                  <X size={20} color={colors.muted} />
                 </TouchableOpacity>
               )}
             </View>

@@ -14,7 +14,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { AlertCircle, Info, CheckCircle, ChevronRight } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
 interface ToastData {
@@ -74,7 +74,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     opacity: opacity.value,
   }));
 
-  const iconName = toast?.type === 'error' ? 'alert-circle' : toast?.type === 'info' ? 'information-circle' : 'checkmark-circle';
+  const IconComponent = toast?.type === 'error' ? AlertCircle : toast?.type === 'info' ? Info : CheckCircle;
   const iconColor = toast?.type === 'error' ? colors.destructive : toast?.type === 'info' ? colors.accent : colors.brand;
 
   return (
@@ -93,7 +93,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             onPress={handlePress}
             activeOpacity={toast.projectId ? 0.7 : 1}
           >
-            <Ionicons name={iconName} size={20} color={iconColor} />
+            <IconComponent size={20} color={iconColor} />
             <View style={styles.textContainer}>
               <Text style={styles.message} numberOfLines={1}>
                 {toast.message}
@@ -105,7 +105,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               )}
             </View>
             {toast.projectId && (
-              <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+              <ChevronRight size={16} color={colors.muted} />
             )}
           </TouchableOpacity>
         </Animated.View>

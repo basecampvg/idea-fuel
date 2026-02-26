@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { CloudUpload, CheckCircle, AlertCircle, ChevronLeft, Trash2 } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { triggerHaptic } from '../../../../components/ui/Button';
 import { MarkdownEditor, type MarkdownEditorRef } from '../../../../components/editor/MarkdownEditor';
@@ -23,16 +23,16 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
   if (status === 'idle') return null;
 
   const config = {
-    saving: { icon: 'cloud-upload-outline' as const, text: 'Saving...', color: colors.muted },
-    saved: { icon: 'checkmark-circle' as const, text: 'Saved', color: colors.success },
-    error: { icon: 'alert-circle' as const, text: 'Failed', color: colors.destructive },
+    saving: { Icon: CloudUpload, text: 'Saving...', color: colors.muted },
+    saved: { Icon: CheckCircle, text: 'Saved', color: colors.success },
+    error: { Icon: AlertCircle, text: 'Failed', color: colors.destructive },
   };
 
-  const { icon, text, color } = config[status];
+  const { Icon, text, color } = config[status];
 
   return (
     <View style={styles.saveIndicator}>
-      <Ionicons name={icon} size={14} color={color} />
+      <Icon size={14} color={color} />
       <Text style={[styles.saveText, { color }]}>{text}</Text>
     </View>
   );
@@ -152,7 +152,7 @@ export default function NotebookScreen() {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={48} color={colors.destructive} />
+          <AlertCircle size={48} color={colors.destructive} />
           <Text style={styles.errorText}>Failed to load idea</Text>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <Text style={styles.backButtonText}>Go back</Text>
@@ -177,14 +177,14 @@ export default function NotebookScreen() {
             }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="chevron-back" size={24} color={colors.foreground} />
+            <ChevronLeft size={24} color={colors.foreground} />
           </TouchableOpacity>
           <SaveIndicator status={saveStatus} />
           <TouchableOpacity
             onPress={handleDelete}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="trash-outline" size={20} color={colors.mutedDim} />
+            <Trash2 size={20} color={colors.mutedDim} />
           </TouchableOpacity>
         </View>
 

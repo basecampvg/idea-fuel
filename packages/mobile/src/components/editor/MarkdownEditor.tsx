@@ -15,6 +15,68 @@ import {
 import { marked } from 'marked';
 import TurndownService from 'turndown';
 import { editorDarkThemeCSS } from '../../lib/editor-theme';
+import { colors } from '../../lib/theme';
+
+/** Idea Fuel dark theme for the 10tap editor chrome (toolbar, webview wrapper) */
+const ideaFuelEditorTheme = {
+  toolbar: {
+    toolbarBody: {
+      height: 36,
+      borderTopColor: colors.border,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      marginHorizontal: 8,
+      marginBottom: 4,
+      overflow: 'hidden' as const,
+    },
+    toolbarButton: {
+      backgroundColor: colors.card,
+      paddingHorizontal: 6,
+    },
+    iconDisabled: {
+      tintColor: colors.mutedDim,
+    },
+    iconWrapperActive: {
+      backgroundColor: colors.surface,
+    },
+    iconWrapper: {
+      borderRadius: 4,
+      backgroundColor: colors.card,
+    },
+    icon: {
+      tintColor: colors.muted,
+      height: 22,
+      width: 22,
+    },
+    iconActive: {
+      tintColor: colors.foreground,
+    },
+    linkBarTheme: {
+      addLinkContainer: {
+        backgroundColor: colors.card,
+        borderTopColor: colors.border,
+        borderBottomColor: colors.border,
+      },
+      linkInput: {
+        backgroundColor: colors.card,
+        color: colors.foreground,
+      },
+      placeholderTextColor: colors.mutedDim,
+      doneButton: {
+        backgroundColor: colors.brand,
+      },
+      doneButtonText: {
+        color: '#fff',
+      },
+      linkToolbarButton: {},
+    },
+  },
+  webview: {
+    backgroundColor: colors.background,
+  },
+  webviewContainer: {},
+};
 
 const turndown = new TurndownService({
   headingStyle: 'atx',
@@ -59,6 +121,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
       autofocus: false,
       avoidIosKeyboard: true,
       initialContent: initialHtml,
+      theme: ideaFuelEditorTheme,
       bridgeExtensions: [
         ...TenTapStartKit,
         CoreBridge.configureCSS(editorDarkThemeCSS),

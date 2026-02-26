@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Lock, LogOut, ChevronRight } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { trpc } from '../../lib/trpc';
 import { useAuth } from '../../contexts/AuthContext';
@@ -126,7 +126,7 @@ export default function SettingsScreen() {
               <Text style={styles.label}>Email</Text>
               <View style={styles.readOnlyInput}>
                 <Text style={styles.readOnlyText}>{user?.email || ''}</Text>
-                <Ionicons name="lock-closed" size={16} color={colors.muted} />
+                <Lock size={16} color={colors.muted} />
               </View>
               <Text style={styles.helperText}>Email cannot be changed</Text>
             </View>
@@ -158,13 +158,13 @@ export default function SettingsScreen() {
               activeOpacity={0.7}
             >
               <View style={[styles.menuIconContainer, { backgroundColor: colors.destructiveMuted }]}>
-                <Ionicons name="log-out-outline" size={20} color={colors.destructive} />
+                <LogOut size={20} color={colors.destructive} />
               </View>
               <View style={styles.menuContent}>
                 <Text style={styles.menuTitle}>Sign Out</Text>
                 <Text style={styles.menuSubtitle}>Sign out of your account</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.muted} />
+              <ChevronRight size={20} color={colors.muted} />
             </TouchableOpacity>
           </View>
         </View>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Stack } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { ChevronLeft } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { colors } from '../../../lib/theme';
 
@@ -31,7 +31,7 @@ export default function VaultStackLayout() {
               style={{ marginRight: 8 }}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Ionicons name="chevron-back" size={24} color={colors.foreground} />
+              <ChevronLeft size={24} color={colors.foreground} />
             </TouchableOpacity>
           ) : null,
       }}

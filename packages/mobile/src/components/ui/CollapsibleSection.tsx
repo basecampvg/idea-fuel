@@ -8,7 +8,7 @@ import {
   Platform,
   UIManager,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { ChevronDown, ChevronUp } from 'lucide-react-native';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -22,8 +22,8 @@ const localColors = {
 };
 
 interface CollapsibleSectionProps {
-  icon: keyof typeof Ionicons.glyphMap;
-  iconColor: string;
+  icon: React.ReactNode;
+  iconColor?: string;
   iconBgColor: string;
   title: string;
   subtitle?: string;
@@ -56,7 +56,7 @@ export function CollapsibleSection({
       >
         <View style={styles.headerLeft}>
           <View style={[styles.iconContainer, { backgroundColor: iconBgColor }]}>
-            <Ionicons name={icon} size={20} color={iconColor} />
+            {icon}
           </View>
           <View style={styles.headerText}>
             <Text style={styles.title}>{title}</Text>
@@ -64,11 +64,11 @@ export function CollapsibleSection({
           </View>
         </View>
         <View style={styles.chevronContainer}>
-          <Ionicons
-            name={isCollapsed ? 'chevron-down' : 'chevron-up'}
-            size={20}
-            color={colors.muted}
-          />
+          {isCollapsed ? (
+            <ChevronDown size={20} color={colors.muted} />
+          ) : (
+            <ChevronUp size={20} color={colors.muted} />
+          )}
         </View>
       </TouchableOpacity>
 

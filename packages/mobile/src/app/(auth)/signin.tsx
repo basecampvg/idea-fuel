@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Alert, ScrollView, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { Mic, BarChart3, FileText } from 'lucide-react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui';
 import { IdeaFuelLogo } from '../../components/IdeaFuelLogo';
@@ -55,19 +56,19 @@ export default function SignInScreen() {
         {/* Features */}
         <View style={styles.features}>
           <FeatureRow
-            icon="mic-outline"
+            icon={<Mic size={24} color={colors.brand} />}
             title="Voice Capture"
             description="Speak your ideas on the go"
             color={colors.brand}
           />
           <FeatureRow
-            icon="analytics-outline"
+            icon={<BarChart3 size={24} color={colors.accent} />}
             title="Market Research"
             description="Deep competitive analysis"
             color={colors.accent}
           />
           <FeatureRow
-            icon="document-text-outline"
+            icon={<FileText size={24} color={colors.brandEnd} />}
             title="Business Reports"
             description="Professional docs, instantly"
             color={colors.brandEnd}
@@ -135,7 +136,7 @@ export default function SignInScreen() {
 }
 
 function FeatureRow({ icon, title, description, color }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: React.ReactNode;
   title: string;
   description: string;
   color: string;
@@ -143,7 +144,7 @@ function FeatureRow({ icon, title, description, color }: {
   return (
     <View style={styles.featureRow}>
       <View style={[styles.featureIcon, { backgroundColor: `${color}20` }]}>
-        <Ionicons name={icon} size={24} color={color} />
+        {icon}
       </View>
       <View style={styles.featureText}>
         <Text style={styles.featureTitle}>{title}</Text>

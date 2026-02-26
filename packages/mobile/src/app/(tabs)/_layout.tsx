@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs, Redirect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Mic, ShieldCheck, Settings } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingScreen } from '../../components/ui';
@@ -57,7 +57,7 @@ export default function TabsLayout() {
           title: 'Capture',
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="mic-outline" size={size} color={color} />
+            <Mic size={size} color={color} />
           ),
         }}
       />
@@ -67,7 +67,7 @@ export default function TabsLayout() {
           title: 'Vault',
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="shield-checkmark-outline" size={size} color={color} />
+            <ShieldCheck size={size} color={color} />
           ),
         }}
       />
@@ -77,7 +77,7 @@ export default function TabsLayout() {
           title: 'Settings',
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" size={size} color={color} />
+            <Settings size={size} color={color} />
           ),
         }}
       />

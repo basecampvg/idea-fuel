@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { ChevronRight } from 'lucide-react-native';
 import { trpc } from '../lib/trpc';
 
 const colors = {
@@ -51,7 +51,7 @@ export function RecentDrafts() {
               {formatRelativeTime(new Date(project.updatedAt))}
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={16} color={colors.mutedDim} />
+          <ChevronRight size={16} color={colors.mutedDim} />
         </TouchableOpacity>
       ))}
     </View>

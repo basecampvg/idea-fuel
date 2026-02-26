@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,8 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { CheckCircle, ChevronRight, Search, Archive } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { Swipeable } from 'react-native-gesture-handler';
 import { triggerHaptic } from '../../../components/ui/Button';
 import { trpc } from '../../../lib/trpc';
 import { colors } from '../../../lib/theme';
@@ -34,7 +33,6 @@ function formatRelativeTime(date: Date): string {
 export default function VaultScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const swipeableRefs = useRef<Map<string, Swipeable>>(new Map());
 
   const { data, isLoading, refetch, isRefetching } = trpc.project.list.useQuery({});
   const utils = trpc.useUtils();
@@ -60,8 +58,6 @@ export default function VaultScreen() {
   }, [data?.items, searchQuery]);
 
   const handleDelete = useCallback((projectId: string, title: string) => {
-    // Close the swipeable first
-    swipeableRefs.current.get(projectId)?.close();
     Alert.alert(
       'Delete Idea?',
       `"${title}" will be permanently deleted.`,
@@ -76,66 +72,51 @@ export default function VaultScreen() {
     );
   }, [deleteMutation]);
 
-  const renderRightActions = useCallback((projectId: string, title: string) => {
-    return (
-      <TouchableOpacity
-        style={styles.deleteAction}
-        onPress={() => handleDelete(projectId, title)}
-      >
-        <Ionicons name="trash-outline" size={22} color="#FFFFFF" />
-      </TouchableOpacity>
-    );
-  }, [handleDelete]);
-
   const renderItem = useCallback(({ item }: { item: any }) => {
     const hasResearch = item.research?.status === 'COMPLETE';
 
     return (
-      <Swipeable
-        ref={(ref) => {
-          if (ref) swipeableRefs.current.set(item.id, ref);
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => router.push(`/(tabs)/vault/${item.id}` as any)}
+        onLongPress={() => {
+          triggerHaptic('light');
+          handleDelete(item.id, item.title);
         }}
-        renderRightActions={() => renderRightActions(item.id, item.title)}
-        overshootRight={false}
-        onSwipeableWillOpen={() => triggerHaptic('light')}
+        activeOpacity={0.7}
+        delayLongPress={400}
       >
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => router.push(`/(tabs)/vault/${item.id}` as any)}
-          activeOpacity={0.7}
-        >
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle} numberOfLines={1}>
-              {item.title}
-            </Text>
-            {hasResearch && (
-              <View style={styles.researchBadge}>
-                <Ionicons name="checkmark-circle" size={14} color={colors.success} />
-              </View>
-            )}
-          </View>
-          {item.description ? (
-            <Text style={styles.cardDescription} numberOfLines={2}>
-              {item.description}
-            </Text>
-          ) : null}
-          <View style={styles.cardFooter}>
-            <Text style={styles.cardTime}>
-              Edited {formatRelativeTime(new Date(item.updatedAt))}
-            </Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.mutedDim} />
-          </View>
-        </TouchableOpacity>
-      </Swipeable>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardTitle} numberOfLines={1}>
+            {item.title}
+          </Text>
+          {hasResearch && (
+            <View style={styles.researchBadge}>
+              <CheckCircle size={14} color={colors.success} />
+            </View>
+          )}
+        </View>
+        {item.description ? (
+          <Text style={styles.cardDescription} numberOfLines={2}>
+            {item.description}
+          </Text>
+        ) : null}
+        <View style={styles.cardFooter}>
+          <Text style={styles.cardTime}>
+            Edited {formatRelativeTime(new Date(item.updatedAt))}
+          </Text>
+          <ChevronRight size={16} color={colors.mutedDim} />
+        </View>
+      </TouchableOpacity>
     );
-  }, [router, renderRightActions]);
+  }, [router, handleDelete]);
 
   const renderEmpty = useCallback(() => {
     if (isLoading) return null;
     if (searchQuery.trim()) {
       return (
         <View style={styles.emptyState}>
-          <Ionicons name="search-outline" size={48} color={colors.mutedDim} />
+          <Search size={48} color={colors.mutedDim} />
           <Text style={styles.emptyTitle}>No matches</Text>
           <Text style={styles.emptyDescription}>
             Try a different search term
@@ -145,7 +126,7 @@ export default function VaultScreen() {
     }
     return (
       <View style={styles.emptyState}>
-        <Ionicons name="archive-outline" size={48} color={colors.mutedDim} />
+        <Archive size={48} color={colors.mutedDim} />
         <Text style={styles.emptyTitle}>No ideas yet</Text>
         <Text style={styles.emptyDescription}>
           Tap Capture to save your first idea
@@ -163,7 +144,7 @@ export default function VaultScreen() {
 
       {/* Search */}
       <View style={styles.searchContainer}>
-        <Ionicons name="search-outline" size={18} color={colors.mutedDim} />
+        <Search size={18} color={colors.mutedDim} />
         <TextInput
           style={styles.searchInput}
           value={searchQuery}
@@ -274,14 +255,6 @@ const styles = StyleSheet.create({
   cardTime: {
     fontSize: 13,
     color: colors.mutedDim,
-  },
-  deleteAction: {
-    backgroundColor: colors.destructive,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 72,
-    borderRadius: 14,
-    marginLeft: 8,
   },
   emptyState: {
     flex: 1,

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Home, ChevronLeft } from 'lucide-react-native';
 
 import { colors } from '../../lib/theme';
 
@@ -33,7 +33,7 @@ export function GlobalHeader({
               style={styles.iconButton}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Ionicons name="home-outline" size={22} color={colors.foreground} />
+              <Home size={22} color={colors.foreground} />
             </TouchableOpacity>
           )}
           {showBack && (
@@ -42,7 +42,7 @@ export function GlobalHeader({
               style={styles.iconButton}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Ionicons name="chevron-back" size={24} color={colors.foreground} />
+              <ChevronLeft size={24} color={colors.foreground} />
             </TouchableOpacity>
           )}
         </View>
