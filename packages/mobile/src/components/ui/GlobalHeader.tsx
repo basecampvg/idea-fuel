@@ -4,15 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-// ideationLab Design System Colors
-const colors = {
-  background: '#11100E',
-  card: '#1A1918',
-  border: '#1F1E1C',
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
-  primary: '#E91E8C',
-};
+import { colors } from '../../lib/theme';
 
 interface GlobalHeaderProps {
   title?: string;
@@ -37,7 +29,7 @@ export function GlobalHeader({
         <View style={styles.leftSection}>
           {showHome && (
             <TouchableOpacity
-              onPress={() => router.replace('/(tabs)/dashboard')}
+              onPress={() => router.replace('/(tabs)/capture' as any)}
               style={styles.iconButton}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >

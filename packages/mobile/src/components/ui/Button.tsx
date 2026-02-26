@@ -11,16 +11,17 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
-// ideationLab Design System Colors
+import { colors as theme } from '../../lib/theme';
+
 const colors = {
-  primary: '#E91E8C',
-  secondary: '#8B5CF6',
-  accent: '#14B8A6',
-  destructive: '#EF4444',
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
-  mutedBg: '#262422',
-  border: '#1F1E1C',
+  primary: theme.brand,
+  secondary: theme.brandEnd,
+  accent: theme.accent,
+  destructive: theme.destructive,
+  foreground: theme.foreground,
+  muted: theme.muted,
+  mutedBg: theme.surface,
+  border: theme.border,
   transparent: 'transparent',
 };
 

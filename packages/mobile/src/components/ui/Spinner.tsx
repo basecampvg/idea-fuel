@@ -1,21 +1,13 @@
 import React from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-
-// ideationLab Design System Colors
-const colors = {
-  background: '#11100E',
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
-  primary: '#E91E8C',
-  primaryMuted: 'rgba(233, 30, 140, 0.15)',
-};
+import { colors } from '../../lib/theme';
 
 interface SpinnerProps {
   size?: 'small' | 'large';
   color?: string;
 }
 
-export function Spinner({ size = 'large', color = colors.primary }: SpinnerProps) {
+export function Spinner({ size = 'large', color = colors.brand }: SpinnerProps) {
   return <ActivityIndicator size={size} color={color} />;
 }
 
@@ -56,7 +48,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: colors.primaryMuted,
+    backgroundColor: colors.brandMuted,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -75,6 +67,6 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.brand,
   },
 });

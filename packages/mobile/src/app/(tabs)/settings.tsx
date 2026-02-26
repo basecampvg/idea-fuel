@@ -13,21 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { trpc } from '../../lib/trpc';
 import { useAuth } from '../../contexts/AuthContext';
-
-// ideationLab Design System Colors
-const colors = {
-  background: '#11100E',
-  card: '#1A1918',
-  border: '#1F1E1C',
-  borderFocus: 'rgba(233, 30, 140, 0.3)',
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
-  mutedBg: '#262422',
-  primary: '#E91E8C',
-  primaryMuted: 'rgba(233, 30, 140, 0.15)',
-  destructive: '#EF4444',
-  destructiveMuted: 'rgba(239, 68, 68, 0.1)',
-};
+import { colors } from '../../lib/theme';
 
 export default function SettingsScreen() {
   const { signOut, refreshUser } = useAuth();
@@ -76,7 +62,7 @@ export default function SettingsScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.brand} />
           <Text style={styles.loadingText}>Loading settings...</Text>
         </View>
       </SafeAreaView>
@@ -104,8 +90,8 @@ export default function SettingsScreen() {
           <View style={styles.card}>
             {/* Avatar & Info */}
             <View style={styles.profileRow}>
-              <View style={[styles.avatar, { backgroundColor: colors.primaryMuted }]}>
-                <Text style={[styles.avatarText, { color: colors.primary }]}>
+              <View style={[styles.avatar, { backgroundColor: colors.brandMuted }]}>
+                <Text style={[styles.avatarText, { color: colors.brand }]}>
                   {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
                 </Text>
               </View>
@@ -194,7 +180,7 @@ export default function SettingsScreen() {
                 })
               : 'N/A'}
           </Text>
-          <Text style={styles.versionText}>ideationLab v1.0.0</Text>
+          <Text style={styles.versionText}>Idea Fuel v1.0.0</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -297,7 +283,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   textInput: {
-    backgroundColor: colors.mutedBg,
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,
@@ -307,13 +293,13 @@ const styles = StyleSheet.create({
     color: colors.foreground,
   },
   textInputFocused: {
-    borderColor: colors.borderFocus,
+    borderColor: `${colors.brand}50`,
   },
   readOnlyInput: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.mutedBg,
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,
@@ -331,7 +317,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   saveButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.brand,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',

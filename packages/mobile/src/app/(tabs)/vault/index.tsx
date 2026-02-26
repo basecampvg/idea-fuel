@@ -15,20 +15,7 @@ import { useRouter } from 'expo-router';
 import { Swipeable } from 'react-native-gesture-handler';
 import { triggerHaptic } from '../../../components/ui/Button';
 import { trpc } from '../../../lib/trpc';
-
-const colors = {
-  background: '#11100E',
-  card: '#1A1918',
-  border: '#1F1E1C',
-  borderHover: '#2A2928',
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
-  mutedDim: '#5A5855',
-  primary: '#E91E8C',
-  accent: '#14B8A6',
-  destructive: '#EF4444',
-  success: '#22C55E',
-};
+import { colors } from '../../../lib/theme';
 
 function formatRelativeTime(date: Date): string {
   const now = new Date();
@@ -199,7 +186,7 @@ export default function VaultScreen() {
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={refetch}
-            tintColor={colors.primary}
+            tintColor={colors.brand}
           />
         }
         showsVerticalScrollIndicator={false}

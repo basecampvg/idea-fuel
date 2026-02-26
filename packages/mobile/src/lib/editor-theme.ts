@@ -1,6 +1,6 @@
 /**
  * TenTap editor dark theme CSS
- * Matches the ideationLab design system colors
+ * Matches the Idea Fuel design system colors
  */
 export const editorDarkThemeCSS = `
   * {
@@ -8,7 +8,7 @@ export const editorDarkThemeCSS = `
   }
 
   body {
-    background-color: #11100E;
+    background-color: #161513;
     color: #E8E4DC;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     font-size: 16px;
@@ -89,7 +89,7 @@ export const editorDarkThemeCSS = `
   /* Code */
   code {
     background-color: #1A1918;
-    color: #E91E8C;
+    color: #E32B1A;
     padding: 2px 6px;
     border-radius: 4px;
     font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
@@ -98,7 +98,7 @@ export const editorDarkThemeCSS = `
 
   pre {
     background-color: #1A1918;
-    border: 1px solid #1F1E1C;
+    border: 1px solid #2A2A2A;
     border-radius: 8px;
     padding: 12px 16px;
     margin: 12px 0;
@@ -148,7 +148,7 @@ export const editorDarkThemeCSS = `
   }
 
   ul[data-type="taskList"] li input[type="checkbox"] {
-    accent-color: #E91E8C;
+    accent-color: #E32B1A;
     width: 18px;
     height: 18px;
     margin-top: 3px;
@@ -156,7 +156,7 @@ export const editorDarkThemeCSS = `
 
   /* Blockquote */
   blockquote {
-    border-left: 3px solid #E91E8C;
+    border-left: 3px solid #E32B1A;
     padding-left: 16px;
     margin: 12px 0;
     color: #8A8680;
@@ -166,12 +166,12 @@ export const editorDarkThemeCSS = `
   /* Horizontal rule */
   hr {
     border: none;
-    border-top: 1px solid #1F1E1C;
+    border-top: 1px solid #2A2A2A;
     margin: 20px 0;
   }
 
   /* Selection */
   ::selection {
-    background-color: rgba(233, 30, 140, 0.3);
+    background-color: rgba(227, 43, 26, 0.3);
   }
 `;

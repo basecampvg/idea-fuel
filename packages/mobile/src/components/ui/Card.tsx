@@ -1,16 +1,6 @@
 import React from 'react';
 import { View, Text, ViewProps, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-
-// ideationLab Design System Colors
-const colors = {
-  background: '#11100E',
-  card: '#1A1918',
-  cardHover: '#242220',
-  border: '#1F1E1C',
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
-  mutedBg: '#262422',
-};
+import { colors } from '../../lib/theme';
 
 interface CardProps extends ViewProps {
   children: React.ReactNode;

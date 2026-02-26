@@ -3,11 +3,7 @@ import { Stack } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-
-const colors = {
-  background: '#11100E',
-  foreground: '#E8E4DC',
-};
+import { colors } from '../../../lib/theme';
 
 export default function VaultStackLayout() {
   const router = useRouter();

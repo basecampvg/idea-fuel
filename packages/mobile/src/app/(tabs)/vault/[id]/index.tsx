@@ -17,20 +17,7 @@ import { triggerHaptic } from '../../../../components/ui/Button';
 import { MarkdownEditor, type MarkdownEditorRef } from '../../../../components/editor/MarkdownEditor';
 import { useAutoSave, type SaveStatus } from '../../../../hooks/useAutoSave';
 import { trpc } from '../../../../lib/trpc';
-
-const colors = {
-  background: '#11100E',
-  card: '#1A1918',
-  border: '#1F1E1C',
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
-  mutedDim: '#5A5855',
-  primary: '#E91E8C',
-  accent: '#14B8A6',
-  destructive: '#EF4444',
-  success: '#22C55E',
-  warning: '#F59E0B',
-};
+import { colors } from '../../../../lib/theme';
 
 function SaveIndicator({ status }: { status: SaveStatus }) {
   if (status === 'idle') return null;
@@ -155,7 +142,7 @@ export default function NotebookScreen() {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.brand} />
         </View>
       </SafeAreaView>
     );

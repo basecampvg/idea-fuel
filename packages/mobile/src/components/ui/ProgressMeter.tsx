@@ -1,15 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { colors } from '../../lib/theme';
 
-// ideationLab Design System Colors
-const colors = {
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
+const localColors = {
   mutedBg: '#262422',
-  border: '#1F1E1C',
-  success: '#22C55E',
-  warning: '#F59E0B',
-  destructive: '#EF4444',
 };
 
 interface ProgressMeterProps {
@@ -109,7 +103,7 @@ export function ConfidenceDots({ level, showLabel = true }: ConfidenceDotsProps)
           style={[
             styles.dot,
             {
-              backgroundColor: dot <= filledDots ? dotColor : colors.mutedBg,
+              backgroundColor: dot <= filledDots ? dotColor : localColors.mutedBg,
             },
           ]}
         />
@@ -152,7 +146,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   track: {
-    backgroundColor: colors.mutedBg,
+    backgroundColor: localColors.mutedBg,
     borderRadius: 4,
     overflow: 'hidden',
   },

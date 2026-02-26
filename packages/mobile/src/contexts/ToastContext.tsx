@@ -36,15 +36,7 @@ export function useToast() {
   return context;
 }
 
-const colors = {
-  card: '#1A1918',
-  border: '#2A2928',
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
-  primary: '#E91E8C',
-  accent: '#14B8A6',
-  destructive: '#EF4444',
-};
+import { colors } from '../lib/theme';
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const insets = useSafeAreaInsets();
@@ -83,7 +75,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }));
 
   const iconName = toast?.type === 'error' ? 'alert-circle' : toast?.type === 'info' ? 'information-circle' : 'checkmark-circle';
-  const iconColor = toast?.type === 'error' ? colors.destructive : toast?.type === 'info' ? colors.accent : colors.primary;
+  const iconColor = toast?.type === 'error' ? colors.destructive : toast?.type === 'info' ? colors.accent : colors.brand;
 
   return (
     <ToastContext.Provider value={{ showToast }}>

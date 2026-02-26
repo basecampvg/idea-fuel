@@ -1,21 +1,21 @@
 {
   "expo": {
-    "name": "ideationLab",
-    "slug": "ideationlab-mobile",
+    "name": "Idea Fuel",
+    "slug": "ideafuel-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "ideationlab",
+    "scheme": "ideafuel",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#11100E"
+      "backgroundColor": "#161513"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ideationlab.mobile",
+      "bundleIdentifier": "com.ideafuel.mobile",
       "config": {
         "usesNonExemptEncryption": false
       }
@@ -23,9 +23,9 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#11100E"
+        "backgroundColor": "#161513"
       },
-      "package": "com.ideationlab.mobile",
+      "package": "com.ideafuel.mobile",
       "usesCleartextTraffic": true
     },
     "web": {
@@ -36,7 +36,14 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Idea Fuel needs your microphone to capture ideas by voice.",
+          "speechRecognitionPermission": "Idea Fuel needs speech recognition to transcribe your spoken ideas."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

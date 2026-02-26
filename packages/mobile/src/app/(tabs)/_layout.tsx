@@ -4,17 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingScreen } from '../../components/ui';
-
-// ideationLab Design System Colors
-const colors = {
-  background: '#11100E',
-  card: '#1A1918',
-  border: '#1F1E1C',
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
-  primary: '#E91E8C',
-  accent: '#14B8A6',
-};
+import { colors } from '../../lib/theme';
 
 export default function TabsLayout() {
   const { isLoading, isAuthenticated } = useAuth();
@@ -28,14 +18,13 @@ export default function TabsLayout() {
     return <Redirect href="/(auth)/signin" />;
   }
 
-  // Calculate tab bar height with safe area
   const tabBarHeight = 52 + insets.bottom;
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.muted,
+        tabBarActiveTintColor: colors.brand,
+        tabBarInactiveTintColor: colors.mutedDim,
         tabBarStyle: {
           backgroundColor: colors.card,
           borderTopColor: colors.border,
@@ -68,7 +57,7 @@ export default function TabsLayout() {
           title: 'Capture',
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="flash-outline" size={size} color={color} />
+            <Ionicons name="mic-outline" size={size} color={color} />
           ),
         }}
       />
@@ -78,7 +67,7 @@ export default function TabsLayout() {
           title: 'Vault',
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="archive-outline" size={size} color={color} />
+            <Ionicons name="shield-checkmark-outline" size={size} color={color} />
           ),
         }}
       />

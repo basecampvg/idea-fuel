@@ -1,14 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '../../lib/theme';
 
-// ideationLab Design System Colors
-const colors = {
-  background: '#11100E',
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
+const localColors = {
   mutedBg: '#262422',
-  primary: '#E91E8C',
 };
 
 interface EmptyStateProps {
@@ -49,7 +45,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: colors.mutedBg,
+    backgroundColor: localColors.mutedBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,

@@ -12,16 +12,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+import { colors } from '../../lib/theme';
 
-// ideationLab Design System Colors
-const colors = {
-  background: '#11100E',
-  card: '#1A1918',
-  border: '#2A2928',
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
-};
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface BottomSheetProps {
   visible: boolean;
