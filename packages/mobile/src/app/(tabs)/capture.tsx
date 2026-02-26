@@ -15,16 +15,23 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  ExpoSpeechRecognitionModule,
-  useSpeechRecognitionEvent,
-} from 'expo-speech-recognition';
 import { triggerHaptic } from '../../components/ui/Button';
 import { trpc } from '../../lib/trpc';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { RecentDrafts } from '../../components/RecentDrafts';
 import { colors } from '../../lib/theme';
+
+// expo-speech-recognition requires a dev build — safely handle Expo Go
+let SpeechModule: any = null;
+let useSpeechEvent: any = () => {};
+try {
+  const mod = require('expo-speech-recognition');
+  SpeechModule = mod.SpeechModule;
+  useSpeechEvent = mod.useSpeechEvent;
+} catch {
+  // Not available in Expo Go — voice mode will fall back to text
+}
 
 const PROJECT_TITLE_MAX = 80;
 
@@ -93,7 +100,7 @@ export default function CaptureScreen() {
   }, [isListening, pulseAnim, pulseOpacity]);
 
   // Speech recognition events
-  useSpeechRecognitionEvent('result', (event) => {
+  useSpeechEvent('result', (event: any) => {
     const transcript = event.results[0]?.transcript || '';
     if (transcript) {
       setIdeaText((prev) => {
@@ -112,11 +119,11 @@ export default function CaptureScreen() {
     }
   });
 
-  useSpeechRecognitionEvent('end', () => {
+  useSpeechEvent('end', () => {
     setIsListening(false);
   });
 
-  useSpeechRecognitionEvent('error', (event) => {
+  useSpeechEvent('error', (event: any) => {
     setIsListening(false);
     if (event.error !== 'no-speech') {
       showToast({
@@ -127,21 +134,30 @@ export default function CaptureScreen() {
   });
 
   const toggleListening = useCallback(async () => {
+    if (!SpeechModule) {
+      showToast({
+        message: 'Voice dictation requires a dev build — switching to text',
+        type: 'info',
+      });
+      setMode('text');
+      return;
+    }
+
     if (isListening) {
-      ExpoSpeechRecognitionModule.stop();
+      SpeechModule.stop();
       setIsListening(false);
       triggerHaptic('light');
       return;
     }
 
     try {
-      const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      const result = await SpeechModule.requestPermissionsAsync();
       if (!result.granted) {
         showToast({ message: 'Microphone permission required', type: 'error' });
         return;
       }
 
-      ExpoSpeechRecognitionModule.start({
+      SpeechModule.start({
         lang: 'en-US',
         interimResults: true,
         continuous: true,
@@ -190,7 +206,7 @@ export default function CaptureScreen() {
 
     // Stop listening if active
     if (isListening) {
-      ExpoSpeechRecognitionModule.stop();
+      SpeechModule.stop();
       setIsListening(false);
     }
 
@@ -387,7 +403,7 @@ export default function CaptureScreen() {
               ]}
               onPress={() => {
                 if (isListening) {
-                  ExpoSpeechRecognitionModule.stop();
+                  SpeechModule.stop();
                   setIsListening(false);
                 }
                 setMode('voice');
@@ -414,7 +430,7 @@ export default function CaptureScreen() {
               ]}
               onPress={() => {
                 if (isListening) {
-                  ExpoSpeechRecognitionModule.stop();
+                  SpeechModule.stop();
                   setIsListening(false);
                 }
                 setMode('text');
