@@ -48,12 +48,12 @@ export default function LandingLayout({
 
           {/* Nav links */}
           <nav className="hidden items-center gap-0 sm:flex">
-            <a
-              href="#how-it-works"
+            <Link
+              href="/#how-it-works"
               className="px-5 py-2 text-sm font-semibold uppercase tracking-[1px] text-white transition-colors hover:text-[#e32b1a]"
             >
               How It Works
-            </a>
+            </Link>
             <Link
               href="/demo-report"
               className="px-5 py-2 text-sm font-semibold uppercase tracking-[1px] text-white transition-colors hover:text-[#e32b1a]"

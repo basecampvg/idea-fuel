@@ -451,19 +451,23 @@ export default function LandingPage() {
               </h1>
 
               {/* Body paragraph */}
-              <p
+              <div
                 data-anim="body"
-                className="mt-10 max-w-[631px] text-sm leading-[27px] text-[#d4d4d4] sm:text-base"
+                className="mt-10 max-w-[631px] space-y-4 text-sm leading-[27px] text-[#d4d4d4] sm:text-base"
               >
-                It&apos;s 2 AM. You&apos;ve got 47 tabs open, a notes app full of
-                half-thoughts, and zero clarity on whether this thing is real.{' '}
-                <span className="text-gradient-brand font-extrabold">
-                  IDEA FUEL
-                </span>{' '}
-                <span className="font-extrabold">replaces the chaos</span> with
-                structured interviews, real research, and numerous comprehensive
-                reports you can put to use immediately.
-              </p>
+                <p>
+                  It&apos;s 2 AM. You&apos;ve got 47 tabs open, a notes app full of
+                  half-thoughts, and zero clarity on whether this thing is real.
+                </p>
+                <p>
+                  <span className="text-gradient-brand font-extrabold">
+                    IDEA FUEL
+                  </span>{' '}
+                  <span className="font-extrabold">replaces the chaos</span> with
+                  structured interviews, real research, and numerous comprehensive
+                  reports you can put to use immediately.
+                </p>
+              </div>
 
               {/* Waitlist form */}
               <div data-anim="form" className="mt-8 max-w-[448px]">
@@ -525,7 +529,7 @@ export default function LandingPage() {
               <div data-anim="s2-body" className="mt-4 max-w-[560px] space-y-5 text-sm leading-[27px] text-[#d4d4d4] sm:text-base">
                 <p>
                   You&apos;re three hours into a family road trip. The kids are
-                  finally quiet. A podcast sparks something &mdash; two problems
+                  finally quiet. A podcast sparks something and two problems
                   you&apos;ve been chewing on suddenly connect.
                 </p>
                 <p>
@@ -536,8 +540,9 @@ export default function LandingPage() {
                   </span>
                 </p>
                 <p>
-                  Instead, you tap Idea Fuel, hit voice capture, and talk for 90
-                  seconds &mdash; raw, unfiltered, half-formed. When the house is
+                  Instead, you tap{' '}
+                  <span className="text-gradient-brand font-extrabold">IDEA FUEL</span>,
+                  hit voice capture, and just speak; raw, unfiltered, half-formed. When the house is
                   quiet tonight, your idea is there. Structured, waiting, and
                   ready for what comes next.
                 </p>
@@ -573,7 +578,7 @@ export default function LandingPage() {
                 data-anim="s3-sub"
                 className="font-mono text-base font-light uppercase tracking-[3px] text-[#d4d4d4] sm:text-xl"
               >
-                use idea fuel to
+                use <span className="text-gradient-brand font-extrabold">IDEA FUEL</span> to
               </p>
               <h2
                 data-anim="s3-headline"
@@ -599,7 +604,7 @@ export default function LandingPage() {
                 <p>
                   No more midnight Google rabbit holes. We built a custom research
                   pipeline that starts with a thorough interview about your idea,
-                  then does the work most founders skip &mdash; competitor
+                  then does the work most founders skip: competitor
                   positioning, pricing evidence, customer pain clusters, and market
                   sizing.
                 </p>
@@ -638,7 +643,7 @@ export default function LandingPage() {
                 data-anim="s4-sub"
                 className="font-mono text-base font-light uppercase tracking-[3px] text-[#d4d4d4] sm:text-xl"
               >
-                what you get
+                what you get:
               </p>
               <h2
                 data-anim="s4-headline"
@@ -663,7 +668,7 @@ export default function LandingPage() {
               <div data-anim="s4-body" className="mt-4 max-w-[420px] space-y-5 text-sm leading-[27px] text-[#d4d4d4] sm:text-base">
                 <p>
                   Scores, market sizing, competitor landscapes, positioning
-                  strategy, timing catalysts, and pricing tiers &mdash; all
+                  strategy, timing catalysts, and pricing tiers, all
                   generated from your interview and deep research pipeline.
                 </p>
                 <p>
