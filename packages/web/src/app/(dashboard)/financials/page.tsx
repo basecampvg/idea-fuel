@@ -88,6 +88,8 @@ export default function FinancialsPage() {
 
   const utils = trpc.useUtils();
   const { data, isLoading, error } = trpc.financial.list.useQuery({});
+  const { data: usage } = trpc.financial.usage.useQuery();
+  const atLimit = usage ? usage.currentCount >= usage.limit : false;
   const deleteMutation = trpc.financial.delete.useMutation({
     onSuccess: () => {
       utils.financial.list.invalidate();
@@ -147,20 +149,41 @@ export default function FinancialsPage() {
             {allModels.length} model{allModels.length !== 1 ? 's' : ''} in your portfolio
           </p>
         </div>
-        <Link
-          href="/financials/new"
-          className="
-            inline-flex items-center gap-2 px-4 py-2.5
-            bg-primary text-primary-foreground text-sm font-medium
-            rounded-xl
-            shadow-[0_0_20px_hsl(var(--primary)/0.3)]
-            hover:shadow-[0_0_30px_hsl(var(--primary)/0.5)]
-            transition-all duration-300
-          "
-        >
-          <Plus className="w-4 h-4" />
-          New Model
-        </Link>
+        <div className="flex items-center gap-3">
+          {usage && (
+            <span className={`text-xs tabular-nums ${atLimit ? 'text-red-400' : 'text-muted-foreground/50'}`}>
+              {usage.currentCount}/{usage.limit} models
+            </span>
+          )}
+          {atLimit ? (
+            <span
+              className="
+                inline-flex items-center gap-2 px-4 py-2.5
+                bg-muted text-muted-foreground text-sm font-medium
+                rounded-xl cursor-not-allowed opacity-60
+              "
+              title={`Limit reached on your ${usage?.tier} plan`}
+            >
+              <Plus className="w-4 h-4" />
+              New Model
+            </span>
+          ) : (
+            <Link
+              href="/financials/new"
+              className="
+                inline-flex items-center gap-2 px-4 py-2.5
+                bg-primary text-primary-foreground text-sm font-medium
+                rounded-xl
+                shadow-[0_0_20px_hsl(var(--primary)/0.3)]
+                hover:shadow-[0_0_30px_hsl(var(--primary)/0.5)]
+                transition-all duration-300
+              "
+            >
+              <Plus className="w-4 h-4" />
+              New Model
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Filter Tabs */}

@@ -19,11 +19,12 @@ interface StatementTableProps {
   periodView: PeriodView;
 }
 
-function formatCurrency(value: number): string {
+function formatCurrency(value: number): { text: string; isError: boolean } {
+  if (!isFinite(value) || isNaN(value)) return { text: 'N/A', isError: true };
   const abs = Math.abs(value);
-  if (abs >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
-  if (abs >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
-  return value.toFixed(0);
+  if (abs >= 1_000_000) return { text: `${(value / 1_000_000).toFixed(1)}M`, isError: false };
+  if (abs >= 1_000) return { text: `${(value / 1_000).toFixed(1)}K`, isError: false };
+  return { text: value.toFixed(0), isError: false };
 }
 
 /**
@@ -159,19 +160,23 @@ export function StatementTable({ lines, periods, periodView }: StatementTablePro
                     )}
                   </div>
                 </td>
-                {lineValues.map((val, i) => (
-                  <td
-                    key={labels[i]}
-                    className={`
-                      py-2 px-2 text-right font-mono tabular-nums text-xs
-                      ${val < 0 ? 'text-red-400' : 'text-foreground'}
-                      ${line.isTotal ? 'font-semibold' : ''}
-                      ${line.isSubtotal ? 'font-medium' : ''}
-                    `}
-                  >
-                    {val < 0 ? `(${formatCurrency(Math.abs(val))})` : formatCurrency(val)}
-                  </td>
-                ))}
+                {lineValues.map((val, i) => {
+                  const formatted = formatCurrency(val);
+                  return (
+                    <td
+                      key={labels[i]}
+                      className={`
+                        py-2 px-2 text-right font-mono tabular-nums text-xs
+                        ${formatted.isError ? 'text-muted-foreground/50 italic' : val < 0 ? 'text-red-400' : 'text-foreground'}
+                        ${line.isTotal ? 'font-semibold' : ''}
+                        ${line.isSubtotal ? 'font-medium' : ''}
+                      `}
+                      title={formatted.isError ? 'Calculation error — check formula or inputs' : undefined}
+                    >
+                      {formatted.isError ? formatted.text : val < 0 ? `(${formatCurrency(Math.abs(val)).text})` : formatted.text}
+                    </td>
+                  );
+                })}
               </tr>
             );
           })}

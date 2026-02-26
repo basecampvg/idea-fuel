@@ -11,7 +11,7 @@ import { TRPCError } from '@trpc/server';
 import { assumptions, assumptionHistory, projects, reports, scenarios, financialModels } from '../db/schema';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { DEFAULT_ASSUMPTIONS } from '../services/assumption-defaults';
-import { executeCascade, detectCycles } from '../lib/cascade-engine';
+import { executeCascade, executeBatchCascade, detectCycles } from '../lib/cascade-engine';
 import { validateFormula, extractDependencies } from '../lib/formula-engine';
 import { getEffectiveConfidence, getStalenessInfo } from '../lib/confidence-engine';
 import { enqueueSectionRegen } from '../jobs/queues';
@@ -415,6 +415,45 @@ export const assumptionRouter = router({
           results.push({ key: update.key, success: true });
         }
 
+        // Cascade: collect value changes and run batch cascade in a single pass
+        const valueUpdates = input.updates
+          .filter((u) => u.value !== undefined)
+          .map((u) => ({ key: u.key, value: u.value! }));
+
+        let cascadeResult = null;
+        if (valueUpdates.length > 0) {
+          // Refresh assumptions with direct updates applied
+          const refreshed = allAssumptions.map((a) => {
+            const update = input.updates.find((u) => u.key === a.key);
+            if (!update) return a;
+            return {
+              ...a,
+              ...(update.value !== undefined ? { value: update.value } : {}),
+              ...(update.confidence !== undefined ? { confidence: update.confidence } : {}),
+            };
+          }) as unknown as Assumption[];
+
+          cascadeResult = executeBatchCascade(refreshed, valueUpdates);
+
+          if (cascadeResult.status === 'success') {
+            const directKeys = new Set(valueUpdates.map((u) => u.key));
+            for (const change of cascadeResult.updatedAssumptions) {
+              if (directKeys.has(change.key)) continue; // skip direct updates, already persisted
+              await tx
+                .update(assumptions)
+                .set({
+                  value: change.newValue === 'null' ? null : change.newValue,
+                  updatedByActor: 'system',
+                  updatedByUserId: ctx.userId,
+                })
+                .where(and(
+                  eq(assumptions.projectId, input.projectId),
+                  eq(assumptions.key, change.key),
+                ));
+            }
+          }
+        }
+
         logAuditAsync({
           userId: ctx.userId,
           action: 'PROJECT_UPDATE',
@@ -422,10 +461,13 @@ export const assumptionRouter = router({
           metadata: {
             action: 'batch_update_assumptions',
             count: results.filter((r) => r.success).length,
+            cascaded: cascadeResult?.status === 'success'
+              ? cascadeResult.updatedAssumptions.length
+              : 0,
           },
         });
 
-        return { results };
+        return { results, cascade: cascadeResult };
       });
     }),
 

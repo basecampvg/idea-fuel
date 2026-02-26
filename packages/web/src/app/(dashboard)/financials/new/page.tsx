@@ -46,7 +46,7 @@ export default function NewFinancialModelPage() {
   const [forecastYears, setForecastYears] = useState(5);
   const [isCreating, setIsCreating] = useState(false);
 
-  const { data: templates, isLoading: templatesLoading } = trpc.financial.listTemplates.useQuery();
+  const { data: templates, isLoading: templatesLoading } = trpc.financial.listTemplates.useQuery(undefined, { staleTime: 300_000 });
   const createMutation = trpc.financial.create.useMutation({
     onSuccess: (data) => {
       router.push(`/financials/${data.model.id}`);

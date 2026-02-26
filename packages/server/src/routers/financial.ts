@@ -1,11 +1,12 @@
 import { z } from 'zod';
-import { eq, and, desc, ne } from 'drizzle-orm';
+import { eq, and, desc, ne, count } from 'drizzle-orm';
 import { router, protectedProcedure } from '../trpc';
 import {
   entityId,
   createFinancialModelSchema,
   updateFinancialModelSchema,
   paginationSchema,
+  SUBSCRIPTION_FEATURES,
 } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
 import {
@@ -13,6 +14,7 @@ import {
   scenarios,
   assumptions,
   projects,
+  users,
 } from '../db/schema';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { getTemplate, listTemplates } from '../services/financial-templates';
@@ -73,6 +75,26 @@ export const financialRouter = router({
         if (!project) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found' });
         }
+      }
+
+      // Enforce model limit per subscription tier
+      const user = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.userId),
+        columns: { subscription: true },
+      });
+      const tier = (user?.subscription ?? 'FREE') as keyof typeof SUBSCRIPTION_FEATURES;
+      const limit = SUBSCRIPTION_FEATURES[tier]?.financialModelLimit ?? 1;
+
+      const [{ value: currentCount }] = await ctx.db
+        .select({ value: count() })
+        .from(financialModels)
+        .where(and(eq(financialModels.userId, ctx.userId), ne(financialModels.status, 'ARCHIVED')));
+
+      if (currentCount >= limit) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: `You've reached the limit of ${limit} financial model${limit !== 1 ? 's' : ''} on your ${tier} plan. Upgrade to create more.`,
+        });
       }
 
       // Resolve template if provided
@@ -184,6 +206,26 @@ export const financialRouter = router({
       });
 
       return { models, page, limit };
+    }),
+
+  /**
+   * Get current model count and limit for the user's tier.
+   */
+  usage: protectedProcedure
+    .query(async ({ ctx }) => {
+      const user = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.userId),
+        columns: { subscription: true },
+      });
+      const tier = (user?.subscription ?? 'FREE') as keyof typeof SUBSCRIPTION_FEATURES;
+      const limit = SUBSCRIPTION_FEATURES[tier]?.financialModelLimit ?? 1;
+
+      const [{ value: currentCount }] = await ctx.db
+        .select({ value: count() })
+        .from(financialModels)
+        .where(and(eq(financialModels.userId, ctx.userId), ne(financialModels.status, 'ARCHIVED')));
+
+      return { currentCount, limit, tier };
     }),
 
   /**

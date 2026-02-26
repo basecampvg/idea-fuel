@@ -37,7 +37,7 @@ export default function StatementsPage({
     isLoading: statementsLoading,
   } = trpc.financial.computeStatements.useQuery(
     { scenarioId: baseScenarioId! },
-    { enabled: !!baseScenarioId },
+    { enabled: !!baseScenarioId, staleTime: 10_000 },
   );
 
   const isLoading = modelLoading || statementsLoading;

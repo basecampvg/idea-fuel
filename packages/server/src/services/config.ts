@@ -387,6 +387,32 @@ export const DEFAULT_CONFIGS: ConfigDefinition[] = [
     description: 'Number of In-Depth interview reports for ENTERPRISE tier',
   },
 
+  // Financial Model Limits
+  {
+    key: 'limits.free.financialModels',
+    value: 1,
+    type: 'NUMBER',
+    category: 'limits',
+    label: 'Financial Models (FREE)',
+    description: 'Number of financial models for FREE tier',
+  },
+  {
+    key: 'limits.pro.financialModels',
+    value: 10,
+    type: 'NUMBER',
+    category: 'limits',
+    label: 'Financial Models (PRO)',
+    description: 'Number of financial models for PRO tier',
+  },
+  {
+    key: 'limits.enterprise.financialModels',
+    value: 50,
+    type: 'NUMBER',
+    category: 'limits',
+    label: 'Financial Models (ENTERPRISE)',
+    description: 'Number of financial models for ENTERPRISE tier',
+  },
+
   // =========================================================================
   // Feature Flags
   // =========================================================================

@@ -4,6 +4,7 @@ import { use, Suspense } from 'react';
 import { trpc } from '@/lib/trpc/client';
 import { LoadingScreen } from '@/components/ui/spinner';
 import { FinancialSecondaryNav } from './financial-secondary-nav';
+import { FinancialBreadcrumb } from './financial-breadcrumb';
 
 const SECONDARY_NAV_WIDTH = 240;
 
@@ -43,6 +44,7 @@ function FinancialLayoutInner({
       <FinancialSecondaryNav model={model} />
       <div className="min-h-screen" style={{ marginLeft: SECONDARY_NAV_WIDTH }}>
         <div className="max-w-[1120px] mx-auto px-6 py-8 space-y-6">
+          <FinancialBreadcrumb modelId={model.id} modelName={model.name} />
           {children}
         </div>
       </div>

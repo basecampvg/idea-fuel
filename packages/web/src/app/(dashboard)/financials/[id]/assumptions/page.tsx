@@ -1,10 +1,10 @@
 'use client';
 
-import { use, useState, useCallback, useMemo } from 'react';
+import { use, useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { trpc } from '@/lib/trpc/client';
 import { Spinner } from '@/components/ui/spinner';
 import { AssumptionSection } from './components/assumption-section';
-import { Settings2, Loader2 } from 'lucide-react';
+import { Settings2, Loader2, RefreshCw } from 'lucide-react';
 
 // Category display order and labels
 const CATEGORY_ORDER = [
@@ -59,7 +59,11 @@ export default function FinancialAssumptionsPage({
       });
       if (baseScenarioId) {
         utils.assumption.listByScenario.invalidate({ scenarioId: baseScenarioId });
+        // Invalidate computed statements so they recalculate with new values
+        utils.financial.computeStatements.invalidate({ scenarioId: baseScenarioId });
       }
+      // Update our known timestamp so our own saves don't trigger the stale warning
+      lastSeenUpdatedAt.current = new Date().toISOString();
     },
     onError: (_err, variables) => {
       setUpdatingIds((prev) => {
@@ -69,6 +73,48 @@ export default function FinancialAssumptionsPage({
       });
     },
   });
+
+  // Multi-tab conflict detection: track last-known updatedAt
+  const [staleWarning, setStaleWarning] = useState(false);
+  const lastSeenUpdatedAt = useRef<string | null>(null);
+
+  // Store the model's updatedAt when data first loads
+  useEffect(() => {
+    if (model?.updatedAt) {
+      const ts = new Date(model.updatedAt).toISOString();
+      if (!lastSeenUpdatedAt.current) {
+        lastSeenUpdatedAt.current = ts;
+      }
+    }
+  }, [model?.updatedAt]);
+
+  // On window focus, refetch and compare timestamps
+  useEffect(() => {
+    const onFocus = async () => {
+      if (!lastSeenUpdatedAt.current || !baseScenarioId) return;
+      try {
+        const fresh = await utils.financial.get.fetch({ id: modelId });
+        const freshTs = new Date(fresh.updatedAt).toISOString();
+        if (freshTs !== lastSeenUpdatedAt.current) {
+          setStaleWarning(true);
+        }
+      } catch {
+        // Ignore fetch errors on focus
+      }
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [modelId, baseScenarioId, utils]);
+
+  const handleRefreshData = useCallback(() => {
+    if (baseScenarioId) {
+      utils.assumption.listByScenario.invalidate({ scenarioId: baseScenarioId });
+      utils.financial.get.invalidate({ id: modelId });
+      utils.financial.computeStatements.invalidate({ scenarioId: baseScenarioId });
+    }
+    lastSeenUpdatedAt.current = null; // Reset — will be set again on refetch
+    setStaleWarning(false);
+  }, [baseScenarioId, modelId, utils]);
 
   const handleValueChange = useCallback(
     (assumptionId: string, value: string) => {
@@ -153,6 +199,22 @@ export default function FinancialAssumptionsPage({
           </span>
         )}
       </div>
+
+      {/* Stale data warning */}
+      {staleWarning && (
+        <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-amber-500/20 bg-amber-500/5">
+          <p className="text-sm text-foreground">
+            This data was updated in another tab. Reload to see the latest values.
+          </p>
+          <button
+            onClick={handleRefreshData}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Reload
+          </button>
+        </div>
+      )}
 
       {/* Assumption Sections */}
       <div className="space-y-3">

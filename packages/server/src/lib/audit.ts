@@ -38,6 +38,12 @@ export type AuditAction =
   // Export lifecycle
   | 'EXPORT_EXCEL'
   | 'EXPORT_PDF'
+  | 'EXPORT_PPTX'
+  // Admin actions
+  | 'IP_WHITELIST_ADD'
+  | 'IP_WHITELIST_REMOVE'
+  | 'USER_TIER_CHANGE'
+  | 'USER_ROLE_CHANGE'
   // User settings
   | 'SETTINGS_UPDATE'
   | 'SUBSCRIPTION_CHANGE';
@@ -88,6 +94,6 @@ export function logAuditAsync(params: AuditLogParams): void {
 /**
  * Helper to create a resource string from type and ID.
  */
-export function formatResource(type: 'project' | 'interview' | 'report' | 'research' | 'user' | 'financial_model' | 'scenario' | 'snapshot', id: string): string {
+export function formatResource(type: 'project' | 'interview' | 'report' | 'research' | 'user' | 'financial_model' | 'scenario' | 'snapshot' | 'export', id: string): string {
   return `${type}:${id}`;
 }

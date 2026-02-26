@@ -11,6 +11,7 @@ export interface ReportLimitsByMode {
 
 export interface SubscriptionFeatures {
   reportLimits: ReportLimitsByMode;
+  financialModelLimit: number;
   reportTierAccess: readonly ReportTier[];
   interviewModes: readonly InterviewMode[];
   prioritySupport: boolean;
@@ -20,6 +21,7 @@ export interface SubscriptionFeatures {
 export const SUBSCRIPTION_FEATURES: Record<SubscriptionTier, SubscriptionFeatures> = {
   FREE: {
     reportLimits: { SPARK: 0, LIGHT: 0, IN_DEPTH: 0 },
+    financialModelLimit: 1,
     reportTierAccess: [] as const,
     interviewModes: [] as const,
     prioritySupport: false,
@@ -27,6 +29,7 @@ export const SUBSCRIPTION_FEATURES: Record<SubscriptionTier, SubscriptionFeature
   },
   PRO: {
     reportLimits: { SPARK: 5, LIGHT: 3, IN_DEPTH: 1 },
+    financialModelLimit: 10,
     reportTierAccess: ['BASIC', 'PRO'] as const,
     interviewModes: ['SPARK', 'LIGHT', 'IN_DEPTH'] as const,
     prioritySupport: true,
@@ -34,6 +37,7 @@ export const SUBSCRIPTION_FEATURES: Record<SubscriptionTier, SubscriptionFeature
   },
   ENTERPRISE: {
     reportLimits: { SPARK: 10, LIGHT: 5, IN_DEPTH: 2 },
+    financialModelLimit: 50,
     reportTierAccess: ['BASIC', 'PRO', 'FULL'] as const,
     interviewModes: ['SPARK', 'LIGHT', 'IN_DEPTH'] as const,
     prioritySupport: true,
@@ -87,6 +91,14 @@ export const TIER_FEATURES: TierFeature[] = [
     free: false,
     pro: '1 report',
     enterprise: '2 reports',
+  },
+  {
+    id: 'financial_models',
+    name: 'Financial Models',
+    description: 'Revenue forecasting & break-even analysis',
+    free: '1 model',
+    pro: '10 models',
+    enterprise: '50 models',
   },
   {
     id: 'full_reports',
@@ -228,4 +240,20 @@ export function getReportsRemaining(
 ): number {
   const limit = SUBSCRIPTION_FEATURES[tier].reportLimits[mode];
   return Math.max(0, limit - currentModeCount);
+}
+
+export function canCreateFinancialModel(
+  tier: SubscriptionTier,
+  currentCount: number,
+): boolean {
+  const limit = SUBSCRIPTION_FEATURES[tier].financialModelLimit;
+  return currentCount < limit;
+}
+
+export function getFinancialModelsRemaining(
+  tier: SubscriptionTier,
+  currentCount: number,
+): number {
+  const limit = SUBSCRIPTION_FEATURES[tier].financialModelLimit;
+  return Math.max(0, limit - currentCount);
 }

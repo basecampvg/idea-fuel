@@ -151,15 +151,22 @@ function evaluateStatement(
         scope[key] = vals[p];
       }
 
-      const value = evaluateFormula(line.formula, scope) ?? 0;
+      const raw = evaluateFormula(line.formula, scope);
+      // Preserve NaN for UI display; coerce null (parse failure) to NaN
+      const value = raw === null ? NaN : !isFinite(raw) ? NaN : raw;
       values.push(value);
     }
 
-    lineValues[line.key] = values;
+    // Replace any NaN in subtotal/total rows with 0 so downstream sums work
+    const sanitized = (line.isSubtotal || line.isTotal)
+      ? values.map((v) => (isNaN(v) ? 0 : v))
+      : values;
+
+    lineValues[line.key] = sanitized;
     results.push({
       key: line.key,
       name: line.name,
-      values,
+      values: sanitized,
       isSubtotal: line.isSubtotal,
       isTotal: line.isTotal,
     });
@@ -331,15 +338,20 @@ export function calculateStatements(
           values.push(0);
         }
       } else {
-        values.push(evaluateFormula(line.formula, scope) ?? 0);
+        const raw = evaluateFormula(line.formula, scope);
+        values.push(raw === null ? NaN : !isFinite(raw) ? NaN : raw);
       }
     }
 
-    cfLineValues[line.key] = values;
+    const sanitized = (line.isSubtotal || line.isTotal)
+      ? values.map((v) => (isNaN(v) ? 0 : v))
+      : values;
+
+    cfLineValues[line.key] = sanitized;
     cfResults.push({
       key: line.key,
       name: line.name,
-      values,
+      values: sanitized,
       isSubtotal: line.isSubtotal,
       isTotal: line.isTotal,
     });
