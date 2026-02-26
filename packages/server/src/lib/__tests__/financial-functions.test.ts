@@ -7,7 +7,7 @@ describe('PMT', () => {
   it('matches Excel =PMT(0.08/12, 10, 10000)', () => {
     const result = PMT(0.08 / 12, 10, 10000);
     expect(result).not.toBeNull();
-    expect(result!).toBeCloseTo(-1037.0320893734798, 6);
+    expect(result!).toBeCloseTo(-1037.032089373, 6);
   });
 
   it('matches Excel =PMT(0.06/12, 360, 200000) (30-year mortgage)', () => {
