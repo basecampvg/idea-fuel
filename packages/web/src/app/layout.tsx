@@ -52,6 +52,10 @@ export const metadata: Metadata = {
     title: 'Idea Fuel',
     description: 'AI-powered business validation platform',
   },
+  icons: {
+    icon: '/ideafuel-logo.svg',
+    apple: '/ideafuel-logo.svg',
+  },
 };
 
 export default function RootLayout({
