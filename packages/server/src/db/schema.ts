@@ -7,6 +7,7 @@ import {
   boolean,
   jsonb,
   doublePrecision,
+  numeric,
   index,
   uniqueIndex,
   unique,
@@ -47,6 +48,31 @@ export const aiClassificationTargetTypeEnum = pgEnum('AIClassificationTargetType
 export const agentConversationStatusEnum = pgEnum('AgentConversationStatus', ['ACTIVE', 'ARCHIVED']);
 export const embeddingSourceTypeEnum = pgEnum('EmbeddingSourceType', ['REPORT', 'RESEARCH', 'INTERVIEW', 'NOTES', 'SERPAPI']);
 
+// Assumptions Engine enums
+export const assumptionCategoryEnum = pgEnum('AssumptionCategory', [
+  'PRICING', 'ACQUISITION', 'RETENTION', 'MARKET', 'COSTS', 'FUNDING', 'TIMELINE',
+]);
+export const assumptionConfidenceEnum = pgEnum('AssumptionConfidence', [
+  'USER', 'RESEARCHED', 'AI_ESTIMATE', 'CALCULATED',
+]);
+export const assumptionValueTypeEnum = pgEnum('AssumptionValueType', [
+  'NUMBER', 'PERCENTAGE', 'CURRENCY', 'TEXT', 'DATE', 'SELECT',
+]);
+export const assumptionTierEnum = pgEnum('AssumptionTier', [
+  'SPARK', 'LIGHT', 'IN_DEPTH',
+]);
+
+// Financial Modeling enums
+export const knowledgeLevelEnum = pgEnum('KnowledgeLevel', ['BEGINNER', 'STANDARD', 'EXPERT']);
+export const financialModelStatusEnum = pgEnum('FinancialModelStatus', ['DRAFT', 'ACTIVE', 'ARCHIVED']);
+export const erpProviderEnum = pgEnum('ERPProvider', ['QUICKBOOKS', 'XERO']);
+export const erpConnectionStatusEnum = pgEnum('ERPConnectionStatus', ['ACTIVE', 'EXPIRED', 'REVOKED']);
+export const snapshotActionEnum = pgEnum('SnapshotAction', ['MANUAL', 'AUTO_SAVE']);
+export const templateCategoryEnum = pgEnum('TemplateCategory', [
+  'TECH', 'SERVICES', 'RETAIL', 'FOOD', 'CONSTRUCTION',
+  'HEALTHCARE', 'REAL_ESTATE', 'MANUFACTURING', 'NONPROFIT', 'FREELANCER',
+]);
+
 // TypeScript types derived from enums
 export type SubscriptionTier = (typeof subscriptionTierEnum.enumValues)[number];
 export type UserRole = (typeof userRoleEnum.enumValues)[number];
@@ -66,6 +92,16 @@ export type BlogPostStatus = (typeof blogPostStatusEnum.enumValues)[number];
 export type AIClassificationTargetType = (typeof aiClassificationTargetTypeEnum.enumValues)[number];
 export type AgentConversationStatus = (typeof agentConversationStatusEnum.enumValues)[number];
 export type EmbeddingSourceType = (typeof embeddingSourceTypeEnum.enumValues)[number];
+export type AssumptionCategory = (typeof assumptionCategoryEnum.enumValues)[number];
+export type AssumptionConfidence = (typeof assumptionConfidenceEnum.enumValues)[number];
+export type AssumptionValueType = (typeof assumptionValueTypeEnum.enumValues)[number];
+export type AssumptionTier = (typeof assumptionTierEnum.enumValues)[number];
+export type KnowledgeLevel = (typeof knowledgeLevelEnum.enumValues)[number];
+export type FinancialModelStatus = (typeof financialModelStatusEnum.enumValues)[number];
+export type ERPProvider = (typeof erpProviderEnum.enumValues)[number];
+export type ERPConnectionStatus = (typeof erpConnectionStatusEnum.enumValues)[number];
+export type SnapshotAction = (typeof snapshotActionEnum.enumValues)[number];
+export type TemplateCategory = (typeof templateCategoryEnum.enumValues)[number];
 
 // =============================================================================
 // AUTH TABLES (User, Account, Session, VerificationToken)
@@ -711,6 +747,241 @@ export const embeddings = pgTable('Embedding', {
 ]);
 
 // =============================================================================
+// ASSUMPTIONS ENGINE
+// =============================================================================
+
+export const assumptions = pgTable('Assumption', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  projectId: text(),
+  scenarioId: text(),
+  parentId: text(),
+  category: assumptionCategoryEnum().notNull(),
+  name: text().notNull(),
+  key: text().notNull(),
+  value: text(),
+  numericValue: numeric({ precision: 15, scale: 2 }),
+  timeSeries: jsonb().$type<{ monthly?: number[]; quarterly?: number[]; annual?: number[] }>(),
+  valueType: assumptionValueTypeEnum().notNull(),
+  unit: text(),
+  confidence: assumptionConfidenceEnum().default('AI_ESTIMATE').notNull(),
+  source: text().default('System default').notNull(),
+  sourceUrl: text(),
+  formula: text(),
+  dependsOn: text().array().default(sql`'{}'::text[]`).notNull(),
+  tier: assumptionTierEnum(),
+  isSensitive: boolean().default(false).notNull(),
+  isRequired: boolean().default(true).notNull(),
+  displayOrder: integer().default(0).notNull(),
+  updatedByActor: text().default('system').notNull(),
+  updatedByUserId: text(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+}, (table) => [
+  unique('Assumption_scenarioId_key_key').on(table.scenarioId, table.key),
+  index('Assumption_projectId_idx').on(table.projectId),
+  index('Assumption_projectId_category_idx').on(table.projectId, table.category),
+  index('Assumption_scenarioId_idx').on(table.scenarioId),
+  index('Assumption_scenarioId_category_idx').on(table.scenarioId, table.category),
+  foreignKey({
+    columns: [table.projectId],
+    foreignColumns: [projects.id],
+    name: 'Assumption_projectId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+  foreignKey({
+    columns: [table.scenarioId],
+    foreignColumns: [scenarios.id],
+    name: 'Assumption_scenarioId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+  // Note: parentId self-reference handled via Drizzle relation (parentChild)
+  // to avoid circular type inference. DB-level FK can be added via raw migration.
+]);
+
+export const assumptionHistory = pgTable('AssumptionHistory', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  assumptionId: text().notNull(),
+  oldValue: text(),
+  newValue: text(),
+  oldConfidence: assumptionConfidenceEnum(),
+  newConfidence: assumptionConfidenceEnum(),
+  changedByActor: text().notNull(),
+  changedByUserId: text(),
+  reason: text(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('AssumptionHistory_assumptionId_idx').on(table.assumptionId),
+  index('AssumptionHistory_createdAt_idx').on(table.createdAt),
+  foreignKey({
+    columns: [table.assumptionId],
+    foreignColumns: [assumptions.id],
+    name: 'AssumptionHistory_assumptionId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
+// FINANCIAL MODEL
+// =============================================================================
+
+export const financialModels = pgTable('FinancialModel', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  userId: text().notNull(),
+  projectId: text(),
+  templateId: text(),
+  name: text().notNull(),
+  knowledgeLevel: knowledgeLevelEnum().default('BEGINNER').notNull(),
+  forecastYears: integer().default(5).notNull(),
+  status: financialModelStatusEnum().default('DRAFT').notNull(),
+  settings: jsonb().$type<Record<string, unknown>>().default({}),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+}, (table) => [
+  index('FinancialModel_userId_idx').on(table.userId),
+  index('FinancialModel_projectId_idx').on(table.projectId),
+  index('FinancialModel_status_idx').on(table.status),
+  index('FinancialModel_userId_status_idx').on(table.userId, table.status),
+  foreignKey({
+    columns: [table.userId],
+    foreignColumns: [users.id],
+    name: 'FinancialModel_userId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+  foreignKey({
+    columns: [table.projectId],
+    foreignColumns: [projects.id],
+    name: 'FinancialModel_projectId_fkey',
+  }).onUpdate('cascade').onDelete('set null'),
+]);
+
+// =============================================================================
+// SCENARIO
+// =============================================================================
+
+export const scenarios = pgTable('Scenario', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  modelId: text().notNull(),
+  name: text().notNull(),
+  isBase: boolean().default(false).notNull(),
+  description: text(),
+  displayOrder: integer().default(0).notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+}, (table) => [
+  index('Scenario_modelId_idx').on(table.modelId),
+  uniqueIndex('Scenario_modelId_isBase_key')
+    .on(table.modelId, table.isBase)
+    .where(sql`"isBase" = true`),
+  foreignKey({
+    columns: [table.modelId],
+    foreignColumns: [financialModels.id],
+    name: 'Scenario_modelId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
+// MODEL SNAPSHOT
+// =============================================================================
+
+export const modelSnapshots = pgTable('ModelSnapshot', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  modelId: text().notNull(),
+  name: text().notNull(),
+  assumptionData: jsonb().notNull(),
+  computedOutputs: jsonb(),
+  createdByAction: snapshotActionEnum().default('MANUAL').notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('ModelSnapshot_modelId_idx').on(table.modelId),
+  index('ModelSnapshot_createdAt_idx').on(table.createdAt),
+  index('ModelSnapshot_modelId_createdAt_idx').on(table.modelId, table.createdAt),
+  foreignKey({
+    columns: [table.modelId],
+    foreignColumns: [financialModels.id],
+    name: 'ModelSnapshot_modelId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
+// INDUSTRY TEMPLATE
+// =============================================================================
+
+export const industryTemplates = pgTable('IndustryTemplate', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  slug: text().notNull(),
+  name: text().notNull(),
+  description: text(),
+  category: templateCategoryEnum().notNull(),
+  defaultAssumptions: jsonb().notNull(),
+  lineItems: jsonb().notNull(),
+  wizardQuestions: jsonb(),
+  displayOrder: integer().default(0).notNull(),
+  isActive: boolean().default(true).notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+}, (table) => [
+  uniqueIndex('IndustryTemplate_slug_key').on(table.slug),
+  index('IndustryTemplate_category_idx').on(table.category),
+  index('IndustryTemplate_isActive_idx').on(table.isActive),
+]);
+
+// =============================================================================
+// ERP CONNECTION
+// =============================================================================
+
+export const erpConnections = pgTable('ERPConnection', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  userId: text().notNull(),
+  provider: erpProviderEnum().notNull(),
+  encryptedAccessToken: text().notNull(),
+  encryptedRefreshToken: text(),
+  realmId: text(),
+  tenantId: text(),
+  companyName: text(),
+  status: erpConnectionStatusEnum().default('ACTIVE').notNull(),
+  tokenExpiresAt: timestamp({ precision: 3, mode: 'date' }),
+  lastSyncAt: timestamp({ precision: 3, mode: 'date' }),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('ERPConnection_userId_idx').on(table.userId),
+  index('ERPConnection_status_idx').on(table.status),
+  index('ERPConnection_userId_provider_idx').on(table.userId, table.provider),
+  foreignKey({
+    columns: [table.userId],
+    foreignColumns: [users.id],
+    name: 'ERPConnection_userId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
+// BUDGET LINE ITEM
+// =============================================================================
+
+export const budgetLineItems = pgTable('BudgetLineItem', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  modelId: text().notNull(),
+  erpConnectionId: text(),
+  category: text().notNull(),
+  accountName: text().notNull(),
+  erpAccountId: text(),
+  budgetValues: jsonb().$type<Record<string, number>>(),
+  actualValues: jsonb().$type<Record<string, number>>(),
+  lastSyncAt: timestamp({ precision: 3, mode: 'date' }),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+}, (table) => [
+  index('BudgetLineItem_modelId_idx').on(table.modelId),
+  index('BudgetLineItem_category_idx').on(table.category),
+  index('BudgetLineItem_modelId_category_idx').on(table.modelId, table.category),
+  foreignKey({
+    columns: [table.modelId],
+    foreignColumns: [financialModels.id],
+    name: 'BudgetLineItem_modelId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+  foreignKey({
+    columns: [table.erpConnectionId],
+    foreignColumns: [erpConnections.id],
+    name: 'BudgetLineItem_erpConnectionId_fkey',
+  }).onUpdate('cascade').onDelete('set null'),
+]);
+
+// =============================================================================
 // RELATIONS
 // =============================================================================
 
@@ -724,6 +995,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   blogPosts: many(blogPosts),
   agentConversations: many(agentConversations),
   agentInsights: many(agentInsights),
+  financialModels: many(financialModels),
+  erpConnections: many(erpConnections),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -739,9 +1012,11 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   interviews: many(interviews),
   reports: many(reports),
   research: one(research, { fields: [projects.id], references: [research.projectId] }),
+  assumptions: many(assumptions),
   agentConversations: many(agentConversations),
   agentInsights: many(agentInsights),
   embeddings: many(embeddings),
+  financialModels: many(financialModels),
 }));
 
 export const interviewsRelations = relations(interviews, ({ one }) => ({
@@ -805,4 +1080,49 @@ export const agentMessagesRelations = relations(agentMessages, ({ one }) => ({
 
 export const embeddingsRelations = relations(embeddings, ({ one }) => ({
   project: one(projects, { fields: [embeddings.projectId], references: [projects.id] }),
+}));
+
+export const assumptionsRelations = relations(assumptions, ({ one, many }) => ({
+  project: one(projects, { fields: [assumptions.projectId], references: [projects.id] }),
+  scenario: one(scenarios, { fields: [assumptions.scenarioId], references: [scenarios.id] }),
+  parent: one(assumptions, { fields: [assumptions.parentId], references: [assumptions.id], relationName: 'parentChild' }),
+  children: many(assumptions, { relationName: 'parentChild' }),
+  history: many(assumptionHistory),
+}));
+
+export const assumptionHistoryRelations = relations(assumptionHistory, ({ one }) => ({
+  assumption: one(assumptions, { fields: [assumptionHistory.assumptionId], references: [assumptions.id] }),
+}));
+
+// Financial Model relations
+export const financialModelsRelations = relations(financialModels, ({ one, many }) => ({
+  user: one(users, { fields: [financialModels.userId], references: [users.id] }),
+  project: one(projects, { fields: [financialModels.projectId], references: [projects.id] }),
+  template: one(industryTemplates, { fields: [financialModels.templateId], references: [industryTemplates.id] }),
+  scenarios: many(scenarios),
+  snapshots: many(modelSnapshots),
+  budgetLineItems: many(budgetLineItems),
+}));
+
+export const scenariosRelations = relations(scenarios, ({ one, many }) => ({
+  model: one(financialModels, { fields: [scenarios.modelId], references: [financialModels.id] }),
+  assumptions: many(assumptions),
+}));
+
+export const modelSnapshotsRelations = relations(modelSnapshots, ({ one }) => ({
+  model: one(financialModels, { fields: [modelSnapshots.modelId], references: [financialModels.id] }),
+}));
+
+export const industryTemplatesRelations = relations(industryTemplates, ({ many }) => ({
+  financialModels: many(financialModels),
+}));
+
+export const erpConnectionsRelations = relations(erpConnections, ({ one, many }) => ({
+  user: one(users, { fields: [erpConnections.userId], references: [users.id] }),
+  budgetLineItems: many(budgetLineItems),
+}));
+
+export const budgetLineItemsRelations = relations(budgetLineItems, ({ one }) => ({
+  model: one(financialModels, { fields: [budgetLineItems.modelId], references: [financialModels.id] }),
+  erpConnection: one(erpConnections, { fields: [budgetLineItems.erpConnectionId], references: [erpConnections.id] }),
 }));

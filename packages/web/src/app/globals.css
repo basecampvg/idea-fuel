@@ -804,6 +804,17 @@ p {
   animation: onboarding-fade-in 0.4s ease-out forwards;
 }
 
+/* Cascade pulse for assumption cards */
+@keyframes cascade-pulse {
+  0% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.3); }
+  70% { box-shadow: 0 0 0 6px hsl(var(--primary) / 0); }
+  100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
+}
+
+.animate-cascade-pulse {
+  animation: cascade-pulse 0.8s ease-out;
+}
+
 /* ===== TEXT UTILITIES ===== */
 
 .text-gradient {

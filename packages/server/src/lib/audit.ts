@@ -24,6 +24,26 @@ export type AuditAction =
   | 'REPORT_VIEW'
   | 'REPORT_DOWNLOAD'
   | 'REPORT_GENERATE'
+  // Financial model lifecycle
+  | 'FINANCIAL_MODEL_CREATE'
+  | 'FINANCIAL_MODEL_UPDATE'
+  | 'FINANCIAL_MODEL_DELETE'
+  // Scenario lifecycle
+  | 'SCENARIO_CREATE'
+  | 'SCENARIO_UPDATE'
+  | 'SCENARIO_DELETE'
+  // Snapshot lifecycle
+  | 'SNAPSHOT_CREATE'
+  | 'SNAPSHOT_RESTORE'
+  // Export lifecycle
+  | 'EXPORT_EXCEL'
+  | 'EXPORT_PDF'
+  | 'EXPORT_PPTX'
+  // Admin actions
+  | 'IP_WHITELIST_ADD'
+  | 'IP_WHITELIST_REMOVE'
+  | 'USER_TIER_CHANGE'
+  | 'USER_ROLE_CHANGE'
   // User settings
   | 'SETTINGS_UPDATE'
   | 'SUBSCRIPTION_CHANGE';
@@ -74,6 +94,6 @@ export function logAuditAsync(params: AuditLogParams): void {
 /**
  * Helper to create a resource string from type and ID.
  */
-export function formatResource(type: 'project' | 'interview' | 'report' | 'research' | 'user', id: string): string {
+export function formatResource(type: 'project' | 'interview' | 'report' | 'research' | 'user' | 'financial_model' | 'scenario' | 'snapshot' | 'export', id: string): string {
   return `${type}:${id}`;
 }

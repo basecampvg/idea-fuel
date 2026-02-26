@@ -265,6 +265,63 @@ export type SparkResultInput = z.infer<typeof sparkResultSchema>;
 export type StartSparkInput = z.infer<typeof startSparkSchema>;
 
 // ============================================
+// Assumption validators
+// ============================================
+export const assumptionCategorySchema = z.enum([
+  'PRICING', 'ACQUISITION', 'RETENTION', 'MARKET', 'COSTS', 'FUNDING', 'TIMELINE',
+]);
+export const assumptionConfidenceSchema = z.enum([
+  'USER', 'RESEARCHED', 'AI_ESTIMATE', 'CALCULATED',
+]);
+export const assumptionValueTypeSchema = z.enum([
+  'NUMBER', 'PERCENTAGE', 'CURRENCY', 'TEXT', 'DATE', 'SELECT',
+]);
+export const assumptionTierSchema = z.enum(['SPARK', 'LIGHT', 'IN_DEPTH']);
+
+// Reserved keys that cannot be used as assumption keys (prototype pollution protection)
+const RESERVED_KEYS = ['__proto__', 'constructor', 'prototype', 'toString', 'valueOf', 'hasOwnProperty'];
+
+export const assumptionKeySchema = z.string()
+  .min(1, 'Key is required')
+  .max(64, 'Key too long')
+  .regex(/^[a-z][a-z0-9_]*$/, 'Key must be lowercase snake_case')
+  .refine((key) => !RESERVED_KEYS.includes(key), 'Reserved key name');
+
+export const updateAssumptionSchema = z.object({
+  id: entityId,
+  projectId: entityId,
+  value: z.string().max(1000).nullable().optional(),
+  confidence: assumptionConfidenceSchema.optional(),
+  source: z.string().max(500).optional(),
+  sourceUrl: z.string().url().max(2000).nullable().optional(),
+  formula: z.string().max(500).nullable().optional(),
+});
+export type UpdateAssumptionInput = z.infer<typeof updateAssumptionSchema>;
+
+export const batchUpdateAssumptionSchema = z.object({
+  projectId: entityId,
+  updates: z.array(z.object({
+    key: assumptionKeySchema,
+    value: z.string().max(1000).nullable(),
+    confidence: assumptionConfidenceSchema.optional(),
+    source: z.string().max(500).optional(),
+  })).min(1).max(24),
+});
+export type BatchUpdateAssumptionInput = z.infer<typeof batchUpdateAssumptionSchema>;
+
+export const createCustomAssumptionSchema = z.object({
+  projectId: entityId,
+  name: z.string().min(1).max(200),
+  key: assumptionKeySchema,
+  category: assumptionCategorySchema,
+  valueType: assumptionValueTypeSchema,
+  unit: z.string().max(20).nullable().optional(),
+  value: z.string().max(1000).nullable().optional(),
+  formula: z.string().max(500).nullable().optional(),
+});
+export type CreateCustomAssumptionInput = z.infer<typeof createCustomAssumptionSchema>;
+
+// ============================================
 // Pagination validator
 // ============================================
 export const paginationSchema = z.object({
@@ -325,3 +382,74 @@ export const reorderInsightsSchema = z.object({
   insightIds: z.array(entityId).min(1).max(100),
 });
 export type ReorderInsightsInput = z.infer<typeof reorderInsightsSchema>;
+
+// ============================================
+// Financial Model validators
+// ============================================
+export const knowledgeLevelSchema = z.enum(['BEGINNER', 'STANDARD', 'EXPERT']);
+export const financialModelStatusSchema = z.enum(['DRAFT', 'ACTIVE', 'ARCHIVED']);
+export const erpProviderSchema = z.enum(['QUICKBOOKS', 'XERO']);
+export const erpConnectionStatusSchema = z.enum(['ACTIVE', 'EXPIRED', 'REVOKED']);
+export const snapshotActionSchema = z.enum(['MANUAL', 'AUTO_SAVE']);
+export const templateCategorySchema = z.enum([
+  'TECH', 'SERVICES', 'RETAIL', 'FOOD', 'CONSTRUCTION',
+  'HEALTHCARE', 'REAL_ESTATE', 'MANUFACTURING', 'NONPROFIT', 'FREELANCER',
+]);
+export const statementTypeSchema = z.enum(['PL', 'BS', 'CF']);
+
+export const createFinancialModelSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(200, 'Name too long'),
+  templateSlug: z.string().min(1).max(50).optional(),
+  projectId: entityId.optional(),
+  knowledgeLevel: knowledgeLevelSchema.default('BEGINNER'),
+  forecastYears: z.number().int().min(1).max(10).default(5),
+  settings: z.record(z.unknown()).optional(),
+});
+export type CreateFinancialModelInput = z.infer<typeof createFinancialModelSchema>;
+
+export const updateFinancialModelSchema = z.object({
+  id: entityId,
+  name: z.string().min(1).max(200).optional(),
+  knowledgeLevel: knowledgeLevelSchema.optional(),
+  forecastYears: z.number().int().min(1).max(10).optional(),
+  status: financialModelStatusSchema.optional(),
+  settings: z.record(z.unknown()).optional(),
+});
+export type UpdateFinancialModelInput = z.infer<typeof updateFinancialModelSchema>;
+
+export const createScenarioSchema = z.object({
+  modelId: entityId,
+  name: z.string().min(1, 'Name is required').max(200, 'Name too long'),
+  cloneFromScenarioId: entityId.optional(),
+});
+export type CreateScenarioInput = z.infer<typeof createScenarioSchema>;
+
+export const updateScenarioSchema = z.object({
+  id: entityId,
+  name: z.string().min(1).max(200).optional(),
+  description: z.string().max(1000).nullable().optional(),
+});
+export type UpdateScenarioInput = z.infer<typeof updateScenarioSchema>;
+
+export const createSnapshotSchema = z.object({
+  modelId: entityId,
+  name: z.string().min(1, 'Name is required').max(200, 'Name too long'),
+});
+export type CreateSnapshotInput = z.infer<typeof createSnapshotSchema>;
+
+export const erpConnectSchema = z.object({
+  provider: erpProviderSchema,
+  accessToken: z.string().min(1),
+  refreshToken: z.string().optional(),
+  realmId: z.string().optional(),
+  tenantId: z.string().optional(),
+  companyName: z.string().optional(),
+  tokenExpiresAt: z.string().datetime().optional(),
+});
+export type ERPConnectInput = z.infer<typeof erpConnectSchema>;
+
+export const erpSyncSchema = z.object({
+  connectionId: entityId,
+  modelId: entityId,
+});
+export type ERPSyncInput = z.infer<typeof erpSyncSchema>;

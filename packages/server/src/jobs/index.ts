@@ -11,10 +11,12 @@ export {
   getResearchCancelQueue,
   getSparkPipelineQueue,
   getEmailSyncQueue,
+  getSectionRegenQueue,
   enqueueReportGeneration,
   enqueueResearchPipeline,
   enqueueResearchCancel,
   enqueueSparkPipeline,
+  enqueueSectionRegen,
   getQueueStats,
   getAllQueueStats,
 } from './queues';
@@ -27,6 +29,7 @@ export type {
   SparkPipelineJobData,
   ResearchCancelJobData,
   EmailSyncJobData,
+  SectionRegenJobData,
 } from './queues';
 
 // Worker exports (import in worker process)

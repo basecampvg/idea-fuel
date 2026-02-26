@@ -753,6 +753,106 @@ export interface QueryVariation {
 }
 
 // =============================================================================
+// Assumptions Engine Types
+// =============================================================================
+
+export type AssumptionCategory = 'PRICING' | 'ACQUISITION' | 'RETENTION' | 'MARKET' | 'COSTS' | 'FUNDING' | 'TIMELINE';
+export type AssumptionConfidence = 'USER' | 'RESEARCHED' | 'AI_ESTIMATE' | 'CALCULATED';
+export type AssumptionValueType = 'NUMBER' | 'PERCENTAGE' | 'CURRENCY' | 'TEXT' | 'DATE' | 'SELECT';
+export type AssumptionTier = 'SPARK' | 'LIGHT' | 'IN_DEPTH';
+
+export interface Assumption {
+  id: string;
+  projectId: string;
+  category: AssumptionCategory;
+  name: string;
+  key: string;
+  value: string | null;
+  valueType: AssumptionValueType;
+  unit: string | null;
+  confidence: AssumptionConfidence;
+  source: string;
+  sourceUrl: string | null;
+  formula: string | null;
+  dependsOn: string[];
+  tier: AssumptionTier | null;
+  isSensitive: boolean;
+  isRequired: boolean;
+  updatedByActor: string;
+  updatedByUserId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AssumptionHistory {
+  id: string;
+  assumptionId: string;
+  oldValue: string | null;
+  newValue: string | null;
+  oldConfidence: AssumptionConfidence | null;
+  newConfidence: AssumptionConfidence | null;
+  changedByActor: string;
+  changedByUserId: string | null;
+  reason: string | null;
+  createdAt: Date;
+}
+
+// Discriminated union for cascade results
+export interface CascadeChange {
+  key: string;
+  oldValue: string | null;
+  newValue: string;
+}
+
+export interface CascadeSuccess {
+  status: 'success';
+  changedKey: string;
+  updatedAssumptions: CascadeChange[];
+  impactedSections: Array<{ sectionKey: string; reportType: string }>;
+}
+
+export interface CascadeFailure {
+  status: 'error';
+  changedKey: string;
+  errorType: 'circular_dependency' | 'formula_error' | 'missing_dependency' | 'invalid_value';
+  errorMessage: string;
+  errorAtKey: string | null;
+}
+
+export type CascadeResult = CascadeSuccess | CascadeFailure;
+
+export interface BatchCascadeSuccess {
+  status: 'success';
+  changedKeys: string[];
+  updatedAssumptions: CascadeChange[];
+  impactedSections: Array<{ sectionKey: string; reportType: string }>;
+  metrics: CascadeMetrics;
+}
+
+export interface BatchCascadeFailure {
+  status: 'error';
+  changedKeys: string[];
+  errorType: 'circular_dependency' | 'formula_error' | 'missing_dependency' | 'invalid_value';
+  errorMessage: string;
+  errorAtKey: string | null;
+}
+
+export type BatchCascadeResult = BatchCascadeSuccess | BatchCascadeFailure;
+
+export interface CascadeMetrics {
+  totalAssumptions: number;
+  downstreamCount: number;
+  updatedCount: number;
+  elapsedMs: number;
+}
+
+export interface StalenessInfo {
+  isStale: boolean;
+  reason?: string;
+  daysSinceUpdate?: number;
+}
+
+// =============================================================================
 // Agent Types
 // =============================================================================
 
@@ -814,4 +914,187 @@ export interface AgentSearchResult {
   content: string;
   source: EmbeddingSourceType;
   relevance: string;
+}
+
+// =============================================================================
+// Financial Modeling Types
+// =============================================================================
+
+export type KnowledgeLevel = 'BEGINNER' | 'STANDARD' | 'EXPERT';
+export type FinancialModelStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+export type ERPProvider = 'QUICKBOOKS' | 'XERO';
+export type ERPConnectionStatus = 'ACTIVE' | 'EXPIRED' | 'REVOKED';
+export type SnapshotAction = 'MANUAL' | 'AUTO_SAVE';
+export type TemplateCategory =
+  | 'TECH' | 'SERVICES' | 'RETAIL' | 'FOOD' | 'CONSTRUCTION'
+  | 'HEALTHCARE' | 'REAL_ESTATE' | 'MANUFACTURING' | 'NONPROFIT' | 'FREELANCER';
+
+export interface FinancialModel {
+  id: string;
+  userId: string;
+  projectId: string | null;
+  templateId: string | null;
+  name: string;
+  knowledgeLevel: KnowledgeLevel;
+  forecastYears: number;
+  status: FinancialModelStatus;
+  settings: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Scenario {
+  id: string;
+  modelId: string;
+  name: string;
+  isBase: boolean;
+  description: string | null;
+  displayOrder: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ModelSnapshot {
+  id: string;
+  modelId: string;
+  name: string;
+  assumptionData: Record<string, unknown>;
+  computedOutputs: Record<string, unknown> | null;
+  createdByAction: SnapshotAction;
+  createdAt: Date;
+}
+
+export interface IndustryTemplate {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  category: TemplateCategory;
+  defaultAssumptions: Record<string, unknown>;
+  lineItems: Record<string, unknown>;
+  wizardQuestions: Record<string, unknown> | null;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ERPConnection {
+  id: string;
+  userId: string;
+  provider: ERPProvider;
+  encryptedAccessToken: string;
+  encryptedRefreshToken: string | null;
+  realmId: string | null;
+  tenantId: string | null;
+  companyName: string | null;
+  status: ERPConnectionStatus;
+  tokenExpiresAt: Date | null;
+  lastSyncAt: Date | null;
+  createdAt: Date;
+}
+
+export interface BudgetLineItem {
+  id: string;
+  modelId: string;
+  erpConnectionId: string | null;
+  category: string;
+  accountName: string;
+  erpAccountId: string | null;
+  budgetValues: Record<string, number> | null;
+  actualValues: Record<string, number> | null;
+  lastSyncAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/** Time-series data across different granularities. */
+export interface TimeSeriesData {
+  monthly: number[];
+  quarterly: number[];
+  annual: number[];
+}
+
+/** A single line in a financial statement (P&L, BS, or CF). */
+export interface StatementLine {
+  key: string;
+  name: string;
+  formula?: string;
+  parentKey?: string;
+  children?: string[];
+  timeSeries?: TimeSeriesData;
+}
+
+export type StatementType = 'PL' | 'BS' | 'CF';
+
+/** A complete financial statement. */
+export interface FinancialStatement {
+  type: StatementType;
+  lines: StatementLine[];
+}
+
+/** Computed output for a single statement. */
+export interface StatementData {
+  type: StatementType;
+  lines: Array<{
+    key: string;
+    name: string;
+    values: number[];
+    isSubtotal?: boolean;
+    isTotal?: boolean;
+    parentKey?: string;
+  }>;
+  periods: string[];
+}
+
+/** Full 3-statement model output. */
+export interface ComputedStatements {
+  pl: StatementData;
+  bs: StatementData;
+  cf: StatementData;
+}
+
+/** Template definition for industry templates (static TypeScript files). */
+export interface TemplateAssumption {
+  key: string;
+  name: string;
+  valueType: AssumptionValueType;
+  unit?: string;
+  default: number | string;
+  formula?: string;
+  dependsOn?: string[];
+  category?: AssumptionCategory;
+}
+
+export interface TemplateLineItem {
+  key: string;
+  name: string;
+  formula?: string;
+  children?: string[];
+  isSubtotal?: boolean;
+  isTotal?: boolean;
+}
+
+export interface TemplateDefinition {
+  slug: string;
+  name: string;
+  description: string;
+  category: TemplateCategory;
+  assumptions: {
+    beginner: TemplateAssumption[];
+    standard: TemplateAssumption[];
+    expert: TemplateAssumption[];
+  };
+  lineItems: {
+    pl: TemplateLineItem[];
+    bs: TemplateLineItem[];
+    cf: TemplateLineItem[];
+  };
+  wizardQuestions: Array<{
+    key: string;
+    question: string;
+    type: 'number' | 'percentage' | 'currency' | 'select';
+    options?: string[];
+    targetAssumptionKey: string;
+  }>;
 }
