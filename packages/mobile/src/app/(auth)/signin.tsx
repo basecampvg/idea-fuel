@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui';
+import { IdeaFuelLogo } from '../../components/IdeaFuelLogo';
 import { colors } from '../../lib/theme';
 
 export default function SignInScreen() {
@@ -36,7 +37,7 @@ export default function SignInScreen() {
         <View style={styles.header}>
           {/* Flame Logo */}
           <View style={styles.logoContainer}>
-            <Ionicons name="flame" size={56} color={colors.brand} />
+            <IdeaFuelLogo size={72} />
           </View>
 
           {/* IDEA FUEL wordmark */}

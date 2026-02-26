@@ -20,6 +20,7 @@ import { trpc } from '../../lib/trpc';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { RecentDrafts } from '../../components/RecentDrafts';
+import { IdeaFuelLogo } from '../../components/IdeaFuelLogo';
 import { colors } from '../../lib/theme';
 
 // expo-speech-recognition requires a dev build — safely handle Expo Go
@@ -257,9 +258,9 @@ export default function CaptureScreen() {
 
           {mode === 'voice' ? (
             <View style={styles.voiceContainer}>
-              {/* Flame icon */}
+              {/* Flame logo */}
               <View style={styles.flameContainer}>
-                <Ionicons name="flame" size={120} color={colors.brand} />
+                <IdeaFuelLogo size={140} />
               </View>
 
               {/* Tagline */}
