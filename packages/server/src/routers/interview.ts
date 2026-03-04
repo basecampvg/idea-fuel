@@ -436,17 +436,20 @@ export const interviewRouter = router({
             progress: 0,
             startedAt: new Date(),
             notesSnapshot: interview.project.notes,
+            researchEngine: interview.researchEngine || 'OPENAI',
           }).returning();
           chatResearchRecord = created;
         }
 
         // Queue research pipeline job via BullMQ (processed by worker, survives Vercel timeout)
+        const chatEngine = (interview.researchEngine as 'OPENAI' | 'PERPLEXITY') || 'OPENAI';
         try {
           await enqueueResearchPipeline({
             researchId: chatResearchRecord.id,
             projectId: interview.projectId,
             userId: ctx.userId,
             interviewId: input.interviewId,
+            engine: chatEngine,
           });
         } catch (queueError) {
           console.error('[Interview.chat] Failed to queue research pipeline:', queueError);
@@ -553,17 +556,20 @@ export const interviewRouter = router({
         progress: 0,
         startedAt: new Date(),
         notesSnapshot: interview.project.notes,
+        researchEngine: interview.researchEngine || 'OPENAI',
       }).returning();
       researchRecord = created;
     }
 
     // Queue research pipeline job via BullMQ (processed by worker, survives Vercel timeout)
+    const completeEngine = (interview.researchEngine as 'OPENAI' | 'PERPLEXITY') || 'OPENAI';
     try {
       await enqueueResearchPipeline({
         researchId: researchRecord.id,
         projectId: interview.projectId,
         userId: ctx.userId,
         interviewId: input.id,
+        engine: completeEngine,
       });
     } catch (queueError) {
       console.error('[Interview.complete] Failed to queue research pipeline:', queueError);

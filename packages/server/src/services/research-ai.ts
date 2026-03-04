@@ -645,12 +645,14 @@ export async function runChunkedDeepResearch(
   input: ResearchInput,
   tier: SubscriptionTier = 'ENTERPRISE',
   onProgress?: ChunkedProgressCallback,
-  existingChunks?: ChunkedResearchData
+  existingChunks?: ChunkedResearchData,
+  engine?: 'OPENAI' | 'PERPLEXITY'
 ): Promise<DeepResearchOutput> {
   const { ideaTitle, ideaDescription, interviewData, interviewMessages, canvasContext } = input;
 
   console.log('[Chunked Research] Starting parallel deep research...');
   console.log('[Chunked Research] Tier:', tier);
+  console.log('[Chunked Research] Engine:', engine || 'OPENAI (default)');
   console.log('[Chunked Research] Chunks:', RESEARCH_CHUNKS.length);
 
   // Select model based on tier (FREE uses cheaper mini model)
@@ -721,25 +723,42 @@ export async function runChunkedDeepResearch(
   let completedCount = completedChunkIds.length;
   const totalChunks = RESEARCH_CHUNKS.length;
 
-  // Fire all chunks in parallel
-  const chunkPromises = chunksToRun.map(chunk => {
+  // Perplexity Tier 0 rate limit is 5 RPM — stagger submissions by 15s each
+  // OpenAI can fire all chunks truly in parallel
+  const PERPLEXITY_STAGGER_MS = 15000;
+  const useStagger = engine === 'PERPLEXITY';
+
+  // Fire all chunks (parallel for OpenAI, staggered for Perplexity)
+  const chunkPromises = chunksToRun.map((chunk, index) => {
+    // Stagger delay: chunk 0 = 0ms, chunk 1 = 15s, chunk 2 = 30s, etc.
+    const staggerDelay = useStagger ? index * PERPLEXITY_STAGGER_MS : 0;
+
     const startTime = Date.now();
     const heartbeat = setInterval(() => {
       const elapsed = Math.round((Date.now() - startTime) / 1000);
       console.log(`[Chunked Research] [${chunk.name}] Still researching... (${elapsed}s elapsed)`);
     }, 30000); // Less frequent heartbeat since we have multiple chunks
 
-    return runSingleResearchChunk(
-      ideaTitle,
-      ideaDescription,
-      interviewData,
-      interviewContext,
-      chunk,
-      model,
-      expansionContext,
-      canvasContext,
-      rewrittenBriefs[chunk.id]
-    ).then(async (chunkResult) => {
+    const runChunk = async () => {
+      if (staggerDelay > 0) {
+        console.log(`[Chunked Research] [${chunk.name}] Staggering submission by ${staggerDelay / 1000}s (Perplexity rate limit)`);
+        await new Promise(resolve => setTimeout(resolve, staggerDelay));
+      }
+      return runSingleResearchChunk(
+        ideaTitle,
+        ideaDescription,
+        interviewData,
+        interviewContext,
+        chunk,
+        model,
+        expansionContext,
+        canvasContext,
+        rewrittenBriefs[chunk.id],
+        engine
+      );
+    };
+
+    return runChunk().then(async (chunkResult) => {
       clearInterval(heartbeat);
       const elapsed = Math.round((Date.now() - startTime) / 1000);
       console.log(`[Chunked Research] [${chunk.name}] Complete after ${elapsed}s - ${chunkResult.content.length} chars`);
@@ -804,7 +823,10 @@ export async function runChunkedDeepResearch(
 }
 
 /**
- * Run a single focused research chunk
+ * Run a single focused research chunk.
+ * Routes through the provider abstraction when engine is specified.
+ * - OPENAI (default): Uses createDeepResearchParams + runDeepResearchWithPolling (OpenAI Responses API)
+ * - PERPLEXITY: Uses getResearchProvider().research() (Perplexity async deep research)
  */
 async function runSingleResearchChunk(
   ideaTitle: string,
@@ -815,7 +837,8 @@ async function runSingleResearchChunk(
   model: string,
   expansionContext: string = '',
   canvasContext?: string,
-  rewrittenBrief?: string
+  rewrittenBrief?: string,
+  engine?: 'OPENAI' | 'PERPLEXITY'
 ): Promise<DeepResearchResult> {
   // Use rewritten brief if available, otherwise fall back to default focus
   const researchFocus = rewrittenBrief || chunk.focus;
@@ -852,6 +875,41 @@ ${researchFocus}
 Provide specific, actionable insights with citations. Focus only on this research area.
 ${expansionContext}`;
 
+  // --- Perplexity path: route through AIProvider abstraction ---
+  if (engine === 'PERPLEXITY') {
+    const provider = getResearchProvider(undefined, 'PERPLEXITY');
+    console.log(`[Chunked Research] [${chunk.name}] Using Perplexity sonar-deep-research with ${chunk.getDomains().length} domains...`);
+
+    const response = await withExponentialBackoff(
+      () => provider.research(userQuery, {
+        systemPrompt,
+        domains: chunk.getDomains(),
+        maxTokens: 16000,
+      }),
+      {
+        maxAttempts: 2, // Perplexity deep research is expensive; fewer retries
+        initialDelayMs: 10000,
+        maxDelayMs: 120000,
+        onRetry: (attempt, error, delayMs) => {
+          console.warn(`[Chunked Research] [${chunk.name}] Perplexity retry ${attempt}/2 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+        }
+      }
+    );
+
+    // Map ResearchResponse → DeepResearchResult
+    return {
+      content: response.content,
+      citations: (response.sources || response.citations).map(url => ({
+        title: url,
+        url,
+      })),
+      sources: response.sources || [],
+      searchQueries: [],
+      reasoningSummary: response.reasoning,
+    };
+  }
+
+  // --- OpenAI path: existing Responses API deep research ---
   const params = createDeepResearchParams({
     model,
     systemPrompt,
@@ -5337,7 +5395,8 @@ export async function runResearchPipeline(
   input: ResearchInput,
   onProgress?: (phase: string, progress: number, intermediateData?: IntermediateResearchData) => Promise<void>,
   tier: SubscriptionTier = 'ENTERPRISE',
-  existingResearch?: ExistingResearchData // NEW: for resume functionality
+  existingResearch?: ExistingResearchData, // for resume functionality
+  engine?: 'OPENAI' | 'PERPLEXITY' // research engine selection
 ): Promise<{
   queries: GeneratedQueries;
   insights: SynthesizedInsights;
@@ -5356,7 +5415,8 @@ export async function runResearchPipeline(
 }> {
   console.log('[Research Pipeline] Starting NEW 4-phase pipeline for:', input.ideaTitle);
   console.log('[Research Pipeline] Using tier:', tier);
-  console.log('[Research Pipeline] o3-deep-research model:', tier === 'FREE' ? DEEP_RESEARCH_MODEL_MINI : DEEP_RESEARCH_MODEL);
+  console.log('[Research Pipeline] Engine:', engine || 'OPENAI (default)');
+  console.log('[Research Pipeline] o3-deep-research model:', engine === 'PERPLEXITY' ? 'sonar-deep-research' : (tier === 'FREE' ? DEEP_RESEARCH_MODEL_MINI : DEEP_RESEARCH_MODEL));
 
   // Check for resume data
   // Phase 1: Deep market research (o3-deep-research)
@@ -5404,7 +5464,8 @@ export async function runResearchPipeline(
       input,
       tier,
       onProgress, // Progress callback handles intermediate saves
-      existingResearch?.researchChunks || undefined // Resume from existing chunks
+      existingResearch?.researchChunks || undefined, // Resume from existing chunks
+      engine
     );
 
     // Final save with complete deep research data

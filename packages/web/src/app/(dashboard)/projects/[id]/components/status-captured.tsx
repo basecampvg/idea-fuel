@@ -6,6 +6,7 @@ import { Feather, Microscope, Sparkles, Zap, Clock, ArrowRight, Lightbulb, Lock,
 import { trpc } from '@/lib/trpc/client';
 import { useSubscription } from '@/components/subscription/use-subscription';
 import { INTERVIEW_MODE_LABELS, INTERVIEW_MODE_DESCRIPTIONS, PROJECT_DESC_MAX, PROJECT_DESC_MIN } from '@forge/shared';
+import type { ResearchEngine } from '@forge/shared';
 
 interface StatusCapturedProps {
   project: {
@@ -23,6 +24,7 @@ export function StatusCaptured({ project }: StatusCapturedProps) {
 
   const [isEditingDesc, setIsEditingDesc] = useState(false);
   const [descValue, setDescValue] = useState(project.description || '');
+  const [researchEngine, setResearchEngine] = useState<ResearchEngine>('OPENAI');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const utils = trpc.useUtils();
@@ -96,7 +98,7 @@ export function StatusCaptured({ project }: StatusCapturedProps) {
       showUpgradePrompt({ type: 'interview_mode', mode: 'IN_DEPTH' });
       return;
     }
-    startInterview.mutate({ projectId: project.id, mode: 'IN_DEPTH' });
+    startInterview.mutate({ projectId: project.id, mode: 'IN_DEPTH', researchEngine });
   };
 
   const descTooShort = descValue.trim().length > 0 && descValue.trim().length < PROJECT_DESC_MIN;
@@ -325,7 +327,7 @@ export function StatusCaptured({ project }: StatusCapturedProps) {
 
           {/* Light Interview - always available */}
           <button
-            onClick={() => startInterview.mutate({ projectId: project.id, mode: 'LIGHT' })}
+            onClick={() => startInterview.mutate({ projectId: project.id, mode: 'LIGHT', researchEngine })}
             disabled={startInterview.isPending}
             className="group relative rounded-xl bg-card border border-border p-5 text-left transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -362,8 +364,47 @@ export function StatusCaptured({ project }: StatusCapturedProps) {
           </button>
         </div>
 
-        {/* What to expect */}
+        {/* Research Engine Toggle */}
         <div className="mt-6 pt-6 border-t border-border">
+          <div className="flex flex-col items-center gap-3">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Research Engine</span>
+            <div className="inline-flex rounded-full bg-muted/50 p-1 border border-border">
+              <button
+                onClick={() => setResearchEngine('OPENAI')}
+                className={`
+                  px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200
+                  ${researchEngine === 'OPENAI'
+                    ? 'bg-background text-foreground shadow-sm border border-border'
+                    : 'text-muted-foreground hover:text-foreground'
+                  }
+                `}
+              >
+                OpenAI Deep Research
+              </button>
+              <button
+                onClick={() => setResearchEngine('PERPLEXITY')}
+                className={`
+                  px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200
+                  ${researchEngine === 'PERPLEXITY'
+                    ? 'bg-background text-foreground shadow-sm border border-border'
+                    : 'text-muted-foreground hover:text-foreground'
+                  }
+                `}
+              >
+                Perplexity Sonar
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground/60 text-center max-w-sm">
+              {researchEngine === 'OPENAI'
+                ? 'Uses OpenAI o3 deep research for comprehensive analysis with web search.'
+                : 'Uses Perplexity Sonar deep research for fast, citation-rich analysis.'
+              }
+            </p>
+          </div>
+        </div>
+
+        {/* What to expect */}
+        <div className="mt-4 pt-4 border-t border-border">
           <p className="text-xs text-muted-foreground text-center">
             After the interview, we'll analyze your responses and generate comprehensive market research, competitor analysis, and actionable insights.
           </p>

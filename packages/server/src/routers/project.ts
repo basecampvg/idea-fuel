@@ -271,6 +271,7 @@ export const projectRouter = router({
           collectedData: null,
           confidenceScore: 0,
           summary: 'Spark mode - quick validation from project description.',
+          researchEngine: 'OPENAI', // Spark always uses OpenAI
         }).returning();
 
         await tx.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, input.projectId));
@@ -318,6 +319,7 @@ export const projectRouter = router({
         maxTurns,
         messages: [openingMessage],
         lastActiveAt: new Date(),
+        researchEngine: input.researchEngine || 'OPENAI',
       }).returning();
 
       await tx.update(projects).set({ status: 'INTERVIEWING' }).where(eq(projects.id, input.projectId));
@@ -375,6 +377,9 @@ export const projectRouter = router({
       });
     }
 
+    const latestInterview = project.interviews[0];
+    const engine = (latestInterview?.researchEngine as 'OPENAI' | 'PERPLEXITY') || 'OPENAI';
+
     // Create research record and update project status atomically
     const researchRecord = await ctx.db.transaction(async (tx) => {
       const [created] = await tx.insert(research).values({
@@ -383,6 +388,7 @@ export const projectRouter = router({
         currentPhase: 'QUEUED',
         progress: 0,
         notesSnapshot: project.notes,
+        researchEngine: engine,
       }).returning();
 
       await tx.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, input.id));
@@ -398,7 +404,6 @@ export const projectRouter = router({
     });
 
     // Queue research pipeline job
-    const latestInterview = project.interviews[0];
     try {
       await enqueueResearchPipeline({
         researchId: researchRecord.id,
@@ -406,6 +411,7 @@ export const projectRouter = router({
         userId: ctx.userId,
         interviewId: latestInterview?.id,
         mode: latestInterview?.mode as 'LIGHT' | 'IN_DEPTH' | 'SPARK' | undefined,
+        engine,
       });
     } catch (queueError) {
       console.error('[Research] Failed to queue pipeline:', queueError);

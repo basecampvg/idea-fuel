@@ -27,9 +27,10 @@ export function createResearchPipelineWorker() {
   const worker = new Worker<ResearchPipelineJobData>(
     QUEUE_NAMES.RESEARCH_PIPELINE,
     async (job: Job<ResearchPipelineJobData>) => {
-      const { researchId, projectId, userId } = job.data;
+      const { researchId, projectId, userId, engine } = job.data;
 
-      console.log(`[ResearchWorker] Processing research ${researchId} for project ${projectId}`);
+      console.log(`[ResearchWorker] Processing research ${researchId} for project ${projectId} (engine: ${engine || 'OPENAI'})`);
+
 
       let currentPhase: string = 'DEEP_RESEARCH';
       const startTime = Date.now();
@@ -189,7 +190,7 @@ export function createResearchPipelineWorker() {
 
           // Also update BullMQ job progress for monitoring
           await job.updateProgress(progress);
-        }, userTier, existingResearchData);
+        }, userTier, existingResearchData, engine);
 
         // 7. Save final results
         await db.update(research).set({
@@ -263,8 +264,8 @@ export function createResearchPipelineWorker() {
     {
       connection: createRedisConnection(),
       concurrency: 1,          // Only 1 concurrent research job (expensive API calls)
-      lockDuration: 300000,     // 5 min lock duration (long-running jobs)
-      lockRenewTime: 150000,    // Renew lock every 2.5 min
+      lockDuration: 1800000,    // 30 min lock duration (Perplexity deep research can take 15+ min/chunk)
+      lockRenewTime: 900000,    // Renew lock every 15 min
       stalledInterval: 600000,  // Check for stalled jobs every 10 min
       drainDelay: 60000,        // Wait 60s between polls when idle (saves Upstash requests)
     }

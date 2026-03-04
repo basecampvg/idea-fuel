@@ -19,6 +19,13 @@ export * from './types';
 export { getBraveSearchProvider } from './brave';
 export { getAnthropicProvider } from './anthropic';
 export { getOpenAIProvider, openaiSearch } from './openai';
+export { getPerplexityProvider } from './perplexity';
+
+// Engine name (DB uppercase) → provider key (registry lowercase) mapping
+const ENGINE_TO_PROVIDER_KEY: Record<string, string> = {
+  OPENAI: 'openai',
+  PERPLEXITY: 'perplexity',
+} as const;
 
 // ============================================================================
 // Provider Registry
@@ -55,6 +62,15 @@ function initializeProviders() {
     } catch (error) {
       console.warn('[Providers] Anthropic not available:', error);
     }
+
+    try {
+      if (process.env.PERPLEXITY_API_KEY) {
+        const { getPerplexityProvider } = require('./perplexity');
+        aiProviders.set('perplexity', getPerplexityProvider());
+      }
+    } catch (error) {
+      console.warn('[Providers] Perplexity not available:', error);
+    }
   }
 }
 
@@ -86,9 +102,24 @@ export function getSearchProvider(): SearchProvider {
 
 /**
  * Get AI provider for research tasks
+ * @param tier - User subscription tier for tier-based provider overrides
+ * @param engine - Explicit engine choice from user (e.g. 'OPENAI', 'PERPLEXITY')
  */
-export function getResearchProvider(tier?: SubscriptionTier): AIProvider {
+export function getResearchProvider(tier?: SubscriptionTier, engine?: string): AIProvider {
   initializeProviders();
+
+  // If explicit engine requested, use allowlist lookup (no silent fallback)
+  if (engine) {
+    const providerKey = ENGINE_TO_PROVIDER_KEY[engine.toUpperCase()];
+    if (!providerKey) {
+      throw new Error(`Unknown research engine: ${engine}`);
+    }
+    const provider = aiProviders.get(providerKey);
+    if (!provider) {
+      throw new Error(`Research engine '${engine}' is not available — check API key configuration`);
+    }
+    return provider;
+  }
 
   // Check tier-specific override
   if (tier && configService.isInitialized()) {
@@ -281,16 +312,16 @@ export function getProviderConfig(): ProviderConfig {
     },
     ai: {
       research: configService.isInitialized()
-        ? (configService.getString('ai.research.provider', 'openai') as 'openai' | 'anthropic')
+        ? (configService.getString('ai.research.provider', 'openai') as ProviderConfig['ai']['research'])
         : 'openai',
       extraction: configService.isInitialized()
-        ? (configService.getString('ai.extraction.provider', 'anthropic') as 'openai' | 'anthropic')
+        ? (configService.getString('ai.extraction.provider', 'anthropic') as ProviderConfig['ai']['extraction'])
         : 'anthropic',
       generation: configService.isInitialized()
-        ? (configService.getString('ai.generation.provider', 'anthropic') as 'openai' | 'anthropic')
+        ? (configService.getString('ai.generation.provider', 'anthropic') as ProviderConfig['ai']['generation'])
         : 'anthropic',
       businessPlan: configService.isInitialized()
-        ? (configService.getString('ai.businessPlan.provider', 'anthropic') as 'openai' | 'anthropic')
+        ? (configService.getString('ai.businessPlan.provider', 'anthropic') as ProviderConfig['ai']['businessPlan'])
         : 'anthropic',
     },
   };
