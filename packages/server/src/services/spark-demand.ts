@@ -20,6 +20,7 @@ import {
 import { getResearchProvider } from '../providers';
 import type { SparkKeywords } from '@forge/shared';
 import { safeJsonParse } from './research-ai';
+import { extractJsonFromProse } from '../lib/extract-json';
 
 // =============================================================================
 // TYPES
@@ -302,7 +303,7 @@ ${expansionPromptSection}
 
   // Parse the response
   const rawContent = result.content || '';
-  const parsed = parseDemandResult(rawContent);
+  const parsed = await parseDemandResult(rawContent, options.engine);
 
   console.log(
     `[Spark:Demand] Complete - ${parsed.reddit.top_threads.length} threads, ${parsed.facebook_groups.length} groups`
@@ -315,10 +316,23 @@ ${expansionPromptSection}
 // PARSING
 // =============================================================================
 
+const DEMAND_JSON_SCHEMA = `{
+  "reddit": {
+    "top_threads": [
+      { "title": "string", "subreddit": "string", "url": "string", "upvotes": 0, "comments": 0, "posted": "string", "signal": "string" }
+    ],
+    "recurring_pains": ["string"],
+    "willingness_to_pay_clues": ["string"]
+  },
+  "facebook_groups": [
+    { "name": "string", "members": "string", "privacy": "public|private", "url": "string", "fit_score": 0, "why_relevant": "string" }
+  ]
+}`;
+
 /**
  * Parse demand research result from raw content
  */
-function parseDemandResult(rawContent: string): SparkDemandResult {
+async function parseDemandResult(rawContent: string, engine?: 'OPENAI' | 'PERPLEXITY'): Promise<SparkDemandResult> {
   // Try to find JSON in the content
   let jsonStr = rawContent;
 
@@ -340,7 +354,16 @@ function parseDemandResult(rawContent: string): SparkDemandResult {
   if (!result.ok) {
     const preview = rawContent.slice(0, 80).replace(/\n/g, ' ');
     console.error(`[Spark:Demand] Failed to parse response: ${result.reason}`);
-    console.warn(`[Spark:Demand] Response preview: "${preview}..." — Perplexity may have returned prose instead of JSON`);
+    console.warn(`[Spark:Demand] Response preview: "${preview}..."`);
+
+    // Fallback: use LLM to extract JSON from prose (only for Perplexity responses)
+    if (engine === 'PERPLEXITY' && rawContent.length > 100) {
+      const extracted = await extractJsonFromProse<Record<string, unknown>>(rawContent, DEMAND_JSON_SCHEMA, 'Spark:Demand');
+      if (extracted) {
+        return buildDemandResult(extracted);
+      }
+    }
+
     return {
       reddit: {
         top_threads: [],
@@ -351,10 +374,12 @@ function parseDemandResult(rawContent: string): SparkDemandResult {
     };
   }
 
-  const parsed = result.data;
+  return buildDemandResult(result.data);
+}
+
+function buildDemandResult(parsed: Record<string, unknown>): SparkDemandResult {
   const reddit = (parsed.reddit || {}) as Record<string, unknown>;
 
-  // Validate and return with defaults
   return {
     reddit: {
       top_threads: Array.isArray(reddit.top_threads)

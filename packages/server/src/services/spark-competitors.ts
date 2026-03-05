@@ -20,6 +20,7 @@ import {
 import { getResearchProvider } from '../providers';
 import type { SparkKeywords } from '@forge/shared';
 import { safeJsonParse } from './research-ai';
+import { extractJsonFromProse } from '../lib/extract-json';
 
 // =============================================================================
 // TYPES
@@ -256,7 +257,7 @@ ${expansionPromptSection}
 
   // Parse the response
   const rawContent = result.content || '';
-  const parsed = parseCompetitorResult(rawContent);
+  const parsed = await parseCompetitorResult(rawContent, options.engine);
 
   console.log(
     `[Spark:Competitors] Complete - ${parsed.competitors.length} competitors, ${parsed.market_gaps.length} gaps`
@@ -269,10 +270,17 @@ ${expansionPromptSection}
 // PARSING
 // =============================================================================
 
+const COMPETITOR_JSON_SCHEMA = `{
+  "competitors": [
+    { "name": "string", "description": "string", "strengths": ["string"], "weaknesses": ["string"], "positioning": "string", "website": "string", "pricing_model": "string" }
+  ],
+  "market_gaps": ["string"]
+}`;
+
 /**
  * Parse competitor research result from raw content
  */
-function parseCompetitorResult(rawContent: string): SparkCompetitorResult {
+async function parseCompetitorResult(rawContent: string, engine?: 'OPENAI' | 'PERPLEXITY'): Promise<SparkCompetitorResult> {
   // Try to find JSON in the content
   let jsonStr = rawContent;
 
@@ -292,16 +300,28 @@ function parseCompetitorResult(rawContent: string): SparkCompetitorResult {
   const result = safeJsonParse<Record<string, unknown>>(jsonStr);
 
   if (!result.ok) {
-    console.error('[Spark:Competitors] Failed to parse response:', result.reason);
+    const preview = rawContent.slice(0, 80).replace(/\n/g, ' ');
+    console.error(`[Spark:Competitors] Failed to parse response: ${result.reason}`);
+    console.warn(`[Spark:Competitors] Response preview: "${preview}..."`);
+
+    // Fallback: use LLM to extract JSON from prose (only for Perplexity responses)
+    if (engine === 'PERPLEXITY' && rawContent.length > 100) {
+      const extracted = await extractJsonFromProse<Record<string, unknown>>(rawContent, COMPETITOR_JSON_SCHEMA, 'Spark:Competitors');
+      if (extracted) {
+        return buildCompetitorResult(extracted);
+      }
+    }
+
     return {
       competitors: [],
       market_gaps: [],
     };
   }
 
-  const parsed = result.data;
+  return buildCompetitorResult(result.data);
+}
 
-  // Validate and return with defaults
+function buildCompetitorResult(parsed: Record<string, unknown>): SparkCompetitorResult {
   return {
     competitors: Array.isArray(parsed.competitors)
       ? parsed.competitors.map((c: Record<string, unknown>) => ({

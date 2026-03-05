@@ -19,6 +19,7 @@ import {
 import { getResearchProvider } from '../providers';
 import type { SparkKeywords } from '@forge/shared';
 import { safeJsonParse } from './research-ai';
+import { extractJsonFromProse } from '../lib/extract-json';
 
 // =============================================================================
 // TYPES
@@ -292,7 +293,7 @@ ${expansionPromptSection}
 
   // Parse the response
   const rawContent = result.content || '';
-  const parsed = parseTamResult(rawContent);
+  const parsed = await parseTamResult(rawContent, options.engine);
 
   console.log(
     `[Spark:TAM] Complete - TAM: $${formatNumber(parsed.tam.base)}, Trend: ${parsed.trend_signal.direction}`
@@ -305,10 +306,26 @@ ${expansionPromptSection}
 // PARSING
 // =============================================================================
 
+const TAM_JSON_SCHEMA = `{
+  "tam": {
+    "currency": "USD",
+    "low": 0,
+    "base": 0,
+    "high": 0,
+    "method": "topdown+bottomup",
+    "assumptions": ["string"],
+    "citations": [{ "label": "string", "url": "string" }]
+  },
+  "trend_signal": {
+    "direction": "rising|flat|declining|unknown",
+    "evidence": [{ "claim": "string", "source_url": "string" }]
+  }
+}`;
+
 /**
  * Parse TAM research result from raw content
  */
-function parseTamResult(rawContent: string): SparkTamResult {
+async function parseTamResult(rawContent: string, engine?: 'OPENAI' | 'PERPLEXITY'): Promise<SparkTamResult> {
   // Try to find JSON in the content
   let jsonStr = rawContent;
 
@@ -330,7 +347,16 @@ function parseTamResult(rawContent: string): SparkTamResult {
   if (!result.ok) {
     const preview = rawContent.slice(0, 80).replace(/\n/g, ' ');
     console.error(`[Spark:TAM] Failed to parse response: ${result.reason}`);
-    console.warn(`[Spark:TAM] Response preview: "${preview}..." — Perplexity may have returned prose instead of JSON`);
+    console.warn(`[Spark:TAM] Response preview: "${preview}..."`);
+
+    // Fallback: use LLM to extract JSON from prose (only for Perplexity responses)
+    if (engine === 'PERPLEXITY' && rawContent.length > 100) {
+      const extracted = await extractJsonFromProse<Record<string, unknown>>(rawContent, TAM_JSON_SCHEMA, 'Spark:TAM');
+      if (extracted) {
+        return buildTamResult(extracted);
+      }
+    }
+
     return {
       tam: {
         currency: 'USD',
@@ -348,18 +374,19 @@ function parseTamResult(rawContent: string): SparkTamResult {
     };
   }
 
-  const parsed = result.data;
+  return buildTamResult(result.data);
+}
+
+function buildTamResult(parsed: Record<string, unknown>): SparkTamResult {
   const tam = (parsed.tam || {}) as Record<string, unknown>;
   const trendSignal = (parsed.trend_signal || {}) as Record<string, unknown>;
 
-  // Validate direction enum
   const direction = ['rising', 'flat', 'declining', 'unknown'].includes(
     trendSignal.direction as string
   )
     ? (trendSignal.direction as 'rising' | 'flat' | 'declining' | 'unknown')
     : 'unknown';
 
-  // Validate and return with defaults
   return {
     tam: {
       currency: String(tam.currency || 'USD'),
