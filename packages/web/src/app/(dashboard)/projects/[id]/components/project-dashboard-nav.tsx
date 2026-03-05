@@ -11,6 +11,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useSidebar, TOP_BAR_HEIGHT } from '@/components/layout/sidebar-context';
+import { trpc } from '@/lib/trpc/client';
 
 const DASHBOARD_NAV_HEIGHT = 40;
 
@@ -20,6 +21,7 @@ interface DashboardTab {
   icon: LucideIcon;
   href?: string;
   comingSoon?: boolean;
+  devOnly?: boolean;
 }
 
 /** Routes that belong to the "Research" dashboard */
@@ -59,6 +61,7 @@ function getTabs(projectId: string): DashboardTab[] {
       label: 'Financial',
       icon: DollarSign,
       href: `${base}/financials`,
+      devOnly: true,
     },
     {
       key: 'reporting',
@@ -98,7 +101,9 @@ export { DASHBOARD_NAV_HEIGHT };
 export function ProjectDashboardNav({ projectId }: ProjectDashboardNavProps) {
   const pathname = usePathname();
   const { sidebarWidth } = useSidebar();
-  const tabs = getTabs(projectId);
+  const { data: currentUser } = trpc.user.me.useQuery(undefined, { staleTime: 60_000 });
+  const isDevRole = currentUser?.role === 'SUPER_ADMIN';
+  const tabs = getTabs(projectId).filter((tab) => !tab.devOnly || isDevRole);
   const activeTab = getActiveTab(pathname, projectId);
 
   const SECONDARY_NAV_WIDTH = 240;

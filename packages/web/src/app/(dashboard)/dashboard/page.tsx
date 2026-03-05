@@ -215,6 +215,7 @@ export default function DashboardPage() {
     undefined,
     { retry: isDev ? false : 3 }
   );
+  const isDevRole = user?.role === 'SUPER_ADMIN';
   const createProject = trpc.project.create.useMutation();
   const startInterview = trpc.project.startInterview.useMutation();
   const startResearch = trpc.research.start.useMutation();
@@ -673,35 +674,37 @@ export default function DashboardPage() {
                 })}
               </div>
 
-              {/* Research Engine Toggle */}
-              <div className="flex gap-0.5 p-0.5 rounded-lg bg-muted/30 border border-border/50">
-                <button
-                  onClick={() => setResearchEngine('OPENAI')}
-                  className={`
-                    px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-200
-                    ${researchEngine === 'OPENAI'
-                      ? 'bg-background text-foreground shadow-sm border border-border/80'
-                      : 'text-muted-foreground/50 hover:text-foreground'
-                    }
-                  `}
-                  title="OpenAI o3 Deep Research"
-                >
-                  OpenAI
-                </button>
-                <button
-                  onClick={() => setResearchEngine('PERPLEXITY')}
-                  className={`
-                    px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-200
-                    ${researchEngine === 'PERPLEXITY'
-                      ? 'bg-background text-foreground shadow-sm border border-border/80'
-                      : 'text-muted-foreground/50 hover:text-foreground'
-                    }
-                  `}
-                  title="Perplexity Sonar Deep Research"
-                >
-                  Perplexity
-                </button>
-              </div>
+              {/* Research Engine Toggle — dev-only */}
+              {isDevRole && (
+                <div className="flex gap-0.5 p-0.5 rounded-lg bg-muted/30 border border-border/50">
+                  <button
+                    onClick={() => setResearchEngine('OPENAI')}
+                    className={`
+                      px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-200
+                      ${researchEngine === 'OPENAI'
+                        ? 'bg-background text-foreground shadow-sm border border-border/80'
+                        : 'text-muted-foreground/50 hover:text-foreground'
+                      }
+                    `}
+                    title="OpenAI o3 Deep Research"
+                  >
+                    OpenAI
+                  </button>
+                  <button
+                    onClick={() => setResearchEngine('PERPLEXITY')}
+                    className={`
+                      px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-200
+                      ${researchEngine === 'PERPLEXITY'
+                        ? 'bg-background text-foreground shadow-sm border border-border/80'
+                        : 'text-muted-foreground/50 hover:text-foreground'
+                      }
+                    `}
+                    title="Perplexity Sonar Deep Research"
+                  >
+                    Perplexity
+                  </button>
+                </div>
+              )}
 
               <div className="flex items-center gap-2">
                 {/* Prompt hint toggle */}

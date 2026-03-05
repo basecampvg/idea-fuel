@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar, TOP_BAR_HEIGHT } from '@/components/layout/sidebar-context';
 import { type ProjectStatus, projectStatusConfig } from '@/lib/project-status';
+import { trpc } from '@/lib/trpc/client';
 import {
   LayoutDashboard,
   Target,
@@ -198,12 +199,17 @@ interface ProjectSecondaryNavProps {
 export function ProjectSecondaryNav({ project }: ProjectSecondaryNavProps) {
   const pathname = usePathname();
   const { sidebarWidth } = useSidebar();
+  const { data: currentUser } = trpc.user.me.useQuery(undefined, { staleTime: 60_000 });
+  const isDevRole = currentUser?.role === 'SUPER_ADMIN';
   const activeDashboard = getActiveDashboard(pathname, project.id);
-  const navSections = activeDashboard === 'financial'
+
+  // Gate financial dashboard behind dev role — fall back to research
+  const effectiveDashboard = activeDashboard === 'financial' && !isDevRole ? 'research' : activeDashboard;
+  const navSections = effectiveDashboard === 'financial'
     ? getFinancialSections(project.id, pathname)
-    : activeDashboard === 'reporting'
+    : effectiveDashboard === 'reporting'
       ? getReportingSections(project.id)
-      : activeDashboard === 'gtm'
+      : effectiveDashboard === 'gtm'
         ? getGtmSections(project.id)
         : getResearchSections(project.id);
   const status = projectStatusConfig[project.status as ProjectStatus] || projectStatusConfig.CAPTURED;

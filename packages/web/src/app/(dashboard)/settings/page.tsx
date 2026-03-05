@@ -108,8 +108,8 @@ export default function SettingsPage() {
         </form>
       </Card>
 
-      {/* Founder Profile */}
-      <FounderProfileForm />
+      {/* Founder Profile — dev-only */}
+      {user?.role === 'SUPER_ADMIN' && <FounderProfileForm />}
 
       {/* Appearance */}
       <Card>
