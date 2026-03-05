@@ -349,13 +349,20 @@ ${competitorResult ? JSON.stringify(competitorResult, null, 2) : 'UNAVAILABLE - 
     throw new Error('Synthesis returned empty content');
   }
 
-  // Validate JSON completeness before parsing
-  validateJsonCompleteness(content, 'synthesizeSparkResults');
+  // Strip markdown code fences before validation (Anthropic often wraps JSON in ```json...```)
+  let jsonContent = content;
+  const fenceMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenceMatch) {
+    jsonContent = fenceMatch[1].trim();
+  }
 
-  // Try direct parse first, then isolate JSON if needed (handles markdown code fences)
+  // Validate JSON completeness on the cleaned content
+  validateJsonCompleteness(jsonContent, 'synthesizeSparkResults');
+
+  // Try direct parse first, then isolate JSON if needed
   let parsed: Record<string, unknown>;
   try {
-    parsed = JSON.parse(content);
+    parsed = JSON.parse(jsonContent);
   } catch (directParseError) {
     const isolated = isolateJson(content);
     if (!isolated) {

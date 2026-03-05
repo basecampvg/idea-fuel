@@ -26,12 +26,15 @@ export function createSparkPipelineWorker() {
         const result = await runSparkPipeline(description, {
           engine,
           onStatusChange: async (status: SparkJobStatus) => {
-            // Check for cancellation
+            // Check for user-initiated cancellation (not pipeline errors)
             const current = await db.query.research.findFirst({
               where: eq(research.id, researchId),
-              columns: { status: true, sparkStatus: true },
+              columns: { status: true, sparkStatus: true, errorMessage: true },
             });
-            if (current?.status === 'FAILED' || current?.sparkStatus === 'FAILED') {
+            const wasCancelledByUser = current?.status === 'FAILED' &&
+              typeof current.errorMessage === 'string' &&
+              current.errorMessage.toLowerCase().includes('cancelled by user');
+            if (wasCancelledByUser) {
               throw new Error('Spark cancelled by user');
             }
 

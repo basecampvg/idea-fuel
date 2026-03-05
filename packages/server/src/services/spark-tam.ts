@@ -328,7 +328,9 @@ function parseTamResult(rawContent: string): SparkTamResult {
   const result = safeJsonParse<Record<string, unknown>>(jsonStr);
 
   if (!result.ok) {
-    console.error('[Spark:TAM] Failed to parse response:', result.reason);
+    const preview = rawContent.slice(0, 80).replace(/\n/g, ' ');
+    console.error(`[Spark:TAM] Failed to parse response: ${result.reason}`);
+    console.warn(`[Spark:TAM] Response preview: "${preview}..." — Perplexity may have returned prose instead of JSON`);
     return {
       tam: {
         currency: 'USD',

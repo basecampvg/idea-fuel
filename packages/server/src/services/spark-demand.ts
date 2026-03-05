@@ -338,7 +338,9 @@ function parseDemandResult(rawContent: string): SparkDemandResult {
   const result = safeJsonParse<Record<string, unknown>>(jsonStr);
 
   if (!result.ok) {
-    console.error('[Spark:Demand] Failed to parse response:', result.reason);
+    const preview = rawContent.slice(0, 80).replace(/\n/g, ' ');
+    console.error(`[Spark:Demand] Failed to parse response: ${result.reason}`);
+    console.warn(`[Spark:Demand] Response preview: "${preview}..." — Perplexity may have returned prose instead of JSON`);
     return {
       reddit: {
         top_threads: [],
