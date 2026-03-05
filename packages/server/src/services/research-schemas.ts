@@ -6,6 +6,34 @@ import { z } from 'zod';
  */
 
 // ============================================================================
+// Shared Helpers
+// ============================================================================
+
+/**
+ * Coerce an array of mixed strings/objects into a string array.
+ * LLMs sometimes return { threat: "...", impact: "..." } instead of plain strings.
+ * Uses preprocess to normalize before standard z.array(z.string()) validation.
+ */
+function coerceItemToString(item: unknown): string {
+  if (typeof item === 'string') return item;
+  if (item && typeof item === 'object') {
+    const values = Object.values(item as Record<string, unknown>).filter(
+      (v): v is string => typeof v === 'string' && v.length > 10
+    );
+    return values.sort((a, b) => b.length - a.length)[0] || JSON.stringify(item);
+  }
+  return String(item);
+}
+
+const coerceStringArray: z.ZodType<string[]> = z.preprocess(
+  (val: unknown) => {
+    if (!Array.isArray(val)) return val;
+    return val.map(coerceItemToString);
+  },
+  z.array(z.string()).min(3).max(8)
+) as z.ZodType<string[]>;
+
+// ============================================================================
 // Insights Extraction Schema
 // ============================================================================
 
@@ -15,7 +43,7 @@ export const InsightsSchema = z.object({
     growth: z.string(),
     trends: z.array(z.string()),
     opportunities: z.array(z.string()),
-    threats: z.array(z.string()),
+    threats: coerceStringArray,
     marketDynamics: z.object({
       stage: z.enum(['emerging', 'growing', 'mature', 'declining']),
       consolidationLevel: z.string(),
@@ -316,8 +344,8 @@ export const TechStackSchema = z.object({
 // ============================================================================
 
 export const SWOTSchema = z.object({
-  strengths: z.array(z.string()).min(3).max(8),
-  weaknesses: z.array(z.string()).min(3).max(8),
-  opportunities: z.array(z.string()).min(3).max(8),
-  threats: z.array(z.string()).min(3).max(8),
+  strengths: coerceStringArray,
+  weaknesses: coerceStringArray,
+  opportunities: coerceStringArray,
+  threats: coerceStringArray,
 });

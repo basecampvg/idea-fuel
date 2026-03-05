@@ -16,6 +16,7 @@ import { redis } from './redis';
 // =============================================================================
 
 const DAILY_LIMIT = parseInt(process.env.SERPAPI_DAILY_LIMIT || '100', 10);
+const PER_PIPELINE_CAP = parseInt(process.env.SERPAPI_PER_PIPELINE_CAP || '8', 10);
 const REDIS_KEY_PREFIX = 'serpapi:usage';
 
 /** Budget pools with percentage allocation */
@@ -148,4 +149,57 @@ export async function getTotalUsage(): Promise<{
 export async function isSerpApiBudgetAvailable(pool: BudgetPool = BUDGET_POOL.USER_PIPELINE): Promise<boolean> {
   const remaining = await getRemainingBudget(pool);
   return remaining > 0;
+}
+
+// =============================================================================
+// PER-PIPELINE BUDGET CAP
+// Prevents a single pipeline from consuming the entire daily pool budget.
+// =============================================================================
+
+function getPipelineKey(pipelineId: string): string {
+  const date = new Date().toISOString().slice(0, 10);
+  return `${REDIS_KEY_PREFIX}:pipeline:${pipelineId}:${date}`;
+}
+
+/**
+ * Track a SerpAPI call for a specific pipeline AND the pool.
+ * Returns the pipeline's usage count after increment.
+ */
+export async function trackPipelineSerpApiCall(
+  pipelineId: string,
+  pool: BudgetPool = BUDGET_POOL.USER_PIPELINE
+): Promise<number> {
+  try {
+    const pipelineKey = getPipelineKey(pipelineId);
+    const [pipelineCount] = await Promise.all([
+      redis.incr(pipelineKey),
+      redis.expire(pipelineKey, 172800), // 48h TTL
+      trackSerpApiCall(pool), // Also increment pool + total counters
+    ]);
+    return pipelineCount;
+  } catch (error) {
+    console.warn('[SerpAPI Budget] Failed to track pipeline usage:', error);
+    return -1;
+  }
+}
+
+/**
+ * Check if a specific pipeline can still make SerpAPI calls.
+ * Checks both per-pipeline cap AND pool budget.
+ */
+export async function canPipelineUseSerpApi(
+  pipelineId: string,
+  pool: BudgetPool = BUDGET_POOL.USER_PIPELINE
+): Promise<boolean> {
+  try {
+    const pipelineKey = getPipelineKey(pipelineId);
+    const [pipelineUsed, poolRemaining] = await Promise.all([
+      redis.get(pipelineKey).then((v) => parseInt(v || '0', 10)),
+      getRemainingBudget(pool),
+    ]);
+    return pipelineUsed < PER_PIPELINE_CAP && poolRemaining > 0;
+  } catch (error) {
+    console.warn('[SerpAPI Budget] Failed to check pipeline budget:', error);
+    return true; // Fail-open
+  }
 }

@@ -13,7 +13,7 @@ import { ScoreCards } from './components/score-cards';
 
 import { AgentInsightsSection } from '@/components/agent/agent-insights-section';
 import { Trash2 } from 'lucide-react';
-import type { SparkResult, InterviewMode } from '@forge/shared';
+import type { SparkResult, InterviewMode, ResearchEngine } from '@forge/shared';
 import { getResearchJourneyState } from '@forge/shared';
 
 // Check if research is a Spark validation (has sparkStatus or sparkResult)
@@ -64,8 +64,11 @@ export default function ProjectOverviewPage() {
     }
   };
 
+  // Carry forward the engine choice from the most recent interview
+  const latestEngine = (project?.interviews?.[0] as { researchEngine?: string } | undefined)?.researchEngine as ResearchEngine | undefined;
+
   const handleStartMode = (mode: InterviewMode) => {
-    startInterview.mutate({ projectId: params.id, mode });
+    startInterview.mutate({ projectId: params.id, mode, researchEngine: latestEngine || 'OPENAI' });
   };
 
   const handleSparkComplete = () => {

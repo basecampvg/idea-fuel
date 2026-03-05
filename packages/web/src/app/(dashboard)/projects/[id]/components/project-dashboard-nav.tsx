@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   FlaskConical,
   DollarSign,
+  FileText,
   Rocket,
   Lock,
   type LucideIcon,
@@ -33,9 +34,13 @@ const RESEARCH_ROUTES = [
   '/competitors',
   '/business-fit',
   '/interview-summary',
-  '/insights',
-  '/reports/',
 ];
+
+/** Routes that belong to the "Reporting" dashboard */
+const REPORTING_ROUTES = ['/reports/', '/insights'];
+
+/** Routes that belong to the "Financial" dashboard */
+const FINANCIAL_ROUTES = ['/financials'];
 
 /** Routes that belong to the "Go to Market" dashboard */
 const GTM_ROUTES = ['/offer', '/tech-stack', '/action-prompts'];
@@ -53,7 +58,13 @@ function getTabs(projectId: string): DashboardTab[] {
       key: 'financial',
       label: 'Financial',
       icon: DollarSign,
-      comingSoon: true,
+      href: `${base}/financials`,
+    },
+    {
+      key: 'reporting',
+      label: 'Reporting',
+      icon: FileText,
+      href: `${base}/reports/business-plan`,
     },
     {
       key: 'go-to-market',
@@ -69,6 +80,8 @@ function getActiveTab(pathname: string | null, projectId: string): string {
   const base = `/projects/${projectId}`;
   const relative = pathname.replace(base, '');
 
+  if (FINANCIAL_ROUTES.some((r) => relative.startsWith(r))) return 'financial';
+  if (REPORTING_ROUTES.some((r) => relative.startsWith(r))) return 'reporting';
   if (GTM_ROUTES.some((r) => relative.startsWith(r))) return 'go-to-market';
   if (RESEARCH_ROUTES.some((r) => relative.startsWith(r))) return 'research';
 

@@ -55,9 +55,11 @@ async function main() {
     w.on('error', handleRateLimitError);
   }
 
+  const researchConcurrency = process.env.RESEARCH_WORKER_CONCURRENCY || '3';
+  const sparkConcurrency = process.env.SPARK_WORKER_CONCURRENCY || '2';
   console.log('[Worker] All workers started:');
-  console.log('  - Research Pipeline (concurrency: 1, drainDelay: 60s)');
-  console.log('  - Spark Pipeline (concurrency: 2, drainDelay: 60s)');
+  console.log(`  - Research Pipeline (concurrency: ${researchConcurrency}, drainDelay: 60s)`);
+  console.log(`  - Spark Pipeline (concurrency: ${sparkConcurrency}, drainDelay: 60s)`);
   console.log('  - Research Cancel (concurrency: 5, drainDelay: 60s)');
   console.log('  - Report Generation (concurrency: 3, drainDelay: 60s)');
   console.log('[Worker] Waiting for jobs...');

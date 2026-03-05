@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { trpc } from '@/lib/trpc/client';
@@ -37,7 +37,12 @@ const knowledgeLevels: { value: KnowledgeLevel; label: string; description: stri
   { value: 'EXPERT', label: 'Expert', description: '75+ assumptions. Full financial detail.' },
 ];
 
-export default function NewFinancialModelPage() {
+export default function NewFinancialModelPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id: projectId } = use(params);
   const router = useRouter();
   const [step, setStep] = useState<'template' | 'configure'>('template');
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
@@ -49,7 +54,7 @@ export default function NewFinancialModelPage() {
   const { data: templates, isLoading: templatesLoading } = trpc.financial.listTemplates.useQuery(undefined, { staleTime: 300_000 });
   const createMutation = trpc.financial.create.useMutation({
     onSuccess: (data) => {
-      router.push(`/financials/${data.model.id}`);
+      router.push(`/projects/${projectId}/financials/${data.model.id}`);
     },
     onError: () => {
       setIsCreating(false);
@@ -71,6 +76,7 @@ export default function NewFinancialModelPage() {
     createMutation.mutate({
       name: modelName.trim(),
       templateSlug: selectedTemplate ?? undefined,
+      projectId,
       knowledgeLevel,
       forecastYears,
     });
@@ -83,7 +89,7 @@ export default function NewFinancialModelPage() {
       {/* Header */}
       <div className="mb-8">
         <Link
-          href="/financials"
+          href={`/projects/${projectId}/financials`}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
         >
           <ArrowLeft className="w-4 h-4" />

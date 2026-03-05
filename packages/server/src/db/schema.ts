@@ -117,6 +117,7 @@ export const users = pgTable('User', {
   subscription: subscriptionTierEnum().default('FREE').notNull(),
   isAdmin: boolean().default(false).notNull(),
   role: userRoleEnum().default('USER').notNull(),
+  founderProfile: jsonb('founder_profile'),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
 }, (table) => [

@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { LoadingScreen } from '@/components/ui/spinner';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { SUBSCRIPTION_TIER_LABELS, SUBSCRIPTION_TIER_DESCRIPTIONS } from '@forge/shared';
+import { FounderProfileForm } from './components/founder-profile-form';
 
 export default function SettingsPage() {
   const { data: session, update: updateSession } = useSession();
@@ -106,6 +107,9 @@ export default function SettingsPage() {
           </CardFooter>
         </form>
       </Card>
+
+      {/* Founder Profile */}
+      <FounderProfileForm />
 
       {/* Appearance */}
       <Card>

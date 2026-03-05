@@ -9,7 +9,7 @@
  */
 
 import { fetchRelatedRisingQueries, isSerpApiConfigured } from './serpapi';
-import { getRemainingBudget, BUDGET_POOL } from './serpapi-budget';
+import { getRemainingBudget, canPipelineUseSerpApi, trackPipelineSerpApiCall, trackSerpApiCall, BUDGET_POOL } from './serpapi-budget';
 import type { QueryVariation, QuerySource } from '@forge/shared';
 
 // =============================================================================
@@ -22,6 +22,7 @@ export interface ExpansionConfig {
   serpApiEnabled: boolean;       // default: true, false when budget exhausted
   timeoutMs: number;             // default: 15000 (15s max for expansion)
   phrasesToExpand: number;       // default: 3 (expand top N phrases)
+  pipelineId?: string;           // optional: enables per-pipeline SerpAPI cap
 }
 
 const DEFAULT_CONFIG: ExpansionConfig = {
@@ -200,8 +201,11 @@ export async function expandQueries(
   let serpApiQueries: QueryVariation[] = [];
 
   if (cfg.serpApiEnabled) {
-    const remaining = await getRemainingBudget(BUDGET_POOL.USER_PIPELINE);
-    if (remaining > 0) {
+    const canUse = cfg.pipelineId
+      ? await canPipelineUseSerpApi(cfg.pipelineId)
+      : (await getRemainingBudget(BUDGET_POOL.USER_PIPELINE)) > 0;
+
+    if (canUse) {
       const serpTimeout = Math.max(cfg.timeoutMs - (Date.now() - startTime), 5000);
       serpApiQueries = await expandWithSerpApi(
         phrases,
@@ -209,6 +213,14 @@ export async function expandQueries(
         cfg.maxSerpApiQueries,
         serpTimeout
       );
+      // Track usage against pool + per-pipeline budget
+      if (serpApiQueries.length > 0) {
+        if (cfg.pipelineId) {
+          await trackPipelineSerpApiCall(cfg.pipelineId).catch(() => {});
+        } else {
+          await trackSerpApiCall().catch(() => {});
+        }
+      }
     } else {
       console.log('[QueryExpansion] SerpAPI budget exhausted, skipping SerpAPI expansion');
     }

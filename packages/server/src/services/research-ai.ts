@@ -48,6 +48,8 @@ export interface ResearchInput {
   interviewData: Partial<InterviewDataPoints> | null;
   interviewMessages: Array<{ role: string; content: string }>;
   canvasContext?: string; // now receives notes text (not canvas blocks)
+  researchId?: string;   // used for per-pipeline SerpAPI budget cap
+  founderProfile?: import('@forge/shared').FounderProfile | null;
 }
 
 export interface GeneratedQueries {
@@ -684,6 +686,7 @@ export async function runChunkedDeepResearch(
       maxTemplateQueries: 20,
       maxSerpApiQueries: 8,
       serpApiEnabled: true,
+      pipelineId: input.researchId,
     });
     if (expansion.totalUnique > 0) {
       const expandedStrings = getExpandedQueryStrings(expansion);
@@ -2605,10 +2608,26 @@ This is pass ${passNumber} - evaluate independently based on the research data.`
     return scorePass as RawScorePass;
   };
 
-  // Run passes in parallel
-  const passes = await Promise.all(
+  // Run passes in parallel — tolerate individual failures (require >= 2 of 3)
+  const passResults = await Promise.allSettled(
     Array.from({ length: PASS_COUNT }, (_, i) => runPass(i + 1))
   );
+  const passes = passResults
+    .filter((r): r is PromiseFulfilledResult<RawScorePass> => r.status === 'fulfilled')
+    .map(r => r.value);
+
+  const failedCount = PASS_COUNT - passes.length;
+  if (failedCount > 0) {
+    const failReasons = passResults
+      .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
+      .map(r => String(r.reason).slice(0, 200));
+    console.warn(`[Extract Scores] ${failedCount}/${PASS_COUNT} passes failed:`, failReasons);
+  }
+  if (passes.length < 2) {
+    throw new Error(`extractScores: Only ${passes.length}/${PASS_COUNT} scoring passes succeeded (minimum 2 required)`);
+  }
+
+  const passCount = passes.length;
 
   // Calculate averages and deviations (reusing existing logic)
   const opportunityScores = passes.map(p => clampScore(p.opportunityScore));
@@ -2616,10 +2635,10 @@ This is pass ${passNumber} - evaluate independently based on the research data.`
   const feasibilityScores = passes.map(p => clampScore(p.feasibilityScore));
   const whyNowScores = passes.map(p => clampScore(p.whyNowScore));
 
-  const avgOpportunity = Math.round(opportunityScores.reduce((a, b) => a + b, 0) / PASS_COUNT);
-  const avgProblem = Math.round(problemScores.reduce((a, b) => a + b, 0) / PASS_COUNT);
-  const avgFeasibility = Math.round(feasibilityScores.reduce((a, b) => a + b, 0) / PASS_COUNT);
-  const avgWhyNow = Math.round(whyNowScores.reduce((a, b) => a + b, 0) / PASS_COUNT);
+  const avgOpportunity = Math.round(opportunityScores.reduce((a, b) => a + b, 0) / passCount);
+  const avgProblem = Math.round(problemScores.reduce((a, b) => a + b, 0) / passCount);
+  const avgFeasibility = Math.round(feasibilityScores.reduce((a, b) => a + b, 0) / passCount);
+  const avgWhyNow = Math.round(whyNowScores.reduce((a, b) => a + b, 0) / passCount);
 
   const deviations = [
     Math.max(...opportunityScores) - Math.min(...opportunityScores),
@@ -2697,13 +2716,50 @@ This is pass ${passNumber} - evaluate independently based on the research data.`
       },
     },
     metadata: {
-      passCount: PASS_COUNT,
+      passCount: passCount,
       maxDeviation,
       averageConfidence,
       flagged,
       flagReason,
     },
   };
+}
+
+/**
+ * Build a textual context block from the founder's profile and interview data
+ * for injection into the business metrics extraction prompt.
+ */
+function buildFounderContext(input: ResearchInput): string {
+  const sections: string[] = [];
+
+  // From founder profile (settings page)
+  const fp = input.founderProfile;
+  if (fp) {
+    if (fp.bio) sections.push(`**Bio:** ${fp.bio}`);
+    if (fp.skills.length > 0) sections.push(`**Skills:** ${fp.skills.join(', ')}`);
+    if (fp.workHistory.length > 0) {
+      const workLines = fp.workHistory.map(w =>
+        `- ${w.title} at ${w.company} (${w.startDate} - ${w.endDate || 'Present'}): ${w.description}`
+      ).join('\n');
+      sections.push(`**Work History:**\n${workLines}`);
+    }
+    if (fp.education.length > 0) {
+      const eduLines = fp.education.map(e =>
+        `- ${e.degree}${e.fieldOfStudy ? ` in ${e.fieldOfStudy}` : ''} from ${e.institution}${e.graduationYear ? ` (${e.graduationYear})` : ''}`
+      ).join('\n');
+      sections.push(`**Education:**\n${eduLines}`);
+    }
+  }
+
+  // From interview data (3 founder data points)
+  const id = input.interviewData;
+  if (id?.founder_background?.value) sections.push(`**Background (interview):** ${id.founder_background.value}`);
+  if (id?.founder_relevant_experience?.value) sections.push(`**Relevant Experience (interview):** ${id.founder_relevant_experience.value}`);
+  if (id?.founder_unfair_advantage?.value) sections.push(`**Unfair Advantage (interview):** ${id.founder_unfair_advantage.value}`);
+
+  return sections.length > 0
+    ? sections.join('\n\n')
+    : 'No founder information available. Evaluate founder fit based on general requirements for this type of business.';
 }
 
 /**
@@ -2728,11 +2784,16 @@ export async function extractBusinessMetrics(
   const researchSnippet = deepResearch.rawReport.substring(0, 15000);
   console.log('[Extract Metrics] Research snippet length:', researchSnippet.length);
 
+  const founderContext = buildFounderContext(input);
+
   const prompt = `You are evaluating business viability metrics based on deep market research.
 
 ## BUSINESS IDEA
 **Title:** ${input.ideaTitle}
 **Description:** ${input.ideaDescription}
+
+## FOUNDER PROFILE
+${founderContext}
 
 ## RESEARCH FINDINGS
 ${researchSnippet}...
@@ -2779,7 +2840,9 @@ Return a JSON object with EXACTLY this structure. Top-level fields are required;
   }
 }
 
-Evaluate business metrics thoroughly using actual market data, competitor pricing, and research findings. Be specific with dollar figures and timeframes.`;
+Evaluate business metrics thoroughly using actual market data, competitor pricing, and research findings. Be specific with dollar figures and timeframes.
+
+For "founderFit": Evaluate the founder's ACTUAL background, skills, and experience against the specific requirements of this business idea. If founder profile data is provided above, use it to give a personalized assessment. Score the percentage based on genuine skill-to-requirement matching, not generic assumptions.`;
 
   const extractionProvider = getExtractionProvider(tier);
   console.log('[Extract Metrics] Using provider:', extractionProvider.name);
@@ -3755,6 +3818,7 @@ Generate 3-5 specific, actionable queries per category.`;
       maxTemplateQueries: 20,
       maxSerpApiQueries: 10,
       serpApiEnabled: true,
+      pipelineId: input.researchId,
     });
 
     if (expansion.totalUnique > allLlmQueries.length) {
@@ -5427,15 +5491,12 @@ export async function runResearchPipeline(
   const hasPhase3 = existingResearch?.synthesizedInsights && existingResearch?.opportunityScore != null;
   // Phase 4: Creative generation (user story, value ladder, action prompts)
   const hasPhase4 = existingResearch?.userStory != null;
-  const hasPhase5 = existingResearch?.businessPlan != null;
-
-  if (hasPhase1 || hasPhase2 || hasPhase3 || hasPhase4 || hasPhase5) {
+  if (hasPhase1 || hasPhase2 || hasPhase3 || hasPhase4) {
     console.log('[Research Pipeline] RESUME MODE - Existing data detected');
     console.log('[Research Pipeline] Phase 1 (deepResearch - o3):', hasPhase1 ? 'SKIP' : 'RUN');
     console.log('[Research Pipeline] Phase 2 (socialProof - o3):', hasPhase2 ? 'SKIP' : 'RUN');
     console.log('[Research Pipeline] Phase 3 (extraction - GPT-5.2):', hasPhase3 ? 'SKIP' : 'RUN');
     console.log('[Research Pipeline] Phase 4 (generation - GPT-5.2):', hasPhase4 ? 'SKIP' : 'RUN');
-    console.log('[Research Pipeline] Phase 5 (businessPlan - GPT-5.2):', hasPhase5 ? 'SKIP' : 'RUN');
   }
 
   // =========================================================================
@@ -5626,45 +5687,8 @@ export async function runResearchPipeline(
       console.error('[Research Pipeline] Keyword trends failed:', err instanceof Error ? err.message : err);
       keywordTrends = [];
     }
-    await onProgress?.('REPORT_GENERATION', 90);
+    await onProgress?.('REPORT_GENERATION', 98);
     console.log('[Research Pipeline] Keyword trends:', keywordTrends.length, 'keywords');
-  }
-
-  // =========================================================================
-  // PHASE 5: BUSINESS PLAN GENERATION (90-100%)
-  // Uses GPT-5.2 with xhigh reasoning + xhigh verbosity to write a
-  // comprehensive investor-ready business plan from all accumulated data
-  // =========================================================================
-  let businessPlan: string | null;
-
-  if (hasPhase5 && existingResearch?.businessPlan) {
-    console.log('[Research Pipeline] === PHASE 5: SKIPPED (resuming from existing data) ===');
-    businessPlan = existingResearch.businessPlan;
-    await onProgress?.('BUSINESS_PLAN_GENERATION', 98);
-  } else {
-    await onProgress?.('BUSINESS_PLAN_GENERATION', 92);
-    console.log('[Research Pipeline] === PHASE 5: Business Plan Generation (GPT-5.2 xhigh) ===');
-
-    try {
-      businessPlan = await generateBusinessPlan(
-        input,
-        insights,
-        scores,
-        metrics,
-        marketSizing,
-        socialProof,
-        userStory,
-        valueLadder,
-        techStack,
-        deepResearch,
-        tier
-      );
-      console.log(`[Research Pipeline] Phase 5 complete: business plan generated (${businessPlan.length} chars)`);
-    } catch (err) {
-      console.error('[Research Pipeline] Phase 5 FAILED: generateBusinessPlan:', err instanceof Error ? err.message : err);
-      businessPlan = null;
-    }
-    await onProgress?.('BUSINESS_PLAN_GENERATION', 98);
   }
 
   await onProgress?.('COMPLETE', 100);
@@ -5692,7 +5716,7 @@ export async function runResearchPipeline(
     socialProof,
     techStack,
     deepResearch, // Include raw research for debugging/display
-    businessPlan,
+    businessPlan: null, // Decoupled from pipeline — generated on-demand
     swot,
   };
 }

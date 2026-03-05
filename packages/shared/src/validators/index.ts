@@ -79,8 +79,33 @@ export const createUserSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters').optional(),
 });
 
+export const workHistoryEntrySchema = z.object({
+  company: z.string().min(1).max(200),
+  title: z.string().min(1).max(200),
+  startDate: z.string().regex(/^\d{4}-\d{2}$/, 'Format: YYYY-MM'),
+  endDate: z.string().regex(/^\d{4}-\d{2}$/).nullable(),
+  description: z.string().max(1000).default(''),
+  isCurrent: z.boolean().default(false),
+});
+
+export const educationEntrySchema = z.object({
+  institution: z.string().min(1).max(200),
+  degree: z.string().min(1).max(200),
+  fieldOfStudy: z.string().max(200).default(''),
+  graduationYear: z.number().int().min(1950).max(2040).nullable(),
+});
+
+export const founderProfileSchema = z.object({
+  bio: z.string().max(2000).default(''),
+  skills: z.array(z.string().min(1).max(50)).max(20).default([]),
+  workHistory: z.array(workHistoryEntrySchema).max(20).default([]),
+  education: z.array(educationEntrySchema).max(10).default([]),
+});
+export type FounderProfileInput = z.infer<typeof founderProfileSchema>;
+
 export const updateUserSchema = z.object({
   name: z.string().min(1).max(100).optional(),
+  founderProfile: founderProfileSchema.optional(),
 });
 
 export type SubscriptionTierInput = z.infer<typeof subscriptionTierSchema>;
@@ -132,7 +157,6 @@ export const researchPhaseSchema = z.enum([
   'SOCIAL_RESEARCH',
   'SYNTHESIS',
   'REPORT_GENERATION',
-  'BUSINESS_PLAN_GENERATION',
   'COMPLETE',
   // Legacy phases (kept for backward compatibility)
   'QUERY_GENERATION',
@@ -404,7 +428,7 @@ export const statementTypeSchema = z.enum(['PL', 'BS', 'CF']);
 export const createFinancialModelSchema = z.object({
   name: z.string().min(1, 'Name is required').max(200, 'Name too long'),
   templateSlug: z.string().min(1).max(50).optional(),
-  projectId: entityId.optional(),
+  projectId: entityId,
   knowledgeLevel: knowledgeLevelSchema.default('BEGINNER'),
   forecastYears: z.number().int().min(1).max(10).default(5),
   settings: z.record(z.unknown()).optional(),

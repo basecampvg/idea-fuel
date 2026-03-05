@@ -7,6 +7,7 @@ import { ChevronRight } from 'lucide-react';
 interface FinancialBreadcrumbProps {
   modelId: string;
   modelName: string;
+  projectId: string;
 }
 
 const ROUTE_LABELS: Record<string, string> = {
@@ -19,9 +20,9 @@ const ROUTE_LABELS: Record<string, string> = {
   'break-even': 'Break-Even',
 };
 
-export function FinancialBreadcrumb({ modelId, modelName }: FinancialBreadcrumbProps) {
+export function FinancialBreadcrumb({ modelId, modelName, projectId }: FinancialBreadcrumbProps) {
   const pathname = usePathname();
-  const base = `/financials/${modelId}`;
+  const base = `/projects/${projectId}/financials/${modelId}`;
 
   // Build breadcrumb segments from pathname
   const relativePath = pathname?.replace(base, '') ?? '';

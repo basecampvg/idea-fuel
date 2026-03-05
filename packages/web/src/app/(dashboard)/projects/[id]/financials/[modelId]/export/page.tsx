@@ -25,9 +25,9 @@ const PURPOSE_OPTIONS: { value: ExportPurpose; label: string; description: strin
 export default function ExportPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; modelId: string }>;
 }) {
-  const { id: modelId } = use(params);
+  const { modelId } = use(params);
 
   const [purpose, setPurpose] = useState<ExportPurpose>('investor');
   const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
@@ -41,12 +41,10 @@ export default function ExportPage({
   const [editText, setEditText] = useState('');
   const [showPurposeDropdown, setShowPurposeDropdown] = useState(false);
 
-  // Fetch model with scenarios
   const { data: model, isLoading: modelLoading } = trpc.financial.get.useQuery({ id: modelId });
 
   const baseScenarioId = selectedScenarioId ?? model?.scenarios?.find((s: { isBase: boolean }) => s.isBase)?.id;
 
-  // Mutations
   const narrativeMutation = trpc.export.generateNarratives.useMutation({
     onSuccess: (data) => setNarratives(data),
   });
@@ -59,7 +57,6 @@ export default function ExportPage({
     onSuccess: (data) => downloadFile(data.buffer, data.filename, data.contentType),
   });
 
-  // Download helper: convert base64 to blob and trigger download
   const downloadFile = useCallback((base64: string, filename: string, contentType: string) => {
     const bytes = atob(base64);
     const arr = new Uint8Array(bytes.length);
@@ -122,15 +119,12 @@ export default function ExportPage({
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-8">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-zinc-100">Export</h1>
         <p className="text-zinc-400 mt-1">Generate investor-ready Excel and PDF exports</p>
       </div>
 
-      {/* Configuration */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Scenario selector */}
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-2">Scenario</label>
           <select
@@ -146,7 +140,6 @@ export default function ExportPage({
           </select>
         </div>
 
-        {/* Purpose selector */}
         <div className="relative">
           <label className="block text-sm font-medium text-zinc-300 mb-2">Purpose</label>
           <button
@@ -175,9 +168,7 @@ export default function ExportPage({
         </div>
       </div>
 
-      {/* Export Options */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Excel Export Card */}
         <div className="bg-zinc-800/50 border border-zinc-700 rounded-xl p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-emerald-500/10 rounded-lg">
@@ -208,7 +199,6 @@ export default function ExportPage({
           )}
         </div>
 
-        {/* PDF Export Card */}
         <div className="bg-zinc-800/50 border border-zinc-700 rounded-xl p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-pink-500/10 rounded-lg">
@@ -240,7 +230,6 @@ export default function ExportPage({
         </div>
       </div>
 
-      {/* AI Narratives Preview/Edit */}
       <div className="bg-zinc-800/50 border border-zinc-700 rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">

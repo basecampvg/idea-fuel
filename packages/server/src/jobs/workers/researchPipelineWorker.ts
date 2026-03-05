@@ -5,7 +5,7 @@ import { eq, sql } from 'drizzle-orm';
 import { research, projects, users, interviews } from '../../db/schema';
 import type { SubscriptionTier } from '../../db/schema';
 import { QUEUE_NAMES, ResearchPipelineJobData } from '../queues';
-import type { ChatMessage, InterviewDataPoints } from '@forge/shared';
+import type { ChatMessage, InterviewDataPoints, FounderProfile } from '@forge/shared';
 import {
   runResearchPipeline,
   classifyResearchError,
@@ -61,7 +61,7 @@ export function createResearchPipelineWorker() {
         // 2. Get user subscription tier for AI parameters
         const user = await db.query.users.findFirst({
           where: eq(users.id, userId),
-          columns: { subscription: true },
+          columns: { subscription: true, founderProfile: true },
         });
         const userTier: SubscriptionTier = (user?.subscription as SubscriptionTier) ?? 'FREE';
 
@@ -73,6 +73,8 @@ export function createResearchPipelineWorker() {
           interviewData: interview.collectedData as Partial<InterviewDataPoints> | null,
           interviewMessages: (interview.messages as unknown as ChatMessage[]) || [],
           canvasContext: notesContext,
+          researchId,
+          founderProfile: user?.founderProfile as FounderProfile | null,
         };
 
         // 4. Build existing research data for resume capability
@@ -263,7 +265,7 @@ export function createResearchPipelineWorker() {
     },
     {
       connection: createRedisConnection(),
-      concurrency: 1,          // Only 1 concurrent research job (expensive API calls)
+      concurrency: parseInt(process.env.RESEARCH_WORKER_CONCURRENCY || '3', 10),
       lockDuration: 1800000,    // 30 min lock duration (Perplexity deep research can take 15+ min/chunk)
       lockRenewTime: 900000,    // Renew lock every 15 min
       stalledInterval: 600000,  // Check for stalled jobs every 10 min

@@ -16,6 +16,7 @@ import {
   DEEP_RESEARCH_MODEL_MINI,
   type ResponseStatus,
 } from '../lib/deep-research';
+import { getResearchProvider } from '../providers';
 import type { SparkKeywords } from '@forge/shared';
 import { safeJsonParse } from './research-ai';
 
@@ -47,6 +48,7 @@ export interface SparkTamResult {
 
 export interface TamResearchOptions {
   onProgress?: (status: ResponseStatus, elapsedMs: number) => void;
+  engine?: 'OPENAI' | 'PERPLEXITY';
 }
 
 // =============================================================================
@@ -215,53 +217,78 @@ ${keywords.query_plan.general_search.map((q, i) => `${i + 1}. ${q}`).join('\n')}
 ${expansionPromptSection}
 `;
 
-  const params = createDeepResearchParams({
-    model: DEEP_RESEARCH_MODEL_MINI,
-    systemPrompt: TAM_RESEARCH_PROMPT,
-    userQuery,
-    domains: [
-      // Market research
-      'statista.com',
-      'grandviewresearch.com',
-      'ibisworld.com',
-      'mckinsey.com',
-      'forbes.com',
-      'techcrunch.com',
-      'crunchbase.com',
-      // Additional market data
-      'marketsandmarkets.com',
-      'mordorintelligence.com',
-      'precedenceresearch.com',
-    ],
-    background: true,
-    maxOutputTokens: 50000,
-    reasoningSummary: 'auto',
-  });
+  const tamDomains = [
+    'statista.com',
+    'grandviewresearch.com',
+    'ibisworld.com',
+    'mckinsey.com',
+    'forbes.com',
+    'techcrunch.com',
+    'crunchbase.com',
+    'marketsandmarkets.com',
+    'mordorintelligence.com',
+    'precedenceresearch.com',
+  ];
 
-  // Run with retry logic
-  const result = await withExponentialBackoff(
-    () =>
-      runDeepResearchWithPolling(params, {
-        pollIntervalMs: 15000, // 15 second polling
-        maxWaitMs: 3600000, // 60 minute max wait
-        onProgress: (status: ResponseStatus, elapsed: number) => {
-          console.log(`[Spark:TAM] Status: ${status} (${Math.round(elapsed / 1000)}s)`);
-          options.onProgress?.(status, elapsed);
-        },
-        onLog: (msg: string) => console.log(msg),
+  let result: { content: string };
+
+  if (options.engine === 'PERPLEXITY') {
+    // --- Perplexity path: route through AIProvider abstraction ---
+    const provider = getResearchProvider(undefined, 'PERPLEXITY');
+    console.log(`[Spark:TAM] Using Perplexity sonar-deep-research with ${tamDomains.length} domains...`);
+
+    const response = await withExponentialBackoff(
+      () => provider.research(userQuery, {
+        systemPrompt: TAM_RESEARCH_PROMPT,
+        domains: tamDomains,
+        maxTokens: 16000,
       }),
-    {
-      maxAttempts: 3,
-      initialDelayMs: 10000,
-      maxDelayMs: 120000,
-      onRetry: (attempt, error, delayMs) => {
-        console.warn(
-          `[Spark:TAM] Retry ${attempt}/3 after ${delayMs}ms:`,
-          error instanceof Error ? error.message : error
-        );
-      },
-    }
-  );
+      {
+        maxAttempts: 2,
+        initialDelayMs: 10000,
+        maxDelayMs: 60000,
+        onRetry: (attempt, error, delayMs) => {
+          console.warn(`[Spark:TAM] Perplexity retry ${attempt}/2 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+        },
+      }
+    );
+    result = { content: response.content };
+  } else {
+    // --- OpenAI path: deep research with polling ---
+    const params = createDeepResearchParams({
+      model: DEEP_RESEARCH_MODEL_MINI,
+      systemPrompt: TAM_RESEARCH_PROMPT,
+      userQuery,
+      domains: tamDomains,
+      background: true,
+      maxOutputTokens: 50000,
+      reasoningSummary: 'auto',
+    });
+
+    result = await withExponentialBackoff(
+      () =>
+        runDeepResearchWithPolling(params, {
+          pollIntervalMs: 15000,
+          maxWaitMs: 3600000,
+          onProgress: (status: ResponseStatus, elapsed: number) => {
+            console.log(`[Spark:TAM] Status: ${status} (${Math.round(elapsed / 1000)}s)`);
+            options.onProgress?.(status, elapsed);
+          },
+          onLog: (msg: string) => console.log(msg),
+        }),
+      {
+        maxAttempts: 3,
+        initialDelayMs: 10000,
+        maxDelayMs: 120000,
+        onRetry: (attempt, error, delayMs) => {
+          console.warn(
+            `[Spark:TAM] Retry ${attempt}/3 after ${delayMs}ms:`,
+            error instanceof Error ? error.message : error
+          );
+        },
+      }
+    );
+  }
 
   // Parse the response
   const rawContent = result.content || '';

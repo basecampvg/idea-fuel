@@ -17,6 +17,7 @@ export const userRouter = router({
         image: true,
         subscription: true,
         role: true,
+        founderProfile: true,
         createdAt: true,
       },
     });
@@ -28,9 +29,14 @@ export const userRouter = router({
    * Update current user profile
    */
   update: protectedProcedure.input(updateUserSchema).mutation(async ({ ctx, input }) => {
+    // Inject updatedAt timestamp into founderProfile if present
+    const setData = input.founderProfile
+      ? { ...input, founderProfile: { ...input.founderProfile, updatedAt: new Date().toISOString() } }
+      : input;
+
     const [user] = await ctx.db
       .update(users)
-      .set(input)
+      .set(setData)
       .where(eq(users.id, ctx.userId))
       .returning({
         id: users.id,
@@ -38,6 +44,7 @@ export const userRouter = router({
         name: users.name,
         image: users.image,
         subscription: users.subscription,
+        founderProfile: users.founderProfile,
         updatedAt: users.updatedAt,
       });
 

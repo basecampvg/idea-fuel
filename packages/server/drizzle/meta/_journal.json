@@ -15,6 +15,13 @@
       "when": 1772022254133,
       "tag": "0001_rare_trish_tilby",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772670070389,
+      "tag": "0002_bizarre_bloodstorm",
+      "breakpoints": true
     }
   ]
 }

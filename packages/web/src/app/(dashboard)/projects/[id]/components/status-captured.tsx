@@ -213,7 +213,7 @@ export function StatusCaptured({ project }: StatusCapturedProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Spark - Quick Validation (no interview) */}
           <button
-            onClick={() => startInterview.mutate({ projectId: project.id, mode: 'SPARK' })}
+            onClick={() => startInterview.mutate({ projectId: project.id, mode: 'SPARK', researchEngine })}
             disabled={startInterview.isPending}
             className="group relative rounded-xl bg-card border border-border p-5 text-left transition-all duration-300 hover:border-amber-500/40 hover:shadow-lg hover:shadow-amber-500/5 disabled:opacity-50 disabled:cursor-not-allowed"
           >

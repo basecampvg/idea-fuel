@@ -11,6 +11,7 @@ import { TRPCError } from '@trpc/server';
 import { assumptions, assumptionHistory, projects, reports, scenarios, financialModels } from '../db/schema';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { DEFAULT_ASSUMPTIONS } from '../services/assumption-defaults';
+import { getTemplate } from '../services/financial-templates';
 import { executeCascade, executeBatchCascade, detectCycles } from '../lib/cascade-engine';
 import { validateFormula, extractDependencies } from '../lib/formula-engine';
 import { getEffectiveConfidence, getStalenessInfo } from '../lib/confidence-engine';
@@ -194,6 +195,129 @@ export const assumptionRouter = router({
       });
 
       return { seeded: true, count: rows.length };
+    }),
+
+  /**
+   * Sync assumptions from the financial model's template.
+   * Adds any missing assumptions (base or calculated) for the current
+   * knowledge level and fixes categories/formulas on existing rows.
+   * Idempotent — safe to call on every page load.
+   */
+  syncFromTemplate: protectedProcedure
+    .input(z.object({ projectId: entityId, modelId: entityId }))
+    .mutation(async ({ ctx, input }) => {
+      await verifyProjectOwnership(ctx.db, input.projectId, ctx.userId);
+
+      // Look up the financial model to find its template
+      const model = await ctx.db
+        .select()
+        .from(financialModels)
+        .where(and(eq(financialModels.id, input.modelId), eq(financialModels.userId, ctx.userId)))
+        .limit(1);
+
+      if (model.length === 0) {
+        return { synced: false, added: 0, updated: 0 };
+      }
+
+      const fm = model[0];
+      const templateSlug = (fm.settings as Record<string, unknown>)?.templateSlug as string | undefined;
+      if (!templateSlug) return { synced: false, added: 0, updated: 0 };
+
+      const template = getTemplate(templateSlug);
+      if (!template) return { synced: false, added: 0, updated: 0 };
+
+      const level = (fm.knowledgeLevel ?? 'BEGINNER').toLowerCase() as 'beginner' | 'standard' | 'expert';
+      const templateAssumptions = template.assumptions[level];
+      if (!templateAssumptions || templateAssumptions.length === 0) return { synced: false, added: 0, updated: 0 };
+
+      // Get existing assumptions for this project
+      const existing = await ctx.db
+        .select()
+        .from(assumptions)
+        .where(eq(assumptions.projectId, input.projectId));
+
+      const existingKeyMap = new Map(existing.map((a) => [a.key, a]));
+
+      // Find the scenarioId from existing assumptions (they were seeded with one)
+      const scenarioId = existing.find((a) => a.scenarioId)?.scenarioId ?? null;
+
+      let added = 0;
+      let updated = 0;
+      const now = new Date();
+
+      // 1. Add ALL missing assumptions (base + calculated) for this level
+      const missing = templateAssumptions.filter((ta) => !existingKeyMap.has(ta.key));
+
+      if (missing.length > 0) {
+        const baseIdx = existing.length;
+        await ctx.db.insert(assumptions).values(
+          missing.map((a, idx) => ({
+            projectId: input.projectId,
+            scenarioId,
+            category: a.category ?? ('COSTS' as const),
+            name: a.name,
+            key: a.key,
+            value: String(a.default),
+            numericValue: typeof a.default === 'number' ? String(a.default) : null,
+            valueType: a.valueType,
+            unit: a.unit ?? null,
+            confidence: (a.formula ? 'CALCULATED' : 'AI_ESTIMATE') as 'CALCULATED' | 'AI_ESTIMATE',
+            source: `Template: ${template.name}`,
+            formula: a.formula ?? null,
+            dependsOn: a.dependsOn ?? [],
+            displayOrder: baseIdx + idx,
+            updatedByActor: 'system',
+            updatedAt: now,
+          })),
+        );
+        added = missing.length;
+      }
+
+      // 2. Fix categories + add dependsOn/formula on existing assumptions
+      for (const ta of templateAssumptions) {
+        const existingRow = existingKeyMap.get(ta.key);
+        if (!existingRow) continue;
+
+        const updates: Record<string, unknown> = {};
+        // Fix category if it was defaulted to COSTS but template specifies something else
+        if (ta.category && existingRow.category !== ta.category) {
+          updates.category = ta.category;
+        }
+        // Add formula if missing
+        if (ta.formula && !existingRow.formula) {
+          updates.formula = ta.formula;
+          updates.confidence = 'CALCULATED';
+        }
+        // Add dependsOn if missing
+        if (ta.dependsOn && ta.dependsOn.length > 0 && (!existingRow.dependsOn || existingRow.dependsOn.length === 0)) {
+          updates.dependsOn = ta.dependsOn;
+        }
+
+        if (Object.keys(updates).length > 0) {
+          await ctx.db
+            .update(assumptions)
+            .set(updates)
+            .where(eq(assumptions.id, existingRow.id));
+          updated++;
+        }
+      }
+
+      // 3. Remove stale assumptions that don't belong to this template level.
+      //    Only delete rows that share the same scenarioId (template-originated),
+      //    so we never touch project-level assumptions (scenarioId = null).
+      let removed = 0;
+      if (scenarioId) {
+        const templateKeys = new Set(templateAssumptions.map((ta) => ta.key));
+        const stale = existing.filter(
+          (a) => a.scenarioId === scenarioId && !templateKeys.has(a.key),
+        );
+        for (const row of stale) {
+          await ctx.db.delete(assumptions).where(eq(assumptions.id, row.id));
+          removed++;
+        }
+      }
+
+      return { synced: true, added, updated, removed };
     }),
 
   /**

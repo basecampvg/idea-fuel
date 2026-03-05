@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { useParams } from 'next/navigation';
+import { use, useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { trpc } from '@/lib/trpc/client';
 import { AssumptionGrid } from './components/assumption-grid';
 import { AssumptionFilters } from './components/assumption-filters';
@@ -11,9 +10,12 @@ import { ASSUMPTION_IMPACT_MAP } from './components/impact-map';
 import { Settings2, Loader2, GitBranch } from 'lucide-react';
 import type { AssumptionCategory, AssumptionConfidence } from '@forge/shared';
 
-export default function AssumptionsPage() {
-  const params = useParams<{ id: string }>();
-  const projectId = params.id;
+export default function FinancialAssumptionsPage({
+  params,
+}: {
+  params: Promise<{ id: string; modelId: string }>;
+}) {
+  const { id: projectId, modelId } = use(params);
 
   // State
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -29,6 +31,15 @@ export default function AssumptionsPage() {
   const seedMutation = trpc.assumption.seedDefaults.useMutation({
     onSuccess: () => {
       utils.assumption.list.invalidate({ projectId });
+    },
+  });
+
+  // Sync calculated assumptions from template (repairs existing models)
+  const syncMutation = trpc.assumption.syncFromTemplate.useMutation({
+    onSuccess: (data) => {
+      if (data.synced && (data.added > 0 || data.updated > 0)) {
+        utils.assumption.list.invalidate({ projectId });
+      }
     },
   });
 
@@ -48,6 +59,26 @@ export default function AssumptionsPage() {
       seedMutation.mutate({ projectId });
     }
   }, [assumptions, projectId, seedMutation]);
+
+  // Auto-sync: add any missing assumptions from the template
+  // Runs once per page load — the mutation is idempotent and returns early if nothing to do
+  useEffect(() => {
+    if (
+      assumptions &&
+      assumptions.length > 0 &&
+      !syncMutation.isPending &&
+      !syncMutation.isSuccess
+    ) {
+      syncMutation.mutate({ projectId, modelId });
+    }
+  }, [assumptions, projectId, modelId, syncMutation]);
+
+  // Auto-select the first card to hint that cards are editable
+  useEffect(() => {
+    if (assumptions && assumptions.length > 0 && selectedId === null) {
+      setSelectedId(assumptions[0].id);
+    }
+  }, [assumptions, selectedId]);
 
   // Category counts
   const categoryCounts = useMemo(() => {
@@ -107,13 +138,15 @@ export default function AssumptionsPage() {
   }, []);
 
   // Loading state
-  if (isLoading || seedMutation.isPending) {
+  if (isLoading || seedMutation.isPending || syncMutation.isPending) {
     return (
       <div className="flex items-center justify-center py-24">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-6 h-6 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground">
-            {seedMutation.isPending ? 'Setting up assumptions...' : 'Loading assumptions...'}
+            {seedMutation.isPending ? 'Setting up assumptions...'
+              : syncMutation.isPending ? 'Syncing calculated fields...'
+              : 'Loading assumptions...'}
           </p>
         </div>
       </div>
@@ -209,9 +242,9 @@ export default function AssumptionsPage() {
           />
         </div>
 
-        {/* Detail panel */}
+        {/* Detail panel — mt-7 aligns with card grid below category headers */}
         {selectedId && (
-          <div className="w-[320px] flex-shrink-0 sticky top-24 rounded-xl border border-border bg-card max-h-[calc(100vh-120px)] overflow-hidden">
+          <div className="w-[320px] flex-shrink-0 sticky top-28 mt-7 rounded-xl border border-border bg-card max-h-[calc(100vh-140px)] overflow-hidden">
             <AssumptionDetailPanel
               assumption={selectedAssumption as Parameters<typeof AssumptionDetailPanel>[0]['assumption']}
               allAssumptions={(assumptions ?? []) as Parameters<typeof AssumptionDetailPanel>[0]['allAssumptions']}

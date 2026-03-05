@@ -12,9 +12,9 @@ type ViewMode = 'list' | 'compare';
 export default function ScenariosPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; modelId: string }>;
 }) {
-  const { id: modelId } = use(params);
+  const { modelId } = use(params);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState('');
@@ -79,7 +79,6 @@ export default function ScenariosPage({
 
   return (
     <div className="space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <GitCompare className="w-5 h-5 text-muted-foreground" />
@@ -89,7 +88,6 @@ export default function ScenariosPage({
           </span>
         </div>
         <div className="flex items-center gap-2">
-          {/* View mode toggle */}
           <div className="flex items-center bg-muted/30 rounded-lg p-0.5">
             <button
               onClick={() => setViewMode('list')}
@@ -128,7 +126,6 @@ export default function ScenariosPage({
         </div>
       </div>
 
-      {/* Add Scenario Form */}
       {showAddForm && (
         <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
           <div className="flex items-center justify-between">
@@ -170,7 +167,6 @@ export default function ScenariosPage({
         </div>
       )}
 
-      {/* List View */}
       {viewMode === 'list' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {scenarios.map((scenario) => (
@@ -184,10 +180,8 @@ export default function ScenariosPage({
         </div>
       )}
 
-      {/* Compare View */}
       {viewMode === 'compare' && (
         <div className="space-y-3">
-          {/* Scenario selector chips */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-muted-foreground/60">Select scenarios:</span>
             {scenarios.map((s) => (
@@ -207,7 +201,6 @@ export default function ScenariosPage({
             ))}
           </div>
 
-          {/* Comparison table */}
           {selectedForCompare.length >= 2 ? (
             <div className="rounded-2xl border border-border bg-card overflow-hidden">
               {comparison ? (

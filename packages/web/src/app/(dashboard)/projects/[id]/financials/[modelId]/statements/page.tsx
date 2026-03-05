@@ -21,17 +21,15 @@ const TABS: { key: StatementTab; label: string; icon: React.ReactNode }[] = [
 export default function StatementsPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; modelId: string }>;
 }) {
-  const { id: modelId } = use(params);
+  const { modelId } = use(params);
   const [activeTab, setActiveTab] = useState<StatementTab>('summary');
   const [periodView, setPeriodView] = useState<PeriodView>('monthly');
 
-  // Get model to find the base scenario
   const { data: model, isLoading: modelLoading } = trpc.financial.get.useQuery({ id: modelId });
   const baseScenarioId = model?.scenarios?.find((s) => s.isBase)?.id;
 
-  // Compute statements for the base scenario
   const {
     data: statements,
     isLoading: statementsLoading,
@@ -77,7 +75,6 @@ export default function StatementsPage({
 
   return (
     <div className="space-y-4">
-      {/* Header with tabs and period selector */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-0.5">
           {TABS.map((tab) => (
@@ -103,7 +100,6 @@ export default function StatementsPage({
         )}
       </div>
 
-      {/* Content */}
       <div className="rounded-2xl border border-border bg-card overflow-hidden">
         {activeTab === 'summary' ? (
           <div className="p-5">

@@ -45,6 +45,7 @@ export const SUBSCRIPTION_FEATURES: Record<SubscriptionTier, SubscriptionFeature
   },
   TESTER: {
     reportLimits: { SPARK: 1, LIGHT: 1, IN_DEPTH: 1 },
+    financialModelLimit: 50,
     reportTierAccess: ['BASIC', 'PRO', 'FULL'] as const,
     interviewModes: ['SPARK', 'LIGHT', 'IN_DEPTH'] as const,
     prioritySupport: true,

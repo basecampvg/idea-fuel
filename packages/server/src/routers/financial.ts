@@ -66,15 +66,13 @@ export const financialRouter = router({
   create: protectedProcedure
     .input(createFinancialModelSchema)
     .mutation(async ({ ctx, input }) => {
-      // If projectId is provided, verify ownership
-      if (input.projectId) {
-        const project = await ctx.db.query.projects.findFirst({
-          where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
-          columns: { id: true },
-        });
-        if (!project) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found' });
-        }
+      // Verify project ownership
+      const project = await ctx.db.query.projects.findFirst({
+        where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+        columns: { id: true },
+      });
+      if (!project) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found' });
       }
 
       // Enforce model limit per subscription tier
@@ -107,7 +105,7 @@ export const financialRouter = router({
         // Create the financial model
         const [model] = await tx.insert(financialModels).values({
           userId: ctx.userId,
-          projectId: input.projectId ?? null,
+          projectId: input.projectId,
           name: input.name,
           knowledgeLevel: input.knowledgeLevel,
           forecastYears: input.forecastYears,
@@ -134,7 +132,7 @@ export const financialRouter = router({
             const now = new Date();
             await tx.insert(assumptions).values(
               templateAssumptions.map((a, idx) => ({
-                projectId: input.projectId ?? null,
+                projectId: input.projectId,
                 scenarioId: baseScenario.id,
                 category: a.category ?? ('COSTS' as const),
                 name: a.name,
@@ -190,16 +188,21 @@ export const financialRouter = router({
     }),
 
   /**
-   * List user's financial models with pagination.
+   * List user's financial models for a project with pagination.
    */
   list: protectedProcedure
-    .input(paginationSchema.optional().default({}))
+    .input(z.object({ projectId: entityId }).merge(paginationSchema).partial({ page: true, limit: true }))
     .query(async ({ ctx, input }) => {
-      const { page, limit } = input;
+      const page = input.page ?? 1;
+      const limit = input.limit ?? 50;
       const offset = (page - 1) * limit;
 
       const models = await ctx.db.query.financialModels.findMany({
-        where: and(eq(financialModels.userId, ctx.userId), ne(financialModels.status, 'ARCHIVED')),
+        where: and(
+          eq(financialModels.userId, ctx.userId),
+          eq(financialModels.projectId, input.projectId),
+          ne(financialModels.status, 'ARCHIVED'),
+        ),
         orderBy: desc(financialModels.updatedAt),
         limit,
         offset,

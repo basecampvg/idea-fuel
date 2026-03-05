@@ -88,15 +88,15 @@ export const AssumptionCard = memo(function AssumptionCard({
         transition-all duration-150 ease-out
         hover:border-foreground/20 hover:shadow-sm
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
-        ${borderColor} border-l-4
-        ${isSelected ? 'ring-2 ring-primary/30 border-foreground/30 shadow-sm' : ''}
+        border-l-4
+        ${isSelected ? 'border-l-orange-500 ring-2 ring-orange-500/20 border-foreground/30 shadow-sm' : borderColor}
         ${isStale ? 'border-dashed border-amber-500/50 bg-amber-500/[0.03]' : ''}
         ${cascadePulse ? 'animate-cascade-pulse' : ''}
       `}
       style={{ minHeight: 100 }}
     >
       <div className="px-4 py-3 flex flex-col justify-between h-full min-h-[100px]">
-        {/* Top: Category + Formula indicator */}
+        {/* Top: Category + Formula indicator + Edit hint */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 flex-shrink-0" />
@@ -104,9 +104,16 @@ export const AssumptionCard = memo(function AssumptionCard({
               {CATEGORY_LABELS[category]}
             </span>
           </div>
-          {formula && (
-            <span className="text-[10px] text-violet-400/70 font-mono">f(x)</span>
-          )}
+          <div className="flex items-center gap-1.5">
+            {formula && (
+              <span className="text-[10px] text-violet-400/70 font-mono">f(x)</span>
+            )}
+            <span className={`text-[10px] font-medium transition-colors ${
+              isSelected ? 'text-orange-500' : 'text-muted-foreground/30 group-hover:text-muted-foreground/60'
+            }`}>
+              Edit
+            </span>
+          </div>
         </div>
 
         {/* Middle: Value */}

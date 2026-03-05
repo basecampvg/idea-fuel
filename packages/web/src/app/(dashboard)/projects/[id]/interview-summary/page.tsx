@@ -167,7 +167,11 @@ export default function InterviewSummaryPage() {
         </div>
         <button
           onClick={() =>
-            startInterview.mutate({ projectId: project.id, mode: 'IN_DEPTH' })
+            startInterview.mutate({
+              projectId: project.id,
+              mode: 'IN_DEPTH',
+              researchEngine: ((completedInterview as { researchEngine?: string }).researchEngine || 'OPENAI') as 'OPENAI' | 'PERPLEXITY',
+            })
           }
           disabled={startInterview.isPending}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted border border-border transition-colors disabled:opacity-50 flex-shrink-0"

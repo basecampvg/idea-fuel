@@ -17,13 +17,14 @@ export function createSparkPipelineWorker() {
   const worker = new Worker<SparkPipelineJobData>(
     QUEUE_NAMES.SPARK_PIPELINE,
     async (job: Job<SparkPipelineJobData>) => {
-      const { researchId, projectId, description, includeTrends } = job.data;
+      const { researchId, projectId, description, includeTrends, engine } = job.data;
 
-      console.log(`[SparkWorker] Processing Spark for research ${researchId}`);
+      console.log(`[SparkWorker] Processing Spark for research ${researchId} (engine: ${engine || 'OPENAI'})`);
       const startTime = Date.now();
 
       try {
         const result = await runSparkPipeline(description, {
+          engine,
           onStatusChange: async (status: SparkJobStatus) => {
             // Check for cancellation
             const current = await db.query.research.findFirst({
@@ -85,7 +86,7 @@ export function createSparkPipelineWorker() {
     },
     {
       connection: createRedisConnection(),
-      concurrency: 2,          // Spark is lighter, can run 2 concurrent
+      concurrency: parseInt(process.env.SPARK_WORKER_CONCURRENCY || '2', 10),
       lockDuration: 120000,     // 2 min lock (Spark is faster)
       lockRenewTime: 60000,     // Renew every 1 min
       stalledInterval: 1800000, // Check stalled every 30 min (Spark runs 5-15 min)

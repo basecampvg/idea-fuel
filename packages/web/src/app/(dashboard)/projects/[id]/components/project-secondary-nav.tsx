@@ -25,6 +25,9 @@ import {
   ArrowLeft,
   Sparkles,
   Settings2,
+  GitCompare,
+  Camera,
+  Download,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -42,9 +45,17 @@ interface NavSection {
 /** Routes that belong to the Go to Market dashboard */
 const GTM_ROUTES = ['/offer', '/tech-stack', '/action-prompts'];
 
-function getActiveDashboard(pathname: string | null, projectId: string): 'research' | 'gtm' {
+/** Routes that belong to the Financial dashboard */
+const FINANCIAL_ROUTES = ['/financials'];
+
+/** Routes that belong to the Reporting dashboard */
+const REPORTING_ROUTES = ['/reports/', '/insights'];
+
+function getActiveDashboard(pathname: string | null, projectId: string): 'research' | 'gtm' | 'financial' | 'reporting' {
   if (!pathname) return 'research';
   const relative = pathname.replace(`/projects/${projectId}`, '');
+  if (FINANCIAL_ROUTES.some((r) => relative.startsWith(r))) return 'financial';
+  if (REPORTING_ROUTES.some((r) => relative.startsWith(r))) return 'reporting';
   if (GTM_ROUTES.some((r) => relative.startsWith(r))) return 'gtm';
   return 'research';
 }
@@ -98,13 +109,6 @@ function getGtmSections(projectId: string): NavSection[] {
       ],
     },
     {
-      title: 'Financials',
-      items: [
-        { label: 'Assumptions', href: `${base}/assumptions`, icon: Settings2 },
-        { label: 'Financial Model', href: `${base}/financials`, icon: BarChart3 },
-      ],
-    },
-    {
       title: 'History',
       items: [
         { label: 'Interview Summary', href: `${base}/interview-summary`, icon: MessageSquare },
@@ -113,13 +117,73 @@ function getGtmSections(projectId: string): NavSection[] {
   ];
 }
 
-function getReportItems(projectId: string): NavItem[] {
-  const base = `/projects/${projectId}/reports`;
+function getFinancialSections(projectId: string, pathname: string | null): NavSection[] {
+  const base = `/projects/${projectId}`;
+
+  // Extract modelId only when pathname is under /financials/[modelId]/...
+  const financialsPrefix = `${base}/financials`;
+  const isUnderFinancials = pathname?.startsWith(financialsPrefix) ?? false;
+  const financialsRelative = isUnderFinancials ? pathname!.slice(financialsPrefix.length) : '';
+  const modelIdMatch = financialsRelative.match(/^\/([^/]+)/);
+  const modelId = modelIdMatch?.[1];
+
+  // Inside a specific model — show model-level nav
+  if (modelId && modelId !== 'new') {
+    const modelBase = `${base}/financials/${modelId}`;
+    return [
+      {
+        title: 'Model',
+        items: [
+          { label: 'Dashboard', href: modelBase, icon: LayoutDashboard },
+          { label: 'Assumption Cards', href: `${modelBase}/assumptions`, icon: Settings2 },
+        ],
+      },
+      {
+        title: 'Analysis',
+        items: [
+          { label: 'Statements', href: `${modelBase}/statements`, icon: BarChart3 },
+          { label: 'Break-Even', href: `${modelBase}/analysis/break-even`, icon: Target },
+          { label: 'Scenarios', href: `${modelBase}/scenarios`, icon: GitCompare },
+          { label: 'Snapshots', href: `${modelBase}/snapshots`, icon: Camera },
+        ],
+      },
+      {
+        title: 'Output',
+        items: [
+          { label: 'Export', href: `${modelBase}/export`, icon: Download },
+        ],
+      },
+    ];
+  }
+
+  // Top-level financials page
   return [
-    { label: 'Business Plan', href: `${base}/business-plan`, icon: FileText },
-    { label: 'Positioning', href: `${base}/positioning`, icon: Compass },
-    { label: 'Competitive Analysis', href: `${base}/competitive-analysis`, icon: BarChart3 },
-    { label: 'AI Insights', href: `/projects/${projectId}/insights`, icon: Sparkles },
+    {
+      title: 'Financials',
+      items: [
+        { label: 'Financial Models', href: `${base}/financials`, icon: BarChart3 },
+      ],
+    },
+  ];
+}
+
+function getReportingSections(projectId: string): NavSection[] {
+  const base = `/projects/${projectId}`;
+  return [
+    {
+      title: 'Reports',
+      items: [
+        { label: 'Business Plan', href: `${base}/reports/business-plan`, icon: FileText },
+        { label: 'Positioning', href: `${base}/reports/positioning`, icon: Compass },
+        { label: 'Competitive Analysis', href: `${base}/reports/competitive-analysis`, icon: BarChart3 },
+      ],
+    },
+    {
+      title: 'Insights',
+      items: [
+        { label: 'AI Insights', href: `${base}/insights`, icon: Sparkles },
+      ],
+    },
   ];
 }
 
@@ -135,15 +199,18 @@ export function ProjectSecondaryNav({ project }: ProjectSecondaryNavProps) {
   const pathname = usePathname();
   const { sidebarWidth } = useSidebar();
   const activeDashboard = getActiveDashboard(pathname, project.id);
-  const navSections = activeDashboard === 'gtm'
-    ? getGtmSections(project.id)
-    : getResearchSections(project.id);
-  const reportItems = getReportItems(project.id);
+  const navSections = activeDashboard === 'financial'
+    ? getFinancialSections(project.id, pathname)
+    : activeDashboard === 'reporting'
+      ? getReportingSections(project.id)
+      : activeDashboard === 'gtm'
+        ? getGtmSections(project.id)
+        : getResearchSections(project.id);
   const status = projectStatusConfig[project.status as ProjectStatus] || projectStatusConfig.CAPTURED;
 
   function isActive(href: string) {
-    // Exact match for the base route (Summary)
-    if (href === `/projects/${project.id}`) {
+    // Exact match for base routes (Summary page, Model dashboard)
+    if (href === `/projects/${project.id}` || href.match(/\/financials\/[^/]+$/)) {
       return pathname === href;
     }
     return pathname === href || pathname?.startsWith(href + '/');
@@ -205,42 +272,6 @@ export function ProjectSecondaryNav({ project }: ProjectSecondaryNavProps) {
           </div>
         ))}
 
-        {/* Reports — only shown on Research dashboard */}
-        {activeDashboard === 'research' && <>
-        <div className="my-4 mx-3 h-px bg-border" />
-        <div>
-          <div className="px-3 mb-1.5">
-            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-              Reports
-            </span>
-          </div>
-          <div className="space-y-0.5">
-            {reportItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`
-                    flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all
-                    ${active
-                      ? 'bg-primary/10 text-primary border-l-2 border-primary -ml-px'
-                      : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
-                    }
-                  `}
-                >
-                  <Icon
-                    className={`w-4 h-4 flex-shrink-0 ${active ? 'text-primary' : ''}`}
-                    strokeWidth={active ? 2 : 1.5}
-                  />
-                  <span className="font-medium truncate">{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-        </>}
       </nav>
     </aside>
   );

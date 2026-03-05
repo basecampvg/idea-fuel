@@ -52,6 +52,7 @@ export interface SparkPipelineJobData {
   userId: string;
   description: string;
   includeTrends: boolean;
+  engine?: 'OPENAI' | 'PERPLEXITY';
 }
 
 /**
@@ -247,13 +248,30 @@ export async function enqueueReportGeneration(
 }
 
 /**
- * Add a research pipeline job to the queue
+ * Add a research pipeline job to the queue.
+ * Enforces per-user job limit to prevent one user from hogging the queue.
  */
 export async function enqueueResearchPipeline(
   data: ResearchPipelineJobData
 ): Promise<string> {
+  const queue = getResearchPipelineQueue();
+  const maxPerUser = parseInt(process.env.MAX_RESEARCH_JOBS_PER_USER || '1', 10);
+
+  // Check if user already has active or waiting research jobs
+  const [activeJobs, waitingJobs] = await Promise.all([
+    queue.getActive(),
+    queue.getWaiting(),
+  ]);
+  const userJobCount = [...activeJobs, ...waitingJobs].filter(
+    (j) => j.data.userId === data.userId
+  ).length;
+
+  if (userJobCount >= maxPerUser) {
+    throw new Error('You already have a research pipeline in progress. Please wait for it to complete.');
+  }
+
   const jobId = `research-${data.researchId}-${Date.now()}`;
-  const job = await getResearchPipelineQueue().add(
+  const job = await queue.add(
     `research-${data.researchId}`,
     data,
     { jobId }

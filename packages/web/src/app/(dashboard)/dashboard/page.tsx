@@ -270,7 +270,7 @@ export default function DashboardPage() {
         router.push(`/projects/${project.id}`);
       } else if (selectedMode === 'SPARK') {
         // Spark mode - quick validation pipeline
-        await startInterview.mutateAsync({ projectId: project.id, mode: 'SPARK', researchEngine: 'OPENAI' });
+        await startInterview.mutateAsync({ projectId: project.id, mode: 'SPARK', researchEngine });
         await startSpark.mutateAsync({ projectId: project.id });
         router.push(`/projects/${project.id}`);
       } else {

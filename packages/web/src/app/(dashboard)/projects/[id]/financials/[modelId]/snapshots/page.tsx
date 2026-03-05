@@ -18,9 +18,9 @@ function formatDate(date: Date | string): string {
 export default function SnapshotsPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; modelId: string }>;
 }) {
-  const { id: modelId } = use(params);
+  const { modelId } = use(params);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newName, setNewName] = useState('');
   const [restoringId, setRestoringId] = useState<string | null>(null);
@@ -79,7 +79,6 @@ export default function SnapshotsPage({
 
   return (
     <div className="space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Camera className="w-5 h-5 text-muted-foreground" />
@@ -97,7 +96,6 @@ export default function SnapshotsPage({
         </button>
       </div>
 
-      {/* Create Form */}
       {showCreateForm && (
         <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
           <div className="flex items-center justify-between mb-3">
@@ -127,7 +125,6 @@ export default function SnapshotsPage({
         </div>
       )}
 
-      {/* Restore Confirmation */}
       {confirmRestoreId && (
         <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-500/20 bg-amber-500/5">
           <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
@@ -155,7 +152,6 @@ export default function SnapshotsPage({
         </div>
       )}
 
-      {/* Snapshot List */}
       {snapshotList.length === 0 ? (
         <div className="rounded-2xl border border-border bg-card/50 p-12 text-center">
           <Camera className="w-8 h-8 mx-auto text-muted-foreground/40 mb-3" />
@@ -225,7 +221,6 @@ export default function SnapshotsPage({
         </div>
       )}
 
-      {/* Compare View */}
       {compareIds && compareIds[0] && compareIds[1] && comparison && (
         <div className="rounded-2xl border border-border bg-card overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3 border-b border-border">

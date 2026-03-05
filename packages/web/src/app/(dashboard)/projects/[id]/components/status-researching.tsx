@@ -20,6 +20,7 @@ import {
 } from '@forge/shared';
 
 interface Research {
+  id: string;
   status: string;
   currentPhase: string;
   progress: number;
@@ -77,7 +78,6 @@ const phaseSubTasks: Record<string, string[]> = {
     'Crafting user story & value ladder',
     'Building action plan & tech stack',
     'Analyzing keyword trends',
-    'Writing business plan',
   ],
 };
 
@@ -99,10 +99,8 @@ function getActiveSubTask(phase: string, progress: number): number {
       return 4;
     case 'REPORT_GENERATION':
       if (progress < 88) return 0;
-      if (progress < 92) return 1;
+      if (progress < 94) return 1;
       return 2;
-    case 'BUSINESS_PLAN_GENERATION':
-      return 3; // Always the last sub-task of the "Generating Reports" display
     default:
       return 0;
   }
@@ -144,6 +142,17 @@ export function StatusResearching({ project }: StatusResearchingProps) {
     },
   });
 
+  // Poll queue position when research is waiting to start
+  const isQueued = research?.status === 'PENDING' || (research?.status === 'IN_PROGRESS' && research?.progress === 0);
+  const { data: progressData } = trpc.research.getProgress.useQuery(
+    { id: research?.id ?? '' },
+    {
+      enabled: Boolean(research?.id && isQueued),
+      refetchInterval: isQueued ? 5000 : false,
+    }
+  );
+  const queuePosition = progressData?.queuePosition ?? null;
+
   // Polling is handled by project-layout-client.tsx (refetchInterval: 3000)
   // No duplicate polling needed here.
 
@@ -162,15 +171,9 @@ export function StatusResearching({ project }: StatusResearchingProps) {
 
   if (!research) return null;
 
-  // Map currentPhase to display index — BUSINESS_PLAN_GENERATION is a sub-phase
-  // of REPORT_GENERATION in the UI (the header text still shows "Writing Business Plan")
   const currentPhaseIndex = (() => {
     const idx = researchPhases.indexOf(research.currentPhase);
-    if (idx >= 0) return idx;
-    if (research.currentPhase === 'BUSINESS_PLAN_GENERATION') {
-      return researchPhases.indexOf('REPORT_GENERATION');
-    }
-    return 0; // Fallback for any unknown phase
+    return idx >= 0 ? idx : 0;
   })();
   const isFailed = research.status === 'FAILED';
 
@@ -239,17 +242,38 @@ export function StatusResearching({ project }: StatusResearchingProps) {
           <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
             <FlaskConical className="w-5 h-5 text-primary/70" />
           </div>
-          <h2 className="text-lg font-semibold text-foreground">Research in Progress</h2>
+          <h2 className="text-lg font-semibold text-foreground">
+            {isQueued && queuePosition ? 'Research Queued' : 'Research in Progress'}
+          </h2>
         </div>
+
+        {/* Queue Position Banner */}
+        {isQueued && queuePosition && queuePosition > 0 && (
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20 mb-5">
+            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
+              <Clock className="w-4 h-4 text-primary/70" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                Position {queuePosition} in queue
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {queuePosition === 1
+                  ? 'Your research will start next'
+                  : `${queuePosition - 1} research ${queuePosition - 1 === 1 ? 'job' : 'jobs'} ahead of yours`}
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-5">
           {/* Current Phase */}
           <div>
             <p className="text-sm font-medium text-foreground">
-              {RESEARCH_PHASE_LABELS[research.currentPhase] || research.currentPhase}
+              {isQueued && queuePosition ? 'Waiting to start...' : (RESEARCH_PHASE_LABELS[research.currentPhase] || research.currentPhase)}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              {RESEARCH_PHASE_DESCRIPTIONS[research.currentPhase] || ''}
+              {isQueued && queuePosition ? 'Your research is in the queue and will begin automatically' : (RESEARCH_PHASE_DESCRIPTIONS[research.currentPhase] || '')}
             </p>
           </div>
 

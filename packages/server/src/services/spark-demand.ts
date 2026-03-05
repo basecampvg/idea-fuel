@@ -17,6 +17,7 @@ import {
   DEEP_RESEARCH_MODEL_MINI,
   type ResponseStatus,
 } from '../lib/deep-research';
+import { getResearchProvider } from '../providers';
 import type { SparkKeywords } from '@forge/shared';
 import { safeJsonParse } from './research-ai';
 
@@ -50,6 +51,7 @@ export interface SparkDemandResult {
 
 export interface DemandResearchOptions {
   onProgress?: (status: ResponseStatus, elapsedMs: number) => void;
+  engine?: 'OPENAI' | 'PERPLEXITY';
 }
 
 // =============================================================================
@@ -228,49 +230,75 @@ Synonyms: ${keywords.synonyms.slice(0, 10).join(', ')}
 ${expansionPromptSection}
 `;
 
-  const params = createDeepResearchParams({
-    model: DEEP_RESEARCH_MODEL_MINI,
-    systemPrompt: DEMAND_RESEARCH_PROMPT,
-    userQuery,
-    domains: [
-      // Social - for pain point validation
-      'reddit.com',
-      'facebook.com',
-      'news.ycombinator.com',
-      'indiehackers.com',
-      'producthunt.com',
-      'twitter.com',
-      'x.com',
-    ],
-    background: true,
-    maxOutputTokens: 50000,
-    reasoningSummary: 'auto',
-  });
+  const demandDomains = [
+    'reddit.com',
+    'facebook.com',
+    'news.ycombinator.com',
+    'indiehackers.com',
+    'producthunt.com',
+    'twitter.com',
+    'x.com',
+  ];
 
-  // Run with retry logic
-  const result = await withExponentialBackoff(
-    () =>
-      runDeepResearchWithPolling(params, {
-        pollIntervalMs: 15000, // 15 second polling
-        maxWaitMs: 3600000, // 60 minute max wait
-        onProgress: (status: ResponseStatus, elapsed: number) => {
-          console.log(`[Spark:Demand] Status: ${status} (${Math.round(elapsed / 1000)}s)`);
-          options.onProgress?.(status, elapsed);
-        },
-        onLog: (msg: string) => console.log(msg),
+  let result: { content: string };
+
+  if (options.engine === 'PERPLEXITY') {
+    // --- Perplexity path: route through AIProvider abstraction ---
+    const provider = getResearchProvider(undefined, 'PERPLEXITY');
+    console.log(`[Spark:Demand] Using Perplexity sonar-deep-research with ${demandDomains.length} domains...`);
+
+    const response = await withExponentialBackoff(
+      () => provider.research(userQuery, {
+        systemPrompt: DEMAND_RESEARCH_PROMPT,
+        domains: demandDomains,
+        maxTokens: 16000,
       }),
-    {
-      maxAttempts: 3,
-      initialDelayMs: 10000,
-      maxDelayMs: 120000,
-      onRetry: (attempt, error, delayMs) => {
-        console.warn(
-          `[Spark:Demand] Retry ${attempt}/3 after ${delayMs}ms:`,
-          error instanceof Error ? error.message : error
-        );
-      },
-    }
-  );
+      {
+        maxAttempts: 2,
+        initialDelayMs: 10000,
+        maxDelayMs: 60000,
+        onRetry: (attempt, error, delayMs) => {
+          console.warn(`[Spark:Demand] Perplexity retry ${attempt}/2 after ${delayMs}ms:`, error instanceof Error ? error.message : error);
+        },
+      }
+    );
+    result = { content: response.content };
+  } else {
+    // --- OpenAI path: deep research with polling ---
+    const params = createDeepResearchParams({
+      model: DEEP_RESEARCH_MODEL_MINI,
+      systemPrompt: DEMAND_RESEARCH_PROMPT,
+      userQuery,
+      domains: demandDomains,
+      background: true,
+      maxOutputTokens: 50000,
+      reasoningSummary: 'auto',
+    });
+
+    result = await withExponentialBackoff(
+      () =>
+        runDeepResearchWithPolling(params, {
+          pollIntervalMs: 15000,
+          maxWaitMs: 3600000,
+          onProgress: (status: ResponseStatus, elapsed: number) => {
+            console.log(`[Spark:Demand] Status: ${status} (${Math.round(elapsed / 1000)}s)`);
+            options.onProgress?.(status, elapsed);
+          },
+          onLog: (msg: string) => console.log(msg),
+        }),
+      {
+        maxAttempts: 3,
+        initialDelayMs: 10000,
+        maxDelayMs: 120000,
+        onRetry: (attempt, error, delayMs) => {
+          console.warn(
+            `[Spark:Demand] Retry ${attempt}/3 after ${delayMs}ms:`,
+            error instanceof Error ? error.message : error
+          );
+        },
+      }
+    );
+  }
 
   // Parse the response
   const rawContent = result.content || '';

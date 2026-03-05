@@ -74,12 +74,37 @@ export type ReportTier = 'BASIC' | 'PRO' | 'FULL';
 
 export type ReportStatus = 'DRAFT' | 'GENERATING' | 'COMPLETE' | 'FAILED';
 
+export interface WorkHistoryEntry {
+  company: string;
+  title: string;
+  startDate: string;       // "YYYY-MM" format
+  endDate: string | null;  // null = "Present"
+  description: string;
+  isCurrent: boolean;
+}
+
+export interface EducationEntry {
+  institution: string;
+  degree: string;
+  fieldOfStudy: string;
+  graduationYear: number | null;
+}
+
+export interface FounderProfile {
+  bio: string;
+  skills: string[];
+  workHistory: WorkHistoryEntry[];
+  education: EducationEntry[];
+  updatedAt: string; // ISO date
+}
+
 export interface User {
   id: string;
   email: string;
   name: string | null;
   image: string | null;
   subscription: SubscriptionTier;
+  founderProfile: FounderProfile | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -203,7 +228,6 @@ export type ResearchPhase =
   | 'SOCIAL_RESEARCH'    // Domain-filtered social proof search (~1 min)
   | 'SYNTHESIS'          // GPT-5.2 extracts structured data (~1 min)
   | 'REPORT_GENERATION'  // GPT-5.2 generates creative content (~1 min)
-  | 'BUSINESS_PLAN_GENERATION' // GPT-5.2 writes comprehensive business plan (~2-3 min)
   | 'COMPLETE'
   // Legacy phases (kept for backward compatibility)
   | 'QUERY_GENERATION'

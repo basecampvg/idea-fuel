@@ -187,8 +187,11 @@ export function StatusComplete({ project, onDelete, isDeleting }: StatusComplete
     } : null,
   });
 
+  // Carry forward the engine choice from the most recent interview
+  const latestEngine = (project.interviews?.[0] as { researchEngine?: string } | undefined)?.researchEngine || 'OPENAI';
+
   const handleStartMode = (mode: InterviewMode) => {
-    startInterview.mutate({ projectId: project.id, mode });
+    startInterview.mutate({ projectId: project.id, mode, researchEngine: latestEngine as 'OPENAI' | 'PERPLEXITY' });
   };
 
   const researchStats = {
@@ -380,7 +383,7 @@ export function StatusComplete({ project, onDelete, isDeleting }: StatusComplete
               <ChevronRight className="w-4 h-4" />
             </Link>
             <button
-              onClick={() => startInterview.mutate({ projectId: project.id, mode: 'IN_DEPTH' })}
+              onClick={() => startInterview.mutate({ projectId: project.id, mode: 'IN_DEPTH', researchEngine: latestEngine as 'OPENAI' | 'PERPLEXITY' })}
               disabled={startInterview.isPending}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
             >

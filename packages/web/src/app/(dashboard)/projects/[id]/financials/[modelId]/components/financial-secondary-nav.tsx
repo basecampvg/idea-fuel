@@ -26,8 +26,8 @@ interface NavSection {
   items: NavItem[];
 }
 
-function getNavSections(modelId: string): NavSection[] {
-  const base = `/financials/${modelId}`;
+function getNavSections(projectId: string, modelId: string): NavSection[] {
+  const base = `/projects/${projectId}/financials/${modelId}`;
   return [
     {
       title: 'Model',
@@ -60,6 +60,7 @@ interface FinancialSecondaryNavProps {
     name: string;
     status: string;
   };
+  projectId: string;
 }
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -68,14 +69,15 @@ const statusLabels: Record<string, { label: string; color: string }> = {
   ARCHIVED: { label: 'Archived', color: 'text-muted-foreground/50' },
 };
 
-export function FinancialSecondaryNav({ model }: FinancialSecondaryNavProps) {
+export function FinancialSecondaryNav({ model, projectId }: FinancialSecondaryNavProps) {
   const pathname = usePathname();
   const { sidebarWidth } = useSidebar();
-  const navSections = getNavSections(model.id);
+  const navSections = getNavSections(projectId, model.id);
   const status = statusLabels[model.status] ?? statusLabels.DRAFT;
+  const base = `/projects/${projectId}/financials/${model.id}`;
 
   function isActive(href: string) {
-    if (href === `/financials/${model.id}`) {
+    if (href === base) {
       return pathname === href;
     }
     return pathname === href || pathname?.startsWith(href + '/');
@@ -89,7 +91,7 @@ export function FinancialSecondaryNav({ model }: FinancialSecondaryNavProps) {
       {/* Header */}
       <div className="px-4 pt-5 pb-3">
         <Link
-          href="/financials"
+          href={`/projects/${projectId}/financials`}
           className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />

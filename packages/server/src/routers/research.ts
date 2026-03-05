@@ -4,7 +4,7 @@ import { router, protectedProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { RESEARCH_PHASE_PROGRESS, SPARK_STATUS_PROGRESS } from '@forge/shared';
 import { logAuditAsync, formatResource } from '../lib/audit';
-import { enqueueResearchCancel, enqueueResearchPipeline, enqueueSparkPipeline } from '../jobs';
+import { enqueueResearchCancel, enqueueResearchPipeline, enqueueSparkPipeline, getResearchPipelineQueue } from '../jobs';
 import { research, projects, users, interviews } from '../db/schema';
 import {
   extractInsights,
@@ -112,6 +112,21 @@ export const researchRouter = router({
     // Calculate estimated completion based on phase
     const phaseProgress = RESEARCH_PHASE_PROGRESS[result.currentPhase];
 
+    // Check queue position when research is waiting to start
+    let queuePosition: number | null = null;
+    if (result.status === 'PENDING' || (result.status === 'IN_PROGRESS' && result.progress === 0)) {
+      try {
+        const queue = getResearchPipelineQueue();
+        const waitingJobs = await queue.getWaiting();
+        const idx = waitingJobs.findIndex((j) => j.data.researchId === result.id);
+        if (idx >= 0) {
+          queuePosition = idx + 1; // 1-based position
+        }
+      } catch {
+        // Non-fatal — just skip queue position
+      }
+    }
+
     return {
       id: result.id,
       status: result.status,
@@ -123,6 +138,7 @@ export const researchRouter = router({
       completedAt: result.completedAt,
       errorMessage: result.errorMessage,
       errorPhase: result.errorPhase,
+      queuePosition,
     };
   }),
 
@@ -240,6 +256,15 @@ export const researchRouter = router({
     // Worker process handles the long-running pipeline (30-60+ min)
     try {
       const engine = (interview.researchEngine as 'OPENAI' | 'PERPLEXITY') || 'OPENAI';
+
+      // Fail fast if Perplexity selected but API key not configured
+      if (engine === 'PERPLEXITY' && !process.env.PERPLEXITY_API_KEY) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'Perplexity research engine is not available — PERPLEXITY_API_KEY is not configured. Please switch to OpenAI.',
+        });
+      }
+
       await enqueueResearchPipeline({
         researchId: researchRecord.id,
         projectId: input.projectId,
@@ -543,6 +568,7 @@ export const researchRouter = router({
         where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
         with: {
           research: true,
+          interviews: { orderBy: (i, { desc: d }) => [d(i.createdAt)], limit: 1 },
         },
       });
 
@@ -550,6 +576,17 @@ export const researchRouter = router({
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Project not found',
+        });
+      }
+
+      // Read engine choice from the interview record (set during startInterview)
+      const engine = (project.interviews?.[0]?.researchEngine as 'OPENAI' | 'PERPLEXITY') || 'OPENAI';
+
+      // Validate Perplexity API key if selected
+      if (engine === 'PERPLEXITY' && !process.env.PERPLEXITY_API_KEY) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Perplexity research engine is not available — PERPLEXITY_API_KEY is not configured. Please switch to OpenAI.',
         });
       }
 
@@ -573,6 +610,7 @@ export const researchRouter = router({
           sparkCompletedAt: null,
           sparkError: null,
           notesSnapshot: project.notes, // Snapshot project notes
+          researchEngine: engine,
         }).where(eq(research.id, project.research.id)).returning();
         researchRecord = updated;
       } else {
@@ -584,6 +622,7 @@ export const researchRouter = router({
           sparkStatus: 'QUEUED',
           sparkStartedAt: new Date(),
           notesSnapshot: project.notes, // Snapshot project notes
+          researchEngine: engine,
         }).returning();
         researchRecord = created;
       }
@@ -596,7 +635,7 @@ export const researchRouter = router({
         userId: ctx.userId,
         action: 'RESEARCH_START',
         resource: formatResource('research', researchRecord.id),
-        metadata: { projectId: input.projectId, mode: 'SPARK' },
+        metadata: { projectId: input.projectId, mode: 'SPARK', engine },
       });
 
       // Build enriched description with project notes
@@ -613,6 +652,7 @@ export const researchRouter = router({
           userId: ctx.userId,
           description: sparkDescription,
           includeTrends: true,
+          engine,
         });
       } catch (queueError) {
         console.error('[Research] Failed to queue Spark pipeline:', queueError);

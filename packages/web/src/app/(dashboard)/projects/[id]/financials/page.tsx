@@ -3,7 +3,7 @@
 // Feature flag — set to false to disable financial modeling module
 const FINANCIAL_MODELING_ENABLED = true;
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
@@ -79,7 +79,12 @@ function formatTimeAgo(date: Date): string {
   return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function FinancialsPage() {
+export default function ProjectFinancialsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id: projectId } = use(params);
   const router = useRouter();
   const [filter, setFilter] = useState<ModelStatus | 'ALL'>('ALL');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -87,7 +92,7 @@ export default function FinancialsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const utils = trpc.useUtils();
-  const { data, isLoading, error } = trpc.financial.list.useQuery({});
+  const { data, isLoading, error } = trpc.financial.list.useQuery({ projectId });
   const { data: usage } = trpc.financial.usage.useQuery();
   const atLimit = usage ? usage.currentCount >= usage.limit : false;
   const deleteMutation = trpc.financial.delete.useMutation({
@@ -146,7 +151,7 @@ export default function FinancialsPage() {
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Financial Models</h1>
           <p className="mt-1 text-sm text-muted-foreground/60">
-            {allModels.length} model{allModels.length !== 1 ? 's' : ''} in your portfolio
+            {allModels.length} model{allModels.length !== 1 ? 's' : ''} for this project
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -169,7 +174,7 @@ export default function FinancialsPage() {
             </span>
           ) : (
             <Link
-              href="/financials/new"
+              href={`/projects/${projectId}/financials/new`}
               className="
                 inline-flex items-center gap-2 px-4 py-2.5
                 bg-primary text-primary-foreground text-sm font-medium
@@ -223,14 +228,14 @@ export default function FinancialsPage() {
 
       {/* Models Grid */}
       {filteredModels.length === 0 ? (
-        <EmptyState filter={filter} />
+        <EmptyState filter={filter} projectId={projectId} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredModels.map((model) => {
             const display = statusDisplay[model.status as ModelStatus] ?? statusDisplay.DRAFT;
 
             return (
-              <Link key={model.id} href={`/financials/${model.id}`} className="group">
+              <Link key={model.id} href={`/projects/${projectId}/financials/${model.id}`} className="group">
                 <div
                   className={`
                   relative h-full p-5 rounded-2xl border transition-all duration-300
@@ -359,7 +364,7 @@ export default function FinancialsPage() {
   );
 }
 
-function EmptyState({ filter }: { filter: ModelStatus | 'ALL' }) {
+function EmptyState({ filter, projectId }: { filter: ModelStatus | 'ALL'; projectId: string }) {
   const messages: Record<ModelStatus | 'ALL', { title: string; description: string }> = {
     ALL: {
       title: 'No financial models yet',
@@ -390,7 +395,7 @@ function EmptyState({ filter }: { filter: ModelStatus | 'ALL' }) {
       <p className="text-sm text-muted-foreground/60 mb-6 max-w-sm mx-auto">{description}</p>
       {filter === 'ALL' && (
         <Link
-          href="/financials/new"
+          href={`/projects/${projectId}/financials/new`}
           className="
             inline-flex items-center gap-2 px-5 py-2.5
             bg-primary text-primary-foreground text-sm font-medium

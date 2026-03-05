@@ -5,7 +5,7 @@ export default function FinancialModelLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; modelId: string }>;
 }) {
   return <FinancialLayoutClient params={params}>{children}</FinancialLayoutClient>;
 }

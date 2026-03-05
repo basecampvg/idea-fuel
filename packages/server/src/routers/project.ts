@@ -271,7 +271,7 @@ export const projectRouter = router({
           collectedData: null,
           confidenceScore: 0,
           summary: 'Spark mode - quick validation from project description.',
-          researchEngine: 'OPENAI', // Spark always uses OpenAI
+          researchEngine: input.researchEngine || 'OPENAI',
         }).returning();
 
         await tx.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, input.projectId));

@@ -26,14 +26,14 @@ function formatDate(date: Date): string {
 export default function FinancialModelDashboard({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; modelId: string }>;
 }) {
-  const { id } = use(params);
+  const { id: projectId, modelId } = use(params);
   const utils = trpc.useUtils();
-  const { data: model, isLoading } = trpc.financial.get.useQuery({ id });
+  const { data: model, isLoading } = trpc.financial.get.useQuery({ id: modelId });
   const updateMutation = trpc.financial.update.useMutation({
     onSuccess: () => {
-      utils.financial.get.invalidate({ id });
+      utils.financial.get.invalidate({ id: modelId });
     },
   });
 
@@ -46,32 +46,34 @@ export default function FinancialModelDashboard({
   }
 
   const handleKnowledgeLevelChange = (level: 'BEGINNER' | 'STANDARD' | 'EXPERT') => {
-    updateMutation.mutate({ id, knowledgeLevel: level });
+    updateMutation.mutate({ id: modelId, knowledgeLevel: level });
   };
+
+  const base = `/projects/${projectId}/financials/${modelId}`;
 
   const quickLinks = [
     {
       label: 'Edit Assumptions',
       description: 'Configure your model inputs and variables',
-      href: `/financials/${id}/assumptions`,
+      href: `${base}/assumptions`,
       icon: Settings2,
     },
     {
       label: 'View Statements',
       description: 'P&L, Balance Sheet, Cash Flow projections',
-      href: `/financials/${id}/statements`,
+      href: `${base}/statements`,
       icon: BarChart3,
     },
     {
       label: 'Compare Scenarios',
       description: 'Test different what-if scenarios side by side',
-      href: `/financials/${id}/scenarios`,
+      href: `${base}/scenarios`,
       icon: GitCompare,
     },
     {
       label: 'Manage Snapshots',
       description: 'Save and restore model state versions',
-      href: `/financials/${id}/snapshots`,
+      href: `${base}/snapshots`,
       icon: Camera,
     },
   ];
@@ -118,7 +120,7 @@ export default function FinancialModelDashboard({
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-medium text-foreground">Scenarios</h3>
           <Link
-            href={`/financials/${id}/scenarios`}
+            href={`${base}/scenarios`}
             className="text-xs text-primary hover:text-primary/80 transition-colors"
           >
             Manage

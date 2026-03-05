@@ -33,6 +33,7 @@ import { runTamResearch, type SparkTamResult } from './spark-tam';
 import { runCompetitorResearch, type SparkCompetitorResult } from './spark-competitors';
 import { expandQueries, getExpandedQueryStrings, formatQueriesForPrompt } from '../lib/query-expansion';
 import { computeSparkQualityScores, qualityReportToPromptContext } from '../lib/quality-scoring';
+import { getAnthropicProvider } from '../providers/anthropic';
 import type {
   SparkKeywords,
   SparkResult,
@@ -92,38 +93,61 @@ Output ONLY valid JSON matching this exact schema:
 
 /**
  * Call 1: Generate keyword pack from idea description
+ * When engine=PERPLEXITY, uses Anthropic (Sonnet) instead of OpenAI so the
+ * pipeline doesn't depend on an OpenAI API key at all.
  */
-export async function generateSparkKeywords(ideaDescription: string): Promise<SparkKeywords> {
-  const params = createResponsesParams(
-    {
+export async function generateSparkKeywords(
+  ideaDescription: string,
+  engine?: 'OPENAI' | 'PERPLEXITY'
+): Promise<SparkKeywords> {
+  const userPrompt = `Generate a keyword pack for this business idea:\n\n${ideaDescription}`;
+
+  let content: string;
+
+  if (engine === 'PERPLEXITY') {
+    // Route through Anthropic so the pipeline is fully OpenAI-free
+    const anthropic = getAnthropicProvider();
+    const result = await anthropic.generate(
+      `${KEYWORD_SYSTEM_PROMPT}\n\n${userPrompt}\n\nReturn ONLY valid JSON matching the schema above.`,
+      { maxTokens: 3000, temperature: 0.3, task: 'extraction' }
+    );
+    content = result;
+    console.log(`[Spark Keywords] Used Anthropic (engine=PERPLEXITY)`);
+  } else {
+    // Default: OpenAI gpt-4o-mini
+    const params = createResponsesParams(
+      {
+        model: KEYWORD_MODEL,
+        input: [
+          { role: 'system', content: KEYWORD_SYSTEM_PROMPT },
+          { role: 'user', content: userPrompt },
+        ],
+        max_output_tokens: 3000,
+        response_format: { type: 'json_object' },
+      },
+      { reasoning: 'low', verbosity: 'low' }
+    );
+
+    const response = await withExponentialBackoff(
+      () => openai.responses.create(params),
+      { maxAttempts: 3 }
+    );
+
+    trackUsageFromResponse(response, {
+      functionName: 'generateSparkKeywords',
       model: KEYWORD_MODEL,
-      input: [
-        { role: 'system', content: KEYWORD_SYSTEM_PROMPT },
-        { role: 'user', content: `Generate a keyword pack for this business idea:\n\n${ideaDescription}` },
-      ],
-      max_output_tokens: 3000,
-      response_format: { type: 'json_object' },
-    },
-    { reasoning: 'low', verbosity: 'low' }
-  );
+    });
 
-  const response = await withExponentialBackoff(
-    () => openai.responses.create(params),
-    { maxAttempts: 3 }
-  );
-
-  // Track token usage for keyword generation
-  trackUsageFromResponse(response, {
-    functionName: 'generateSparkKeywords',
-    model: KEYWORD_MODEL,
-  });
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const responseAny = response as any;
-  const content = responseAny.output_text || responseAny.output?.[0]?.content || '';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const responseAny = response as any;
+    content = responseAny.output_text || responseAny.output?.[0]?.content || '';
+    console.log(`[Spark Keywords] Used OpenAI ${KEYWORD_MODEL}`);
+  }
 
   try {
-    const parsed = JSON.parse(content);
+    // Strip markdown code fences if present
+    const jsonStr = content.replace(/```json\s*\n?/g, '').replace(/```\s*$/g, '').trim();
+    const parsed = JSON.parse(jsonStr);
     return {
       phrases: parsed.phrases || [],
       synonyms: parsed.synonyms || [],
@@ -242,6 +266,7 @@ Return ONLY valid JSON matching SparkResult schema:
 
 /**
  * Call 5: Synthesize demand + TAM + competitor results into final SparkResult
+ * When engine=PERPLEXITY, uses Anthropic (Sonnet) instead of OpenAI.
  */
 async function synthesizeSparkResults(
   ideaDescription: string,
@@ -249,7 +274,8 @@ async function synthesizeSparkResults(
   demandResult: SparkDemandResult | null,
   tamResult: SparkTamResult | null,
   competitorResult: SparkCompetitorResult | null,
-  dataQualityContext: string
+  dataQualityContext: string,
+  engine?: 'OPENAI' | 'PERPLEXITY'
 ): Promise<SparkResult> {
   const userPrompt = `Synthesize this market validation data into a final SparkResult:
 
@@ -276,37 +302,51 @@ ${competitorResult ? JSON.stringify(competitorResult, null, 2) : 'UNAVAILABLE - 
 5. Include all competitors and market gaps from competitor research`;
 
   const systemPrompt = buildSynthesisPrompt(dataQualityContext);
-  const aiParams = getAIParams('synthesizeInsights', 'PRO');
 
-  const params = createResponsesParams(
-    {
+  let content: string;
+
+  if (engine === 'PERPLEXITY') {
+    // Route through Anthropic so the pipeline is fully OpenAI-free
+    const anthropic = getAnthropicProvider();
+    const result = await anthropic.generate(
+      `${systemPrompt}\n\n${userPrompt}\n\nReturn ONLY valid JSON.`,
+      { maxTokens: 15000, temperature: 0.4, task: 'extraction' }
+    );
+    content = result;
+    console.log(`[Spark Synthesis] Used Anthropic (engine=PERPLEXITY)`);
+  } else {
+    // Default: OpenAI
+    const aiParams = getAIParams('synthesizeInsights', 'PRO');
+
+    const params = createResponsesParams(
+      {
+        model: SYNTHESIS_MODEL,
+        input: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        max_output_tokens: 15000,
+        response_format: { type: 'json_object' },
+      },
+      aiParams
+    );
+
+    const response = await withExponentialBackoff(
+      () => openai.responses.create(params),
+      { maxAttempts: 5, initialDelayMs: 2000 }
+    );
+
+    trackUsageFromResponse(response, {
+      functionName: 'synthesizeSparkResults',
       model: SYNTHESIS_MODEL,
-      input: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      max_output_tokens: 15000,
-      response_format: { type: 'json_object' },
-    },
-    aiParams
-  );
+    });
 
-  const response = await withExponentialBackoff(
-    () => openai.responses.create(params),
-    { maxAttempts: 5, initialDelayMs: 2000 }
-  );
-
-  // Track token usage
-  trackUsageFromResponse(response, {
-    functionName: 'synthesizeSparkResults',
-    model: SYNTHESIS_MODEL,
-  });
-
-  // Use unified content extractor (handles both output_text and output[] array formats)
-  const content = extractResponseContent(response);
+    content = extractResponseContent(response) || '';
+    console.log(`[Spark Synthesis] Used OpenAI ${SYNTHESIS_MODEL}`);
+  }
 
   if (!content) {
-    throw new ResponseParseError('Synthesis returned empty content', response);
+    throw new Error('Synthesis returned empty content');
   }
 
   // Validate JSON completeness before parsing
@@ -319,12 +359,12 @@ ${competitorResult ? JSON.stringify(competitorResult, null, 2) : 'UNAVAILABLE - 
   } catch (directParseError) {
     const isolated = isolateJson(content);
     if (!isolated) {
-      throw new ResponseParseError('Failed to parse synthesis response: could not isolate JSON', response);
+      throw new Error('Failed to parse synthesis response: could not isolate JSON');
     }
     try {
       parsed = JSON.parse(isolated);
     } catch (isolatedParseError) {
-      throw new ResponseParseError('Failed to parse synthesis response after isolation', response);
+      throw new Error('Failed to parse synthesis response after isolation');
     }
   }
 
@@ -380,7 +420,7 @@ ${competitorResult ? JSON.stringify(competitorResult, null, 2) : 'UNAVAILABLE - 
 
     return validated;
   } catch (validationError) {
-    throw new ResponseParseError('Failed to validate synthesis response schema', response);
+    throw new Error('Failed to validate synthesis response schema');
   }
 }
 
@@ -456,6 +496,7 @@ export interface SparkPipelineOptions {
   onStatusChange?: (status: SparkJobStatus) => Promise<void>;
   includeTrends?: boolean;
   useParallelPipeline?: boolean;
+  engine?: 'OPENAI' | 'PERPLEXITY';
 }
 
 /**
@@ -473,20 +514,22 @@ export async function runSparkPipeline(
     onStatusChange,
     includeTrends = true,
     useParallelPipeline = USE_PARALLEL_PIPELINE,
+    engine,
   } = options;
 
   // Use legacy pipeline if parallel is disabled
   if (!useParallelPipeline) {
-    return runSparkPipelineLegacy(ideaDescription, { onStatusChange, includeTrends });
+    return runSparkPipelineLegacy(ideaDescription, { onStatusChange, includeTrends, engine });
   }
 
   const pipelineStart = Date.now();
+  console.log(`[Spark] Engine: ${engine || 'OPENAI (default)'}`);
 
   // =========================================================================
   // Call 1: Generate keywords (now includes LLM-generated expanded queries)
   // =========================================================================
   await onStatusChange?.('RUNNING_KEYWORDS');
-  const keywords = await generateSparkKeywords(ideaDescription);
+  const keywords = await generateSparkKeywords(ideaDescription, engine);
 
   // =========================================================================
   // Step 1.5: Query expansion (templates + SerpAPI rising queries)
@@ -510,10 +553,21 @@ export async function runSparkPipeline(
   // =========================================================================
   await onStatusChange?.('RUNNING_PARALLEL');
 
+  // Perplexity rate limit (5 RPM on Tier 0) — stagger calls by 15s each
+  const PERPLEXITY_STAGGER_MS = 15000;
+  const useStagger = engine === 'PERPLEXITY';
+
+  const staggeredCall = <T>(fn: () => Promise<T>, index: number): Promise<T> => {
+    if (!useStagger || index === 0) return fn();
+    return new Promise((resolve, reject) => {
+      setTimeout(() => fn().then(resolve, reject), index * PERPLEXITY_STAGGER_MS);
+    });
+  };
+
   const [demandSettled, tamSettled, competitorSettled] = await Promise.allSettled([
-    runDemandResearch(ideaDescription, keywords, expansionPromptSection),
-    runTamResearch(ideaDescription, keywords, expansionPromptSection),
-    runCompetitorResearch(ideaDescription, keywords, expansionPromptSection),
+    staggeredCall(() => runDemandResearch(ideaDescription, keywords, expansionPromptSection, { engine }), 0),
+    staggeredCall(() => runTamResearch(ideaDescription, keywords, expansionPromptSection, { engine }), 1),
+    staggeredCall(() => runCompetitorResearch(ideaDescription, keywords, expansionPromptSection, { engine }), 2),
   ]);
 
   // Extract results with graceful degradation
@@ -548,7 +602,8 @@ export async function runSparkPipeline(
     demandResult,
     tamResult,
     competitorResult,
-    dataQualityContext
+    dataQualityContext,
+    engine
   );
 
   // Attach quality report to result
@@ -816,13 +871,13 @@ function parseSparkResultLegacy(
  */
 async function runSparkPipelineLegacy(
   ideaDescription: string,
-  options: { onStatusChange?: (status: SparkJobStatus) => Promise<void>; includeTrends?: boolean }
+  options: { onStatusChange?: (status: SparkJobStatus) => Promise<void>; includeTrends?: boolean; engine?: 'OPENAI' | 'PERPLEXITY' }
 ): Promise<SparkResult> {
-  const { onStatusChange, includeTrends = true } = options;
+  const { onStatusChange, includeTrends = true, engine } = options;
 
   // Call 1: Generate keywords
   await onStatusChange?.('RUNNING_KEYWORDS');
-  const keywords = await generateSparkKeywords(ideaDescription);
+  const keywords = await generateSparkKeywords(ideaDescription, engine);
 
   // Single research call
   await onStatusChange?.('RUNNING_RESEARCH');

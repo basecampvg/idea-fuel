@@ -44,6 +44,9 @@ export function ValueEditor({ value, valueType, unit, onChange, disabled }: Valu
   const [localValue, setLocalValue] = useState(value ?? '');
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
   // Sync external value changes
   useEffect(() => {
@@ -52,27 +55,49 @@ export function ValueEditor({ value, valueType, unit, onChange, disabled }: Valu
     }
   }, [value, isFocused]);
 
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     if (validateInput(val, valueType)) {
       setLocalValue(val);
+      // Debounce parent notification to avoid flashing
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        const trimmed = val.trim();
+        onChangeRef.current(trimmed === '' ? null : trimmed);
+      }, 300);
     }
   }, [valueType]);
 
   const handleBlur = useCallback(() => {
     setIsFocused(false);
+    // Flush any pending debounce immediately on blur
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = undefined;
+    }
     const trimmed = localValue.trim();
     const newValue = trimmed === '' ? null : trimmed;
     if (newValue !== value) {
-      onChange(newValue);
+      onChangeRef.current(newValue);
     }
-  }, [localValue, value, onChange]);
+  }, [localValue, value]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       inputRef.current?.blur();
     }
     if (e.key === 'Escape') {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = undefined;
+      }
       setLocalValue(value ?? '');
       inputRef.current?.blur();
     }
