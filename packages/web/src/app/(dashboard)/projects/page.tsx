@@ -73,6 +73,7 @@ export default function ProjectsPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const utils = trpc.useUtils();
   const { data, isLoading, error } = trpc.project.list.useQuery({});
@@ -82,15 +83,19 @@ export default function ProjectsPage() {
       setDeleteModalOpen(false);
       setProjectToDelete(null);
       setIsDeleting(false);
+      setDeleteError(null);
     },
-    onError: () => {
+    onError: (err) => {
+      console.error('Delete project failed:', err);
       setIsDeleting(false);
+      setDeleteError(err.message || 'Failed to delete project. Please try again.');
     },
   });
 
   const handleDeleteClick = (e: React.MouseEvent, project: { id: string; title: string }) => {
     e.preventDefault();
     e.stopPropagation();
+    setDeleteError(null);
     setProjectToDelete(project);
     setDeleteModalOpen(true);
   };
@@ -309,11 +314,17 @@ export default function ProjectsPage() {
             <p className="text-xs text-muted-foreground/60 mb-6">
               This action cannot be undone. The project canvas, idea, interviews, research, and reports will all be deleted.
             </p>
+            {deleteError && (
+              <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-400">
+                {deleteError}
+              </div>
+            )}
             <div className="flex gap-3">
               <button
                 onClick={() => {
                   setDeleteModalOpen(false);
                   setProjectToDelete(null);
+                  setDeleteError(null);
                 }}
                 className="flex-1 px-4 py-2.5 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
                 disabled={isDeleting}
