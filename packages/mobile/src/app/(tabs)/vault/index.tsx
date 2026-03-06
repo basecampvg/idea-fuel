@@ -9,7 +9,6 @@ import {
   StyleSheet,
   RefreshControl,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { CheckCircle, ChevronRight, Search, Archive } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { triggerHaptic } from '../../../components/ui/Button';
@@ -136,7 +135,7 @@ export default function VaultScreen() {
   }, [isLoading, searchQuery]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <View style={styles.safeArea}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Vault</Text>
@@ -173,7 +172,7 @@ export default function VaultScreen() {
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 

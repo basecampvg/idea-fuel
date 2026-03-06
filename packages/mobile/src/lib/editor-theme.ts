@@ -22,6 +22,13 @@ export const editorDarkThemeCSS = `
     padding: 16px;
     min-height: 100%;
     outline: none;
+    overflow-y: auto;
+    scroll-padding-bottom: 40px;
+  }
+
+  /* Only scroll cursor into view when it's near the bottom of the viewport */
+  .ProseMirror > *:last-child {
+    scroll-margin-bottom: 40px;
   }
 
   .ProseMirror-focused {

@@ -10,7 +10,6 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { CloudUpload, CheckCircle, AlertCircle, ChevronLeft, Trash2 } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { triggerHaptic } from '../../../../components/ui/Button';
@@ -140,17 +139,17 @@ export default function NotebookScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.safeArea}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.brand} />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (error || !project) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.safeArea}>
         <View style={styles.errorContainer}>
           <AlertCircle size={48} color={colors.destructive} />
           <Text style={styles.errorText}>Failed to load idea</Text>
@@ -158,12 +157,12 @@ export default function NotebookScreen() {
             <Text style={styles.backButtonText}>Go back</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <View style={styles.safeArea}>
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -219,7 +218,7 @@ export default function NotebookScreen() {
           />
         )}
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 

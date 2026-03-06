@@ -10,7 +10,6 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Lock, LogOut, ChevronRight } from 'lucide-react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { trpc } from '../../lib/trpc';
 import { useAuth } from '../../contexts/AuthContext';
 import { colors } from '../../lib/theme';
@@ -60,17 +59,17 @@ export default function SettingsScreen() {
 
   if (userLoading) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.brand} />
           <Text style={styles.loadingText}>Loading settings...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <View style={styles.container}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -183,7 +182,7 @@ export default function SettingsScreen() {
           <Text style={styles.versionText}>Idea Fuel v1.0.0</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
