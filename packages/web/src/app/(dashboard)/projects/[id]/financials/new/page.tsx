@@ -281,7 +281,7 @@ export default function NewFinancialModelPage({
               Forecast Period
             </label>
             <div className="flex items-center gap-3">
-              {[3, 5, 7, 10].map((years) => (
+              {[1, 3, 5].map((years) => (
                 <button
                   key={years}
                   onClick={() => setForecastYears(years)}

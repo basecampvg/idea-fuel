@@ -80,7 +80,7 @@ function CompetitorCard({ competitor, index }: { competitor: Competitor; index: 
 
       {/* Bottom: strengths/weaknesses below divider */}
       {hasStrengthsOrWeaknesses && (
-        <div className="border-t border-border/50 px-4 py-3 grid grid-cols-2 gap-6 text-[11px]">
+        <div className="border-t border-border/50 px-4 py-3 grid grid-cols-2 gap-6 text-sm">
           {competitor.strengths.length > 0 && (
             <div>
               <h5 className="text-xs font-bold uppercase tracking-widest text-success mb-1">

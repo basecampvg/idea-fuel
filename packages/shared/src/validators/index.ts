@@ -430,7 +430,7 @@ export const createFinancialModelSchema = z.object({
   templateSlug: z.string().min(1).max(50).optional(),
   projectId: entityId,
   knowledgeLevel: knowledgeLevelSchema.default('BEGINNER'),
-  forecastYears: z.number().int().min(1).max(10).default(5),
+  forecastYears: z.number().int().min(1).max(5).default(5),
   settings: z.record(z.unknown()).optional(),
 });
 export type CreateFinancialModelInput = z.infer<typeof createFinancialModelSchema>;
@@ -439,7 +439,7 @@ export const updateFinancialModelSchema = z.object({
   id: entityId,
   name: z.string().min(1).max(200).optional(),
   knowledgeLevel: knowledgeLevelSchema.optional(),
-  forecastYears: z.number().int().min(1).max(10).optional(),
+  forecastYears: z.number().int().min(1).max(5).optional(),
   status: financialModelStatusSchema.optional(),
   settings: z.record(z.unknown()).optional(),
 });

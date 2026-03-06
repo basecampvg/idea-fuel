@@ -15,9 +15,6 @@ import {
   AlertTriangle,
   XCircle,
   ArrowUp,
-  Shield,
-  ShieldCheck,
-  ShieldAlert,
   DollarSign,
 } from 'lucide-react';
 import type { SparkResult, SparkRedditThread, DataQualityReport, SectionQuality } from '@forge/shared';
@@ -40,9 +37,9 @@ function getTrendConfig(direction: string) {
     case 'rising':
       return { Icon: TrendingUp, color: 'text-primary', bgColor: 'bg-primary/20', label: 'Rising' };
     case 'declining':
-      return { Icon: TrendingDown, color: 'text-[#ef4444]', bgColor: 'bg-[#ef4444]/20', label: 'Declining' };
+      return { Icon: TrendingDown, color: 'text-red-500', bgColor: 'bg-red-500/20', label: 'Declining' };
     case 'flat':
-      return { Icon: Minus, color: 'text-primary/50', bgColor: 'bg-primary/20', label: 'Stable' };
+      return { Icon: Minus, color: 'text-amber-500', bgColor: 'bg-amber-500/20', label: 'Stable' };
     default:
       return { Icon: HelpCircle, color: 'text-muted-foreground', bgColor: 'bg-muted/20', label: 'Unknown' };
   }
@@ -62,17 +59,17 @@ function getVerdictConfig(verdict: string) {
     case 'watchlist':
       return {
         Icon: AlertTriangle,
-        bgColor: 'bg-primary/20',
-        borderColor: 'border-primary/30',
-        textColor: 'text-primary/50',
-        iconBg: 'hsla(10, 80%, 55%, 0.15)',
+        bgColor: 'bg-amber-500/10',
+        borderColor: 'border-amber-500/20',
+        textColor: 'text-amber-500',
+        iconBg: 'hsla(38, 92%, 50%, 0.15)',
       };
     case 'drop':
       return {
         Icon: XCircle,
-        bgColor: 'bg-[#ef4444]/20',
-        borderColor: 'border-[#ef4444]/30',
-        textColor: 'text-[#ef4444]',
+        bgColor: 'bg-red-500/20',
+        borderColor: 'border-red-500/30',
+        textColor: 'text-red-500',
         iconBg: 'hsla(0, 84%, 60%, 0.15)',
       };
     default:
@@ -147,7 +144,7 @@ function formatEngagement(num: number): string {
 // Reddit PostCard component (matches social-proof-section.tsx style)
 function SparkPostCard({ thread }: { thread: SparkRedditThread }) {
   return (
-    <div className="p-4 rounded-xl bg-card border border-border">
+    <div className="p-4 rounded-xl bg-card border border-border hover:shadow-sm transition-shadow">
       {/* Header: Reddit icon + subreddit + date */}
       <div className="flex items-center justify-between gap-3 mb-2">
         <div className="flex items-center gap-2">
@@ -211,95 +208,96 @@ function SparkPostCard({ thread }: { thread: SparkRedditThread }) {
   );
 }
 
-// Confidence level styling
-function getConfidenceConfig(level: string) {
+// Confidence level → filled segment count
+function confidenceSegments(level: string): number {
   switch (level) {
-    case 'high':
-      return {
-        Icon: ShieldCheck,
-        color: 'text-primary',
-        bgColor: 'bg-primary/10',
-        borderColor: 'border-primary/20',
-        label: 'High',
-        barColor: 'bg-primary',
-        barWidth: 'w-full',
-      };
-    case 'medium':
-      return {
-        Icon: Shield,
-        color: 'text-primary/50',
-        bgColor: 'bg-primary/10',
-        borderColor: 'border-primary/20',
-        label: 'Medium',
-        barColor: 'bg-primary/50',
-        barWidth: 'w-2/3',
-      };
-    default:
-      return {
-        Icon: ShieldAlert,
-        color: 'text-[#ef4444]',
-        bgColor: 'bg-[#ef4444]/10',
-        borderColor: 'border-[#ef4444]/20',
-        label: 'Low',
-        barColor: 'bg-[#ef4444]/60',
-        barWidth: 'w-1/3',
-      };
+    case 'high': return 3;
+    case 'medium': return 2;
+    default: return 1;
+  }
+}
+
+function confidenceLabel(level: string): string {
+  switch (level) {
+    case 'high': return 'Strong';
+    case 'medium': return 'Moderate';
+    default: return 'Weak';
   }
 }
 
 // Section label mapping
 function getSectionLabel(section: string): string {
   switch (section) {
-    case 'demand': return 'Demand Signals';
-    case 'tam': return 'Market Sizing';
+    case 'demand': return 'Demand';
+    case 'tam': return 'Market Size';
     case 'competitors': return 'Competitors';
     default: return section.charAt(0).toUpperCase() + section.slice(1);
   }
 }
 
-function DataQualityBanner({ quality }: { quality: DataQualityReport }) {
-  const overallConfig = getConfidenceConfig(quality.overall);
+// Signal meter: 3 ascending bars (like Wi-Fi strength)
+function SignalMeter({ filled, size = 'sm' }: { filled: number; size?: 'sm' | 'lg' }) {
+  const heights = size === 'lg' ? [10, 16, 22] : [6, 10, 14];
+  const barWidth = size === 'lg' ? 6 : 4;
+  const gap = size === 'lg' ? 3 : 2;
 
   return (
-    <div className={`rounded-2xl border ${overallConfig.borderColor} ${overallConfig.bgColor} p-5`}>
-      <div className="flex items-center gap-3 mb-4">
+    <div className="flex items-end" style={{ gap }}>
+      {heights.map((h, i) => (
         <div
-          className="w-8 h-8 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: 'hsla(10, 80%, 55%, 0.15)' }}
-        >
-          <overallConfig.Icon className={`w-4 h-4 ${overallConfig.color}`} />
+          key={i}
+          className="rounded-sm transition-all duration-500"
+          style={{
+            width: barWidth,
+            height: h,
+            backgroundColor: i < filled
+              ? `hsl(var(--primary) / ${0.5 + (i * 0.25)})`
+              : 'hsl(var(--muted))',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function DataQualityBanner({ quality }: { quality: DataQualityReport }) {
+  const overallFilled = confidenceSegments(quality.overall);
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-5">
+      {/* Header row: overall confidence */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <SignalMeter filled={overallFilled} size="lg" />
+          <div>
+            <p className="text-sm font-semibold text-foreground">
+              {confidenceLabel(quality.overall)} Confidence
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">{quality.summary}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-sm font-medium text-foreground">
-            Data Confidence: <span className={overallConfig.color}>{overallConfig.label}</span>
-          </p>
-          <p className="text-xs text-muted-foreground">{quality.summary}</p>
-        </div>
+        {quality.queriedTopics.length > 0 && (
+          <span className="text-xs text-muted-foreground/60 tabular-nums">
+            {quality.queriedTopics.length} queries
+          </span>
+        )}
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      {/* Section rows */}
+      <div className="space-y-0 divide-y divide-border/50">
         {quality.sections.map((section) => {
-          const config = getConfidenceConfig(section.confidence);
+          const filled = confidenceSegments(section.confidence);
           return (
-            <div key={section.section} className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">{getSectionLabel(section.section)}</span>
-                <span className={`text-xs font-medium ${config.color}`}>{config.label}</span>
+            <div key={section.section} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
+              <SignalMeter filled={filled} />
+              <div className="flex-1 min-w-0">
+                <span className="text-sm text-foreground">{getSectionLabel(section.section)}</span>
               </div>
-              <div className="h-1.5 rounded-full bg-muted/30 overflow-hidden">
-                <div className={`h-full rounded-full ${config.barColor} ${config.barWidth} transition-all duration-500`} />
-              </div>
-              <p className="text-xs text-muted-foreground/70">{section.details}</p>
+              <span className="text-xs text-muted-foreground shrink-0">{section.details}</span>
             </div>
           );
         })}
       </div>
-
-      {quality.queriedTopics.length > 0 && (
-        <p className="text-xs text-muted-foreground/50 mt-3 pt-3 border-t border-border/50">
-          Searched {quality.queriedTopics.length} query variations across all sections
-        </p>
-      )}
     </div>
   );
 }
@@ -312,49 +310,38 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
   return (
     <div className="space-y-5">
       {/* Verdict Card */}
-      <div className="rounded-2xl bg-background border border-border p-6">
-        <div className="flex items-center gap-3 mb-5">
+      <CollapsibleSection title="Spark Validation">
+        <div className="space-y-4">
+          {/* Verdict Badge */}
           <div
-            className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: 'hsla(10, 80%, 55%, 0.15)' }}
+            className={`flex items-center gap-4 p-4 rounded-xl border ${verdictConfig.bgColor} ${verdictConfig.borderColor}`}
           >
-            <Sparkles className="w-5 h-5 text-primary" />
+            <div
+              className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: verdictConfig.iconBg }}
+            >
+              <verdictConfig.Icon className={`h-6 w-6 ${verdictConfig.textColor}`} />
+            </div>
+            <div>
+              <p className={`text-lg font-semibold ${verdictConfig.textColor}`}>
+                {SPARK_VERDICT_LABELS[result.verdict] || result.verdict}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {SPARK_VERDICT_DESCRIPTIONS[result.verdict]}
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-sm font-semibold text-foreground">Spark Validation</h2>
-            <p className="text-xs text-muted-foreground">Quick market validation results</p>
-          </div>
-        </div>
 
-        {/* Verdict Badge */}
-        <div
-          className={`flex items-center gap-4 p-4 rounded-xl border ${verdictConfig.bgColor} ${verdictConfig.borderColor}`}
-        >
-          <div
-            className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: verdictConfig.iconBg }}
-          >
-            <verdictConfig.Icon className={`h-6 w-6 ${verdictConfig.textColor}`} />
-          </div>
-          <div>
-            <p className={`text-lg font-semibold ${verdictConfig.textColor}`}>
-              {SPARK_VERDICT_LABELS[result.verdict] || result.verdict}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {SPARK_VERDICT_DESCRIPTIONS[result.verdict]}
-            </p>
-          </div>
+          {/* Summary */}
+          {result.summary && (
+            <div className="p-4 rounded-xl bg-card border border-border">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {result.summary}
+              </p>
+            </div>
+          )}
         </div>
-
-        {/* Summary */}
-        {result.summary && (
-          <div className="mt-4 p-4 rounded-xl bg-card border border-border">
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {result.summary}
-            </p>
-          </div>
-        )}
-      </div>
+      </CollapsibleSection>
 
       {/* Data Quality Banner */}
       {result.data_quality && (
@@ -385,63 +372,49 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
       )}
 
       {/* Trend Signal */}
-      <div className="rounded-2xl bg-background border border-border p-6">
-        <div className="flex items-center gap-3 mb-5">
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: trendConfig.label === 'Declining' ? 'hsla(0, 84%, 60%, 0.15)' : 'hsla(10, 80%, 55%, 0.15)' }}
-          >
-            <trendConfig.Icon className={`w-5 h-5 ${trendConfig.color}`} />
+      <CollapsibleSection title="Trend Signal">
+        <div className="space-y-3">
+          <div className="flex items-center gap-3 mb-2">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: trendConfig.label === 'Declining' ? 'hsla(0, 84%, 60%, 0.15)' : 'hsla(10, 80%, 55%, 0.15)' }}
+            >
+              <trendConfig.Icon className={`w-4 h-4 ${trendConfig.color}`} />
+            </div>
+            <span className={`text-sm font-medium ${trendConfig.color}`}>{trendConfig.label}</span>
           </div>
-          <div>
-            <h2 className="text-sm font-semibold text-foreground">Trend Signal</h2>
-            <p className={`text-xs font-medium ${trendConfig.color}`}>{trendConfig.label}</p>
-          </div>
-        </div>
 
-        {result.trend_signal.evidence.length > 0 && (
-          <div className="space-y-3">
-            {result.trend_signal.evidence.slice(0, 5).map((evidence, i) => (
-              <div
-                key={i}
-                className="p-4 rounded-xl bg-card border border-border flex items-start gap-3"
-              >
-                <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${trendConfig.color.replace('text-', 'bg-')}`} />
-                <div className="flex-1">
-                  <p className="text-sm text-foreground">{evidence.claim}</p>
-                  {evidence.source_url && (
-                    <a
-                      href={evidence.source_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 mt-1 text-xs text-accent hover:opacity-80 transition-opacity"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      Source
-                    </a>
-                  )}
+          {result.trend_signal.evidence.length > 0 && (
+            <div className="space-y-3">
+              {result.trend_signal.evidence.slice(0, 5).map((evidence, i) => (
+                <div
+                  key={i}
+                  className="p-4 rounded-xl bg-card border border-border hover:shadow-sm transition-shadow flex items-start gap-3"
+                >
+                  <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${trendConfig.color.replace('text-', 'bg-')}`} />
+                  <div className="flex-1">
+                    <p className="text-sm text-foreground">{evidence.claim}</p>
+                    {evidence.source_url && (
+                      <a
+                        href={evidence.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 mt-1 text-xs text-accent hover:opacity-80 transition-opacity"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        Source
+                      </a>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </CollapsibleSection>
 
       {/* Keywords */}
-      <div className="rounded-2xl bg-background border border-border p-6">
-        <div className="flex items-center gap-3 mb-5">
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: 'hsla(10, 80%, 55%, 0.15)' }}
-          >
-            <Target className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold text-foreground">Keywords</h2>
-            <p className="text-xs text-muted-foreground">Target search phrases</p>
-          </div>
-        </div>
-
+      <CollapsibleSection title="Keywords">
         <div className="flex flex-wrap gap-2">
           {result.keywords.phrases.map((phrase, i) => (
             <span
@@ -452,7 +425,7 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
             </span>
           ))}
         </div>
-      </div>
+      </CollapsibleSection>
 
       {/* Keyword Trends Chart */}
       {result.keyword_trends && result.keyword_trends.length > 0 && (
@@ -538,8 +511,8 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
         <div className="space-y-5">
           {result.reddit.top_threads.length > 0 && (
             <div className="space-y-3">
-              <p className="text-sm font-medium uppercase text-primary">Top Threads</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <p className="text-xs font-bold uppercase tracking-widest text-foreground">Top Threads</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {result.reddit.top_threads.map((thread, i) => (
                   <SparkPostCard key={i} thread={thread} />
                 ))}
@@ -549,12 +522,12 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
 
           {result.reddit.recurring_pains.length > 0 && (
             <div className="pt-4 border-t border-border">
-              <p className="text-sm font-medium uppercase text-primary mb-3">Recurring Pains</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-foreground mb-3">Recurring Pains</p>
               <div className="flex flex-wrap gap-2">
                 {result.reddit.recurring_pains.map((pain, i) => (
                   <span
                     key={i}
-                    className="px-3 py-1.5 text-xs rounded-full bg-[#ef4444]/10 text-[#ef4444] border border-[#ef4444]/20"
+                    className="px-3 py-1.5 text-xs rounded-full bg-red-500/10 text-red-400 border border-red-500/20"
                   >
                     {pain}
                   </span>
@@ -565,7 +538,7 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
 
           {result.reddit.willingness_to_pay_clues.length > 0 && (
             <div className="pt-4 border-t border-border">
-              <p className="text-sm font-medium uppercase text-primary mb-3">Willingness to Pay Clues</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-foreground mb-3">Willingness to Pay Clues</p>
               <div className="space-y-2">
                 {result.reddit.willingness_to_pay_clues.map((clue, i) => (
                   <div
@@ -595,9 +568,9 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
         title="Facebook Groups"
       >
         {result.facebook_groups.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {result.facebook_groups.map((group, i) => (
-              <div key={i} className="p-4 rounded-xl bg-card border border-border">
+              <div key={i} className="p-4 rounded-xl bg-card border border-border hover:shadow-sm transition-shadow">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <a
