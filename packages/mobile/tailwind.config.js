@@ -5,8 +5,8 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // ideationLab Design System - Dark Theme
-        background: '#11100E',
+        // Idea Fuel Design System - Dark Theme
+        background: '#161513',
         foreground: '#E8E4DC',
 
         // Card surfaces
@@ -15,31 +15,21 @@ module.exports = {
           foreground: '#E8E4DC',
         },
 
-        // Primary - Pink/Magenta (ideationLab button, active states)
+        // Primary - Brand Red/Orange (Idea Fuel)
         primary: {
-          DEFAULT: '#E91E8C',
+          DEFAULT: '#E32B1A',
           foreground: '#FFFFFF',
-          50: '#FDF2F8',
-          100: '#FCE7F3',
-          200: '#FBCFE8',
-          300: '#F9A8D4',
-          400: '#F472B6',
-          500: '#E91E8C',
-          600: '#DB2777',
-          700: '#BE185D',
-          800: '#9D174D',
-          900: '#831843',
         },
 
-        // Accent - Cyan/Teal (links, report pills)
+        // Accent - Cyan/Teal
         accent: {
           DEFAULT: '#14B8A6',
           foreground: '#FFFFFF',
         },
 
-        // Secondary - Purple (score accents)
+        // Secondary - Brand gradient end
         secondary: {
-          DEFAULT: '#8B5CF6',
+          DEFAULT: '#DB4D40',
           foreground: '#FFFFFF',
         },
 
@@ -50,34 +40,19 @@ module.exports = {
         },
 
         // Borders
-        border: '#1F1E1C',
+        border: '#2A2A2A',
 
         // Status colors
         success: '#22C55E',
         warning: '#F59E0B',
         info: '#3B82F6',
         destructive: '#EF4444',
-
-        // Status dots (matching web)
-        status: {
-          draft: '#A1A1AA',      // zinc-400
-          interview: '#FBBF24',  // amber-400
-          research: '#60A5FA',   // blue-400
-          complete: '#34D399',   // emerald-400
-        },
-
-        // Score colors
-        score: {
-          opportunity: '#22C55E',
-          problem: '#EC4899',
-          feasibility: '#14B8A6',
-          whynow: '#8B5CF6',
-        },
       },
 
       fontFamily: {
-        sans: ['Inter', 'System'],
-        display: ['SpaceGrotesk', 'Inter', 'System'],
+        sans: ['Geist', 'System'],
+        mono: ['GeistMono', 'monospace'],
+        display: ['Outfit', 'System'],
       },
 
       borderRadius: {

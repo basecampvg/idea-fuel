@@ -10,18 +10,11 @@ import {
   Dimensions,
   Keyboard,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { X } from 'lucide-react-native';
+
+import { colors } from '../../lib/theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-// ideationLab Design System Colors
-const colors = {
-  background: '#11100E',
-  card: '#1A1918',
-  border: '#2A2928',
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
-};
 
 interface BottomSheetProps {
   visible: boolean;
@@ -172,7 +165,7 @@ export function BottomSheet({
                   style={styles.closeButton}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                  <Ionicons name="close" size={20} color={colors.muted} />
+                  <X size={20} color={colors.muted} />
                 </TouchableOpacity>
               )}
             </View>

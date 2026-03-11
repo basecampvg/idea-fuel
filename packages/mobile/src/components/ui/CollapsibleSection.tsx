@@ -8,30 +8,22 @@ import {
   Platform,
   UIManager,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { ChevronDown, ChevronUp } from 'lucide-react-native';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-// ideationLab Design System Colors
-const colors = {
-  background: '#11100E',
-  card: '#1A1918',
-  cardHover: '#242220',
-  border: '#1F1E1C',
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
+import { colors } from '../../lib/theme';
+
+const localColors = {
   mutedBg: '#262422',
-  primary: '#E91E8C',
-  accent: '#14B8A6',
-  secondary: '#8B5CF6',
 };
 
 interface CollapsibleSectionProps {
-  icon: keyof typeof Ionicons.glyphMap;
-  iconColor: string;
+  icon: React.ReactNode;
+  iconColor?: string;
   iconBgColor: string;
   title: string;
   subtitle?: string;
@@ -64,7 +56,7 @@ export function CollapsibleSection({
       >
         <View style={styles.headerLeft}>
           <View style={[styles.iconContainer, { backgroundColor: iconBgColor }]}>
-            <Ionicons name={icon} size={20} color={iconColor} />
+            {icon}
           </View>
           <View style={styles.headerText}>
             <Text style={styles.title}>{title}</Text>
@@ -72,11 +64,11 @@ export function CollapsibleSection({
           </View>
         </View>
         <View style={styles.chevronContainer}>
-          <Ionicons
-            name={isCollapsed ? 'chevron-down' : 'chevron-up'}
-            size={20}
-            color={colors.muted}
-          />
+          {isCollapsed ? (
+            <ChevronDown size={20} color={colors.muted} />
+          ) : (
+            <ChevronUp size={20} color={colors.muted} />
+          )}
         </View>
       </TouchableOpacity>
 
@@ -130,7 +122,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: colors.mutedBg,
+    backgroundColor: localColors.mutedBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8,

@@ -19,6 +19,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   signInWithGoogle: () => Promise<void>;
+  devSignIn: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -119,6 +120,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await promptAsync();
   }, [request, promptAsync]);
 
+  // Dev-only sign in — bypasses Google OAuth
+  const devSignIn = useCallback(async (email: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/mobile/dev-signin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Dev sign-in failed');
+      }
+
+      const data = await res.json();
+      await secureStorage.setToken(data.token);
+      setUser(data.user);
+    } catch (error) {
+      console.error('Dev sign-in failed:', error);
+      throw error;
+    }
+  }, []);
+
   const signOut = useCallback(async () => {
     try {
       const token = await secureStorage.getToken();
@@ -166,6 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isAuthenticated: !!user,
         signInWithGoogle,
+        devSignIn,
         signOut,
         refreshUser,
       }}

@@ -1,0 +1,227 @@
+import React, { useImperativeHandle, forwardRef, useCallback, useRef } from 'react';
+import { View, StyleSheet } from 'react-native';
+import {
+  RichText,
+  Toolbar,
+  useEditorBridge,
+  useEditorContent,
+  TenTapStartKit,
+  CoreBridge,
+  PlaceholderBridge,
+  LinkBridge,
+  HeadingBridge,
+  DEFAULT_TOOLBAR_ITEMS,
+} from '@10play/tentap-editor';
+import { marked } from 'marked';
+import { editorDarkThemeCSS } from '../../lib/editor-theme';
+import { colors } from '../../lib/theme';
+
+/**
+ * Idea Fuel — floating pill toolbar
+ *
+ * Overrides 10tap's default toolbarBody which has flex:1 + minWidth:'100%'
+ * that prevent height/margin from working. We explicitly zero those out
+ * so the pill shape actually renders.
+ */
+const ideaFuelEditorTheme = {
+  toolbar: {
+    toolbarBody: {
+      // Override defaults: flex:1 + minWidth:'100%' that stretch the toolbar
+      flex: 0,
+      flexGrow: 0,
+      flexShrink: 0,
+      flexBasis: 'auto' as any,
+      minWidth: 0,
+      // Pill shape
+      height: 36,
+      maxHeight: 36,
+      borderRadius: 18,
+      // Visually lift above the dark background
+      backgroundColor: '#2D2B28',
+      borderWidth: 1,
+      borderColor: '#383634',
+      borderTopWidth: 1,
+      borderBottomWidth: 1,
+      borderTopColor: '#383634',
+      borderBottomColor: '#383634',
+      // Float inward — clipped icons at edge hint at scrollability
+      marginHorizontal: 24,
+      marginBottom: 8,
+      overflow: 'hidden' as const,
+    },
+    toolbarButton: {
+      backgroundColor: 'transparent',
+      paddingHorizontal: 6,
+    },
+    iconDisabled: {
+      tintColor: `${colors.mutedDim}80`,
+    },
+    iconWrapperActive: {
+      backgroundColor: 'rgba(227, 43, 26, 0.15)',
+      borderRadius: 6,
+    },
+    iconWrapper: {
+      borderRadius: 6,
+      backgroundColor: 'transparent',
+    },
+    icon: {
+      tintColor: colors.muted,
+      height: 32,
+      width: 32,
+    },
+    iconActive: {
+      tintColor: colors.foreground,
+    },
+    linkBarTheme: {
+      addLinkContainer: {
+        backgroundColor: '#2D2B28',
+        borderTopColor: '#383634',
+        borderBottomColor: '#383634',
+      },
+      linkInput: {
+        backgroundColor: '#2D2B28',
+        color: colors.foreground,
+      },
+      placeholderTextColor: colors.mutedDim,
+      doneButton: {
+        backgroundColor: colors.brand,
+      },
+      doneButtonText: {
+        color: '#fff',
+      },
+      linkToolbarButton: {},
+    },
+  },
+  webview: {
+    backgroundColor: colors.background,
+  },
+  webviewContainer: {},
+};
+
+/**
+ * Lightweight HTML→Markdown for ProseMirror output.
+ * Avoids TurndownService which requires a browser DOM (`document`).
+ */
+function htmlToMarkdown(html: string): string {
+  let md = html;
+
+  // Task list items (must run before generic <li>)
+  md = md.replace(/<li[^>]*data-checked="true"[^>]*><[^>]*>(?:<p>)?([\s\S]*?)(?:<\/p>)?<\/[^>]*><\/li>/gi, '- [x] $1');
+  md = md.replace(/<li[^>]*data-checked="false"[^>]*><[^>]*>(?:<p>)?([\s\S]*?)(?:<\/p>)?<\/[^>]*><\/li>/gi, '- [ ] $1');
+  md = md.replace(/<li[^>]*data-type="taskItem"[^>]*>(?:<p>)?([\s\S]*?)(?:<\/p>)?<\/li>/gi, '- [ ] $1');
+
+  // Code blocks (before inline code)
+  md = md.replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/gi, '\n```\n$1\n```\n');
+
+  // Headings
+  md = md.replace(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, '# $1\n');
+  md = md.replace(/<h2[^>]*>([\s\S]*?)<\/h2>/gi, '## $1\n');
+  md = md.replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi, '### $1\n');
+
+  // Bold / italic / strikethrough / underline / inline code
+  md = md.replace(/<strong>([\s\S]*?)<\/strong>/gi, '**$1**');
+  md = md.replace(/<em>([\s\S]*?)<\/em>/gi, '*$1*');
+  md = md.replace(/<s>([\s\S]*?)<\/s>/gi, '~~$1~~');
+  md = md.replace(/<u>([\s\S]*?)<\/u>/gi, '$1');
+  md = md.replace(/<code>([\s\S]*?)<\/code>/gi, '`$1`');
+
+  // Links
+  md = md.replace(/<a[^>]+href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi, '[$2]($1)');
+
+  // Blockquote
+  md = md.replace(/<blockquote>([\s\S]*?)<\/blockquote>/gi, (_m, inner) =>
+    inner.replace(/<p>([\s\S]*?)<\/p>/gi, '> $1\n')
+  );
+
+  // List items → bullets / numbers
+  md = md.replace(/<li>([\s\S]*?)<\/li>/gi, (_m, inner) => {
+    const text = inner.replace(/<\/?p>/gi, '').trim();
+    return `- ${text}\n`;
+  });
+
+  // Paragraphs & line breaks
+  md = md.replace(/<p>([\s\S]*?)<\/p>/gi, '$1\n\n');
+  md = md.replace(/<br\s*\/?>/gi, '\n');
+  md = md.replace(/<hr\s*\/?>/gi, '\n---\n');
+
+  // Strip remaining tags (ul, ol, task list wrappers, etc.)
+  md = md.replace(/<[^>]+>/g, '');
+
+  // Decode HTML entities
+  md = md.replace(/&amp;/g, '&');
+  md = md.replace(/&lt;/g, '<');
+  md = md.replace(/&gt;/g, '>');
+  md = md.replace(/&quot;/g, '"');
+  md = md.replace(/&#39;/g, "'");
+  md = md.replace(/&nbsp;/g, ' ');
+
+  // Clean up excessive blank lines
+  md = md.replace(/\n{3,}/g, '\n\n');
+  return md.trim();
+}
+
+export interface MarkdownEditorRef {
+  getMarkdown: () => Promise<string>;
+  setMarkdown: (md: string) => void;
+}
+
+interface MarkdownEditorProps {
+  initialContent?: string;
+  placeholder?: string;
+  onChange?: () => void;
+  editable?: boolean;
+}
+
+export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>(
+  ({ initialContent = '', placeholder = 'Start writing...', onChange, editable = true }, ref) => {
+    const initialHtml = initialContent ? marked.parse(initialContent) as string : '';
+
+    const editor = useEditorBridge({
+      autofocus: false,
+      avoidIosKeyboard: false,
+      initialContent: initialHtml,
+      theme: ideaFuelEditorTheme,
+      bridgeExtensions: [
+        ...TenTapStartKit,
+        CoreBridge.configureCSS(editorDarkThemeCSS),
+        PlaceholderBridge.configureExtension({ placeholder }),
+        LinkBridge.configureExtension({ openOnClick: false, autolink: true }),
+        HeadingBridge.configureExtension({ levels: [1, 2, 3] }),
+      ],
+      onChange: () => {
+        onChange?.();
+      },
+    });
+
+    useImperativeHandle(ref, () => ({
+      getMarkdown: async () => {
+        const html = await editor.getHTML();
+        return htmlToMarkdown(html);
+      },
+      setMarkdown: (md: string) => {
+        const html = marked.parse(md) as string;
+        editor.setContent(html);
+      },
+    }), [editor]);
+
+    return (
+      <View style={styles.container}>
+        <View style={styles.editorWrapper}>
+          <RichText editor={editor} />
+        </View>
+        <Toolbar editor={editor} items={DEFAULT_TOOLBAR_ITEMS} />
+      </View>
+    );
+  }
+);
+
+MarkdownEditor.displayName = 'MarkdownEditor';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  editorWrapper: {
+    flex: 1,
+  },
+});

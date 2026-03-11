@@ -9,38 +9,10 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Lock, LogOut, ChevronRight } from 'lucide-react-native';
 import { trpc } from '../../lib/trpc';
 import { useAuth } from '../../contexts/AuthContext';
-import { SUBSCRIPTION_TIER_LABELS, SUBSCRIPTION_TIER_DESCRIPTIONS } from '@forge/shared';
-
-// ideationLab Design System Colors
-const colors = {
-  background: '#11100E',
-  card: '#1A1918',
-  border: '#1F1E1C',
-  borderFocus: 'rgba(233, 30, 140, 0.3)',
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
-  mutedBg: '#262422',
-  primary: '#E91E8C',
-  primaryMuted: 'rgba(233, 30, 140, 0.15)',
-  accent: '#14B8A6',
-  accentMuted: 'rgba(20, 184, 166, 0.15)',
-  info: '#3B82F6',
-  infoMuted: 'rgba(59, 130, 246, 0.15)',
-  success: '#22C55E',
-  successMuted: 'rgba(34, 197, 94, 0.15)',
-  destructive: '#EF4444',
-  destructiveMuted: 'rgba(239, 68, 68, 0.1)',
-};
-
-const TIER_COLORS = {
-  FREE: { color: colors.muted, bg: colors.mutedBg },
-  PRO: { color: colors.info, bg: colors.infoMuted },
-  ENTERPRISE: { color: colors.success, bg: colors.successMuted },
-};
+import { colors } from '../../lib/theme';
 
 export default function SettingsScreen() {
   const { signOut, refreshUser } = useAuth();
@@ -49,7 +21,6 @@ export default function SettingsScreen() {
   const [nameFocused, setNameFocused] = useState(false);
 
   const { data: user, isLoading: userLoading } = trpc.user.me.useQuery();
-  const { data: subscription, isLoading: subLoading } = trpc.user.subscription.useQuery();
 
   useEffect(() => {
     if (user?.name) {
@@ -86,22 +57,19 @@ export default function SettingsScreen() {
     ]);
   };
 
-  if (userLoading || subLoading) {
+  if (userLoading) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.brand} />
           <Text style={styles.loadingText}>Loading settings...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
-  const tier = subscription?.tier || 'FREE';
-  const tierStyle = TIER_COLORS[tier as keyof typeof TIER_COLORS] || TIER_COLORS.FREE;
-
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <View style={styles.container}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -109,6 +77,11 @@ export default function SettingsScreen() {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Settings</Text>
+        </View>
+
         {/* Profile Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Profile</Text>
@@ -116,8 +89,8 @@ export default function SettingsScreen() {
           <View style={styles.card}>
             {/* Avatar & Info */}
             <View style={styles.profileRow}>
-              <View style={[styles.avatar, { backgroundColor: colors.primaryMuted }]}>
-                <Text style={[styles.avatarText, { color: colors.primary }]}>
+              <View style={[styles.avatar, { backgroundColor: colors.brandMuted }]}>
+                <Text style={[styles.avatarText, { color: colors.brand }]}>
                   {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
                 </Text>
               </View>
@@ -152,7 +125,7 @@ export default function SettingsScreen() {
               <Text style={styles.label}>Email</Text>
               <View style={styles.readOnlyInput}>
                 <Text style={styles.readOnlyText}>{user?.email || ''}</Text>
-                <Ionicons name="lock-closed" size={16} color={colors.muted} />
+                <Lock size={16} color={colors.muted} />
               </View>
               <Text style={styles.helperText}>Email cannot be changed</Text>
             </View>
@@ -173,75 +146,6 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Subscription Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Subscription</Text>
-
-          <View style={styles.card}>
-            <View style={styles.subscriptionHeader}>
-              <View style={styles.subscriptionInfo}>
-                <Text style={styles.subscriptionPlan}>
-                  {subscription?.tier ? SUBSCRIPTION_TIER_LABELS[subscription.tier] : 'Free'} Plan
-                </Text>
-                <View style={[styles.tierBadge, { backgroundColor: tierStyle.bg }]}>
-                  <Text style={[styles.tierBadgeText, { color: tierStyle.color }]}>
-                    {tier}
-                  </Text>
-                </View>
-              </View>
-              <Text style={styles.subscriptionDescription}>
-                {subscription?.tier
-                  ? SUBSCRIPTION_TIER_DESCRIPTIONS[subscription.tier]
-                  : 'Basic features'}
-              </Text>
-            </View>
-
-            {subscription?.features && (
-              <>
-                <View style={styles.divider} />
-                <View style={styles.featuresGrid}>
-                  <View style={styles.featureItem}>
-                    <Ionicons name="flash-outline" size={20} color={colors.muted} />
-                    <View style={styles.featureContent}>
-                      <Text style={styles.featureLabel}>Spark Reports</Text>
-                      <Text style={styles.featureValue}>
-                        {subscription.features.reportLimits.SPARK}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.featureItem}>
-                    <Ionicons name="chatbubble-outline" size={20} color={colors.muted} />
-                    <View style={styles.featureContent}>
-                      <Text style={styles.featureLabel}>Light Reports</Text>
-                      <Text style={styles.featureValue}>
-                        {subscription.features.reportLimits.LIGHT}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.featureItem}>
-                    <Ionicons name="document-text-outline" size={20} color={colors.muted} />
-                    <View style={styles.featureContent}>
-                      <Text style={styles.featureLabel}>In-Depth Reports</Text>
-                      <Text style={styles.featureValue}>
-                        {subscription.features.reportLimits.IN_DEPTH}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </>
-            )}
-
-            <TouchableOpacity
-              style={styles.upgradeButton}
-              disabled
-              activeOpacity={0.8}
-            >
-              <Ionicons name="rocket-outline" size={18} color={colors.muted} />
-              <Text style={styles.upgradeButtonText}>Upgrade (Coming Soon)</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
         {/* Account Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
@@ -253,13 +157,13 @@ export default function SettingsScreen() {
               activeOpacity={0.7}
             >
               <View style={[styles.menuIconContainer, { backgroundColor: colors.destructiveMuted }]}>
-                <Ionicons name="log-out-outline" size={20} color={colors.destructive} />
+                <LogOut size={20} color={colors.destructive} />
               </View>
               <View style={styles.menuContent}>
                 <Text style={styles.menuTitle}>Sign Out</Text>
                 <Text style={styles.menuSubtitle}>Sign out of your account</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.muted} />
+              <ChevronRight size={20} color={colors.muted} />
             </TouchableOpacity>
           </View>
         </View>
@@ -275,10 +179,10 @@ export default function SettingsScreen() {
                 })
               : 'N/A'}
           </Text>
-          <Text style={styles.versionText}>ideationLab v1.0.0</Text>
+          <Text style={styles.versionText}>Idea Fuel v1.0.0</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -301,8 +205,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
+    paddingHorizontal: 20,
     paddingBottom: 32,
+  },
+  header: {
+    paddingTop: 8,
+    paddingBottom: 12,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.foreground,
+    letterSpacing: -0.5,
   },
   section: {
     marginBottom: 24,
@@ -368,7 +282,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   textInput: {
-    backgroundColor: colors.mutedBg,
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,
@@ -378,13 +292,13 @@ const styles = StyleSheet.create({
     color: colors.foreground,
   },
   textInputFocused: {
-    borderColor: colors.borderFocus,
+    borderColor: `${colors.brand}50`,
   },
   readOnlyInput: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.mutedBg,
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,
@@ -402,7 +316,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   saveButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.brand,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -415,77 +329,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#fff',
-  },
-  subscriptionHeader: {
-    marginBottom: 4,
-  },
-  subscriptionInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  subscriptionPlan: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: colors.foreground,
-    marginRight: 10,
-  },
-  tierBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  tierBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  subscriptionDescription: {
-    fontSize: 14,
-    color: colors.muted,
-    lineHeight: 20,
-  },
-  featuresGrid: {
-    gap: 12,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.mutedBg,
-    borderRadius: 12,
-    padding: 14,
-  },
-  featureContent: {
-    marginLeft: 12,
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  featureLabel: {
-    fontSize: 14,
-    color: colors.muted,
-  },
-  featureValue: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.foreground,
-  },
-  upgradeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.mutedBg,
-    borderRadius: 12,
-    paddingVertical: 14,
-    marginTop: 16,
-    gap: 8,
-    opacity: 0.6,
-  },
-  upgradeButtonText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: colors.muted,
   },
   menuItem: {
     flexDirection: 'row',

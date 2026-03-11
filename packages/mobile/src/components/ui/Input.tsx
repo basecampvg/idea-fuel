@@ -1,18 +1,9 @@
 import React from 'react';
 import { View, Text, TextInput, TextInputProps, StyleSheet, ViewStyle } from 'react-native';
+import { colors } from '../../lib/theme';
 
-// ideationLab Design System Colors
-const colors = {
-  background: '#11100E',
-  card: '#1A1918',
-  border: '#1F1E1C',
-  borderFocus: 'rgba(233, 30, 140, 0.3)',
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
+const localColors = {
   mutedBg: '#262422',
-  primary: '#E91E8C',
-  destructive: '#EF4444',
-  destructiveBg: 'rgba(239, 68, 68, 0.1)',
 };
 
 interface InputProps extends TextInputProps {
@@ -95,10 +86,10 @@ const styles = StyleSheet.create({
   },
   inputError: {
     borderColor: colors.destructive,
-    backgroundColor: colors.destructiveBg,
+    backgroundColor: colors.destructiveMuted,
   },
   inputDisabled: {
-    backgroundColor: colors.mutedBg,
+    backgroundColor: localColors.mutedBg,
     color: colors.muted,
   },
   errorText: {
@@ -118,7 +109,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(26, 25, 24, 0.8)',
   },
   ideaInputFocused: {
-    borderColor: colors.borderFocus,
+    borderColor: colors.brandGlow,
   },
   ideaInput: {
     paddingHorizontal: 20,

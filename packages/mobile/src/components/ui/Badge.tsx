@@ -1,18 +1,10 @@
 import React from 'react';
 import { View, Text, ViewProps, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { colors } from '../../lib/theme';
 
-// ideationLab Design System Colors
-const colors = {
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
+const localColors = {
   mutedBg: '#262422',
-  primary: '#E91E8C',
-  accent: '#14B8A6',
-  success: '#22C55E',
-  warning: '#F59E0B',
   info: '#3B82F6',
-  destructive: '#EF4444',
-  // Status colors
   statusDraft: '#A1A1AA',
   statusInterview: '#FBBF24',
   statusResearch: '#60A5FA',
@@ -33,7 +25,7 @@ interface VariantStyle {
 
 const variantStyles: Record<BadgeVariant, VariantStyle> = {
   default: {
-    container: { backgroundColor: colors.mutedBg },
+    container: { backgroundColor: localColors.mutedBg },
     text: { color: colors.muted },
   },
   success: {
@@ -50,11 +42,11 @@ const variantStyles: Record<BadgeVariant, VariantStyle> = {
   },
   info: {
     container: { backgroundColor: 'rgba(59, 130, 246, 0.2)' },
-    text: { color: colors.info },
+    text: { color: localColors.info },
   },
   primary: {
-    container: { backgroundColor: 'rgba(233, 30, 140, 0.2)' },
-    text: { color: colors.primary },
+    container: { backgroundColor: colors.brandMuted },
+    text: { color: colors.brand },
   },
   accent: {
     container: { backgroundColor: 'rgba(20, 184, 166, 0.2)' },
@@ -84,10 +76,10 @@ interface StatusDotProps {
 }
 
 const statusColorMap: Record<string, string> = {
-  CAPTURED: colors.statusDraft,
-  INTERVIEWING: colors.statusInterview,
-  RESEARCHING: colors.statusResearch,
-  COMPLETE: colors.statusComplete,
+  CAPTURED: localColors.statusDraft,
+  INTERVIEWING: localColors.statusInterview,
+  RESEARCHING: localColors.statusResearch,
+  COMPLETE: localColors.statusComplete,
 };
 
 export function StatusDot({ status, size = 'md' }: StatusDotProps) {

@@ -1,25 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, Alert, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Alert, ScrollView, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { Mic, BarChart3, FileText } from 'lucide-react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui';
-
-// ideationLab Design System Colors
-const colors = {
-  background: '#11100E',
-  card: '#1A1918',
-  border: '#1F1E1C',
-  primary: '#E91E8C',
-  accent: '#14B8A6',
-  secondary: '#8B5CF6',
-  foreground: '#E8E4DC',
-  muted: '#8A8680',
-};
+import { IdeaFuelLogo } from '../../components/IdeaFuelLogo';
+import { colors } from '../../lib/theme';
 
 export default function SignInScreen() {
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, devSignIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [devEmail, setDevEmail] = useState('');
 
   const handleGoogleSignIn = async () => {
     try {
@@ -44,37 +36,42 @@ export default function SignInScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          {/* Logo */}
+          {/* Flame Logo */}
           <View style={styles.logoContainer}>
-            <Ionicons name="flame" size={48} color="#fff" />
+            <IdeaFuelLogo size={72} />
           </View>
 
-          {/* Title */}
-          <Text style={styles.title}>Welcome to ideationLab</Text>
+          {/* IDEA FUEL wordmark */}
+          <View style={styles.wordmark}>
+            <Text style={styles.wordmarkIdea}>IDEA </Text>
+            <Text style={styles.wordmarkFuel}>FUEL</Text>
+          </View>
+
+          {/* Tagline */}
           <Text style={styles.subtitle}>
-            Transform your ideas into comprehensive business intelligence
+            Don't let your ideas die
           </Text>
         </View>
 
         {/* Features */}
         <View style={styles.features}>
           <FeatureRow
-            icon="sparkles-outline"
-            title="AI Interviews"
-            description="Guided discovery conversations"
-            color={colors.primary}
+            icon={<Mic size={24} color={colors.brand} />}
+            title="Voice Capture"
+            description="Speak your ideas on the go"
+            color={colors.brand}
           />
           <FeatureRow
-            icon="analytics-outline"
+            icon={<BarChart3 size={24} color={colors.accent} />}
             title="Market Research"
             description="Deep competitive analysis"
             color={colors.accent}
           />
           <FeatureRow
-            icon="document-text-outline"
+            icon={<FileText size={24} color={colors.brandEnd} />}
             title="Business Reports"
             description="Professional docs, instantly"
-            color={colors.secondary}
+            color={colors.brandEnd}
           />
         </View>
 
@@ -95,15 +92,51 @@ export default function SignInScreen() {
           <Text style={styles.terms}>
             By continuing, you agree to our{'\n'}Terms of Service and Privacy Policy
           </Text>
+
+          {/* Dev-only sign in */}
+          {__DEV__ && (
+            <View style={styles.devSection}>
+              <View style={styles.devDivider}>
+                <View style={styles.devDividerLine} />
+                <Text style={styles.devDividerText}>DEV</Text>
+                <View style={styles.devDividerLine} />
+              </View>
+              <TextInput
+                style={styles.devInput}
+                value={devEmail}
+                onChangeText={setDevEmail}
+                placeholder="your@email.com"
+                placeholderTextColor={`${colors.muted}80`}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <TouchableOpacity
+                style={styles.devButton}
+                onPress={async () => {
+                  if (!devEmail.trim()) return;
+                  try {
+                    setIsLoading(true);
+                    await devSignIn(devEmail.trim());
+                  } catch (error: any) {
+                    Alert.alert('Dev Sign In Failed', error.message);
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+              >
+                <Text style={styles.devButtonText}>Dev Sign In</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-// Feature row component
 function FeatureRow({ icon, title, description, color }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: React.ReactNode;
   title: string;
   description: string;
   color: string;
@@ -111,7 +144,7 @@ function FeatureRow({ icon, title, description, color }: {
   return (
     <View style={styles.featureRow}>
       <View style={[styles.featureIcon, { backgroundColor: `${color}20` }]}>
-        <Ionicons name={icon} size={24} color={color} />
+        {icon}
       </View>
       <View style={styles.featureText}>
         <Text style={styles.featureTitle}>{title}</Text>
@@ -140,28 +173,31 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 24,
-    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 12,
+    marginBottom: 16,
   },
-  title: {
-    fontSize: 28,
+  wordmark: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  wordmarkIdea: {
+    fontSize: 22,
     fontWeight: '700',
-    color: colors.foreground,
-    textAlign: 'center',
-    letterSpacing: -0.5,
+    letterSpacing: 4,
+    color: '#BCBCBC',
+  },
+  wordmarkFuel: {
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: 4,
+    color: colors.brand,
   },
   subtitle: {
     fontSize: 16,
     color: colors.muted,
     textAlign: 'center',
-    marginTop: 12,
     lineHeight: 24,
     maxWidth: 280,
   },
@@ -211,5 +247,46 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 24,
     lineHeight: 18,
+  },
+  devSection: {
+    marginTop: 24,
+    gap: 12,
+  },
+  devDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  devDividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  devDividerText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.muted,
+    letterSpacing: 1,
+  },
+  devInput: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: colors.foreground,
+  },
+  devButton: {
+    backgroundColor: colors.brand,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center' as const,
+  },
+  devButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });
