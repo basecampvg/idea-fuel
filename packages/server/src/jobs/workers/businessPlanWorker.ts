@@ -25,6 +25,7 @@ export function createBusinessPlanWorker() {
         // Mark as generating
         await db.update(research).set({
           businessPlanStatus: 'GENERATING',
+          businessPlanSubStatus: 'LOADING_DATA',
           businessPlanError: null,
         }).where(eq(research.id, researchId));
 
@@ -46,6 +47,11 @@ export function createBusinessPlanWorker() {
 
         await job.updateProgress(20);
 
+        // Update sub-status: summarizing
+        await db.update(research).set({
+          businessPlanSubStatus: 'SUMMARIZING',
+        }).where(eq(research.id, researchId));
+
         // Summarize raw research if large
         const deepResearch = researchRecord.rawDeepResearch as { rawReport?: string } | null;
         const rawReport = deepResearch?.rawReport ?? '';
@@ -55,6 +61,11 @@ export function createBusinessPlanWorker() {
         console.log(`[BusinessPlanWorker] Summary length: ${rawResearchSummary.length} chars`);
 
         await job.updateProgress(40);
+
+        // Update sub-status: writing
+        await db.update(research).set({
+          businessPlanSubStatus: 'WRITING',
+        }).where(eq(research.id, researchId));
 
         // Generate the business plan prose
         const prose = await generateBusinessPlanProse({
@@ -90,10 +101,16 @@ export function createBusinessPlanWorker() {
 
         await job.updateProgress(90);
 
+        // Update sub-status: saving
+        await db.update(research).set({
+          businessPlanSubStatus: 'SAVING',
+        }).where(eq(research.id, researchId));
+
         // Save to DB
         await db.update(research).set({
           businessPlan: JSON.stringify(prose),
           businessPlanStatus: 'COMPLETE',
+          businessPlanSubStatus: null,
           businessPlanError: null,
         }).where(eq(research.id, researchId));
 
@@ -108,6 +125,7 @@ export function createBusinessPlanWorker() {
         // Mark as failed
         await db.update(research).set({
           businessPlanStatus: 'FAILED',
+          businessPlanSubStatus: null,
           businessPlanError: error instanceof Error ? error.message : 'Unknown error',
         }).where(eq(research.id, researchId));
 

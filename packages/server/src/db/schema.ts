@@ -118,6 +118,11 @@ export const users = pgTable('User', {
   isAdmin: boolean().default(false).notNull(),
   role: userRoleEnum().default('USER').notNull(),
   founderProfile: jsonb('founder_profile'),
+  // Stripe billing fields
+  stripeCustomerId: text('stripe_customer_id'),
+  stripeSubscriptionId: text('stripe_subscription_id'),
+  stripePriceId: text('stripe_price_id'),
+  stripeCurrentPeriodEnd: timestamp('stripe_current_period_end', { precision: 3, mode: 'date' }),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
 }, (table) => [
@@ -280,6 +285,7 @@ export const research = pgTable('Research', {
   businessPlan: text(),
   businessPlanStatus: text('business_plan_status'),  // 'GENERATING' | 'COMPLETE' | 'FAILED' | null (not started)
   businessPlanError: text('business_plan_error'),
+  businessPlanSubStatus: text('business_plan_sub_status'),  // 'LOADING_DATA' | 'SUMMARIZING' | 'WRITING' | 'SAVING' | null
   sparkStatus: sparkJobStatusEnum(),
   sparkKeywords: jsonb(),
   sparkResult: jsonb(),
@@ -320,6 +326,7 @@ export const reports = pgTable('Report', {
   version: integer().default(1).notNull(),
   status: reportStatusEnum().default('DRAFT').notNull(),
   pdfUrl: text(),
+  citations: jsonb(),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
   projectId: text().notNull(),

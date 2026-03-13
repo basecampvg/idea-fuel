@@ -1,0 +1,1 @@
+ALTER TABLE "Research" ADD COLUMN "business_plan_sub_status" text;

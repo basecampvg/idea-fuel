@@ -4,6 +4,7 @@ import { useProject } from '../../components/use-project-section';
 import { trpc } from '@/lib/trpc/client';
 import { FinancialChart } from './components/financial-chart';
 import { ScoreRadar } from './components/score-radar';
+import { GenerationStepper } from './components/generation-stepper';
 import {
   FileText,
   Loader2,
@@ -342,22 +343,8 @@ export default function BusinessPlanReportPage() {
 
   // Currently generating
   if (bpStatus === 'GENERATING') {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-          <Loader2 className="w-7 h-7 animate-spin text-primary" />
-        </div>
-        <h2 className="text-lg font-semibold text-foreground">Generating Business Plan</h2>
-        <p className="mt-2 text-sm text-muted-foreground max-w-sm">
-          Our AI is analyzing your research and writing a comprehensive business plan.
-          This typically takes 2-5 minutes.
-        </p>
-        <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-          <Loader2 className="w-3 h-3 animate-spin" />
-          Checking for updates...
-        </div>
-      </div>
-    );
+    const subStatus = research?.businessPlanSubStatus as string | null;
+    return <GenerationStepper subStatus={subStatus} />;
   }
 
   // Failed
