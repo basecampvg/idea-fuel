@@ -4,6 +4,20 @@ import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { db, schema } from '@forge/server';
 
 /**
+ * Resolve the cookie domain for cross-subdomain sessions.
+ * .trim() is critical — Vercel's env var UI can inject trailing
+ * whitespace / newlines that are invisible in logs but cause
+ * `option domain is invalid` from the cookie serializer.
+ */
+const COOKIE_DOMAIN =
+  process.env.NODE_ENV === 'production'
+    ? (process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'ideafuel.ai').trim()
+    : undefined;
+
+const useSecureCookies = process.env.NODE_ENV === 'production';
+const cookiePrefix = useSecureCookies ? '__Secure-' : '';
+
+/**
  * Auth.js configuration
  * Supports Google SSO with Drizzle adapter for database sessions
  */
@@ -79,51 +93,45 @@ export const authConfig: NextAuthConfig = {
   },
 
   // Cookie configuration for cross-subdomain sessions
-  // Setting domain to .ideafuel.ai allows sharing session across:
+  // Setting domain allows sharing session across:
   // - ideafuel.ai (landing)
   // - app.ideafuel.ai (main app)
   // - admin.ideafuel.ai (admin panel)
+  //
+  // When secure: true, cookie names MUST use the __Secure- prefix,
+  // otherwise browsers silently reject them on HTTPS origins.
+  // Auth.js defaults to __Secure-authjs.* when useSecureCookies is true,
+  // but since we override cookies we must set the prefix ourselves.
   cookies: {
     sessionToken: {
-      name:
-        process.env.NODE_ENV === 'production'
-          ? 'next-auth.session-token'
-          : 'next-auth.session-token',
+      name: `${cookiePrefix}next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        // Set domain for cross-subdomain auth in production
-        domain:
-          process.env.NODE_ENV === 'production'
-            ? process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'ideafuel.ai'
-            : undefined,
+        secure: useSecureCookies,
+        domain: COOKIE_DOMAIN,
       },
     },
     callbackUrl: {
-      name:
-        process.env.NODE_ENV === 'production'
-          ? 'next-auth.callback-url'
-          : 'next-auth.callback-url',
+      name: `${cookiePrefix}next-auth.callback-url`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        domain:
-          process.env.NODE_ENV === 'production'
-            ? process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'ideafuel.ai'
-            : undefined,
+        secure: useSecureCookies,
+        domain: COOKIE_DOMAIN,
       },
     },
     csrfToken: {
-      name: 'next-auth.csrf-token',
+      // CSRF token uses __Host- prefix (stricter: no Domain allowed, path must be /)
+      name: `${useSecureCookies ? '__Host-' : ''}next-auth.csrf-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: useSecureCookies,
+        // __Host- cookies MUST NOT have a Domain attribute
       },
     },
   },
