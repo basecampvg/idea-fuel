@@ -6,6 +6,7 @@ import { FinancialChart } from '../components/financial-chart';
 import { getCoverComponent } from '../components/cover-variants';
 import { Loader2, TrendingUp } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 
 // ============================================================================
 // Types
@@ -293,6 +294,15 @@ export default function BusinessPlanPrintPage() {
   const research = project?.research as Record<string, unknown> | null | undefined;
   const searchParams = useSearchParams();
   const coverStyle = (searchParams.get('cover') || research?.businessPlanCoverStyle as string) ?? '1';
+  const autoprint = searchParams.get('autoprint') === 'true';
+
+  useEffect(() => {
+    if (autoprint && !projectLoading && research?.businessPlan) {
+      // Small delay to let fonts/charts render
+      const timer = setTimeout(() => window.print(), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [autoprint, projectLoading, research?.businessPlan]);
 
   if (projectLoading) {
     return (

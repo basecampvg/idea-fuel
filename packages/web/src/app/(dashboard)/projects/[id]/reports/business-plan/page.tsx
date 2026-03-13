@@ -25,6 +25,7 @@ import {
   Download,
   Palette,
   Check,
+  CheckCircle2,
 } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -40,6 +41,21 @@ interface FinancialProjections {
   year3: { revenue: number; costs: number; profit: number };
   breakEvenMonth: number;
   assumptions: string[];
+  source?: 'model' | 'ai_estimate';
+  modelId?: string;
+  templateSlug?: string;
+  richAssumptions?: Array<{
+    key: string; name: string; value: number; unit: string | null;
+    category: string; confidence: string;
+  }>;
+  monthlyPL?: Array<{ period: string; revenue: number; costs: number; profit: number }>;
+  breakEvenDetail?: {
+    revenueModel: string; breakEvenPoint: number; breakEvenUnit: string;
+    trajectory: Array<{
+      month: number; revenue: number; totalCosts: number;
+      profit: number; cumulativeProfit: number;
+    }>;
+  };
 }
 
 interface BusinessPlanProse {
@@ -271,8 +287,6 @@ export default function BusinessPlanReportPage() {
   const research = project?.research as Record<string, unknown> | null | undefined;
   const [triggerError, setTriggerError] = useState<string | null>(null);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-
   const currentCoverStyle = (research?.businessPlanCoverStyle as string) ?? '1';
 
   const coverStyleMutation = trpc.research.updateBusinessPlanCoverStyle.useMutation({
@@ -281,35 +295,13 @@ export default function BusinessPlanReportPage() {
     },
   });
 
-  const handleExportPdf = useCallback(async () => {
-    if (!research?.id || isExporting) return;
-    setIsExporting(true);
-    try {
-      const res = await fetch('/api/research/business-plan/export', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ researchId: research.id }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: 'Export failed' }));
-        throw new Error(err.error || 'Export failed');
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = res.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] || 'Business-Plan.pdf';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('[PDF Export]', err);
-      setTriggerError(err instanceof Error ? err.message : 'Failed to export PDF');
-    } finally {
-      setIsExporting(false);
-    }
-  }, [research?.id, isExporting]);
+  const handleExportPdf = useCallback(() => {
+    if (!project?.id) return;
+    window.open(
+      `/projects/${project.id}/reports/business-plan/print?cover=${currentCoverStyle}&autoprint=true`,
+      '_blank',
+    );
+  }, [project?.id, currentCoverStyle]);
 
   const generateMutation = trpc.research.generateBusinessPlan.useMutation({
     onSuccess: () => {
@@ -472,11 +464,10 @@ export default function BusinessPlanReportPage() {
                 </div>
                 <button
                   onClick={handleExportPdf}
-                  disabled={isExporting}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
                 >
-                  {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                  {isExporting ? 'Generating...' : 'Export PDF'}
+                  <Download className="w-4 h-4" />
+                  Export PDF
                 </button>
               </div>
             )}
@@ -533,14 +524,37 @@ export default function BusinessPlanReportPage() {
         </Section>
 
         {/* Financial Projections */}
-        <Section icon={BarChart3} title="Financial Projections">
+        <section className="rounded-2xl bg-background border border-border p-6 print:break-inside-avoid">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <BarChart3 className="w-4 h-4 text-primary" />
+              </div>
+              <h2 className="font-display text-lg font-extrabold uppercase text-foreground">Financial Projections</h2>
+            </div>
+            {prose.financialProjections?.source === 'model' ? (
+              <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 font-medium text-xs flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                Model-Backed
+              </span>
+            ) : (
+              <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 font-medium text-xs">
+                AI Estimated
+              </span>
+            )}
+          </div>
           <ProseBlock text={prose.financialNarrative} />
+          {prose.financialProjections?.source === 'model' && prose.financialProjections.templateSlug && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Projections computed from your {prose.financialProjections.templateSlug} financial model.
+            </p>
+          )}
           {prose.financialProjections && (
             <div className="mt-5">
               <FinancialChart projections={prose.financialProjections} />
             </div>
           )}
-        </Section>
+        </section>
 
         {/* Product Roadmap */}
         <Section icon={Cpu} title="Product & Technology Roadmap">
