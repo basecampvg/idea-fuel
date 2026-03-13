@@ -590,6 +590,48 @@ export interface MarketSource {
 }
 
 // =============================================================================
+// Evidence Gating — Inline Citation Types
+// =============================================================================
+
+export type CitationReliability = 'primary' | 'secondary' | 'estimate';
+
+export type CitationClaimType =
+  | 'tam'
+  | 'sam'
+  | 'som'
+  | 'growth_rate'
+  | 'market_size'
+  | 'competitor_data'
+  | 'trend'
+  | 'proof_signal'
+  | 'statistic';
+
+export interface ReportCitation {
+  id: string;
+  sectionKey: string;
+  claim: string;
+  claimType: CitationClaimType;
+  source: {
+    title: string;
+    url: string | null;
+    date: string | null;
+    reliability: CitationReliability;
+  };
+  confidence: 'high' | 'medium' | 'low';
+}
+
+export interface ReportCitationIndex {
+  citations: ReportCitation[];
+  generatedAt: string;
+  totalSources: number;
+  reliabilityBreakdown: {
+    primary: number;
+    secondary: number;
+    estimate: number;
+  };
+}
+
+// =============================================================================
 // Tech Stack Recommendations
 // =============================================================================
 

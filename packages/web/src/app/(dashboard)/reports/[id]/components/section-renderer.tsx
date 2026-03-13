@@ -1,7 +1,11 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Lock } from 'lucide-react';
+import { CitedText } from './cited-text';
+import { EvidenceSummaryFooter } from './evidence-footer';
+import type { ReportCitation } from '@forge/shared';
 
 // Map camelCase keys to human-readable labels
 const SECTION_LABELS: Record<string, string> = {
@@ -67,9 +71,10 @@ interface SectionRendererProps {
   sectionKey: string;
   value: unknown;
   isLocked?: boolean;
+  citations?: ReportCitation[];
 }
 
-export function SectionRenderer({ sectionKey, value, isLocked = false }: SectionRendererProps) {
+export function SectionRenderer({ sectionKey, value, isLocked = false, citations }: SectionRendererProps) {
   const label = getSectionLabel(sectionKey);
 
   if (isLocked) {
@@ -105,8 +110,11 @@ export function SectionRenderer({ sectionKey, value, isLocked = false }: Section
     <div className="section-card">
       <h3 className="section-title">{label}</h3>
       <div className="text-sm text-foreground/80">
-        <ValueRenderer value={value} />
+        <ValueRenderer value={value} citations={citations} />
       </div>
+      {citations && citations.length > 0 && (
+        <EvidenceSummaryFooter citations={citations} />
+      )}
     </div>
   );
 }
@@ -114,19 +122,33 @@ export function SectionRenderer({ sectionKey, value, isLocked = false }: Section
 interface ValueRendererProps {
   value: unknown;
   depth?: number;
+  citations?: ReportCitation[];
 }
 
-function ValueRenderer({ value, depth = 0 }: ValueRendererProps) {
+function ValueRenderer({ value, depth = 0, citations }: ValueRendererProps) {
   // Null or undefined
   if (value === null || value === undefined) {
     return <p className="text-muted-foreground italic">No data available</p>;
   }
 
-  // String - render with markdown support
+  // String - render with markdown support + optional citations
   if (typeof value === 'string') {
+    const hasCitations = citations && citations.length > 0;
+
     return (
       <div className="prose prose-sm prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground/80 prose-li:text-foreground/80 prose-strong:text-foreground">
-        <ReactMarkdown>{value}</ReactMarkdown>
+        <ReactMarkdown
+          components={hasCitations ? {
+            p: ({ children }) => (
+              <p>{injectCitations(children, citations)}</p>
+            ),
+            li: ({ children }) => (
+              <li>{injectCitations(children, citations)}</li>
+            ),
+          } : undefined}
+        >
+          {value}
+        </ReactMarkdown>
       </div>
     );
   }
@@ -159,7 +181,7 @@ function ValueRenderer({ value, depth = 0 }: ValueRendererProps) {
         <div className="space-y-3">
           {value.map((item, index) => (
             <div key={index} className="p-3 rounded-lg bg-muted/30 border border-border">
-              <ObjectRenderer obj={item as Record<string, unknown>} />
+              <ObjectRenderer obj={item as Record<string, unknown>} citations={citations} />
             </div>
           ))}
         </div>
@@ -172,7 +194,13 @@ function ValueRenderer({ value, depth = 0 }: ValueRendererProps) {
         {value.map((item, index) => (
           <li key={index} className="flex items-start gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
-            <span className="text-foreground/80">{String(item)}</span>
+            <span className="text-foreground/80">
+              {citations && citations.length > 0 ? (
+                <CitedText text={String(item)} citations={citations} />
+              ) : (
+                String(item)
+              )}
+            </span>
           </li>
         ))}
       </ul>
@@ -181,7 +209,7 @@ function ValueRenderer({ value, depth = 0 }: ValueRendererProps) {
 
   // Object
   if (typeof value === 'object') {
-    return <ObjectRenderer obj={value as Record<string, unknown>} />;
+    return <ObjectRenderer obj={value as Record<string, unknown>} citations={citations} />;
   }
 
   // Fallback
@@ -190,9 +218,10 @@ function ValueRenderer({ value, depth = 0 }: ValueRendererProps) {
 
 interface ObjectRendererProps {
   obj: Record<string, unknown>;
+  citations?: ReportCitation[];
 }
 
-function ObjectRenderer({ obj }: ObjectRendererProps) {
+function ObjectRenderer({ obj, citations }: ObjectRendererProps) {
   const entries = Object.entries(obj).filter(([_, v]) => v !== null && v !== undefined);
 
   if (entries.length === 0) {
@@ -207,12 +236,34 @@ function ObjectRenderer({ obj }: ObjectRendererProps) {
             {getSectionLabel(key)}
           </span>
           <div className="mt-0.5">
-            <ValueRenderer value={value} depth={1} />
+            <ValueRenderer value={value} depth={1} citations={citations} />
           </div>
         </div>
       ))}
     </div>
   );
+}
+
+/**
+ * Process ReactMarkdown children to inject citation markers into text nodes.
+ */
+function injectCitations(children: ReactNode, citations: ReportCitation[]): ReactNode {
+  if (!children) return children;
+
+  if (typeof children === 'string') {
+    return <CitedText text={children} citations={citations} />;
+  }
+
+  if (Array.isArray(children)) {
+    return children.map((child, i) => {
+      if (typeof child === 'string') {
+        return <CitedText key={i} text={child} citations={citations} />;
+      }
+      return child;
+    });
+  }
+
+  return children;
 }
 
 export { getSectionLabel };

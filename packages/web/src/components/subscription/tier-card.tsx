@@ -17,6 +17,7 @@ interface TierCardProps {
   isRecommended?: boolean;
   onSelect?: () => void;
   disabled?: boolean;
+  isLoading?: boolean;
 }
 
 const tierIcons: Record<SubscriptionTier, typeof Sparkles> = {
@@ -55,6 +56,7 @@ export function TierCard({
   isRecommended = false,
   onSelect,
   disabled = false,
+  isLoading = false,
 }: TierCardProps) {
   const features = SUBSCRIPTION_FEATURES[tier];
   const pricing = SUBSCRIPTION_PRICING[tier];
@@ -176,6 +178,7 @@ export function TierCard({
         className="w-full"
         onClick={onSelect}
         disabled={disabled || isCurrentPlan}
+        isLoading={isLoading}
       >
         {isCurrentPlan
           ? 'Current Plan'
@@ -186,8 +189,8 @@ export function TierCard({
           : 'Upgrade'}
       </Button>
 
-      {/* Coming Soon tooltip for disabled state */}
-      {disabled && !isCurrentPlan && (
+      {/* Coming Soon tooltip — only show when not loading another tier */}
+      {disabled && !isCurrentPlan && !isLoading && (
         <p className="text-xs text-muted-foreground text-center mt-2">Coming Soon</p>
       )}
     </div>

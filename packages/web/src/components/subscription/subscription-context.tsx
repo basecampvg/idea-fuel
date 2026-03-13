@@ -19,6 +19,10 @@ interface SubscriptionContextValue {
   features: SubscriptionFeatures;
   isLoading: boolean;
 
+  // Stripe billing state
+  stripeCurrentPeriodEnd: Date | null;
+  isSubscribed: boolean;
+
   // Convenience check methods
   canAccessMode: (mode: InterviewMode) => boolean;
   canCreateReport: (mode: InterviewMode, currentModeCount: number) => boolean;
@@ -51,13 +55,28 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     }
   );
 
-  const isLoading = subLoading;
+  // Fetch Stripe billing status
+  const { data: billingData, isLoading: billingLoading } = trpc.billing.getSubscriptionStatus.useQuery(
+    undefined,
+    {
+      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+      retry: 1,
+    }
+  );
+
+  const isLoading = subLoading || billingLoading;
 
   // Derive values from fetched data
   // Override tier via NEXT_PUBLIC_FORCE_TIER env var for testing (e.g. NEXT_PUBLIC_FORCE_TIER=ENTERPRISE)
   const forceTier = process.env.NEXT_PUBLIC_FORCE_TIER as SubscriptionTier | undefined;
   const tier: SubscriptionTier = forceTier || (subscriptionData?.tier ?? 'FREE');
   const features: SubscriptionFeatures = SUBSCRIPTION_FEATURES[tier];
+
+  // Stripe billing state
+  const stripeCurrentPeriodEnd = billingData?.stripeCurrentPeriodEnd
+    ? new Date(billingData.stripeCurrentPeriodEnd)
+    : null;
+  const isSubscribed = billingData?.isSubscribed ?? false;
 
   // Check methods using shared helpers
   const canAccessMode = useCallback(
@@ -91,6 +110,8 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     tier,
     features,
     isLoading,
+    stripeCurrentPeriodEnd,
+    isSubscribed,
     canAccessMode,
     canCreateReport: canCreateReportCheck,
     canAccessReportTier: canAccessReportTierCheck,

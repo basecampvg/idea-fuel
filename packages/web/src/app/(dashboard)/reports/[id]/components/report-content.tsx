@@ -1,6 +1,8 @@
 'use client';
 
+import { useMemo } from 'react';
 import { SectionRenderer } from './section-renderer';
+import type { ReportCitation, ReportCitationIndex } from '@forge/shared';
 
 interface ReportContentProps {
   report: {
@@ -9,6 +11,7 @@ interface ReportContentProps {
     content: string;
     sections: unknown;
     status: string;
+    citations?: unknown;
   };
 }
 
@@ -96,9 +99,27 @@ function parseSections(sections: unknown): { included: string[]; locked: string[
   };
 }
 
+// Group citations by section key
+function groupCitationsBySection(citations: ReportCitation[]): Record<string, ReportCitation[]> {
+  const grouped: Record<string, ReportCitation[]> = {};
+  for (const citation of citations) {
+    const key = citation.sectionKey;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(citation);
+  }
+  return grouped;
+}
+
 export function ReportContent({ report }: ReportContentProps) {
   const contentData = parseContent(report.content);
   const { locked: lockedFromDb } = parseSections(report.sections);
+
+  // Group citations by section key (memoized)
+  const citationsData = report.citations as ReportCitationIndex | null | undefined;
+  const citationsBySection = useMemo(
+    () => groupCitationsBySection(citationsData?.citations || []),
+    [citationsData],
+  );
 
   // Determine locked sections based on tier
   const tierLockedSections = TIER_LOCKED_SECTIONS[report.tier] || TIER_LOCKED_SECTIONS.BASIC;
@@ -148,6 +169,7 @@ export function ReportContent({ report }: ReportContentProps) {
           sectionKey={key}
           value={contentData[key]}
           isLocked={allLockedSections.has(key)}
+          citations={citationsBySection[key]}
         />
       ))}
     </div>

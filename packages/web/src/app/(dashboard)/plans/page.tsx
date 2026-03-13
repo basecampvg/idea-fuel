@@ -1,17 +1,58 @@
 'use client';
 
+import { useState } from 'react';
 import { ArrowLeft, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useSubscription } from '@/components/subscription/use-subscription';
 import { TierCard } from '@/components/subscription/tier-card';
 import { FeatureComparison, FeatureComparisonMobile } from '@/components/subscription/feature-comparison';
 import { LoadingScreen } from '@/components/ui/spinner';
+import { trpc } from '@/lib/trpc/client';
 import type { SubscriptionTier } from '@forge/shared';
 
 const tiers: SubscriptionTier[] = ['FREE', 'PRO', 'ENTERPRISE'];
 
 export default function PlansPage() {
-  const { tier: currentTier, isLoading } = useSubscription();
+  const { tier: currentTier, isLoading, isSubscribed } = useSubscription();
+  const [loadingTier, setLoadingTier] = useState<SubscriptionTier | null>(null);
+
+  const createCheckout = trpc.billing.createCheckoutSession.useMutation();
+  const createPortal = trpc.billing.createPortalSession.useMutation();
+
+  const isMutating = createCheckout.isPending || createPortal.isPending;
+
+  const handleSelect = async (tier: SubscriptionTier) => {
+    if (tier === currentTier || tier === 'FREE' || isMutating) return;
+
+    setLoadingTier(tier);
+
+    try {
+      if (isSubscribed) {
+        // User already has a Stripe subscription — send to portal for plan changes
+        const { url } = await createPortal.mutateAsync();
+        window.location.href = url;
+      } else {
+        // No subscription — create checkout session
+        const { url } = await createCheckout.mutateAsync({
+          tier: tier as 'PRO' | 'ENTERPRISE',
+        });
+        window.location.href = url;
+      }
+    } catch (error: unknown) {
+      // If createCheckoutSession throws BAD_REQUEST (already subscribed), fall back to portal
+      const trpcError = error as { data?: { code?: string } };
+      if (trpcError?.data?.code === 'BAD_REQUEST') {
+        try {
+          const { url } = await createPortal.mutateAsync();
+          window.location.href = url;
+          return;
+        } catch {
+          // Portal also failed — fall through to reset
+        }
+      }
+      setLoadingTier(null);
+    }
+  };
 
   if (isLoading) {
     return <LoadingScreen message="Loading plans..." />;
@@ -46,11 +87,9 @@ export default function PlansPage() {
               tier={tier}
               isCurrentPlan={tier === currentTier}
               isRecommended={tier === 'PRO'}
-              disabled={tier !== currentTier} // All upgrades disabled for now
-              onSelect={() => {
-                // TODO: Implement upgrade flow with Stripe
-                // For now, upgrades are disabled - button shows "Current Plan" or disabled state
-              }}
+              disabled={loadingTier !== null && loadingTier !== tier}
+              isLoading={loadingTier === tier}
+              onSelect={() => handleSelect(tier)}
             />
           ))}
         </div>
@@ -60,7 +99,7 @@ export default function PlansPage() {
           <div className="p-6 border-b border-border">
             <h2 className="text-lg font-semibold text-foreground">Feature Comparison</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              See what's included in each plan
+              See what&apos;s included in each plan
             </p>
           </div>
 

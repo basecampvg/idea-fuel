@@ -61,8 +61,8 @@ export interface SubscriptionPricing {
 
 export const SUBSCRIPTION_PRICING: Record<SubscriptionTier, SubscriptionPricing> = {
   FREE: { price: 0, period: 'forever', currency: 'USD' },
-  PRO: { price: null, period: 'month', currency: 'USD' }, // TBD
-  ENTERPRISE: { price: null, period: 'month', currency: 'USD' }, // TBD
+  PRO: { price: 29, period: 'month', currency: 'USD' },
+  ENTERPRISE: { price: 99, period: 'month', currency: 'USD' },
   TESTER: { price: 0, period: 'forever', currency: 'USD' },
 } as const;
 

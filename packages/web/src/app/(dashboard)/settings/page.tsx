@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, CreditCard } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
+import { useSubscription } from '@/components/subscription/use-subscription';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -29,6 +30,20 @@ export default function SettingsPage() {
   }, [user?.name]);
 
   const { data: subscription, isLoading: subLoading } = trpc.user.subscription.useQuery();
+  const { isSubscribed, stripeCurrentPeriodEnd } = useSubscription();
+  const [isPortalLoading, setIsPortalLoading] = useState(false);
+
+  const createPortal = trpc.billing.createPortalSession.useMutation();
+
+  const handleManageSubscription = async () => {
+    setIsPortalLoading(true);
+    try {
+      const { url } = await createPortal.mutateAsync();
+      window.location.href = url;
+    } catch {
+      setIsPortalLoading(false);
+    }
+  };
 
   const updateUser = trpc.user.update.useMutation({
     onSuccess: () => {
@@ -159,13 +174,38 @@ export default function SettingsPage() {
                   : 'Basic features'}
               </p>
             </div>
-            <Link href="/plans">
-              <Button variant="accent" className="group">
-                View Plans
-                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
+            <div className="flex items-center gap-3">
+              {isSubscribed && (
+                <Button
+                  variant="outline"
+                  onClick={handleManageSubscription}
+                  isLoading={isPortalLoading}
+                >
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Manage Subscription
+                </Button>
+              )}
+              <Link href="/plans">
+                <Button variant="accent" className="group">
+                  View Plans
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+            </div>
           </div>
+
+          {isSubscribed && stripeCurrentPeriodEnd && (
+            <div className="mt-4 rounded-lg border border-border p-3">
+              <p className="text-sm text-muted-foreground">Current billing period ends</p>
+              <p className="font-medium text-foreground">
+                {stripeCurrentPeriodEnd.toLocaleDateString(undefined, {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </p>
+            </div>
+          )}
 
           {subscription?.features && (
             <div className="mt-6 grid gap-3 sm:grid-cols-2">

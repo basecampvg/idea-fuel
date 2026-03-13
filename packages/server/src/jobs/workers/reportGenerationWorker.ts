@@ -4,6 +4,7 @@ import { db } from '../../db/drizzle';
 import { eq } from 'drizzle-orm';
 import { reports, projects, interviews } from '../../db/schema';
 import { QUEUE_NAMES, ReportGenerationJobData } from '../queues';
+import { extractCitations } from '../../services/citation-extractor';
 
 /**
  * Report Generation Worker
@@ -54,12 +55,37 @@ export function createReportGenerationWorker() {
           tier,
         });
 
+        await job.updateProgress(70);
+
+        // Extract citations from generated content matched against research sources
+        let citationIndex = null;
+        if (project.research) {
+          try {
+            citationIndex = extractCitations({
+              content,
+              research: {
+                marketSizing: project.research.marketSizing as never,
+                marketAnalysis: project.research.marketAnalysis as never,
+                sparkResult: project.research.sparkResult as never,
+                competitors: project.research.competitors as never,
+                proofSignals: project.research.proofSignals as never,
+                whyNow: project.research.whyNow as never,
+              },
+            });
+            console.log(`[ReportWorker] Extracted ${citationIndex.citations.length} citations for report ${reportId}`);
+          } catch (citationError) {
+            console.warn(`[ReportWorker] Citation extraction failed for report ${reportId}:`, citationError);
+            // Non-fatal: report still completes without citations
+          }
+        }
+
         await job.updateProgress(80);
 
-        // Update report with generated content
+        // Update report with generated content and citations
         const [updatedReport] = await db.update(reports).set({
           content,
           status: 'COMPLETE',
+          citations: citationIndex,
           sections: {
             included: ['summary', 'analysis', 'recommendations'],
             locked: tier === 'FULL' ? [] : ['advanced-analytics', 'appendix'],

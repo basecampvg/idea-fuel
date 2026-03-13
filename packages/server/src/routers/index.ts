@@ -13,6 +13,7 @@ import { financialRouter } from './financial';
 import { scenarioRouter } from './scenario';
 import { snapshotRouter } from './snapshot';
 import { exportRouter } from './export';
+import { billingRouter } from './billing';
 
 /**
  * Main application router
@@ -33,6 +34,7 @@ export const appRouter = router({
   scenario: scenarioRouter,
   snapshot: snapshotRouter,
   export: exportRouter,
+  billing: billingRouter,
 });
 
 // Export type definition for client usage
