@@ -3,7 +3,6 @@ import './fonts';
 
 import type { ReactElement } from 'react';
 import { renderToBuffer } from '@react-pdf/renderer';
-import { BusinessPlanPDF } from './templates/business-plan';
 import { PositioningPDF } from './templates/positioning';
 import { CompetitiveAnalysisPDF } from './templates/competitive-analysis';
 
@@ -135,199 +134,6 @@ function parseReportContent(content: string): Record<string, unknown> {
     // Content is markdown, return as-is
     return { rawContent: content };
   }
-}
-
-/**
- * Transform data for Business Plan PDF
- */
-function transformBusinessPlanData(
-  project: ProjectData,
-  report: ReportData,
-  research: ReturnType<typeof parseResearchData>
-) {
-  const content = parseReportContent(report.content);
-  const marketAnalysis = research.marketAnalysis as Record<string, unknown> | null;
-  const competitors = research.competitors as Array<Record<string, unknown>> | null;
-  const positioning = research.positioning as Record<string, unknown> | null;
-  const painPoints = research.painPoints as Array<Record<string, unknown>> | null;
-  const whyNow = research.whyNow as Record<string, unknown> | null;
-  const proofSignals = research.proofSignals as Record<string, unknown> | null;
-  const socialProof = research.socialProof as Record<string, unknown> | null;
-  const userStory = research.userStory as Record<string, unknown> | null;
-  const marketSizing = research.marketSizing as Record<string, unknown> | null;
-  const techStack = research.techStack as Record<string, unknown> | null;
-  const valueLadder = research.valueLadder as Array<Record<string, unknown>> | null;
-  const actionPrompts = research.actionPrompts as Array<Record<string, unknown>> | null;
-  const scoreJustifications = research.scoreJustifications as Record<string, unknown> | null;
-  const revenuePotential = research.revenuePotential as Record<string, unknown> | null;
-  const executionDifficulty = research.executionDifficulty as Record<string, unknown> | null;
-  const gtmClarity = research.gtmClarity as Record<string, unknown> | null;
-  const founderFit = research.founderFit as Record<string, unknown> | null;
-  const synthesizedInsights = research.synthesizedInsights as Record<string, unknown> | null;
-  const sparkResult = research.sparkResult as Record<string, unknown> | null;
-  const keywordTrends = research.keywordTrends as Array<Record<string, unknown>> | null;
-
-  // Build executive summary from synthesized insights or spark result
-  const execSummary = (content.executiveSummary as string)
-    || (synthesizedInsights?.summary as string)
-    || (sparkResult?.summary as string)
-    || (content.rawContent as string)
-    || project.description;
-
-  // Build problem statement from pain points
-  const problemFromPainPoints = painPoints?.length
-    ? painPoints.slice(0, 3).map((p) => (p.problem as string) || (p.title as string) || (p.description as string)).filter(Boolean).join('. ')
-    : undefined;
-
-  return {
-    ideaTitle: project.title,
-    ideaDescription: project.description,
-    generatedAt: new Date(),
-    tier: report.tier,
-
-    executiveSummary: execSummary,
-    problemStatement: (content.problem as string) || problemFromPainPoints || (positioning?.problemStatement as string),
-    solution: (content.solution as string) || (positioning?.solution as string),
-    uniqueValueProposition: (content.uvp as string) || (positioning?.uvp as string) || (positioning?.statement as string),
-
-    targetMarket: (marketAnalysis?.targetMarket as string) || (content.targetMarket as string),
-    marketSize: (marketAnalysis?.marketSize as string) || (content.marketSize as string),
-    marketTrends: (marketAnalysis?.trends as string[]) || (content.trends as string[]),
-
-    competitors: competitors?.slice(0, 4).map((c) => ({
-      name: (c.name as string) || 'Unknown',
-      strengths: (c.strengths as string) || (Array.isArray(c.strengths) ? (c.strengths as string[]).join('. ') : 'N/A'),
-      weaknesses: (c.weaknesses as string) || (Array.isArray(c.weaknesses) ? (c.weaknesses as string[]).join('. ') : 'N/A'),
-    })),
-    competitiveAdvantage: (content.competitiveAdvantage as string) || (positioning?.competitiveAdvantage as string),
-
-    revenueStreams: (content.revenueStreams as string[]),
-    pricingStrategy: (content.pricingStrategy as string),
-    costStructure: (content.costStructure as string),
-
-    marketingStrategy: (content.marketingStrategy as string),
-    salesChannels: (content.salesChannels as string[]),
-    customerAcquisition: (content.customerAcquisition as string),
-
-    financialProjections: (content.financialProjections as {
-      year1Revenue?: string;
-      year2Revenue?: string;
-      year3Revenue?: string;
-      breakEvenPoint?: string;
-    }),
-
-    teamRequirements: (content.teamRequirements as string[]),
-    milestones: (content.milestones as Array<{ milestone: string; timeline: string }>),
-
-    scores: research.scores,
-
-    // New fields from research
-    scoreJustifications: scoreJustifications ? {
-      opportunity: scoreJustifications.opportunity as { score: number; justification: string; confidence: string } | undefined,
-      problem: scoreJustifications.problem as { score: number; justification: string; confidence: string } | undefined,
-      feasibility: scoreJustifications.feasibility as { score: number; justification: string; confidence: string } | undefined,
-      whyNow: scoreJustifications.whyNow as { score: number; justification: string; confidence: string } | undefined,
-    } : undefined,
-
-    userStory: userStory ? {
-      scenario: userStory.scenario as string,
-      protagonist: userStory.protagonist as string,
-      problem: userStory.problem as string,
-      solution: userStory.solution as string,
-      outcome: userStory.outcome as string,
-    } : undefined,
-
-    marketSizing: marketSizing ? {
-      tam: marketSizing.tam as { value: number; formattedValue: string; growthRate: number; confidence: string; timeframe: string } | undefined,
-      sam: marketSizing.sam as { value: number; formattedValue: string; growthRate: number; confidence: string; timeframe: string } | undefined,
-      som: marketSizing.som as { value: number; formattedValue: string; growthRate: number; confidence: string; timeframe: string } | undefined,
-      methodology: marketSizing.methodology as string | undefined,
-    } : undefined,
-
-    whyNow: whyNow ? {
-      marketTriggers: (whyNow.marketTriggers as Array<Record<string, unknown>> | string[]) || [],
-      technologyShifts: (whyNow.technologyShifts as string[]) || [],
-      regulatoryChanges: (whyNow.regulatoryChanges as string[]) || [],
-      consumerBehaviorTrends: (whyNow.consumerBehaviorTrends as string[]) || [],
-      urgencyScore: whyNow.urgencyScore as number | undefined,
-      summary: whyNow.summary as string | undefined,
-    } : undefined,
-
-    proofSignals: proofSignals ? {
-      demandIndicators: (proofSignals.demandIndicators as string[]) || (proofSignals.marketValidation as string[]) || [],
-      validationOpportunities: (proofSignals.validationOpportunities as string[]) || [],
-      riskFactors: (proofSignals.riskFactors as string[]) || [],
-      demandScore: proofSignals.demandScore as number | undefined,
-      summary: proofSignals.summary as string | undefined,
-    } : undefined,
-
-    socialProof: socialProof ? {
-      posts: (socialProof.posts as Array<Record<string, unknown>>) || [],
-      summary: socialProof.summary as string | undefined,
-      painPointsValidated: (socialProof.painPointsValidated as string[]) || [],
-      demandSignals: (socialProof.demandSignals as string[]) || [],
-    } : undefined,
-
-    painPoints: painPoints?.map((p) => ({
-      problem: (p.problem as string) || (p.title as string) || '',
-      severity: (p.severity as string) || 'medium',
-      currentSolutions: (p.currentSolutions as string[]) || [],
-      gaps: (p.gaps as string[]) || (p.affectedSegments as string[]) || [],
-      description: p.description as string | undefined,
-    })),
-
-    businessFit: (revenuePotential || executionDifficulty || gtmClarity || founderFit) ? {
-      revenuePotential: revenuePotential ? {
-        rating: revenuePotential.rating as string,
-        estimate: revenuePotential.estimate as string,
-        confidence: revenuePotential.confidence as number,
-      } : undefined,
-      executionDifficulty: executionDifficulty ? {
-        rating: executionDifficulty.rating as string,
-        factors: (executionDifficulty.factors as string[]) || [],
-        soloFriendly: executionDifficulty.soloFriendly as boolean,
-      } : undefined,
-      gtmClarity: gtmClarity ? {
-        rating: gtmClarity.rating as string,
-        channels: (gtmClarity.channels as string[]) || [],
-        confidence: gtmClarity.confidence as number,
-      } : undefined,
-      founderFit: founderFit ? {
-        percentage: founderFit.percentage as number,
-        strengths: (founderFit.strengths as string[]) || [],
-        gaps: (founderFit.gaps as string[]) || [],
-      } : undefined,
-    } : undefined,
-
-    techStack: techStack ? {
-      businessType: techStack.businessType as string,
-      layers: techStack.layers as Record<string, Array<Record<string, unknown>>> | undefined,
-      estimatedMonthlyCost: techStack.estimatedMonthlyCost as { min: number; max: number } | undefined,
-      summary: techStack.summary as string | undefined,
-      securityConsiderations: (techStack.securityConsiderations as string[]) || [],
-    } : undefined,
-
-    valueLadder: valueLadder?.map((v) => ({
-      tier: (v.tier as string) || '',
-      label: (v.label as string) || '',
-      title: (v.title as string) || (v.name as string) || '',
-      price: (v.price as string) || '',
-      description: (v.description as string) || '',
-      features: (v.features as string[]) || [],
-    })),
-
-    actionPrompts: actionPrompts?.map((a) => ({
-      title: (a.title as string) || '',
-      description: (a.description as string) || '',
-      category: (a.category as string) || '',
-    })),
-
-    keywordTrends: keywordTrends?.slice(0, 10).map((k) => ({
-      keyword: (k.keyword as string) || '',
-      volume: (k.volume as number) || 0,
-      growth: (k.growth as number) || 0,
-    })),
-  };
 }
 
 /**
@@ -471,10 +277,8 @@ export async function generatePDFBuffer(options: GeneratePDFOptions): Promise<Bu
   try {
     switch (report.type) {
       case 'BUSINESS_PLAN': {
-        transformedData = transformBusinessPlanData(project, report, parsedResearch);
-        console.log('[PDF Generator] Business plan data transformed');
-        pdfDocument = <BusinessPlanPDF data={transformedData as Parameters<typeof BusinessPlanPDF>[0]['data']} />;
-        break;
+        // Business plan PDFs are now generated via Puppeteer (see /api/research/business-plan/export)
+        throw new Error('Business plan PDF generation has moved to the Puppeteer export endpoint');
       }
 
       case 'POSITIONING': {
@@ -491,12 +295,8 @@ export async function generatePDFBuffer(options: GeneratePDFOptions): Promise<Bu
         break;
       }
 
-      // For unsupported report types, generate a basic PDF
       default: {
-        transformedData = transformBusinessPlanData(project, report, parsedResearch);
-        console.log('[PDF Generator] Default (business plan) data transformed');
-        pdfDocument = <BusinessPlanPDF data={{ ...(transformedData as Parameters<typeof BusinessPlanPDF>[0]['data']), tier: 'BASIC' }} />;
-        break;
+        throw new Error(`Unsupported report type for PDF generation: ${report.type}`);
       }
     }
   } catch (transformError) {

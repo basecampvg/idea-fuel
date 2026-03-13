@@ -278,6 +278,8 @@ export const research = pgTable('Research', {
   techStack: jsonb(),
   swot: jsonb(),
   businessPlan: text(),
+  businessPlanStatus: text('business_plan_status'),  // 'GENERATING' | 'COMPLETE' | 'FAILED' | null (not started)
+  businessPlanError: text('business_plan_error'),
   sparkStatus: sparkJobStatusEnum(),
   sparkKeywords: jsonb(),
   sparkResult: jsonb(),

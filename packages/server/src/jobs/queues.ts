@@ -12,6 +12,7 @@ export const QUEUE_NAMES = {
   EMAIL_SYNC: 'email-sync',
   EMBEDDING_GENERATION: 'embedding-generation',
   SECTION_REGEN: 'section-regen',
+  BUSINESS_PLAN: 'business-plan',
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -92,6 +93,15 @@ export interface SectionRegenJobData {
   reportId: string;
 }
 
+/**
+ * Business Plan Generation Job Data
+ */
+export interface BusinessPlanJobData {
+  researchId: string;
+  projectId: string;
+  userId: string;
+}
+
 // ============================================================================
 // QUEUE INSTANCES (lazy-initialized to avoid Redis connections at import time)
 // ============================================================================
@@ -103,6 +113,7 @@ let _sparkPipelineQueue: Queue<SparkPipelineJobData> | null = null;
 let _emailSyncQueue: Queue<EmailSyncJobData> | null = null;
 let _embeddingGenerationQueue: Queue<EmbeddingGenerationJobData> | null = null;
 let _sectionRegenQueue: Queue<SectionRegenJobData> | null = null;
+let _businessPlanQueue: Queue<BusinessPlanJobData> | null = null;
 
 export function getReportGenerationQueue(): Queue<ReportGenerationJobData> {
   if (!_reportGenerationQueue) {
@@ -340,6 +351,42 @@ export async function enqueueSectionRegen(
 }
 
 /**
+ * Get the business plan queue (lazy-initialized)
+ */
+export function getBusinessPlanQueue(): Queue<BusinessPlanJobData> {
+  if (!_businessPlanQueue) {
+    _businessPlanQueue = new Queue<BusinessPlanJobData>(
+      QUEUE_NAMES.BUSINESS_PLAN,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 2,
+          backoff: { type: 'exponential', delay: 10000 },
+          removeOnComplete: { count: 50, age: 24 * 60 * 60 },
+          removeOnFail: { count: 200, age: 7 * 24 * 60 * 60 },
+        },
+      }
+    );
+  }
+  return _businessPlanQueue;
+}
+
+/**
+ * Add a business plan generation job to the queue
+ */
+export async function enqueueBusinessPlan(
+  data: BusinessPlanJobData
+): Promise<string> {
+  const jobId = `bplan-${data.researchId}-${Date.now()}`;
+  const job = await getBusinessPlanQueue().add(
+    `bplan-${data.researchId}`,
+    data,
+    { jobId }
+  );
+  return job.id || '';
+}
+
+/**
  * Get queue stats for monitoring
  */
 export async function getQueueStats(queueName: QueueName) {
@@ -351,6 +398,7 @@ export async function getQueueStats(queueName: QueueName) {
     [QUEUE_NAMES.EMAIL_SYNC]: getEmailSyncQueue,
     [QUEUE_NAMES.EMBEDDING_GENERATION]: getEmbeddingGenerationQueue,
     [QUEUE_NAMES.SECTION_REGEN]: getSectionRegenQueue,
+    [QUEUE_NAMES.BUSINESS_PLAN]: getBusinessPlanQueue,
   };
 
   const getQueue = getters[queueName];

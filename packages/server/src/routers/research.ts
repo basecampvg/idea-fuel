@@ -4,7 +4,7 @@ import { router, protectedProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { RESEARCH_PHASE_PROGRESS, SPARK_STATUS_PROGRESS } from '@forge/shared';
 import { logAuditAsync, formatResource } from '../lib/audit';
-import { enqueueResearchCancel, enqueueResearchPipeline, enqueueSparkPipeline, getResearchPipelineQueue } from '../jobs';
+import { enqueueResearchCancel, enqueueResearchPipeline, enqueueSparkPipeline, enqueueBusinessPlan, getResearchPipelineQueue } from '../jobs';
 import { research, projects, users, interviews } from '../db/schema';
 import {
   extractInsights,
@@ -1001,5 +1001,68 @@ export const researchRouter = router({
         : `Backfilled ${backfilled.length}, failed ${failed.length}: ${failed.join(', ')}`;
 
       return { backfilled, failed, skipped, message };
+    }),
+
+  /**
+   * Generate business plan on-demand (background via BullMQ)
+   * Requires COMPLETE research. One-time generation only.
+   */
+  generateBusinessPlan: protectedProcedure
+    .input(z.object({ researchId: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.db.query.research.findFirst({
+        where: eq(research.id, input.researchId),
+        with: {
+          project: {
+            columns: {
+              id: true,
+              userId: true,
+            },
+          },
+        },
+      });
+
+      if (!result) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Research not found' });
+      }
+
+      if (result.project.userId !== ctx.userId) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Access denied' });
+      }
+
+      if (result.status !== 'COMPLETE') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Research must be complete before generating a business plan' });
+      }
+
+      if (result.businessPlan) {
+        throw new TRPCError({ code: 'CONFLICT', message: 'Business plan already exists' });
+      }
+
+      if (result.businessPlanStatus === 'GENERATING') {
+        throw new TRPCError({ code: 'CONFLICT', message: 'Business plan is already being generated' });
+      }
+
+      // Mark as generating
+      await ctx.db.update(research).set({
+        businessPlanStatus: 'GENERATING',
+        businessPlanError: null,
+      }).where(eq(research.id, input.researchId));
+
+      // Enqueue background job
+      try {
+        await enqueueBusinessPlan({
+          researchId: input.researchId,
+          projectId: result.project.id,
+          userId: ctx.userId,
+        });
+      } catch (queueError) {
+        console.error('[Research] Failed to queue business plan:', queueError);
+        await ctx.db.update(research).set({
+          businessPlanStatus: 'FAILED',
+          businessPlanError: 'Failed to queue business plan generation. Please try again.',
+        }).where(eq(research.id, input.researchId));
+      }
+
+      return { success: true };
     }),
 });

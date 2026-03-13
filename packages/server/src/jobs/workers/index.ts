@@ -10,3 +10,4 @@ export {
 } from './researchPipelineWorker';
 export { createSparkPipelineWorker } from './sparkPipelineWorker';
 export { createEmbeddingWorker } from './embeddingWorker';
+export { createBusinessPlanWorker } from './businessPlanWorker';

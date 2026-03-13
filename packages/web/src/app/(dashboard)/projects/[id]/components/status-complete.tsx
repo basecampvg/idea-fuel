@@ -25,7 +25,6 @@ import { ChevronRight, MessageSquare, Trash2, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { useDashboardConfig } from '@/hooks/use-dashboard-config';
 import { NextStepPromotion } from './next-step-promotion';
-import { BusinessPlanSection } from './business-plan-section';
 import { getResearchJourneyState, type InterviewMode } from '@forge/shared';
 
 interface Interview {
@@ -219,9 +218,27 @@ export function StatusComplete({ project, onDelete, isDeleting }: StatusComplete
         />
       )}
 
-      <BusinessPlanSection
-        businessPlan={research?.businessPlan as string | null | undefined}
-      />
+      {!!research?.businessPlan && (
+        <div className="rounded-2xl bg-background border border-border p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                <ChevronRight className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-foreground">Business Plan</h2>
+                <p className="text-xs text-muted-foreground">Comprehensive investor-ready analysis</p>
+              </div>
+            </div>
+            <Link
+              href={`/projects/${project.id}/reports/business-plan`}
+              className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+            >
+              View Report
+            </Link>
+          </div>
+        </div>
+      )}
 
       {panes.scoreCards.visible && (
         <ScoreCards
