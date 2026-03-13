@@ -271,6 +271,7 @@ export default function BusinessPlanReportPage() {
   const research = project?.research as Record<string, unknown> | null | undefined;
   const [triggerError, setTriggerError] = useState<string | null>(null);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const currentCoverStyle = (research?.businessPlanCoverStyle as string) ?? '1';
 
@@ -280,9 +281,35 @@ export default function BusinessPlanReportPage() {
     },
   });
 
-  const handleExportPdf = useCallback(() => {
-    window.print();
-  }, []);
+  const handleExportPdf = useCallback(async () => {
+    if (!research?.id || isExporting) return;
+    setIsExporting(true);
+    try {
+      const res = await fetch('/api/research/business-plan/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ researchId: research.id }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Export failed' }));
+        throw new Error(err.error || 'Export failed');
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = res.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] || 'Business-Plan.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('[PDF Export]', err);
+      setTriggerError(err instanceof Error ? err.message : 'Failed to export PDF');
+    } finally {
+      setIsExporting(false);
+    }
+  }, [research?.id, isExporting]);
 
   const generateMutation = trpc.research.generateBusinessPlan.useMutation({
     onSuccess: () => {
@@ -445,10 +472,11 @@ export default function BusinessPlanReportPage() {
                 </div>
                 <button
                   onClick={handleExportPdf}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                  disabled={isExporting}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Download className="w-4 h-4" />
-                  Export PDF
+                  {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                  {isExporting ? 'Generating...' : 'Export PDF'}
                 </button>
               </div>
             )}
