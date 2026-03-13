@@ -71,10 +71,10 @@ export type SendMessageInput = z.infer<typeof sendMessageSchema>;
 // ============================================
 // User validators
 // ============================================
-export const subscriptionTierSchema = z.enum(['FREE', 'PRO', 'ENTERPRISE']);
+export const subscriptionTierSchema = z.enum(['FREE', 'PRO', 'ENTERPRISE', 'TESTER']);
 
 export const createUserSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().email('Invalid email address').max(254, 'Email too long'),
   name: z.string().min(1, 'Name is required').max(100, 'Name too long').optional(),
   password: z.string().min(8, 'Password must be at least 8 characters').optional(),
 });
@@ -82,8 +82,8 @@ export const createUserSchema = z.object({
 export const workHistoryEntrySchema = z.object({
   company: z.string().min(1).max(200),
   title: z.string().min(1).max(200),
-  startDate: z.string().regex(/^\d{4}-\d{2}$/, 'Format: YYYY-MM'),
-  endDate: z.string().regex(/^\d{4}-\d{2}$/).nullable(),
+  startDate: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Format: YYYY-MM (valid month 01-12)'),
+  endDate: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Format: YYYY-MM (valid month 01-12)').nullable(),
   description: z.string().max(1000).default(''),
   isCurrent: z.boolean().default(false),
 });

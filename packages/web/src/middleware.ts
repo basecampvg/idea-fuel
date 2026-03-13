@@ -79,6 +79,15 @@ function getClientIP(request: NextRequest): string {
   return 'unknown';
 }
 
+/** Apply security headers to a response */
+function withSecurityHeaders(response: NextResponse): NextResponse {
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  return response;
+}
+
 export function middleware(request: NextRequest) {
   const host = request.headers.get('host') || '';
   const pathname = request.nextUrl.pathname;
@@ -125,15 +134,15 @@ export function middleware(request: NextRequest) {
     // Admin role check happens in the admin layout (server-side)
     if (pathname === '/') {
       // Redirect admin root to admin dashboard
-      return NextResponse.rewrite(new URL('/admin', request.url));
+      return withSecurityHeaders(NextResponse.rewrite(new URL('/admin', request.url)));
     }
 
     // Rewrite /anything to /admin/anything for admin subdomain
     if (!pathname.startsWith('/admin') && !pathname.startsWith('/auth')) {
-      return NextResponse.rewrite(new URL(`/admin${pathname}`, request.url));
+      return withSecurityHeaders(NextResponse.rewrite(new URL(`/admin${pathname}`, request.url)));
     }
 
-    return NextResponse.next();
+    return withSecurityHeaders(NextResponse.next());
   }
 
   // =========================================================================
@@ -142,11 +151,11 @@ export function middleware(request: NextRequest) {
   if (subdomain === 'app') {
     // Redirect root to dashboard
     if (pathname === '/') {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      return withSecurityHeaders(NextResponse.redirect(new URL('/dashboard', request.url)));
     }
 
     // Auth routes and dashboard routes work as normal
-    return NextResponse.next();
+    return withSecurityHeaders(NextResponse.next());
   }
 
   // =========================================================================
@@ -160,7 +169,7 @@ export function middleware(request: NextRequest) {
     );
 
     if (isPublicPath) {
-      return NextResponse.next();
+      return withSecurityHeaders(NextResponse.next());
     }
 
     // Redirect app routes to app subdomain in production
@@ -171,15 +180,15 @@ export function middleware(request: NextRequest) {
 
     if (isAppRoute && process.env.NODE_ENV === 'production') {
       const appUrl = `https://app.${ROOT_DOMAIN}${pathname}${request.nextUrl.search}`;
-      return NextResponse.redirect(new URL(appUrl));
+      return withSecurityHeaders(NextResponse.redirect(new URL(appUrl)));
     }
 
     // In development, allow all routes on root domain
-    return NextResponse.next();
+    return withSecurityHeaders(NextResponse.next());
   }
 
   // Unknown subdomain - redirect to root
-  return NextResponse.redirect(new URL(`https://${ROOT_DOMAIN}`, request.url));
+  return withSecurityHeaders(NextResponse.redirect(new URL(`https://${ROOT_DOMAIN}`, request.url)));
 }
 
 export const config = {

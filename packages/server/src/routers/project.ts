@@ -149,11 +149,16 @@ export const projectRouter = router({
    * Create a new project (starts as a draft idea with status CAPTURED)
    */
   create: protectedProcedure.input(createProjectSchema).mutation(async ({ ctx, input }) => {
-    const [project] = await ctx.db.insert(projects).values({
+    const results = await ctx.db.insert(projects).values({
       title: input.title,
       description: input.description,
       userId: ctx.userId,
     }).returning();
+
+    const project = results[0];
+    if (!project) {
+      throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to create project' });
+    }
 
     logAuditAsync({
       userId: ctx.userId,
@@ -187,11 +192,16 @@ export const projectRouter = router({
         });
       }
 
-      const [project] = await ctx.db
+      const results = await ctx.db
         .update(projects)
         .set(input.data)
         .where(eq(projects.id, input.id))
         .returning();
+
+      const project = results[0];
+      if (!project) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to update project' });
+      }
 
       logAuditAsync({
         userId: ctx.userId,

@@ -1,7 +1,8 @@
 import { z } from 'zod';
-import { router, publicProcedure, superAdminProcedure } from '../trpc';
+import { TRPCError } from '@trpc/server';
+import { router, publicProcedure, superAdminProcedure, invalidateRoleCache } from '../trpc';
 import { configService, DEFAULT_CONFIGS } from '../services/config';
-import { eq, and, gte, desc, count, sum, sql, inArray, like } from 'drizzle-orm';
+import { eq, and, or, gte, desc, count, sum, sql, inArray, ilike } from 'drizzle-orm';
 import { auditLogs, users, tokenUsages, adminIPWhitelists } from '../db/schema';
 import { db } from '../db/drizzle';
 
@@ -208,7 +209,10 @@ export const adminRouter = router({
       const conditions = [];
       if (input.userId) conditions.push(eq(auditLogs.userId, input.userId));
       if (input.action) conditions.push(eq(auditLogs.action, input.action));
-      if (input.resource) conditions.push(like(auditLogs.resource, `%${input.resource}%`));
+      if (input.resource) {
+        const resourcePattern = `%${input.resource.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`;
+        conditions.push(ilike(auditLogs.resource, resourcePattern));
+      }
 
       const logs = await ctx.db.query.auditLogs.findMany({
         where: conditions.length > 0 ? and(...conditions) : undefined,
@@ -434,15 +438,20 @@ export const adminRouter = router({
       const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
 
       if (!ipv4Regex.test(input.ipAddress) && !ipv6Regex.test(input.ipAddress)) {
-        throw new Error('Invalid IP address format');
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid IP address format' });
       }
 
-      const [entry] = await ctx.db.insert(adminIPWhitelists).values({
+      const entries = await ctx.db.insert(adminIPWhitelists).values({
         ipAddress: input.ipAddress,
         label: input.label,
         addedBy: ctx.userId,
         expiresAt: input.expiresAt,
       }).returning();
+
+      const entry = entries[0];
+      if (!entry) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to create IP whitelist entry' });
+      }
 
       // Log the action
       await ctx.db.insert(auditLogs).values({
@@ -469,7 +478,7 @@ export const adminRouter = router({
       });
 
       if (!entry) {
-        throw new Error('IP whitelist entry not found');
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'IP whitelist entry not found' });
       }
 
       await ctx.db.delete(adminIPWhitelists).where(eq(adminIPWhitelists.id, input.id));
@@ -497,7 +506,7 @@ export const adminRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const [entry] = await ctx.db
+      const entries = await ctx.db
         .update(adminIPWhitelists)
         .set({
           label: input.label,
@@ -505,6 +514,11 @@ export const adminRouter = router({
         })
         .where(eq(adminIPWhitelists.id, input.id))
         .returning();
+
+      const entry = entries[0];
+      if (!entry) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'IP whitelist entry not found' });
+      }
 
       return entry;
     }),
@@ -533,8 +547,9 @@ export const adminRouter = router({
     .query(async ({ ctx, input }) => {
       const conditions = [];
       if (input.search) {
+        const pattern = `%${input.search.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`;
         conditions.push(
-          sql`(${users.email} ILIKE ${'%' + input.search + '%'} OR ${users.name} ILIKE ${'%' + input.search + '%'})`
+          or(ilike(users.email, pattern), ilike(users.name, pattern))!
         );
       }
 
@@ -572,12 +587,12 @@ export const adminRouter = router({
       });
 
       if (!target) {
-        throw new Error('User not found');
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
       }
 
       const previousTier = target.subscription;
 
-      const [updated] = await ctx.db
+      const results = await ctx.db
         .update(users)
         .set({ subscription: input.tier })
         .where(eq(users.id, input.userId))
@@ -586,6 +601,11 @@ export const adminRouter = router({
           email: users.email,
           subscription: users.subscription,
         });
+
+      const updated = results[0];
+      if (!updated) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to update user tier' });
+      }
 
       // Audit log
       await ctx.db.insert(auditLogs).values({
@@ -615,7 +635,7 @@ export const adminRouter = router({
     .mutation(async ({ ctx, input }) => {
       // Prevent removing your own SUPER_ADMIN role
       if (input.userId === ctx.userId && input.role !== 'SUPER_ADMIN') {
-        throw new Error('Cannot demote your own SUPER_ADMIN role');
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot demote your own SUPER_ADMIN role' });
       }
 
       const target = await ctx.db.query.users.findFirst({
@@ -624,13 +644,13 @@ export const adminRouter = router({
       });
 
       if (!target) {
-        throw new Error('User not found');
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
       }
 
       const previousRole = target.role;
       const isAdmin = input.role === 'ADMIN' || input.role === 'SUPER_ADMIN';
 
-      const [updated] = await ctx.db
+      const results = await ctx.db
         .update(users)
         .set({ role: input.role, isAdmin })
         .where(eq(users.id, input.userId))
@@ -640,6 +660,14 @@ export const adminRouter = router({
           role: users.role,
           isAdmin: users.isAdmin,
         });
+
+      const updated = results[0];
+      if (!updated) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to update user role' });
+      }
+
+      // Invalidate role cache so changes take effect immediately
+      invalidateRoleCache(input.userId);
 
       // Audit log
       await ctx.db.insert(auditLogs).values({

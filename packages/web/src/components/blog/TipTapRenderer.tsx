@@ -6,6 +6,7 @@ import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { common, createLowlight } from 'lowlight';
+import DOMPurify from 'isomorphic-dompurify';
 import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -37,7 +38,8 @@ export function TipTapRenderer({ content, className }: TipTapRendererProps) {
     }
 
     try {
-      return generateHTML(content as Parameters<typeof generateHTML>[0], extensions);
+      const raw = generateHTML(content as Parameters<typeof generateHTML>[0], extensions);
+      return DOMPurify.sanitize(raw);
     } catch (error) {
       console.error('Failed to render TipTap content:', error);
       return '<p>Failed to render content</p>';

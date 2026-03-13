@@ -25,7 +25,7 @@ import {
   Redo,
   Code2,
 } from 'lucide-react';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 const lowlight = createLowlight(common);
@@ -284,8 +284,10 @@ export function TipTapEditor({ content, onChange, placeholder, className }: TipT
   });
 
   // Update editor content when prop changes (for editing existing posts)
+  const lastContentRef = useRef(content);
   useEffect(() => {
-    if (editor && content && JSON.stringify(editor.getJSON()) !== JSON.stringify(content)) {
+    if (editor && content && content !== lastContentRef.current) {
+      lastContentRef.current = content;
       editor.commands.setContent(content as Record<string, unknown>);
     }
   }, [editor, content]);

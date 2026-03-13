@@ -54,9 +54,9 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const isLoading = subLoading;
 
   // Derive values from fetched data
-  // In development, always use ENTERPRISE tier for testing
-  const isDev = process.env.NODE_ENV === 'development';
-  const tier: SubscriptionTier = isDev ? 'ENTERPRISE' : (subscriptionData?.tier ?? 'FREE');
+  // Override tier via NEXT_PUBLIC_FORCE_TIER env var for testing (e.g. NEXT_PUBLIC_FORCE_TIER=ENTERPRISE)
+  const forceTier = process.env.NEXT_PUBLIC_FORCE_TIER as SubscriptionTier | undefined;
+  const tier: SubscriptionTier = forceTier || (subscriptionData?.tier ?? 'FREE');
   const features: SubscriptionFeatures = SUBSCRIPTION_FEATURES[tier];
 
   // Check methods using shared helpers

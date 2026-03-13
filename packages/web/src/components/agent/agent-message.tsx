@@ -1,5 +1,7 @@
 'use client';
 
+import { memo } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Bot, User } from 'lucide-react';
 
 interface AgentMessageProps {
@@ -7,7 +9,7 @@ interface AgentMessageProps {
   content: string;
 }
 
-export function AgentMessage({ role, content }: AgentMessageProps) {
+export const AgentMessage = memo(function AgentMessage({ role, content }: AgentMessageProps) {
   const isUser = role === 'user';
 
   return (
@@ -19,6 +21,8 @@ export function AgentMessage({ role, content }: AgentMessageProps) {
             ? 'bg-primary/10 text-primary'
             : 'bg-muted text-muted-foreground'
         }`}
+        role="img"
+        aria-label={isUser ? 'User message' : 'Assistant message'}
       >
         {isUser ? (
           <User className="w-3.5 h-3.5" />
@@ -43,13 +47,14 @@ export function AgentMessage({ role, content }: AgentMessageProps) {
               prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5
               prose-headings:my-2 prose-headings:text-sm
               prose-code:text-xs prose-code:bg-background/50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded"
-            dangerouslySetInnerHTML={{ __html: formatMarkdown(content) }}
-          />
+          >
+            <ReactMarkdown>{content}</ReactMarkdown>
+          </div>
         )}
       </div>
     </div>
   );
-}
+});
 
 /** Streaming indicator for assistant responses */
 export function AgentTypingIndicator() {
@@ -69,18 +74,3 @@ export function AgentTypingIndicator() {
   );
 }
 
-/**
- * Minimal Markdown to HTML formatter.
- * Handles bold, italic, code, links, and line breaks.
- * For full Markdown, swap to a library like react-markdown + rehype-sanitize.
- */
-function formatMarkdown(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`(.+?)`/g, '<code>$1</code>')
-    .replace(/\n/g, '<br />');
-}

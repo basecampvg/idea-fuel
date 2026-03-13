@@ -13,11 +13,30 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db, schema } from '@forge/server';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import puppeteer from 'puppeteer-core';
 
 // Allow up to 60s for PDF generation
 export const maxDuration = 60;
+
+// Rate limit: max 5 PDF exports per user per 10 minutes
+const PDF_RATE_LIMIT_WINDOW = 10 * 60 * 1000;
+const PDF_RATE_LIMIT_MAX = 5;
+const pdfRateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function checkPdfRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const entry = pdfRateLimitMap.get(userId);
+  if (!entry || now > entry.resetAt) {
+    pdfRateLimitMap.set(userId, { count: 1, resetAt: now + PDF_RATE_LIMIT_WINDOW });
+    return true;
+  }
+  if (entry.count >= PDF_RATE_LIMIT_MAX) {
+    return false;
+  }
+  entry.count++;
+  return true;
+}
 
 async function getBrowser() {
   if (process.env.NODE_ENV === 'production' || process.env.CHROMIUM_SERVERLESS === 'true') {
@@ -52,6 +71,14 @@ export async function POST(req: Request) {
   const userId = session?.user?.id;
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // 1b. Rate limit
+  if (!checkPdfRateLimit(userId)) {
+    return NextResponse.json(
+      { error: 'Too many export requests. Please wait a few minutes.' },
+      { status: 429 },
+    );
   }
 
   // 2. Parse body

@@ -26,9 +26,9 @@ export const publicProcedure = t.procedure;
 
 // ---------------------------------------------------------------------------
 // Role cache: avoids a DB query on every admin/superAdmin request.
-// Entries expire after 5 minutes or on process restart (serverless deploys).
+// Entries expire after 1 minute or on process restart (serverless deploys).
 // ---------------------------------------------------------------------------
-const ROLE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const ROLE_CACHE_TTL = 1 * 60 * 1000; // 1 minute (short TTL for security)
 const roleCache = new Map<string, { isAdmin: boolean; role: string | null; expiresAt: number }>();
 
 async function getUserRole(db: Context['db'], userId: string) {
@@ -51,6 +51,11 @@ async function getUserRole(db: Context['db'], userId: string) {
   };
   roleCache.set(userId, entry);
   return entry;
+}
+
+/** Invalidate cached role for a user (call after role changes) */
+export function invalidateRoleCache(userId: string) {
+  roleCache.delete(userId);
 }
 
 /**
