@@ -123,7 +123,14 @@ export async function generateBusinessPlanProse(
 
   const dataContext = buildDataContext(context);
 
-  const systemPrompt = `You are a senior strategy consultant and business plan writer with decades of experience creating investor-ready documents for startups and growth-stage companies. You write with authority, specificity, and analytical rigor. Every claim must be backed by data from the research provided.
+  const systemPrompt = `You are a senior strategy consultant who has helped raise over $500M in venture funding. You write business plans that close deals. Every sentence must earn its place — if it doesn't move an investor closer to writing a check, cut it.
+
+Your writing style:
+- Lead with the number, not the narrative. "$4.2B TAM growing at 23% CAGR" beats "The market is large and growing."
+- Use power language: "captures", "dominates", "exploits", "defensible", "asymmetric advantage"
+- Frame everything as an opportunity with urgency — why NOW, why THIS team, why THIS approach wins
+- Quantify everything possible. Vague claims destroy credibility.
+- Write like a pitch deck narrative — punchy, confident, data-dense
 
 You MUST respond with a valid JSON object matching the exact schema specified. No markdown, no extra text — only the JSON object.`;
 
@@ -136,20 +143,25 @@ DESCRIPTION: ${context.ideaDescription}
 ${dataContext}
 === END RESEARCH DATA ===
 
-Respond with a JSON object matching this exact schema. Every string field should contain rich, multi-paragraph prose with specific data points from the research. Write with MAXIMUM thoroughness — each narrative section should be 3-6 detailed paragraphs, not summaries.
+Respond with a JSON object matching this exact schema. Each narrative section should be 1-2 focused paragraphs — concise, data-rich, zero filler. Every paragraph must contain at least one specific number, metric, or data point. Write to persuade an investor scanning this in 5 minutes.
 
-NOTE: For this version, only generate the first 5 sections plus financial projections. Set all other fields to empty strings.
+VISUAL FORMAT RULES: The frontend renders these as rich visual cards. To maximize visual impact:
+- Use bullet points (with "- " prefix) liberally for lists, comparisons, and key takeaways
+- Use "**bold**" markdown for key metrics, names, and emphasis
+- Structure content so it reads well in short visual blocks, not walls of text
+- Lead each section with the most important insight or number
+- For sections with tables/charts already rendered by the UI (Problem, Market, Competitive, Business Model, Financial), keep prose shorter — the visuals carry the weight
 
 {
-  "executiveSummary": "2-3 compelling paragraphs: core value proposition, target market size, revenue model, why this will succeed. Should stand alone as a pitch.",
-  "problemNarrative": "3+ paragraphs: articulate the problem with evidence from pain points, social proof, demand signals. Make it visceral.",
-  "solutionNarrative": "3+ paragraphs: how the solution addresses each pain point. Include the user story. Explain the unique approach.",
-  "marketNarrative": "3+ paragraphs: market analysis commentary, growth drivers, segment characteristics, methodology. Reference TAM/SAM/SOM figures.",
-  "competitiveNarrative": "3+ paragraphs: detailed competitive analysis, positioning strategy, defensible advantages, messaging pillars.",
-  "businessModelNarrative": "",
-  "gtmStrategy": "",
-  "customerProfile": "",
-  "financialNarrative": "",
+  "executiveSummary": "1-2 punchy paragraphs: core value prop, target market size, revenue model, why this wins. Should stand alone as a pitch.",
+  "problemNarrative": "1 paragraph + bullet points: articulate the problem with evidence from pain points and demand signals. Keep brief — a pain points table is shown alongside this.",
+  "solutionNarrative": "1-2 paragraphs: how the solution addresses key pain points. Include the user story. Explain the unique approach with bullet points for features.",
+  "marketNarrative": "1 paragraph + bullet points: market analysis, growth drivers, segments. Keep brief — TAM/SAM/SOM cards are shown alongside this.",
+  "competitiveNarrative": "1 paragraph + bullet points: competitive positioning, defensible advantages. Keep brief — a competitor table is shown alongside this.",
+  "businessModelNarrative": "1-2 paragraphs + bullet points: revenue model, pricing strategy, unit economics. A pricing tier table is shown alongside this.",
+  "gtmStrategy": "1-2 paragraphs with bullet points: launch channels, acquisition strategy, first 90 days, key milestones. Use a numbered list for the phased approach.",
+  "customerProfile": "1-2 paragraphs with bullet points: ideal customer segments, demographics, psychographics, buying behavior. Use bullet points for persona attributes.",
+  "financialNarrative": "1 paragraph: brief commentary on projections and key assumptions. Keep short — a financial chart is shown alongside this.",
   "financialProjections": {
     "year1": { "revenue": <number in dollars>, "costs": <number>, "profit": <number (can be negative)> },
     "year2": { "revenue": <number>, "costs": <number>, "profit": <number> },
@@ -157,11 +169,11 @@ NOTE: For this version, only generate the first 5 sections plus financial projec
     "breakEvenMonth": <number 1-36>,
     "assumptions": ["assumption 1", "assumption 2", "assumption 3", "assumption 4", "assumption 5"]
   },
-  "productRoadmap": "",
-  "teamOperations": "",
-  "riskAnalysis": "",
-  "fundingRequirements": "",
-  "exitStrategy": ""
+  "productRoadmap": "Use bullet points or numbered phases: MVP scope, 6-month milestones, 12-month vision. List concrete features per phase.",
+  "teamOperations": "1 paragraph + bullet points: key roles needed, org structure, operational requirements. List critical hires.",
+  "riskAnalysis": "Use bullet points: top 5 risks, each with severity and mitigation strategy. Format as '**Risk**: description — **Mitigation**: action'.",
+  "fundingRequirements": "1 paragraph + bullet points: funding amount, use of funds breakdown, target milestones. Use a bulleted allocation list.",
+  "exitStrategy": "1 paragraph + bullet points: potential exit paths, comparable exits, timeline, target acquirers or IPO scenario."
 }
 
 IMPORTANT: Use REAL numbers for financial projections based on the market sizing, revenue potential, and business model data. Ground all financial estimates in the research data. The numbers must be plausible for a startup in this space.
@@ -170,7 +182,7 @@ Respond ONLY with the JSON object. No markdown code fences, no explanation.`;
 
   const response = await client.messages.create({
     model: SONNET_MODEL,
-    max_tokens: 16000,
+    max_tokens: 32000,
     temperature: 1.0,
     system: systemPrompt,
     messages: [{ role: 'user', content: userPrompt }],

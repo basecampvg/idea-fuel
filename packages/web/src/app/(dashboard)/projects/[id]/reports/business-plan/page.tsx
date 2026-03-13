@@ -5,6 +5,7 @@ import { trpc } from '@/lib/trpc/client';
 import { FinancialChart } from './components/financial-chart';
 import { ScoreRadar } from './components/score-radar';
 import { GenerationStepper } from './components/generation-stepper';
+import ReactMarkdown from 'react-markdown';
 import {
   FileText,
   Loader2,
@@ -125,8 +126,8 @@ function SectionHeader({ icon: Icon, title }: { icon: React.ElementType; title: 
 
 function ProseBlock({ text }: { text: string }) {
   return (
-    <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-      {text}
+    <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground [&_strong]:text-foreground [&_li]:my-0.5">
+      <ReactMarkdown>{text}</ReactMarkdown>
     </div>
   );
 }
@@ -266,36 +267,11 @@ export default function BusinessPlanReportPage() {
   const isPrintMode = searchParams.get('print') === 'true';
   const research = project?.research as Record<string, unknown> | null | undefined;
   const [triggerError, setTriggerError] = useState<string | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
 
-  const handleExportPdf = useCallback(async () => {
-    if (!research?.id || isExporting) return;
-    setIsExporting(true);
-    try {
-      const res = await fetch('/api/research/business-plan/export', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ researchId: research.id }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: 'Export failed' }));
-        throw new Error(err.error || 'Export failed');
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = res.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] ?? 'Business-Plan.pdf';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('[PDF Export]', err);
-    } finally {
-      setIsExporting(false);
-    }
-  }, [research?.id, isExporting]);
+
+  const handleExportPdf = useCallback(() => {
+    window.print();
+  }, []);
 
   const generateMutation = trpc.research.generateBusinessPlan.useMutation({
     onSuccess: () => {
@@ -399,20 +375,10 @@ export default function BusinessPlanReportPage() {
             </div>
             {!isPrintMode && <button
               onClick={handleExportPdf}
-              disabled={isExporting}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 print:hidden"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors print:hidden"
             >
-              {isExporting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Exporting...
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4" />
-                  Export PDF
-                </>
-              )}
+              <Download className="w-4 h-4" />
+              Export PDF
             </button>}
           </div>
         </div>

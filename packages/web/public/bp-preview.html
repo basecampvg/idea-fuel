@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business Plan PDF Preview - IdeaFuel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Outfit:wght@800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Brand colors from globals.css */
+    --brand-red: #e32b1a;
+    --brand-red-end: #db4d40;
+    --brand-bg: #161513;
+    --primary: #E8513D;
+    --primary-light: rgba(232, 81, 61, 0.08);
+    --primary-lighter: rgba(232, 81, 61, 0.04);
+
+    /* Light theme (white pages) */
+    --page-bg: #ffffff;
+    --text-900: #1a1a1a;
+    --text-700: #374151;
+    --text-500: #6b7280;
+    --text-400: #9ca3af;
+    --text-300: #d1d5db;
+    --border: #e5e7eb;
+    --border-light: #f3f4f6;
+    --card-bg: #f9fafb;
+    --green: #16a34a;
+    --green-light: rgba(22, 163, 74, 0.08);
+    --red-soft: #ef4444;
+    --red-soft-light: rgba(239, 68, 68, 0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #f0f0f0;
+    font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-700);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Mono subfont for all data, numbers, labels */
+  .mono {
+    font-family: 'Geist Mono', 'SF Mono', 'Fira Code', monospace;
+  }
+
+  .document {
+    max-width: 850px;
+    margin: 40px auto;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+  }
+
+  /* ========== COVER PAGE (DARK) ========== */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 80px 64px;
+    background: var(--brand-bg);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover::after {
+    content: '';
+    position: absolute;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(227,43,26,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cover-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .cover-flame {
+    height: 36px;
+    width: auto;
+  }
+
+  .cover-brand {
+    font-family: 'Geist Mono', monospace;
+    font-size: 16px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+  }
+
+  .cover-brand-idea { color: #e8e8e8; }
+  .cover-brand-fuel {
+    background: linear-gradient(to right, var(--brand-red) 34%, var(--brand-red-end) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .cover-prepared {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #78716c;
+    margin-left: auto;
+  }
+
+  .cover-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: -80px;
+  }
+
+  .cover-accent {
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--brand-red) 0%, var(--brand-red-end) 100%);
+    border-radius: 2px;
+    margin-bottom: 32px;
+  }
+
+  .cover-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 52px;
+    font-weight: 900;
+    color: #f5f5f4;
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+
+  .cover-subtitle {
+    font-family: 'Outfit', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: #a8a29e;
+    margin-top: 12px;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+  }
+
+  .cover-desc {
+    font-size: 15px;
+    color: #78716c;
+    margin-top: 16px;
+    max-width: 500px;
+    line-height: 1.7;
+  }
+
+  .cover-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .cover-date {
+    font-family: 'Geist Mono', monospace;
+    font-size: 12px;
+    color: #78716c;
+  }
+  .cover-confidential {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: #57534e;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+  .cover-gen {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: #57534e;
+    text-align: right;
+  }
+
+  /* ========== TABLE OF CONTENTS (WHITE) ========== */
+  .toc {
+    padding: 64px;
+    background: var(--page-bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .toc-header {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--text-500);
+    margin-bottom: 32px;
+  }
+
+  .toc-item {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .toc-num {
+    font-family: 'Geist Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+    min-width: 24px;
+  }
+
+  .toc-title {
+    font-size: 15px;
+    color: var(--text-900);
+    font-weight: 500;
+  }
+
+  .toc-dots {
+    flex: 1;
+    border-bottom: 1px dotted var(--text-300);
+    margin: 0 8px;
+  }
+
+  /* ========== SECTIONS (WHITE) ========== */
+  .section {
+    padding: 56px 64px;
+    background: var(--page-bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .section-num {
+    font-family: 'Geist Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+    letter-spacing: 1px;
+  }
+
+  .section-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text-900);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .prose {
+    font-size: 14px;
+    color: var(--text-700);
+    line-height: 1.75;
+  }
+
+  .prose strong {
+    color: var(--text-900);
+    font-weight: 600;
+  }
+
+  .prose ul {
+    margin: 12px 0;
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .prose ul li {
+    padding: 4px 0 4px 20px;
+    position: relative;
+  }
+
+  .prose ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 12px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--primary);
+  }
+
+  .prose p + p { margin-top: 12px; }
+
+  /* ========== SCORE SUMMARY ========== */
+  .scores {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    margin-top: 28px;
+    padding: 24px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .score-ring {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 3px solid var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .score-ring-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--text-900);
+  }
+
+  .score-ring-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    color: var(--text-500);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-left: -4px;
+  }
+
+  .score-items {
+    display: flex;
+    gap: 32px;
+  }
+
+  .score-item-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text-900);
+    text-align: center;
+  }
+
+  .score-item-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    color: var(--text-500);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    margin-top: 2px;
+  }
+
+  /* ========== TABLES ========== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 24px;
+    font-size: 12px;
+  }
+
+  thead tr {
+    border-bottom: 2px solid var(--border);
+  }
+
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-500);
+  }
+
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-500);
+  }
+
+  td:first-child {
+    color: var(--text-900);
+    font-weight: 500;
+  }
+
+  .severity-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .severity-high { background: rgba(239,68,68,0.1); color: #dc2626; }
+  .severity-medium { background: rgba(245,158,11,0.1); color: #d97706; }
+  .severity-low { background: rgba(107,114,128,0.1); color: var(--text-500); }
+
+  /* ========== MARKET CARDS ========== */
+  .market-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .market-card {
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--primary-lighter) 0%, var(--page-bg) 100%);
+  }
+
+  .market-card-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-500);
+  }
+
+  .market-card-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--text-900);
+    margin-top: 8px;
+  }
+
+  .market-card-growth {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--primary);
+    margin-top: 4px;
+    font-weight: 600;
+  }
+
+  /* ========== VALUE LADDER ========== */
+  .tiers {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .tier {
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+  }
+
+  .tier-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-900);
+  }
+
+  .tier-price {
+    font-family: 'Outfit', sans-serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--primary);
+    margin-top: 4px;
+  }
+
+  .tier-desc {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--text-500);
+    margin-top: 6px;
+  }
+
+  .tier ul {
+    margin-top: 12px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tier ul li {
+    font-size: 12px;
+    color: var(--text-500);
+    padding: 3px 0 3px 14px;
+    position: relative;
+  }
+
+  .tier ul li::before {
+    content: '-';
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-weight: 600;
+  }
+
+  /* ========== FINANCIAL SECTION ========== */
+  .fin-container {
+    margin-top: 28px;
+  }
+
+  /* Summary KPI row */
+  .fin-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .fin-kpi {
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+  }
+
+  .fin-kpi-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-400);
+  }
+
+  .fin-kpi-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--text-900);
+    margin-top: 4px;
+  }
+
+  .fin-kpi-sub {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--text-400);
+    margin-top: 2px;
+  }
+
+  .fin-kpi-sub.positive { color: var(--green); }
+  .fin-kpi-sub.negative { color: var(--red-soft); }
+
+  /* Detailed table */
+  .fin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  .fin-table thead th {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-400);
+    padding: 10px 16px;
+    text-align: right;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .fin-table thead th:first-child {
+    text-align: left;
+  }
+
+  .fin-table tbody td {
+    font-family: 'Geist Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 12px 16px;
+    text-align: right;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-700);
+  }
+
+  .fin-table tbody td:first-child {
+    font-family: 'Geist', sans-serif;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-900);
+  }
+
+  .fin-table tbody tr.row-profit td {
+    border-top: 2px solid var(--border);
+    border-bottom: none;
+    font-weight: 700;
+  }
+
+  .fin-table .val-positive { color: var(--green); }
+  .fin-table .val-negative { color: var(--red-soft); }
+
+  /* Horizontal stacked bars with Y-axis */
+  .fin-visual {
+    padding: 24px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .fin-visual-title {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-400);
+    margin-bottom: 20px;
+  }
+
+  .fin-hbar-row {
+    display: grid;
+    grid-template-columns: 64px 1fr 80px;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .fin-hbar-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-500);
+    text-align: right;
+  }
+
+  .fin-hbar-track {
+    height: 28px;
+    background: var(--border-light);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .fin-hbar-fill {
+    height: 100%;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: white;
+    min-width: 50px;
+    transition: width 0.3s ease;
+  }
+
+  .fin-hbar-fill.revenue { background: var(--primary); }
+  .fin-hbar-fill.costs { background: var(--text-400); }
+  .fin-hbar-fill.profit-pos { background: var(--green); }
+  .fin-hbar-fill.profit-neg { background: var(--red-soft); }
+
+  .fin-hbar-amount {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-700);
+    text-align: right;
+  }
+
+  .fin-hbar-amount.positive { color: var(--green); }
+  .fin-hbar-amount.negative { color: var(--red-soft); }
+
+  .fin-hbar-separator {
+    grid-column: 1 / -1;
+    height: 1px;
+    background: var(--border-light);
+    margin: 4px 0;
+  }
+
+  .fin-hbar-group-label {
+    grid-column: 1 / -1;
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-400);
+    margin-top: 8px;
+    margin-bottom: -4px;
+  }
+
+  .fin-legend {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-light);
+  }
+
+  .fin-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-500);
+  }
+
+  .fin-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+
+  /* Assumptions */
+  .fin-assumptions {
+    margin-top: 20px;
+    padding: 16px 20px;
+    background: var(--border-light);
+    border-radius: 8px;
+  }
+
+  .fin-assumptions-title {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-400);
+    margin-bottom: 8px;
+  }
+
+  .fin-assumptions ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 24px;
+  }
+
+  .fin-assumptions li {
+    font-size: 11px;
+    color: var(--text-500);
+    padding-left: 14px;
+    position: relative;
+  }
+
+  .fin-assumptions li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 7px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--text-300);
+  }
+
+  /* ========== BACK PAGE (WHITE) ========== */
+  .back-page {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px;
+    text-align: center;
+    background: var(--page-bg);
+  }
+
+  .back-accent {
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--brand-red), var(--brand-red-end));
+    border-radius: 2px;
+    margin-bottom: 24px;
+  }
+
+  .back-flame { height: 48px; margin-bottom: 12px; }
+
+  .back-brand {
+    font-family: 'Geist Mono', monospace;
+    font-size: 18px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+  }
+
+  .back-brand-idea { color: var(--text-900); }
+  .back-brand-fuel {
+    background: linear-gradient(to right, var(--brand-red) 34%, var(--brand-red-end) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .back-tagline {
+    font-size: 13px;
+    color: var(--text-500);
+    margin-top: 8px;
+  }
+
+  .back-legal {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--text-400);
+    margin-top: 32px;
+    line-height: 1.8;
+  }
+
+  /* ========== PRINT ========== */
+  @media print {
+    @page { size: A4; margin: 0; }
+    body { background: white; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .document { box-shadow: none; margin: 0; max-width: none; }
+    .cover { page-break-after: always; }
+    .toc { page-break-after: always; }
+    .section { page-break-before: always; page-break-inside: avoid; }
+    .back-page { page-break-before: always; }
+  }
+</style>
+</head>
+<body>
+
+<div class="document">
+
+  <!-- ==================== COVER PAGE (DARK) ==================== -->
+  <div class="cover">
+    <div class="cover-top">
+      <img src="/ideafuel-logo.svg" class="cover-flame" alt="IdeaFuel">
+      <span class="cover-brand">
+        <span class="cover-brand-idea">idea</span><span class="cover-brand-fuel">fuel</span>
+      </span>
+      <span class="cover-prepared">Prepared by IdeaFuel</span>
+    </div>
+
+    <div class="cover-center">
+      <div class="cover-accent"></div>
+      <h1 class="cover-title">AlgoPulse</h1>
+      <p class="cover-subtitle">Business Plan</p>
+      <p class="cover-desc">AI-powered platform that tracks algorithm changes across all major social platforms and automatically adjusts posting strategy.</p>
+    </div>
+
+    <div class="cover-bottom">
+      <div>
+        <p class="cover-date">March 13, 2026</p>
+        <p class="cover-confidential">Confidential &mdash; For Intended Recipients Only</p>
+      </div>
+      <p class="cover-gen">Generated by IdeaFuel AI</p>
+    </div>
+  </div>
+
+  <!-- ==================== TABLE OF CONTENTS ==================== -->
+  <div class="toc">
+    <h2 class="toc-header">Table of Contents</h2>
+    <div class="toc-item"><span class="toc-num">01</span><span class="toc-title">Executive Summary</span><span class="toc-dots"></span></div>
+    <div class="toc-item"><span class="toc-num">02</span><span class="toc-title">Problem Analysis</span><span class="toc-dots"></span></div>
+    <div class="toc-item"><span class="toc-num">03</span><span class="toc-title">Solution</span><span class="toc-dots"></span></div>
+    <div class="toc-item"><span class="toc-num">04</span><span class="toc-title">Market Analysis</span><span class="toc-dots"></span></div>
+    <div class="toc-item"><span class="toc-num">05</span><span class="toc-title">Competitive Landscape</span><span class="toc-dots"></span></div>
+    <div class="toc-item"><span class="toc-num">06</span><span class="toc-title">Business Model</span><span class="toc-dots"></span></div>
+    <div class="toc-item"><span class="toc-num">07</span><span class="toc-title">Go-to-Market Strategy</span><span class="toc-dots"></span></div>
+    <div class="toc-item"><span class="toc-num">08</span><span class="toc-title">Customer Profile</span><span class="toc-dots"></span></div>
+    <div class="toc-item"><span class="toc-num">09</span><span class="toc-title">Financial Projections</span><span class="toc-dots"></span></div>
+    <div class="toc-item"><span class="toc-num">10</span><span class="toc-title">Product Roadmap</span><span class="toc-dots"></span></div>
+    <div class="toc-item"><span class="toc-num">11</span><span class="toc-title">Risk Analysis</span><span class="toc-dots"></span></div>
+    <div class="toc-item"><span class="toc-num">12</span><span class="toc-title">Funding Requirements</span><span class="toc-dots"></span></div>
+  </div>
+
+  <!-- ==================== 01 EXECUTIVE SUMMARY ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">Executive Summary</h2>
+    </div>
+    <div class="prose">
+      <p><strong>AlgoPulse</strong> captures a <strong>$4.2B</strong> social media management market growing at <strong>23% CAGR</strong> by solving the #1 pain point for content creators and brands: invisible algorithm changes that tank engagement overnight. Our proprietary detection engine identifies platform algorithm shifts within <strong>4 hours</strong> &mdash; before competitors even notice &mdash; and automatically recalibrates posting strategy across Instagram, TikTok, LinkedIn, YouTube, and X.</p>
+      <p>Revenue model targets <strong>$2.4M ARR</strong> by Year 2 through tiered SaaS subscriptions ($49-499/mo) with <strong>78% gross margins</strong>. With <strong>62% of marketers</strong> reporting significant reach drops from algorithm changes and no existing tool offering real-time detection + auto-adjustment, AlgoPulse exploits a critical market gap with a defensible, data-moat advantage.</p>
+    </div>
+
+    <div class="scores">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="score-ring">
+          <span class="score-ring-value">82</span>
+        </div>
+        <span class="score-ring-label">Overall<br>Score</span>
+      </div>
+      <div class="score-items">
+        <div><div class="score-item-value">85</div><div class="score-item-label">Opportunity</div></div>
+        <div><div class="score-item-value">88</div><div class="score-item-label">Problem</div></div>
+        <div><div class="score-item-value">74</div><div class="score-item-label">Feasibility</div></div>
+        <div><div class="score-item-value">81</div><div class="score-item-label">Timing</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 02 PROBLEM ANALYSIS ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">Problem Analysis</h2>
+    </div>
+    <div class="prose">
+      <p>Social platforms modify their algorithms <strong>12-15 times per year</strong> on average, often without announcement. Each change can slash organic reach by <strong>30-60%</strong> overnight, destroying campaigns mid-flight and wasting ad spend. Brands currently rely on manual monitoring and gut-feel adjustments, losing an estimated <strong>$18B annually</strong> in wasted content investment.</p>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Pain Point</th><th>Severity</th><th>Current Solution</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Algorithm changes are invisible and unannounced</td><td><span class="severity-badge severity-high">Critical</span></td><td>Manual monitoring</td></tr>
+        <tr><td>Engagement drops take days to diagnose</td><td><span class="severity-badge severity-high">High</span></td><td>Analytics dashboards (lagging)</td></tr>
+        <tr><td>Cross-platform strategy requires constant recalibration</td><td><span class="severity-badge severity-high">High</span></td><td>Per-platform tools</td></tr>
+        <tr><td>A/B testing becomes invalid after algorithm shifts</td><td><span class="severity-badge severity-medium">Medium</span></td><td>None</td></tr>
+        <tr><td>Content calendars planned weeks ahead become ineffective</td><td><span class="severity-badge severity-medium">Medium</span></td><td>Manual replanning</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ==================== 04 MARKET ANALYSIS ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">Market Analysis</h2>
+    </div>
+    <div class="prose">
+      <p>The global social media management market reached <strong>$21.3B in 2025</strong> and is projected to hit <strong>$72.4B by 2030</strong>. AlgoPulse targets the <strong>$4.2B</strong> analytics and optimization segment where algorithm intelligence is the fastest-growing sub-category at <strong>31% CAGR</strong>, driven by creator economy growth and enterprise social-first marketing strategies.</p>
+    </div>
+    <div class="market-cards">
+      <div class="market-card">
+        <div class="market-card-label">TAM</div>
+        <div class="market-card-value">$21.3B</div>
+        <div class="market-card-growth">&#9650; 18.2% CAGR</div>
+      </div>
+      <div class="market-card">
+        <div class="market-card-label">SAM</div>
+        <div class="market-card-value">$4.2B</div>
+        <div class="market-card-growth">&#9650; 23.1% CAGR</div>
+      </div>
+      <div class="market-card">
+        <div class="market-card-label">SOM</div>
+        <div class="market-card-value">$180M</div>
+        <div class="market-card-growth">&#9650; 31.4% CAGR</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 06 BUSINESS MODEL ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2 class="section-title">Business Model</h2>
+    </div>
+    <div class="prose">
+      <p>SaaS subscription model with <strong>78% gross margins</strong> and <strong>3.2x LTV/CAC ratio</strong>. Three-tier pricing captures individual creators ($49/mo), growing brands ($149/mo), and enterprise teams ($499/mo) with usage-based overages on API calls and connected accounts.</p>
+    </div>
+    <div class="tiers">
+      <div class="tier">
+        <div class="tier-name">Starter</div>
+        <div class="tier-price">$49/mo</div>
+        <div class="tier-desc">Individual creators</div>
+        <ul>
+          <li>3 social accounts</li>
+          <li>Daily algorithm alerts</li>
+          <li>Basic auto-adjust</li>
+          <li>7-day trend history</li>
+        </ul>
+      </div>
+      <div class="tier">
+        <div class="tier-name">Growth</div>
+        <div class="tier-price">$149/mo</div>
+        <div class="tier-desc">Growing brands</div>
+        <ul>
+          <li>10 social accounts</li>
+          <li>Real-time detection</li>
+          <li>Advanced A/B testing</li>
+          <li>90-day trend history</li>
+          <li>Team collaboration</li>
+        </ul>
+      </div>
+      <div class="tier">
+        <div class="tier-name">Enterprise</div>
+        <div class="tier-price">$499/mo</div>
+        <div class="tier-desc">Agency & enterprise</div>
+        <ul>
+          <li>Unlimited accounts</li>
+          <li>API access</li>
+          <li>Custom integrations</li>
+          <li>Dedicated support</li>
+          <li>White-label options</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 09 FINANCIAL PROJECTIONS ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">09</span>
+      <h2 class="section-title">Financial Projections</h2>
+    </div>
+    <div class="prose">
+      <p>Conservative projections target <strong>breakeven by Month 14</strong> with <strong>$8.2M ARR</strong> by Year 3. Unit economics improve as algorithm detection models become more accurate with scale, driving <strong>net revenue retention above 120%</strong> and <strong>78% gross margins</strong> at maturity.</p>
+    </div>
+
+    <div class="fin-container">
+
+      <!-- KPI summary row -->
+      <div class="fin-kpis">
+        <div class="fin-kpi">
+          <div class="fin-kpi-label">Year 3 ARR</div>
+          <div class="fin-kpi-value">$8.2M</div>
+          <div class="fin-kpi-sub positive">+242% YoY</div>
+        </div>
+        <div class="fin-kpi">
+          <div class="fin-kpi-label">Breakeven</div>
+          <div class="fin-kpi-value">Mo. 14</div>
+          <div class="fin-kpi-sub">Q2 Year 2</div>
+        </div>
+        <div class="fin-kpi">
+          <div class="fin-kpi-label">Gross Margin</div>
+          <div class="fin-kpi-value">78%</div>
+          <div class="fin-kpi-sub">At scale</div>
+        </div>
+        <div class="fin-kpi">
+          <div class="fin-kpi-label">NRR</div>
+          <div class="fin-kpi-value">120%</div>
+          <div class="fin-kpi-sub positive">Net expansion</div>
+        </div>
+      </div>
+
+      <!-- Detailed P&L table -->
+      <table class="fin-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Year 1</th>
+            <th>Year 2</th>
+            <th>Year 3</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Revenue</td>
+            <td>$840,000</td>
+            <td>$2,400,000</td>
+            <td>$8,200,000</td>
+          </tr>
+          <tr>
+            <td>Operating Costs</td>
+            <td>$1,120,000</td>
+            <td>$1,980,000</td>
+            <td>$4,600,000</td>
+          </tr>
+          <tr class="row-profit">
+            <td>Net Profit / (Loss)</td>
+            <td class="val-negative">($280,000)</td>
+            <td class="val-positive">$420,000</td>
+            <td class="val-positive">$3,600,000</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Horizontal bar visualization -->
+      <div class="fin-visual">
+        <div class="fin-visual-title">Revenue vs. Costs &mdash; 3-Year Projection</div>
+
+        <!-- Year 1 -->
+        <div class="fin-hbar-group-label">Year 1</div>
+        <div class="fin-hbar-row">
+          <div class="fin-hbar-label">Revenue</div>
+          <div class="fin-hbar-track">
+            <div class="fin-hbar-fill revenue" style="width: 10.2%">$840K</div>
+          </div>
+          <div class="fin-hbar-amount">$840,000</div>
+        </div>
+        <div class="fin-hbar-row">
+          <div class="fin-hbar-label">Costs</div>
+          <div class="fin-hbar-track">
+            <div class="fin-hbar-fill costs" style="width: 13.7%">$1.12M</div>
+          </div>
+          <div class="fin-hbar-amount">$1,120,000</div>
+        </div>
+        <div class="fin-hbar-row">
+          <div class="fin-hbar-label">Profit</div>
+          <div class="fin-hbar-track">
+            <div class="fin-hbar-fill profit-neg" style="width: 3.4%">-$280K</div>
+          </div>
+          <div class="fin-hbar-amount negative">($280,000)</div>
+        </div>
+
+        <div class="fin-hbar-separator"></div>
+
+        <!-- Year 2 -->
+        <div class="fin-hbar-group-label">Year 2</div>
+        <div class="fin-hbar-row">
+          <div class="fin-hbar-label">Revenue</div>
+          <div class="fin-hbar-track">
+            <div class="fin-hbar-fill revenue" style="width: 29.3%">$2.4M</div>
+          </div>
+          <div class="fin-hbar-amount">$2,400,000</div>
+        </div>
+        <div class="fin-hbar-row">
+          <div class="fin-hbar-label">Costs</div>
+          <div class="fin-hbar-track">
+            <div class="fin-hbar-fill costs" style="width: 24.1%">$1.98M</div>
+          </div>
+          <div class="fin-hbar-amount">$1,980,000</div>
+        </div>
+        <div class="fin-hbar-row">
+          <div class="fin-hbar-label">Profit</div>
+          <div class="fin-hbar-track">
+            <div class="fin-hbar-fill profit-pos" style="width: 5.1%">$420K</div>
+          </div>
+          <div class="fin-hbar-amount positive">$420,000</div>
+        </div>
+
+        <div class="fin-hbar-separator"></div>
+
+        <!-- Year 3 -->
+        <div class="fin-hbar-group-label">Year 3</div>
+        <div class="fin-hbar-row">
+          <div class="fin-hbar-label">Revenue</div>
+          <div class="fin-hbar-track">
+            <div class="fin-hbar-fill revenue" style="width: 100%">$8.2M</div>
+          </div>
+          <div class="fin-hbar-amount">$8,200,000</div>
+        </div>
+        <div class="fin-hbar-row">
+          <div class="fin-hbar-label">Costs</div>
+          <div class="fin-hbar-track">
+            <div class="fin-hbar-fill costs" style="width: 56.1%">$4.6M</div>
+          </div>
+          <div class="fin-hbar-amount">$4,600,000</div>
+        </div>
+        <div class="fin-hbar-row">
+          <div class="fin-hbar-label">Profit</div>
+          <div class="fin-hbar-track">
+            <div class="fin-hbar-fill profit-pos" style="width: 43.9%">$3.6M</div>
+          </div>
+          <div class="fin-hbar-amount positive">$3,600,000</div>
+        </div>
+
+        <!-- Legend -->
+        <div class="fin-legend">
+          <div class="fin-legend-item"><div class="fin-legend-dot" style="background:var(--primary)"></div> Revenue</div>
+          <div class="fin-legend-item"><div class="fin-legend-dot" style="background:var(--text-400)"></div> Operating Costs</div>
+          <div class="fin-legend-item"><div class="fin-legend-dot" style="background:var(--green)"></div> Profit</div>
+          <div class="fin-legend-item"><div class="fin-legend-dot" style="background:var(--red-soft)"></div> Loss</div>
+        </div>
+      </div>
+
+      <!-- Assumptions -->
+      <div class="fin-assumptions">
+        <div class="fin-assumptions-title">Key Assumptions</div>
+        <ul>
+          <li>5% monthly subscriber growth, accelerating to 8% in Year 2</li>
+          <li>78% gross margin at scale (cloud + API costs)</li>
+          <li>$85 average CAC via content marketing + PLG</li>
+          <li>18-month average customer lifetime</li>
+          <li>120% net revenue retention from tier upgrades</li>
+          <li>Team scales from 4 to 22 FTEs over 3 years</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== 11 RISK ANALYSIS ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">11</span>
+      <h2 class="section-title">Risk Analysis</h2>
+    </div>
+    <div class="prose">
+      <ul>
+        <li><strong>Platform API restrictions</strong> &mdash; Major platforms could limit data access. <em>Mitigation:</em> Multi-signal detection using public data, browser extensions, and community reporting.</li>
+        <li><strong>Rapid commoditization</strong> &mdash; Incumbents like Hootsuite could build similar features. <em>Mitigation:</em> 18-month data moat advantage, patent-pending detection algorithms.</li>
+        <li><strong>Algorithm change velocity decreases</strong> &mdash; Platforms stabilize algorithms. <em>Mitigation:</em> Pivot to content optimization and predictive scheduling.</li>
+        <li><strong>Enterprise sales cycle length</strong> &mdash; 6-9 month cycles could strain cash. <em>Mitigation:</em> PLG motion with self-serve tiers funding enterprise expansion.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ==================== BACK PAGE ==================== -->
+  <div class="back-page">
+    <div class="back-accent"></div>
+    <img src="/ideafuel-logo.svg" class="back-flame" alt="IdeaFuel">
+    <span class="back-brand">
+      <span class="back-brand-idea">idea</span><span class="back-brand-fuel">fuel</span>
+    </span>
+    <p class="back-tagline">AI-Powered Business Intelligence</p>
+    <div class="back-legal">
+      <p>This document was generated on March 13, 2026 and contains proprietary analysis.</p>
+      <p>&copy; 2026 IdeaFuel. All rights reserved.</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
