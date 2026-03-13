@@ -97,7 +97,7 @@ export async function POST(req: Request) {
   // 3. Verify ownership + business plan exists
   const research = await db.query.research.findFirst({
     where: eq(schema.research.id, researchId),
-    columns: { id: true, businessPlan: true, projectId: true },
+    columns: { id: true, businessPlan: true, projectId: true, businessPlanCoverStyle: true },
     with: {
       project: { columns: { userId: true, title: true } },
     },
@@ -121,7 +121,8 @@ export async function POST(req: Request) {
 
     // Build the URL to the report page with print param
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.AUTH_URL || 'http://localhost:3006';
-    const reportUrl = `${baseUrl}/projects/${research.projectId}/reports/business-plan/print`;
+    const coverStyle = research.businessPlanCoverStyle || '1';
+    const reportUrl = `${baseUrl}/projects/${research.projectId}/reports/business-plan/print?cover=${coverStyle}`;
 
     // Set auth cookie so the page can load authenticated content
     // We pass the session cookie from the incoming request

@@ -50,6 +50,13 @@
       "when": 1773430033884,
       "tag": "0006_dry_galactus",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1773625200000,
+      "tag": "0007_cover_style",
+      "breakpoints": true
     }
   ]
 }

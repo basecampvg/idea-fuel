@@ -1,0 +1,1 @@
+ALTER TABLE "Research" ADD COLUMN "business_plan_cover_style" text DEFAULT '1';

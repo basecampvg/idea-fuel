@@ -23,9 +23,12 @@ import {
   HandCoins,
   LogOut,
   Download,
+  Palette,
+  Check,
 } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { COVER_VARIANTS, type CoverStyleId } from './components/cover-variants';
 
 // ============================================================================
 // Types (mirroring BusinessPlanProse from server)
@@ -267,7 +270,15 @@ export default function BusinessPlanReportPage() {
   const isPrintMode = searchParams.get('print') === 'true';
   const research = project?.research as Record<string, unknown> | null | undefined;
   const [triggerError, setTriggerError] = useState<string | null>(null);
+  const [showCoverPicker, setShowCoverPicker] = useState(false);
 
+  const currentCoverStyle = (research?.businessPlanCoverStyle as string) ?? '1';
+
+  const coverStyleMutation = trpc.research.updateBusinessPlanCoverStyle.useMutation({
+    onSuccess: () => {
+      utils.project.get.invalidate();
+    },
+  });
 
   const handleExportPdf = useCallback(() => {
     window.print();
@@ -373,13 +384,74 @@ export default function BusinessPlanReportPage() {
                 </p>
               </div>
             </div>
-            {!isPrintMode && <button
-              onClick={handleExportPdf}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors print:hidden"
-            >
-              <Download className="w-4 h-4" />
-              Export PDF
-            </button>}
+            {!isPrintMode && (
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <button
+                    onClick={() => setShowCoverPicker(!showCoverPicker)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                  >
+                    <Palette className="w-4 h-4" />
+                    Cover Style
+                  </button>
+
+                  {showCoverPicker && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowCoverPicker(false)} />
+                      <div className="absolute right-0 top-full mt-2 z-50 w-[480px] rounded-xl border border-border bg-card p-4 shadow-xl">
+                        <p className="text-xs font-medium text-muted-foreground mb-3">Choose PDF cover design</p>
+                        <div className="grid grid-cols-4 gap-3">
+                          {COVER_VARIANTS.map(({ id, name, Component }) => {
+                            const isSelected = currentCoverStyle === id;
+                            return (
+                              <button
+                                key={id}
+                                onClick={() => {
+                                  coverStyleMutation.mutate({
+                                    researchId: research!.id as string,
+                                    coverStyle: id as CoverStyleId,
+                                  });
+                                  setShowCoverPicker(false);
+                                }}
+                                className={`group relative rounded-lg overflow-hidden border-2 transition-all ${
+                                  isSelected
+                                    ? 'border-primary ring-2 ring-primary/20'
+                                    : 'border-border hover:border-muted-foreground/30'
+                                }`}
+                              >
+                                <div style={{ aspectRatio: '210 / 297' }} className="relative">
+                                  <div className="absolute inset-0" style={{ fontSize: '4px' }}>
+                                    <Component
+                                      title={project?.title ?? 'Business Plan'}
+                                      subtitle={project?.description as string | undefined}
+                                    />
+                                  </div>
+                                  {isSelected && (
+                                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                                      <Check className="w-2.5 h-2.5 text-primary-foreground" />
+                                    </div>
+                                  )}
+                                </div>
+                                <p className="text-[10px] text-center py-1.5 text-muted-foreground font-medium truncate px-1">
+                                  {name}
+                                </p>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <button
+                  onClick={handleExportPdf}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Export PDF
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

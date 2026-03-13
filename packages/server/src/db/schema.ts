@@ -286,6 +286,7 @@ export const research = pgTable('Research', {
   businessPlanStatus: text('business_plan_status'),  // 'GENERATING' | 'COMPLETE' | 'FAILED' | null (not started)
   businessPlanError: text('business_plan_error'),
   businessPlanSubStatus: text('business_plan_sub_status'),  // 'LOADING_DATA' | 'SUMMARIZING' | 'WRITING' | 'SAVING' | null
+  businessPlanCoverStyle: text('business_plan_cover_style').default('1'),  // '1' | '2' | '3' | '4'
   sparkStatus: sparkJobStatusEnum(),
   sparkKeywords: jsonb(),
   sparkResult: jsonb(),
