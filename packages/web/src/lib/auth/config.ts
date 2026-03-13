@@ -87,7 +87,7 @@ export const authConfig: NextAuthConfig = {
     sessionToken: {
       name:
         process.env.NODE_ENV === 'production'
-          ? '__Secure-next-auth.session-token'
+          ? 'next-auth.session-token'
           : 'next-auth.session-token',
       options: {
         httpOnly: true,
@@ -97,14 +97,14 @@ export const authConfig: NextAuthConfig = {
         // Set domain for cross-subdomain auth in production
         domain:
           process.env.NODE_ENV === 'production'
-            ? `.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'ideafuel.ai'}`
+            ? process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'ideafuel.ai'
             : undefined,
       },
     },
     callbackUrl: {
       name:
         process.env.NODE_ENV === 'production'
-          ? '__Secure-next-auth.callback-url'
+          ? 'next-auth.callback-url'
           : 'next-auth.callback-url',
       options: {
         httpOnly: true,
@@ -113,21 +113,17 @@ export const authConfig: NextAuthConfig = {
         secure: process.env.NODE_ENV === 'production',
         domain:
           process.env.NODE_ENV === 'production'
-            ? `.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'ideafuel.ai'}`
+            ? process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'ideafuel.ai'
             : undefined,
       },
     },
     csrfToken: {
-      name:
-        process.env.NODE_ENV === 'production'
-          ? '__Host-next-auth.csrf-token'
-          : 'next-auth.csrf-token',
+      name: 'next-auth.csrf-token',
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        // CSRF token uses __Host- prefix which requires no domain setting
       },
     },
   },
