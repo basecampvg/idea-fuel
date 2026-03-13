@@ -298,7 +298,7 @@ export default function BusinessPlanReportPage() {
   const handleExportPdf = useCallback(() => {
     if (!project?.id) return;
     window.open(
-      `/projects/${project.id}/reports/business-plan/print?cover=${currentCoverStyle}&autoprint=true`,
+      `/print/business-plan/${project.id}?cover=${currentCoverStyle}&autoprint=true`,
       '_blank',
     );
   }, [project?.id, currentCoverStyle]);
