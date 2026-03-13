@@ -48,6 +48,8 @@ function getSubdomain(host: string): string | null {
   // Production subdomain detection
   const parts = hostname.split('.');
   if (parts.length > 2) {
+    // www is treated as root domain, not a subdomain
+    if (parts[0] === 'www') return null;
     // Has subdomain (e.g., app.ideafuel.ai)
     return parts[0];
   }
