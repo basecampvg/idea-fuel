@@ -114,10 +114,10 @@ function CoverPage({ title, subtitle, coverStyle }: { title: string; subtitle?: 
 function SectionTitle({ number, title }: { number: number; title: string }) {
   return (
     <div className="flex items-baseline gap-4 mb-6 mt-2">
-      <span className="text-sm font-mono text-red-500 tracking-wider">
+      <span className="text-sm font-mono text-red-600 tracking-wider">
         {String(number).padStart(2, '0')}
       </span>
-      <h2 className="text-2xl font-extrabold text-white uppercase tracking-wide">
+      <h2 className="text-2xl font-extrabold text-neutral-900 uppercase tracking-wide">
         {title}
       </h2>
     </div>
@@ -127,7 +127,7 @@ function SectionTitle({ number, title }: { number: number; title: string }) {
 function Prose({ text }: { text: string }) {
   if (!text) return null;
   return (
-    <div className="prose prose-invert prose-sm max-w-none text-neutral-300 leading-relaxed [&_h1]:text-lg [&_h1]:font-bold [&_h1]:text-white [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-white [&_h3]:text-sm [&_h3]:font-bold [&_h3]:text-neutral-200 [&_strong]:text-white [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:text-neutral-300 [&_p]:mb-3">
+    <div className="prose prose-sm max-w-none text-neutral-700 leading-relaxed [&_h1]:text-lg [&_h1]:font-bold [&_h1]:text-neutral-900 [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-neutral-900 [&_h3]:text-sm [&_h3]:font-bold [&_h3]:text-neutral-800 [&_strong]:text-neutral-900 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:text-neutral-700 [&_p]:mb-3">
       <ReactMarkdown>{text}</ReactMarkdown>
     </div>
   );
@@ -142,20 +142,20 @@ function CompetitorTable({ competitors }: { competitors: Competitor[] }) {
     <div className="mt-6">
       <table className="w-full text-xs border-collapse">
         <thead>
-          <tr className="border-b-2 border-neutral-700">
-            <th className="text-left py-2 pr-3 font-mono uppercase tracking-wider text-neutral-400 text-[10px]">Competitor</th>
-            <th className="text-left py-2 pr-3 font-mono uppercase tracking-wider text-neutral-400 text-[10px]">Positioning</th>
-            <th className="text-left py-2 pr-3 font-mono uppercase tracking-wider text-neutral-400 text-[10px]">Differentiator</th>
-            <th className="text-left py-2 font-mono uppercase tracking-wider text-neutral-400 text-[10px]">Vulnerability</th>
+          <tr className="border-b-2 border-neutral-300">
+            <th className="text-left py-2 pr-3 font-mono uppercase tracking-wider text-neutral-500 text-[10px]">Competitor</th>
+            <th className="text-left py-2 pr-3 font-mono uppercase tracking-wider text-neutral-500 text-[10px]">Positioning</th>
+            <th className="text-left py-2 pr-3 font-mono uppercase tracking-wider text-neutral-500 text-[10px]">Differentiator</th>
+            <th className="text-left py-2 font-mono uppercase tracking-wider text-neutral-500 text-[10px]">Vulnerability</th>
           </tr>
         </thead>
         <tbody>
           {competitors.slice(0, 6).map((c) => (
-            <tr key={c.name} className="border-b border-neutral-800">
-              <td className="py-2.5 pr-3 font-medium text-neutral-200">{c.name}</td>
-              <td className="py-2.5 pr-3 text-neutral-400">{c.positioning}</td>
-              <td className="py-2.5 pr-3 text-neutral-400">{c.keyDifferentiator || '-'}</td>
-              <td className="py-2.5 text-neutral-400">{c.vulnerability || '-'}</td>
+            <tr key={c.name} className="border-b border-neutral-200">
+              <td className="py-2.5 pr-3 font-medium text-neutral-800">{c.name}</td>
+              <td className="py-2.5 pr-3 text-neutral-600">{c.positioning}</td>
+              <td className="py-2.5 pr-3 text-neutral-600">{c.keyDifferentiator || '-'}</td>
+              <td className="py-2.5 text-neutral-600">{c.vulnerability || '-'}</td>
             </tr>
           ))}
         </tbody>
@@ -169,28 +169,28 @@ function PainPointsTable({ painPoints }: { painPoints: PainPoint[] }) {
     <div className="mt-6">
       <table className="w-full text-xs border-collapse">
         <thead>
-          <tr className="border-b-2 border-neutral-700">
-            <th className="text-left py-2 pr-3 font-mono uppercase tracking-wider text-neutral-400 text-[10px]">Pain Point</th>
-            <th className="text-left py-2 pr-3 font-mono uppercase tracking-wider text-neutral-400 text-[10px]">Severity</th>
-            <th className="text-left py-2 font-mono uppercase tracking-wider text-neutral-400 text-[10px]">Current Solution</th>
+          <tr className="border-b-2 border-neutral-300">
+            <th className="text-left py-2 pr-3 font-mono uppercase tracking-wider text-neutral-500 text-[10px]">Pain Point</th>
+            <th className="text-left py-2 pr-3 font-mono uppercase tracking-wider text-neutral-500 text-[10px]">Severity</th>
+            <th className="text-left py-2 font-mono uppercase tracking-wider text-neutral-500 text-[10px]">Current Solution</th>
           </tr>
         </thead>
         <tbody>
           {painPoints.slice(0, 8).map((p, i) => (
-            <tr key={i} className="border-b border-neutral-800">
-              <td className="py-2.5 pr-3 text-neutral-200">{p.pain}</td>
+            <tr key={i} className="border-b border-neutral-200">
+              <td className="py-2.5 pr-3 text-neutral-800">{p.pain}</td>
               <td className="py-2.5 pr-3">
                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                   p.severity === 'high' || p.severity === 'critical'
-                    ? 'bg-red-500/20 text-red-400'
+                    ? 'bg-red-100 text-red-700'
                     : p.severity === 'medium'
-                    ? 'bg-amber-500/20 text-amber-400'
-                    : 'bg-neutral-700 text-neutral-400'
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-neutral-100 text-neutral-600'
                 }`}>
                   {p.severity}
                 </span>
               </td>
-              <td className="py-2.5 text-neutral-400">{p.currentSolution || 'None'}</td>
+              <td className="py-2.5 text-neutral-600">{p.currentSolution || 'None'}</td>
             </tr>
           ))}
         </tbody>
@@ -203,14 +203,14 @@ function ValueLadderTable({ tiers }: { tiers: OfferTier[] }) {
   return (
     <div className="grid grid-cols-3 gap-4 mt-6">
       {tiers.slice(0, 3).map((tier) => (
-        <div key={tier.name} className="rounded-lg border border-neutral-700 p-4">
-          <h4 className="text-sm font-bold text-neutral-200">{tier.name}</h4>
-          <p className="text-lg font-black text-red-500 mt-1">{tier.price}</p>
-          <p className="text-xs text-neutral-400 mt-1">{tier.description}</p>
+        <div key={tier.name} className="rounded-lg border border-neutral-200 p-4">
+          <h4 className="text-sm font-bold text-neutral-800">{tier.name}</h4>
+          <p className="text-lg font-black text-red-600 mt-1">{tier.price}</p>
+          <p className="text-xs text-neutral-500 mt-1">{tier.description}</p>
           <ul className="mt-3 space-y-1">
             {(tier.features ?? []).slice(0, 5).map((f, i) => (
-              <li key={i} className="text-xs text-neutral-400 flex items-start gap-1.5">
-                <span className="text-red-500 mt-0.5">-</span>
+              <li key={i} className="text-xs text-neutral-600 flex items-start gap-1.5">
+                <span className="text-red-600 mt-0.5">-</span>
                 <span>{f}</span>
               </li>
             ))}
@@ -237,12 +237,12 @@ function MarketSizingCards({ marketSizing }: { marketSizing: Record<string, unkn
   return (
     <div className="grid grid-cols-3 gap-4 mt-6">
       {cards.map(({ label, desc, data }) => (
-        <div key={label} className="rounded-lg border border-neutral-700 bg-neutral-900/50 p-4">
+        <div key={label} className="rounded-lg border border-neutral-200 bg-neutral-50 p-4">
           <p className="font-mono text-[10px] font-bold uppercase tracking-[2px] text-neutral-500">{label}</p>
-          <p className="text-xs text-neutral-400 mt-0.5">{desc}</p>
-          <p className="mt-2 text-2xl font-black text-white">{data?.formattedValue ?? 'N/A'}</p>
+          <p className="text-xs text-neutral-500 mt-0.5">{desc}</p>
+          <p className="mt-2 text-2xl font-black text-neutral-900">{data?.formattedValue ?? 'N/A'}</p>
           {data?.growthRate != null && (
-            <p className="text-xs text-red-400 mt-1 flex items-center gap-1">
+            <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
               <TrendingUp className="w-3 h-3" />
               {data.growthRate}% CAGR
             </p>
@@ -268,15 +268,15 @@ function ScoreSummary({ scores }: { scores: Record<string, number | null> }) {
   return (
     <div className="mt-6 flex items-center gap-6">
       <div className="flex items-center gap-2">
-        <div className="w-14 h-14 rounded-full border-2 border-red-500 flex items-center justify-center">
-          <span className="text-xl font-black text-white">{Math.round(avg)}</span>
+        <div className="w-14 h-14 rounded-full border-2 border-red-600 flex items-center justify-center">
+          <span className="text-xl font-black text-neutral-900">{Math.round(avg)}</span>
         </div>
-        <span className="text-xs text-neutral-400 font-mono uppercase">Overall<br/>Score</span>
+        <span className="text-xs text-neutral-500 font-mono uppercase">Overall<br/>Score</span>
       </div>
       <div className="flex gap-4">
         {items.map(({ key, label }) => (
           <div key={key} className="text-center">
-            <p className="text-lg font-bold text-neutral-200">{scores[key]}</p>
+            <p className="text-lg font-bold text-neutral-800">{scores[key]}</p>
             <p className="text-[10px] text-neutral-500 font-mono uppercase">{label}</p>
           </div>
         ))}
@@ -511,7 +511,7 @@ export default function BusinessPlanPrintPage() {
   }
 
   return (
-    <div id="business-plan-report" className="print-document bg-neutral-950 text-white min-h-screen">
+    <div id="business-plan-report" className="print-document bg-white text-neutral-900 min-h-screen">
       <style>{`
         @media print {
           @page {
@@ -556,9 +556,9 @@ export default function BusinessPlanPrintPage() {
         <div className="space-y-3">
           {sections.map((s) => (
             <div key={s.number} className="flex items-baseline gap-4">
-              <span className="text-sm font-mono text-red-500">{String(s.number).padStart(2, '0')}</span>
-              <span className="text-base text-neutral-200">{s.title}</span>
-              <span className="flex-1 border-b border-dotted border-neutral-700 mx-2" />
+              <span className="text-sm font-mono text-red-600">{String(s.number).padStart(2, '0')}</span>
+              <span className="text-base text-neutral-800">{s.title}</span>
+              <span className="flex-1 border-b border-dotted border-neutral-300 mx-2" />
             </div>
           ))}
         </div>
@@ -577,7 +577,7 @@ export default function BusinessPlanPrintPage() {
 
       {/* Back page */}
       <PageBreak />
-      <div className="flex flex-col justify-center items-center min-h-[100vh] px-16">
+      <div className="flex flex-col justify-center items-center min-h-[100vh] px-16 bg-neutral-950">
         <div className="w-24 h-1 bg-red-500 mb-6" />
         <p className="text-2xl font-bold text-neutral-200">
           <span className="text-red-500">IDEA</span>FUEL
