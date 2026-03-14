@@ -26,7 +26,7 @@ function sourcesToCitations(sources: MarketSource[], claim: string): ReportCitat
     claimType: 'market_size' as const,
     source: {
       title: source.title,
-      url: source.url || null,
+      url: source.url && source.url !== 'N/A' ? source.url : null,
       date: source.date || null,
       reliability: source.reliability,
     },
