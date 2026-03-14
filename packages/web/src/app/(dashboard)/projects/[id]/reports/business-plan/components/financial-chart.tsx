@@ -84,11 +84,22 @@ function formatAssumptionValue(value: number, unit: string | null): string {
   return `${value.toLocaleString()}${unit ? ` ${unit}` : ''}`;
 }
 
-const CONFIDENCE_BADGES: Record<string, { label: string; className: string }> = {
-  USER_PROVIDED: { label: 'Verified', className: 'bg-emerald-500/10 text-emerald-500' },
-  INDUSTRY_BENCHMARK: { label: 'Benchmarked', className: 'bg-blue-500/10 text-blue-400' },
-  AI_ESTIMATE: { label: 'Estimated', className: 'bg-amber-500/10 text-amber-400' },
-  CALCULATED: { label: 'Calculated', className: 'bg-muted text-muted-foreground' },
+const CONFIDENCE_CONFIG: Record<string, { label: string; dot: string; text: string }> = {
+  USER_PROVIDED:      { label: 'Verified',    dot: 'bg-emerald-500', text: 'text-emerald-500' },
+  INDUSTRY_BENCHMARK: { label: 'Benchmarked', dot: 'bg-blue-400',    text: 'text-blue-400' },
+  AI_ESTIMATE:        { label: 'Estimated',   dot: 'bg-amber-400',   text: 'text-amber-400' },
+  CALCULATED:         { label: 'Calculated',  dot: 'bg-slate-500',   text: 'text-muted-foreground' },
+};
+
+const CATEGORY_CONFIG: Record<string, { label: string; border: string; bg: string; dot: string }> = {
+  PRICING:     { label: 'Pricing',     border: 'border-emerald-500/25', bg: 'bg-emerald-500/5',  dot: 'bg-emerald-500' },
+  REVENUE:     { label: 'Revenue',     border: 'border-emerald-500/25', bg: 'bg-emerald-500/5',  dot: 'bg-emerald-500' },
+  ACQUISITION: { label: 'Acquisition', border: 'border-blue-500/25',    bg: 'bg-blue-500/5',     dot: 'bg-blue-400' },
+  RETENTION:   { label: 'Retention',   border: 'border-purple-500/25',  bg: 'bg-purple-500/5',   dot: 'bg-purple-400' },
+  MARKET:      { label: 'Market',      border: 'border-cyan-500/25',    bg: 'bg-cyan-500/5',     dot: 'bg-cyan-400' },
+  COSTS:       { label: 'Costs',       border: 'border-orange-500/25',  bg: 'bg-orange-500/5',   dot: 'bg-orange-400' },
+  FUNDING:     { label: 'Funding',     border: 'border-yellow-500/25',  bg: 'bg-yellow-500/5',   dot: 'bg-yellow-400' },
+  TIMELINE:    { label: 'Timeline',    border: 'border-slate-500/25',   bg: 'bg-slate-500/5',    dot: 'bg-slate-400' },
 };
 
 const REVENUE_MODEL_LABELS: Record<string, string> = {
@@ -249,54 +260,70 @@ function BreakEvenChart({ detail }: { detail: NonNullable<FinancialProjections['
 }
 
 function RichAssumptions({ assumptions }: { assumptions: FinancialAssumption[] }) {
-  // Group by category
   const grouped: Record<string, FinancialAssumption[]> = {};
   for (const a of assumptions) {
     if (!grouped[a.category]) grouped[a.category] = [];
     grouped[a.category].push(a);
   }
 
-  const categoryLabels: Record<string, string> = {
-    PRICING: 'Pricing',
-    ACQUISITION: 'Acquisition',
-    RETENTION: 'Retention',
-    MARKET: 'Market',
-    COSTS: 'Costs',
-    FUNDING: 'Funding',
-    TIMELINE: 'Timeline',
-    REVENUE: 'Revenue',
-  };
-
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 pt-1">
       <h4 className="font-mono text-[10px] font-bold uppercase tracking-[1.5px] text-muted-foreground">
         Model Assumptions
       </h4>
-      {Object.entries(grouped).map(([category, items]) => (
-        <div key={category}>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/70 mb-1">
-            {categoryLabels[category] ?? category}
-          </p>
-          <div className="space-y-0.5">
-            {items.map((a) => {
-              const badge = CONFIDENCE_BADGES[a.confidence] ?? CONFIDENCE_BADGES.AI_ESTIMATE;
-              return (
-                <div key={a.key} className="flex items-center justify-between text-xs py-0.5">
-                  <span className="text-muted-foreground">{a.name}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-foreground">
-                      {formatAssumptionValue(a.value, a.unit)}
-                    </span>
-                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${badge.className}`}>
-                      {badge.label}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {Object.entries(grouped).map(([category, items]) => {
+          const cat = CATEGORY_CONFIG[category] ?? {
+            label: category,
+            border: 'border-border',
+            bg: 'bg-card',
+            dot: 'bg-muted-foreground',
+          };
+          return (
+            <div key={category} className={`rounded-xl border ${cat.border} ${cat.bg} p-3`}>
+              {/* Category header */}
+              <div className="flex items-center gap-2 mb-2.5 pb-2 border-b border-border/30">
+                <div className={`w-2 h-2 rounded-full ${cat.dot} shrink-0`} />
+                <span className="text-[10px] font-bold uppercase tracking-[1.5px] text-foreground/80">
+                  {cat.label}
+                </span>
+                <span className="ml-auto text-[10px] text-muted-foreground/60 font-mono">
+                  {items.length}
+                </span>
+              </div>
+              {/* Rows */}
+              <div className="space-y-0">
+                {items.map((a, i) => {
+                  const conf = CONFIDENCE_CONFIG[a.confidence] ?? CONFIDENCE_CONFIG.AI_ESTIMATE;
+                  return (
+                    <div
+                      key={a.key}
+                      className={`flex items-center justify-between py-1.5 ${
+                        i < items.length - 1 ? 'border-b border-border/20' : ''
+                      }`}
+                    >
+                      <span className="text-xs text-muted-foreground truncate mr-2 max-w-[55%]">
+                        {a.name}
+                      </span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-xs font-semibold tabular-nums text-foreground">
+                          {formatAssumptionValue(a.value, a.unit)}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <div className={`w-1 h-1 rounded-full shrink-0 ${conf.dot}`} />
+                          <span className={`text-[9px] font-medium uppercase tracking-wide ${conf.text}`}>
+                            {conf.label}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
