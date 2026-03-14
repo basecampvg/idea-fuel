@@ -105,7 +105,7 @@ function formatDate(date: Date): string {
 function CoverPage({ title, subtitle, coverStyle }: { title: string; subtitle?: string; coverStyle: string }) {
   const CoverComponent = getCoverComponent(coverStyle);
   return (
-    <div className="print-cover-page" style={{ fontSize: '16px', height: '100vh' }}>
+    <div className="print-cover-page" style={{ fontSize: '16px', height: '297mm' }}>
       <CoverComponent title={title} subtitle={subtitle} />
     </div>
   );
