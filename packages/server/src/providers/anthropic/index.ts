@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import type { Message as AnthropicMessage } from '@anthropic-ai/sdk/resources/messages/messages';
 import { z } from 'zod';
 import type {
   AIProvider,
@@ -124,7 +125,7 @@ export class AnthropicProvider implements AIProvider {
       ? { headers: { 'anthropic-beta': 'context-1m-2025-08-07' }, timeout: 1800000 }
       : undefined;
 
-    const response = await this.client.messages.create(createParams, requestOptions) as import('@anthropic-ai/sdk').Message;
+    const response = await this.client.messages.create(createParams, requestOptions) as AnthropicMessage;
 
     const content = response.content[0];
     if (content.type !== 'text') {
