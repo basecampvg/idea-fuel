@@ -311,23 +311,77 @@ function PainPointsTable({ painPoints }: { painPoints: PainPoint[] }) {
 }
 
 function ValueLadderTable({ tiers }: { tiers: OfferTier[] }) {
+  const capped = tiers.slice(0, 3);
+  const featuredIndex = capped.length === 3 ? 1 : 0;
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
-      {tiers.slice(0, 3).map((tier) => (
-        <div key={tier.name} className="rounded-xl border border-border bg-card p-4">
-          <h4 className="font-display text-sm font-bold text-foreground">{tier.name}</h4>
-          <p className="text-lg font-black text-primary mt-1">{tier.price}</p>
-          <p className="text-xs text-muted-foreground mt-1">{tier.description}</p>
-          <ul className="mt-3 space-y-1">
-            {(tier.features ?? []).slice(0, 5).map((f, i) => (
-              <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
-                <span className="text-primary mt-0.5">-</span>
-                <span>{f}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5 items-stretch">
+      {capped.map((tier, i) => {
+        const featured = i === featuredIndex && capped.length > 1;
+        return (
+          <div
+            key={tier.name}
+            className={`relative flex flex-col rounded-2xl border p-6 transition-all duration-300 ${
+              featured
+                ? 'border-[#e32b1a]/40 bg-gradient-to-b from-[#e32b1a]/[0.06] to-[#1c1a17] shadow-[0_0_48px_rgba(227,43,26,0.08)]'
+                : 'border-[#2a2723] bg-[#1c1a17]'
+            }`}
+          >
+            {/* Most Popular badge */}
+            {featured && (
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                <span className="inline-block rounded-full bg-[#e32b1a] px-4 py-1 font-mono text-[10px] font-bold uppercase tracking-[2px] text-white whitespace-nowrap">
+                  Most Popular
+                </span>
+              </div>
+            )}
+
+            {/* Tier name + target customer */}
+            <div className="text-center">
+              <h3 className={`font-display text-xl font-black uppercase tracking-tight ${featured ? 'text-white' : 'text-[#d4d4d4]'}`}>
+                {tier.name}
+              </h3>
+              {tier.targetCustomer && (
+                <p className="mt-1 text-xs text-[#928e87] leading-snug">{tier.targetCustomer}</p>
+              )}
+            </div>
+
+            {/* Price */}
+            <div className="mt-5 text-center">
+              <span className={`font-display text-4xl font-black tracking-tight ${featured ? 'text-white' : 'text-[#d4d4d4]'}`}>
+                {tier.price}
+              </span>
+            </div>
+
+            {/* Divider */}
+            <div className="my-5 flex items-center gap-2">
+              <div className={`h-px flex-1 ${featured ? 'bg-[#e32b1a]/30' : 'bg-[#2a2723]'}`} />
+              {featured && <div className="h-1.5 w-1.5 rounded-full bg-[#e32b1a]" />}
+              <div className={`h-px flex-1 ${featured ? 'bg-[#e32b1a]/30' : 'bg-[#2a2723]'}`} />
+            </div>
+
+            {/* Description */}
+            {tier.description && (
+              <p className="text-xs text-[#928e87] text-center mb-4 leading-relaxed">{tier.description}</p>
+            )}
+
+            {/* Features */}
+            <ul className="flex-1 space-y-2.5">
+              {(tier.features ?? []).map((f, fi) => (
+                <li key={fi} className="flex items-start gap-2.5">
+                  <svg
+                    width="16" height="16" viewBox="0 0 18 18"
+                    className={`mt-0.5 shrink-0 ${featured ? 'text-[#e32b1a]' : 'text-[#6b6862]'}`}
+                  >
+                    <path d="M4 9l3.5 3.5L14 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span className="text-xs text-[#928e87] leading-relaxed">{f}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
     </div>
   );
 }
