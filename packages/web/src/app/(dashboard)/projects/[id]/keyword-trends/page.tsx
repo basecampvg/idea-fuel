@@ -23,6 +23,34 @@ export default function KeywordTrendsPage() {
 
   return (
     <div className="space-y-8">
+      {/* Trend chart */}
+      {keywordTrends && keywordTrends.length > 0 && (
+        <>
+          <KeywordChart keywordTrends={keywordTrends} />
+
+          {/* Trend summary cards */}
+          <div className="space-y-3">
+            <p className="text-xs font-bold uppercase tracking-widest text-primary">
+              Trends ({keywordTrends.length})
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {keywordTrends.map((kt) => (
+                <div
+                  key={kt.keyword}
+                  className="rounded-lg border border-border bg-card p-3"
+                >
+                  <p className="text-sm font-bold text-foreground">{kt.keyword}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Volume: {kt.volume.toLocaleString()} &middot; Growth:{' '}
+                    {formatGrowth(kt.growth)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Keyword groups */}
       {keywords && (
         <div className="rounded-2xl bg-background border border-border p-6 space-y-4">
@@ -82,34 +110,6 @@ export default function KeywordTrendsPage() {
             </div>
           )}
         </div>
-      )}
-
-      {/* Trend chart */}
-      {keywordTrends && keywordTrends.length > 0 && (
-        <>
-          <KeywordChart keywordTrends={keywordTrends} />
-
-          {/* Trend summary cards */}
-          <div className="space-y-3">
-            <p className="text-xs font-bold uppercase tracking-widest text-primary">
-              Trends ({keywordTrends.length})
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {keywordTrends.map((kt) => (
-                <div
-                  key={kt.keyword}
-                  className="rounded-lg border border-border bg-card p-3"
-                >
-                  <p className="text-sm font-bold text-foreground">{kt.keyword}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Volume: {kt.volume.toLocaleString()} &middot; Growth:{' '}
-                    {formatGrowth(kt.growth)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
       )}
     </div>
   );
