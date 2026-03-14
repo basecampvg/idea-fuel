@@ -516,9 +516,6 @@ export default function BusinessPlanPrintPage() {
         @media print {
           @page {
             size: A4;
-            margin: 15mm 18mm;
-          }
-          @page cover {
             margin: 0;
           }
           body {
@@ -526,7 +523,6 @@ export default function BusinessPlanPrintPage() {
             print-color-adjust: exact !important;
           }
           .print-cover-page {
-            page: cover;
             page-break-after: always;
           }
           .print-page-break {
@@ -572,7 +568,7 @@ export default function BusinessPlanPrintPage() {
       {sections.map((s) => (
         <div key={s.number}>
           <PageBreak />
-          <div className="print-section px-16 py-12">
+          <div className="print-section px-16 py-14">
             <SectionTitle number={s.number} title={s.title} />
             {s.content}
           </div>

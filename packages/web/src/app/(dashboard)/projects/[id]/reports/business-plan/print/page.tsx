@@ -508,24 +508,15 @@ export default function BusinessPlanPrintPage() {
     <div id="business-plan-report" className="print-document bg-neutral-950 text-white min-h-screen">
       <style>{`
         @media print {
-          /* Default page: content pages get breathing room */
           @page {
             size: A4;
-            margin: 15mm 18mm;
-          }
-
-          /* Cover page: full bleed, no margins */
-          @page cover {
             margin: 0;
           }
-
           body {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-
           .print-cover-page {
-            page: cover;
             page-break-after: always;
           }
           .print-page-break {
