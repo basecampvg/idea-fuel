@@ -517,9 +517,15 @@ export default function BusinessPlanPrintPage() {
     <div id="business-plan-report" className="print-document bg-white text-neutral-900 min-h-screen">
       <style>{`
         @media print {
-          @page {
+          /* Cover page: full-bleed, no margins */
+          @page :first {
             size: A4;
             margin: 0;
+          }
+          /* All other pages: breathing room at top/bottom */
+          @page {
+            size: A4;
+            margin: 14mm 18mm;
           }
           body {
             -webkit-print-color-adjust: exact !important;
@@ -533,6 +539,22 @@ export default function BusinessPlanPrintPage() {
           }
           .print-section {
             page-break-inside: avoid;
+          }
+          /* Prevent orphaned lines and mid-element splits */
+          .print-section p {
+            orphans: 3;
+            widows: 3;
+            break-inside: avoid;
+          }
+          .print-section li {
+            break-inside: avoid;
+          }
+          .print-section tr {
+            break-inside: avoid;
+          }
+          /* Keep small self-contained blocks together */
+          .print-section .grid > * {
+            break-inside: avoid;
           }
         }
 
