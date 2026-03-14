@@ -28,6 +28,12 @@ export interface MarketAnalysisData {
     avgDealSize: string;
     customerAcquisitionCost: string;
     lifetimeValue: string;
+    ltvCacRatio?: string;
+    avgRevenuePerUser?: string;
+    paybackPeriodMonths?: string;
+    grossMargin?: string;
+    churnRate?: string;
+    netRevenueRetention?: string;
   };
   adjacentMarkets?: Array<{
     name: string;
@@ -119,15 +125,13 @@ const descendingPoints = [6, 8, 10, 12, 16, 18, 22, 24];
 
 function getSparkPoints(label: string): number[] {
   const lower = label.toLowerCase();
-  if (lower.includes('cost') || lower.includes('cac')) return descendingPoints;
-  if (lower.includes('ltv') || lower.includes('lifetime')) return ascendingPoints;
-  if (lower.includes('cagr') || lower.includes('growth')) return ascendingPoints;
+  if (lower === 'cac' || lower === 'payback' || lower.includes('churn')) return descendingPoints;
   return ascendingPoints;
 }
 
 function getTrendColor(label: string): 'green' | 'amber' | 'red' {
   const lower = label.toLowerCase();
-  if (lower.includes('cost') || lower.includes('cac')) return 'amber';
+  if (lower === 'cac' || lower === 'payback' || lower.includes('churn')) return 'amber';
   return 'green';
 }
 
@@ -158,7 +162,13 @@ export function MarketAnalysis({
         { label: 'Avg Deal Size', value: marketAnalysis.keyMetrics.avgDealSize },
         { label: 'CAC', value: marketAnalysis.keyMetrics.customerAcquisitionCost },
         { label: 'LTV', value: marketAnalysis.keyMetrics.lifetimeValue },
-      ].filter((m) => m.value)
+        { label: 'LTV:CAC', value: marketAnalysis.keyMetrics.ltvCacRatio },
+        { label: 'ARPU', value: marketAnalysis.keyMetrics.avgRevenuePerUser },
+        { label: 'Payback', value: marketAnalysis.keyMetrics.paybackPeriodMonths },
+        { label: 'Gross Margin', value: marketAnalysis.keyMetrics.grossMargin },
+        { label: 'Churn Rate', value: marketAnalysis.keyMetrics.churnRate },
+        { label: 'NRR', value: marketAnalysis.keyMetrics.netRevenueRetention },
+      ].filter((m): m is { label: string; value: string } => !!m.value)
     : [];
 
   const dynamicsBody = marketAnalysis.marketDynamics
@@ -241,7 +251,7 @@ export function MarketAnalysis({
         {/* 4. SparklineCard grid */}
         {metricsArray.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            {metricsArray.map((metric) => (
+            {metricsArray.slice(0, 8).map((metric) => (
               <SparklineCard
                 key={metric.label}
                 label={metric.label}

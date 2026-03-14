@@ -77,6 +77,12 @@ export interface SynthesizedInsights {
       avgDealSize: string;
       customerAcquisitionCost: string;
       lifetimeValue: string;
+      ltvCacRatio?: string;
+      avgRevenuePerUser?: string;
+      paybackPeriodMonths?: string;
+      grossMargin?: string;
+      churnRate?: string;
+      netRevenueRetention?: string;
     };
     adjacentMarkets?: Array<{
       name: string;
@@ -1845,10 +1851,16 @@ Extract comprehensive, detailed insights from the research report. Preserve spec
       "regulatoryEnvironment": "<string: key regulations, compliance requirements, or policy trends affecting the market>"
     },
     "keyMetrics": {
-      "cagr": "<string: compound annual growth rate with timeframe, e.g. '12.5% CAGR 2024-2030'>",
-      "avgDealSize": "<string: average contract/deal value, e.g. '$15,000/year'>",
-      "customerAcquisitionCost": "<string: industry average CAC estimate>",
-      "lifetimeValue": "<string: industry average customer LTV estimate>"
+      "cagr": "<string: MUST start with a percentage number, e.g. '12.5% CAGR 2024-2030' or '22.7% (construction tech segment)'>",
+      "avgDealSize": "<string: MUST start with a dollar amount, e.g. '$15,000/year' or '$588 annual per seat'. Calculate from typical pricing * usage if not stated directly>",
+      "customerAcquisitionCost": "<string: MUST start with a dollar amount, e.g. '$150-300 per customer' or '$1,200 blended CAC'. Use industry benchmarks for this business model (SaaS: $200-1500, marketplace: $50-200, enterprise: $5K-50K)>",
+      "lifetimeValue": "<string: MUST start with a dollar amount, e.g. '$4,500 over 3 years' or '$18,000 LTV'. Calculate from avg deal size * expected retention period>",
+      "ltvCacRatio": "<string: OPTIONAL - MUST start with a ratio number, e.g. '3.2:1' or '5:1 (above SaaS benchmark of 3:1)'. Derive from LTV / CAC>",
+      "avgRevenuePerUser": "<string: OPTIONAL - MUST start with a dollar amount, e.g. '$49/month' or '$2,400/year per account'. Derive from pricing model>",
+      "paybackPeriodMonths": "<string: OPTIONAL - MUST start with a number, e.g. '8 months' or '14 months to recover CAC'. Calculate CAC / monthly revenue per customer>",
+      "grossMargin": "<string: OPTIONAL - MUST start with a percentage, e.g. '78% gross margin' or '85% (typical for SaaS)'. Use industry benchmarks for this model>",
+      "churnRate": "<string: OPTIONAL - MUST start with a percentage, e.g. '3.5% monthly' or '8% annual churn'. Use industry benchmarks for this segment>",
+      "netRevenueRetention": "<string: OPTIONAL - MUST start with a percentage, e.g. '113% NRR' or '105% net retention (expansion offsets churn)'. Estimate from market data>"
     },
     "adjacentMarkets": [
       {
@@ -2061,10 +2073,16 @@ Extract comprehensive market analysis and relevant keywords from the research ab
       "regulatoryEnvironment": "<string: key regulations or policy trends>"
     },
     "keyMetrics": {
-      "cagr": "<string: compound annual growth rate with timeframe>",
-      "avgDealSize": "<string: average contract/deal value>",
-      "customerAcquisitionCost": "<string: industry average CAC estimate>",
-      "lifetimeValue": "<string: industry average customer LTV estimate>"
+      "cagr": "<string: MUST start with a percentage number, e.g. '12.5% CAGR 2024-2030'>",
+      "avgDealSize": "<string: MUST start with a dollar amount, e.g. '$15,000/year'. Calculate from typical pricing * usage if not stated directly>",
+      "customerAcquisitionCost": "<string: MUST start with a dollar amount, e.g. '$150-300 per customer'. Use industry benchmarks for this business model>",
+      "lifetimeValue": "<string: MUST start with a dollar amount, e.g. '$4,500 over 3 years'. Calculate from avg deal size * expected retention period>",
+      "ltvCacRatio": "<string: OPTIONAL - MUST start with a ratio, e.g. '3.2:1'. Derive from LTV / CAC>",
+      "avgRevenuePerUser": "<string: OPTIONAL - MUST start with a dollar amount, e.g. '$49/month'. Derive from pricing model>",
+      "paybackPeriodMonths": "<string: OPTIONAL - MUST start with a number, e.g. '8 months'. Calculate CAC / monthly revenue>",
+      "grossMargin": "<string: OPTIONAL - MUST start with a percentage, e.g. '78% gross margin'. Use industry benchmarks>",
+      "churnRate": "<string: OPTIONAL - MUST start with a percentage, e.g. '3.5% monthly'. Use industry benchmarks>",
+      "netRevenueRetention": "<string: OPTIONAL - MUST start with a percentage, e.g. '113% NRR'. Estimate from market data>"
     },
     "adjacentMarkets": [
       {
@@ -2603,10 +2621,16 @@ Preserve specific data points, statistics, dollar figures, company names, and ci
       "regulatoryEnvironment": "<string: key regulations, compliance requirements, or policy trends>"
     },
     "keyMetrics": {
-      "cagr": "<string: compound annual growth rate with timeframe>",
-      "avgDealSize": "<string: average contract/deal value>",
-      "customerAcquisitionCost": "<string: industry average CAC estimate>",
-      "lifetimeValue": "<string: industry average customer LTV estimate>"
+      "cagr": "<string: MUST start with a percentage number, e.g. '12.5% CAGR 2024-2030'>",
+      "avgDealSize": "<string: MUST start with a dollar amount, e.g. '$15,000/year'. Calculate from typical pricing * usage if not stated directly>",
+      "customerAcquisitionCost": "<string: MUST start with a dollar amount, e.g. '$150-300 per customer'. Use industry benchmarks for this business model>",
+      "lifetimeValue": "<string: MUST start with a dollar amount, e.g. '$4,500 over 3 years'. Calculate from avg deal size * expected retention period>",
+      "ltvCacRatio": "<string: OPTIONAL - MUST start with a ratio, e.g. '3.2:1'. Derive from LTV / CAC>",
+      "avgRevenuePerUser": "<string: OPTIONAL - MUST start with a dollar amount, e.g. '$49/month'. Derive from pricing model>",
+      "paybackPeriodMonths": "<string: OPTIONAL - MUST start with a number, e.g. '8 months'. Calculate CAC / monthly revenue>",
+      "grossMargin": "<string: OPTIONAL - MUST start with a percentage, e.g. '78% gross margin'. Use industry benchmarks>",
+      "churnRate": "<string: OPTIONAL - MUST start with a percentage, e.g. '3.5% monthly'. Use industry benchmarks>",
+      "netRevenueRetention": "<string: OPTIONAL - MUST start with a percentage, e.g. '113% NRR'. Estimate from market data>"
     },
     "adjacentMarkets": [
       {

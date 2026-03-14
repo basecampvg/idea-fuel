@@ -55,6 +55,12 @@ export const InsightsSchema = z.object({
       avgDealSize: z.string(),
       customerAcquisitionCost: z.string(),
       lifetimeValue: z.string(),
+      ltvCacRatio: z.string().optional(),
+      avgRevenuePerUser: z.string().optional(),
+      paybackPeriodMonths: z.string().optional(),
+      grossMargin: z.string().optional(),
+      churnRate: z.string().optional(),
+      netRevenueRetention: z.string().optional(),
     }).optional(),
     adjacentMarkets: z.array(z.object({
       name: z.string(),

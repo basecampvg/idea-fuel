@@ -320,6 +320,12 @@ export interface MarketAnalysis {
     avgDealSize: string;
     customerAcquisitionCost: string;
     lifetimeValue: string;
+    ltvCacRatio?: string;
+    avgRevenuePerUser?: string;
+    paybackPeriodMonths?: string;
+    grossMargin?: string;
+    churnRate?: string;
+    netRevenueRetention?: string;
   };
   adjacentMarkets?: Array<{
     name: string;
