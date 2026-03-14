@@ -105,7 +105,7 @@ function formatDate(date: Date): string {
 function CoverPage({ title, subtitle, coverStyle }: { title: string; subtitle?: string; coverStyle: string }) {
   const CoverComponent = getCoverComponent(coverStyle);
   return (
-    <div className="print-cover-page min-h-[100vh]" style={{ fontSize: '16px' }}>
+    <div className="print-cover-page" style={{ fontSize: '16px', height: '297mm' }}>
       <CoverComponent title={title} subtitle={subtitle} />
     </div>
   );
@@ -516,6 +516,9 @@ export default function BusinessPlanPrintPage() {
         @media print {
           @page {
             size: A4;
+            margin: 15mm 18mm;
+          }
+          @page cover {
             margin: 0;
           }
           body {
@@ -523,6 +526,7 @@ export default function BusinessPlanPrintPage() {
             print-color-adjust: exact !important;
           }
           .print-cover-page {
+            page: cover;
             page-break-after: always;
           }
           .print-page-break {

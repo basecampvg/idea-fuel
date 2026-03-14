@@ -122,7 +122,7 @@ export async function POST(req: Request) {
     // Build the URL to the report page with print param
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.AUTH_URL || 'http://localhost:3006';
     const coverStyle = research.businessPlanCoverStyle || '1';
-    const reportUrl = `${baseUrl}/projects/${research.projectId}/reports/business-plan/print?cover=${coverStyle}`;
+    const reportUrl = `${baseUrl}/print/business-plan/${research.projectId}?cover=${coverStyle}`;
 
     // Set auth cookie so the page can load authenticated content
     // We pass the session cookie from the incoming request
@@ -153,15 +153,7 @@ export async function POST(req: Request) {
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
-      margin: { top: '0', right: '0', bottom: '0.5in', left: '0' },
-      displayHeaderFooter: true,
-      headerTemplate: '<div></div>',
-      footerTemplate: `
-        <div style="width: 100%; font-size: 7px; color: #666; display: flex; justify-content: space-between; padding: 0 0.75in;">
-          <span>${research.project.title ?? 'Business Plan'} &mdash; Confidential</span>
-          <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
-        </div>
-      `,
+      displayHeaderFooter: false,
     });
 
     await browser.close();
