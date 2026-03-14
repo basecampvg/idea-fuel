@@ -54,9 +54,12 @@ interface Competitor {
 }
 
 interface PainPoint {
-  pain: string;
+  problem?: string;
+  pain?: string;
   severity: string;
+  frequencyOfOccurrence?: string;
   frequency?: string;
+  currentSolutions?: string[];
   currentSolution?: string;
 }
 
@@ -178,7 +181,7 @@ function PainPointsTable({ painPoints }: { painPoints: PainPoint[] }) {
         <tbody>
           {painPoints.slice(0, 8).map((p, i) => (
             <tr key={i} className="border-b border-neutral-200">
-              <td className="py-2.5 pr-3 text-neutral-800">{p.pain}</td>
+              <td className="py-2.5 pr-3 text-neutral-800">{p.problem ?? p.pain}</td>
               <td className="py-2.5 pr-3">
                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                   p.severity === 'high' || p.severity === 'critical'
@@ -190,7 +193,7 @@ function PainPointsTable({ painPoints }: { painPoints: PainPoint[] }) {
                   {p.severity}
                 </span>
               </td>
-              <td className="py-2.5 text-neutral-600">{p.currentSolution || 'None'}</td>
+              <td className="py-2.5 text-neutral-600">{p.currentSolutions?.join(', ') ?? p.currentSolution ?? 'None'}</td>
             </tr>
           ))}
         </tbody>

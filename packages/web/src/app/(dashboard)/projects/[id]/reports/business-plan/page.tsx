@@ -94,9 +94,13 @@ interface Competitor {
 }
 
 interface PainPoint {
-  pain: string;
+  // AI generates "problem"; legacy data may use "pain"
+  problem?: string;
+  pain?: string;
   severity: string;
+  frequencyOfOccurrence?: string;
   frequency?: string;
+  currentSolutions?: string[];
   currentSolution?: string;
 }
 
@@ -283,7 +287,7 @@ function PainPointsTable({ painPoints }: { painPoints: PainPoint[] }) {
         <tbody>
           {painPoints.slice(0, 8).map((p, i) => (
             <tr key={i} className="border-b border-border/50">
-              <td className="py-2 px-2 text-foreground">{p.pain}</td>
+              <td className="py-2 px-2 text-foreground">{p.problem ?? p.pain}</td>
               <td className="py-2 px-2">
                 <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
                   p.severity === 'high' || p.severity === 'critical'
@@ -295,7 +299,9 @@ function PainPointsTable({ painPoints }: { painPoints: PainPoint[] }) {
                   {p.severity}
                 </span>
               </td>
-              <td className="py-2 px-2 text-muted-foreground">{p.currentSolution || 'None'}</td>
+              <td className="py-2 px-2 text-muted-foreground">
+                {p.currentSolutions?.join(', ') ?? p.currentSolution ?? 'None'}
+              </td>
             </tr>
           ))}
         </tbody>
