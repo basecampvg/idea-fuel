@@ -165,7 +165,7 @@ export function middleware(request: NextRequest) {
   // =========================================================================
   if (!subdomain) {
     // Allow public paths
-    const publicPaths = ['/', '/blog', '/auth', '/api'];
+    const publicPaths = ['/', '/blog', '/docs', '/auth', '/api'];
     const isPublicPath = publicPaths.some(
       (p) => pathname === p || pathname.startsWith(p + '/')
     );
@@ -201,6 +201,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico, robots.txt, sitemap.xml
      */
-    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
+    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|llms.txt|llms-full.txt).*)',
   ],
 };

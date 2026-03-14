@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 import { research, projects } from '../../db/schema';
 import { QUEUE_NAMES, BusinessPlanJobData } from '../queues';
 import { generateBusinessPlanProse, summarizeRawResearch } from '../../services/business-plan-ai';
+import { loadFinancialDataForProject } from '../../services/financial-model-loader';
 
 /**
  * Business Plan Generation Worker
@@ -44,6 +45,10 @@ export function createBusinessPlanWorker() {
         if (!researchRecord) {
           throw new Error(`Research ${researchId} not found`);
         }
+
+        // Load financial model data if available for this project
+        const financialData = await loadFinancialDataForProject(projectId);
+        console.log(`[BusinessPlanWorker] Financial model: ${financialData ? financialData.modelId : 'none'}`);
 
         await job.updateProgress(20);
 
@@ -97,6 +102,7 @@ export function createBusinessPlanWorker() {
           userStory: researchRecord.userStory,
           valueLadder: researchRecord.valueLadder,
           techStack: researchRecord.techStack,
+          financialModelData: financialData,
         });
 
         await job.updateProgress(90);

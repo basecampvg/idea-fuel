@@ -7,12 +7,58 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import type { LoadedFinancialData } from './financial-model-loader';
+import type { StatementData } from '@forge/shared';
 
 const SONNET_MODEL = 'claude-sonnet-4-5-20250929';
 
 // ============================================================================
 // TYPES
 // ============================================================================
+
+export interface FinancialAssumption {
+  key: string;
+  name: string;
+  value: number;
+  unit: string | null;
+  category: string;
+  confidence: string;
+}
+
+export interface MonthlyPLDataPoint {
+  period: string;
+  revenue: number;
+  costs: number;
+  profit: number;
+}
+
+export interface FinancialProjections {
+  // Always present (backward compatible)
+  year1: { revenue: number; costs: number; profit: number };
+  year2: { revenue: number; costs: number; profit: number };
+  year3: { revenue: number; costs: number; profit: number };
+  breakEvenMonth: number;
+  assumptions: string[];
+
+  // Present when model-backed (optional for backward compat)
+  source?: 'model' | 'ai_estimate';
+  modelId?: string;
+  templateSlug?: string;
+  richAssumptions?: FinancialAssumption[];
+  monthlyPL?: MonthlyPLDataPoint[];
+  breakEvenDetail?: {
+    revenueModel: string;
+    breakEvenPoint: number;
+    breakEvenUnit: string;
+    trajectory: Array<{
+      month: number;
+      revenue: number;
+      totalCosts: number;
+      profit: number;
+      cumulativeProfit: number;
+    }>;
+  };
+}
 
 export interface BusinessPlanProse {
   executiveSummary: string;
@@ -24,13 +70,7 @@ export interface BusinessPlanProse {
   gtmStrategy: string;
   customerProfile: string;
   financialNarrative: string;
-  financialProjections: {
-    year1: { revenue: number; costs: number; profit: number };
-    year2: { revenue: number; costs: number; profit: number };
-    year3: { revenue: number; costs: number; profit: number };
-    breakEvenMonth: number;
-    assumptions: string[];
-  };
+  financialProjections: FinancialProjections;
   productRoadmap: string;
   teamOperations: string;
   riskAnalysis: string;
@@ -67,6 +107,7 @@ interface ResearchContext {
   userStory: unknown;
   valueLadder: unknown;
   techStack: unknown;
+  financialModelData?: LoadedFinancialData | null;
 }
 
 // ============================================================================
@@ -176,7 +217,9 @@ VISUAL FORMAT RULES: The frontend renders these as rich visual cards. To maximiz
   "exitStrategy": "1 paragraph + bullet points: potential exit paths, comparable exits, timeline, target acquirers or IPO scenario."
 }
 
-IMPORTANT: Use REAL numbers for financial projections based on the market sizing, revenue potential, and business model data. Ground all financial estimates in the research data. The numbers must be plausible for a startup in this space.
+${context.financialModelData
+    ? `CRITICAL: A computed financial model is included in the research data under "FINANCIAL MODEL (COMPUTED)". You MUST use the exact P&L numbers from that section for your financialProjections output. Aggregate the monthly (Y1-M1 through Y1-M12) and quarterly (Y2-Q1 through Y2-Q4) periods into annual totals. The break-even month comes directly from the model. For assumptions, extract the top 5 most impactful assumptions from the model data. Write the financialNarrative to reference these real computed figures.`
+    : `IMPORTANT: Use REAL numbers for financial projections based on the market sizing, revenue potential, and business model data. Ground all financial estimates in the research data. The numbers must be plausible for a startup in this space.`}
 
 Respond ONLY with the JSON object. No markdown code fences, no explanation.`;
 
@@ -206,11 +249,98 @@ Respond ONLY with the JSON object. No markdown code fences, no explanation.`;
     throw new Error('Business plan response missing required fields');
   }
 
+  // Post-process: override AI projections with computed financial model data
+  if (context.financialModelData) {
+    const fd = context.financialModelData;
+    const pl = fd.statements.pl;
+    const annuals = aggregateAnnualTotals(pl, fd.forecastYears);
+
+    parsed.financialProjections.year1 = annuals.year1;
+    parsed.financialProjections.year2 = annuals.year2;
+    parsed.financialProjections.year3 = annuals.year3;
+    parsed.financialProjections.breakEvenMonth = fd.breakEven.breakEvenMonth;
+    parsed.financialProjections.source = 'model';
+    parsed.financialProjections.modelId = fd.modelId;
+    parsed.financialProjections.templateSlug = fd.templateSlug;
+
+    // Monthly P&L trajectory
+    parsed.financialProjections.monthlyPL = pl.periods.map((period, i) => {
+      const revenue = findLineValue(pl, 'revenue', i) ?? 0;
+      const profit = findLineValue(pl, 'net_income', i) ?? 0;
+      return { period, revenue, costs: revenue - profit, profit };
+    });
+
+    // Break-even detail
+    parsed.financialProjections.breakEvenDetail = {
+      revenueModel: fd.breakEven.revenueModel,
+      breakEvenPoint: fd.breakEven.breakEvenPoint,
+      breakEvenUnit: fd.breakEven.breakEvenUnit,
+      trajectory: fd.breakEven.trajectory,
+    };
+
+    // Rich assumptions
+    parsed.financialProjections.richAssumptions = fd.assumptionRows
+      .filter((r) => r.numericValue != null)
+      .map((r) => ({
+        key: r.key,
+        name: r.name,
+        value: parseFloat(r.numericValue!),
+        unit: r.unit,
+        category: r.category,
+        confidence: r.confidence,
+      }));
+  } else {
+    parsed.financialProjections.source = 'ai_estimate';
+  }
+
   return parsed;
 }
 
 // ============================================================================
-// HELPERS
+// HELPERS — Annual aggregation from period-level P&L
+// ============================================================================
+
+function findLineValue(
+  statement: StatementData,
+  key: string,
+  periodIdx: number,
+): number | null {
+  const line = statement.lines.find((l) => l.key === key);
+  return line ? (line.values[periodIdx] ?? null) : null;
+}
+
+function aggregateAnnualTotals(
+  pl: StatementData,
+  forecastYears: number,
+): {
+  year1: { revenue: number; costs: number; profit: number };
+  year2: { revenue: number; costs: number; profit: number };
+  year3: { revenue: number; costs: number; profit: number };
+} {
+  const revValues = pl.lines.find((l) => l.key === 'revenue')?.values ?? [];
+  const profitValues = pl.lines.find((l) => l.key === 'net_income')?.values ?? [];
+
+  const sum = (arr: number[], start: number, end: number) =>
+    arr.slice(start, end).reduce((a, b) => a + (isNaN(b) ? 0 : b), 0);
+
+  const y1Rev = Math.round(sum(revValues, 0, 12));
+  const y1Profit = Math.round(sum(profitValues, 0, 12));
+
+  const y2Rev = Math.round(sum(revValues, 12, 16));
+  const y2Profit = Math.round(sum(profitValues, 12, 16));
+
+  const y3Rev = forecastYears >= 3 ? Math.round(revValues[16] ?? 0) : 0;
+  const y3Profit = forecastYears >= 3 ? Math.round(profitValues[16] ?? 0) : 0;
+
+  return {
+    year1: { revenue: y1Rev, costs: y1Rev - y1Profit, profit: y1Profit },
+    year2: { revenue: y2Rev, costs: y2Rev - y2Profit, profit: y2Profit },
+    year3: { revenue: y3Rev, costs: y3Rev - y3Profit, profit: y3Profit },
+  };
+}
+
+// ============================================================================
+// HELPERS — Data context builder
 // ============================================================================
 
 function buildDataContext(ctx: ResearchContext): string {
@@ -260,6 +390,56 @@ function buildDataContext(ctx: ResearchContext): string {
   }
   if (ctx.techStack) {
     sections.push(`## TECH STACK RECOMMENDATIONS\n${JSON.stringify(ctx.techStack, null, 2)}`);
+  }
+
+  if (ctx.financialModelData) {
+    const fd = ctx.financialModelData;
+    const pl = fd.statements.pl;
+
+    // Summarize P&L subtotals/totals for the AI (saves tokens)
+    const plSummary = pl.lines
+      .filter((l) => l.isSubtotal || l.isTotal)
+      .map((l) => ({ key: l.key, name: l.name, values: l.values }));
+
+    // Group assumptions by category (cap at 20 to manage token budget)
+    const assumptionsByCategory: Record<
+      string,
+      Array<{ name: string; value: number; unit: string | null; confidence: string }>
+    > = {};
+    for (const row of fd.assumptionRows) {
+      const numVal = row.numericValue ? parseFloat(row.numericValue) : NaN;
+      if (isNaN(numVal)) continue;
+      if (!assumptionsByCategory[row.category]) assumptionsByCategory[row.category] = [];
+      assumptionsByCategory[row.category].push({
+        name: row.name,
+        value: numVal,
+        unit: row.unit,
+        confidence: row.confidence,
+      });
+    }
+    let totalSent = 0;
+    const cappedAssumptions: typeof assumptionsByCategory = {};
+    for (const [cat, items] of Object.entries(assumptionsByCategory)) {
+      if (totalSent >= 20) break;
+      const toTake = items.slice(0, 20 - totalSent);
+      cappedAssumptions[cat] = toTake;
+      totalSent += toTake.length;
+    }
+
+    sections.push(`## FINANCIAL MODEL (COMPUTED — USE THESE NUMBERS)
+Template: ${fd.templateSlug}
+Forecast Years: ${fd.forecastYears}
+Revenue Model: ${fd.breakEven.revenueModel}
+Break-Even Month: ${fd.breakEven.breakEvenMonth === -1 ? 'Not reached in 60 months' : fd.breakEven.breakEvenMonth}
+Break-Even Point: ${fd.breakEven.breakEvenPoint} ${fd.breakEven.breakEvenUnit}
+
+### P&L Summary (periods: ${pl.periods.join(', ')})
+${JSON.stringify(plSummary, null, 2)}
+
+### Key Assumptions by Category
+${JSON.stringify(cappedAssumptions, null, 2)}
+
+IMPORTANT: The financial projections above are computed from a validated financial model. Use these EXACT numbers for the financialProjections JSON output. Aggregate monthly/quarterly periods into annual totals for year1/year2/year3.`);
   }
 
   return sections.join('\n\n');
