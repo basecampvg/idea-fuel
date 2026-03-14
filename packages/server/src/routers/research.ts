@@ -1094,4 +1094,33 @@ export const researchRouter = router({
 
       return { success: true };
     }),
+
+  /**
+   * Update positioning report cover style preference
+   */
+  updatePositioningCoverStyle: protectedProcedure
+    .input(z.object({
+      researchId: z.string().min(1),
+      coverStyle: z.enum(['1', '2', '3', '4']),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.db.query.research.findFirst({
+        where: eq(research.id, input.researchId),
+        columns: { id: true },
+        with: { project: { columns: { userId: true } } },
+      });
+
+      if (!result) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Research not found' });
+      }
+      if (result.project.userId !== ctx.userId) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Access denied' });
+      }
+
+      await ctx.db.update(research).set({
+        positioningCoverStyle: input.coverStyle,
+      }).where(eq(research.id, input.researchId));
+
+      return { success: true };
+    }),
 });

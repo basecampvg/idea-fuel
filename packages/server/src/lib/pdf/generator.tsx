@@ -146,7 +146,6 @@ function transformPositioningData(
 ) {
   const content = parseReportContent(report.content);
   const positioning = research.positioning as Record<string, unknown> | null;
-  const painPoints = research.painPoints as Array<Record<string, unknown>> | null;
 
   return {
     ideaTitle: project.title,
@@ -154,36 +153,63 @@ function transformPositioningData(
     generatedAt: new Date(),
     tier: report.tier,
 
-    positioningStatement: (content.positioningStatement as string) || (positioning?.statement as string),
-    tagline: (content.tagline as string) || (positioning?.tagline as string),
-    brandVoice: (content.brandVoice as string),
-    brandPersonality: (content.brandPersonality as string[]),
+    // Strategic Foundation
+    competitiveAlternatives: (content.competitiveAlternatives as string),
+    uniqueAttributes: (content.uniqueAttributes as string),
+    valuePillars: (content.valuePillars as Array<{
+      theme: string;
+      attributes: string[];
+      customerBenefit: string;
+      proof: string;
+    }>),
 
+    // Target Customer
     targetAudience: (content.targetAudience as string) || (positioning?.targetAudience as string),
     customerPersona: (content.customerPersona as {
       name: string;
+      role: string;
       demographics: string;
       psychographics: string;
       painPoints: string[];
       goals: string[];
+      buyingTriggers: string[];
+      dayInTheLife: string;
     }),
 
-    keyMessages: (content.keyMessages as string[]),
-    valuePillars: (content.valuePillars as Array<{ pillar: string; description: string }>),
-
-    uniqueSellingPoints: (content.uniqueSellingPoints as string[]) ||
-      painPoints?.map((p) => p.solution as string).filter(Boolean),
+    // Market Category & Positioning
+    marketCategory: (content.marketCategory as string),
+    positioningStatement: (content.positioningStatement as string) || (positioning?.uniqueValueProposition as string),
     competitivePositioning: (content.competitivePositioning as string),
 
-    brandColors: (content.brandColors as string[]),
+    // Messaging Framework
+    tagline: (content.tagline as string),
+    keyMessages: (content.keyMessages as string[]),
+    messagingFramework: (content.messagingFramework as {
+      headline: string;
+      subheadline: string;
+      elevatorPitch: string;
+      objectionHandlers: Array<{ objection: string; response: string }>;
+    }),
+
+    // Brand Expression
+    brandVoice: (content.brandVoice as string),
+    brandPersonality: (content.brandPersonality as string[]),
+
+    // Trend Layer
+    trendLayer: (content.trendLayer as string),
+
+    // PRO/FULL
     visualStyle: (content.visualStyle as string),
     toneGuidelines: (content.toneGuidelines as string[]),
+    brandColors: (content.brandColors as string[]),
 
+    // FULL
     channelMessaging: (content.channelMessaging as Array<{
       channel: string;
       headline: string;
       subheadline: string;
       cta: string;
+      rationale: string;
     }>),
   };
 }

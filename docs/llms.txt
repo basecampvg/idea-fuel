@@ -1,0 +1,33 @@
+# IdeaFuel
+
+> IdeaFuel is an AI-powered platform that helps entrepreneurs validate business ideas through automated market research, competitive analysis, financial modeling, and business plan generation. It combines interactive AI interviews, deep web research, and data synthesis to produce actionable reports and investor-ready business plans.
+
+## Docs
+
+- [Getting Started](https://ideafuel.ai/docs/getting-started): Create your account and validate your first business idea in under 10 minutes
+- [Interview Modes](https://ideafuel.ai/docs/interview-modes): Choose between SPARK (instant validation), LIGHT (10 questions), and IN_DEPTH (65 questions) interview modes
+- [Research Engine](https://ideafuel.ai/docs/research-engine): How IdeaFuel's multi-phase AI research pipeline analyzes your market, competitors, and customers using real-time web data
+- [Reports Overview](https://ideafuel.ai/docs/reports): Nine auto-generated report types covering market analysis, positioning, competitors, customer profiles, and more
+- [Business Plan Report](https://ideafuel.ai/docs/reports/business-plan): Full business plan with executive summary, market analysis, financial projections, and go-to-market strategy
+- [Positioning Report](https://ideafuel.ai/docs/reports/positioning): Unique value proposition, target audience segments, and messaging framework
+- [Competitive Analysis Report](https://ideafuel.ai/docs/reports/competitive-analysis): Competitor profiles with strengths, weaknesses, pricing, funding, and vulnerability analysis
+- [Why Now Report](https://ideafuel.ai/docs/reports/why-now): Market triggers, timing factors, urgency signals, and window-of-opportunity analysis
+- [Proof Signals Report](https://ideafuel.ai/docs/reports/proof-signals): Evidence of market demand including social proof, validation opportunities, and risk factors
+- [Keywords & SEO Report](https://ideafuel.ai/docs/reports/keywords-seo): Primary, secondary, and long-tail keywords with search volume trends and content opportunities
+- [Customer Profile Report](https://ideafuel.ai/docs/reports/customer-profile): Ideal customer profile with demographics, psychographics, pain points, and buying triggers
+- [Value Equation Report](https://ideafuel.ai/docs/reports/value-equation): Value ladder from lead magnet to backend offer with pricing tiers and feature breakdowns
+- [Go-to-Market Report](https://ideafuel.ai/docs/reports/go-to-market): Channel strategy, customer acquisition cost estimates, sales motion, and launch plan
+- [Financial Modeling](https://ideafuel.ai/docs/financial-modeling): Build revenue forecasts, manage assumptions, run scenarios, and generate financial statements
+- [Creating a Financial Model](https://ideafuel.ai/docs/financial-modeling/creating-a-model): Step-by-step guide to creating your first financial model with industry templates
+- [Assumptions](https://ideafuel.ai/docs/financial-modeling/assumptions): Manage assumptions across 7 categories — Pricing, Acquisition, Retention, Market, Costs, Funding, Timeline
+- [Scenarios](https://ideafuel.ai/docs/financial-modeling/scenarios): Create and compare base, optimistic, and pessimistic scenarios for your financial model
+- [Financial Statements](https://ideafuel.ai/docs/financial-modeling/statements): View auto-generated P&L, Cash Flow, and Balance Sheet projections over 5 years
+- [Break-Even Analysis](https://ideafuel.ai/docs/financial-modeling/break-even): Understand when your business becomes profitable with break-even calculations
+- [Exporting](https://ideafuel.ai/docs/financial-modeling/exporting): Export financial models to Excel (with formulas) or presentation-ready PDF
+- [Industry Templates](https://ideafuel.ai/docs/financial-modeling/industry-templates): Pre-built templates for SaaS, e-commerce, services, healthcare, real estate, and more
+- [AI Agent Co-Pilot](https://ideafuel.ai/docs/ai-agent): Chat with an AI assistant that has full context on your project's research, reports, and financial data
+- [Business Plan PDF](https://ideafuel.ai/docs/business-plan-pdf): Generate a comprehensive, investor-ready business plan PDF with 4 cover styles
+- [Daily Trend Pick](https://ideafuel.ai/docs/daily-trend-pick): Discover emerging business opportunities daily through automated Google Trends and AI analysis
+- [Subscription Plans](https://ideafuel.ai/docs/subscription-plans): Compare FREE, PRO ($29/mo), and ENTERPRISE ($99/mo) plans with feature breakdowns
+- [Account Settings](https://ideafuel.ai/docs/account-settings): Manage your profile, founder background, billing, and security settings
+- [FAQ](https://ideafuel.ai/docs/faq): Frequently asked questions about getting started, reports, financial modeling, billing, and more
