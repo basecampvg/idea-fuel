@@ -97,6 +97,7 @@ export interface AIRequestOptions {
   background?: boolean; // Run in background with polling
   timeout?: number; // Request timeout in milliseconds
   task?: 'extraction' | 'scoring' | 'generation' | 'business-plan'; // Hints model selection
+  longContext?: boolean; // Enable 1M token context window (Anthropic beta, ENTERPRISE tier only)
 }
 
 export interface AIResponse {

@@ -417,6 +417,14 @@ export const DEFAULT_CONFIGS: ConfigDefinition[] = [
   // Feature Flags
   // =========================================================================
   {
+    key: 'features.longContextExtraction',
+    value: false,
+    type: 'BOOLEAN',
+    category: 'features',
+    label: 'Long Context Extraction (ENTERPRISE)',
+    description: 'Enable 1M token holistic extraction for ENTERPRISE/TESTER tiers (Anthropic beta, premium pricing above 200K tokens)',
+  },
+  {
     key: 'features.testMode',
     value: false,
     type: 'BOOLEAN',

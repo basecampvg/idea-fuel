@@ -17,7 +17,7 @@ import {
   ArrowUp,
   DollarSign,
 } from 'lucide-react';
-import type { SparkResult, SparkRedditThread, DataQualityReport, SectionQuality } from '@forge/shared';
+import type { SparkResult, SparkRedditThread, DataQualityReport, SectionQuality, ReportCitation } from '@forge/shared';
 import {
   SPARK_VERDICT_LABELS,
   SPARK_VERDICT_DESCRIPTIONS,
@@ -25,6 +25,7 @@ import {
 import { CollapsibleSection } from './collapsible-section';
 import { SparkKeywordChart } from './spark-keyword-chart';
 import { CompetitorsSection } from './competitors-section';
+import { CitationMarker } from '@/components/citation/citation-marker';
 
 interface SparkResultsProps {
   result: SparkResult;
@@ -91,6 +92,26 @@ function formatNumber(num: number): string {
   return `$${num.toLocaleString()}`;
 }
 
+// Convert SparkTAM citations to ReportCitation[] for CitationMarker
+function sparkCitationsToReportCitations(
+  citations: Array<{ label: string; url: string }>,
+  claim: string,
+): ReportCitation[] {
+  return citations.map((c, i) => ({
+    id: `spark-tam-${i}`,
+    sectionKey: 'tam',
+    claim,
+    claimType: 'tam' as const,
+    source: {
+      title: c.label,
+      url: c.url || null,
+      date: null,
+      reliability: 'secondary' as const,
+    },
+    confidence: 'medium' as const,
+  }));
+}
+
 // Card styling for TAM levels
 const tamCardStyles = {
   low: {
@@ -114,10 +135,12 @@ function TAMCard({
   type,
   value,
   label,
+  citations,
 }: {
   type: 'low' | 'base' | 'high';
   value: number;
   label: string;
+  citations?: ReportCitation[];
 }) {
   const styles = tamCardStyles[type];
 
@@ -128,8 +151,11 @@ function TAMCard({
       <span className="text-xs font-bold uppercase tracking-widest text-foreground">
         {label}
       </span>
-      <div className={`text-2xl font-semibold mt-2 ${type === 'base' ? 'text-primary/70' : 'text-foreground'}`}>
+      <div className={`text-2xl font-semibold mt-2 flex items-baseline gap-0.5 ${type === 'base' ? 'text-primary/70' : 'text-foreground'}`}>
         {formatNumber(value)}
+        {citations && citations.map((citation, i) => (
+          <CitationMarker key={citation.id} citation={citation} index={i} />
+        ))}
       </div>
     </div>
   );
@@ -442,9 +468,18 @@ export function SparkResults({ result, ideaTitle }: SparkResultsProps) {
       >
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <TAMCard type="low" value={result.tam.low} label="Conservative" />
-            <TAMCard type="base" value={result.tam.base} label="Base Case" />
-            <TAMCard type="high" value={result.tam.high} label="Optimistic" />
+            {(() => {
+              const tamCitations = result.tam.citations?.length > 0
+                ? sparkCitationsToReportCitations(result.tam.citations, `TAM estimate: ${formatNumber(result.tam.base)}`)
+                : undefined;
+              return (
+                <>
+                  <TAMCard type="low" value={result.tam.low} label="Conservative" />
+                  <TAMCard type="base" value={result.tam.base} label="Base Case" citations={tamCitations} />
+                  <TAMCard type="high" value={result.tam.high} label="Optimistic" />
+                </>
+              );
+            })()}
           </div>
 
           {result.tam.assumptions.length > 0 && (

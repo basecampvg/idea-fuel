@@ -2482,6 +2482,263 @@ function mergeChunkInsights(
   };
 }
 
+// ============================================================================
+// Holistic Extraction Helpers
+// ============================================================================
+
+/**
+ * Returns true if the tier qualifies for 1M token holistic extraction.
+ */
+export function isLongContextTier(tier: SubscriptionTier): boolean {
+  return tier === 'ENTERPRISE' || tier === 'TESTER';
+}
+
+/**
+ * ENTERPRISE-ONLY: Extract structured insights using Anthropic's 1M token context window.
+ *
+ * Unlike extractInsightsParallel() which processes each research chunk in isolation,
+ * this function feeds ALL chunks + social proof into a single Claude call, enabling
+ * cross-domain synthesis (e.g. competitor vulnerabilities vs. market timing windows,
+ * pain point severity vs. market gap size).
+ *
+ * Requires the `anthropic-beta: context-1m-2025-08-07` header — passed automatically
+ * via AnthropicProvider when longContext=true.
+ *
+ * @param chunkResults - All research chunk texts keyed by chunk ID
+ * @param socialProof  - Optional social proof output from Phase 2
+ * @param input        - Research input with idea title, description, interview data
+ * @param tier         - Subscription tier (must be ENTERPRISE or TESTER)
+ */
+export async function extractInsightsHolistic(
+  chunkResults: Record<string, string>,
+  socialProof: SocialProof | null | undefined,
+  input: ResearchInput,
+  tier: SubscriptionTier
+): Promise<SynthesizedInsights> {
+  console.log('[Extract Holistic] Starting 1M-context holistic extraction...');
+  console.log('[Extract Holistic] Chunks available:', Object.keys(chunkResults).join(', '));
+  console.log('[Extract Holistic] Social proof included:', !!socialProof);
+
+  const { ideaTitle, ideaDescription, interviewData, canvasContext } = input;
+
+  // Build the combined research corpus with labeled sections
+  const chunkLabels: Record<string, string> = {
+    market: 'MARKET ANALYSIS RESEARCH',
+    competitors: 'COMPETITOR RESEARCH',
+    painpoints: 'CUSTOMER PAIN POINTS RESEARCH',
+    timing: 'MARKET TIMING & VALIDATION RESEARCH',
+    marketsizing: 'MARKET SIZING RESEARCH (TAM/SAM/SOM)',
+  };
+
+  const researchSections = Object.entries(chunkResults)
+    .map(([id, text]) => {
+      const label = chunkLabels[id] ?? `RESEARCH SECTION: ${id.toUpperCase()}`;
+      return `## ${label}\n\n${text}`;
+    })
+    .join('\n\n---\n\n');
+
+  const socialProofSection = socialProof && socialProof.posts.length > 0
+    ? `## SOCIAL PROOF & COMMUNITY VALIDATION
+
+Summary: ${socialProof.summary}
+
+Pain Points Validated by Community:
+${socialProof.painPointsValidated.map((p, i) => `${i + 1}. ${p}`).join('\n')}
+
+Demand Signals Found:
+${socialProof.demandSignals.map((s, i) => `${i + 1}. ${s}`).join('\n')}
+
+Representative Posts (${socialProof.posts.length} total):
+${socialProof.posts.slice(0, 10).map(p =>
+  `[${p.platform}] ${p.content.slice(0, 300)}${p.content.length > 300 ? '...' : ''} (sentiment: ${p.sentiment}, relevance: ${p.relevanceScore}/10)`
+).join('\n\n')}`
+    : '';
+
+  const founderContext = interviewData
+    ? `## FOUNDER CONTEXT
+${interviewData.founder_background ? `Background: ${interviewData.founder_background}` : ''}
+${interviewData.founder_relevant_experience ? `Relevant Experience: ${interviewData.founder_relevant_experience}` : ''}
+${interviewData.founder_unfair_advantage ? `Unfair Advantage: ${interviewData.founder_unfair_advantage}` : ''}`
+    : '';
+
+  const canvasSection = canvasContext
+    ? `## FOUNDER CANVAS NOTES\n${canvasContext}`
+    : '';
+
+  const prompt = `You are extracting structured insights from a comprehensive multi-domain market research report. This is a HOLISTIC extraction — you have access to ALL research domains simultaneously. Use this to identify cross-domain insights: how competitor weaknesses align with market timing windows, how pain point severity maps to market gaps, and how social proof validates the research findings.
+
+## BUSINESS IDEA
+**Title:** ${ideaTitle}
+**Description:** ${ideaDescription}
+
+${founderContext}
+
+${canvasSection}
+
+---
+
+# COMPLETE RESEARCH CORPUS
+
+${researchSections}
+
+${socialProofSection}
+
+---
+
+Extract comprehensive, detailed insights. Where the research reveals connections ACROSS domains (e.g. a competitor weakness + a timing catalyst + a validated pain point all pointing to the same opportunity), surface these explicitly in the relevant fields.
+
+Preserve specific data points, statistics, dollar figures, company names, and citations. Longer, more detailed responses are preferred over brief summaries. Return structured JSON matching this EXACT schema. Every top-level field is required; fields marked OPTIONAL may be omitted only if the research genuinely lacks sufficient data:
+
+{
+  "marketAnalysis": {
+    "size": "<string: detailed market size with dollar figures, segments, and geographic scope>",
+    "growth": "<string: growth rate with CAGR, projections, and drivers>",
+    "trends": ["<string: describe each trend in 1-2 sentences with specific data>", ...],
+    "opportunities": ["<string: describe each opportunity in 1-2 sentences with reasoning>", ...],
+    "threats": ["<string: describe each threat in 1-2 sentences with specific examples>", ...],
+    "marketDynamics": {
+      "stage": "emerging" | "growing" | "mature" | "declining",
+      "consolidationLevel": "<string: fragmented/consolidating/concentrated — describe the competitive density>",
+      "entryBarriers": ["<string: specific barrier with context>", ...],
+      "regulatoryEnvironment": "<string: key regulations, compliance requirements, or policy trends>"
+    },
+    "keyMetrics": {
+      "cagr": "<string: compound annual growth rate with timeframe>",
+      "avgDealSize": "<string: average contract/deal value>",
+      "customerAcquisitionCost": "<string: industry average CAC estimate>",
+      "lifetimeValue": "<string: industry average customer LTV estimate>"
+    },
+    "adjacentMarkets": [
+      {
+        "name": "<string: adjacent market name>",
+        "relevance": "<string: why this market is relevant>",
+        "crossoverOpportunity": "<string: specific opportunity to expand into this market>"
+      }
+    ]
+  },
+  "competitors": [
+    {
+      "name": "<string: company name>",
+      "description": "<string: what they do and their market position>",
+      "strengths": ["<string: specific strength with evidence>", ...],
+      "weaknesses": ["<string: specific weakness or limitation>", ...],
+      "positioning": "<string: how they position themselves in the market>",
+      "website": "<string: OPTIONAL - company URL>",
+      "fundingStage": "<string: OPTIONAL - e.g. 'Series B, $45M raised'>",
+      "estimatedRevenue": "<string: OPTIONAL - e.g. '$10-50M ARR'>",
+      "targetSegment": "<string: OPTIONAL - primary customer segment>",
+      "pricingModel": "<string: OPTIONAL - e.g. 'Freemium, $49-299/mo'>",
+      "keyDifferentiator": "<string: OPTIONAL - their single biggest competitive advantage>",
+      "vulnerability": "<string: OPTIONAL - strategic weakness exploitable given current market timing>"
+    }
+  ],
+  "painPoints": [
+    {
+      "problem": "<string: specific problem statement>",
+      "severity": "high" | "medium" | "low",
+      "currentSolutions": ["<string: existing solution or workaround>", ...],
+      "gaps": ["<string: what current solutions fail to address>", ...],
+      "affectedSegment": "<string: OPTIONAL - which customer segment feels this most>",
+      "frequencyOfOccurrence": "<string: OPTIONAL - how often this occurs>",
+      "costOfInaction": "<string: OPTIONAL - quantified cost>",
+      "emotionalImpact": "<string: OPTIONAL - the frustration or fear this causes>",
+      "evidenceQuotes": ["<string: OPTIONAL - direct quotes or data points from research or community posts>", ...]
+    }
+  ],
+  "positioning": {
+    "uniqueValueProposition": "<string: clear, specific value prop referencing the market gap>",
+    "targetAudience": "<string: detailed description of primary target audience>",
+    "differentiators": ["<string: specific differentiator with reasoning>", ...],
+    "messagingPillars": ["<string: core messaging theme>", ...],
+    "idealCustomerProfile": {
+      "persona": "<string: named persona e.g. 'Sarah, 35, Head of Marketing at a 50-person SaaS'>",
+      "demographics": "<string: company size, industry, role, budget range>",
+      "psychographics": "<string: motivations, fears, aspirations, buying behavior>",
+      "buyingTriggers": ["<string: specific event that triggers purchase intent>", ...]
+    },
+    "competitivePositioning": {
+      "category": "<string: market category being created or entered>",
+      "against": "<string: 'Unlike [Competitor X], we [key difference]' positioning statement>",
+      "anchorBenefit": "<string: single most important benefit>",
+      "proofPoint": "<string: evidence or data backing the positioning>"
+    },
+    "messagingFramework": {
+      "headline": "<string: primary one-line headline>",
+      "subheadline": "<string: supporting statement>",
+      "elevatorPitch": "<string: 2-3 sentence pitch>",
+      "objectionHandlers": [{"objection": "<string>", "response": "<string>"}, ...]
+    }
+  },
+  "whyNow": {
+    "marketTriggers": ["<string: specific market trigger with context>", ...],
+    "timingFactors": ["<string: timing factor with evidence>", ...],
+    "urgencyScore": <number 0-100>,
+    "windowOfOpportunity": {
+      "opens": "<string: OPTIONAL - when the window opens>",
+      "closesBy": "<string: OPTIONAL - when it closes>",
+      "reasoning": "<string: OPTIONAL - why this window exists and what closes it>"
+    },
+    "catalysts": [
+      {
+        "event": "<string: OPTIONAL - specific catalyst event>",
+        "impact": "high" | "medium" | "low",
+        "timeframe": "<string: when this catalyst takes effect>",
+        "howToLeverage": "<string: specific action to capitalize on this>"
+      }
+    ],
+    "urgencyNarrative": "<string: OPTIONAL - 2-3 sentence narrative of why acting now matters>"
+  },
+  "proofSignals": {
+    "demandIndicators": ["<string: specific indicator with data point>", ...],
+    "validationOpportunities": ["<string: actionable validation step>", ...],
+    "riskFactors": ["<string: specific risk with context>", ...],
+    "demandStrength": {
+      "score": <number: OPTIONAL - 0-100 overall demand confidence>,
+      "searchVolumeSignal": "<string: OPTIONAL - search volume evidence>",
+      "communitySignal": "<string: OPTIONAL - community/forum discussion evidence>",
+      "spendingSignal": "<string: OPTIONAL - evidence of willingness to pay>"
+    },
+    "validationExperiments": [
+      {
+        "experiment": "<string: OPTIONAL - specific low-cost experiment>",
+        "hypothesis": "<string: what result would validate demand>",
+        "cost": "<string: estimated cost>",
+        "timeframe": "<string: how long to run>"
+      }
+    ],
+    "riskMitigation": [
+      {
+        "risk": "<string: OPTIONAL - specific risk>",
+        "severity": "high" | "medium" | "low",
+        "mitigation": "<string: concrete mitigation strategy>"
+      }
+    ]
+  },
+  "keywords": {
+    "primary": ["<string>", ...],
+    "secondary": ["<string>", ...],
+    "longTail": ["<string>", ...]
+  }
+}
+
+Use ONLY information from the research corpus above. Output ONLY the JSON object, no markdown or explanation.`;
+
+  console.log('[Extract Holistic] Prompt length:', prompt.length, 'chars (~', Math.round(prompt.length / 4), 'tokens)');
+
+  const extractionProvider = getExtractionProvider(tier);
+  const { InsightsSchema } = await import('./research-schemas');
+
+  const insights = await extractionProvider.extract(prompt, InsightsSchema, {
+    longContext: true,
+    maxTokens: 16000,
+    temperature: 0.2,
+    task: 'extraction',
+  });
+
+  console.log('[Extract Holistic] Extraction complete');
+  return insights;
+}
+
 /**
  * Calculate research scores from deep research report.
  * Uses multi-pass validation for reliability.
@@ -5592,12 +5849,25 @@ export async function runResearchPipeline(
     console.log('[Research Pipeline] === PHASE 3: Extraction & Synthesis (GPT-5.2) ===');
 
     // Step 1: Extract structured insights from raw deep research
-    // Use per-chunk parallel extraction when chunk results are available (4 parallel calls × ~25K each)
-    // Falls back to monolithic extraction (1 call × ~125K) for legacy data without chunks
-    if (deepResearch.chunkResults && Object.keys(deepResearch.chunkResults).length > 0) {
+    // Three-path extraction — path chosen by tier and feature flag:
+    //   ENTERPRISE/TESTER + longContextExtraction=true → holistic 1M-context call (all chunks + social proof)
+    //   chunks available                               → parallel per-chunk extraction (FREE/PRO default)
+    //   no chunks (legacy)                             → monolithic fallback
+    const chunksAvailable = deepResearch.chunkResults && Object.keys(deepResearch.chunkResults).length > 0;
+    const longContextEnabled = configService.getBoolean('features.longContextExtraction', false);
+
+    if (chunksAvailable && isLongContextTier(tier) && longContextEnabled) {
+      console.log('[Research Pipeline] Extracting insights via HOLISTIC 1M-context extraction (ENTERPRISE)...');
+      try {
+        insights = await extractInsightsHolistic(deepResearch.chunkResults!, socialProof ?? null, input, tier);
+      } catch (err) {
+        console.error('[Research Pipeline] Holistic extraction failed, falling back to parallel:', err instanceof Error ? err.message : err);
+        insights = await extractInsightsParallel(deepResearch.chunkResults!, input, tier);
+      }
+    } else if (chunksAvailable) {
       console.log('[Research Pipeline] Extracting insights via parallel per-chunk extraction...');
-      console.log(`[Research Pipeline] Available chunks: ${Object.keys(deepResearch.chunkResults).join(', ')}`);
-      insights = await extractInsightsParallel(deepResearch.chunkResults, input, tier);
+      console.log(`[Research Pipeline] Available chunks: ${Object.keys(deepResearch.chunkResults!).join(', ')}`);
+      insights = await extractInsightsParallel(deepResearch.chunkResults!, input, tier);
     } else {
       console.log('[Research Pipeline] Extracting insights from deep research (monolithic fallback)...');
       insights = await extractInsights(deepResearch, input, tier);

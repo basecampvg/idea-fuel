@@ -1,18 +1,37 @@
 import { TrendingUp, ExternalLink, AlertCircle, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { CollapsibleSection } from './collapsible-section';
+import { CitationMarker } from '@/components/citation/citation-marker';
 import type {
   MarketSizingData,
   MarketMetric,
   MarketSegmentBreakdown,
   MarketAssumption,
   MarketSource,
+  ReportCitation,
 } from '@forge/shared';
 
 interface MarketSizingProps {
   marketSizing?: MarketSizingData | null;
   title?: string;
   subtitle?: string;
+}
+
+// Convert MarketSource[] to ReportCitation[] for CitationMarker
+function sourcesToCitations(sources: MarketSource[], claim: string): ReportCitation[] {
+  return sources.map((source, i) => ({
+    id: `ms-${i}`,
+    sectionKey: 'marketSizing',
+    claim,
+    claimType: 'market_size' as const,
+    source: {
+      title: source.title,
+      url: source.url || null,
+      date: source.date || null,
+      reliability: source.reliability,
+    },
+    confidence: source.reliability === 'primary' ? 'high' : source.reliability === 'secondary' ? 'medium' : 'low',
+  }));
 }
 
 // Confidence indicator colors
@@ -64,11 +83,16 @@ function MarketCard({
   type,
   metric,
   label,
+  sources,
 }: {
   type: 'tam' | 'sam' | 'som';
   metric: MarketMetric;
   label: string;
+  sources?: MarketSource[];
 }) {
+  const citations = sources && sources.length > 0
+    ? sourcesToCitations(sources, `${label}: ${metric.formattedValue}`)
+    : [];
   const styles = cardStyles[type];
   const description = cardDescriptions[type];
 
@@ -98,7 +122,12 @@ function MarketCard({
       </div>
 
       {/* Value */}
-      <div className="text-2xl font-semibold text-foreground mb-1">{metric.formattedValue}</div>
+      <div className="text-2xl font-semibold text-foreground mb-1 flex items-baseline gap-0.5">
+        {metric.formattedValue}
+        {citations.map((citation, i) => (
+          <CitationMarker key={citation.id} citation={citation} index={i} />
+        ))}
+      </div>
 
       {/* Growth Rate */}
       <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -165,9 +194,9 @@ export function MarketSizing({
       <div className="space-y-5">
         {/* Three Cards: TAM | SAM | SOM */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <MarketCard type="tam" metric={data.tam} label="TAM" />
-          <MarketCard type="sam" metric={data.sam} label="SAM" />
-          <MarketCard type="som" metric={data.som} label="SOM" />
+          <MarketCard type="tam" metric={data.tam} label="TAM" sources={data.sources} />
+          <MarketCard type="sam" metric={data.sam} label="SAM" sources={data.sources} />
+          <MarketCard type="som" metric={data.som} label="SOM" sources={data.sources} />
         </div>
 
         {/* Segments Breakdown (always visible) */}

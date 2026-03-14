@@ -109,14 +109,22 @@ export class AnthropicProvider implements AIProvider {
   async extract<T>(prompt: string, schema: z.ZodSchema<T>, options?: AIRequestOptions): Promise<T> {
     const model = this.selectModel(options);
 
-    const response = await this.client.messages.create({
+    const createParams: Parameters<typeof this.client.messages.create>[0] = {
       model,
       max_tokens: options?.maxTokens || 16000,
       temperature: options?.temperature ?? 0.2,
       messages: [{ role: 'user', content: prompt }],
       system:
         'You are a structured data extraction assistant. Output valid JSON matching the requested schema. Do not include markdown code blocks or explanations, just the raw JSON. Every field in the schema is REQUIRED - do not omit any fields.',
-    });
+    };
+
+    // 1M token context window beta — ENTERPRISE tier only
+    // Adds anthropic-beta header and extends per-request timeout to 30 minutes
+    const requestOptions = options?.longContext
+      ? { headers: { 'anthropic-beta': 'context-1m-2025-08-07' }, timeout: 1800000 }
+      : undefined;
+
+    const response = await this.client.messages.create(createParams, requestOptions);
 
     const content = response.content[0];
     if (content.type !== 'text') {
