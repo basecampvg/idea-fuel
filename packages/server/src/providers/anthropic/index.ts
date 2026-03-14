@@ -124,7 +124,7 @@ export class AnthropicProvider implements AIProvider {
       ? { headers: { 'anthropic-beta': 'context-1m-2025-08-07' }, timeout: 1800000 }
       : undefined;
 
-    const response = await this.client.messages.create(createParams, requestOptions);
+    const response = await this.client.messages.create(createParams, requestOptions) as import('@anthropic-ai/sdk').Message;
 
     const content = response.content[0];
     if (content.type !== 'text') {
