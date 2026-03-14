@@ -105,7 +105,7 @@ function formatDate(date: Date): string {
 function CoverPage({ title, subtitle, coverStyle }: { title: string; subtitle?: string; coverStyle: string }) {
   const CoverComponent = getCoverComponent(coverStyle);
   return (
-    <div className="print-cover-page min-h-[100vh]" style={{ fontSize: '16px' }}>
+    <div className="print-cover-page" style={{ fontSize: '16px', height: '100vh' }}>
       <CoverComponent title={title} subtitle={subtitle} />
     </div>
   );
@@ -508,15 +508,24 @@ export default function BusinessPlanPrintPage() {
     <div id="business-plan-report" className="print-document bg-neutral-950 text-white min-h-screen">
       <style>{`
         @media print {
+          /* Default page: content pages get breathing room */
           @page {
             size: A4;
+            margin: 15mm 18mm;
+          }
+
+          /* Cover page: full bleed, no margins */
+          @page cover {
             margin: 0;
           }
+
           body {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
+
           .print-cover-page {
+            page: cover;
             page-break-after: always;
           }
           .print-page-break {
@@ -562,7 +571,7 @@ export default function BusinessPlanPrintPage() {
       {sections.map((s, i) => (
         <div key={s.number}>
           <PageBreak />
-          <div className="print-section px-16 py-12">
+          <div className="print-section px-16 py-10">
             <SectionTitle number={s.number} title={s.title} />
             {s.content}
           </div>
