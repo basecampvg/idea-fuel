@@ -5,6 +5,8 @@ import { eq } from 'drizzle-orm';
 import { reports, projects, interviews } from '../../db/schema';
 import { QUEUE_NAMES, ReportGenerationJobData } from '../queues';
 import { extractCitations } from '../../services/citation-extractor';
+import { generatePositioningReport } from '../../services/positioning-ai';
+import { summarizeRawResearch } from '../../services/business-plan-ai';
 
 /**
  * Report Generation Worker
@@ -45,15 +47,72 @@ export function createReportGenerationWorker() {
         // Update progress
         await job.updateProgress(20);
 
-        // Generate report content
-        // TODO: Replace with actual AI generation from report-ai.ts
-        const content = await generateReportContent({
-          project,
-          research: project.research,
-          interview: project.interviews[0],
-          reportType,
-          tier,
-        });
+        // Generate report content — dispatch by type
+        let content: string;
+        let reportSections: { included: string[]; locked: string[] };
+
+        if (reportType === 'POSITIONING' && project.research) {
+          // Positioning report: use the dedicated AI service
+          console.log(`[ReportWorker] Generating POSITIONING report with AI service`);
+
+          // Summarize raw research if available
+          const deepResearch = project.research.rawDeepResearch as { rawReport?: string } | null;
+          const rawReport = deepResearch?.rawReport ?? '';
+          const rawResearchSummary = rawReport ? await summarizeRawResearch(rawReport) : '';
+
+          await job.updateProgress(40);
+
+          const positioningResult = await generatePositioningReport({
+            ideaTitle: project.title,
+            ideaDescription: project.description,
+            rawResearchSummary,
+            positioning: project.research.positioning,
+            competitors: project.research.competitors,
+            painPoints: project.research.painPoints,
+            marketAnalysis: project.research.marketAnalysis,
+            whyNow: project.research.whyNow,
+            proofSignals: project.research.proofSignals,
+          }, tier as 'BASIC' | 'PRO' | 'FULL');
+
+          content = JSON.stringify(positioningResult);
+
+          const isPro = tier === 'PRO' || tier === 'FULL';
+          const isFull = tier === 'FULL';
+          const coreSections = [
+            'competitiveAlternatives', 'uniqueAttributes', 'valuePillars',
+            'targetAudience', 'customerPersona', 'marketCategory',
+            'positioningStatement', 'competitivePositioning',
+            'tagline', 'keyMessages', 'messagingFramework',
+            'brandVoice', 'brandPersonality', 'trendLayer',
+          ];
+          const proSections = ['visualStyle', 'toneGuidelines', 'brandColors'];
+          const fullSections = ['channelMessaging'];
+
+          reportSections = {
+            included: [
+              ...coreSections,
+              ...(isPro ? proSections : []),
+              ...(isFull ? fullSections : []),
+            ],
+            locked: [
+              ...(!isPro ? [...proSections, ...fullSections] : []),
+              ...(isPro && !isFull ? fullSections : []),
+            ],
+          };
+        } else {
+          // All other report types: placeholder
+          content = await generateReportContent({
+            project,
+            research: project.research,
+            interview: project.interviews[0],
+            reportType,
+            tier,
+          });
+          reportSections = {
+            included: ['summary', 'analysis', 'recommendations'],
+            locked: tier === 'FULL' ? [] : ['advanced-analytics', 'appendix'],
+          };
+        }
 
         await job.updateProgress(70);
 
@@ -86,10 +145,7 @@ export function createReportGenerationWorker() {
           content,
           status: 'COMPLETE',
           citations: citationIndex,
-          sections: {
-            included: ['summary', 'analysis', 'recommendations'],
-            locked: tier === 'FULL' ? [] : ['advanced-analytics', 'appendix'],
-          },
+          sections: reportSections,
         }).where(eq(reports.id, reportId)).returning();
 
         await job.updateProgress(100);
