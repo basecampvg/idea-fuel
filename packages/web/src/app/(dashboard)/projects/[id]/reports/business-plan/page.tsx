@@ -26,6 +26,8 @@ import {
   Palette,
   Check,
   CheckCircle2,
+  Pencil,
+  X,
 } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -132,16 +134,12 @@ function parseJson<T>(data: unknown): T | null {
 // Section Components
 // ============================================================================
 
-function SectionHeader({ icon: Icon, title }: { icon: React.ElementType; title: string }) {
-  return (
-    <div className="flex items-center gap-3 mb-4">
-      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-        <Icon className="w-4 h-4 text-primary" />
-      </div>
-      <h2 className="font-display text-lg font-extrabold uppercase text-foreground">{title}</h2>
-    </div>
-  );
-}
+type ProseSectionKey =
+  | 'executiveSummary' | 'problemNarrative' | 'solutionNarrative'
+  | 'marketNarrative' | 'competitiveNarrative' | 'businessModelNarrative'
+  | 'gtmStrategy' | 'customerProfile' | 'financialNarrative'
+  | 'productRoadmap' | 'teamOperations' | 'riskAnalysis'
+  | 'fundingRequirements' | 'exitStrategy';
 
 function ProseBlock({ text }: { text: string }) {
   return (
@@ -151,11 +149,95 @@ function ProseBlock({ text }: { text: string }) {
   );
 }
 
-function Section({ icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) {
+function EditableSection({
+  icon: Icon,
+  title,
+  sectionKey,
+  text,
+  researchId,
+  children,
+}: {
+  icon: React.ElementType;
+  title: string;
+  sectionKey: ProseSectionKey;
+  text: string;
+  researchId: string;
+  children?: React.ReactNode;
+}) {
+  const utils = trpc.useUtils();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(text);
+
+  const saveMutation = trpc.research.updateBusinessPlanSection.useMutation({
+    onSuccess: () => {
+      utils.project.get.invalidate();
+      setEditing(false);
+    },
+  });
+
+  const handleSave = () => {
+    saveMutation.mutate({ researchId, section: sectionKey, value: draft });
+  };
+
+  const handleCancel = () => {
+    setDraft(text);
+    setEditing(false);
+  };
+
   return (
-    <section className="rounded-2xl bg-background border border-border p-6 print:break-inside-avoid">
-      <SectionHeader icon={icon} title={title} />
-      {children}
+    <section className="rounded-2xl bg-background border border-border p-6 print:break-inside-avoid group">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <Icon className="w-4 h-4 text-primary" />
+          </div>
+          <h2 className="font-display text-lg font-extrabold uppercase text-foreground">{title}</h2>
+        </div>
+        {!editing ? (
+          <button
+            onClick={() => { setDraft(text); setEditing(true); }}
+            className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted"
+          >
+            <Pencil className="w-3 h-3" />
+            Edit
+          </button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCancel}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted"
+            >
+              <X className="w-3 h-3" />
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saveMutation.isPending}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              {saveMutation.isPending ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <Check className="w-3 h-3" />
+              )}
+              Save
+            </button>
+          </div>
+        )}
+      </div>
+
+      {editing ? (
+        <textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          className="w-full min-h-[200px] resize-y rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm text-foreground leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/40 font-mono"
+          autoFocus
+        />
+      ) : (
+        <ProseBlock text={text} />
+      )}
+
+      {!editing && children}
     </section>
   );
 }
@@ -475,63 +557,46 @@ export default function BusinessPlanReportPage() {
         </div>
 
         {/* Executive Summary */}
-        <Section icon={FileText} title="Executive Summary">
-          <ProseBlock text={prose.executiveSummary} />
+        <EditableSection icon={FileText} title="Executive Summary" sectionKey="executiveSummary" text={prose.executiveSummary} researchId={research.id as string}>
           {(scores.opportunity != null || scores.problem != null) && (
             <div className="mt-5 pt-5 border-t border-border">
               <ScoreRadar scores={scores} />
             </div>
           )}
-        </Section>
+        </EditableSection>
 
         {/* Problem & Pain Points */}
-        <Section icon={AlertCircle} title="Problem Analysis">
-          <ProseBlock text={prose.problemNarrative} />
+        <EditableSection icon={AlertCircle} title="Problem Analysis" sectionKey="problemNarrative" text={prose.problemNarrative} researchId={research.id as string}>
           {painPoints.length > 0 && <PainPointsTable painPoints={painPoints} />}
-        </Section>
+        </EditableSection>
 
         {/* Solution */}
-        <Section icon={Lightbulb} title="Solution">
-          <ProseBlock text={prose.solutionNarrative} />
-        </Section>
+        <EditableSection icon={Lightbulb} title="Solution" sectionKey="solutionNarrative" text={prose.solutionNarrative} researchId={research.id as string} />
 
         {/* Market Analysis */}
-        <Section icon={TrendingUp} title="Market Analysis">
-          <ProseBlock text={prose.marketNarrative} />
+        <EditableSection icon={TrendingUp} title="Market Analysis" sectionKey="marketNarrative" text={prose.marketNarrative} researchId={research.id as string}>
           {marketSizing && <MarketSizingCards marketSizing={marketSizing} />}
-        </Section>
+        </EditableSection>
 
         {/* Competitive Landscape */}
-        <Section icon={Crosshair} title="Competitive Landscape">
-          <ProseBlock text={prose.competitiveNarrative} />
+        <EditableSection icon={Crosshair} title="Competitive Landscape" sectionKey="competitiveNarrative" text={prose.competitiveNarrative} researchId={research.id as string}>
           {competitors.length > 0 && <CompetitorTable competitors={competitors} />}
-        </Section>
+        </EditableSection>
 
         {/* Business Model & Revenue */}
-        <Section icon={DollarSign} title="Business Model">
-          <ProseBlock text={prose.businessModelNarrative} />
+        <EditableSection icon={DollarSign} title="Business Model" sectionKey="businessModelNarrative" text={prose.businessModelNarrative} researchId={research.id as string}>
           {valueLadder.length > 0 && <ValueLadderTable tiers={valueLadder} />}
-        </Section>
+        </EditableSection>
 
         {/* Go-to-Market Strategy */}
-        <Section icon={Rocket} title="Go-to-Market Strategy">
-          <ProseBlock text={prose.gtmStrategy} />
-        </Section>
+        <EditableSection icon={Rocket} title="Go-to-Market Strategy" sectionKey="gtmStrategy" text={prose.gtmStrategy} researchId={research.id as string} />
 
         {/* Customer Profile */}
-        <Section icon={Users} title="Customer Profile">
-          <ProseBlock text={prose.customerProfile} />
-        </Section>
+        <EditableSection icon={Users} title="Customer Profile" sectionKey="customerProfile" text={prose.customerProfile} researchId={research.id as string} />
 
         {/* Financial Projections */}
-        <section className="rounded-2xl bg-background border border-border p-6 print:break-inside-avoid">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <BarChart3 className="w-4 h-4 text-primary" />
-              </div>
-              <h2 className="font-display text-lg font-extrabold uppercase text-foreground">Financial Projections</h2>
-            </div>
+        <EditableSection icon={BarChart3} title="Financial Projections" sectionKey="financialNarrative" text={prose.financialNarrative} researchId={research.id as string}>
+          <div className="flex items-center gap-2 mt-1 mb-3">
             {prose.financialProjections?.source === 'model' ? (
               <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 font-medium text-xs flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" />
@@ -543,9 +608,8 @@ export default function BusinessPlanReportPage() {
               </span>
             )}
           </div>
-          <ProseBlock text={prose.financialNarrative} />
           {prose.financialProjections?.source === 'model' && prose.financialProjections.templateSlug && (
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs text-muted-foreground mb-2">
               Projections computed from your {prose.financialProjections.templateSlug} financial model.
             </p>
           )}
@@ -554,32 +618,22 @@ export default function BusinessPlanReportPage() {
               <FinancialChart projections={prose.financialProjections} />
             </div>
           )}
-        </section>
+        </EditableSection>
 
         {/* Product Roadmap */}
-        <Section icon={Cpu} title="Product & Technology Roadmap">
-          <ProseBlock text={prose.productRoadmap} />
-        </Section>
+        <EditableSection icon={Cpu} title="Product & Technology Roadmap" sectionKey="productRoadmap" text={prose.productRoadmap} researchId={research.id as string} />
 
         {/* Team & Operations */}
-        <Section icon={Building2} title="Team & Operations">
-          <ProseBlock text={prose.teamOperations} />
-        </Section>
+        <EditableSection icon={Building2} title="Team & Operations" sectionKey="teamOperations" text={prose.teamOperations} researchId={research.id as string} />
 
         {/* Risk Analysis */}
-        <Section icon={Shield} title="Risk Analysis">
-          <ProseBlock text={prose.riskAnalysis} />
-        </Section>
+        <EditableSection icon={Shield} title="Risk Analysis" sectionKey="riskAnalysis" text={prose.riskAnalysis} researchId={research.id as string} />
 
         {/* Funding Requirements */}
-        <Section icon={HandCoins} title="Funding Requirements">
-          <ProseBlock text={prose.fundingRequirements} />
-        </Section>
+        <EditableSection icon={HandCoins} title="Funding Requirements" sectionKey="fundingRequirements" text={prose.fundingRequirements} researchId={research.id as string} />
 
         {/* Exit Strategy */}
-        <Section icon={LogOut} title="Exit Strategy">
-          <ProseBlock text={prose.exitStrategy} />
-        </Section>
+        <EditableSection icon={LogOut} title="Exit Strategy" sectionKey="exitStrategy" text={prose.exitStrategy} researchId={research.id as string} />
 
         {/* Footer */}
         <div className="text-center text-xs text-muted-foreground py-4 print:py-2">

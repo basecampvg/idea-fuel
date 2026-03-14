@@ -1096,6 +1096,48 @@ export const researchRouter = router({
     }),
 
   /**
+   * Update a single prose section of the business plan
+   */
+  updateBusinessPlanSection: protectedProcedure
+    .input(z.object({
+      researchId: z.string().min(1),
+      section: z.enum([
+        'executiveSummary', 'problemNarrative', 'solutionNarrative',
+        'marketNarrative', 'competitiveNarrative', 'businessModelNarrative',
+        'gtmStrategy', 'customerProfile', 'financialNarrative',
+        'productRoadmap', 'teamOperations', 'riskAnalysis',
+        'fundingRequirements', 'exitStrategy',
+      ]),
+      value: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.db.query.research.findFirst({
+        where: eq(research.id, input.researchId),
+        columns: { id: true, businessPlan: true },
+        with: { project: { columns: { userId: true } } },
+      });
+
+      if (!result) throw new TRPCError({ code: 'NOT_FOUND', message: 'Research not found' });
+      if (result.project.userId !== ctx.userId) throw new TRPCError({ code: 'FORBIDDEN', message: 'Access denied' });
+      if (!result.businessPlan) throw new TRPCError({ code: 'BAD_REQUEST', message: 'No business plan to update' });
+
+      let prose: Record<string, unknown>;
+      try {
+        prose = JSON.parse(result.businessPlan);
+      } catch {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to parse business plan' });
+      }
+
+      prose[input.section] = input.value;
+
+      await ctx.db.update(research).set({
+        businessPlan: JSON.stringify(prose),
+      }).where(eq(research.id, input.researchId));
+
+      return { success: true };
+    }),
+
+  /**
    * Update positioning report cover style preference
    */
   updatePositioningCoverStyle: protectedProcedure
