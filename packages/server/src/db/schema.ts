@@ -895,6 +895,28 @@ export const scenarios = pgTable('Scenario', {
 ]);
 
 // =============================================================================
+// MODEL MODULE (which calculation modules are active per model)
+// =============================================================================
+
+export const modelModules = pgTable('ModelModule', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  modelId: text().notNull(),
+  moduleKey: text().notNull(),
+  isEnabled: boolean().default(true).notNull(),
+  settings: jsonb().$type<Record<string, unknown>>(),
+  displayOrder: integer().default(0).notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  unique('ModelModule_modelId_moduleKey_key').on(table.modelId, table.moduleKey),
+  index('ModelModule_modelId_idx').on(table.modelId),
+  foreignKey({
+    columns: [table.modelId],
+    foreignColumns: [financialModels.id],
+    name: 'ModelModule_modelId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
 // MODEL SNAPSHOT
 // =============================================================================
 
@@ -1120,12 +1142,17 @@ export const financialModelsRelations = relations(financialModels, ({ one, many 
   template: one(industryTemplates, { fields: [financialModels.templateId], references: [industryTemplates.id] }),
   scenarios: many(scenarios),
   snapshots: many(modelSnapshots),
+  modules: many(modelModules),
   budgetLineItems: many(budgetLineItems),
 }));
 
 export const scenariosRelations = relations(scenarios, ({ one, many }) => ({
   model: one(financialModels, { fields: [scenarios.modelId], references: [financialModels.id] }),
   assumptions: many(assumptions),
+}));
+
+export const modelModulesRelations = relations(modelModules, ({ one }) => ({
+  model: one(financialModels, { fields: [modelModules.modelId], references: [financialModels.id] }),
 }));
 
 export const modelSnapshotsRelations = relations(modelSnapshots, ({ one }) => ({
