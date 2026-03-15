@@ -4,6 +4,7 @@ import { use, useState, useCallback, useMemo, useEffect } from 'react';
 import { trpc } from '@/lib/trpc/client';
 import { ModuleInputGroup } from './components/module-input-group';
 import { DerivedMetricsStrip } from './components/derived-metrics-strip';
+import { ImpactChart } from './components/impact-chart';
 import { DependencyGraph } from './components/dependency-graph';
 import { ASSUMPTION_IMPACT_MAP } from './components/impact-map';
 import { Settings2, Loader2, GitBranch } from 'lucide-react';
@@ -454,6 +455,9 @@ export default function FinancialAssumptionsPage({
       ))}
 
       {/* Derived metrics strip */}
+      {/* Period-by-period impact chart */}
+      <ImpactChart statements={computedStatements ?? null} />
+
       {/* Derived metrics from computed statements */}
       <DerivedMetricsStrip metrics={(() => {
         if (!computedStatements) return derivedMetrics; // fallback to assumption-based
