@@ -11,7 +11,7 @@ import { eq, and } from 'drizzle-orm';
 import { financialModels, scenarios, assumptions, modelModules } from '../db/schema';
 import { getTemplate } from './financial-templates';
 import { getModule } from './modules';
-import { assumptionsToMap } from './financial-calculator';
+import { assumptionsToMap } from './hyperformula-engine';
 import { buildWorkbook, readStatements, enrichStatements } from './hyperformula-engine';
 import type { AssumptionRow } from './hyperformula-engine';
 import { calculateBreakEven, type BreakEvenResult, type RevenueModel } from './break-even-calculator';

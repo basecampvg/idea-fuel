@@ -7,7 +7,7 @@ import { DerivedMetricsStrip } from './components/derived-metrics-strip';
 import { ImpactChart } from './components/impact-chart';
 import { DependencyGraph } from './components/dependency-graph';
 import { ASSUMPTION_IMPACT_MAP } from './components/impact-map';
-import { Settings2, Loader2, GitBranch } from 'lucide-react';
+import { Settings2, Loader2, GitBranch, ChevronDown, ChevronRight } from 'lucide-react';
 import type { AssumptionCategory, AssumptionConfidence } from '@forge/shared';
 
 const MODULE_ICONS: Record<string, string> = {
@@ -54,6 +54,7 @@ export default function FinancialAssumptionsPage({
 }) {
   const { id: projectId, modelId } = use(params);
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [showGraph, setShowGraph] = useState(false);
 
   const utils = trpc.useUtils();
@@ -111,6 +112,21 @@ export default function FinancialAssumptionsPage({
       syncMutation.mutate({ projectId, modelId });
     }
   }, [assumptions, projectId, modelId, syncMutation]);
+
+  // Auto-sync modules for existing models (enables defaults if none configured)
+  const syncModulesMutation = trpc.financial.syncModules.useMutation({
+    onSuccess: (data: { synced: boolean; count: number }) => {
+      if (data.synced) {
+        utils.financial.listModelModules.invalidate({ modelId });
+        utils.assumption.list.invalidate({ projectId });
+      }
+    },
+  });
+  useEffect(() => {
+    if (modelModules && modelModules.length === 0 && !syncModulesMutation.isPending && !syncModulesMutation.isSuccess) {
+      syncModulesMutation.mutate({ modelId });
+    }
+  }, [modelModules, modelId, syncModulesMutation]);
 
   // Mutations
   const updateMutation = trpc.assumption.update.useMutation({
@@ -429,12 +445,30 @@ export default function FinancialAssumptionsPage({
       )}
 
       {/* Category sections with module groups */}
-      {categoryContent.map(({ category, modules }) => (
-        <div key={category} className="space-y-3">
-          <h3 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider px-1">
-            {CATEGORY_LABELS[category] ?? category}
-          </h3>
-          {modules.map((mod) => (
+      {categoryContent.map(({ category, modules }) => {
+        const isCatExpanded = expandedCategories.has(category);
+        const totalInputs = modules.reduce((sum, m) => sum + m.assumptions.filter((a: { parentId?: string | null }) => !a.parentId).length, 0);
+        return (
+        <div key={category} className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setExpandedCategories(prev => {
+              const next = new Set(prev);
+              if (next.has(category)) next.delete(category); else next.add(category);
+              return next;
+            })}
+            className="flex items-center gap-2 w-full text-left px-1 py-1 rounded hover:bg-muted/30 transition-colors"
+          >
+            {isCatExpanded
+              ? <ChevronDown className="w-3 h-3 text-muted-foreground/50" />
+              : <ChevronRight className="w-3 h-3 text-muted-foreground/50" />
+            }
+            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+              {CATEGORY_LABELS[category] ?? category}
+            </span>
+            <span className="text-[10px] text-muted-foreground/30">{totalInputs}</span>
+          </button>
+          {isCatExpanded && modules.map((mod) => (
             <ModuleInputGroup
               key={mod.moduleKey}
               title={mod.title}
@@ -452,7 +486,8 @@ export default function FinancialAssumptionsPage({
             />
           ))}
         </div>
-      ))}
+        );
+      })}
 
       {/* Derived metrics strip */}
       {/* Period-by-period impact chart */}

@@ -72,6 +72,25 @@ export interface WorkbookConfig {
   activeModules?: ModuleDefinition[];
 }
 
+/**
+ * Opaque wrapper around HyperFormula.
+ * Consumers interact through this interface — the HyperFormula dependency
+ * is never leaked. If the engine needs to be swapped (e.g., licensing),
+ * only this file changes.
+ */
+export interface FinancialWorkbook {
+  /** Read computed financial statements. */
+  computeStatements(forecastYears: number): ComputedStatements;
+  /** Enrich statements with template metadata. */
+  enrichStatements(statements: ComputedStatements, template: TemplateDefinition): ComputedStatements;
+  /** Serialize all sheets for Excel export. */
+  serializeForExcel(): Record<string, { formulas: (string | null)[][]; values: (number | string | null)[][] }>;
+  /** Get named expressions for Excel export. */
+  getNamedExpressions(): Array<{ name: string; formula: string }>;
+  /** Release resources. Must be called after use. */
+  destroy(): void;
+}
+
 interface SheetLayout {
   sheetIndex: number;
   lineKeyToRow: Map<string, number>;
@@ -160,6 +179,35 @@ export function buildWorkbook(config: WorkbookConfig): HyperFormula {
   linkStatements(hf, template, numPeriods, forecastYears);
 
   return hf;
+}
+
+/**
+ * Create a FinancialWorkbook — the recommended public API.
+ * Wraps HyperFormula behind an opaque interface so the dependency
+ * doesn't leak to consumers.
+ */
+export function createFinancialWorkbook(config: WorkbookConfig): FinancialWorkbook {
+  const hf = buildWorkbook(config);
+  const template = config.template;
+
+  return {
+    computeStatements(forecastYears: number) {
+      const raw = readStatements(hf, forecastYears);
+      return enrichStatements(raw, template);
+    },
+    enrichStatements(statements: ComputedStatements, tpl: TemplateDefinition) {
+      return enrichStatements(statements, tpl);
+    },
+    serializeForExcel() {
+      return serializeForExcel(hf);
+    },
+    getNamedExpressions() {
+      return getNamedExpressions(hf);
+    },
+    destroy() {
+      hf.destroy();
+    },
+  };
 }
 
 /**
@@ -1040,7 +1088,7 @@ export function getNamedExpressions(hf: HyperFormula): Array<{ name: string; for
 // Utilities
 // ---------------------------------------------------------------------------
 
-function assumptionsToMap(rows: AssumptionRow[]): Record<string, number> {
+export function assumptionsToMap(rows: AssumptionRow[]): Record<string, number> {
   const map: Record<string, number> = {};
   for (const row of rows) {
     const num = row.numericValue != null

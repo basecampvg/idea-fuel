@@ -173,56 +173,37 @@ export function InputCard({
         hover:border-foreground/20 hover:shadow-sm
         border-l-4 ${isExpanded ? 'border-l-orange-500 ring-2 ring-orange-500/20 shadow-sm' : borderColor}
       `}
-      style={{ minHeight: isExpanded ? undefined : 100 }}
     >
-      {/* Card header — click to expand */}
+      {/* Card header — compact, click to expand */}
       <button
         type="button"
         onClick={() => onToggleExpand(id)}
         className="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-t-lg"
       >
-        <div className="px-4 py-3 flex flex-col justify-between min-h-[100px]">
-          {/* Top: expand toggle + formula indicator */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              {(hasChildren || onAddSub) ? (
-                isExpanded
-                  ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
-                  : <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
-              ) : (
-                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 flex-shrink-0" />
-              )}
-              {hasChildren && (
-                <span className="text-[10px] text-muted-foreground/50 font-medium">
-                  {children_.length} rows
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5">
-              {isCalculated && (
-                <span className="text-[10px] text-violet-400/70 font-mono">f(x)</span>
-              )}
-              <span className={`text-[10px] font-medium transition-colors ${
-                isExpanded ? 'text-orange-500' : 'text-muted-foreground/30 group-hover:text-muted-foreground/60'
-              }`}>
-                {isExpanded ? 'Editing' : 'Edit'}
-              </span>
-            </div>
+        <div className="px-3 py-2 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            {(hasChildren || onAddSub) ? (
+              isExpanded
+                ? <ChevronDown className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                : <ChevronRight className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+            ) : (
+              <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 flex-shrink-0" />
+            )}
+            <span className="text-xs text-muted-foreground truncate font-medium">{name}</span>
+            {hasChildren && (
+              <span className="text-[10px] text-muted-foreground/40">{children_.length} rows</span>
+            )}
+            {isCalculated && (
+              <span className="text-[9px] text-violet-400/60 font-mono">f(x)</span>
+            )}
           </div>
-
-          {/* Middle: Value */}
-          <div className={`font-mono text-lg font-semibold leading-tight ${
-            value === null || value === '' ? 'text-muted-foreground/40 italic' : 'text-foreground'
-          }`}>
-            {formatDisplay(value, unit)}
-          </div>
-
-          {/* Bottom: Name + Confidence */}
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs text-muted-foreground truncate font-medium">
-              {name}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className={`font-mono text-sm font-semibold ${
+              value === null || value === '' ? 'text-muted-foreground/40' : 'text-foreground'
+            }`}>
+              {formatDisplay(value, unit)}
             </span>
-            <span className={`text-[10px] flex-shrink-0 font-medium ${
+            <span className={`text-[9px] font-medium ${
               displayConfidence === 'USER' ? 'text-primary' :
               displayConfidence === 'RESEARCHED' ? 'text-green-500' :
               displayConfidence === 'AI_ESTIMATE' ? 'text-amber-500' :

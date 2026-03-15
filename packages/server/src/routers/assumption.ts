@@ -14,7 +14,7 @@ import { assumptions, assumptionHistory, projects, reports, scenarios, financial
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { DEFAULT_ASSUMPTIONS } from '../services/assumption-defaults';
 import { getTemplate } from '../services/financial-templates';
-import { applyCascade, applyBatchCascade, validateFormulaHF, extractDependenciesHF } from '../services/hyperformula-engine';
+import { applyCascade, applyBatchCascade, validateFormulaHF } from '../services/hyperformula-engine';
 import { getEffectiveConfidence, getStalenessInfo } from '../lib/confidence-engine';
 import { validateAssumptionKey as validateAssumptionKeyFn } from '../lib/assumption-key-validator';
 import { enqueueSectionRegen } from '../jobs/queues';
@@ -446,11 +446,9 @@ export const assumptionRouter = router({
         if (input.formula !== undefined) {
           updates.formula = input.formula;
           if (input.formula !== null) {
-            updates.dependsOn = extractDependenciesHF(input.formula, allAssumptions.map(a => a.key));
             updates.confidence = 'CALCULATED';
-          } else {
-            updates.dependsOn = [];
           }
+          // dependsOn no longer written — HyperFormula manages dependencies
         }
         updates.updatedByActor = 'user';
         updates.updatedByUserId = ctx.userId;

@@ -1155,10 +1155,22 @@ export interface TemplateLineItem {
   key: string;
   name: string;
   formula?: string;
+  /** Formula for period 1 only (seed value). If set, `formula` is used for periods 2+. */
+  firstPeriodFormula?: string;
   children?: string[];
   isSubtotal?: boolean;
   isTotal?: boolean;
 }
+
+/**
+ * Discriminated union for explicit formula type handling.
+ * Use this when you need TypeScript to enforce exhaustive formula handling.
+ */
+export type LineItemFormula =
+  | { formulaType: 'static'; value: number }
+  | { formulaType: 'uniform'; formula: string }
+  | { formulaType: 'periodic'; firstPeriodFormula: string; formula: string }
+  | { formulaType: 'subtotal'; children: string[] };
 
 export interface TemplateDefinition {
   slug: string;
