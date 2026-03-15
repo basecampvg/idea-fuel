@@ -61,6 +61,9 @@ export const assumptionValueTypeEnum = pgEnum('AssumptionValueType', [
 export const assumptionTierEnum = pgEnum('AssumptionTier', [
   'SPARK', 'LIGHT', 'IN_DEPTH',
 ]);
+export const assumptionAggregationEnum = pgEnum('AssumptionAggregation', [
+  'SUM', 'AVERAGE', 'CUSTOM',
+]);
 
 // Financial Modeling enums
 export const knowledgeLevelEnum = pgEnum('KnowledgeLevel', ['BEGINNER', 'STANDARD', 'EXPERT']);
@@ -96,6 +99,7 @@ export type AssumptionCategory = (typeof assumptionCategoryEnum.enumValues)[numb
 export type AssumptionConfidence = (typeof assumptionConfidenceEnum.enumValues)[number];
 export type AssumptionValueType = (typeof assumptionValueTypeEnum.enumValues)[number];
 export type AssumptionTier = (typeof assumptionTierEnum.enumValues)[number];
+export type AssumptionAggregation = (typeof assumptionAggregationEnum.enumValues)[number];
 export type KnowledgeLevel = (typeof knowledgeLevelEnum.enumValues)[number];
 export type FinancialModelStatus = (typeof financialModelStatusEnum.enumValues)[number];
 export type ERPProvider = (typeof erpProviderEnum.enumValues)[number];
@@ -769,6 +773,7 @@ export const assumptions = pgTable('Assumption', {
   projectId: text(),
   scenarioId: text(),
   parentId: text(),
+  aggregationMode: assumptionAggregationEnum().default('SUM'),
   category: assumptionCategoryEnum().notNull(),
   name: text().notNull(),
   key: text().notNull(),
@@ -886,6 +891,28 @@ export const scenarios = pgTable('Scenario', {
     columns: [table.modelId],
     foreignColumns: [financialModels.id],
     name: 'Scenario_modelId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
+// MODEL MODULE (which calculation modules are active per model)
+// =============================================================================
+
+export const modelModules = pgTable('ModelModule', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  modelId: text().notNull(),
+  moduleKey: text().notNull(),
+  isEnabled: boolean().default(true).notNull(),
+  settings: jsonb().$type<Record<string, unknown>>(),
+  displayOrder: integer().default(0).notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  unique('ModelModule_modelId_moduleKey_key').on(table.modelId, table.moduleKey),
+  index('ModelModule_modelId_idx').on(table.modelId),
+  foreignKey({
+    columns: [table.modelId],
+    foreignColumns: [financialModels.id],
+    name: 'ModelModule_modelId_fkey',
   }).onUpdate('cascade').onDelete('cascade'),
 ]);
 
@@ -1115,12 +1142,17 @@ export const financialModelsRelations = relations(financialModels, ({ one, many 
   template: one(industryTemplates, { fields: [financialModels.templateId], references: [industryTemplates.id] }),
   scenarios: many(scenarios),
   snapshots: many(modelSnapshots),
+  modules: many(modelModules),
   budgetLineItems: many(budgetLineItems),
 }));
 
 export const scenariosRelations = relations(scenarios, ({ one, many }) => ({
   model: one(financialModels, { fields: [scenarios.modelId], references: [financialModels.id] }),
   assumptions: many(assumptions),
+}));
+
+export const modelModulesRelations = relations(modelModules, ({ one }) => ({
+  model: one(financialModels, { fields: [modelModules.modelId], references: [financialModels.id] }),
 }));
 
 export const modelSnapshotsRelations = relations(modelSnapshots, ({ one }) => ({

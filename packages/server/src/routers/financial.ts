@@ -15,12 +15,14 @@ import {
   assumptions,
   projects,
   users,
+  modelModules,
 } from '../db/schema';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { getTemplate, listTemplates } from '../services/financial-templates';
 import { assumptionsToMap } from '../services/financial-calculator';
 import { buildWorkbook, readStatements, enrichStatements } from '../services/hyperformula-engine';
 import type { AssumptionRow } from '../services/hyperformula-engine';
+import { listAllModules, getModulesForTemplate, getModule } from '../services/modules';
 import { calculateBreakEven } from '../services/break-even-calculator';
 import type { RevenueModel } from '../services/break-even-calculator';
 import type { Context } from '../context';
@@ -388,5 +390,96 @@ export const financialRouter = router({
         variableCostPerHour: map.variable_cost_per_hour,
         billableHoursPerMonth: map.billable_hours,
       });
+    }),
+
+  // =========================================================================
+  // Calculation Modules
+  // =========================================================================
+
+  /** List all available calculation modules. */
+  listAvailableModules: protectedProcedure
+    .query(() => {
+      return listAllModules().map(m => ({
+        key: m.key,
+        name: m.name,
+        category: m.category,
+        defaultTemplates: m.defaultTemplates,
+        inputCount: m.inputs.length,
+        outputCount: m.calculations.filter(c => c.isOutput).length,
+      }));
+    }),
+
+  /** List active modules for a financial model. */
+  listModelModules: protectedProcedure
+    .input(z.object({ modelId: entityId }))
+    .query(async ({ ctx, input }) => {
+      await verifyModelOwnership(ctx.db, input.modelId, ctx.userId);
+
+      const rows = await ctx.db
+        .select()
+        .from(modelModules)
+        .where(eq(modelModules.modelId, input.modelId))
+        .orderBy(modelModules.displayOrder);
+
+      return rows.map(r => ({
+        ...r,
+        module: getModule(r.moduleKey),
+      }));
+    }),
+
+  /** Enable or disable a module for a financial model. */
+  toggleModule: protectedProcedure
+    .input(z.object({
+      modelId: entityId,
+      moduleKey: z.string().min(1).max(64),
+      enabled: z.boolean(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      await verifyModelOwnership(ctx.db, input.modelId, ctx.userId);
+
+      // Verify module exists
+      const mod = getModule(input.moduleKey);
+      if (!mod) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: `Module "${input.moduleKey}" not found` });
+      }
+
+      // Upsert the model-module record
+      const existing = await ctx.db
+        .select()
+        .from(modelModules)
+        .where(and(
+          eq(modelModules.modelId, input.modelId),
+          eq(modelModules.moduleKey, input.moduleKey),
+        ))
+        .limit(1);
+
+      if (existing.length > 0) {
+        await ctx.db
+          .update(modelModules)
+          .set({ isEnabled: input.enabled })
+          .where(eq(modelModules.id, existing[0].id));
+      } else {
+        // Get next display order
+        const countResult = await ctx.db
+          .select({ cnt: count() })
+          .from(modelModules)
+          .where(eq(modelModules.modelId, input.modelId));
+
+        await ctx.db.insert(modelModules).values({
+          modelId: input.modelId,
+          moduleKey: input.moduleKey,
+          isEnabled: input.enabled,
+          displayOrder: (countResult[0]?.cnt ?? 0),
+        });
+      }
+
+      logAuditAsync({
+        userId: ctx.userId,
+        action: 'PROJECT_UPDATE',
+        resource: formatResource('financial_model', input.modelId),
+        metadata: { action: 'toggle_module', moduleKey: input.moduleKey, enabled: input.enabled },
+      });
+
+      return { moduleKey: input.moduleKey, enabled: input.enabled };
     }),
 });

@@ -833,9 +833,13 @@ export type AssumptionConfidence = 'USER' | 'RESEARCHED' | 'AI_ESTIMATE' | 'CALC
 export type AssumptionValueType = 'NUMBER' | 'PERCENTAGE' | 'CURRENCY' | 'TEXT' | 'DATE' | 'SELECT';
 export type AssumptionTier = 'SPARK' | 'LIGHT' | 'IN_DEPTH';
 
+export type AssumptionAggregation = 'SUM' | 'AVERAGE' | 'CUSTOM';
+
 export interface Assumption {
   id: string;
   projectId: string;
+  parentId: string | null;
+  aggregationMode: AssumptionAggregation | null;
   category: AssumptionCategory;
   name: string;
   key: string;

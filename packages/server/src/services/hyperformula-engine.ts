@@ -28,6 +28,8 @@ import type {
   BatchCascadeSuccess,
 } from '@forge/shared';
 import { ASSUMPTION_IMPACT_MAP } from '../lib/assumption-impact-map';
+import type { ModuleDefinition, ModuleCalcRow } from './modules';
+import { sortModulesByDependency } from './modules';
 
 // Register plugins once at module load
 let pluginsRegistered = false;
@@ -62,10 +64,12 @@ export interface AssumptionRow {
   formula: string | null;
 }
 
-interface WorkbookConfig {
+export interface WorkbookConfig {
   assumptions: AssumptionRow[];
   template: TemplateDefinition;
   forecastYears: number;
+  /** Active calculation modules to include as sheets */
+  activeModules?: ModuleDefinition[];
 }
 
 interface SheetLayout {
@@ -120,20 +124,38 @@ export function buildWorkbook(config: WorkbookConfig): HyperFormula {
   const bsData = buildStatementSheet(template.lineItems.bs, numPeriods, monthsPerPeriod, startMonths, assumptionMap);
   const cfData = buildStatementSheet(template.lineItems.cf, numPeriods, monthsPerPeriod, startMonths, assumptionMap);
 
+  // Build module sheets (sorted by dependency order)
+  const activeModules = config.activeModules
+    ? sortModulesByDependency(config.activeModules)
+    : [];
+
+  const sheetsData: Record<string, RawCellContent[][]> = {
+    Assumptions: assumptionSheetData,
+  };
+
+  // Add module sheets before statement sheets
+  for (const mod of activeModules) {
+    if (mod.layoutType === 'standard') {
+      sheetsData[mod.key] = buildModuleSheet(mod, numPeriods, monthsPerPeriod, startMonths);
+    }
+    // matrix layout (LTV cohort) deferred to follow-up — uses standard for now
+  }
+
+  // Statement sheets last
+  sheetsData.PL = plData;
+  sheetsData.BS = bsData;
+  sheetsData.CF = cfData;
+
   // Create workbook
   const hf = HyperFormula.buildFromSheets(
-    {
-      Assumptions: assumptionSheetData,
-      PL: plData,
-      BS: bsData,
-      CF: cfData,
-    },
+    sheetsData,
     HYPERFORMULA_CONFIG,
     namedExpressions,
   );
 
-  // Post-construction: link statements
+  // Post-construction: link statements + wire module outputs
   linkStatements(hf, template, numPeriods, forecastYears);
+  wireModuleOutputs(hf, activeModules, template, numPeriods);
 
   return hf;
 }
@@ -258,6 +280,140 @@ function buildPeriodFormula(
   // — they don't need to be replaced with cell references
 
   return `=${formula}`;
+}
+
+// ---------------------------------------------------------------------------
+// Module Sheet Builder
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a 2D array for a standard-layout module sheet.
+ * Row layout:
+ *   Row 0-2: metadata (months_in_period, month, period)
+ *   Row 3+: calculation rows from the module definition
+ *
+ * Formulas reference named expressions (assumptions) and other rows
+ * within the same sheet by key → cell reference.
+ */
+function buildModuleSheet(
+  mod: ModuleDefinition,
+  numPeriods: number,
+  monthsPerPeriod: number[],
+  startMonths: number[],
+): RawCellContent[][] {
+  const data: RawCellContent[][] = [];
+
+  // Metadata rows
+  data.push(['_months_in_period', ...monthsPerPeriod]);
+  data.push(['_month', ...startMonths]);
+  data.push(['_period', ...Array.from({ length: numPeriods }, (_, i) => i)]);
+
+  // Calculation rows
+  for (let rowIdx = 0; rowIdx < mod.calculations.length; rowIdx++) {
+    const calc = mod.calculations[rowIdx];
+    const row: RawCellContent[] = [calc.key];
+
+    for (let p = 0; p < numPeriods; p++) {
+      if (p === 0) {
+        // First period: use firstPeriodFormula, replacing calc keys with cell refs
+        let formula = calc.firstPeriodFormula;
+        formula = resolveModuleFormula(formula, mod.calculations, METADATA_ROWS, p + 1);
+        row.push(formula);
+      } else if (calc.formula) {
+        // Subsequent periods: use formula with {PREV} resolved
+        let formula = calc.formula;
+        const curCol = colLetter(p + 1);
+        const prevCol = colLetter(p);
+        // Replace {PREV} with prior column same row reference
+        formula = formula.replace(/\{PREV\}/g, `${prevCol}${METADATA_ROWS + rowIdx + 1}`);
+        // Replace {PREV_xxx} with prior column reference to another row
+        formula = formula.replace(/\{PREV_(\w+)\}/g, (_match, key) => {
+          const targetIdx = mod.calculations.findIndex(c => c.key === key);
+          if (targetIdx >= 0) return `${prevCol}${METADATA_ROWS + targetIdx + 1}`;
+          return '0';
+        });
+        formula = resolveModuleFormula(formula, mod.calculations, METADATA_ROWS, p + 1);
+        row.push(formula);
+      } else {
+        // No growth formula — repeat the firstPeriodFormula pattern for each period
+        let formula = calc.firstPeriodFormula;
+        formula = resolveModuleFormula(formula, mod.calculations, METADATA_ROWS, p + 1);
+        row.push(formula);
+      }
+    }
+
+    data.push(row);
+  }
+
+  return data;
+}
+
+/**
+ * Replace calculation row keys in a formula with cell references within the module sheet.
+ * E.g., "=clicks*cpc" → "=B5*cpc" (where clicks is row 5, and cpc is a named expression)
+ */
+function resolveModuleFormula(
+  formula: string,
+  calculations: ModuleCalcRow[],
+  metadataRows: number,
+  col: number,
+): string {
+  let resolved = formula;
+  const colL = colLetter(col);
+
+  for (let i = 0; i < calculations.length; i++) {
+    const key = calculations[i].key;
+    const cellRef = `${colL}${metadataRows + i + 1}`;
+    // Replace whole-word occurrences of the calc key
+    resolved = resolved.replace(new RegExp(`\\b${escapeRegex(key)}\\b`, 'g'), cellRef);
+  }
+
+  return resolved;
+}
+
+/**
+ * Wire module outputs to statement line items.
+ * For each active module's output, set the corresponding statement cell
+ * to reference the module sheet's output cell.
+ */
+function wireModuleOutputs(
+  hf: HyperFormula,
+  modules: ModuleDefinition[],
+  template: TemplateDefinition,
+  numPeriods: number,
+): void {
+  if (modules.length === 0) return;
+
+  hf.batch(() => {
+    for (const mod of modules) {
+      const modSheetId = hf.getSheetId(mod.key);
+      if (modSheetId === undefined) continue;
+
+      for (let calcIdx = 0; calcIdx < mod.calculations.length; calcIdx++) {
+        const calc = mod.calculations[calcIdx];
+        if (!calc.isOutput || !calc.targetStatement || !calc.targetLineItem) continue;
+
+        // Find the target line item row in the statement sheet
+        const statementKey = calc.targetStatement.toUpperCase(); // PL, BS, CF
+        const statementSheetId = hf.getSheetId(statementKey);
+        if (statementSheetId === undefined) continue;
+
+        const lineItems = template.lineItems[calc.targetStatement as 'pl' | 'bs' | 'cf'];
+        const lineIdx = lineItems.findIndex(l => l.key === calc.targetLineItem);
+        if (lineIdx < 0) continue;
+
+        const targetRow = METADATA_ROWS + lineIdx;
+        const sourceRow = METADATA_ROWS + calcIdx;
+
+        // Wire each period column
+        for (let p = 0; p < numPeriods; p++) {
+          const col = p + 1;
+          const formula = `=${mod.key}!${colLetter(col)}${sourceRow + 1}`;
+          hf.setCellContents({ sheet: statementSheetId, col, row: targetRow }, [[formula]]);
+        }
+      }
+    }
+  });
 }
 
 /**

@@ -6,6 +6,8 @@ import {
   updateAssumptionSchema,
   batchUpdateAssumptionSchema,
   assumptionKeySchema,
+  createSubAssumptionSchema,
+  updateAggregationSchema,
 } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
 import { assumptions, assumptionHistory, projects, reports, scenarios, financialModels } from '../db/schema';
@@ -15,6 +17,7 @@ import { getTemplate } from '../services/financial-templates';
 import { executeCascade, executeBatchCascade, detectCycles } from '../lib/cascade-engine';
 import { validateFormula, extractDependencies } from '../lib/formula-engine';
 import { getEffectiveConfidence, getStalenessInfo } from '../lib/confidence-engine';
+import { validateAssumptionKey as validateAssumptionKeyFn } from '../lib/assumption-key-validator';
 import { enqueueSectionRegen } from '../jobs/queues';
 import type { Assumption } from '@forge/shared';
 import type { Context } from '../context';
@@ -53,6 +56,64 @@ async function verifyScenarioOwnership(
     throw new TRPCError({ code: 'NOT_FOUND', message: 'Scenario not found' });
   }
   return scenario;
+}
+
+/**
+ * Rebuild a parent assumption's formula from its aggregation mode + child keys.
+ * Called after adding/removing sub-assumptions.
+ */
+async function rebuildParentFormula(
+  tx: Parameters<Parameters<typeof import('../db/drizzle').db.transaction>[0]>[0],
+  projectId: string,
+  parentId: string,
+) {
+  // Get parent to check aggregation mode
+  const [parent] = await tx
+    .select()
+    .from(assumptions)
+    .where(and(eq(assumptions.id, parentId), eq(assumptions.projectId, projectId)))
+    .limit(1);
+
+  if (!parent) return;
+
+  // Get all children
+  const children = await tx
+    .select({ key: assumptions.key })
+    .from(assumptions)
+    .where(and(eq(assumptions.projectId, projectId), eq(assumptions.parentId, parentId)))
+    .orderBy(assumptions.displayOrder);
+
+  if (children.length === 0) {
+    // No children — clear formula
+    await tx
+      .update(assumptions)
+      .set({ formula: null, confidence: 'USER' as const })
+      .where(eq(assumptions.id, parentId));
+    return;
+  }
+
+  const childKeys = children.map(c => c.key);
+  const mode = parent.aggregationMode ?? 'SUM';
+
+  let formula: string;
+  switch (mode) {
+    case 'SUM':
+      formula = childKeys.join(' + ');
+      break;
+    case 'AVERAGE':
+      formula = `(${childKeys.join(' + ')}) / ${childKeys.length}`;
+      break;
+    case 'CUSTOM':
+      // Custom mode: don't overwrite the user's formula
+      return;
+    default:
+      formula = childKeys.join(' + ');
+  }
+
+  await tx
+    .update(assumptions)
+    .set({ formula, confidence: 'CALCULATED' as const })
+    .where(eq(assumptions.id, parentId));
 }
 
 export const assumptionRouter = router({
@@ -773,6 +834,180 @@ export const assumptionRouter = router({
           assumption: { ...assumption, ...updates },
           cascade: cascadeResult,
         };
+      });
+    }),
+
+  // =========================================================================
+  // Hierarchical Sub-Assumptions
+  // =========================================================================
+
+  /**
+   * Create a sub-assumption under a parent assumption card.
+   * The parent's formula is auto-generated from its aggregation mode + child list.
+   */
+  createSubAssumption: protectedProcedure
+    .input(createSubAssumptionSchema)
+    .mutation(async ({ ctx, input }) => {
+      await verifyProjectOwnership(ctx.db, input.projectId, ctx.userId);
+
+      // Validate the key
+      const keyValidation = validateAssumptionKeyFn(input.key);
+      if (!keyValidation.valid) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: keyValidation.error ?? 'Invalid key' });
+      }
+
+      // Verify parent exists
+      const parent = await ctx.db
+        .select()
+        .from(assumptions)
+        .where(and(eq(assumptions.id, input.parentId), eq(assumptions.projectId, input.projectId)))
+        .limit(1);
+
+      if (parent.length === 0) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Parent assumption not found' });
+      }
+
+      const parentAssumption = parent[0];
+
+      // Check key uniqueness within the project
+      const existing = await ctx.db
+        .select({ id: assumptions.id })
+        .from(assumptions)
+        .where(and(eq(assumptions.projectId, input.projectId), eq(assumptions.key, input.key)))
+        .limit(1);
+
+      if (existing.length > 0) {
+        throw new TRPCError({ code: 'CONFLICT', message: `Key "${input.key}" already exists` });
+      }
+
+      // Get current children count for display order
+      const siblings = await ctx.db
+        .select({ id: assumptions.id })
+        .from(assumptions)
+        .where(and(eq(assumptions.projectId, input.projectId), eq(assumptions.parentId, input.parentId)));
+
+      const numVal = input.value != null ? parseFloat(input.value) : null;
+
+      return ctx.db.transaction(async (tx) => {
+        // Create the sub-assumption
+        const [created] = await tx.insert(assumptions).values({
+          projectId: input.projectId,
+          scenarioId: parentAssumption.scenarioId,
+          parentId: input.parentId,
+          category: parentAssumption.category,
+          name: input.name,
+          key: input.key,
+          value: input.value ?? null,
+          numericValue: numVal != null && !isNaN(numVal) ? String(numVal) : null,
+          valueType: input.valueType,
+          unit: input.unit ?? null,
+          confidence: input.formula ? 'CALCULATED' : 'USER',
+          formula: input.formula ?? null,
+          dependsOn: [],
+          displayOrder: siblings.length,
+          updatedByActor: 'user',
+          updatedByUserId: ctx.userId,
+        }).returning();
+
+        // Rebuild parent's aggregation formula from children
+        await rebuildParentFormula(tx, input.projectId, input.parentId);
+
+        logAuditAsync({
+          userId: ctx.userId,
+          action: 'PROJECT_UPDATE',
+          resource: formatResource('project', input.projectId),
+          metadata: { action: 'create_sub_assumption', key: input.key, parentId: input.parentId },
+        });
+
+        return created;
+      });
+    }),
+
+  /**
+   * Delete a sub-assumption and update the parent's aggregation formula.
+   */
+  deleteSubAssumption: protectedProcedure
+    .input(z.object({ projectId: entityId, assumptionId: entityId }))
+    .mutation(async ({ ctx, input }) => {
+      await verifyProjectOwnership(ctx.db, input.projectId, ctx.userId);
+
+      const target = await ctx.db
+        .select()
+        .from(assumptions)
+        .where(and(eq(assumptions.id, input.assumptionId), eq(assumptions.projectId, input.projectId)))
+        .limit(1);
+
+      if (target.length === 0) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Assumption not found' });
+      }
+
+      const assumption = target[0];
+      if (!assumption.parentId) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot delete a top-level assumption via this endpoint' });
+      }
+
+      return ctx.db.transaction(async (tx) => {
+        // Delete the sub-assumption
+        await tx.delete(assumptions).where(eq(assumptions.id, input.assumptionId));
+
+        // Rebuild parent's aggregation formula
+        await rebuildParentFormula(tx, input.projectId, assumption.parentId!);
+
+        logAuditAsync({
+          userId: ctx.userId,
+          action: 'PROJECT_UPDATE',
+          resource: formatResource('project', input.projectId),
+          metadata: { action: 'delete_sub_assumption', key: assumption.key, parentId: assumption.parentId },
+        });
+
+        return { deleted: true, key: assumption.key };
+      });
+    }),
+
+  /**
+   * Update a parent assumption's aggregation mode.
+   * SUM: parent = SUM(child1, child2, ...)
+   * AVERAGE: parent = AVERAGE(child1, child2, ...)
+   * CUSTOM: parent formula is set to the provided customFormula
+   */
+  updateAggregation: protectedProcedure
+    .input(updateAggregationSchema)
+    .mutation(async ({ ctx, input }) => {
+      await verifyProjectOwnership(ctx.db, input.projectId, ctx.userId);
+
+      const target = await ctx.db
+        .select()
+        .from(assumptions)
+        .where(and(eq(assumptions.id, input.assumptionId), eq(assumptions.projectId, input.projectId)))
+        .limit(1);
+
+      if (target.length === 0) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Assumption not found' });
+      }
+
+      return ctx.db.transaction(async (tx) => {
+        // Update aggregation mode
+        await tx
+          .update(assumptions)
+          .set({
+            aggregationMode: input.mode,
+            updatedByActor: 'user',
+            updatedByUserId: ctx.userId,
+          })
+          .where(eq(assumptions.id, input.assumptionId));
+
+        if (input.mode === 'CUSTOM' && input.customFormula) {
+          // Set custom formula directly
+          await tx
+            .update(assumptions)
+            .set({ formula: input.customFormula })
+            .where(eq(assumptions.id, input.assumptionId));
+        } else {
+          // Rebuild formula from mode + children
+          await rebuildParentFormula(tx, input.projectId, input.assumptionId);
+        }
+
+        return { updated: true };
       });
     }),
 });
