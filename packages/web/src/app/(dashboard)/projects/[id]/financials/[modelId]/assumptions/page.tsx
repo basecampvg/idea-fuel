@@ -1,14 +1,50 @@
 'use client';
 
-import { use, useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { use, useState, useCallback, useMemo, useEffect } from 'react';
 import { trpc } from '@/lib/trpc/client';
-import { AssumptionGrid } from './components/assumption-grid';
-import { AssumptionFilters } from './components/assumption-filters';
-import { AssumptionDetailPanel } from './components/assumption-detail-panel';
+import { ModuleInputGroup } from './components/module-input-group';
+import { DerivedMetricsStrip } from './components/derived-metrics-strip';
 import { DependencyGraph } from './components/dependency-graph';
 import { ASSUMPTION_IMPACT_MAP } from './components/impact-map';
 import { Settings2, Loader2, GitBranch } from 'lucide-react';
 import type { AssumptionCategory, AssumptionConfidence } from '@forge/shared';
+
+const MODULE_ICONS: Record<string, string> = {
+  marketing_funnel: '📣',
+  ltv_cohort: '📊',
+  payroll: '👥',
+  cogs_variable: '📦',
+  debt_schedule: '🏦',
+};
+
+/** Map module keys to which category they display under */
+const MODULE_CATEGORY_MAP: Record<string, string> = {
+  marketing_funnel: 'ACQUISITION',
+  ltv_cohort: 'REVENUE',
+  payroll: 'COSTS',
+  cogs_variable: 'COSTS',
+  debt_schedule: 'FINANCING',
+};
+
+/** Assumptions with a formula and no children are "derived" (computed) */
+function isDerived(a: { formula: string | null; parentId?: string | null }, childCount: number): boolean {
+  return !!a.formula && childCount === 0 && !a.parentId;
+}
+
+const CATEGORY_ORDER = ['GENERAL', 'PRICING', 'ACQUISITION', 'REVENUE', 'RETENTION', 'MARKET', 'COSTS', 'FINANCING', 'FUNDING', 'TIMELINE'];
+
+const CATEGORY_LABELS: Record<string, string> = {
+  GENERAL: 'General / Model Settings',
+  PRICING: 'Pricing',
+  ACQUISITION: 'Acquisition',
+  REVENUE: 'Revenue',
+  RETENTION: 'Retention',
+  MARKET: 'Market',
+  COSTS: 'Costs',
+  FINANCING: 'Financing',
+  FUNDING: 'Funding',
+  TIMELINE: 'Timeline',
+};
 
 export default function FinancialAssumptionsPage({
   params,
@@ -16,27 +52,17 @@ export default function FinancialAssumptionsPage({
   params: Promise<{ id: string; modelId: string }>;
 }) {
   const { id: projectId, modelId } = use(params);
-
-  // State
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [selectedCategories, setSelectedCategories] = useState<Set<AssumptionCategory>>(new Set());
-  const [selectedConfidence, setSelectedConfidence] = useState<AssumptionConfidence | null>(null);
-  const [cascadedKeys, setCascadedKeys] = useState<Set<string>>(new Set());
+  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   const [showGraph, setShowGraph] = useState(false);
-  const cascadeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const utils = trpc.useUtils();
 
-  // Seed defaults on first visit (idempotent)
+  // Seed defaults on first visit
   const seedMutation = trpc.assumption.seedDefaults.useMutation({
-    onSuccess: () => {
-      utils.assumption.list.invalidate({ projectId });
-    },
+    onSuccess: () => utils.assumption.list.invalidate({ projectId }),
   });
-
-  // Sync calculated assumptions from template (repairs existing models)
   const syncMutation = trpc.assumption.syncFromTemplate.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: { synced: boolean; added: number; updated: number }) => {
       if (data.synced && (data.added > 0 || data.updated > 0)) {
         utils.assumption.list.invalidate({ projectId });
       }
@@ -44,138 +70,225 @@ export default function FinancialAssumptionsPage({
   });
 
   // Fetch assumptions
-  const {
-    data: assumptions,
-    isLoading,
-    error,
-  } = trpc.assumption.list.useQuery(
+  const { data: assumptions, isLoading, error } = trpc.assumption.list.useQuery(
     { projectId },
     { enabled: !!projectId },
   );
 
-  // Auto-seed on first visit
+  // Fetch active modules for this model
+  const { data: modelModules } = trpc.financial.listModelModules.useQuery(
+    { modelId },
+    { enabled: !!modelId },
+  );
+
+  // Auto-seed / auto-sync
   useEffect(() => {
     if (assumptions && assumptions.length === 0 && !seedMutation.isPending && !seedMutation.isSuccess) {
       seedMutation.mutate({ projectId });
     }
   }, [assumptions, projectId, seedMutation]);
 
-  // Auto-sync: add any missing assumptions from the template
-  // Runs once per page load — the mutation is idempotent and returns early if nothing to do
   useEffect(() => {
-    if (
-      assumptions &&
-      assumptions.length > 0 &&
-      !syncMutation.isPending &&
-      !syncMutation.isSuccess
-    ) {
+    if (assumptions && assumptions.length > 0 && !syncMutation.isPending && !syncMutation.isSuccess) {
       syncMutation.mutate({ projectId, modelId });
     }
   }, [assumptions, projectId, modelId, syncMutation]);
 
-  // Auto-select the first card to hint that cards are editable
-  useEffect(() => {
-    if (assumptions && assumptions.length > 0 && selectedId === null) {
-      setSelectedId(assumptions[0].id);
-    }
-  }, [assumptions, selectedId]);
-
-  // Category counts
-  const categoryCounts = useMemo(() => {
-    const counts: Record<AssumptionCategory, number> = {
-      PRICING: 0, ACQUISITION: 0, RETENTION: 0, MARKET: 0,
-      COSTS: 0, FUNDING: 0, TIMELINE: 0,
-    };
-    if (assumptions) {
-      for (const a of assumptions) {
-        counts[a.category as AssumptionCategory]++;
-      }
-    }
-    return counts;
-  }, [assumptions]);
-
-  // Selected assumption
-  const selectedAssumption = useMemo(() => {
-    if (!selectedId || !assumptions) return null;
-    return assumptions.find((a) => a.id === selectedId) ?? null;
-  }, [selectedId, assumptions]);
+  // Mutations
+  const updateMutation = trpc.assumption.update.useMutation({
+    onSuccess: () => utils.assumption.list.invalidate({ projectId }),
+  });
+  const createSubMutation = trpc.assumption.createSubAssumption.useMutation({
+    onSuccess: () => utils.assumption.list.invalidate({ projectId }),
+  });
+  const deleteSubMutation = trpc.assumption.deleteSubAssumption.useMutation({
+    onSuccess: () => utils.assumption.list.invalidate({ projectId }),
+  });
 
   // Handlers
-  const handleSelect = useCallback((id: string) => {
-    setSelectedId((prev) => (prev === id ? null : id));
+  const handleToggleExpand = useCallback((id: string) => {
+    setExpandedCardId((prev) => (prev === id ? null : id));
   }, []);
 
-  const handleCategoryToggle = useCallback((category: AssumptionCategory) => {
-    setSelectedCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(category)) {
-        next.delete(category);
-      } else {
-        next.add(category);
-      }
-      return next;
-    });
-  }, []);
+  const handleValueChange = useCallback((id: string, value: string) => {
+    updateMutation.mutate({ id, projectId, value });
+  }, [projectId, updateMutation]);
 
-  const handleConfidenceChange = useCallback((confidence: AssumptionConfidence | null) => {
-    setSelectedConfidence(confidence);
-  }, []);
-
-  const handleClearFilters = useCallback(() => {
-    setSelectedCategories(new Set());
-    setSelectedConfidence(null);
-  }, []);
-
-  const handleCascadeComplete = useCallback((keys: string[]) => {
-    setCascadedKeys(new Set(keys));
-    // Clear cascade animation after 1.5s
-    if (cascadeTimerRef.current) clearTimeout(cascadeTimerRef.current);
-    cascadeTimerRef.current = setTimeout(() => setCascadedKeys(new Set()), 1500);
-  }, []);
-
-  const handleClosePanel = useCallback(() => {
-    setSelectedId(null);
-  }, []);
-
-  // Sub-assumption mutations
-  const createSubMutation = trpc.assumption.createSubAssumption.useMutation({
-    onSuccess: () => {
-      utils.assumption.list.invalidate({ projectId });
-    },
-  });
-
-  const deleteSubMutation = trpc.assumption.deleteSubAssumption.useMutation({
-    onSuccess: () => {
-      utils.assumption.list.invalidate({ projectId });
-    },
-  });
-
-  const updateMutation = trpc.assumption.update.useMutation({
-    onSuccess: () => {
-      utils.assumption.list.invalidate({ projectId });
-    },
-  });
-
-  const handleAddSub = useCallback((parentId: string, data: { name: string; key: string; value: string; valueType: string }) => {
+  const handleAddSub = useCallback((parentId: string, data: { name: string; key: string; value: string }) => {
     createSubMutation.mutate({
       projectId,
       parentId,
       name: data.name,
       key: data.key,
       value: data.value,
-      valueType: data.valueType as 'NUMBER',
+      valueType: 'NUMBER',
     });
   }, [projectId, createSubMutation]);
 
-  const handleDeleteSub = useCallback((assumptionId: string) => {
-    deleteSubMutation.mutate({ projectId, assumptionId });
+  const handleDeleteSub = useCallback((id: string) => {
+    deleteSubMutation.mutate({ projectId, assumptionId: id });
   }, [projectId, deleteSubMutation]);
 
-  const handleUpdateSubValue = useCallback((assumptionId: string, value: string) => {
-    updateMutation.mutate({ id: assumptionId, projectId, value });
+  const handleSubValueChange = useCallback((id: string, value: string) => {
+    updateMutation.mutate({ id, projectId, value });
   }, [projectId, updateMutation]);
 
-  // Loading state
+  // Build children count map for detecting derived assumptions
+  const childrenCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    if (!assumptions) return map;
+    for (const a of assumptions) {
+      if ((a as { parentId?: string | null }).parentId) {
+        const pid = (a as { parentId: string }).parentId;
+        map.set(pid, (map.get(pid) ?? 0) + 1);
+      }
+    }
+    return map;
+  }, [assumptions]);
+
+  // Separate assumptions into: general inputs, module inputs (by module), derived metrics
+  const { generalInputs, moduleGroups, derivedMetrics, categoryModuleMap } = useMemo(() => {
+    if (!assumptions) return { generalInputs: [], moduleGroups: new Map(), derivedMetrics: [], categoryModuleMap: new Map() };
+
+    const allAssumptions = assumptions as Array<{
+      id: string; name: string; key: string; value: string | null; unit: string | null;
+      formula: string | null; category: string; confidence: string;
+      parentId?: string | null; aggregationMode?: string | null;
+    }>;
+
+    const enabledModuleKeys = new Set(
+      (modelModules ?? []).filter((m: { isEnabled: boolean }) => m.isEnabled).map((m: { moduleKey: string }) => m.moduleKey),
+    );
+
+    const general: typeof allAssumptions = [];
+    const derived: Array<{ label: string; value: string | number | null; unit?: string }> = [];
+    const modGroups = new Map<string, typeof allAssumptions>();
+    const catModMap = new Map<string, string[]>();
+
+    // Known module input keys (from module definitions)
+    const moduleInputKeys: Record<string, string[]> = {
+      marketing_funnel: ['impressions', 'impression_growth_rate', 'ctr', 'cpc', 'conv_rate'],
+      ltv_cohort: ['arpu', 'monthly_retention_rate', 'new_customers_per_period'],
+      payroll: ['headcount', 'avg_salary', 'wrap_rate', 'annual_raise_pct'],
+      cogs_variable: ['hosting_cost_per_user', 'api_cost_per_user', 'support_cost_per_user', 'payment_processing_pct'],
+      debt_schedule: ['initial_debt', 'annual_interest_rate', 'loan_term_months'],
+    };
+
+    // Build a set of all module input keys for enabled modules
+    const allModuleInputKeySet = new Set<string>();
+    for (const [modKey, keys] of Object.entries(moduleInputKeys)) {
+      if (enabledModuleKeys.has(modKey)) {
+        for (const k of keys) allModuleInputKeySet.add(k);
+      }
+    }
+
+    for (const a of allAssumptions) {
+      if (a.parentId) continue; // Children are handled via childrenMap
+
+      const childCount = childrenCountMap.get(a.id) ?? 0;
+
+      // Check if this is a module input
+      let assignedToModule = false;
+      for (const [modKey, keys] of Object.entries(moduleInputKeys)) {
+        if (enabledModuleKeys.has(modKey) && keys.includes(a.key)) {
+          const list = modGroups.get(modKey) ?? [];
+          list.push(a);
+          modGroups.set(modKey, list);
+          assignedToModule = true;
+
+          // Track category → module mapping
+          const cat = MODULE_CATEGORY_MAP[modKey] ?? a.category;
+          const catMods = catModMap.get(cat) ?? [];
+          if (!catMods.includes(modKey)) catMods.push(modKey);
+          catModMap.set(cat, catMods);
+          break;
+        }
+      }
+
+      if (assignedToModule) continue;
+
+      // Check if derived (has formula, no children, not a module input)
+      if (isDerived(a, childCount)) {
+        const unitMap: Record<string, string> = { CURRENCY: '$', PERCENTAGE: '%', NUMBER: '' };
+        derived.push({
+          label: a.name,
+          value: a.value,
+          unit: a.unit ?? unitMap[(a as { valueType?: string }).valueType ?? ''] ?? undefined,
+        });
+        continue;
+      }
+
+      // General input
+      general.push(a);
+    }
+
+    // Also include children for each assumption
+    for (const a of allAssumptions) {
+      if (!a.parentId) continue;
+      // Add children to whichever group their parent is in
+      for (const [modKey, list] of modGroups) {
+        if (list.some((p) => p.id === a.parentId)) {
+          list.push(a);
+          break;
+        }
+      }
+      // Check if parent is in general
+      if (general.some((p) => p.id === a.parentId)) {
+        general.push(a);
+      }
+    }
+
+    return {
+      generalInputs: general,
+      moduleGroups: modGroups,
+      derivedMetrics: derived,
+      categoryModuleMap: catModMap,
+    };
+  }, [assumptions, modelModules, childrenCountMap]);
+
+  // Build category → content structure
+  const categoryContent = useMemo(() => {
+    const sections: Array<{
+      category: string;
+      modules: Array<{ moduleKey: string; title: string; icon?: string; assumptions: typeof generalInputs }>;
+    }> = [];
+
+    // General section first
+    if (generalInputs.length > 0) {
+      sections.push({
+        category: 'GENERAL',
+        modules: [{ moduleKey: 'general', title: 'General / Model Settings', icon: '⚙️', assumptions: generalInputs }],
+      });
+    }
+
+    // Module sections by category
+    for (const cat of CATEGORY_ORDER) {
+      const moduleKeys = categoryModuleMap.get(cat);
+      if (!moduleKeys) continue;
+
+      const mods = moduleKeys
+        .map((modKey: string) => {
+          const modAssumptions = moduleGroups.get(modKey);
+          if (!modAssumptions || modAssumptions.length === 0) return null;
+          const modInfo = (modelModules ?? []).find((m: { moduleKey: string }) => m.moduleKey === modKey);
+          return {
+            moduleKey: modKey,
+            title: (modInfo as { module?: { name?: string } } | undefined)?.module?.name ?? modKey,
+            icon: MODULE_ICONS[modKey],
+            assumptions: modAssumptions,
+          };
+        })
+        .filter(Boolean) as Array<{ moduleKey: string; title: string; icon?: string; assumptions: typeof generalInputs }>;
+
+      if (mods.length > 0) {
+        sections.push({ category: cat, modules: mods });
+      }
+    }
+
+    return sections;
+  }, [generalInputs, moduleGroups, categoryModuleMap, modelModules]);
+
+  // Loading
   if (isLoading || seedMutation.isPending || syncMutation.isPending) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -191,7 +304,6 @@ export default function FinancialAssumptionsPage({
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-8 text-center">
@@ -200,17 +312,15 @@ export default function FinancialAssumptionsPage({
     );
   }
 
-  const allEmpty = assumptions?.every((a) => a.value === null);
-
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Settings2 className="w-5 h-5 text-muted-foreground" />
-          <h2 className="text-lg font-semibold text-foreground">Assumptions</h2>
+          <h2 className="text-lg font-semibold text-foreground">Model Inputs</h2>
           <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
-            {assumptions?.length ?? 0}
+            {assumptions?.filter((a: { id: string; parentId?: string | null; formula: string | null }) => !a.parentId && !isDerived(a, childrenCountMap.get(a.id) ?? 0)).length ?? 0} inputs
           </span>
         </div>
         <button
@@ -230,20 +340,10 @@ export default function FinancialAssumptionsPage({
         </button>
       </div>
 
-      {/* Onboarding hint */}
-      {allEmpty && (
-        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-          <p className="text-sm text-foreground/80">
-            These are the key assumptions behind your business model.
-            Start by setting your <strong>Unit Price</strong> — everything else flows from there.
-          </p>
-        </div>
-      )}
-
-      {/* Dependency graph (when toggled) */}
+      {/* Dependency graph */}
       {showGraph && assumptions && (
         <DependencyGraph
-          assumptions={(assumptions ?? []).map((a) => ({
+          assumptions={(assumptions ?? []).map((a: { key: string; name: string; category: string; confidence: string; effectiveConfidence?: string; dependsOn: string[]; value: string | null }) => ({
             key: a.key,
             name: a.name,
             category: a.category as AssumptionCategory,
@@ -256,46 +356,33 @@ export default function FinancialAssumptionsPage({
         />
       )}
 
-      {/* Filters */}
-      <AssumptionFilters
-        selectedCategories={selectedCategories}
-        selectedConfidence={selectedConfidence}
-        onCategoryToggle={handleCategoryToggle}
-        onConfidenceChange={handleConfidenceChange}
-        onClearAll={handleClearFilters}
-        counts={categoryCounts}
-      />
-
-      {/* Grid + Detail Panel layout */}
-      <div className="flex gap-4 items-start">
-        {/* Card grid */}
-        <div className={`flex-1 min-w-0 ${selectedId ? 'max-w-[calc(100%-320px)]' : ''}`}>
-          <AssumptionGrid
-            assumptions={(assumptions ?? []) as Parameters<typeof AssumptionGrid>[0]['assumptions']}
-            selectedId={selectedId}
-            cascadedKeys={cascadedKeys}
-            selectedCategories={selectedCategories}
-            selectedConfidence={selectedConfidence}
-            projectId={projectId}
-            onSelect={handleSelect}
-            onAddSub={handleAddSub}
-            onDeleteSub={handleDeleteSub}
-            onUpdateSubValue={handleUpdateSubValue}
-          />
-        </div>
-
-        {/* Detail panel — mt-7 aligns with card grid below category headers */}
-        {selectedId && (
-          <div className="w-[320px] flex-shrink-0 sticky top-28 mt-7 rounded-xl border border-border bg-card max-h-[calc(100vh-140px)] overflow-hidden">
-            <AssumptionDetailPanel
-              assumption={selectedAssumption as Parameters<typeof AssumptionDetailPanel>[0]['assumption']}
-              allAssumptions={(assumptions ?? []) as Parameters<typeof AssumptionDetailPanel>[0]['allAssumptions']}
-              onClose={handleClosePanel}
-              onCascadeComplete={handleCascadeComplete}
+      {/* Category sections with module groups */}
+      {categoryContent.map(({ category, modules }) => (
+        <div key={category} className="space-y-3">
+          <h3 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider px-1">
+            {CATEGORY_LABELS[category] ?? category}
+          </h3>
+          {modules.map((mod) => (
+            <ModuleInputGroup
+              key={mod.moduleKey}
+              title={mod.title}
+              icon={mod.icon}
+              assumptions={mod.assumptions}
+              expandedCardId={expandedCardId}
+              onToggleExpand={handleToggleExpand}
+              onValueChange={handleValueChange}
+              onAddSub={handleAddSub}
+              onDeleteSub={handleDeleteSub}
+              onSubValueChange={handleSubValueChange}
             />
-          </div>
-        )}
-      </div>
+          ))}
+        </div>
+      ))}
+
+      {/* Derived metrics strip */}
+      {derivedMetrics.length > 0 && (
+        <DerivedMetricsStrip metrics={derivedMetrics} />
+      )}
     </div>
   );
 }
