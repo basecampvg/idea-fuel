@@ -10,23 +10,28 @@ interface AssumptionInput {
   value: string | null;
   unit: string | null;
   formula: string | null;
+  confidence?: string;
   parentId?: string | null;
   aggregationMode?: string | null;
 }
 
+interface AvailableAssumption {
+  key: string;
+  name: string;
+  value: string | null;
+  unit: string | null;
+}
+
 interface ModuleInputGroupProps {
-  /** Module display name (e.g., "Marketing Funnel") or "General / Model Settings" */
   title: string;
-  /** Module computed output description (e.g., "60 new customers/mo") */
   outputSummary?: string;
-  /** Icon emoji for the module */
   icon?: string;
-  /** All assumptions belonging to this group */
   assumptions: AssumptionInput[];
-  /** Currently expanded card ID */
+  allAssumptions?: AvailableAssumption[];
   expandedCardId: string | null;
   onToggleExpand: (id: string) => void;
   onValueChange: (id: string, value: string) => void;
+  onFormulaChange?: (id: string, formula: string | null) => void;
   onAddSub?: (parentId: string, data: { name: string; key: string; value: string }) => void;
   onDeleteSub?: (id: string) => void;
   onSubValueChange?: (id: string, value: string) => void;
@@ -37,9 +42,11 @@ export function ModuleInputGroup({
   outputSummary,
   icon,
   assumptions,
+  allAssumptions,
   expandedCardId,
   onToggleExpand,
   onValueChange,
+  onFormulaChange,
   onAddSub,
   onDeleteSub,
   onSubValueChange,
@@ -82,10 +89,13 @@ export function ModuleInputGroup({
           <InputCard
             key={a.id}
             id={a.id}
+            key_={a.key}
             name={a.name}
             value={a.value}
             unit={a.unit}
             formula={a.formula}
+            confidence={a.confidence as 'USER' | 'RESEARCHED' | 'AI_ESTIMATE' | 'CALCULATED' | undefined}
+            dependsOn={(a as { dependsOn?: string[] }).dependsOn}
             children_={childrenMap.get(a.id)?.map((c) => ({
               id: c.id,
               name: c.name,
@@ -95,9 +105,11 @@ export function ModuleInputGroup({
               formula: c.formula,
             }))}
             aggregationMode={a.aggregationMode}
+            allAssumptions={allAssumptions}
             isExpanded={expandedCardId === a.id}
             onToggleExpand={onToggleExpand}
             onValueChange={onValueChange}
+            onFormulaChange={onFormulaChange}
             onAddSub={onAddSub}
             onDeleteSub={onDeleteSub}
             onSubValueChange={onSubValueChange}
