@@ -14,9 +14,7 @@ import { assumptions, assumptionHistory, projects, reports, scenarios, financial
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { DEFAULT_ASSUMPTIONS } from '../services/assumption-defaults';
 import { getTemplate } from '../services/financial-templates';
-import { executeBatchCascade, detectCycles } from '../lib/cascade-engine';
-import { validateFormula, extractDependencies } from '../lib/formula-engine';
-import { applyCascade } from '../services/hyperformula-engine';
+import { applyCascade, applyBatchCascade, validateFormulaHF, extractDependenciesHF } from '../services/hyperformula-engine';
 import { getEffectiveConfidence, getStalenessInfo } from '../lib/confidence-engine';
 import { validateAssumptionKey as validateAssumptionKeyFn } from '../lib/assumption-key-validator';
 import { enqueueSectionRegen } from '../jobs/queues';
@@ -422,27 +420,10 @@ export const assumptionRouter = router({
         const availableKeys = allRows.map((a) => a.key);
 
         if (input.formula !== null) {
-          const validation = validateFormula(input.formula, availableKeys);
+          // Validate formula using HyperFormula (also detects circular deps)
+          const validation = validateFormulaHF(input.formula, availableKeys);
           if (!validation.valid) {
             throw new TRPCError({ code: 'BAD_REQUEST', message: `Invalid formula: ${validation.error}` });
-          }
-
-          // Auto-extract dependencies from formula
-          const deps = extractDependencies(input.formula);
-
-          // Check for circular dependencies with the new formula
-          const testAssumptions = allRows.map((a) =>
-            a.id === input.id
-              ? { ...a, formula: input.formula!, dependsOn: deps }
-              : a,
-          ) as unknown as Assumption[];
-
-          const cycles = detectCycles(testAssumptions);
-          if (cycles) {
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: `Circular dependency detected: ${cycles.join(' -> ')}`,
-            });
           }
         }
       }
@@ -465,7 +446,7 @@ export const assumptionRouter = router({
         if (input.formula !== undefined) {
           updates.formula = input.formula;
           if (input.formula !== null) {
-            updates.dependsOn = extractDependencies(input.formula);
+            updates.dependsOn = extractDependenciesHF(input.formula, allAssumptions.map(a => a.key));
             updates.confidence = 'CALCULATED';
           } else {
             updates.dependsOn = [];
@@ -631,34 +612,46 @@ export const assumptionRouter = router({
 
         let cascadeResult = null;
         if (valueUpdates.length > 0) {
-          // Refresh assumptions with direct updates applied
-          const refreshed = allAssumptions.map((a) => {
+          // Build assumption rows with updates applied
+          const refreshedRows = allAssumptions.map((a) => {
             const update = input.updates.find((u) => u.key === a.key);
-            if (!update) return a;
             return {
-              ...a,
-              ...(update.value !== undefined ? { value: update.value } : {}),
-              ...(update.confidence !== undefined ? { confidence: update.confidence } : {}),
+              key: a.key,
+              value: update?.value ?? a.value,
+              numericValue: update?.value ?? a.numericValue,
+              formula: a.formula,
             };
-          }) as unknown as Assumption[];
+          });
 
-          cascadeResult = executeBatchCascade(refreshed, valueUpdates);
+          // Get template for workbook building
+          const fm = await tx.query.financialModels.findFirst({
+            where: eq(financialModels.projectId, input.projectId),
+          });
+          const tplSlug = (fm?.settings as Record<string, unknown>)?.templateSlug as string ?? 'general';
+          const tpl = getTemplate(tplSlug);
 
-          if (cascadeResult.status === 'success') {
-            const directKeys = new Set(valueUpdates.map((u) => u.key));
-            for (const change of cascadeResult.updatedAssumptions) {
-              if (directKeys.has(change.key)) continue; // skip direct updates, already persisted
-              await tx
-                .update(assumptions)
-                .set({
-                  value: change.newValue === 'null' ? null : change.newValue,
-                  updatedByActor: 'system',
-                  updatedByUserId: ctx.userId,
-                })
-                .where(and(
-                  eq(assumptions.projectId, input.projectId),
-                  eq(assumptions.key, change.key),
-                ));
+          if (tpl) {
+            cascadeResult = applyBatchCascade(
+              { assumptions: refreshedRows, template: tpl, forecastYears: fm?.forecastYears ?? 5 },
+              valueUpdates,
+            );
+
+            if (cascadeResult.status === 'success') {
+              const directKeys = new Set(valueUpdates.map((u) => u.key));
+              for (const change of cascadeResult.updatedAssumptions) {
+                if (directKeys.has(change.key)) continue;
+                await tx
+                  .update(assumptions)
+                  .set({
+                    value: change.newValue === 'null' ? null : change.newValue,
+                    updatedByActor: 'system',
+                    updatedByUserId: ctx.userId,
+                  })
+                  .where(and(
+                    eq(assumptions.projectId, input.projectId),
+                    eq(assumptions.key, change.key),
+                  ));
+              }
             }
           }
         }

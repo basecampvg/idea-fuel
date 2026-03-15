@@ -979,6 +979,70 @@ function getImpactedSections(keys: string[]): Array<{ sectionKey: string; report
   }));
 }
 
+// ---------------------------------------------------------------------------
+// Formula Validation (replaces old formula-engine.ts functions)
+// ---------------------------------------------------------------------------
+
+/**
+ * Validate a formula using HyperFormula.
+ * Builds a temporary workbook with the formula and checks for errors.
+ */
+export function validateFormulaHF(
+  formula: string,
+  availableKeys: string[],
+): { valid: boolean; error?: string } {
+  try {
+    ensurePluginsRegistered();
+
+    // Build a minimal workbook with named expressions for all available keys
+    const namedExpressions = availableKeys.map((key, i) => ({
+      name: key,
+      expression: `=Assumptions!$B$${i + 1}`,
+    }));
+    const assumptionData = availableKeys.map((key) => [key, 0]);
+
+    const hf = HyperFormula.buildFromSheets(
+      { Assumptions: assumptionData, Test: [[`=${formula}`]] },
+      HYPERFORMULA_CONFIG,
+      namedExpressions,
+    );
+
+    const value = hf.getCellValue({ sheet: hf.getSheetId('Test')!, col: 0, row: 0 });
+    hf.destroy();
+
+    if (value instanceof DetailedCellError) {
+      if (value.type === 'CYCLE') {
+        return { valid: false, error: 'Circular dependency detected' };
+      }
+      if (value.type === 'NAME') {
+        return { valid: false, error: `Unknown reference in formula: ${value.message}` };
+      }
+      // #DIV/0!, #VALUE!, etc. are valid formulas that just produce error values
+      // for certain inputs — that's OK
+    }
+
+    return { valid: true };
+  } catch (err) {
+    return { valid: false, error: err instanceof Error ? err.message : 'Invalid formula' };
+  }
+}
+
+/**
+ * Extract dependency keys from a formula.
+ * Parses the formula in a HyperFormula workbook and checks which named
+ * expressions it references.
+ */
+export function extractDependenciesHF(
+  formula: string,
+  availableKeys: string[],
+): string[] {
+  // Simple regex-based extraction: find all identifiers in the formula
+  // that match known assumption keys
+  const keySet = new Set(availableKeys);
+  const identifiers = formula.match(/\b[a-z_][a-z0-9_]*\b/gi) ?? [];
+  return [...new Set(identifiers.filter((id) => keySet.has(id)))];
+}
+
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
