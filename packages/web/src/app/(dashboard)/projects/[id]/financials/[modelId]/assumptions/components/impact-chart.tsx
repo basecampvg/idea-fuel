@@ -116,7 +116,7 @@ export function ImpactChart({ statements }: ImpactChartProps) {
               width={60}
             />
             <Tooltip
-              formatter={(value: number, name: string) => [formatCurrency(value), name]}
+              formatter={(value) => formatCurrency(value as number)}
               contentStyle={{
                 backgroundColor: 'var(--card)',
                 border: '1px solid var(--border)',
