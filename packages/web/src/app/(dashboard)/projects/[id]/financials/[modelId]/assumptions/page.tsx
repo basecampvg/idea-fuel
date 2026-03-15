@@ -61,21 +61,33 @@ export default function FinancialAssumptionsPage({
 
   // Seed defaults on first visit
   const seedMutation = trpc.assumption.seedDefaults.useMutation({
-    onSuccess: () => utils.assumption.list.invalidate({ projectId }),
+    onSuccess: () => {
+      utils.assumption.list.invalidate({ projectId });
+      if (baseScenarioId) utils.assumption.listByScenario.invalidate({ scenarioId: baseScenarioId });
+    },
   });
   const syncMutation = trpc.assumption.syncFromTemplate.useMutation({
     onSuccess: (data: { synced: boolean; added: number; updated: number }) => {
       if (data.synced && (data.added > 0 || data.updated > 0)) {
         utils.assumption.list.invalidate({ projectId });
+        if (baseScenarioId) utils.assumption.listByScenario.invalidate({ scenarioId: baseScenarioId });
       }
     },
   });
 
-  // Fetch assumptions
-  const { data: assumptions, isLoading, error } = trpc.assumption.list.useQuery(
-    { projectId },
-    { enabled: !!projectId },
+  // Fetch assumptions — use scenario-scoped query to avoid cross-scenario duplicates
+  const useScenarioQuery = !!baseScenarioId;
+  const { data: scenarioAssumptions, isLoading: isLoadingScenario, error: scenarioError } = trpc.assumption.listByScenario.useQuery(
+    { scenarioId: baseScenarioId! },
+    { enabled: useScenarioQuery },
   );
+  const { data: projectAssumptions, isLoading: isLoadingProject, error: projectError } = trpc.assumption.list.useQuery(
+    { projectId },
+    { enabled: !useScenarioQuery && !!projectId },
+  );
+  const assumptions = scenarioAssumptions ?? projectAssumptions;
+  const isLoading = isLoadingScenario || isLoadingProject;
+  const error = scenarioError ?? projectError;
 
   // Fetch model (for scenarios) and active modules
   const { data: model } = trpc.financial.get.useQuery(
@@ -130,13 +142,23 @@ export default function FinancialAssumptionsPage({
 
   // Mutations
   const updateMutation = trpc.assumption.update.useMutation({
-    onSuccess: () => utils.assumption.list.invalidate({ projectId }),
+    onSuccess: () => {
+      utils.assumption.list.invalidate({ projectId });
+      if (baseScenarioId) utils.assumption.listByScenario.invalidate({ scenarioId: baseScenarioId });
+      utils.financial.computeStatements.invalidate({ scenarioId: baseScenarioId! });
+    },
   });
   const createSubMutation = trpc.assumption.createSubAssumption.useMutation({
-    onSuccess: () => utils.assumption.list.invalidate({ projectId }),
+    onSuccess: () => {
+      utils.assumption.list.invalidate({ projectId });
+      if (baseScenarioId) utils.assumption.listByScenario.invalidate({ scenarioId: baseScenarioId });
+    },
   });
   const deleteSubMutation = trpc.assumption.deleteSubAssumption.useMutation({
-    onSuccess: () => utils.assumption.list.invalidate({ projectId }),
+    onSuccess: () => {
+      utils.assumption.list.invalidate({ projectId });
+      if (baseScenarioId) utils.assumption.listByScenario.invalidate({ scenarioId: baseScenarioId });
+    },
   });
 
   // Handlers
