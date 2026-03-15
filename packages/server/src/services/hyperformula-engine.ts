@@ -135,10 +135,11 @@ export function buildWorkbook(config: WorkbookConfig): HyperFormula {
 
   // Add module sheets before statement sheets
   for (const mod of activeModules) {
-    if (mod.layoutType === 'standard') {
+    if (mod.layoutType === 'matrix' && mod.key === 'ltv_cohort') {
+      sheetsData[mod.key] = buildCohortMatrix(mod, numPeriods, assumptionMap);
+    } else {
       sheetsData[mod.key] = buildModuleSheet(mod, numPeriods, monthsPerPeriod, startMonths);
     }
-    // matrix layout (LTV cohort) deferred to follow-up — uses standard for now
   }
 
   // Statement sheets last
@@ -295,6 +296,81 @@ function buildPeriodFormula(
  * Formulas reference named expressions (assumptions) and other rows
  * within the same sheet by key → cell reference.
  */
+/**
+ * Build a triangular cohort matrix for the LTV module.
+ *
+ * Layout:
+ *   Row 0: header labels (Period 1, Period 2, ...)
+ *   Row 1..N: one row per cohort (cohort N starts in period N)
+ *     - Cell (cohort, period): revenue from that cohort in that period
+ *     - Cohort period 0: new_customers * arpu
+ *     - Cohort period M (M>0): prior cell * retention_rate/100
+ *     - Cells where period < cohort start: 0 (upper triangle)
+ *   Row N+1: Total Revenue = SUM of column (all cohorts for that period)
+ *   Row N+2: Active Customers = SUM of customer counts for that period
+ *
+ * The matrix is NxN where N = numPeriods. For a 5-year model with 21 periods,
+ * this creates a 21x21 matrix (~441 cells) — well within HyperFormula's capacity.
+ */
+function buildCohortMatrix(
+  mod: ModuleDefinition,
+  numPeriods: number,
+  assumptionMap: Record<string, number>,
+): RawCellContent[][] {
+  const data: RawCellContent[][] = [];
+
+  // Row 0: header labels
+  const headerRow: RawCellContent[] = ['Cohort'];
+  for (let p = 0; p < numPeriods; p++) {
+    headerRow.push(`P${p + 1}`);
+  }
+  data.push(headerRow);
+
+  // Rows 1..N: cohort rows (one per period)
+  for (let cohort = 0; cohort < numPeriods; cohort++) {
+    const row: RawCellContent[] = [`Cohort ${cohort + 1}`];
+
+    for (let period = 0; period < numPeriods; period++) {
+      if (period < cohort) {
+        // This cohort doesn't exist yet in this period
+        row.push(0);
+      } else if (period === cohort) {
+        // Cohort birth period: new_customers * arpu
+        // new_customers comes from marketing_funnel output or assumption
+        row.push('=new_customers_per_period*arpu');
+      } else {
+        // Subsequent period: decay by retention rate
+        // Reference the previous period's cell in the same row
+        const prevCol = colLetter(period); // period is 0-indexed, col 0 = labels, so col for period-1 = period
+        const currentRow = cohort + 2; // +1 for header, +1 for 1-indexed
+        row.push(`=${prevCol}${currentRow}*monthly_retention_rate/100`);
+      }
+    }
+
+    data.push(row);
+  }
+
+  // Summary row: Total Cohort Revenue = SUM of each column
+  const revenueRow: RawCellContent[] = ['Total Revenue'];
+  for (let p = 0; p < numPeriods; p++) {
+    const col = colLetter(p + 1);
+    // SUM from row 2 (first cohort) to row numPeriods+1 (last cohort)
+    revenueRow.push(`=SUM(${col}2:${col}${numPeriods + 1})`);
+  }
+  data.push(revenueRow);
+
+  // Summary row: Active Customers = total revenue / arpu
+  const customersRow: RawCellContent[] = ['Active Customers'];
+  for (let p = 0; p < numPeriods; p++) {
+    const col = colLetter(p + 1);
+    const revenueRowNum = numPeriods + 2;
+    customersRow.push(`=IF(arpu>0,${col}${revenueRowNum}/arpu,0)`);
+  }
+  data.push(customersRow);
+
+  return data;
+}
+
 function buildModuleSheet(
   mod: ModuleDefinition,
   numPeriods: number,
@@ -403,7 +479,23 @@ function wireModuleOutputs(
         if (lineIdx < 0) continue;
 
         const targetRow = METADATA_ROWS + lineIdx;
-        const sourceRow = METADATA_ROWS + calcIdx;
+
+        // For matrix layout (LTV cohort), source rows are at the bottom of the matrix
+        // Row structure: 1 header + numPeriods cohort rows + summary rows
+        let sourceRow: number;
+        if (mod.layoutType === 'matrix' && mod.key === 'ltv_cohort') {
+          // cohort_revenue is the first summary row (numPeriods + 1), 0-indexed
+          // active_customers is the second summary row (numPeriods + 2)
+          if (calc.key === 'cohort_revenue') {
+            sourceRow = numPeriods + 1; // after header + N cohort rows
+          } else if (calc.key === 'active_customers') {
+            sourceRow = numPeriods + 2;
+          } else {
+            sourceRow = METADATA_ROWS + calcIdx;
+          }
+        } else {
+          sourceRow = METADATA_ROWS + calcIdx;
+        }
 
         // Wire each period column
         for (let p = 0; p < numPeriods; p++) {
