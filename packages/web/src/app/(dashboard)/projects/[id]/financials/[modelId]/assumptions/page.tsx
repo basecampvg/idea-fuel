@@ -187,20 +187,22 @@ export default function FinancialAssumptionsPage({
       debt_schedule: ['initial_debt', 'annual_interest_rate', 'loan_term_months', 'funding_amount', 'funding_month'],
     };
 
-    // Build a set of all module input keys for enabled modules
+    // Build a set of ALL module input keys (including disabled modules)
+    // so we can exclude them from General even when the module is off
     const allModuleInputKeySet = new Set<string>();
-    for (const [modKey, keys] of Object.entries(moduleInputKeys)) {
-      if (enabledModuleKeys.has(modKey)) {
-        for (const k of keys) allModuleInputKeySet.add(k);
-      }
+    for (const keys of Object.values(moduleInputKeys)) {
+      for (const k of keys) allModuleInputKeySet.add(k);
     }
+
+    // Track assigned assumption IDs to prevent duplicates
+    const assignedIds = new Set<string>();
 
     for (const a of allAssumptions) {
       if (a.parentId) continue; // Children are handled via childrenMap
 
       const childCount = childrenCountMap.get(a.id) ?? 0;
 
-      // Check if this is a module input
+      // Check if this is a module input for an ENABLED module
       let assignedToModule = false;
       for (const [modKey, keys] of Object.entries(moduleInputKeys)) {
         if (enabledModuleKeys.has(modKey) && keys.includes(a.key)) {
@@ -208,6 +210,7 @@ export default function FinancialAssumptionsPage({
           list.push(a);
           modGroups.set(modKey, list);
           assignedToModule = true;
+          assignedIds.add(a.id);
 
           // Track category → module mapping
           const cat = MODULE_CATEGORY_MAP[modKey] ?? a.category;
@@ -220,6 +223,9 @@ export default function FinancialAssumptionsPage({
 
       if (assignedToModule) continue;
 
+      // Skip assumptions claimed by any module (even disabled ones) — they don't belong in General
+      if (allModuleInputKeySet.has(a.key)) continue;
+
       // Check if derived (has formula, no children, not a module input)
       if (isDerived(a, childCount)) {
         const unitMap: Record<string, string> = { CURRENCY: '$', PERCENTAGE: '%', NUMBER: '' };
@@ -231,23 +237,28 @@ export default function FinancialAssumptionsPage({
         continue;
       }
 
-      // General input
+      // General input (not claimed by any module)
       general.push(a);
+      assignedIds.add(a.id);
     }
 
-    // Also include children for each assumption
+    // Include children in their parent's group
     for (const a of allAssumptions) {
       if (!a.parentId) continue;
-      // Add children to whichever group their parent is in
-      for (const [modKey, list] of modGroups) {
+      if (assignedIds.has(a.id)) continue; // prevent duplicates
+
+      // Add to the module group that contains the parent
+      for (const [, list] of modGroups) {
         if (list.some((p) => p.id === a.parentId)) {
           list.push(a);
+          assignedIds.add(a.id);
           break;
         }
       }
-      // Check if parent is in general
-      if (general.some((p) => p.id === a.parentId)) {
+      // Or to general if parent is there
+      if (!assignedIds.has(a.id) && general.some((p) => p.id === a.parentId)) {
         general.push(a);
+        assignedIds.add(a.id);
       }
     }
 

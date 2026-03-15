@@ -6,13 +6,14 @@
  */
 
 import { z } from 'zod';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { router, protectedProcedure } from '../trpc';
 import { entityId } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
-import { financialModels, scenarios, assumptions } from '../db/schema';
+import { financialModels, scenarios, assumptions, modelModules } from '../db/schema';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { getTemplate } from '../services/financial-templates';
+import { getModule } from '../services/modules';
 import { assumptionsToMap } from '../services/financial-calculator';
 import { buildWorkbook, readStatements, enrichStatements, serializeForExcel, getNamedExpressions } from '../services/hyperformula-engine';
 import type { AssumptionRow } from '../services/hyperformula-engine';
@@ -70,6 +71,16 @@ async function loadModelAndStatements(
 
   const assumptionMap = assumptionsToMap(rows);
 
+  // Load active modules for this model
+  const enabledModuleRows = await db
+    .select()
+    .from(modelModules)
+    .where(and(eq(modelModules.modelId, modelId), eq(modelModules.isEnabled, true)));
+
+  const activeModules = enabledModuleRows
+    .map(r => getModule(r.moduleKey))
+    .filter((m): m is NonNullable<typeof m> => m !== null);
+
   // Build HyperFormula workbook and compute statements
   const assumptionRows: AssumptionRow[] = rows.map(r => ({
     key: r.key,
@@ -77,7 +88,7 @@ async function loadModelAndStatements(
     numericValue: r.numericValue,
     formula: r.formula,
   }));
-  const hf = buildWorkbook({ assumptions: assumptionRows, template, forecastYears: model.forecastYears });
+  const hf = buildWorkbook({ assumptions: assumptionRows, template, forecastYears: model.forecastYears, activeModules });
   const rawStatements = readStatements(hf, model.forecastYears);
   const statements = enrichStatements(rawStatements, template);
 

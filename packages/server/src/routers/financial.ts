@@ -316,6 +316,16 @@ export const financialRouter = router({
         .from(assumptions)
         .where(eq(assumptions.scenarioId, input.scenarioId));
 
+      // Load active modules for this model
+      const enabledModuleRows = await ctx.db
+        .select()
+        .from(modelModules)
+        .where(and(eq(modelModules.modelId, model.id), eq(modelModules.isEnabled, true)));
+
+      const activeModules = enabledModuleRows
+        .map(r => getModule(r.moduleKey))
+        .filter((m): m is NonNullable<typeof m> => m !== null);
+
       // Build HyperFormula workbook and compute statements
       const assumptionRows: AssumptionRow[] = rows.map(r => ({
         key: r.key,
@@ -328,6 +338,7 @@ export const financialRouter = router({
         assumptions: assumptionRows,
         template,
         forecastYears: model.forecastYears,
+        activeModules,
       });
 
       const rawStatements = readStatements(hf, model.forecastYears);

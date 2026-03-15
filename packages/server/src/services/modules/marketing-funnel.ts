@@ -46,7 +46,6 @@ export const marketingFunnelModule: ModuleDefinition = {
       name: 'New Paid Customers',
       firstPeriodFormula: '=conversions',
       isOutput: true,
-      targetStatement: 'pl',
     },
     {
       key: 'ad_spend',
