@@ -61,6 +61,9 @@ export const assumptionValueTypeEnum = pgEnum('AssumptionValueType', [
 export const assumptionTierEnum = pgEnum('AssumptionTier', [
   'SPARK', 'LIGHT', 'IN_DEPTH',
 ]);
+export const assumptionAggregationEnum = pgEnum('AssumptionAggregation', [
+  'SUM', 'AVERAGE', 'CUSTOM',
+]);
 
 // Financial Modeling enums
 export const knowledgeLevelEnum = pgEnum('KnowledgeLevel', ['BEGINNER', 'STANDARD', 'EXPERT']);
@@ -96,6 +99,7 @@ export type AssumptionCategory = (typeof assumptionCategoryEnum.enumValues)[numb
 export type AssumptionConfidence = (typeof assumptionConfidenceEnum.enumValues)[number];
 export type AssumptionValueType = (typeof assumptionValueTypeEnum.enumValues)[number];
 export type AssumptionTier = (typeof assumptionTierEnum.enumValues)[number];
+export type AssumptionAggregation = (typeof assumptionAggregationEnum.enumValues)[number];
 export type KnowledgeLevel = (typeof knowledgeLevelEnum.enumValues)[number];
 export type FinancialModelStatus = (typeof financialModelStatusEnum.enumValues)[number];
 export type ERPProvider = (typeof erpProviderEnum.enumValues)[number];
@@ -769,6 +773,7 @@ export const assumptions = pgTable('Assumption', {
   projectId: text(),
   scenarioId: text(),
   parentId: text(),
+  aggregationMode: assumptionAggregationEnum().default('SUM'),
   category: assumptionCategoryEnum().notNull(),
   name: text().notNull(),
   key: text().notNull(),
