@@ -136,9 +136,9 @@ export function buildWorkbook(config: WorkbookConfig): HyperFormula {
   // Add module sheets before statement sheets
   for (const mod of activeModules) {
     if (mod.layoutType === 'matrix' && mod.key === 'ltv_cohort') {
-      sheetsData[mod.key] = buildCohortMatrix(mod, numPeriods, assumptionMap);
+      sheetsData[mod.key] = buildCohortMatrix(mod, numPeriods, assumptionMap, activeModules);
     } else {
-      sheetsData[mod.key] = buildModuleSheet(mod, numPeriods, monthsPerPeriod, startMonths);
+      sheetsData[mod.key] = buildModuleSheet(mod, numPeriods, monthsPerPeriod, startMonths, activeModules);
     }
   }
 
@@ -154,9 +154,10 @@ export function buildWorkbook(config: WorkbookConfig): HyperFormula {
     namedExpressions,
   );
 
-  // Post-construction: link statements + wire module outputs
-  linkStatements(hf, template, numPeriods, forecastYears);
+  // Post-construction: wire cross-module inputs, module outputs, then link statements
+  wireCrossModuleInputs(hf, activeModules, numPeriods);
   wireModuleOutputs(hf, activeModules, template, numPeriods);
+  linkStatements(hf, template, numPeriods, forecastYears);
 
   return hf;
 }
@@ -316,8 +317,30 @@ function buildCohortMatrix(
   mod: ModuleDefinition,
   numPeriods: number,
   assumptionMap: Record<string, number>,
+  allModules?: ModuleDefinition[],
 ): RawCellContent[][] {
   const data: RawCellContent[][] = [];
+
+  // Resolve cross-module source for new_customers_per_period
+  // If Marketing Funnel is active, reference its paid_customers output row per period
+  const newCustInput = mod.inputs.find(i => i.key === 'new_customers_per_period');
+  let newCustomersFormula: (period: number) => string;
+
+  if (newCustInput?.sourceModule && allModules?.find(m => m.key === newCustInput.sourceModule)) {
+    const sourceMod = allModules.find(m => m.key === newCustInput.sourceModule)!;
+    const sourceCalcIdx = sourceMod.calculations.findIndex(c => c.key === newCustInput.sourceOutputKey);
+    if (sourceCalcIdx >= 0) {
+      const sourceRow = METADATA_ROWS + sourceCalcIdx;
+      // Reference source module's output cell for each period
+      newCustomersFormula = (period: number) =>
+        `${newCustInput.sourceModule}!${colLetter(period + 1)}${sourceRow + 1}`;
+    } else {
+      newCustomersFormula = () => 'new_customers_per_period';
+    }
+  } else {
+    // Fallback to named expression (static assumption value)
+    newCustomersFormula = () => 'new_customers_per_period';
+  }
 
   // Row 0: header labels
   const headerRow: RawCellContent[] = ['Cohort'];
@@ -332,17 +355,14 @@ function buildCohortMatrix(
 
     for (let period = 0; period < numPeriods; period++) {
       if (period < cohort) {
-        // This cohort doesn't exist yet in this period
         row.push(0);
       } else if (period === cohort) {
-        // Cohort birth period: new_customers * arpu
-        // new_customers comes from marketing_funnel output or assumption
-        row.push('=new_customers_per_period*arpu');
+        // Cohort birth period: new_customers for THIS period * arpu
+        row.push(`=${newCustomersFormula(period)}*arpu`);
       } else {
-        // Subsequent period: decay by retention rate
-        // Reference the previous period's cell in the same row
-        const prevCol = colLetter(period); // period is 0-indexed, col 0 = labels, so col for period-1 = period
-        const currentRow = cohort + 2; // +1 for header, +1 for 1-indexed
+        // Decay by retention rate from prior period
+        const prevCol = colLetter(period);
+        const currentRow = cohort + 2;
         row.push(`=${prevCol}${currentRow}*monthly_retention_rate/100`);
       }
     }
@@ -376,6 +396,7 @@ function buildModuleSheet(
   numPeriods: number,
   monthsPerPeriod: number[],
   startMonths: number[],
+  allModules?: ModuleDefinition[],
 ): RawCellContent[][] {
   const data: RawCellContent[][] = [];
 
@@ -384,6 +405,40 @@ function buildModuleSheet(
   data.push(['_month', ...startMonths]);
   data.push(['_period', ...Array.from({ length: numPeriods }, (_, i) => i)]);
 
+  // Add relay rows for cross-module inputs (period-varying references)
+  // These appear between metadata and calculation rows
+  const relayRows: Array<{ key: string; sourceModuleKey: string; sourceRow: number }> = [];
+  if (allModules) {
+    for (const input of mod.inputs) {
+      if (!input.sourceModule || !input.sourceOutputKey) continue;
+      const sourceMod = allModules.find(m => m.key === input.sourceModule);
+      if (!sourceMod) continue;
+
+      let sourceRow: number;
+      if (sourceMod.layoutType === 'matrix' && sourceMod.key === 'ltv_cohort') {
+        // Cohort matrix output rows
+        if (input.sourceOutputKey === 'cohort_revenue') sourceRow = numPeriods + 1;
+        else if (input.sourceOutputKey === 'active_customers') sourceRow = numPeriods + 2;
+        else continue;
+      } else {
+        const calcIdx = sourceMod.calculations.findIndex(c => c.key === input.sourceOutputKey);
+        if (calcIdx < 0) continue;
+        sourceRow = METADATA_ROWS + calcIdx;
+      }
+
+      // Add a relay row that reads from source module per-period
+      const relayRow: RawCellContent[] = [input.key];
+      for (let p = 0; p < numPeriods; p++) {
+        relayRow.push(`=${input.sourceModule}!${colLetter(p + 1)}${sourceRow + 1}`);
+      }
+      data.push(relayRow);
+      relayRows.push({ key: input.key, sourceModuleKey: input.sourceModule, sourceRow });
+    }
+  }
+
+  // Track the offset: metadata rows + relay rows
+  const calcStartRow = METADATA_ROWS + relayRows.length;
+
   // Calculation rows
   for (let rowIdx = 0; rowIdx < mod.calculations.length; rowIdx++) {
     const calc = mod.calculations[rowIdx];
@@ -391,29 +446,50 @@ function buildModuleSheet(
 
     for (let p = 0; p < numPeriods; p++) {
       if (p === 0) {
-        // First period: use firstPeriodFormula, replacing calc keys with cell refs
         let formula = calc.firstPeriodFormula;
-        formula = resolveModuleFormula(formula, mod.calculations, METADATA_ROWS, p + 1);
+        // Resolve relay row references (cross-module inputs)
+        for (let ri = 0; ri < relayRows.length; ri++) {
+          const relay = relayRows[ri];
+          const relayRowNum = METADATA_ROWS + ri;
+          formula = formula.replace(
+            new RegExp(`\\b${escapeRegex(relay.key)}\\b`, 'g'),
+            `${colLetter(p + 1)}${relayRowNum + 1}`,
+          );
+        }
+        formula = resolveModuleFormula(formula, mod.calculations, calcStartRow, p + 1);
         row.push(formula);
       } else if (calc.formula) {
-        // Subsequent periods: use formula with {PREV} resolved
         let formula = calc.formula;
-        const curCol = colLetter(p + 1);
         const prevCol = colLetter(p);
-        // Replace {PREV} with prior column same row reference
-        formula = formula.replace(/\{PREV\}/g, `${prevCol}${METADATA_ROWS + rowIdx + 1}`);
-        // Replace {PREV_xxx} with prior column reference to another row
+        formula = formula.replace(/\{PREV\}/g, `${prevCol}${calcStartRow + rowIdx + 1}`);
         formula = formula.replace(/\{PREV_(\w+)\}/g, (_match, key) => {
           const targetIdx = mod.calculations.findIndex(c => c.key === key);
-          if (targetIdx >= 0) return `${prevCol}${METADATA_ROWS + targetIdx + 1}`;
+          if (targetIdx >= 0) return `${prevCol}${calcStartRow + targetIdx + 1}`;
           return '0';
         });
-        formula = resolveModuleFormula(formula, mod.calculations, METADATA_ROWS, p + 1);
+        // Resolve relay rows
+        for (let ri = 0; ri < relayRows.length; ri++) {
+          const relay = relayRows[ri];
+          const relayRowNum = METADATA_ROWS + ri;
+          formula = formula.replace(
+            new RegExp(`\\b${escapeRegex(relay.key)}\\b`, 'g'),
+            `${colLetter(p + 1)}${relayRowNum + 1}`,
+          );
+        }
+        formula = resolveModuleFormula(formula, mod.calculations, calcStartRow, p + 1);
         row.push(formula);
       } else {
         // No growth formula — repeat the firstPeriodFormula pattern for each period
         let formula = calc.firstPeriodFormula;
-        formula = resolveModuleFormula(formula, mod.calculations, METADATA_ROWS, p + 1);
+        for (let ri = 0; ri < relayRows.length; ri++) {
+          const relay = relayRows[ri];
+          const relayRowNum = METADATA_ROWS + ri;
+          formula = formula.replace(
+            new RegExp(`\\b${escapeRegex(relay.key)}\\b`, 'g'),
+            `${colLetter(p + 1)}${relayRowNum + 1}`,
+          );
+        }
+        formula = resolveModuleFormula(formula, mod.calculations, calcStartRow, p + 1);
         row.push(formula);
       }
     }
@@ -452,6 +528,20 @@ function resolveModuleFormula(
  * For each active module's output, set the corresponding statement cell
  * to reference the module sheet's output cell.
  */
+/**
+ * Cross-module input wiring is now handled at build time:
+ * - Cohort matrix: buildCohortMatrix resolves sourceModule references per-period
+ * - Standard modules: buildModuleSheet adds relay rows for cross-module inputs
+ * No post-construction wiring needed.
+ */
+function wireCrossModuleInputs(
+  _hf: HyperFormula,
+  _modules: ModuleDefinition[],
+  _numPeriods: number,
+): void {
+  // Handled at build time by relay rows and cohort matrix builder
+}
+
 function wireModuleOutputs(
   hf: HyperFormula,
   modules: ModuleDefinition[],
@@ -494,7 +584,9 @@ function wireModuleOutputs(
             sourceRow = METADATA_ROWS + calcIdx;
           }
         } else {
-          sourceRow = METADATA_ROWS + calcIdx;
+          // Standard layout: account for relay rows
+          const relayCount = mod.inputs.filter(i => i.sourceModule && i.sourceOutputKey).length;
+          sourceRow = METADATA_ROWS + relayCount + calcIdx;
         }
 
         // Wire each period column
