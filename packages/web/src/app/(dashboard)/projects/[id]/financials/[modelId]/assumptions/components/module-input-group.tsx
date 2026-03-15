@@ -10,6 +10,7 @@ interface AssumptionInput {
   value: string | null;
   unit: string | null;
   formula: string | null;
+  confidence?: string;
   parentId?: string | null;
   aggregationMode?: string | null;
 }
@@ -86,6 +87,7 @@ export function ModuleInputGroup({
             value={a.value}
             unit={a.unit}
             formula={a.formula}
+            confidence={a.confidence as 'USER' | 'RESEARCHED' | 'AI_ESTIMATE' | 'CALCULATED' | undefined}
             children_={childrenMap.get(a.id)?.map((c) => ({
               id: c.id,
               name: c.name,

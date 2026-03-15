@@ -165,13 +165,15 @@ export default function FinancialAssumptionsPage({
     const modGroups = new Map<string, typeof allAssumptions>();
     const catModMap = new Map<string, string[]>();
 
-    // Known module input keys (from module definitions)
+    // Known module input keys (from module definitions + template overlaps)
+    // These map assumption keys to the module they belong to.
+    // Template assumptions like headcount/avg_salary overlap with Payroll module inputs.
     const moduleInputKeys: Record<string, string[]> = {
-      marketing_funnel: ['impressions', 'impression_growth_rate', 'ctr', 'cpc', 'conv_rate'],
-      ltv_cohort: ['arpu', 'monthly_retention_rate', 'new_customers_per_period'],
-      payroll: ['headcount', 'avg_salary', 'wrap_rate', 'annual_raise_pct'],
-      cogs_variable: ['hosting_cost_per_user', 'api_cost_per_user', 'support_cost_per_user', 'payment_processing_pct'],
-      debt_schedule: ['initial_debt', 'annual_interest_rate', 'loan_term_months'],
+      marketing_funnel: ['impressions', 'impression_growth_rate', 'ctr', 'cpc', 'conv_rate', 'marketing_budget'],
+      ltv_cohort: ['arpu', 'monthly_retention_rate', 'new_customers_per_period', 'monthly_churn', 'starting_customers', 'monthly_new_customers'],
+      payroll: ['headcount', 'avg_salary', 'wrap_rate', 'annual_raise_pct', 'salary_growth_rate', 'new_hires_per_year', 'benefits_pct', 'non_billable_staff', 'admin_salary'],
+      cogs_variable: ['hosting_cost_per_user', 'api_cost_per_user', 'support_cost_per_user', 'payment_processing_pct', 'hosting_cost_pct', 'support_cost_pct', 'cogs_pct', 'gross_margin'],
+      debt_schedule: ['initial_debt', 'annual_interest_rate', 'loan_term_months', 'funding_amount', 'funding_month'],
     };
 
     // Build a set of all module input keys for enabled modules

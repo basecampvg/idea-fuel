@@ -473,11 +473,70 @@ export const financialRouter = router({
         });
       }
 
+      // When enabling a module, seed its input assumptions with defaults
+      if (input.enabled) {
+        // Find the model's project and base scenario
+        const model = await ctx.db.query.financialModels.findFirst({
+          where: eq(financialModels.id, input.modelId),
+        });
+        if (model?.projectId) {
+          const baseScenario = await ctx.db.query.scenarios.findFirst({
+            where: and(eq(scenarios.modelId, input.modelId), eq(scenarios.isBase, true)),
+          });
+          const scenarioId = baseScenario?.id ?? null;
+
+          // Get existing assumption keys for this project
+          const existingKeys = new Set(
+            (await ctx.db
+              .select({ key: assumptions.key })
+              .from(assumptions)
+              .where(eq(assumptions.projectId, model.projectId))
+            ).map((r) => r.key),
+          );
+
+          // Seed missing module inputs
+          const now = new Date();
+          const moduleInputCategory: Record<string, string> = {
+            marketing_funnel: 'ACQUISITION',
+            ltv_cohort: 'PRICING',
+            payroll: 'COSTS',
+            cogs_variable: 'COSTS',
+            debt_schedule: 'FUNDING',
+          };
+
+          const toSeed = mod.inputs
+            .filter((inp) => !existingKeys.has(inp.key))
+            .map((inp, idx) => ({
+              projectId: model.projectId!,
+              scenarioId,
+              category: (moduleInputCategory[input.moduleKey] ?? 'COSTS') as 'PRICING' | 'ACQUISITION' | 'RETENTION' | 'MARKET' | 'COSTS' | 'FUNDING' | 'TIMELINE',
+              name: inp.name,
+              key: inp.key,
+              value: String(inp.default),
+              numericValue: String(inp.default),
+              valueType: inp.valueType as 'NUMBER' | 'PERCENTAGE' | 'CURRENCY' | 'TEXT' | 'DATE' | 'SELECT',
+              unit: inp.unit ?? null,
+              confidence: 'AI_ESTIMATE' as const,
+              source: `Module: ${mod.name}`,
+              formula: null,
+              dependsOn: [],
+              displayOrder: 1000 + idx, // high order so they appear after template defaults
+              updatedByActor: 'system',
+              updatedByUserId: ctx.userId,
+              updatedAt: now,
+            }));
+
+          if (toSeed.length > 0) {
+            await ctx.db.insert(assumptions).values(toSeed);
+          }
+        }
+      }
+
       logAuditAsync({
         userId: ctx.userId,
         action: 'PROJECT_UPDATE',
         resource: formatResource('financial_model', input.modelId),
-        metadata: { action: 'toggle_module', moduleKey: input.moduleKey, enabled: input.enabled },
+        metadata: { action: 'toggle_module', moduleKey: input.moduleKey, enabled: input.enabled, seeded: input.enabled },
       });
 
       return { moduleKey: input.moduleKey, enabled: input.enabled };
