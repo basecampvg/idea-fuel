@@ -61,10 +61,11 @@ const USE_PARALLEL_PIPELINE = true;
 const KEYWORD_SYSTEM_PROMPT = `You are a keyword research expert specializing in market validation and demand discovery.
 
 Your task is to generate a keyword pack for validating a business idea. The output must be:
-1. 6 keyword phrases that mix:
-   - Core intent keywords (what the product/service does)
-   - Problem-based keywords (the pain points it solves)
-   - Audience + format keywords (who needs it + how they search)
+1. 6 short keyword phrases (2-4 words each) optimized for Google Trends search volume.
+   These should be what a real person types into Google — broad, common search terms.
+   GOOD examples: "construction management app", "contractor scheduling software", "project management tool"
+   BAD examples: "construction job management app for contractors", "field service invoicing software small crews"
+   Think: what terms actually have search volume on Google Trends?
 2. 10-20 synonym terms for semantic variations
 3. A query plan with specific search queries for:
    - General web search
