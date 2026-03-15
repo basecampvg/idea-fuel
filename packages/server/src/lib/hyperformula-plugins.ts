@@ -16,27 +16,20 @@ import {
 // Blocked Functions Plugin — prevents formula injection
 // ---------------------------------------------------------------------------
 
-export class BlockedFunctionsPlugin extends FunctionPlugin {
+/**
+ * List of dangerous built-in functions to unregister.
+ * These are unregistered at plugin setup time rather than overridden,
+ * since HyperFormula doesn't allow re-registering already-registered function IDs.
+ */
+export const BLOCKED_FUNCTION_IDS = ['INDIRECT', 'OFFSET', 'HYPERLINK'] as const;
+
+/**
+ * WEBSERVICE is not a built-in HyperFormula function, so we register it
+ * as a custom function that always errors. This prevents user formulas
+ * from silently succeeding if HyperFormula adds it in a future version.
+ */
+export class WebserviceBlockPlugin extends FunctionPlugin {
   static implementedFunctions = {
-    'INDIRECT': {
-      method: 'blockedFunction',
-      parameters: [{ argumentType: FunctionArgumentType.STRING }],
-    },
-    'OFFSET': {
-      method: 'blockedFunction',
-      parameters: [
-        { argumentType: FunctionArgumentType.ANY },
-        { argumentType: FunctionArgumentType.NUMBER },
-        { argumentType: FunctionArgumentType.NUMBER },
-      ],
-    },
-    'HYPERLINK': {
-      method: 'blockedFunction',
-      parameters: [
-        { argumentType: FunctionArgumentType.STRING },
-        { argumentType: FunctionArgumentType.STRING },
-      ],
-    },
     'WEBSERVICE': {
       method: 'blockedFunction',
       parameters: [{ argumentType: FunctionArgumentType.STRING }],
@@ -48,9 +41,9 @@ export class BlockedFunctionsPlugin extends FunctionPlugin {
   }
 }
 
-export const blockedFunctionsTranslations = {
-  enGB: { INDIRECT: 'INDIRECT', OFFSET: 'OFFSET', HYPERLINK: 'HYPERLINK', WEBSERVICE: 'WEBSERVICE' },
-  enUS: { INDIRECT: 'INDIRECT', OFFSET: 'OFFSET', HYPERLINK: 'HYPERLINK', WEBSERVICE: 'WEBSERVICE' },
+export const webserviceBlockTranslations = {
+  enGB: { WEBSERVICE: 'WEBSERVICE' },
+  enUS: { WEBSERVICE: 'WEBSERVICE' },
 };
 
 // ---------------------------------------------------------------------------
