@@ -4,6 +4,7 @@ import { use, useState, useCallback, useMemo, useEffect } from 'react';
 import { trpc } from '@/lib/trpc/client';
 import { ModuleInputGroup } from './components/module-input-group';
 import { DerivedMetricsStrip } from './components/derived-metrics-strip';
+import { ImpactChart } from './components/impact-chart';
 import { DependencyGraph } from './components/dependency-graph';
 import { ASSUMPTION_IMPACT_MAP } from './components/impact-map';
 import { Settings2, Loader2, GitBranch } from 'lucide-react';
@@ -75,10 +76,27 @@ export default function FinancialAssumptionsPage({
     { enabled: !!projectId },
   );
 
-  // Fetch active modules for this model
+  // Fetch model (for scenarios) and active modules
+  const { data: model } = trpc.financial.get.useQuery(
+    { id: modelId },
+    { enabled: !!modelId },
+  );
   const { data: modelModules } = trpc.financial.listModelModules.useQuery(
     { modelId },
     { enabled: !!modelId },
+  );
+
+  // Get base scenario ID for computeStatements
+  const baseScenarioId = useMemo(() => {
+    if (!model?.scenarios) return null;
+    const base = model.scenarios.find((s: { isBase: boolean }) => s.isBase);
+    return base?.id ?? model.scenarios[0]?.id ?? null;
+  }, [model]);
+
+  // Fetch computed statements for derived metrics and module outputs
+  const { data: computedStatements } = trpc.financial.computeStatements.useQuery(
+    { scenarioId: baseScenarioId! },
+    { enabled: !!baseScenarioId },
   );
 
   // Auto-seed / auto-sync
@@ -187,20 +205,22 @@ export default function FinancialAssumptionsPage({
       debt_schedule: ['initial_debt', 'annual_interest_rate', 'loan_term_months', 'funding_amount', 'funding_month'],
     };
 
-    // Build a set of all module input keys for enabled modules
+    // Build a set of ALL module input keys (including disabled modules)
+    // so we can exclude them from General even when the module is off
     const allModuleInputKeySet = new Set<string>();
-    for (const [modKey, keys] of Object.entries(moduleInputKeys)) {
-      if (enabledModuleKeys.has(modKey)) {
-        for (const k of keys) allModuleInputKeySet.add(k);
-      }
+    for (const keys of Object.values(moduleInputKeys)) {
+      for (const k of keys) allModuleInputKeySet.add(k);
     }
+
+    // Track assigned assumption IDs to prevent duplicates
+    const assignedIds = new Set<string>();
 
     for (const a of allAssumptions) {
       if (a.parentId) continue; // Children are handled via childrenMap
 
       const childCount = childrenCountMap.get(a.id) ?? 0;
 
-      // Check if this is a module input
+      // Check if this is a module input for an ENABLED module
       let assignedToModule = false;
       for (const [modKey, keys] of Object.entries(moduleInputKeys)) {
         if (enabledModuleKeys.has(modKey) && keys.includes(a.key)) {
@@ -208,6 +228,7 @@ export default function FinancialAssumptionsPage({
           list.push(a);
           modGroups.set(modKey, list);
           assignedToModule = true;
+          assignedIds.add(a.id);
 
           // Track category → module mapping
           const cat = MODULE_CATEGORY_MAP[modKey] ?? a.category;
@@ -220,6 +241,9 @@ export default function FinancialAssumptionsPage({
 
       if (assignedToModule) continue;
 
+      // Skip assumptions claimed by any module (even disabled ones) — they don't belong in General
+      if (allModuleInputKeySet.has(a.key)) continue;
+
       // Check if derived (has formula, no children, not a module input)
       if (isDerived(a, childCount)) {
         const unitMap: Record<string, string> = { CURRENCY: '$', PERCENTAGE: '%', NUMBER: '' };
@@ -231,23 +255,28 @@ export default function FinancialAssumptionsPage({
         continue;
       }
 
-      // General input
+      // General input (not claimed by any module)
       general.push(a);
+      assignedIds.add(a.id);
     }
 
-    // Also include children for each assumption
+    // Include children in their parent's group
     for (const a of allAssumptions) {
       if (!a.parentId) continue;
-      // Add children to whichever group their parent is in
-      for (const [modKey, list] of modGroups) {
+      if (assignedIds.has(a.id)) continue; // prevent duplicates
+
+      // Add to the module group that contains the parent
+      for (const [, list] of modGroups) {
         if (list.some((p) => p.id === a.parentId)) {
           list.push(a);
+          assignedIds.add(a.id);
           break;
         }
       }
-      // Check if parent is in general
-      if (general.some((p) => p.id === a.parentId)) {
+      // Or to general if parent is there
+      if (!assignedIds.has(a.id) && general.some((p) => p.id === a.parentId)) {
         general.push(a);
+        assignedIds.add(a.id);
       }
     }
 
@@ -263,14 +292,14 @@ export default function FinancialAssumptionsPage({
   const categoryContent = useMemo(() => {
     const sections: Array<{
       category: string;
-      modules: Array<{ moduleKey: string; title: string; icon?: string; assumptions: typeof generalInputs }>;
+      modules: Array<{ moduleKey: string; title: string; icon?: string; outputSummary?: string; assumptions: typeof generalInputs }>;
     }> = [];
 
     // General section first
     if (generalInputs.length > 0) {
       sections.push({
         category: 'GENERAL',
-        modules: [{ moduleKey: 'general', title: 'General / Model Settings', icon: '⚙️', assumptions: generalInputs }],
+        modules: [{ moduleKey: 'general', title: 'General / Model Settings', icon: '⚙️', assumptions: generalInputs, outputSummary: undefined as string | undefined }],
       });
     }
 
@@ -284,11 +313,41 @@ export default function FinancialAssumptionsPage({
           const modAssumptions = moduleGroups.get(modKey);
           if (!modAssumptions || modAssumptions.length === 0) return null;
           const modInfo = (modelModules ?? []).find((m: { moduleKey: string }) => m.moduleKey === modKey);
+
+          // Build output summary from computed statements
+          let outputSummary: string | undefined;
+          if (computedStatements) {
+            const summaryMap: Record<string, () => string | undefined> = {
+              marketing_funnel: () => {
+                const mktLine = computedStatements.pl.lines.find((l: { key: string }) => l.key === 'marketing');
+                return mktLine ? `$${Math.round(mktLine.values[0]).toLocaleString()}/mo ad spend` : undefined;
+              },
+              ltv_cohort: () => {
+                const revLine = computedStatements.pl.lines.find((l: { key: string }) => l.key === 'subscription_revenue' || l.key === 'revenue');
+                return revLine ? `$${Math.round(revLine.values[0]).toLocaleString()}/mo revenue` : undefined;
+              },
+              payroll: () => {
+                const salLine = computedStatements.pl.lines.find((l: { key: string }) => l.key === 'salaries');
+                return salLine ? `$${Math.round(salLine.values[0]).toLocaleString()}/mo payroll` : undefined;
+              },
+              cogs_variable: () => {
+                const cogsLine = computedStatements.pl.lines.find((l: { key: string }) => l.key === 'cogs');
+                return cogsLine ? `$${Math.round(cogsLine.values[0]).toLocaleString()}/mo COGS` : undefined;
+              },
+              debt_schedule: () => {
+                const intLine = computedStatements.pl.lines.find((l: { key: string }) => l.key === 'interest');
+                return intLine && intLine.values[0] !== 0 ? `$${Math.round(intLine.values[0]).toLocaleString()}/mo interest` : 'No debt';
+              },
+            };
+            outputSummary = summaryMap[modKey]?.();
+          }
+
           return {
             moduleKey: modKey,
             title: (modInfo as { module?: { name?: string } } | undefined)?.module?.name ?? modKey,
             icon: MODULE_ICONS[modKey],
             assumptions: modAssumptions,
+            outputSummary,
           };
         })
         .filter(Boolean) as Array<{ moduleKey: string; title: string; icon?: string; assumptions: typeof generalInputs }>;
@@ -356,12 +415,12 @@ export default function FinancialAssumptionsPage({
       {/* Dependency graph */}
       {showGraph && assumptions && (
         <DependencyGraph
-          assumptions={(assumptions ?? []).map((a: { key: string; name: string; category: string; confidence: string; effectiveConfidence?: string; dependsOn: string[]; value: string | null }) => ({
+          assumptions={(assumptions ?? []).map((a: { key: string; name: string; category: string; confidence: string; effectiveConfidence?: string; dependsOn: string[] | null; value: string | null }) => ({
             key: a.key,
             name: a.name,
             category: a.category as AssumptionCategory,
             confidence: (a.effectiveConfidence ?? a.confidence) as AssumptionConfidence,
-            dependsOn: a.dependsOn as string[],
+            dependsOn: (a.dependsOn ?? []) as string[],
             value: a.value,
           }))}
           impactMap={ASSUMPTION_IMPACT_MAP}
@@ -380,6 +439,7 @@ export default function FinancialAssumptionsPage({
               key={mod.moduleKey}
               title={mod.title}
               icon={mod.icon}
+              outputSummary={mod.outputSummary}
               assumptions={mod.assumptions}
               allAssumptions={allAssumptionsForAutocomplete}
               expandedCardId={expandedCardId}
@@ -395,9 +455,40 @@ export default function FinancialAssumptionsPage({
       ))}
 
       {/* Derived metrics strip */}
-      {derivedMetrics.length > 0 && (
-        <DerivedMetricsStrip metrics={derivedMetrics} />
-      )}
+      {/* Period-by-period impact chart */}
+      <ImpactChart statements={computedStatements ?? null} />
+
+      {/* Derived metrics from computed statements */}
+      <DerivedMetricsStrip metrics={(() => {
+        if (!computedStatements) return derivedMetrics; // fallback to assumption-based
+        const pl = computedStatements.pl;
+        const cf = computedStatements.cf;
+        const getLast = (lines: typeof pl.lines, key: string) => {
+          const line = lines.find((l: { key: string }) => l.key === key);
+          return line?.values?.[0] ?? null; // period 1 value
+        };
+        const getSum = (lines: typeof pl.lines, key: string) => {
+          const line = lines.find((l: { key: string }) => l.key === key);
+          return line?.values?.reduce((s: number, v: number) => s + v, 0) ?? null;
+        };
+        const revM1 = getLast(pl.lines, 'revenue') ?? getLast(pl.lines, 'subscription_revenue');
+        const netIncomeM1 = getLast(pl.lines, 'net_income');
+        const endingCash = getLast(cf.lines, 'ending_cash');
+        const y1NetIncome = computedStatements.pl.lines.find((l: { key: string }) => l.key === 'net_income')?.values?.slice(0, 12) ?? [];
+        const avgBurn = y1NetIncome.length > 0 ? y1NetIncome.reduce((s: number, v: number) => s + v, 0) / y1NetIncome.length : 0;
+        const startCash = (assumptions as Array<{ key: string; value: string | null }>)?.find(a => a.key === 'starting_cash');
+        const startCashVal = startCash ? parseFloat(startCash.value ?? '0') : 0;
+        const runway = avgBurn < 0 ? Math.floor(startCashVal / Math.abs(avgBurn)) : null;
+
+        return [
+          { label: 'Monthly Revenue', value: revM1, unit: '$' },
+          { label: 'Net Income (M1)', value: netIncomeM1, unit: '$', trend: (netIncomeM1 ?? 0) >= 0 ? 'up' as const : 'down' as const },
+          { label: 'Runway', value: runway, unit: 'months' },
+          { label: 'Ending Cash', value: endingCash, unit: '$' },
+          { label: 'Avg Monthly Burn (Y1)', value: avgBurn, unit: '$', trend: avgBurn >= 0 ? 'up' as const : 'down' as const },
+          ...derivedMetrics.slice(0, 3), // Include a few assumption-level derived metrics too
+        ];
+      })()} />
     </div>
   );
 }

@@ -84,7 +84,7 @@ export function ModuleInputGroup({
       </div>
 
       {/* Input cards grid */}
-      <div className="p-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+      <div className="p-3 flex flex-col gap-2">
         {topLevel.map((a) => (
           <InputCard
             key={a.id}

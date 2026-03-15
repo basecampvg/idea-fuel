@@ -23,6 +23,7 @@ import { assumptionsToMap } from '../services/financial-calculator';
 import { buildWorkbook, readStatements, enrichStatements } from '../services/hyperformula-engine';
 import type { AssumptionRow } from '../services/hyperformula-engine';
 import { listAllModules, getModulesForTemplate, getModule } from '../services/modules';
+import type { ModuleDefinition } from '../services/modules';
 import { calculateBreakEven } from '../services/break-even-calculator';
 import type { RevenueModel } from '../services/break-even-calculator';
 import type { Context } from '../context';
@@ -157,6 +158,69 @@ export const financialRouter = router({
           }
         }
 
+        // Auto-enable default modules for this template and seed their inputs
+        const templateSlug = input.templateSlug ?? 'general';
+        const defaultModules = getModulesForTemplate(templateSlug);
+
+        if (defaultModules.length > 0) {
+          // Get existing assumption keys (just seeded from template)
+          const existingKeys = new Set(
+            (await tx
+              .select({ key: assumptions.key })
+              .from(assumptions)
+              .where(eq(assumptions.projectId, input.projectId))
+            ).map((r) => r.key),
+          );
+
+          const now = new Date();
+          const moduleInputCategory: Record<string, string> = {
+            marketing_funnel: 'ACQUISITION',
+            ltv_cohort: 'PRICING',
+            payroll: 'COSTS',
+            cogs_variable: 'COSTS',
+            debt_schedule: 'FUNDING',
+          };
+
+          for (let i = 0; i < defaultModules.length; i++) {
+            const mod = defaultModules[i];
+
+            // Enable the module
+            await tx.insert(modelModules).values({
+              modelId: model.id,
+              moduleKey: mod.key,
+              isEnabled: true,
+              displayOrder: i,
+            });
+
+            // Seed its inputs (skip keys that already exist from template)
+            const toSeed = mod.inputs
+              .filter((inp) => !existingKeys.has(inp.key))
+              .map((inp, idx) => ({
+                projectId: input.projectId,
+                scenarioId: baseScenario.id,
+                category: (moduleInputCategory[mod.key] ?? 'COSTS') as 'PRICING' | 'ACQUISITION' | 'RETENTION' | 'MARKET' | 'COSTS' | 'FUNDING' | 'TIMELINE',
+                name: inp.name,
+                key: inp.key,
+                value: String(inp.default),
+                numericValue: String(inp.default),
+                valueType: inp.valueType as 'NUMBER' | 'PERCENTAGE' | 'CURRENCY' | 'TEXT' | 'DATE' | 'SELECT',
+                unit: inp.unit ?? null,
+                confidence: 'AI_ESTIMATE' as const,
+                source: `Module: ${mod.name}`,
+                formula: null,
+                dependsOn: [],
+                displayOrder: 1000 + i * 100 + idx,
+                updatedByActor: 'system',
+                updatedAt: now,
+              }));
+
+            if (toSeed.length > 0) {
+              await tx.insert(assumptions).values(toSeed);
+              for (const s of toSeed) existingKeys.add(s.key);
+            }
+          }
+        }
+
         logAuditAsync({
           userId: ctx.userId,
           action: 'FINANCIAL_MODEL_CREATE',
@@ -165,6 +229,7 @@ export const financialRouter = router({
             templateSlug: input.templateSlug,
             knowledgeLevel: input.knowledgeLevel,
             projectId: input.projectId,
+            modulesEnabled: defaultModules.map(m => m.key),
           },
         });
 
@@ -316,6 +381,16 @@ export const financialRouter = router({
         .from(assumptions)
         .where(eq(assumptions.scenarioId, input.scenarioId));
 
+      // Load active modules for this model
+      const enabledModuleRows = await ctx.db
+        .select()
+        .from(modelModules)
+        .where(and(eq(modelModules.modelId, model.id), eq(modelModules.isEnabled, true)));
+
+      const activeModules = enabledModuleRows
+        .map(r => getModule(r.moduleKey))
+        .filter((m): m is NonNullable<typeof m> => m !== null);
+
       // Build HyperFormula workbook and compute statements
       const assumptionRows: AssumptionRow[] = rows.map(r => ({
         key: r.key,
@@ -328,6 +403,7 @@ export const financialRouter = router({
         assumptions: assumptionRows,
         template,
         forecastYears: model.forecastYears,
+        activeModules,
       });
 
       const rawStatements = readStatements(hf, model.forecastYears);

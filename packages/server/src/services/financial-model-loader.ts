@@ -8,8 +8,9 @@
 
 import { db } from '../db/drizzle';
 import { eq, and } from 'drizzle-orm';
-import { financialModels, scenarios, assumptions } from '../db/schema';
+import { financialModels, scenarios, assumptions, modelModules } from '../db/schema';
 import { getTemplate } from './financial-templates';
+import { getModule } from './modules';
 import { assumptionsToMap } from './financial-calculator';
 import { buildWorkbook, readStatements, enrichStatements } from './hyperformula-engine';
 import type { AssumptionRow } from './hyperformula-engine';
@@ -87,7 +88,17 @@ export async function loadFinancialDataForProject(
   const template = getTemplate(templateSlug);
   if (!template) return null;
 
-  // 5. Compute 3-statement financials via HyperFormula
+  // 5. Load active modules
+  const enabledModuleRows = await db
+    .select()
+    .from(modelModules)
+    .where(and(eq(modelModules.modelId, model.id), eq(modelModules.isEnabled, true)));
+
+  const activeModules = enabledModuleRows
+    .map(r => getModule(r.moduleKey))
+    .filter((m): m is NonNullable<typeof m> => m !== null);
+
+  // 6. Compute 3-statement financials via HyperFormula
   const assumptionMap = assumptionsToMap(rows);
   const assumptionRows: AssumptionRow[] = rows.map(r => ({
     key: r.key,
@@ -95,7 +106,7 @@ export async function loadFinancialDataForProject(
     numericValue: r.numericValue,
     formula: r.formula,
   }));
-  const hf = buildWorkbook({ assumptions: assumptionRows, template, forecastYears: model.forecastYears });
+  const hf = buildWorkbook({ assumptions: assumptionRows, template, forecastYears: model.forecastYears, activeModules });
   const rawStatements = readStatements(hf, model.forecastYears);
   const statements = enrichStatements(rawStatements, template);
   hf.destroy();

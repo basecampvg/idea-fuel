@@ -840,6 +840,7 @@ export interface Assumption {
   projectId: string;
   parentId: string | null;
   aggregationMode: AssumptionAggregation | null;
+  moduleKey: string | null;
   category: AssumptionCategory;
   name: string;
   key: string;
@@ -850,7 +851,7 @@ export interface Assumption {
   source: string;
   sourceUrl: string | null;
   formula: string | null;
-  dependsOn: string[];
+  dependsOn: string[] | null;
   tier: AssumptionTier | null;
   isSensitive: boolean;
   isRequired: boolean;
@@ -880,11 +881,19 @@ export interface CascadeChange {
   newValue: string;
 }
 
+export interface CascadeWarning {
+  cellKey: string;
+  errorType: string;
+  fallbackValue: number;
+  message: string;
+}
+
 export interface CascadeSuccess {
   status: 'success';
   changedKey: string;
   updatedAssumptions: CascadeChange[];
   impactedSections: Array<{ sectionKey: string; reportType: string }>;
+  warnings?: CascadeWarning[];
 }
 
 export interface CascadeFailure {

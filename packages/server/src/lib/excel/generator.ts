@@ -365,6 +365,66 @@ export async function generateExcelBuffer(input: ExcelExportInput): Promise<Buff
   buildStatementSheetWithFormulas(workbook, input.statements.bs, 'BS', 'Balance Sheet', 'FF0284C7', input.hfData);
   buildStatementSheetWithFormulas(workbook, input.statements.cf, 'CF', 'Cash Flow', 'FFD97706', input.hfData);
 
+  // 4. Module sheets (if HyperFormula data includes them)
+  if (input.hfData?.sheets) {
+    const MODULE_TAB_COLORS: Record<string, string> = {
+      marketing_funnel: 'FFDC2626',
+      ltv_cohort: 'FF7C3AED',
+      payroll: 'FF2563EB',
+      cogs_variable: 'FFEA580C',
+      debt_schedule: 'FF059669',
+    };
+    const MODULE_NAMES: Record<string, string> = {
+      marketing_funnel: 'Marketing Funnel',
+      ltv_cohort: 'LTV Cohort',
+      payroll: 'Payroll',
+      cogs_variable: 'COGS Variable',
+      debt_schedule: 'Debt Schedule',
+    };
+
+    for (const [sheetName, sheetData] of Object.entries(input.hfData.sheets)) {
+      // Skip non-module sheets (already exported above)
+      if (['Assumptions', 'PL', 'BS', 'CF'].includes(sheetName)) continue;
+
+      const excelName = MODULE_NAMES[sheetName] ?? sheetName;
+      const tabColor = MODULE_TAB_COLORS[sheetName] ?? 'FF6B7280';
+      const ws = workbook.addWorksheet(excelName, {
+        properties: { tabColor: { argb: tabColor } },
+      });
+
+      // Write all rows with formulas where available
+      for (let row = 0; row < sheetData.values.length; row++) {
+        for (let col = 0; col < (sheetData.values[row]?.length ?? 0); col++) {
+          const cell = ws.getCell(row + 1, col + 1);
+          const formula = sheetData.formulas[row]?.[col];
+          const value = sheetData.values[row]?.[col];
+
+          if (formula) {
+            cell.value = {
+              formula,
+              result: typeof value === 'number' ? value : undefined,
+            };
+          } else if (value !== null && value !== undefined) {
+            cell.value = typeof value === 'string' ? sanitizeTextCell(value) : value;
+          }
+
+          // Format numeric cells
+          if (col > 0 && typeof value === 'number') {
+            cell.numFmt = CURRENCY_FORMAT;
+            cell.alignment = { horizontal: 'right' };
+          }
+        }
+      }
+
+      // Style first column and first row
+      ws.getColumn(1).width = 20;
+      for (let col = 1; col < (sheetData.values[0]?.length ?? 0); col++) {
+        ws.getColumn(col + 1).width = 14;
+      }
+      ws.views = [{ state: 'frozen', xSplit: 1, ySplit: 1 }];
+    }
+  }
+
   // Register named expressions from HyperFormula
   if (input.hfData?.namedExpressions) {
     for (const ne of input.hfData.namedExpressions) {

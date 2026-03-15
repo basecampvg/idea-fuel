@@ -35,7 +35,7 @@ export function getEffectiveConfidence(
   assumption: Assumption,
   allAssumptions: Assumption[],
 ): AssumptionConfidence {
-  if (assumption.confidence !== 'CALCULATED' || assumption.dependsOn.length === 0) {
+  if (assumption.confidence !== 'CALCULATED' || (assumption.dependsOn ?? []).length === 0) {
     return assumption.confidence;
   }
 
@@ -43,7 +43,7 @@ export function getEffectiveConfidence(
   let lowestRank = Infinity;
   let lowestConfidence: AssumptionConfidence = 'USER';
 
-  for (const depKey of assumption.dependsOn) {
+  for (const depKey of (assumption.dependsOn ?? [])) {
     const dep = assumptionMap.get(depKey);
     if (!dep) continue;
 
