@@ -75,20 +75,6 @@ export default function FinancialAssumptionsPage({
     },
   });
 
-  // Fetch assumptions — use scenario-scoped query to avoid cross-scenario duplicates
-  const useScenarioQuery = !!baseScenarioId;
-  const { data: scenarioAssumptions, isLoading: isLoadingScenario, error: scenarioError } = trpc.assumption.listByScenario.useQuery(
-    { scenarioId: baseScenarioId! },
-    { enabled: useScenarioQuery },
-  );
-  const { data: projectAssumptions, isLoading: isLoadingProject, error: projectError } = trpc.assumption.list.useQuery(
-    { projectId },
-    { enabled: !useScenarioQuery && !!projectId },
-  );
-  const assumptions = scenarioAssumptions ?? projectAssumptions;
-  const isLoading = isLoadingScenario || isLoadingProject;
-  const error = scenarioError ?? projectError;
-
   // Fetch model (for scenarios) and active modules
   const { data: model } = trpc.financial.get.useQuery(
     { id: modelId },
@@ -105,6 +91,20 @@ export default function FinancialAssumptionsPage({
     const base = model.scenarios.find((s: { isBase: boolean }) => s.isBase);
     return base?.id ?? model.scenarios[0]?.id ?? null;
   }, [model]);
+
+  // Fetch assumptions — use scenario-scoped query to avoid cross-scenario duplicates
+  const useScenarioQuery = !!baseScenarioId;
+  const { data: scenarioAssumptions, isLoading: isLoadingScenario, error: scenarioError } = trpc.assumption.listByScenario.useQuery(
+    { scenarioId: baseScenarioId! },
+    { enabled: useScenarioQuery },
+  );
+  const { data: projectAssumptions, isLoading: isLoadingProject, error: projectError } = trpc.assumption.list.useQuery(
+    { projectId },
+    { enabled: !useScenarioQuery && !!projectId },
+  );
+  const assumptions = scenarioAssumptions ?? projectAssumptions;
+  const isLoading = isLoadingScenario || isLoadingProject;
+  const error = scenarioError ?? projectError;
 
   // Fetch computed statements for derived metrics and module outputs
   const { data: computedStatements } = trpc.financial.computeStatements.useQuery(
