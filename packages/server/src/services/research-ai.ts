@@ -1969,9 +1969,9 @@ Extract comprehensive, detailed insights from the research report. Preserve spec
     ]
   },
   "keywords": {
-    "primary": ["<string: short 2-4 word Google Trends-friendly search term>", ...],
-    "secondary": ["<string: short 2-4 word related search term>", ...],
-    "longTail": ["<string: 3-5 word specific search phrase>", ...]
+    "primary": ["<string>", ...],
+    "secondary": ["<string>", ...],
+    "longTail": ["<string>", ...]
   }
 }
 
@@ -2093,9 +2093,9 @@ Extract comprehensive market analysis and relevant keywords from the research ab
     ]
   },
   "keywords": {
-    "primary": ["<string: short 2-4 word Google Trends-friendly search term>", ...],
-    "secondary": ["<string: short 2-4 word related search term>", ...],
-    "longTail": ["<string: 3-5 word specific search phrase>", ...]
+    "primary": ["<string: primary search keyword>", ...],
+    "secondary": ["<string: secondary keyword>", ...],
+    "longTail": ["<string: long-tail keyword phrase>", ...]
   }
 }
 
@@ -2739,9 +2739,9 @@ Preserve specific data points, statistics, dollar figures, company names, and ci
     ]
   },
   "keywords": {
-    "primary": ["<string: short 2-4 word Google Trends-friendly search term>", ...],
-    "secondary": ["<string: short 2-4 word related search term>", ...],
-    "longTail": ["<string: 3-5 word specific search phrase>", ...]
+    "primary": ["<string>", ...],
+    "secondary": ["<string>", ...],
+    "longTail": ["<string>", ...]
   }
 }
 
@@ -4230,9 +4230,9 @@ Synthesize insights and return a JSON object with this exact structure:
     "riskFactors": ["risk1"]
   },
   "keywords": {
-    "primary": ["<short 2-4 word Google Trends-friendly term>"],
-    "secondary": ["<short 2-4 word related term>"],
-    "longTail": ["<3-5 word specific search phrase>"]
+    "primary": ["keyword1"],
+    "secondary": ["keyword1"],
+    "longTail": ["long tail phrase"]
   }
 }
 
