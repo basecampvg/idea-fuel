@@ -19,7 +19,7 @@ import {
 } from '../db/schema';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { getTemplate, listTemplates } from '../services/financial-templates';
-import { assumptionsToMap } from '../services/financial-calculator';
+import { assumptionsToMap } from '../services/hyperformula-engine';
 import { buildWorkbook, readStatements, enrichStatements } from '../services/hyperformula-engine';
 import type { AssumptionRow } from '../services/hyperformula-engine';
 import { listAllModules, getModulesForTemplate, getModule } from '../services/modules';
@@ -501,6 +501,72 @@ export const financialRouter = router({
         ...r,
         module: getModule(r.moduleKey),
       }));
+    }),
+
+  /** Auto-sync default modules for an existing model that has none configured. */
+  syncModules: protectedProcedure
+    .input(z.object({ modelId: entityId }))
+    .mutation(async ({ ctx, input }) => {
+      const model = await verifyModelOwnership(ctx.db, input.modelId, ctx.userId);
+
+      // Check if any modules already configured
+      const existing = await ctx.db
+        .select({ id: modelModules.id })
+        .from(modelModules)
+        .where(eq(modelModules.modelId, input.modelId))
+        .limit(1);
+
+      if (existing.length > 0) return { synced: false, count: 0 };
+
+      // Get template and its default modules
+      const templateSlug = (model.settings as Record<string, unknown>)?.templateSlug as string ?? 'general';
+      const defaultMods = getModulesForTemplate(templateSlug);
+      if (defaultMods.length === 0) return { synced: false, count: 0 };
+
+      // Find base scenario for assumption seeding
+      const baseScenario = await ctx.db.query.scenarios.findFirst({
+        where: and(eq(scenarios.modelId, input.modelId), eq(scenarios.isBase, true)),
+      });
+
+      // Get existing assumption keys
+      const existingKeys = model.projectId
+        ? new Set((await ctx.db.select({ key: assumptions.key }).from(assumptions).where(eq(assumptions.projectId, model.projectId))).map(r => r.key))
+        : new Set<string>();
+
+      const now = new Date();
+      const moduleInputCategory: Record<string, string> = {
+        marketing_funnel: 'ACQUISITION', ltv_cohort: 'PRICING', payroll: 'COSTS', cogs_variable: 'COSTS', debt_schedule: 'FUNDING',
+      };
+
+      for (let i = 0; i < defaultMods.length; i++) {
+        const mod = defaultMods[i];
+        await ctx.db.insert(modelModules).values({
+          modelId: input.modelId, moduleKey: mod.key, isEnabled: true, displayOrder: i,
+        });
+
+        if (model.projectId && baseScenario) {
+          const toSeed = mod.inputs
+            .filter(inp => !existingKeys.has(inp.key))
+            .map((inp, idx) => ({
+              projectId: model.projectId!,
+              scenarioId: baseScenario.id,
+              category: (moduleInputCategory[mod.key] ?? 'COSTS') as 'PRICING' | 'ACQUISITION' | 'RETENTION' | 'MARKET' | 'COSTS' | 'FUNDING' | 'TIMELINE',
+              name: inp.name, key: inp.key,
+              value: String(inp.default), numericValue: String(inp.default),
+              valueType: inp.valueType as 'NUMBER' | 'PERCENTAGE' | 'CURRENCY' | 'TEXT' | 'DATE' | 'SELECT',
+              unit: inp.unit ?? null, confidence: 'AI_ESTIMATE' as const,
+              source: `Module: ${mod.name}`, formula: null, dependsOn: [],
+              displayOrder: 1000 + i * 100 + idx,
+              updatedByActor: 'system', updatedAt: now,
+            }));
+          if (toSeed.length > 0) {
+            await ctx.db.insert(assumptions).values(toSeed);
+            for (const s of toSeed) existingKeys.add(s.key);
+          }
+        }
+      }
+
+      return { synced: true, count: defaultMods.length };
     }),
 
   /** Enable or disable a module for a financial model. */

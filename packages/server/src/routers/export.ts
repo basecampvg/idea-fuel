@@ -14,7 +14,7 @@ import { financialModels, scenarios, assumptions, modelModules } from '../db/sch
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { getTemplate } from '../services/financial-templates';
 import { getModule } from '../services/modules';
-import { assumptionsToMap } from '../services/financial-calculator';
+import { assumptionsToMap } from '../services/hyperformula-engine';
 import { buildWorkbook, readStatements, enrichStatements, serializeForExcel, getNamedExpressions } from '../services/hyperformula-engine';
 import type { AssumptionRow } from '../services/hyperformula-engine';
 import { calculateBreakEven } from '../services/break-even-calculator';

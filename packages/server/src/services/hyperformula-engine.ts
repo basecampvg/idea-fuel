@@ -1040,7 +1040,7 @@ export function getNamedExpressions(hf: HyperFormula): Array<{ name: string; for
 // Utilities
 // ---------------------------------------------------------------------------
 
-function assumptionsToMap(rows: AssumptionRow[]): Record<string, number> {
+export function assumptionsToMap(rows: AssumptionRow[]): Record<string, number> {
   const map: Record<string, number> = {};
   for (const row of rows) {
     const num = row.numericValue != null
