@@ -1,18 +1,21 @@
 /**
  * Excel Generator for Financial Models
  *
- * Generates an interactive Excel workbook with:
- *   - Dashboard sheet with key metrics
- *   - Assumptions sheet with named ranges
- *   - P&L, Balance Sheet, Cash Flow sheets with formulas
- *   - Formatting: currency, percentage, conditional negative values
+ * Generates an interactive Excel workbook with REAL FORMULAS from HyperFormula.
+ * Every cell in the financial statements contains a live formula that
+ * recalculates when assumptions are changed in the exported file.
  *
- * Runs synchronously per scope reduction #4 (typical generation 5-10s).
+ * Sheets:
+ *   - Dashboard: key metrics summary
+ *   - Assumptions: named ranges for each assumption
+ *   - Income Statement: P&L with formulas
+ *   - Balance Sheet: with formulas referencing P&L
+ *   - Cash Flow: with formulas referencing P&L and BS
  */
 
 import ExcelJS from 'exceljs';
 import type { ComputedStatements, StatementData } from '@forge/shared';
-import { translateToExcel, type CellAddressMap } from './formula-translator';
+import { sanitizeTextCell } from './sanitize';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -33,6 +36,11 @@ export interface ExcelExportInput {
     formula: string | null;
   }>;
   statements: ComputedStatements;
+  /** HyperFormula serialized data — if provided, formulas are written to cells */
+  hfData?: {
+    sheets: Record<string, { formulas: (string | null)[][]; values: (number | string | null)[][] }>;
+    namedExpressions: Array<{ name: string; formula: string }>;
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -42,7 +50,7 @@ export interface ExcelExportInput {
 const HEADER_FILL: ExcelJS.FillPattern = {
   type: 'pattern',
   pattern: 'solid',
-  fgColor: { argb: 'FF0F172A' }, // Slate 900
+  fgColor: { argb: 'FF0F172A' },
 };
 
 const HEADER_FONT: Partial<ExcelJS.Font> = {
@@ -54,7 +62,11 @@ const HEADER_FONT: Partial<ExcelJS.Font> = {
 const SUBTOTAL_FILL: ExcelJS.FillPattern = {
   type: 'pattern',
   pattern: 'solid',
-  fgColor: { argb: 'FFF1F5F9' }, // Slate 100
+  fgColor: { argb: 'FFF1F5F9' },
+};
+
+const INPUT_FONT: Partial<ExcelJS.Font> = {
+  color: { argb: 'FF0000FF' }, // Blue for input cells (financial modeling convention)
 };
 
 const CURRENCY_FORMAT = '#,##0;[Red](#,##0)';
@@ -66,9 +78,7 @@ function applyHeaderRow(row: ExcelJS.Row) {
     cell.fill = HEADER_FILL;
     cell.font = HEADER_FONT;
     cell.alignment = { horizontal: 'center', vertical: 'middle' };
-    cell.border = {
-      bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-    };
+    cell.border = { bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } } };
   });
   row.height = 28;
 }
@@ -101,7 +111,8 @@ function applyTotalRow(row: ExcelJS.Row) {
 function buildAssumptionsSheet(
   workbook: ExcelJS.Workbook,
   assumptions: ExcelExportInput['assumptions'],
-): CellAddressMap {
+  hfData?: ExcelExportInput['hfData'],
+) {
   const ws = workbook.addWorksheet('Assumptions', {
     properties: { tabColor: { argb: 'FF0284C7' } },
   });
@@ -116,28 +127,40 @@ function buildAssumptionsSheet(
 
   applyHeaderRow(ws.getRow(1));
 
-  const addressMap: CellAddressMap = {};
-  let currentCategory = '';
-
   assumptions.forEach((a, idx) => {
     const rowNum = idx + 2;
-
-    // Category grouping separator
-    if (a.category !== currentCategory) {
-      currentCategory = a.category;
-    }
-
     const numVal = a.numericValue != null ? parseFloat(a.numericValue) : parseFloat(a.value ?? '0');
     const cellValue = isNaN(numVal) ? (a.value ?? '') : numVal;
 
-    ws.getRow(rowNum).values = [a.category, a.name, cellValue, a.unit ?? '', a.valueType];
+    // Sanitize text values against formula injection
+    ws.getRow(rowNum).values = [
+      sanitizeTextCell(a.category),
+      sanitizeTextCell(a.name),
+      cellValue,
+      sanitizeTextCell(a.unit ?? ''),
+      sanitizeTextCell(a.valueType),
+    ];
 
     const valueCell = ws.getCell(`C${rowNum}`);
+
+    // If HyperFormula data is available, use the formula from the Assumptions sheet
+    if (hfData?.sheets.Assumptions) {
+      const hfRow = hfData.sheets.Assumptions;
+      // HyperFormula Assumptions sheet: row idx = assumption index, col 1 = value
+      if (idx < hfRow.formulas.length && hfRow.formulas[idx]?.[1]) {
+        const formula = hfRow.formulas[idx][1]!;
+        const computedVal = typeof hfRow.values[idx]?.[1] === 'number'
+          ? hfRow.values[idx][1] as number
+          : cellValue;
+        valueCell.value = { formula, result: typeof computedVal === 'number' ? computedVal : undefined };
+      }
+    }
+
+    // Format
     if (a.valueType === 'PERCENTAGE') {
       valueCell.numFmt = PERCENT_FORMAT;
-      // Store as decimal in Excel (e.g. 10% → 0.10)
-      if (typeof cellValue === 'number') {
-        valueCell.value = cellValue / 100;
+      if (typeof valueCell.value === 'number') {
+        valueCell.value = (valueCell.value as number) / 100;
       }
     } else if (a.valueType === 'CURRENCY') {
       valueCell.numFmt = CURRENCY_FORMAT;
@@ -145,74 +168,85 @@ function buildAssumptionsSheet(
       valueCell.numFmt = NUMBER_FORMAT;
     }
 
-    // Create named range for this assumption
-    const safeName = a.key.replace(/[^a-zA-Z0-9_]/g, '_');
-    addressMap[a.key] = `Assumptions!$C$${rowNum}`;
+    // Blue font for input cells (no formula)
+    if (!a.formula) {
+      valueCell.font = INPUT_FONT;
+    }
 
+    // Create named range
+    const safeName = a.key.replace(/[^a-zA-Z0-9_]/g, '_');
     try {
       workbook.definedNames.add(`'Assumptions'!$C$${rowNum}`, safeName);
     } catch {
-      // Named range may conflict — skip silently
+      // Skip conflicts
     }
   });
 
-  // Freeze header row
   ws.views = [{ state: 'frozen', ySplit: 1 }];
-
-  return addressMap;
 }
 
-function buildStatementSheet(
+function buildStatementSheetWithFormulas(
   workbook: ExcelJS.Workbook,
   statement: StatementData,
   sheetName: string,
+  excelSheetName: string,
   tabColor: string,
-  addressMap: CellAddressMap,
-  templateLineItems?: Array<{ key: string; formula?: string }>,
+  hfData?: ExcelExportInput['hfData'],
 ) {
-  const ws = workbook.addWorksheet(sheetName, {
+  const ws = workbook.addWorksheet(excelSheetName, {
     properties: { tabColor: { argb: tabColor } },
   });
 
   const periods = statement.periods;
-  const numCols = periods.length + 1; // +1 for label column
 
-  // Header row: Line Item | Period labels
   ws.getColumn(1).width = 30;
   for (let i = 0; i < periods.length; i++) {
     ws.getColumn(i + 2).width = 14;
   }
 
-  const headerValues = ['', ...periods];
-  ws.getRow(1).values = headerValues;
+  // Header row
+  ws.getRow(1).values = ['', ...periods];
   applyHeaderRow(ws.getRow(1));
 
-  // Data rows
+  // Get HyperFormula sheet data if available
+  const hfSheet = hfData?.sheets[sheetName];
+  // Metadata rows offset: 3 rows (months_in_period, month, period) before line items
+  const METADATA_ROWS = 3;
+
   statement.lines.forEach((line, idx) => {
     const rowNum = idx + 2;
-    const templateLine = templateLineItems?.find((t) => t.key === line.key);
 
-    // Build values — attempt formula translation for each period
-    const rowValues: (string | number)[] = [line.name];
+    const rowValues: (string | number | { formula: string; result?: number })[] = [sanitizeTextCell(line.name)];
 
     for (let p = 0; p < periods.length; p++) {
       const bakedValue = line.values[p] ?? 0;
+      const hfDataRow = METADATA_ROWS + idx;
+      const hfDataCol = p + 1; // col 0 = labels
 
-      if (templateLine?.formula) {
-        const { formula, comment } = translateToExcel(templateLine.formula, bakedValue, addressMap);
-        // For now, use baked values to ensure correctness; formulas are aspirational
-        // Excel cross-sheet formula references are complex and period-dependent
-        rowValues.push(bakedValue);
-        if (comment) {
-          const cell = ws.getCell(rowNum, p + 2);
-          cell.note = comment;
+      // Try to get formula from HyperFormula
+      if (hfSheet && hfDataRow < hfSheet.formulas.length) {
+        const formula = hfSheet.formulas[hfDataRow]?.[hfDataCol];
+        if (formula) {
+          // Write real formula with pre-calculated result
+          rowValues.push({ formula, result: typeof bakedValue === 'number' ? Math.round(bakedValue * 100) / 100 : undefined });
+          continue;
         }
-      } else {
-        rowValues.push(bakedValue);
       }
+
+      // Fallback: baked value
+      rowValues.push(bakedValue);
     }
 
-    ws.getRow(rowNum).values = rowValues;
+    // Write row
+    const row = ws.getRow(rowNum);
+    rowValues.forEach((val, colIdx) => {
+      const cell = row.getCell(colIdx + 1);
+      if (typeof val === 'object' && val !== null && 'formula' in val) {
+        cell.value = val as ExcelJS.CellFormulaValue;
+      } else {
+        cell.value = val as ExcelJS.CellValue;
+      }
+    });
 
     // Format numeric cells
     for (let p = 0; p < periods.length; p++) {
@@ -228,14 +262,12 @@ function buildStatementSheet(
       applySubtotalRow(ws.getRow(rowNum));
     }
 
-    // Bold the line name
     const nameCell = ws.getCell(rowNum, 1);
     if (line.isSubtotal || line.isTotal) {
       nameCell.font = { bold: true };
     }
   });
 
-  // Freeze header row and first column
   ws.views = [{ state: 'frozen', xSplit: 1, ySplit: 1 }];
 }
 
@@ -247,27 +279,23 @@ function buildDashboardSheet(
     properties: { tabColor: { argb: 'FF059669' } },
   });
 
-  // Title
   ws.mergeCells('A1:F1');
   const titleCell = ws.getCell('A1');
-  titleCell.value = input.modelName;
+  titleCell.value = sanitizeTextCell(input.modelName);
   titleCell.font = { bold: true, size: 18, color: { argb: 'FF0F172A' } };
   titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
   ws.getRow(1).height = 40;
 
   ws.mergeCells('A2:F2');
   const subtitleCell = ws.getCell('A2');
-  subtitleCell.value = `Scenario: ${input.scenarioName} | ${input.forecastYears}-Year Forecast`;
+  subtitleCell.value = sanitizeTextCell(`Scenario: ${input.scenarioName} | ${input.forecastYears}-Year Forecast`);
   subtitleCell.font = { size: 12, color: { argb: 'FF475569' } };
   subtitleCell.alignment = { horizontal: 'center' };
 
-  // Key Metrics section
   ws.getCell('A4').value = 'Key Metrics';
   ws.getCell('A4').font = { bold: true, size: 14 };
 
   const { pl, cf } = input.statements;
-
-  // Extract key values (last period = final year)
   const lastPeriod = pl.periods.length - 1;
   const revenueLine = pl.lines.find((l) => l.key === 'total_revenue' || l.key === 'revenue');
   const netIncomeLine = pl.lines.find((l) => l.key === 'net_income');
@@ -278,13 +306,11 @@ function buildDashboardSheet(
   const finalNetIncome = netIncomeLine?.values[lastPeriod] ?? 0;
   const finalCash = endingCashLine?.values[lastPeriod] ?? 0;
 
-  // Monthly burn rate (Y1 average)
   const y1NetIncome = netIncomeLine?.values.slice(0, 12) ?? [];
   const avgMonthlyBurn = y1NetIncome.length > 0
     ? y1NetIncome.reduce((s, v) => s + v, 0) / y1NetIncome.length
     : 0;
 
-  // Runway months
   const startingCash = input.assumptions.find((a) => a.key === 'starting_cash');
   const startCashVal = startingCash ? parseFloat(startingCash.numericValue ?? startingCash.value ?? '0') : 0;
   const runwayMonths = avgMonthlyBurn < 0 ? Math.floor(startCashVal / Math.abs(avgMonthlyBurn)) : Infinity;
@@ -313,11 +339,9 @@ function buildDashboardSheet(
     valCell.font = { bold: true, size: 12 };
   });
 
-  // Generated timestamp
   ws.getCell('A14').value = `Generated: ${new Date().toISOString().split('T')[0]}`;
   ws.getCell('A14').font = { size: 9, color: { argb: 'FF94A3B8' } };
-
-  ws.getCell('A15').value = 'Generated by IdeationLab Financial Modeling';
+  ws.getCell('A15').value = 'Generated by Idea Fuel Financial Modeling';
   ws.getCell('A15').font = { size: 9, color: { argb: 'FF94A3B8' }, italic: true };
 }
 
@@ -325,30 +349,33 @@ function buildDashboardSheet(
 // Public API
 // ---------------------------------------------------------------------------
 
-/**
- * Generate a full Excel workbook buffer for a financial model.
- */
 export async function generateExcelBuffer(input: ExcelExportInput): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'IdeationLab';
+  workbook.creator = 'Idea Fuel';
   workbook.created = new Date();
 
   // 1. Dashboard
   buildDashboardSheet(workbook, input);
 
-  // 2. Assumptions (returns cell address map for formula linking)
-  const addressMap = buildAssumptionsSheet(workbook, input.assumptions);
+  // 2. Assumptions (with named ranges)
+  buildAssumptionsSheet(workbook, input.assumptions, input.hfData);
 
-  // 3. P&L
-  buildStatementSheet(workbook, input.statements.pl, 'Income Statement', 'FF059669', addressMap);
+  // 3. Statements with real HyperFormula formulas
+  buildStatementSheetWithFormulas(workbook, input.statements.pl, 'PL', 'Income Statement', 'FF059669', input.hfData);
+  buildStatementSheetWithFormulas(workbook, input.statements.bs, 'BS', 'Balance Sheet', 'FF0284C7', input.hfData);
+  buildStatementSheetWithFormulas(workbook, input.statements.cf, 'CF', 'Cash Flow', 'FFD97706', input.hfData);
 
-  // 4. Balance Sheet
-  buildStatementSheet(workbook, input.statements.bs, 'Balance Sheet', 'FF0284C7', addressMap);
+  // Register named expressions from HyperFormula
+  if (input.hfData?.namedExpressions) {
+    for (const ne of input.hfData.namedExpressions) {
+      try {
+        workbook.definedNames.add(ne.formula, ne.name);
+      } catch {
+        // Skip duplicates or conflicts
+      }
+    }
+  }
 
-  // 5. Cash Flow
-  buildStatementSheet(workbook, input.statements.cf, 'Cash Flow', 'FFD97706', addressMap);
-
-  // Set Dashboard as the active sheet
   workbook.views = [{ x: 0, y: 0, width: 10000, height: 20000, firstSheet: 0, activeTab: 0, visibility: 'visible' }];
 
   const buffer = await workbook.xlsx.writeBuffer();

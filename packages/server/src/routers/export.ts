@@ -13,7 +13,9 @@ import { TRPCError } from '@trpc/server';
 import { financialModels, scenarios, assumptions } from '../db/schema';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { getTemplate } from '../services/financial-templates';
-import { calculateStatements, assumptionsToMap } from '../services/financial-calculator';
+import { assumptionsToMap } from '../services/financial-calculator';
+import { buildWorkbook, readStatements, enrichStatements, serializeForExcel, getNamedExpressions } from '../services/hyperformula-engine';
+import type { AssumptionRow } from '../services/hyperformula-engine';
 import { calculateBreakEven } from '../services/break-even-calculator';
 import type { RevenueModel } from '../services/break-even-calculator';
 import { generateExcelBuffer } from '../lib/excel/generator';
@@ -67,9 +69,27 @@ async function loadModelAndStatements(
     .where(eq(assumptions.scenarioId, scenarioId));
 
   const assumptionMap = assumptionsToMap(rows);
-  const statements = calculateStatements(assumptionMap, template, model.forecastYears);
 
-  return { model, scenario, template, rows, assumptionMap, statements };
+  // Build HyperFormula workbook and compute statements
+  const assumptionRows: AssumptionRow[] = rows.map(r => ({
+    key: r.key,
+    value: r.value,
+    numericValue: r.numericValue,
+    formula: r.formula,
+  }));
+  const hf = buildWorkbook({ assumptions: assumptionRows, template, forecastYears: model.forecastYears });
+  const rawStatements = readStatements(hf, model.forecastYears);
+  const statements = enrichStatements(rawStatements, template);
+
+  // Serialize HyperFormula data for Excel export (formulas + named expressions)
+  const hfData = {
+    sheets: serializeForExcel(hf),
+    namedExpressions: getNamedExpressions(hf),
+  };
+
+  hf.destroy();
+
+  return { model, scenario, template, rows, assumptionMap, statements, hfData };
 }
 
 function detectRevenueModel(assumptionMap: Record<string, number>): RevenueModel {
@@ -96,7 +116,7 @@ export const exportRouter = router({
       scenarioId: entityId,
     }))
     .mutation(async ({ ctx, input }) => {
-      const { model, scenario, rows, statements } = await loadModelAndStatements(
+      const { model, scenario, rows, statements, hfData } = await loadModelAndStatements(
         ctx.db, input.modelId, input.scenarioId, ctx.userId,
       );
 
@@ -115,6 +135,7 @@ export const exportRouter = router({
           formula: r.formula,
         })),
         statements,
+        hfData,
       });
 
       logAuditAsync({
