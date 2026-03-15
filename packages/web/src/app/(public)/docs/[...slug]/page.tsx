@@ -43,6 +43,27 @@ function flattenNav(items: NavItem[]): NavItem[] {
   return flat;
 }
 
+function buildDocJsonLd(doc: { frontmatter: import('@/lib/docs').DocFrontmatter; slug: string[] }) {
+  const url = `https://ideafuel.ai/docs/${doc.slug.join('/')}`;
+  const schemaType = doc.frontmatter.structured_data?.type || 'Article';
+
+  const base: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': schemaType,
+    headline: doc.frontmatter.title,
+    description: doc.frontmatter.description,
+    url,
+    publisher: { '@id': 'https://ideafuel.ai/#organization' },
+    isPartOf: { '@id': 'https://ideafuel.ai/#website' },
+  };
+
+  if (doc.frontmatter.keywords) {
+    base.keywords = doc.frontmatter.keywords;
+  }
+
+  return base;
+}
+
 export default async function DocPage({ params }: PageProps) {
   const { slug } = await params;
   const doc = getDocBySlug(slug);
@@ -58,8 +79,14 @@ export default async function DocPage({ params }: PageProps) {
   const prev = currentIndex > 0 ? flatNav[currentIndex - 1] : null;
   const next = currentIndex < flatNav.length - 1 ? flatNav[currentIndex + 1] : null;
 
+  const jsonLd = buildDocJsonLd(doc);
+
   return (
     <div className="flex gap-10 px-6 py-12 lg:px-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Main content */}
       <article className="min-w-0 max-w-[720px] flex-1">
         {/* Breadcrumb */}

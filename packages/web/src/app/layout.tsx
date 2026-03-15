@@ -94,6 +94,35 @@ gtag('config', 'G-TL8JCYJ4DW');
         `}</Script>
       </head>
       <body className="antialiased" suppressHydrationWarning>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@graph': [
+                {
+                  '@type': 'Organization',
+                  '@id': 'https://ideafuel.ai/#organization',
+                  name: 'Idea Fuel',
+                  url: 'https://ideafuel.ai',
+                  logo: {
+                    '@type': 'ImageObject',
+                    url: 'https://ideafuel.ai/ideafuel-logo.svg',
+                  },
+                  description: 'AI-powered business validation platform',
+                  sameAs: [],
+                },
+                {
+                  '@type': 'WebSite',
+                  '@id': 'https://ideafuel.ai/#website',
+                  url: 'https://ideafuel.ai',
+                  name: 'Idea Fuel',
+                  publisher: { '@id': 'https://ideafuel.ai/#organization' },
+                },
+              ],
+            }),
+          }}
+        />
         <ThemeProvider>
           <SessionProvider>
             <TRPCProvider>

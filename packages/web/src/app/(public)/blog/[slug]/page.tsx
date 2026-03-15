@@ -77,9 +77,34 @@ export async function generateMetadata({ params }: BlogPostPageProps) {
     return { title: 'Post Not Found' };
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.AUTH_URL || 'http://localhost:3006';
+  const ogParams = new URLSearchParams({
+    title: post.title,
+    ...(post.tags?.[0] && { tag: post.tags[0] }),
+    ...(post.author?.name && { author: post.author.name }),
+    ...(post.publishedAt && {
+      date: post.publishedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    }),
+  });
+  const ogImage = `${baseUrl}/api/og?${ogParams.toString()}`;
+
   return {
-    title: `${post.title} | ideationLab Blog`,
+    title: `${post.title} | Idea Fuel Blog`,
     description: post.description,
+    openGraph: {
+      title: post.title,
+      description: post.description ?? undefined,
+      type: 'article',
+      publishedTime: post.publishedAt?.toISOString(),
+      tags: post.tags ?? undefined,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: post.title }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.description ?? undefined,
+      images: [ogImage],
+    },
   };
 }
 
@@ -93,8 +118,30 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   const { prev, next } = await getAdjacentPosts(slug);
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.description,
+    url: `https://ideafuel.ai/blog/${slug}`,
+    ...(post.publishedAt && { datePublished: post.publishedAt.toISOString() }),
+    ...(post.author?.name && {
+      author: {
+        '@type': 'Person',
+        name: post.author.name,
+      },
+    }),
+    publisher: { '@id': 'https://ideafuel.ai/#organization' },
+    isPartOf: { '@id': 'https://ideafuel.ai/#website' },
+    ...(post.tags && post.tags.length > 0 && { keywords: post.tags }),
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <article className="max-w-3xl mx-auto px-6 py-16">
         {/* Back link */}
         <Link href="/blog">
