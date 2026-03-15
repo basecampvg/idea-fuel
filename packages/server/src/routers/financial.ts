@@ -18,7 +18,9 @@ import {
 } from '../db/schema';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { getTemplate, listTemplates } from '../services/financial-templates';
-import { calculateStatements, assumptionsToMap } from '../services/financial-calculator';
+import { assumptionsToMap } from '../services/financial-calculator';
+import { buildWorkbook, readStatements, enrichStatements } from '../services/hyperformula-engine';
+import type { AssumptionRow } from '../services/hyperformula-engine';
 import { calculateBreakEven } from '../services/break-even-calculator';
 import type { RevenueModel } from '../services/break-even-calculator';
 import type { Context } from '../context';
@@ -312,8 +314,24 @@ export const financialRouter = router({
         .from(assumptions)
         .where(eq(assumptions.scenarioId, input.scenarioId));
 
-      const assumptionMap = assumptionsToMap(rows);
-      const statements = calculateStatements(assumptionMap, template, model.forecastYears);
+      // Build HyperFormula workbook and compute statements
+      const assumptionRows: AssumptionRow[] = rows.map(r => ({
+        key: r.key,
+        value: r.value,
+        numericValue: r.numericValue,
+        formula: r.formula,
+      }));
+
+      const hf = buildWorkbook({
+        assumptions: assumptionRows,
+        template,
+        forecastYears: model.forecastYears,
+      });
+
+      const rawStatements = readStatements(hf, model.forecastYears);
+      const statements = enrichStatements(rawStatements, template);
+
+      hf.destroy();
 
       return statements;
     }),

@@ -10,7 +10,9 @@ import { db } from '../db/drizzle';
 import { eq, and } from 'drizzle-orm';
 import { financialModels, scenarios, assumptions } from '../db/schema';
 import { getTemplate } from './financial-templates';
-import { calculateStatements, assumptionsToMap } from './financial-calculator';
+import { assumptionsToMap } from './financial-calculator';
+import { buildWorkbook, readStatements, enrichStatements } from './hyperformula-engine';
+import type { AssumptionRow } from './hyperformula-engine';
 import { calculateBreakEven, type BreakEvenResult, type RevenueModel } from './break-even-calculator';
 import type { ComputedStatements } from '@forge/shared';
 
@@ -85,9 +87,18 @@ export async function loadFinancialDataForProject(
   const template = getTemplate(templateSlug);
   if (!template) return null;
 
-  // 5. Compute 3-statement financials
+  // 5. Compute 3-statement financials via HyperFormula
   const assumptionMap = assumptionsToMap(rows);
-  const statements = calculateStatements(assumptionMap, template, model.forecastYears);
+  const assumptionRows: AssumptionRow[] = rows.map(r => ({
+    key: r.key,
+    value: r.value,
+    numericValue: r.numericValue,
+    formula: r.formula,
+  }));
+  const hf = buildWorkbook({ assumptions: assumptionRows, template, forecastYears: model.forecastYears });
+  const rawStatements = readStatements(hf, model.forecastYears);
+  const statements = enrichStatements(rawStatements, template);
+  hf.destroy();
 
   // 6. Compute break-even (revenue model detection from financial.ts:344-372)
   let revenueModel: RevenueModel = 'unit';
