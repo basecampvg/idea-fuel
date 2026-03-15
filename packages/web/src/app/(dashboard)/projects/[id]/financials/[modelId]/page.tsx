@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { trpc } from '@/lib/trpc/client';
 import { Spinner } from '@/components/ui/spinner';
 import { KnowledgeLevelSelector } from './components/knowledge-level-selector';
+import { ModuleTogglePanel } from './components/module-toggle-panel';
 import {
   Settings2,
   BarChart3,
@@ -146,6 +147,9 @@ export default function FinancialModelDashboard({
           ))}
         </div>
       </div>
+
+      {/* Calculation Modules */}
+      <ModuleTogglePanel modelId={modelId} />
 
       {/* Quick Links Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -137,6 +137,44 @@ export default function FinancialAssumptionsPage({
     setSelectedId(null);
   }, []);
 
+  // Sub-assumption mutations
+  const createSubMutation = trpc.assumption.createSubAssumption.useMutation({
+    onSuccess: () => {
+      utils.assumption.list.invalidate({ projectId });
+    },
+  });
+
+  const deleteSubMutation = trpc.assumption.deleteSubAssumption.useMutation({
+    onSuccess: () => {
+      utils.assumption.list.invalidate({ projectId });
+    },
+  });
+
+  const updateMutation = trpc.assumption.update.useMutation({
+    onSuccess: () => {
+      utils.assumption.list.invalidate({ projectId });
+    },
+  });
+
+  const handleAddSub = useCallback((parentId: string, data: { name: string; key: string; value: string; valueType: string }) => {
+    createSubMutation.mutate({
+      projectId,
+      parentId,
+      name: data.name,
+      key: data.key,
+      value: data.value,
+      valueType: data.valueType as 'NUMBER',
+    });
+  }, [projectId, createSubMutation]);
+
+  const handleDeleteSub = useCallback((assumptionId: string) => {
+    deleteSubMutation.mutate({ projectId, assumptionId });
+  }, [projectId, deleteSubMutation]);
+
+  const handleUpdateSubValue = useCallback((assumptionId: string, value: string) => {
+    updateMutation.mutate({ id: assumptionId, projectId, value });
+  }, [projectId, updateMutation]);
+
   // Loading state
   if (isLoading || seedMutation.isPending || syncMutation.isPending) {
     return (
@@ -238,7 +276,11 @@ export default function FinancialAssumptionsPage({
             cascadedKeys={cascadedKeys}
             selectedCategories={selectedCategories}
             selectedConfidence={selectedConfidence}
+            projectId={projectId}
             onSelect={handleSelect}
+            onAddSub={handleAddSub}
+            onDeleteSub={handleDeleteSub}
+            onUpdateSubValue={handleUpdateSubValue}
           />
         </div>
 
