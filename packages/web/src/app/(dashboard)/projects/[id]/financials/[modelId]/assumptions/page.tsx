@@ -114,6 +114,10 @@ export default function FinancialAssumptionsPage({
     updateMutation.mutate({ id, projectId, value });
   }, [projectId, updateMutation]);
 
+  const handleFormulaChange = useCallback((id: string, formula: string | null) => {
+    updateMutation.mutate({ id, projectId, formula });
+  }, [projectId, updateMutation]);
+
   const handleAddSub = useCallback((parentId: string, data: { name: string; key: string; value: string }) => {
     createSubMutation.mutate({
       projectId,
@@ -132,6 +136,13 @@ export default function FinancialAssumptionsPage({
   const handleSubValueChange = useCallback((id: string, value: string) => {
     updateMutation.mutate({ id, projectId, value });
   }, [projectId, updateMutation]);
+
+  // Build flat list of all assumptions for formula autocomplete
+  const allAssumptionsForAutocomplete = useMemo(() => {
+    if (!assumptions) return [];
+    return (assumptions as Array<{ key: string; name: string; value: string | null; unit: string | null }>)
+      .map((a) => ({ key: a.key, name: a.name, value: a.value, unit: a.unit }));
+  }, [assumptions]);
 
   // Build children count map for detecting derived assumptions
   const childrenCountMap = useMemo(() => {
@@ -370,9 +381,11 @@ export default function FinancialAssumptionsPage({
               title={mod.title}
               icon={mod.icon}
               assumptions={mod.assumptions}
+              allAssumptions={allAssumptionsForAutocomplete}
               expandedCardId={expandedCardId}
               onToggleExpand={handleToggleExpand}
               onValueChange={handleValueChange}
+              onFormulaChange={handleFormulaChange}
               onAddSub={handleAddSub}
               onDeleteSub={handleDeleteSub}
               onSubValueChange={handleSubValueChange}

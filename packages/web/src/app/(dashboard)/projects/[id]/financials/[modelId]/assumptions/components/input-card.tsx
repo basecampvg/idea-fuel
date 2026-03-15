@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Trash2, FunctionSquare, ArrowRight } from 'lucide-react';
+import { FormulaEditor } from './formula-editor';
 import type { AssumptionConfidence } from '@forge/shared';
 
 interface SubRow {
@@ -13,18 +14,29 @@ interface SubRow {
   formula: string | null;
 }
 
+interface AvailableAssumption {
+  key: string;
+  name: string;
+  value: string | null;
+  unit: string | null;
+}
+
 interface InputCardProps {
   id: string;
   name: string;
+  key_: string;
   value: string | null;
   unit: string | null;
   formula: string | null;
   confidence?: AssumptionConfidence;
+  dependsOn?: string[];
   children_?: SubRow[];
   aggregationMode?: string | null;
+  allAssumptions?: AvailableAssumption[];
   isExpanded: boolean;
   onToggleExpand: (id: string) => void;
   onValueChange: (id: string, value: string) => void;
+  onFormulaChange?: (id: string, formula: string | null) => void;
   onAddSub?: (parentId: string, data: { name: string; key: string; value: string }) => void;
   onDeleteSub?: (id: string) => void;
   onSubValueChange?: (id: string, value: string) => void;
@@ -123,16 +135,20 @@ export function InputCard({
   unit,
   formula,
   confidence,
+  dependsOn,
   children_,
   aggregationMode,
+  allAssumptions,
   isExpanded,
   onToggleExpand,
   onValueChange,
+  onFormulaChange,
   onAddSub,
   onDeleteSub,
   onSubValueChange,
 }: InputCardProps) {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showFormulaEditor, setShowFormulaEditor] = useState(false);
   const [addName, setAddName] = useState('');
   const [addValue, setAddValue] = useState('');
   const hasChildren = children_ && children_.length > 0;
@@ -220,17 +236,82 @@ export function InputCard({
 
       {/* Expanded content */}
       {isExpanded && (
-        <div className="border-t border-border/50 px-4 py-3 space-y-1 bg-muted/5">
-          {/* If no children, show single editable value */}
+        <div className="border-t border-border/50 px-4 py-3 space-y-2 bg-muted/5">
+          {/* Value + Formula toggle */}
           {!hasChildren && (
-            <div className="flex items-center justify-between py-1.5">
-              <span className="text-xs text-muted-foreground font-medium">Value</span>
-              <InlineValueInput
-                value={value}
-                unit={unit}
-                disabled={isCalculated}
-                onChange={(val) => onValueChange(id, val)}
-              />
+            <div className="space-y-2">
+              {/* Value row */}
+              <div className="flex items-center justify-between py-1">
+                <span className="text-xs text-muted-foreground font-medium">Value</span>
+                <InlineValueInput
+                  value={value}
+                  unit={unit}
+                  disabled={isCalculated}
+                  onChange={(val) => onValueChange(id, val)}
+                />
+              </div>
+
+              {/* Formula section */}
+              {showFormulaEditor ? (
+                <FormulaEditor
+                  formula={formula ?? ''}
+                  availableAssumptions={allAssumptions ?? []}
+                  onChange={(f) => {
+                    onFormulaChange?.(id, f);
+                    setShowFormulaEditor(false);
+                  }}
+                  onCancel={() => setShowFormulaEditor(false)}
+                />
+              ) : formula ? (
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground font-medium">Formula</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowFormulaEditor(true)}
+                      className="text-[10px] text-violet-400 hover:text-violet-300 transition-colors"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                  <div className="px-2 py-1.5 rounded bg-violet-500/5 border border-violet-400/10">
+                    <code className="text-[11px] font-mono text-violet-400/80 break-all">
+                      = {formula}
+                    </code>
+                  </div>
+                  {/* Dependencies */}
+                  {dependsOn && dependsOn.length > 0 && (
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <span className="text-[9px] text-muted-foreground/40">Depends on:</span>
+                      {dependsOn.map((dep) => (
+                        <span
+                          key={dep}
+                          className="text-[9px] font-mono text-muted-foreground/60 bg-muted/50 px-1.5 py-0.5 rounded"
+                        >
+                          {dep}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {/* Clear formula */}
+                  <button
+                    type="button"
+                    onClick={() => onFormulaChange?.(id, null)}
+                    className="text-[10px] text-muted-foreground/40 hover:text-destructive transition-colors"
+                  >
+                    Remove formula
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowFormulaEditor(true)}
+                  className="flex items-center gap-1.5 text-[11px] text-muted-foreground/40 hover:text-violet-400 transition-colors py-1"
+                >
+                  <FunctionSquare className="w-3 h-3" />
+                  Add formula
+                </button>
+              )}
             </div>
           )}
 
