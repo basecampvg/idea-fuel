@@ -195,11 +195,19 @@ export default function FinancialAssumptionsPage({
   const { generalInputs, moduleGroups, derivedMetrics, categoryModuleMap } = useMemo(() => {
     if (!assumptions) return { generalInputs: [], moduleGroups: new Map(), derivedMetrics: [], categoryModuleMap: new Map() };
 
-    const allAssumptions = assumptions as Array<{
+    const rawAssumptions = assumptions as Array<{
       id: string; name: string; key: string; value: string | null; unit: string | null;
       formula: string | null; category: string; confidence: string;
       parentId?: string | null; aggregationMode?: string | null;
     }>;
+
+    // Dedup: keep only the first row per key (same key can exist from template + module seeding)
+    const seenKeys = new Set<string>();
+    const allAssumptions = rawAssumptions.filter((a) => {
+      if (seenKeys.has(a.key)) return false;
+      seenKeys.add(a.key);
+      return true;
+    });
 
     const enabledModuleKeys = new Set(
       (modelModules ?? []).filter((m: { isEnabled: boolean }) => m.isEnabled).map((m: { moduleKey: string }) => m.moduleKey),
