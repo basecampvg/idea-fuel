@@ -39,7 +39,7 @@ export function buildGraph(assumptions: Assumption[]): Map<string, string[]> {
 
   // Build forward edges: if B depends on A, then A -> B
   for (const a of assumptions) {
-    for (const dep of a.dependsOn) {
+    for (const dep of a.dependsOn ?? []) {
       const children = adjacency.get(dep);
       if (children) {
         children.push(a.key);
@@ -65,7 +65,7 @@ export function detectCycles(assumptions: Assumption[]): string[] | null {
 
   // Count in-degrees from dependsOn
   for (const a of assumptions) {
-    for (const dep of a.dependsOn) {
+    for (const dep of a.dependsOn ?? []) {
       const current = inDegree.get(a.key) ?? 0;
       inDegree.set(a.key, current + 1);
     }
@@ -153,7 +153,7 @@ export function topologicalSortDownstream(
   for (const key of downstream) {
     const a = assumptionMap.get(key);
     if (!a) continue;
-    for (const dep of a.dependsOn) {
+    for (const dep of a.dependsOn ?? []) {
       // Only count deps on OTHER downstream nodes (not the changedKey,
       // which is already resolved and acts as the cascade trigger).
       if (downstreamSet.has(dep)) {
@@ -250,7 +250,7 @@ export function executeCascade(
     const scope: Record<string, number> = {};
     let missingDep = false;
 
-    for (const dep of a.dependsOn) {
+    for (const dep of a.dependsOn ?? []) {
       const val = currentValues.get(dep);
       if (val === null || val === undefined) {
         missingDep = true;
@@ -334,7 +334,7 @@ export function buildReverseDependencyMap(
   }
 
   for (const a of assumptions) {
-    for (const dep of a.dependsOn) {
+    for (const dep of a.dependsOn ?? []) {
       if (!reverse.has(dep)) {
         reverse.set(dep, []);
       }
@@ -414,7 +414,7 @@ export function executeBatchCascade(
   for (const key of downstreamArray) {
     const a = assumptionMap.get(key);
     if (!a) continue;
-    for (const dep of a.dependsOn) {
+    for (const dep of a.dependsOn ?? []) {
       // Count deps that are in the downstream set (not in changedKeys, those are resolved)
       if (allDownstream.has(dep)) {
         const current = inDegree.get(key) ?? 0;
@@ -469,7 +469,7 @@ export function executeBatchCascade(
     const scope: Record<string, number> = {};
     let missingDep = false;
 
-    for (const dep of a.dependsOn) {
+    for (const dep of a.dependsOn ?? []) {
       const val = currentValues.get(dep);
       if (val === null || val === undefined) {
         missingDep = true;

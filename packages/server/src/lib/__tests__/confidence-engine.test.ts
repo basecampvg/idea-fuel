@@ -14,6 +14,7 @@ function makeAssumption(overrides: Partial<Assumption> & { key: string }): Assum
     projectId: 'test-project',
     parentId: overrides.parentId ?? null,
     aggregationMode: overrides.aggregationMode ?? null,
+    moduleKey: overrides.moduleKey ?? null,
     category: 'PRICING',
     name: overrides.key,
     key: overrides.key,
