@@ -85,12 +85,12 @@ fbq('track', 'PageView');
           />
         </noscript>
         {/* Google tag (gtag.js) */}
-        <Script src="https://www.googletagmanager.com/gtag/js?id=G-TL8JCYJ4DW" strategy="beforeInteractive" />
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-P91R7RYB92" strategy="beforeInteractive" />
         <Script id="gtag-init" strategy="beforeInteractive">{`
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
-gtag('config', 'G-TL8JCYJ4DW');
+gtag('config', 'G-P91R7RYB92');
         `}</Script>
       </head>
       <body className="antialiased" suppressHydrationWarning>
