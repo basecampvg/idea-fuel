@@ -349,6 +349,29 @@ export const createCustomAssumptionSchema = z.object({
 });
 export type CreateCustomAssumptionInput = z.infer<typeof createCustomAssumptionSchema>;
 
+// Hierarchical sub-assumption schemas
+export const aggregationModeSchema = z.enum(['SUM', 'AVERAGE', 'CUSTOM']);
+
+export const createSubAssumptionSchema = z.object({
+  projectId: entityId,
+  parentId: entityId,
+  name: z.string().min(1).max(200),
+  key: assumptionKeySchema,
+  valueType: assumptionValueTypeSchema,
+  unit: z.string().max(20).nullable().optional(),
+  value: z.string().max(1000).nullable().optional(),
+  formula: z.string().max(500).nullable().optional(),
+});
+export type CreateSubAssumptionInput = z.infer<typeof createSubAssumptionSchema>;
+
+export const updateAggregationSchema = z.object({
+  projectId: entityId,
+  assumptionId: entityId,
+  mode: aggregationModeSchema,
+  customFormula: z.string().max(500).nullable().optional(),
+});
+export type UpdateAggregationInput = z.infer<typeof updateAggregationSchema>;
+
 // ============================================
 // Pagination validator
 // ============================================
