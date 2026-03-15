@@ -6,6 +6,7 @@
  * and Excel compatibility.
  */
 
+import { AlwaysDense } from 'hyperformula';
 import type { ConfigParams } from 'hyperformula';
 
 export const HYPERFORMULA_CONFIG: Partial<ConfigParams> = {
@@ -24,7 +25,7 @@ export const HYPERFORMULA_CONFIG: Partial<ConfigParams> = {
   dateFormats: ['MM/DD/YYYY', 'YYYY-MM-DD'],
 
   // Performance: dense mapping for rectangular financial sheets
-  chooseAddressMappingPolicy: 'AlwaysDense' as unknown as ConfigParams['chooseAddressMappingPolicy'],
+  chooseAddressMappingPolicy: new AlwaysDense(),
 
   // Limits (generous for financial models)
   maxRows: 10000,

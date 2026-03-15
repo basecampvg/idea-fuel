@@ -15,7 +15,7 @@
 import { HyperFormula, DetailedCellError } from 'hyperformula';
 import type { SimpleCellAddress, RawCellContent } from 'hyperformula';
 import { HYPERFORMULA_CONFIG, getPeriodCount, getPeriodLabels, getMonthsPerPeriod, getPeriodStartMonths, METADATA_ROWS, colLetter } from '../lib/hyperformula-config';
-import { BlockedFunctionsPlugin, blockedFunctionsTranslations, XirrPlugin, xirrTranslations } from '../lib/hyperformula-plugins';
+import { BLOCKED_FUNCTION_IDS, WebserviceBlockPlugin, webserviceBlockTranslations, XirrPlugin, xirrTranslations } from '../lib/hyperformula-plugins';
 import type {
   ComputedStatements,
   StatementData,
@@ -33,8 +33,21 @@ import { ASSUMPTION_IMPACT_MAP } from '../lib/assumption-impact-map';
 let pluginsRegistered = false;
 function ensurePluginsRegistered() {
   if (pluginsRegistered) return;
-  HyperFormula.registerFunctionPlugin(BlockedFunctionsPlugin, blockedFunctionsTranslations);
+
+  // Unregister dangerous built-in functions
+  for (const fnId of BLOCKED_FUNCTION_IDS) {
+    try {
+      HyperFormula.unregisterFunction(fnId);
+    } catch {
+      // Function may not be registered in all configurations — ignore
+    }
+  }
+
+  // Register WEBSERVICE blocker (not a built-in, so we register a custom error function)
+  HyperFormula.registerFunctionPlugin(WebserviceBlockPlugin, webserviceBlockTranslations);
+  // Register XIRR custom function
   HyperFormula.registerFunctionPlugin(XirrPlugin, xirrTranslations);
+
   pluginsRegistered = true;
 }
 
