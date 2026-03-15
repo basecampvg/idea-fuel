@@ -14,8 +14,9 @@ import { assumptions, assumptionHistory, projects, reports, scenarios, financial
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { DEFAULT_ASSUMPTIONS } from '../services/assumption-defaults';
 import { getTemplate } from '../services/financial-templates';
-import { executeCascade, executeBatchCascade, detectCycles } from '../lib/cascade-engine';
+import { executeBatchCascade, detectCycles } from '../lib/cascade-engine';
 import { validateFormula, extractDependencies } from '../lib/formula-engine';
+import { applyCascade } from '../services/hyperformula-engine';
 import { getEffectiveConfidence, getStalenessInfo } from '../lib/confidence-engine';
 import { validateAssumptionKey as validateAssumptionKeyFn } from '../lib/assumption-key-validator';
 import { enqueueSectionRegen } from '../jobs/queues';
@@ -175,7 +176,16 @@ export const assumptionRouter = router({
         .from(assumptions)
         .where(eq(assumptions.projectId, input.projectId));
 
-      return executeCascade(rows as unknown as Assumption[], input.key, input.newValue);
+      // Use HyperFormula cascade instead of old engine
+      const fm = await ctx.db.query.financialModels.findFirst({
+        where: eq(financialModels.projectId, input.projectId),
+      });
+      const tplSlug = (fm?.settings as Record<string, unknown>)?.templateSlug as string ?? 'general';
+      const tpl = getTemplate(tplSlug);
+      if (!tpl) return { status: 'error' as const, changedKey: input.key, errorType: 'formula_error' as const, errorMessage: 'Template not found', errorAtKey: null };
+
+      const assumptionRows = rows.map(r => ({ key: r.key, value: r.value, numericValue: r.numericValue, formula: r.formula }));
+      return applyCascade({ assumptions: assumptionRows, template: tpl, forecastYears: fm?.forecastYears ?? 5 }, input.key, input.newValue);
     }),
 
   /**
@@ -482,44 +492,58 @@ export const assumptionRouter = router({
           reason: null,
         });
 
-        // Execute cascade if value changed
+        // Execute cascade if value changed — use HyperFormula engine
         let cascadeResult = null;
         if (input.value !== undefined && input.value !== assumption.value) {
-          // Refresh assumptions after update
-          const refreshed = allAssumptions.map((a) =>
-            a.id === input.id ? { ...a, ...updates } : a,
-          ) as unknown as Assumption[];
+          // Build assumption rows with the update applied
+          const refreshedRows = allAssumptions.map((a) => ({
+            key: a.key,
+            value: a.id === input.id ? (input.value ?? a.value) : a.value,
+            numericValue: a.id === input.id ? (input.value ?? a.numericValue) : a.numericValue,
+            formula: a.id === input.id ? ((updates.formula as string | null) ?? a.formula) : a.formula,
+          }));
 
-          cascadeResult = executeCascade(refreshed, assumption.key, input.value ?? '');
+          // Get template for workbook building
+          const fm = await tx.query.financialModels.findFirst({
+            where: eq(financialModels.projectId, input.projectId),
+          });
+          const tplSlug = (fm?.settings as Record<string, unknown>)?.templateSlug as string ?? 'general';
+          const tpl = getTemplate(tplSlug);
 
-          if (cascadeResult.status === 'success') {
-            // Apply cascade changes (skip the direct change, already applied)
-            for (const change of cascadeResult.updatedAssumptions) {
-              if (change.key === assumption.key) continue;
+          if (tpl) {
+            cascadeResult = applyCascade(
+              { assumptions: refreshedRows, template: tpl, forecastYears: fm?.forecastYears ?? 5 },
+              assumption.key,
+              input.value ?? '',
+            );
 
-              const cascadedAssumption = allAssumptions.find((a) => a.key === change.key);
-              if (!cascadedAssumption) continue;
+            if (cascadeResult.status === 'success') {
+              for (const change of cascadeResult.updatedAssumptions) {
+                if (change.key === assumption.key) continue;
+                const cascadedAssumption = allAssumptions.find((a) => a.key === change.key);
+                if (!cascadedAssumption) continue;
 
-              await tx
-                .update(assumptions)
-                .set({
-                  value: change.newValue === 'null' ? null : change.newValue,
-                  updatedByActor: 'system',
-                  updatedByUserId: ctx.userId,
-                })
-                .where(and(
-                  eq(assumptions.projectId, input.projectId),
-                  eq(assumptions.key, change.key),
-                ));
+                await tx
+                  .update(assumptions)
+                  .set({
+                    value: change.newValue === 'null' ? null : change.newValue,
+                    updatedByActor: 'system',
+                    updatedByUserId: ctx.userId,
+                  })
+                  .where(and(
+                    eq(assumptions.projectId, input.projectId),
+                    eq(assumptions.key, change.key),
+                  ));
 
-              await tx.insert(assumptionHistory).values({
-                assumptionId: cascadedAssumption.id,
-                oldValue: change.oldValue,
-                newValue: change.newValue === 'null' ? null : change.newValue,
-                changedByActor: 'system',
-                changedByUserId: ctx.userId,
-                reason: `Cascade from ${assumption.key} change`,
-              });
+                await tx.insert(assumptionHistory).values({
+                  assumptionId: cascadedAssumption.id,
+                  oldValue: change.oldValue,
+                  newValue: change.newValue === 'null' ? null : change.newValue,
+                  changedByActor: 'system',
+                  changedByUserId: ctx.userId,
+                  reason: `Cascade from ${assumption.key} change`,
+                });
+              }
             }
           }
         }
@@ -802,30 +826,46 @@ export const assumptionRouter = router({
           reason: null,
         });
 
-        // Execute cascade if value changed
+        // Execute cascade if value changed — HyperFormula engine
         let cascadeResult = null;
         if (input.value !== undefined && input.value !== assumption.value) {
-          const refreshed = allAssumptions.map((a) =>
-            a.id === input.assumptionId ? { ...a, ...updates } : a,
-          ) as unknown as Assumption[];
+          const refreshedRows = allAssumptions.map((a) => ({
+            key: a.key,
+            value: a.id === input.assumptionId ? (input.value ?? a.value) : a.value,
+            numericValue: a.id === input.assumptionId ? (input.value ?? a.numericValue) : a.numericValue,
+            formula: a.formula,
+          }));
 
-          cascadeResult = executeCascade(refreshed, assumption.key, input.value ?? '');
+          // Get scenario → model → template
+          const scenario = await tx.query.scenarios.findFirst({
+            where: eq(scenarios.id, input.scenarioId),
+            with: { model: true },
+          });
+          const tplSlug = (scenario?.model?.settings as Record<string, unknown>)?.templateSlug as string ?? 'general';
+          const tpl = getTemplate(tplSlug);
 
-          if (cascadeResult.status === 'success') {
-            for (const change of cascadeResult.updatedAssumptions) {
-              if (change.key === assumption.key) continue;
+          if (tpl) {
+            cascadeResult = applyCascade(
+              { assumptions: refreshedRows, template: tpl, forecastYears: scenario?.model?.forecastYears ?? 5 },
+              assumption.key,
+              input.value ?? '',
+            );
 
-              await tx
-                .update(assumptions)
-                .set({
-                  value: change.newValue === 'null' ? null : change.newValue,
-                  updatedByActor: 'system',
-                  updatedByUserId: ctx.userId,
-                })
-                .where(and(
-                  eq(assumptions.scenarioId, input.scenarioId),
-                  eq(assumptions.key, change.key),
-                ));
+            if (cascadeResult.status === 'success') {
+              for (const change of cascadeResult.updatedAssumptions) {
+                if (change.key === assumption.key) continue;
+                await tx
+                  .update(assumptions)
+                  .set({
+                    value: change.newValue === 'null' ? null : change.newValue,
+                    updatedByActor: 'system',
+                    updatedByUserId: ctx.userId,
+                  })
+                  .where(and(
+                    eq(assumptions.scenarioId, input.scenarioId),
+                    eq(assumptions.key, change.key),
+                  ));
+              }
             }
           }
         }
