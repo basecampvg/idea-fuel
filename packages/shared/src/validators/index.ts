@@ -14,9 +14,24 @@ export const PROJECT_TITLE_MAX = 80;
 export const PROJECT_DESC_MAX = 5000;
 export const PROJECT_DESC_MIN = 10;
 
+export const projectModeSchema = z.enum(['LAUNCH', 'EXPAND']);
+
+export const businessContextSchema = z.object({
+  businessName: z.string().max(200).optional(),
+  industryVertical: z.string().min(1, 'Industry is required').max(200),
+  yearsInOperation: z.number().int().min(0).max(200),
+  revenueRange: z.enum(['<100K', '100K-500K', '500K-2M', '2M+']),
+  customerType: z.enum(['B2C', 'B2B', 'mixed']),
+  currentProducts: z.array(z.string().min(1).max(200)).min(1, 'At least one product required').max(50),
+  geographicFocus: z.enum(['local', 'national', 'international']),
+  teamSize: z.enum(['solo', '2-5', '6-20', '20+']),
+});
+
 export const createProjectSchema = z.object({
   title: z.string().min(1, 'Title is required').max(PROJECT_TITLE_MAX, 'Title too long'),
   description: z.string().max(PROJECT_DESC_MAX, 'Description too long').default(''),
+  mode: projectModeSchema.default('LAUNCH'),
+  businessContext: businessContextSchema.optional(),
 });
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 
@@ -126,6 +141,9 @@ export const reportTypeSchema = z.enum([
   'VALUE_EQUATION',
   'VALUE_LADDER',
   'GO_TO_MARKET',
+  'OPPORTUNITY_SCORECARD',
+  'EXPANSION_BUSINESS_CASE',
+  'RISK_CANNIBALIZATION',
 ]);
 
 export const reportTierSchema = z.enum(['BASIC', 'PRO', 'FULL']);

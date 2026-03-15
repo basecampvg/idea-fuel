@@ -3,7 +3,7 @@ import { eq, and, desc } from 'drizzle-orm';
 import { router, protectedProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { INTERVIEW_SESSION, INTERVIEW_RESUME_MESSAGES } from '@forge/shared';
-import type { ChatMessage, InterviewDataPoints, InterviewMode } from '@forge/shared';
+import type { ChatMessage, InterviewDataPoints, InterviewMode, ExpandDataPoints, ExpandTrackProgress, BusinessContext } from '@forge/shared';
 import { interviews, projects, research, users } from '../db/schema';
 import {
   generateNextQuestion,
@@ -11,6 +11,13 @@ import {
   mergeCollectedData,
   generateResumeContext,
 } from '../services/interview-ai';
+import {
+  generateExpandNextQuestion,
+  extractExpandDataPoints,
+  mergeExpandCollectedData,
+  meetsMinimumCompletion,
+  getTotalCompleted,
+} from '../services/expand-interview-ai';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { enqueueResearchPipeline } from '../jobs';
 
@@ -287,6 +294,8 @@ export const interviewRouter = router({
               title: true,
               description: true,
               notes: true,
+              mode: true,
+              businessContext: true,
             },
           },
         },
@@ -337,6 +346,107 @@ export const interviewRouter = router({
         .slice(-6) // Last 3 exchanges
         .map((m) => `${m.role}: ${m.content}`)
         .join('\n');
+
+      const isExpandMode = interview.project.mode === 'EXPAND';
+
+      // ================================================================
+      // EXPAND MODE: Track-based interview flow
+      // ================================================================
+      if (isExpandMode) {
+        const businessContext = interview.project.businessContext as BusinessContext;
+        const trackProgress = (interview.expandTrackProgress as ExpandTrackProgress) || {
+          A: { completed: 0, total: 10 }, B: { completed: 0, total: 10 }, C: { completed: 0, total: 10 },
+          currentTrack: 'A' as const,
+        };
+        const classification = businessContext?.classification;
+        const trackOrder = classification?.interviewTrackOrder ?? (['A', 'B', 'C'] as [any, any, any]);
+        const existingExpandData = (interview.collectedData as Partial<ExpandDataPoints>) || {};
+
+        // Run extraction + question generation in parallel
+        const [expandExtracted, expandQuestion] = await Promise.all([
+          extractExpandDataPoints(input.content, conversationContext, existingExpandData, tier),
+          generateExpandNextQuestion(businessContext, messages, existingExpandData, trackProgress, trackOrder, tier),
+        ]);
+
+        const mergedExpandData = mergeExpandCollectedData(existingExpandData, expandExtracted, currentTurn + 1);
+
+        // Update track progress
+        const updatedProgress: ExpandTrackProgress = { ...trackProgress };
+        const currentTrack = trackProgress.currentTrack;
+        updatedProgress[currentTrack] = {
+          ...updatedProgress[currentTrack],
+          completed: Math.min(updatedProgress[currentTrack].completed + 1, updatedProgress[currentTrack].total),
+        };
+
+        // If the next question switches tracks, update currentTrack
+        if (expandQuestion.nextTrack) {
+          updatedProgress.currentTrack = expandQuestion.nextTrack;
+        }
+
+        const expandAssistantMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: expandQuestion.text,
+          timestamp: new Date().toISOString(),
+        };
+        messages.push(expandAssistantMessage);
+
+        const now = new Date();
+        const [updated] = await ctx.db
+          .update(interviews)
+          .set({
+            messages,
+            collectedData: mergedExpandData,
+            expandTrackProgress: updatedProgress,
+            currentTurn: currentTurn + 1,
+            lastActiveAt: now,
+            lastMessageAt: now,
+          })
+          .where(eq(interviews.id, input.interviewId))
+          .returning();
+
+        // Auto-complete if closing
+        if (expandQuestion.isClosing) {
+          const totalCompleted = getTotalCompleted(updatedProgress);
+          const confidenceScore = Math.min(100, Math.round((totalCompleted / 30) * 100));
+          const summary = `Expand interview completed with ${currentTurn + 1} turns. ${totalCompleted}/30 questions answered.`;
+
+          const [completedInterview] = await ctx.db
+            .update(interviews)
+            .set({ status: 'COMPLETE', summary, confidenceScore })
+            .where(eq(interviews.id, input.interviewId))
+            .returning();
+
+          logAuditAsync({
+            userId: ctx.userId,
+            action: 'INTERVIEW_COMPLETE',
+            resource: formatResource('interview', interview.id),
+            metadata: { projectId: interview.projectId, confidenceScore, mode: 'EXPAND' },
+          });
+
+          await ctx.db.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, interview.projectId));
+
+          return {
+            interview: { ...completedInterview, project: interview.project },
+            userMessage,
+            assistantMessage: expandAssistantMessage,
+            extractedData: Object.keys(expandExtracted),
+            trackProgress: updatedProgress,
+          };
+        }
+
+        return {
+          interview: { ...updated, project: interview.project },
+          userMessage,
+          assistantMessage: expandAssistantMessage,
+          extractedData: Object.keys(expandExtracted),
+          trackProgress: updatedProgress,
+        };
+      }
+
+      // ================================================================
+      // LAUNCH MODE: Standard sequential interview flow
+      // ================================================================
 
       // 4. Run extraction + question generation in PARALLEL for speed
       // Question gen uses pre-merge data (safe — scripted questions follow fixed order,
@@ -498,12 +608,26 @@ export const interviewRouter = router({
     }
 
     // Calculate confidence score based on collected data
+    const isExpandProject = interview.project.mode === 'EXPAND';
     const collectedData = (interview.collectedData as Record<string, unknown>) || {};
     const filledFields = Object.values(collectedData).filter((v) => v !== null && v !== undefined).length;
-    const totalFields = 42; // Updated: 31 original + 11 new fields
-    const confidenceScore = Math.min(100, Math.round((filledFields / totalFields) * 100));
+    const totalFields = isExpandProject ? 31 : 42;
 
-    const summary = `Interview completed with ${interview.currentTurn} turns. ${filledFields}/${totalFields} data points collected.`;
+    // For Expand Mode, verify minimum completion (Track A complete + one of B/C >= 60%)
+    if (isExpandProject) {
+      const trackProgress = interview.expandTrackProgress as ExpandTrackProgress | null;
+      if (trackProgress && !meetsMinimumCompletion(trackProgress)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Complete Track A and at least 60% of Track B or C before finishing the interview.',
+        });
+      }
+    }
+
+    const confidenceScore = Math.min(100, Math.round((filledFields / totalFields) * 100));
+    const summary = isExpandProject
+      ? `Expand interview completed with ${interview.currentTurn} turns. ${filledFields}/${totalFields} data points collected.`
+      : `Interview completed with ${interview.currentTurn} turns. ${filledFields}/${totalFields} data points collected.`;
 
     const [updatedInterview] = await ctx.db
       .update(interviews)
@@ -672,4 +796,44 @@ export const interviewRouter = router({
 
     return { success: true };
   }),
+
+  /**
+   * Switch the active track in an Expand Mode interview
+   */
+  switchTrack: protectedProcedure
+    .input(z.object({
+      interviewId: z.string().min(1),
+      track: z.enum(['A', 'B', 'C']),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const interview = await ctx.db.query.interviews.findFirst({
+        where: and(eq(interviews.id, input.interviewId), eq(interviews.userId, ctx.userId)),
+      });
+
+      if (!interview) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Interview not found' });
+      }
+
+      if (interview.status !== 'IN_PROGRESS') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Interview is not in progress' });
+      }
+
+      const trackProgress = interview.expandTrackProgress as ExpandTrackProgress | null;
+      if (!trackProgress) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'This interview does not have track progress (not an Expand Mode interview)' });
+      }
+
+      const updatedProgress: ExpandTrackProgress = {
+        ...trackProgress,
+        currentTrack: input.track,
+      };
+
+      const [updated] = await ctx.db
+        .update(interviews)
+        .set({ expandTrackProgress: updatedProgress })
+        .where(eq(interviews.id, input.interviewId))
+        .returning();
+
+      return { interview: updated, trackProgress: updatedProgress };
+    }),
 });

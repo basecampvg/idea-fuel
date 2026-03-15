@@ -193,6 +193,9 @@ export const REPORT_TYPE_LABELS: Record<string, string> = {
   VALUE_EQUATION: 'Value Equation',
   VALUE_LADDER: 'Value Ladder',
   GO_TO_MARKET: 'Go-to-Market Strategy',
+  OPPORTUNITY_SCORECARD: 'Opportunity Scorecard',
+  EXPANSION_BUSINESS_CASE: 'Expansion Business Case',
+  RISK_CANNIBALIZATION: 'Risk & Cannibalization',
 };
 
 export const REPORT_TYPE_DESCRIPTIONS: Record<string, string> = {
@@ -206,6 +209,9 @@ export const REPORT_TYPE_DESCRIPTIONS: Record<string, string> = {
   VALUE_EQUATION: 'Value proposition breakdown and benefits analysis',
   VALUE_LADDER: 'Product/service tier strategy and pricing tiers',
   GO_TO_MARKET: 'Launch timeline, channel strategy, and acquisition plan',
+  OPPORTUNITY_SCORECARD: 'Ranked expansion opportunities with MOAT scoring and evidence trails',
+  EXPANSION_BUSINESS_CASE: 'Detailed business case for a selected expansion opportunity',
+  RISK_CANNIBALIZATION: 'Risk assessment and cannibalization analysis for expansion',
 };
 
 // Report tier labels

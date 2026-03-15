@@ -3,10 +3,23 @@ import { createRedisConnection } from '../../lib/redis';
 import { db } from '../../db/drizzle';
 import { eq } from 'drizzle-orm';
 import { reports, projects, interviews } from '../../db/schema';
+import type { SubscriptionTier } from '../../db/schema';
 import { QUEUE_NAMES, ReportGenerationJobData } from '../queues';
 import { extractCitations } from '../../services/citation-extractor';
 import { generatePositioningReport } from '../../services/positioning-ai';
 import { summarizeRawResearch } from '../../services/business-plan-ai';
+import {
+  generateOpportunityScorecardReport,
+  generateExpansionBusinessCaseReport,
+  generateRiskCannibalizationReport,
+  type ExpandReportContext,
+} from '../../services/expand-reports-ai';
+import type {
+  BusinessContext,
+  OpportunityEngineResult,
+  MoatAuditResult,
+  ExpandResearchModuleOutputs,
+} from '@forge/shared';
 
 /**
  * Report Generation Worker
@@ -99,6 +112,43 @@ export function createReportGenerationWorker() {
               ...(isPro && !isFull ? fullSections : []),
             ],
           };
+        } else if (
+          (reportType === 'OPPORTUNITY_SCORECARD' || reportType === 'EXPANSION_BUSINESS_CASE' || reportType === 'RISK_CANNIBALIZATION')
+          && project.research
+        ) {
+          // Expand Mode reports: use expand-specific AI services
+          console.log(`[ReportWorker] Generating ${reportType} report with Expand AI service`);
+
+          const expandContext: ExpandReportContext = {
+            businessContext: project.businessContext as unknown as BusinessContext,
+            engineResult: project.research.expandOpportunityEngine as unknown as OpportunityEngineResult,
+            moatAudit: project.research.expandMoatAudit as unknown as MoatAuditResult,
+            moduleOutputs: project.research.expandResearchData as unknown as ExpandResearchModuleOutputs,
+          };
+
+          await job.updateProgress(40);
+
+          if (reportType === 'OPPORTUNITY_SCORECARD') {
+            content = await generateOpportunityScorecardReport(expandContext, tier as SubscriptionTier);
+            reportSections = {
+              included: ['executiveSummary', 'moatProfile', 'opportunities', 'strategicRecommendation'],
+              locked: [],
+            };
+          } else if (reportType === 'EXPANSION_BUSINESS_CASE') {
+            // Use first opportunity by default (user can select via metadata)
+            const opportunityId = job.data.opportunityId;
+            content = await generateExpansionBusinessCaseReport(expandContext, opportunityId || '', tier as SubscriptionTier);
+            reportSections = {
+              included: ['executiveSummary', 'marketOpportunity', 'competitiveAdvantage', 'implementationPlan', 'financialProjection', 'riskMitigation', 'resourceRequirements', 'timeline', 'successMetrics'],
+              locked: [],
+            };
+          } else {
+            content = await generateRiskCannibalizationReport(expandContext, tier as SubscriptionTier);
+            reportSections = {
+              included: ['executiveSummary', 'cannibalizationAnalysis', 'strategicRisks', 'resourceConflicts', 'marketRisks', 'recommendation'],
+              locked: [],
+            };
+          }
         } else {
           // All other report types: placeholder
           content = await generateReportContent({

@@ -4,6 +4,9 @@
 // Project Types (Unified: absorbs former Idea + Canvas types)
 // =============================================================================
 
+// Project mode enum (matches DB ProjectMode)
+export type ProjectMode = 'LAUNCH' | 'EXPAND';
+
 // Project status enum (matches DB ProjectStatus)
 export type ProjectStatus = 'CAPTURED' | 'INTERVIEWING' | 'RESEARCHING' | 'COMPLETE';
 
@@ -15,7 +18,9 @@ export interface Project {
   title: string;
   description: string;
   notes: string | null;
+  mode: ProjectMode;
   status: ProjectStatus;
+  businessContext: BusinessContext | null;
   userId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -51,7 +56,7 @@ export type ResearchStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETE' | 'FAILED';
 // Subscription tiers for users
 export type SubscriptionTier = 'FREE' | 'PRO' | 'ENTERPRISE' | 'TESTER';
 
-// 10 Report types available
+// 13 Report types available (10 Launch + 3 Expand)
 export type ReportType =
   | 'BUSINESS_PLAN'
   | 'POSITIONING'
@@ -62,7 +67,10 @@ export type ReportType =
   | 'CUSTOMER_PROFILE'
   | 'VALUE_EQUATION'
   | 'VALUE_LADDER'
-  | 'GO_TO_MARKET';
+  | 'GO_TO_MARKET'
+  | 'OPPORTUNITY_SCORECARD'
+  | 'EXPANSION_BUSINESS_CASE'
+  | 'RISK_CANNIBALIZATION';
 
 // Report tiers - determined by subscription + interview mode blend
 // SPARK mode → BASIC tier only (any subscription) - quick validation
@@ -1170,3 +1178,310 @@ export interface TemplateDefinition {
     targetAssumptionKey: string;
   }>;
 }
+
+// =============================================================================
+// Expand Mode Types
+// =============================================================================
+
+/** Revenue range for business context intake */
+export type RevenueRange = '<100K' | '100K-500K' | '500K-2M' | '2M+';
+
+/** Customer type classification */
+export type CustomerType = 'B2C' | 'B2B' | 'mixed';
+
+/** Geographic focus of the business */
+export type GeographicFocus = 'local' | 'national' | 'international';
+
+/** Team size classification */
+export type TeamSize = 'solo' | '2-5' | '6-20' | '20+';
+
+/** Business context collected during Expand Mode intake (8 fields) */
+export interface BusinessContext {
+  businessName?: string;
+  industryVertical: string;
+  yearsInOperation: number;
+  revenueRange: RevenueRange;
+  customerType: CustomerType;
+  currentProducts: string[];
+  geographicFocus: GeographicFocus;
+  teamSize: TeamSize;
+  /** AI classification result, merged after intake submission */
+  classification?: ClassificationResult;
+}
+
+/** Business taxonomy from AI classification */
+export type BusinessTaxonomy =
+  | 'services-local'
+  | 'services-professional'
+  | 'saas'
+  | 'ecommerce'
+  | 'physical-product'
+  | 'content'
+  | 'marketplace'
+  | 'other';
+
+/** Expand Mode interview track identifier */
+export type ExpandTrackId = 'A' | 'B' | 'C';
+
+/** Result of AI classification of business context */
+export interface ClassificationResult {
+  taxonomy: BusinessTaxonomy;
+  interviewTrackOrder: [ExpandTrackId, ExpandTrackId, ExpandTrackId];
+  researchModuleConfig: {
+    adjacencyScan: boolean;
+    competitorPortfolio: boolean;
+    demandMining: boolean;
+    pricingCeiling: boolean;
+  };
+  seedAssumptions: Record<string, { value: number; confidence: 'AI_ESTIMATE' }>;
+}
+
+/** Track progress for Expand Mode interviews (stored as JSONB on interviews table) */
+export interface ExpandTrackProgress {
+  A: { completed: number; total: number };
+  B: { completed: number; total: number };
+  C: { completed: number; total: number };
+  currentTrack: ExpandTrackId;
+}
+
+/**
+ * Structured data extracted from the 30-question Expand Mode interview.
+ * Track A: Product Line Audit (10 questions)
+ * Track B: Customer Intelligence (10 questions)
+ * Track C: Strategic Context (10 questions)
+ */
+export interface ExpandDataPoints {
+  // Track A: Product Line Audit
+  currentProducts: DataPoint;
+  topRevenueProduct: DataPoint;
+  bestMarginProduct: DataPoint;
+  underperformingProduct: DataPoint;
+  customerRequests: DataPoint;
+  targetExpansion: DataPoint;
+  avgOrderValue: DataPoint;
+  hasRecurringRevenue: DataPoint;
+  sunsettingProducts: DataPoint;
+  failedExpansions: DataPoint;
+  customerOnboardingTime: DataPoint;
+  operationalBottleneck: DataPoint;
+
+  // Track B: Customer Intelligence
+  bestCustomerProfile: DataPoint;
+  topCustomerRevenueConcentration: DataPoint;
+  customerSpendElsewhere: DataPoint;
+  topComplaints: DataPoint;
+  churnReasons: DataPoint;
+  upsellHistory: DataPoint;
+  referralBehavior: DataPoint;
+  wrongFitCustomers: DataPoint;
+  customerBaseTrajectory: DataPoint;
+  prioritySegment: DataPoint;
+
+  // Track C: Strategic Context
+  primaryGoal: DataPoint;
+  availableCapital: DataPoint;
+  canOperateWithoutNewHire: DataPoint;
+  riskTolerance: DataPoint;
+  timeConstraints: DataPoint;
+  explicitAvoidances: DataPoint;
+  competitorConcerns: DataPoint;
+  twoYearVision: DataPoint;
+  suppressedIdea: DataPoint;
+  worstCaseScenario: DataPoint;
+}
+
+/** Input type for the Expand research pipeline (distinct from Launch ResearchInput) */
+export interface ExpandResearchInput {
+  projectId: string;
+  researchId: string;
+  businessContext: BusinessContext;
+  classification: ClassificationResult;
+  expandInterviewData: ExpandDataPoints;
+  interviewMessages: ChatMessage[];
+  founderProfile?: FounderProfile;
+}
+
+/** Individual scored opportunity from the Opportunity Engine */
+export interface ScoredOpportunity {
+  id: string;
+  title: string;
+  description: string;
+  tier: 'Pursue' | 'Explore' | 'Defer';
+  scores: {
+    operationalFit: number;
+    revenuePotential: number;
+    resourceRequirement: number;
+    strategicRisk: number;
+    moatStrength: number;
+  };
+  overallScore: number;
+  moatVerdict: string;
+  evidenceTrail: string[];
+  confidence: 'high' | 'medium' | 'low';
+}
+
+/** Complete output from the Opportunity Engine (stored as JSONB on research table) */
+export interface OpportunityEngineResult {
+  opportunities: ScoredOpportunity[];
+  moatAuditId: string;
+  generatedAt: string;
+  inputSummary: {
+    businessContext: string;
+    interviewCompleteness: {
+      trackA: number;
+      trackB: number;
+      trackC: number;
+    };
+    researchModulesUsed: string[];
+  };
+}
+
+/** Moat asset type identifiers */
+export type MoatAssetType =
+  | 'customer-captivity'
+  | 'inherited-distribution'
+  | 'proprietary-assets'
+  | 'cost-advantage'
+  | 'network-effects';
+
+/** Individual moat asset assessment */
+export interface MoatAssetAssessment {
+  type: MoatAssetType;
+  score: number;
+  evidence: string[];
+  transferability: string;
+}
+
+/** Complete MOAT audit result (stored as JSONB on research table) */
+export interface MoatAuditResult {
+  assets: MoatAssetAssessment[];
+  overallMoatStrength: number;
+  summary: string;
+  generatedAt: string;
+}
+
+// ============================================================================
+// Expand Research Pipeline Module Results
+// ============================================================================
+
+/** Adjacency Scan: identifies adjacent market opportunities based on existing business */
+export interface AdjacencyScanResult {
+  adjacencies: Array<{
+    id: string;
+    title: string;
+    description: string;
+    adjacencyType: 'customer' | 'capability' | 'channel' | 'product' | 'geographic';
+    relevanceScore: number;
+    evidence: string[];
+    estimatedEffort: 'low' | 'medium' | 'high';
+    marketSignals: string[];
+  }>;
+  summary: string;
+  totalIdentified: number;
+}
+
+/** Competitor Portfolio: maps competitor product lines and gaps */
+export interface CompetitorPortfolioResult {
+  competitors: Array<{
+    name: string;
+    productLines: string[];
+    recentExpansions: string[];
+    gaps: string[];
+    marketPosition: string;
+    estimatedRevenue?: string;
+  }>;
+  whiteSpaces: Array<{
+    description: string;
+    competitorCount: number;
+    demandEvidence: string[];
+  }>;
+  summary: string;
+}
+
+/** Demand Mining: identifies unmet customer demand signals */
+export interface DemandMiningResult {
+  demandSignals: Array<{
+    signal: string;
+    source: string;
+    strength: 'strong' | 'moderate' | 'weak';
+    customerSegment: string;
+    frequency: string;
+    relatedProducts: string[];
+  }>;
+  underservedSegments: Array<{
+    segment: string;
+    painPoints: string[];
+    willingness: string;
+    evidence: string[];
+  }>;
+  summary: string;
+}
+
+/** Pricing Ceiling: analyzes pricing power and revenue potential for expansion */
+export interface PricingCeilingResult {
+  pricingBenchmarks: Array<{
+    productCategory: string;
+    lowEnd: number;
+    midRange: number;
+    highEnd: number;
+    currency: string;
+    basis: string;
+  }>;
+  pricingPower: {
+    currentPosition: string;
+    headroom: string;
+    factors: string[];
+    risks: string[];
+  };
+  revenueProjections: Array<{
+    scenario: string;
+    annualRevenue: string;
+    assumptions: string[];
+    confidence: 'high' | 'medium' | 'low';
+  }>;
+  summary: string;
+}
+
+/** Combined output of all 4 Expand research modules */
+export interface ExpandResearchModuleOutputs {
+  adjacencyScan: AdjacencyScanResult | null;
+  competitorPortfolio: CompetitorPortfolioResult | null;
+  demandMining: DemandMiningResult | null;
+  pricingCeiling: PricingCeilingResult | null;
+}
+
+/** Synthesized artifacts from Expand research for downstream Opportunity Engine */
+export interface ExpandResearchSynthesis {
+  topOpportunities: Array<{
+    title: string;
+    description: string;
+    sources: string[];
+    strengthOfEvidence: 'strong' | 'moderate' | 'weak';
+  }>;
+  competitiveLandscape: string;
+  demandSummary: string;
+  pricingSummary: string;
+  dataGaps: string[];
+  generatedAt: string;
+}
+
+/** Expand research pipeline phases for progress tracking */
+export type ExpandResearchPhase =
+  | 'QUEUED'
+  | 'ADJACENCY_SCAN'
+  | 'COMPETITOR_PORTFOLIO'
+  | 'DEMAND_MINING'
+  | 'PRICING_CEILING'
+  | 'SYNTHESIS'
+  | 'COMPLETE';
+
+/** Progress mapping for Expand research phases */
+export const EXPAND_RESEARCH_PHASE_PROGRESS: Record<ExpandResearchPhase, number> = {
+  QUEUED: 0,
+  ADJACENCY_SCAN: 10,
+  COMPETITOR_PORTFOLIO: 30,
+  DEMAND_MINING: 50,
+  PRICING_CEILING: 70,
+  SYNTHESIS: 85,
+  COMPLETE: 100,
+};

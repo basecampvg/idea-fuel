@@ -1,11 +1,14 @@
 import { z } from 'zod';
 import { eq, and, desc, count, inArray, sql } from 'drizzle-orm';
 import { router, protectedProcedure } from '../trpc';
-import { createProjectSchema, updateProjectSchema, startInterviewSchema } from '@forge/shared';
-import type { ChatMessage, InterviewMode } from '@forge/shared';
+import { createProjectSchema, updateProjectSchema, startInterviewSchema, businessContextSchema } from '@forge/shared';
+import type { ChatMessage, InterviewMode, BusinessContext } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
 import { projects, interviews, reports, research, users } from '../db/schema';
 import { generateOpeningQuestion } from '../services/interview-ai';
+import { classifyBusinessContext } from '../services/expand-classification';
+import { seedExpandAssumptions } from '../services/expand-assumption-seeder';
+import { generateExpandOpeningQuestion, createInitialTrackProgress } from '../services/expand-interview-ai';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { enqueueResearchPipeline } from '../jobs';
 
@@ -54,6 +57,7 @@ export const projectRouter = router({
             title: projects.title,
             description: projects.description,
             notes: projects.notes,
+            mode: projects.mode,
             status: projects.status,
             createdAt: projects.createdAt,
             updatedAt: projects.updatedAt,
@@ -82,6 +86,7 @@ export const projectRouter = router({
         title: p.title,
         description: p.description,
         notes: p.notes,
+        mode: p.mode,
         status: p.status,
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
@@ -147,11 +152,14 @@ export const projectRouter = router({
 
   /**
    * Create a new project (starts as a draft idea with status CAPTURED)
+   * For EXPAND mode: runs AI classification inline and seeds vertical-specific assumptions
    */
   create: protectedProcedure.input(createProjectSchema).mutation(async ({ ctx, input }) => {
     const results = await ctx.db.insert(projects).values({
       title: input.title,
       description: input.description,
+      mode: input.mode,
+      businessContext: input.businessContext ?? null,
       userId: ctx.userId,
     }).returning();
 
@@ -160,15 +168,77 @@ export const projectRouter = router({
       throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to create project' });
     }
 
+    // For EXPAND mode: run AI classification and seed assumptions
+    let classification = null;
+    if (input.mode === 'EXPAND' && input.businessContext) {
+      classification = await classifyBusinessContext(input.businessContext);
+
+      // Merge classification into businessContext and update project
+      const enrichedContext = { ...input.businessContext, classification };
+      await ctx.db
+        .update(projects)
+        .set({ businessContext: enrichedContext })
+        .where(eq(projects.id, project.id));
+
+      // Seed vertical-specific assumptions from classification
+      await seedExpandAssumptions(ctx.db as any, project.id, classification);
+    }
+
     logAuditAsync({
       userId: ctx.userId,
       action: 'PROJECT_CREATE',
       resource: formatResource('project', project.id),
-      metadata: { title: project.title },
+      metadata: { title: project.title, mode: input.mode },
     });
 
-    return project;
+    return {
+      ...project,
+      businessContext: classification
+        ? { ...input.businessContext, classification }
+        : project.businessContext,
+    };
   }),
+
+  /**
+   * Update business context and re-run classification (Expand Mode only)
+   */
+  updateBusinessContext: protectedProcedure
+    .input(z.object({
+      id: z.string().min(1),
+      businessContext: businessContextSchema,
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const existing = await ctx.db.query.projects.findFirst({
+        where: and(eq(projects.id, input.id), eq(projects.userId, ctx.userId)),
+      });
+
+      if (!existing) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found' });
+      }
+
+      if (existing.mode !== 'EXPAND') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Business context is only available for Expand Mode projects' });
+      }
+
+      // Re-run classification with updated context
+      const classification = await classifyBusinessContext(input.businessContext);
+      const enrichedContext = { ...input.businessContext, classification };
+
+      const [updated] = await ctx.db
+        .update(projects)
+        .set({ businessContext: enrichedContext })
+        .where(eq(projects.id, input.id))
+        .returning();
+
+      logAuditAsync({
+        userId: ctx.userId,
+        action: 'PROJECT_UPDATE',
+        resource: formatResource('project', input.id),
+        metadata: { action: 'update_business_context' },
+      });
+
+      return updated;
+    }),
 
   /**
    * Update project title, description, or notes
@@ -254,6 +324,8 @@ export const projectRouter = router({
         title: true,
         description: true,
         notes: true,
+        mode: true,
+        businessContext: true,
       },
     });
 
@@ -303,7 +375,68 @@ export const projectRouter = router({
       };
     }
 
-    // For LIGHT and IN_DEPTH modes, create an active interview with opening question
+    // For EXPAND mode projects, use Expand interview flow with track-based questions
+    if (project.mode === 'EXPAND') {
+      const businessContext = project.businessContext as BusinessContext;
+      if (!businessContext) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Business context is required for Expand Mode interviews',
+        });
+      }
+
+      const classification = businessContext.classification;
+      const startTrack = classification?.interviewTrackOrder?.[0] ?? 'A';
+
+      const user = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.userId),
+        columns: { subscription: true },
+      });
+      const tier = user?.subscription ?? 'FREE';
+
+      const openingQuestion = await generateExpandOpeningQuestion(businessContext, startTrack, tier);
+      const trackProgress = createInitialTrackProgress(startTrack);
+
+      const openingMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: openingQuestion,
+        timestamp: new Date().toISOString(),
+      };
+
+      const expandInterview = await ctx.db.transaction(async (tx) => {
+        const [created] = await tx.insert(interviews).values({
+          projectId: input.projectId,
+          userId: ctx.userId,
+          mode: 'IN_DEPTH',
+          status: 'IN_PROGRESS',
+          currentTurn: 0,
+          maxTurns: 30,
+          messages: [openingMessage],
+          expandTrackProgress: trackProgress,
+          lastActiveAt: new Date(),
+          researchEngine: input.researchEngine || 'OPENAI',
+        }).returning();
+
+        await tx.update(projects).set({ status: 'INTERVIEWING' }).where(eq(projects.id, input.projectId));
+
+        return created;
+      });
+
+      logAuditAsync({
+        userId: ctx.userId,
+        action: 'INTERVIEW_START',
+        resource: formatResource('interview', expandInterview.id),
+        metadata: { projectId: input.projectId, mode: 'EXPAND', startTrack },
+      });
+
+      return {
+        interview: expandInterview,
+        skipToResearch: false,
+      };
+    }
+
+    // For LIGHT and IN_DEPTH modes (Launch Mode), create an active interview with opening question
     const user = await ctx.db.query.users.findFirst({
       where: eq(users.id, ctx.userId),
       columns: { subscription: true },

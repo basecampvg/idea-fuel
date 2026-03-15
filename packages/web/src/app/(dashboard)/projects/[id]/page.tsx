@@ -12,8 +12,9 @@ import { UserStory, type UserStoryData } from './components/user-story';
 import { ScoreCards } from './components/score-cards';
 
 import { AgentInsightsSection } from '@/components/agent/agent-insights-section';
+import { ExpandScorecard } from './components/expand-scorecard';
 import { Trash2 } from 'lucide-react';
-import type { SparkResult, InterviewMode, ResearchEngine } from '@forge/shared';
+import type { SparkResult, InterviewMode, ResearchEngine, ScoredOpportunity, MoatAuditResult, OpportunityEngineResult } from '@forge/shared';
 import { getResearchJourneyState } from '@forge/shared';
 
 // Check if research is a Spark validation (has sparkStatus or sparkResult)
@@ -55,6 +56,12 @@ export default function ProjectOverviewPage() {
   const startInterview = trpc.project.startInterview.useMutation({
     onSuccess: () => {
       router.push(`/projects/${params.id}/interview`);
+    },
+  });
+
+  const generateBusinessCase = trpc.report.generateBusinessCase.useMutation({
+    onSuccess: () => {
+      refetch();
     },
   });
 
@@ -136,8 +143,8 @@ export default function ProjectOverviewPage() {
         </>
       )}
 
-      {/* Regular complete — Overview shows summary content via sub-pages, but main page shows key items */}
-      {project.status === 'COMPLETE' && !sparkMode && (
+      {/* Regular complete (Launch mode) */}
+      {project.status === 'COMPLETE' && !sparkMode && project.mode !== 'EXPAND' && (
         <div className="space-y-5">
           <UserStory userStory={research?.userStory as UserStoryData | null | undefined} />
           <ScoreCards
@@ -149,6 +156,17 @@ export default function ProjectOverviewPage() {
             scoreMetadata={research?.scoreMetadata as any}
           />
         </div>
+      )}
+
+      {/* Expand Mode complete — Opportunity Scorecard */}
+      {project.status === 'COMPLETE' && project.mode === 'EXPAND' && research && (
+        <ExpandScorecard
+          opportunities={(research.expandOpportunityEngine as unknown as OpportunityEngineResult)?.opportunities || []}
+          moatAudit={research.expandMoatAudit as unknown as MoatAuditResult | null}
+          onSelectOpportunity={(opportunityId) => {
+            generateBusinessCase.mutate({ projectId: project.id, opportunityId });
+          }}
+        />
       )}
 
       {/* Agent Insights — shown for any complete project */}

@@ -5,11 +5,18 @@ import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { useSubscription } from '@/components/subscription/use-subscription';
 import { LoadingScreen } from '@/components/ui/spinner';
-import { Flame, Feather, Zap, Bookmark, ArrowUp, TrendingUp, Paperclip, Sparkles, Lock, Info, X } from 'lucide-react';
+import { Flame, Feather, Zap, Bookmark, ArrowUp, TrendingUp, Paperclip, Sparkles, Lock, Info, X, ChevronLeft } from 'lucide-react';
 import { PROJECT_TITLE_MAX } from '@forge/shared';
-import type { ResearchEngine } from '@forge/shared';
+import type { ResearchEngine, ProjectMode, BusinessContext, ClassificationResult, ExpandTrackId, ExpandTrackProgress } from '@forge/shared';
+import { ModeSelector } from './components/mode-selector';
+import { BusinessContextIntake } from './components/business-context-intake';
+import { ClassificationSummary } from './components/classification-summary';
+import { TrackSwitcher } from './components/track-switcher';
 
 type InterviewMode = 'SPARK' | 'LIGHT' | 'IN_DEPTH';
+
+// Expand Mode flow steps
+type ExpandStep = 'intake' | 'classification';
 
 interface ChatMessage {
   id: string;
@@ -198,6 +205,14 @@ export default function DashboardPage() {
   const [confidenceScore, setConfidenceScore] = useState(0);
   const [animationState, setAnimationState] = useState<AnimationState>('visible');
 
+  // Expand Mode state
+  const [projectMode, setProjectMode] = useState<ProjectMode | null>(null);
+  const [expandStep, setExpandStep] = useState<ExpandStep | null>(null);
+  const [expandClassification, setExpandClassification] = useState<ClassificationResult | null>(null);
+  const [expandProjectId, setExpandProjectId] = useState<string | null>(null);
+  const [expandTrackProgress, setExpandTrackProgress] = useState<ExpandTrackProgress | null>(null);
+  const [isExpandInterview, setIsExpandInterview] = useState(false);
+
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Onboarding tooltip for first-time users
@@ -217,6 +232,7 @@ export default function DashboardPage() {
   );
   const isDevRole = user?.role === 'SUPER_ADMIN';
   const createProject = trpc.project.create.useMutation();
+  const switchTrack = trpc.interview.switchTrack.useMutation();
   const startInterview = trpc.project.startInterview.useMutation();
   const startResearch = trpc.research.start.useMutation();
   const startSpark = trpc.research.startSpark.useMutation();
@@ -247,6 +263,88 @@ export default function DashboardPage() {
   const firstName = user?.name?.split(' ')[0] || (isDev ? 'Developer' : 'there');
   const isSubmitting = createProject.isPending || startInterview.isPending || startResearch.isPending || startSpark.isPending || isExecuting;
   const canSubmit = ideaTitle.trim().length >= 1 && ideaDescription.trim().length >= 10;
+
+  // Handle mode selection from the initial selector
+  const handleModeSelect = (mode: ProjectMode) => {
+    setProjectMode(mode);
+    if (mode === 'EXPAND') {
+      setExpandStep('intake');
+    }
+  };
+
+  // Handle Expand Mode intake submission
+  const handleExpandIntakeSubmit = async (title: string, context: Omit<BusinessContext, 'classification'>) => {
+    setIsExecuting(true);
+    setSubmitError(null);
+
+    try {
+      const project = await createProject.mutateAsync({
+        title,
+        description: `Expansion analysis for ${context.industryVertical}`,
+        mode: 'EXPAND',
+        businessContext: context,
+      });
+
+      // The create mutation runs classification inline and returns enriched project
+      const classification = (project.businessContext as BusinessContext)?.classification;
+
+      if (classification) {
+        setExpandClassification(classification);
+        setExpandProjectId(project.id);
+        setExpandStep('classification');
+      } else {
+        // Classification failed silently — go directly to interview
+        router.push(`/projects/${project.id}`);
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Failed to create expand project:', error);
+      setSubmitError(message);
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
+  // Handle classification confirmation → start interview
+  const handleClassificationConfirm = async (_overrides?: Partial<ClassificationResult>) => {
+    if (!expandProjectId) return;
+    setIsExecuting(true);
+
+    try {
+      // Start the interview for this expand project
+      const result = await startInterview.mutateAsync({
+        projectId: expandProjectId,
+        mode: 'IN_DEPTH',
+        researchEngine,
+      });
+
+      const messages = result.interview.messages as unknown as ChatMessage[];
+      const firstQuestion = messages?.find(m => m.role === 'assistant')?.content || '';
+
+      const trackProg = (result.interview as any).expandTrackProgress as ExpandTrackProgress | null;
+
+      setIdeaTitle('Expand Mode');
+      setCurrentProjectId(expandProjectId);
+      setCurrentInterviewId(result.interview.id);
+      setInterviewModeState('IN_DEPTH');
+      setMaxTurns(result.interview.maxTurns);
+      setCurrentTurn(result.interview.currentTurn);
+      setCurrentQuestion(firstQuestion);
+      setConfidenceScore(0);
+      setIsExpandInterview(true);
+      setExpandTrackProgress(trackProg ?? null);
+      setAnimationState('entering');
+      setInterviewActive(true);
+
+      setTimeout(() => setAnimationState('visible'), 50);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Failed to start expand interview:', error);
+      setSubmitError(message);
+    } finally {
+      setIsExecuting(false);
+    }
+  };
 
   // Execute the selected mode
   const executeSelectedMode = async () => {
@@ -332,6 +430,11 @@ export default function DashboardPage() {
       // Update state with new question
       setCurrentTurn(result.interview.currentTurn);
 
+      // Update Expand Mode track progress if present
+      if ((result as any).trackProgress) {
+        setExpandTrackProgress((result as any).trackProgress as ExpandTrackProgress);
+      }
+
       // Calculate confidence based on turns completed
       const newConfidence = Math.min(100, Math.round((result.interview.currentTurn / maxTurns) * 100));
       setConfidenceScore(newConfidence);
@@ -408,11 +511,33 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Track Switcher for Expand Mode */}
+        {isExpandInterview && expandTrackProgress && (
+          <div className="fixed top-32 left-1/2 -translate-x-1/2 z-50">
+            <TrackSwitcher
+              trackProgress={expandTrackProgress}
+              onSwitchTrack={async (track) => {
+                if (!currentInterviewId) return;
+                try {
+                  const result = await switchTrack.mutateAsync({
+                    interviewId: currentInterviewId,
+                    track,
+                  });
+                  setExpandTrackProgress(result.trackProgress);
+                } catch (err) {
+                  console.error('Failed to switch track:', err);
+                }
+              }}
+              disabled={sendMessage.isPending || isThinking}
+            />
+          </div>
+        )}
+
         {/* Main Content Area */}
         <div className="w-full max-w-[1120px] flex flex-col items-center justify-center flex-1">
           {/* Idea Title */}
           <p className="text-muted-foreground text-sm mb-6">
-            {interviewModeState === 'IN_DEPTH' ? 'Forging' : 'Exploring'}: {ideaTitle}
+            {isExpandInterview ? 'Expanding' : interviewModeState === 'IN_DEPTH' ? 'Forging' : 'Exploring'}: {ideaTitle}
           </p>
 
           {/* Question Display - Animated */}
@@ -506,7 +631,69 @@ export default function DashboardPage() {
     );
   }
 
-  // Normal Dashboard UI
+  // Expand Mode: Intake Form
+  if (projectMode === 'EXPAND' && expandStep === 'intake') {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 relative z-10 min-h-screen">
+        <div className="text-center mb-8 animate-fade-in-up">
+          <p className="text-muted-foreground text-sm font-medium tracking-widest uppercase mb-4">
+            Expand Mode
+          </p>
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground mb-3">
+            Let's understand your business
+          </h1>
+          <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
+            We'll analyze your current business and find the best expansion opportunities.
+          </p>
+        </div>
+
+        <BusinessContextIntake
+          onSubmit={handleExpandIntakeSubmit}
+          onBack={() => { setProjectMode(null); setExpandStep(null); }}
+          isSubmitting={isExecuting}
+        />
+
+        {submitError && (
+          <div className="mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 max-w-xl">
+            <p className="text-xs text-destructive font-medium">Failed to create project</p>
+            <p className="text-xs text-destructive/80 mt-1">{submitError}</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Expand Mode: Classification Summary
+  if (projectMode === 'EXPAND' && expandStep === 'classification' && expandClassification) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 relative z-10 min-h-screen">
+        <div className="text-center mb-8 animate-fade-in-up">
+          <p className="text-muted-foreground text-sm font-medium tracking-widest uppercase mb-4">
+            Expand Mode
+          </p>
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground mb-3">
+            Business Classification
+          </h1>
+        </div>
+
+        <ClassificationSummary
+          classification={expandClassification}
+          onConfirm={handleClassificationConfirm}
+          onBack={() => { setExpandStep('intake'); setExpandClassification(null); setExpandProjectId(null); }}
+          isSubmitting={isExecuting}
+        />
+
+        {submitError && (
+          <div className="mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 max-w-xl">
+            <p className="text-xs text-destructive font-medium">Failed to start interview</p>
+            <p className="text-xs text-destructive/80 mt-1">{submitError}</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Normal Dashboard UI (Launch Mode or Mode Selector)
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 relative z-10 min-h-screen">
       {/* Greeting Section */}
@@ -514,17 +701,51 @@ export default function DashboardPage() {
         <p className="text-muted-foreground text-sm font-medium tracking-widest uppercase mb-4">
           Welcome back, {firstName}
         </p>
-        <h1 className="font-display text-2xl md:text-2xl font-semibold tracking-tight text-foreground mb-5 leading-[1.1]">
-          What's your next
-          <br />
-          <TypewriterText words={typewriterWords} />
-        </h1>
-        <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
-          Transform ideas into comprehensive business intelligence.
-        </p>
+        {!projectMode ? (
+          <>
+            <h1 className="font-display text-2xl md:text-2xl font-semibold tracking-tight text-foreground mb-5 leading-[1.1]">
+              What would you like to do?
+            </h1>
+            <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
+              Launch a new idea or expand your existing business.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className="font-display text-2xl md:text-2xl font-semibold tracking-tight text-foreground mb-5 leading-[1.1]">
+              What's your next
+              <br />
+              <TypewriterText words={typewriterWords} />
+            </h1>
+            <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
+              Transform ideas into comprehensive business intelligence.
+            </p>
+          </>
+        )}
       </div>
 
-      {/* Idea Input Card */}
+      {/* Mode Selector (shown when no mode selected) */}
+      {!projectMode && (
+        <div className="animate-fade-in-up mb-8" style={{ animationDelay: '100ms' }}>
+          <ModeSelector selected={projectMode} onSelect={handleModeSelect} />
+        </div>
+      )}
+
+      {/* Back button when in Launch mode */}
+      {projectMode === 'LAUNCH' && (
+        <div className="w-full max-w-[1120px] mb-4 animate-fade-in-up">
+          <button
+            onClick={() => setProjectMode(null)}
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Back
+          </button>
+        </div>
+      )}
+
+      {/* Idea Input Card - Launch Mode only */}
+      {projectMode === 'LAUNCH' && (
       <div className="w-full max-w-[1120px] animate-fade-in-up relative" style={{ animationDelay: '100ms' }}>
         {/* Onboarding tooltip */}
         {showOnboarding && (
@@ -798,6 +1019,7 @@ export default function DashboardPage() {
         </div>
 
       </div>
+      )}
 
       {/* Footer */}
       <div className="mt-auto pt-12 text-center animate-fade-in-up" style={{ animationDelay: '300ms' }}>

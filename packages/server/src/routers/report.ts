@@ -291,6 +291,82 @@ export const reportRouter = router({
   }),
 
   /**
+   * Generate an Expansion Business Case for a specific opportunity
+   */
+  generateBusinessCase: protectedProcedure
+    .input(z.object({
+      projectId: z.string().min(1),
+      opportunityId: z.string().min(1),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const project = await ctx.db.query.projects.findFirst({
+        where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+        with: {
+          research: true,
+          interviews: {
+            where: eq(interviews.status, 'COMPLETE'),
+            orderBy: desc(interviews.createdAt),
+            limit: 1,
+          },
+        },
+      });
+
+      if (!project || project.mode !== 'EXPAND') {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Expand mode project not found',
+        });
+      }
+
+      const user = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.userId),
+        columns: { subscription: true },
+      });
+
+      const interviewMode = project.interviews[0]?.mode ?? 'LIGHT';
+      const reportTier = getReportTier(interviewMode, user?.subscription ?? 'FREE') as ReportTier;
+
+      // Look up opportunity title from engine result
+      const engineResult = project.research?.expandOpportunityEngine as { opportunities?: Array<{ id: string; title: string }> } | null;
+      const opportunity = engineResult?.opportunities?.find(o => o.id === input.opportunityId);
+      const title = opportunity ? `Business Case: ${opportunity.title}` : `Business Case: ${input.opportunityId}`;
+
+      // Allow multiple business case reports (one per opportunity)
+      const [report] = await ctx.db.insert(reports).values({
+        type: 'EXPANSION_BUSINESS_CASE' as ReportType,
+        tier: reportTier,
+        title,
+        content: '',
+        sections: { included: [], locked: [] },
+        status: 'GENERATING',
+        projectId: input.projectId,
+        userId: ctx.userId,
+      }).returning();
+
+      try {
+        await enqueueReportGeneration({
+          reportId: report.id,
+          projectId: input.projectId,
+          userId: ctx.userId,
+          reportType: 'EXPANSION_BUSINESS_CASE',
+          tier: reportTier,
+          opportunityId: input.opportunityId,
+        });
+      } catch (queueError) {
+        console.error('[Report] Failed to queue business case:', queueError);
+      }
+
+      logAuditAsync({
+        userId: ctx.userId,
+        action: 'REPORT_GENERATE',
+        resource: formatResource('report', report.id),
+        metadata: { reportType: 'EXPANSION_BUSINESS_CASE', tier: reportTier, opportunityId: input.opportunityId },
+      });
+
+      return report;
+    }),
+
+  /**
    * Generate all reports for a project at once
    */
   generateAll: protectedProcedure.input(z.object({ projectId: z.string().min(1) })).mutation(async ({ ctx, input }) => {
@@ -411,6 +487,9 @@ export const reportRouter = router({
           'VALUE_EQUATION',
           'VALUE_LADDER',
           'GO_TO_MARKET',
+          'OPPORTUNITY_SCORECARD',
+          'EXPANSION_BUSINESS_CASE',
+          'RISK_CANNIBALIZATION',
         ]),
       })
     )

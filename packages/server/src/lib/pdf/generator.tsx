@@ -5,6 +5,9 @@ import type { ReactElement } from 'react';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { PositioningPDF } from './templates/positioning';
 import { CompetitiveAnalysisPDF } from './templates/competitive-analysis';
+import { OpportunityScorecardPDF } from './templates/opportunity-scorecard';
+import { RiskCannibalizationPDF } from './templates/risk-cannibalization';
+import type { ScoredOpportunity, MoatAuditResult, OpportunityEngineResult } from '@forge/shared';
 
 // Report types enum (matches DB schema)
 type ReportType =
@@ -17,7 +20,10 @@ type ReportType =
   | 'CUSTOMER_PROFILE'
   | 'VALUE_EQUATION'
   | 'VALUE_LADDER'
-  | 'GO_TO_MARKET';
+  | 'GO_TO_MARKET'
+  | 'OPPORTUNITY_SCORECARD'
+  | 'EXPANSION_BUSINESS_CASE'
+  | 'RISK_CANNIBALIZATION';
 
 type ReportTier = 'BASIC' | 'PRO' | 'FULL';
 
@@ -56,6 +62,9 @@ interface ResearchData {
   swot?: unknown;
   synthesizedInsights?: unknown;
   sparkResult?: unknown;
+  // Expand mode fields
+  expandOpportunityEngine?: unknown;
+  expandMoatAudit?: unknown;
 }
 
 interface ReportData {
@@ -115,6 +124,8 @@ function parseResearchData(research: ResearchData | null | undefined) {
     swot: parse(research.swot),
     synthesizedInsights: parse(research.synthesizedInsights),
     sparkResult: parse(research.sparkResult),
+    expandOpportunityEngine: parse(research.expandOpportunityEngine),
+    expandMoatAudit: parse(research.expandMoatAudit),
     scores: {
       opportunity: research.opportunityScore ?? undefined,
       problem: research.problemScore ?? undefined,
@@ -318,6 +329,42 @@ export async function generatePDFBuffer(options: GeneratePDFOptions): Promise<Bu
         transformedData = transformCompetitiveAnalysisData(project, report, parsedResearch);
         console.log('[PDF Generator] Competitive analysis data transformed');
         pdfDocument = <CompetitiveAnalysisPDF data={transformedData as Parameters<typeof CompetitiveAnalysisPDF>[0]['data']} />;
+        break;
+      }
+
+      case 'OPPORTUNITY_SCORECARD': {
+        const content = parseReportContent(report.content);
+        const engineResult = parsedResearch.expandOpportunityEngine as OpportunityEngineResult | null;
+        const moatAudit = parsedResearch.expandMoatAudit as MoatAuditResult | null;
+        transformedData = {
+          ideaTitle: project.title,
+          generatedAt: new Date(),
+          tier: report.tier,
+          opportunities: engineResult?.opportunities || [],
+          moatAudit: moatAudit || null,
+          executiveSummary: content.executiveSummary as string | undefined,
+          strategicRecommendation: content.strategicRecommendation as string | undefined,
+        };
+        console.log('[PDF Generator] Opportunity scorecard data transformed');
+        pdfDocument = <OpportunityScorecardPDF data={transformedData as Parameters<typeof OpportunityScorecardPDF>[0]['data']} />;
+        break;
+      }
+
+      case 'RISK_CANNIBALIZATION': {
+        const content = parseReportContent(report.content);
+        transformedData = {
+          ideaTitle: project.title,
+          generatedAt: new Date(),
+          tier: report.tier,
+          executiveSummary: content.executiveSummary as string | undefined,
+          cannibalizationAnalysis: content.cannibalizationAnalysis,
+          strategicRisks: content.strategicRisks,
+          resourceConflicts: content.resourceConflicts,
+          marketRisks: content.marketRisks,
+          recommendation: content.recommendation as string | undefined,
+        };
+        console.log('[PDF Generator] Risk & cannibalization data transformed');
+        pdfDocument = <RiskCannibalizationPDF data={transformedData as Parameters<typeof RiskCannibalizationPDF>[0]['data']} />;
         break;
       }
 

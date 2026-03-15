@@ -4,12 +4,25 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { getDisplayStatus, projectStatusConfig } from '@/lib/project-status';
-import { ChevronDown, Search, Plus, Check } from 'lucide-react';
+import { ChevronDown, Search, Plus, Check, Rocket, TrendingUp } from 'lucide-react';
 
 const STATUS_DOT_COLORS: Record<string, string> = {
   DRAFT: 'bg-muted-foreground',
   ACTIVE: 'bg-primary',
   COMPLETE: 'bg-primary',
+};
+
+const MODE_TAG_CONFIG: Record<string, { label: string; icon: typeof Rocket; className: string }> = {
+  LAUNCH: {
+    label: 'Launch',
+    icon: Rocket,
+    className: 'bg-primary/15 text-primary border-primary/20',
+  },
+  EXPAND: {
+    label: 'Expand',
+    icon: TrendingUp,
+    className: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
+  },
 };
 
 export function ProjectSelector() {
@@ -82,6 +95,8 @@ export function ProjectSelector() {
   const currentStatus = currentProject
     ? getDisplayStatus(currentProject.status)
     : null;
+  const currentModeConfig = currentProject ? MODE_TAG_CONFIG[currentProject.mode] : null;
+  const CurrentModeIcon = currentModeConfig?.icon;
 
   return (
     <div ref={containerRef} className="relative">
@@ -101,6 +116,12 @@ export function ProjectSelector() {
           />
         )}
         <span className="max-w-[200px] truncate font-medium">{displayName}</span>
+        {currentModeConfig && CurrentModeIcon && (
+          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border flex-shrink-0 ${currentModeConfig.className}`}>
+            <CurrentModeIcon className="w-2.5 h-2.5" />
+            {currentModeConfig.label}
+          </span>
+        )}
         <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
@@ -132,6 +153,8 @@ export function ProjectSelector() {
               filtered.map((project) => {
                 const status = getDisplayStatus(project.status);
                 const isSelected = project.id === currentProjectId;
+                const modeConfig = MODE_TAG_CONFIG[project.mode];
+                const ModeIcon = modeConfig?.icon;
                 return (
                   <button
                     key={project.id}
@@ -152,6 +175,12 @@ export function ProjectSelector() {
                       className={`w-2 h-2 rounded-full flex-shrink-0 ${STATUS_DOT_COLORS[status] ?? 'bg-muted-foreground'}`}
                     />
                     <span className="flex-1 truncate">{project.title}</span>
+                    {modeConfig && ModeIcon && (
+                      <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border flex-shrink-0 ${modeConfig.className}`}>
+                        <ModeIcon className="w-2.5 h-2.5" />
+                        {modeConfig.label}
+                      </span>
+                    )}
                     {isSelected && (
                       <Check className="w-4 h-4 text-primary flex-shrink-0" />
                     )}

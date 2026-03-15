@@ -12,12 +12,14 @@ export {
   getSparkPipelineQueue,
   getEmailSyncQueue,
   getSectionRegenQueue,
+  getExpandPipelineQueue,
   enqueueReportGeneration,
   enqueueResearchPipeline,
   enqueueResearchCancel,
   enqueueSparkPipeline,
   enqueueSectionRegen,
   enqueueBusinessPlan,
+  enqueueExpandPipeline,
   getQueueStats,
   getAllQueueStats,
 } from './queues';
@@ -32,6 +34,7 @@ export type {
   EmailSyncJobData,
   SectionRegenJobData,
   BusinessPlanJobData,
+  ExpandPipelineJobData,
 } from './queues';
 
 // Worker exports (import in worker process)
@@ -40,4 +43,5 @@ export {
   createResearchPipelineWorker,
   createResearchCancelWorker,
   createSparkPipelineWorker,
+  createExpandPipelineWorker,
 } from './workers';

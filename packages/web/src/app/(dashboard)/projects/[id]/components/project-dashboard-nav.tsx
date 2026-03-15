@@ -36,6 +36,11 @@ const RESEARCH_ROUTES = [
   '/competitors',
   '/business-fit',
   '/interview-summary',
+  '/moat-audit',
+  '/adjacency-scan',
+  '/demand-mining',
+  '/competitor-portfolio',
+  '/pricing-ceiling',
 ];
 
 /** Routes that belong to the "Reporting" dashboard */

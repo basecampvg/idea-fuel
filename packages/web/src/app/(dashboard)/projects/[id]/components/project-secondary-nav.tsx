@@ -29,6 +29,11 @@ import {
   GitCompare,
   Camera,
   Download,
+  Shield,
+  Map,
+  Activity,
+  Eye,
+  DollarSign as DollarSignIcon,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -87,6 +92,34 @@ function getResearchSections(projectId: string): NavSection[] {
         { label: 'Social Proof', href: `${base}/social-proof`, icon: Users },
         { label: 'Pain Points', href: `${base}/pain-points`, icon: AlertTriangle },
         { label: 'Competitors', href: `${base}/competitors`, icon: Swords },
+      ],
+    },
+    {
+      title: 'History',
+      items: [
+        { label: 'Interview Summary', href: `${base}/interview-summary`, icon: MessageSquare },
+      ],
+    },
+  ];
+}
+
+function getExpandResearchSections(projectId: string): NavSection[] {
+  const base = `/projects/${projectId}`;
+  return [
+    {
+      title: 'Overview',
+      items: [
+        { label: 'Summary', href: base, icon: LayoutDashboard },
+        { label: 'MOAT Profile', href: `${base}/moat-audit`, icon: Shield },
+      ],
+    },
+    {
+      title: 'Growth Research',
+      items: [
+        { label: 'Adjacency Scan', href: `${base}/adjacency-scan`, icon: Map },
+        { label: 'Demand Mining', href: `${base}/demand-mining`, icon: Activity },
+        { label: 'Competitor Map', href: `${base}/competitor-portfolio`, icon: Eye },
+        { label: 'Pricing Ceiling', href: `${base}/pricing-ceiling`, icon: DollarSignIcon },
       ],
     },
     {
@@ -193,6 +226,7 @@ interface ProjectSecondaryNavProps {
     id: string;
     title: string;
     status: string;
+    mode?: string;
   };
 }
 
@@ -211,7 +245,9 @@ export function ProjectSecondaryNav({ project }: ProjectSecondaryNavProps) {
       ? getReportingSections(project.id)
       : effectiveDashboard === 'gtm'
         ? getGtmSections(project.id)
-        : getResearchSections(project.id);
+        : project.mode === 'EXPAND'
+          ? getExpandResearchSections(project.id)
+          : getResearchSections(project.id);
   const status = projectStatusConfig[project.status as ProjectStatus] || projectStatusConfig.CAPTURED;
 
   function isActive(href: string) {

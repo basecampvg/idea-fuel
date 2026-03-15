@@ -29,14 +29,17 @@ export const researchStatusEnum = pgEnum('ResearchStatus', ['PENDING', 'IN_PROGR
 export const researchPhaseEnum = pgEnum('ResearchPhase', [
   'QUEUED', 'DEEP_RESEARCH', 'SYNTHESIS', 'SOCIAL_RESEARCH', 'REPORT_GENERATION',
   'BUSINESS_PLAN_GENERATION', 'COMPLETE', 'QUERY_GENERATION', 'DATA_COLLECTION',
+  'ADJACENCY_SCAN', 'COMPETITOR_PORTFOLIO', 'DEMAND_MINING', 'PRICING_CEILING',
 ]);
 export const sparkJobStatusEnum = pgEnum('SparkJobStatus', [
   'QUEUED', 'RUNNING_KEYWORDS', 'RUNNING_RESEARCH', 'RUNNING_PARALLEL',
   'SYNTHESIZING', 'ENRICHING', 'COMPLETE', 'PARTIAL_COMPLETE', 'FAILED',
 ]);
+export const projectModeEnum = pgEnum('ProjectMode', ['LAUNCH', 'EXPAND']);
 export const reportTypeEnum = pgEnum('ReportType', [
   'BUSINESS_PLAN', 'POSITIONING', 'COMPETITIVE_ANALYSIS', 'WHY_NOW', 'PROOF_SIGNALS',
   'KEYWORDS_SEO', 'CUSTOMER_PROFILE', 'VALUE_EQUATION', 'VALUE_LADDER', 'GO_TO_MARKET',
+  'OPPORTUNITY_SCORECARD', 'EXPANSION_BUSINESS_CASE', 'RISK_CANNIBALIZATION',
 ]);
 export const reportTierEnum = pgEnum('ReportTier', ['BASIC', 'PRO', 'FULL']);
 export const reportStatusEnum = pgEnum('ReportStatus', ['DRAFT', 'GENERATING', 'COMPLETE', 'FAILED']);
@@ -77,6 +80,7 @@ export const templateCategoryEnum = pgEnum('TemplateCategory', [
 export type SubscriptionTier = (typeof subscriptionTierEnum.enumValues)[number];
 export type UserRole = (typeof userRoleEnum.enumValues)[number];
 export type ProjectStatus = (typeof projectStatusEnum.enumValues)[number];
+export type ProjectMode = (typeof projectModeEnum.enumValues)[number];
 export type InterviewMode = (typeof interviewModeEnum.enumValues)[number];
 export type InterviewStatus = (typeof interviewStatusEnum.enumValues)[number];
 export type ResearchStatus = (typeof researchStatusEnum.enumValues)[number];
@@ -183,7 +187,9 @@ export const projects = pgTable('Project', {
   title: text().notNull(),
   description: text().notNull(),
   notes: text(),
+  mode: projectModeEnum().default('LAUNCH').notNull(),
   status: projectStatusEnum().default('CAPTURED').notNull(),
+  businessContext: jsonb('business_context'),
   userId: text().notNull(),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
@@ -217,6 +223,7 @@ export const interviews = pgTable('Interview', {
   resumeContext: text(),
   isExpired: boolean().default(false).notNull(),
   researchEngine: text('research_engine').default('OPENAI').notNull(),
+  expandTrackProgress: jsonb('expand_track_progress'),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
   projectId: text().notNull(),
@@ -299,6 +306,9 @@ export const research = pgTable('Research', {
   errorPhase: researchPhaseEnum(),
   retryCount: integer().default(0).notNull(),
   notesSnapshot: text(),
+  expandResearchData: jsonb('expand_research_data'),
+  expandOpportunityEngine: jsonb('expand_opportunity_engine'),
+  expandMoatAudit: jsonb('expand_moat_audit'),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
   projectId: text().notNull(),

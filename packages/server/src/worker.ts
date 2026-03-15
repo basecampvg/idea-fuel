@@ -14,6 +14,7 @@ import {
   createSparkPipelineWorker,
   createReportGenerationWorker,
   createBusinessPlanWorker,
+  createExpandPipelineWorker,
 } from './jobs/workers';
 
 /** Track rate-limit hits to pause workers instead of hammering Redis */
@@ -50,7 +51,8 @@ async function main() {
   const cancelWorker = createResearchCancelWorker();
   const reportWorker = createReportGenerationWorker();
   const businessPlanWorker = createBusinessPlanWorker();
-  const allWorkers = [researchWorker, sparkWorker, cancelWorker, reportWorker, businessPlanWorker];
+  const expandWorker = createExpandPipelineWorker();
+  const allWorkers = [researchWorker, sparkWorker, cancelWorker, reportWorker, businessPlanWorker, expandWorker];
 
   // Attach rate-limit detection to all workers
   for (const w of allWorkers) {
@@ -65,6 +67,8 @@ async function main() {
   console.log('  - Research Cancel (concurrency: 5, drainDelay: 60s)');
   console.log('  - Report Generation (concurrency: 3, drainDelay: 60s)');
   console.log('  - Business Plan (concurrency: 2, drainDelay: 60s)');
+  const expandConcurrency = process.env.EXPAND_WORKER_CONCURRENCY || '2';
+  console.log(`  - Expand Pipeline (concurrency: ${expandConcurrency}, drainDelay: 60s)`);
   console.log('[Worker] Waiting for jobs...');
 
   // Health check server for Railway

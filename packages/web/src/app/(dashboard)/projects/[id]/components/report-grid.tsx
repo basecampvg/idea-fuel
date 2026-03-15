@@ -15,6 +15,9 @@ import {
   Rocket,
   FileText,
   Lock,
+  Trophy,
+  Briefcase,
+  ShieldAlert,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -31,6 +34,7 @@ interface ReportGridProps {
   reports: Report[];
   projectId: string;
   locked?: boolean;
+  projectMode?: 'LAUNCH' | 'EXPAND';
 }
 
 // Report type icons using Lucide React
@@ -45,10 +49,13 @@ const reportIcons: Record<string, LucideIcon> = {
   VALUE_EQUATION: Gem,
   VALUE_LADDER: Signal,
   GO_TO_MARKET: Rocket,
+  OPPORTUNITY_SCORECARD: Trophy,
+  EXPANSION_BUSINESS_CASE: Briefcase,
+  RISK_CANNIBALIZATION: ShieldAlert,
 };
 
-// All report types for showing locked placeholders
-const ALL_REPORT_TYPES = [
+// Launch mode report types
+const LAUNCH_REPORT_TYPES = [
   'BUSINESS_PLAN',
   'POSITIONING',
   'COMPETITIVE_ANALYSIS',
@@ -61,14 +68,23 @@ const ALL_REPORT_TYPES = [
   'GO_TO_MARKET',
 ];
 
+// Expand mode report types
+const EXPAND_REPORT_TYPES = [
+  'OPPORTUNITY_SCORECARD',
+  'EXPANSION_BUSINESS_CASE',
+  'RISK_CANNIBALIZATION',
+];
+
 // Reports that are not yet available
 const COMING_SOON_TYPES = new Set(['BUSINESS_PLAN', 'POSITIONING', 'COMPETITIVE_ANALYSIS']);
 
-export function ReportGrid({ reports, projectId, locked = false }: ReportGridProps) {
+export function ReportGrid({ reports, projectId, locked = false, projectMode = 'LAUNCH' }: ReportGridProps) {
+  const ALL_REPORT_TYPES = projectMode === 'EXPAND' ? EXPAND_REPORT_TYPES : LAUNCH_REPORT_TYPES;
+
   // If locked, show all report types as locked cards
   if (locked) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className={`grid gap-3 ${projectMode === 'EXPAND' ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'}`}>
         {ALL_REPORT_TYPES.map((type) => (
           <div
             key={type}
@@ -90,7 +106,7 @@ export function ReportGrid({ reports, projectId, locked = false }: ReportGridPro
   const reportsByType = new Map(reports.map((r) => [r.type, r]));
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div className={`grid gap-3 ${projectMode === 'EXPAND' ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'}`}>
       {ALL_REPORT_TYPES.map((type) => {
         const report = reportsByType.get(type);
         const Icon = reportIcons[type] || FileText;

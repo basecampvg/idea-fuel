@@ -136,6 +136,7 @@ interface StatusCompleteProps {
   project: {
     id: string;
     title: string;
+    mode?: string;
     interviews?: Interview[];
     reports?: Report[];
     research?: Research | null;
@@ -368,7 +369,7 @@ export function StatusComplete({ project, onDelete, isDeleting }: StatusComplete
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
-          <ReportGrid reports={reports} projectId={project.id} />
+          <ReportGrid reports={reports} projectId={project.id} projectMode={project.mode as 'LAUNCH' | 'EXPAND' | undefined} />
         </div>
       )}
 

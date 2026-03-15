@@ -4,7 +4,7 @@ import { router, protectedProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { RESEARCH_PHASE_PROGRESS, SPARK_STATUS_PROGRESS } from '@forge/shared';
 import { logAuditAsync, formatResource } from '../lib/audit';
-import { enqueueResearchCancel, enqueueResearchPipeline, enqueueSparkPipeline, enqueueBusinessPlan, getResearchPipelineQueue } from '../jobs';
+import { enqueueResearchCancel, enqueueResearchPipeline, enqueueSparkPipeline, enqueueBusinessPlan, enqueueExpandPipeline, getResearchPipelineQueue, getExpandPipelineQueue } from '../jobs';
 import { research, projects, users, interviews } from '../db/schema';
 import {
   extractInsights,
@@ -116,11 +116,15 @@ export const researchRouter = router({
     let queuePosition: number | null = null;
     if (result.status === 'PENDING' || (result.status === 'IN_PROGRESS' && result.progress === 0)) {
       try {
-        const queue = getResearchPipelineQueue();
-        const waitingJobs = await queue.getWaiting();
-        const idx = waitingJobs.findIndex((j) => j.data.researchId === result.id);
-        if (idx >= 0) {
-          queuePosition = idx + 1; // 1-based position
+        // Check both research and expand queues
+        const queues = [getResearchPipelineQueue(), getExpandPipelineQueue()];
+        for (const queue of queues) {
+          const waitingJobs = await queue.getWaiting();
+          const idx = waitingJobs.findIndex((j) => j.data.researchId === result.id);
+          if (idx >= 0) {
+            queuePosition = idx + 1;
+            break;
+          }
         }
       } catch {
         // Non-fatal — just skip queue position
@@ -183,41 +187,45 @@ export const researchRouter = router({
     }
 
     const interview = project.interviews[0];
+    const isExpandMode = project.mode === 'EXPAND';
 
     // Create or update research record
-    // New pipeline starts with DEEP_RESEARCH phase
     let researchRecord = project.research;
     if (researchRecord) {
       // Resume failed research from last completed phase
       let resumePhase: 'DEEP_RESEARCH' | 'SOCIAL_RESEARCH' | 'SYNTHESIS' | 'REPORT_GENERATION' = 'DEEP_RESEARCH';
       let resumeProgress = 0;
 
-      const rd = researchRecord as Record<string, unknown>;
-      if (rd.rawDeepResearch) {
-        resumePhase = 'SOCIAL_RESEARCH';
-        resumeProgress = 25;
+      if (!isExpandMode) {
+        // Launch mode resume logic
+        const rd = researchRecord as Record<string, unknown>;
+        if (rd.rawDeepResearch) {
+          resumePhase = 'SOCIAL_RESEARCH';
+          resumeProgress = 25;
+        }
+        if (rd.socialProof) {
+          resumePhase = 'SYNTHESIS';
+          resumeProgress = 50;
+        }
+        if (rd.synthesizedInsights && rd.opportunityScore != null) {
+          resumePhase = 'REPORT_GENERATION';
+          resumeProgress = 75;
+        }
       }
-      if (rd.socialProof) {
-        resumePhase = 'SYNTHESIS';
-        resumeProgress = 50;
-      }
-      if (rd.synthesizedInsights && rd.opportunityScore != null) {
-        resumePhase = 'REPORT_GENERATION';
-        resumeProgress = 75;
-      }
+      // Expand mode: always restart from beginning (no chunked resume for now)
 
       console.log(`[Research] Resuming from phase ${resumePhase} (progress ${resumeProgress}%) — attempt ${researchRecord.retryCount + 1}`);
 
       const [updated] = await ctx.db.update(research).set({
         status: 'IN_PROGRESS',
-        currentPhase: resumePhase,
-        progress: resumeProgress,
+        currentPhase: isExpandMode ? 'QUEUED' : resumePhase,
+        progress: isExpandMode ? 0 : resumeProgress,
         errorMessage: null,
         errorPhase: null,
         retryCount: researchRecord.retryCount + 1,
         startedAt: new Date(),
         completedAt: null,
-        notesSnapshot: project.notes, // Snapshot project notes
+        notesSnapshot: project.notes,
         // Clear Spark fields from previous validation run
         sparkStatus: null,
         sparkKeywords: null,
@@ -232,10 +240,10 @@ export const researchRouter = router({
       const [created] = await ctx.db.insert(research).values({
         projectId: input.projectId,
         status: 'IN_PROGRESS',
-        currentPhase: 'DEEP_RESEARCH', // New 4-phase pipeline starts here
+        currentPhase: isExpandMode ? 'QUEUED' : 'DEEP_RESEARCH',
         progress: 0,
         startedAt: new Date(),
-        notesSnapshot: project.notes, // Snapshot project notes
+        notesSnapshot: project.notes,
         researchEngine: interview.researchEngine || 'OPENAI',
       }).returning();
       researchRecord = created;
@@ -249,39 +257,45 @@ export const researchRouter = router({
       userId: ctx.userId,
       action: 'RESEARCH_START',
       resource: formatResource('research', researchRecord.id),
-      metadata: { projectId: input.projectId, isRetry: project.research?.retryCount ? project.research.retryCount > 0 : false },
+      metadata: { projectId: input.projectId, isRetry: project.research?.retryCount ? project.research.retryCount > 0 : false, mode: isExpandMode ? 'EXPAND' : 'LAUNCH' },
     });
 
-    // Queue research pipeline job via BullMQ
-    // Worker process handles the long-running pipeline (30-60+ min)
+    // Queue the appropriate pipeline based on project mode
     try {
-      const engine = (interview.researchEngine as 'OPENAI' | 'PERPLEXITY') || 'OPENAI';
+      if (isExpandMode) {
+        // Expand Mode: 4-module expand research pipeline
+        await enqueueExpandPipeline({
+          researchId: researchRecord.id,
+          projectId: input.projectId,
+          userId: ctx.userId,
+        });
+      } else {
+        // Launch Mode: standard deep research pipeline
+        const engine = (interview.researchEngine as 'OPENAI' | 'PERPLEXITY') || 'OPENAI';
 
-      // Fail fast if Perplexity selected but API key not configured
-      if (engine === 'PERPLEXITY' && !process.env.PERPLEXITY_API_KEY) {
-        throw new TRPCError({
-          code: 'PRECONDITION_FAILED',
-          message: 'Perplexity research engine is not available — PERPLEXITY_API_KEY is not configured. Please switch to OpenAI.',
+        if (engine === 'PERPLEXITY' && !process.env.PERPLEXITY_API_KEY) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message: 'Perplexity research engine is not available — PERPLEXITY_API_KEY is not configured. Please switch to OpenAI.',
+          });
+        }
+
+        await enqueueResearchPipeline({
+          researchId: researchRecord.id,
+          projectId: input.projectId,
+          userId: ctx.userId,
+          interviewId: interview.id,
+          mode: interview.mode as 'LIGHT' | 'IN_DEPTH' | 'SPARK' | undefined,
+          engine,
         });
       }
-
-      await enqueueResearchPipeline({
-        researchId: researchRecord.id,
-        projectId: input.projectId,
-        userId: ctx.userId,
-        interviewId: interview.id,
-        mode: interview.mode as 'LIGHT' | 'IN_DEPTH' | 'SPARK' | undefined,
-        engine,
-      });
     } catch (queueError) {
       console.error('[Research] Failed to queue pipeline:', queueError);
-      // Mark research as failed so it doesn't stay stuck
       await ctx.db.update(research).set({
         status: 'FAILED',
         errorMessage: 'Failed to queue research pipeline. Please try again.',
         errorPhase: 'QUEUED',
       }).where(eq(research.id, researchRecord.id));
-      // Keep project in RESEARCHING so failure UI shows with retry option
     }
 
     return researchRecord;
