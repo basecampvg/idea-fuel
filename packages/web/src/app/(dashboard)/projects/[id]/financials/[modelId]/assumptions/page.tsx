@@ -415,12 +415,12 @@ export default function FinancialAssumptionsPage({
       {/* Dependency graph */}
       {showGraph && assumptions && (
         <DependencyGraph
-          assumptions={(assumptions ?? []).map((a: { key: string; name: string; category: string; confidence: string; effectiveConfidence?: string; dependsOn: string[]; value: string | null }) => ({
+          assumptions={(assumptions ?? []).map((a: { key: string; name: string; category: string; confidence: string; effectiveConfidence?: string; dependsOn: string[] | null; value: string | null }) => ({
             key: a.key,
             name: a.name,
             category: a.category as AssumptionCategory,
             confidence: (a.effectiveConfidence ?? a.confidence) as AssumptionConfidence,
-            dependsOn: a.dependsOn as string[],
+            dependsOn: (a.dependsOn ?? []) as string[],
             value: a.value,
           }))}
           impactMap={ASSUMPTION_IMPACT_MAP}
