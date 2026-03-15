@@ -1,0 +1,3076 @@
+# IdeaFuel — Complete Documentation
+
+> This file contains the complete IdeaFuel documentation concatenated for AI agent ingestion.
+> IdeaFuel is an AI-powered platform that helps entrepreneurs validate business ideas through automated market research, competitive analysis, financial modeling, and business plan generation.
+
+---
+
+<!-- SOURCE: user-guide/index.md -->
+
+---
+title: "IdeaFuel Documentation"
+description: "Official user guide for IdeaFuel — the AI-powered platform that validates your business ideas with real market research, financial modeling, and expert-level analysis."
+keywords: "IdeaFuel documentation, business idea validation, AI market research, startup validation tool"
+category: "Documentation"
+og:title: "IdeaFuel Documentation — Validate Your Business Ideas with AI"
+og:description: "Learn how to use IdeaFuel to validate business ideas, generate market research reports, build financial models, and create investor-ready business plans."
+structured_data: "WebPage"
+canonical: "/docs/user-guide"
+---
+
+# IdeaFuel Documentation
+
+**IdeaFuel is an AI-powered business idea validation platform that turns your raw concepts into research-backed reports, financial models, and investor-ready business plans.**
+
+> IdeaFuel combines structured interviews, market research, and financial analysis to help you decide whether your idea is worth pursuing — before you spend months building it. Think of it as a virtual advisor that pressure-tests your concept from every angle.
+
+Welcome to the IdeaFuel documentation. Whether you just signed up or you are exploring advanced features, these guides walk you through every step of validating your next business idea.
+
+---
+
+## Get Started
+
+Everything you need to go from sign-up to your first validated idea.
+
+<div class="card-group">
+
+### [Getting Started](/docs/user-guide/getting-started)
+Create your account, set up your first project, and generate your first validation report in under 15 minutes.
+
+### [Subscription Plans](/docs/user-guide/subscription-plans)
+Compare FREE, PRO, and ENTERPRISE plans to find the right fit for your validation needs and budget.
+
+</div>
+
+---
+
+## Core Features
+
+The tools you will use most to validate and refine your ideas.
+
+<div class="card-group">
+
+### [Interview Modes](/docs/user-guide/interview-modes)
+Learn how SPARK, LIGHT, and IN_DEPTH interviews work and when to use each one for maximum insight.
+
+### [Validation Reports](/docs/user-guide/validation-reports)
+Understand the structure and scoring of your BASIC, PRO, and FULL validation reports.
+
+### [Financial Modeling](/docs/user-guide/financial-modeling)
+Build revenue projections, cost structures, and break-even analyses that investors actually want to see.
+
+### [Projects & Dashboard](/docs/user-guide/projects-dashboard)
+Organize multiple ideas, track their validation status, and compare results side by side.
+
+</div>
+
+---
+
+## Advanced Tools
+
+Go deeper with AI-powered analysis and polished deliverables.
+
+<div class="card-group">
+
+### [AI Business Advisor](/docs/user-guide/ai-business-advisor)
+Chat with an AI agent trained on your project data to get tailored strategic advice and competitive analysis.
+
+### [Business Plan PDF](/docs/user-guide/business-plan-pdf)
+Export a professionally formatted business plan document ready for investors, accelerators, or your own planning.
+
+### [Team Collaboration](/docs/user-guide/team-collaboration)
+Invite co-founders and advisors to review reports, comment on financials, and contribute to interviews.
+
+</div>
+
+---
+
+## Discover
+
+Resources to help you get the most out of IdeaFuel.
+
+<div class="card-group">
+
+### [FAQs & Troubleshooting](/docs/user-guide/faq)
+Answers to the most common questions about accounts, billing, reports, and platform features.
+
+### [Best Practices](/docs/user-guide/best-practices)
+Proven strategies for writing better project descriptions, answering interview questions, and interpreting results.
+
+### [Changelog](/docs/user-guide/changelog)
+Stay up to date with new features, improvements, and platform updates.
+
+</div>
+
+---
+
+> **Tip:** New to idea validation? Start with the [Getting Started](/docs/user-guide/getting-started) guide — you can have your first report in hand within 15 minutes.
+
+See also: [Subscription Plans](/docs/user-guide/subscription-plans) | [Interview Modes](/docs/user-guide/interview-modes) | [FAQs & Troubleshooting](/docs/user-guide/faq)
+
+---
+
+<!-- SOURCE: user-guide/getting-started.md -->
+
+---
+title: "Getting Started with IdeaFuel"
+description: "Learn how to validate a business idea using IdeaFuel. Create your account, set up a project, complete an AI-powered interview, and explore your first validation report."
+keywords: "how to validate a business idea, IdeaFuel quickstart, business idea validation, startup validation guide"
+category: "Getting Started"
+og:title: "How to Validate a Business Idea — IdeaFuel Getting Started Guide"
+og:description: "Go from sign-up to your first AI-generated validation report in under 15 minutes. Step-by-step guide for entrepreneurs."
+structured_data: "HowTo"
+canonical: "/docs/user-guide/getting-started"
+---
+
+# Getting Started with IdeaFuel
+
+**Getting started with IdeaFuel is the process of creating an account, describing your business idea, completing a structured interview, and receiving an AI-generated validation report that tells you whether your concept has real market potential.**
+
+> Sign up, create a project, answer a few questions about your idea, and IdeaFuel handles the rest — market research, competitive analysis, and financial viability scoring delivered in a structured report. You can go from zero to your first validated idea in under 15 minutes.
+
+This guide walks you through every step using a running example: **an AI-powered tutoring app for college students**.
+
+---
+
+## How do I create my account?
+
+You have two ways to sign up for IdeaFuel. Pick whichever is fastest for you.
+
+1. Go to [ideafuel.app/signup](https://ideafuel.app/signup).
+2. Choose **Sign in with Google** for one-click setup, or select **Email & Password** to create credentials manually.
+3. Confirm your email address if you chose the email option — check your inbox for a verification link.
+4. You land on your dashboard, ready to create your first project.
+
+> **Tip:** Google OAuth is the fastest path. Your Google profile name and email are used to pre-fill your account details, so you can skip straight to creating a project.
+
+Every new account starts on the **FREE plan**. You get one financial model and access to standard AI quality — enough to explore the platform before deciding whether to upgrade.
+
+See also: [Subscription Plans](/docs/user-guide/subscription-plans)
+
+---
+
+## How do I create my first project?
+
+A project is a container for one business idea. It holds your interviews, reports, financial models, and AI advisor conversations all in one place.
+
+1. From your dashboard, click **New Project**.
+2. Enter a **Project Name** — keep it short and recognizable. For our example: `AI Tutoring App`.
+3. Write a **Description** that explains what your idea does, who it serves, and how it makes money.
+
+For our tutoring app, a strong description looks like this:
+
+> *"An AI-powered mobile app that provides personalized tutoring for college students in STEM subjects. Students subscribe monthly ($19.99/mo) to get on-demand homework help, concept explanations, and exam prep powered by adaptive AI. Revenue comes from student subscriptions and university site licenses."*
+
+4. Click **Create Project**.
+
+> **Tip:** Your description is the single most important input you provide. The AI uses it to shape every interview question and research direction. Include your target customer, the core value proposition, and your intended revenue model. Vague descriptions produce vague reports.
+
+> **Note:** On the FREE plan you can create projects but you have 0 validation reports available. Upgrade to PRO or ENTERPRISE to generate reports. You do get 1 financial model to explore that feature.
+
+---
+
+## How do I choose an interview mode?
+
+After creating your project, IdeaFuel asks you to choose an interview mode. Each mode trades depth for speed — pick the one that matches how much time you have and how much detail you need.
+
+| Feature | SPARK | LIGHT | IN_DEPTH |
+|---|---|---|---|
+| **Time to complete** | ~2 minutes | ~8 minutes | ~20 minutes |
+| **Number of questions** | 3-5 | 10-15 | 25-35 |
+| **Report depth** | High-level viability check | Market-aware analysis | Comprehensive deep dive |
+| **Best for** | Quick gut checks | Serious exploration | Investor-ready validation |
+| **PRO plan quota** | 5 per month | 3 per month | 1 per month |
+| **ENTERPRISE plan quota** | 10 per month | 5 per month | 2 per month |
+
+For our AI tutoring app example, start with a **SPARK** interview to quickly test whether the concept has legs. If the results look promising, follow up with a **LIGHT** or **IN_DEPTH** interview to get the full picture.
+
+1. Select your preferred interview mode from the options presented.
+2. Click **Start Interview**.
+
+> **Pro Feature:** LIGHT and IN_DEPTH interview modes are available on PRO and ENTERPRISE plans. FREE plan users do not have access to any interview modes.
+
+See also: [Interview Modes](/docs/user-guide/interview-modes)
+
+---
+
+## How do I complete the interview?
+
+The interview is a guided conversation where IdeaFuel asks you targeted questions about your idea. Your answers directly shape the quality of your validation report.
+
+1. Read each question carefully — they build on each other.
+2. Type your answer in the text field and click **Submit** or press Enter.
+3. Continue until the interview is complete. A progress bar shows how many questions remain.
+
+For our tutoring app example, you might see questions like:
+
+- *"Who is your primary customer and what problem are you solving for them?"*
+- *"How does your solution differ from existing tutoring services like Chegg or Khan Academy?"*
+- *"What is your pricing model and how did you arrive at that price point?"*
+
+> **Tip:** Longer, more specific answers produce better reports. Instead of "college students need help studying," try "STEM undergraduates at large universities who struggle with courses like Organic Chemistry and Linear Algebra and currently rely on expensive human tutors ($40-60/hr) or generic YouTube videos."
+
+> **Note:** You can pause and resume an interview at any time. Your progress is saved automatically, so you can close the tab and come back later without losing anything.
+
+---
+
+## What happens while I wait for research?
+
+After you submit your final answer, IdeaFuel's AI engine gets to work. Here is what happens behind the scenes.
+
+1. The AI analyzes your interview responses and extracts key business parameters.
+2. It conducts market research — sizing the addressable market, identifying competitors, and spotting industry trends.
+3. It generates a structured validation report with scores, insights, and recommendations.
+
+**How long does it take?** SPARK reports typically arrive in 1-3 minutes. LIGHT reports take 3-7 minutes. IN_DEPTH reports can take 10-20 minutes due to the breadth of analysis.
+
+You can check the status of your report at any time:
+
+1. Go to your **Dashboard**.
+2. Find your project card — it shows the current status: *Researching*, *Generating Report*, or *Complete*.
+3. You will also receive an email notification when your report is ready.
+
+> **Tip:** You do not need to keep the browser open. IdeaFuel processes everything server-side, so feel free to close the tab and come back when you get the email.
+
+---
+
+## Where do I find and explore my reports?
+
+Your completed reports live inside your project. Each report contains structured sections you can read in any order, but there is a recommended path.
+
+1. Open your project from the **Dashboard**.
+2. Click on the **Reports** tab to see all generated reports.
+3. Click any report to open the full analysis.
+
+**Which report section should you read first?** Start with the **Executive Summary** for the big picture, then move to **Market Analysis** to understand the opportunity size. Check the **Competitive Landscape** to see who else is solving this problem, and finish with **Recommendations** for concrete next steps.
+
+For our tutoring app, you might learn that the U.S. online tutoring market is projected to reach $20B by 2028, that your $19.99 price point undercuts human tutors significantly, but that AI-native competitors like Khanmigo are already well-funded.
+
+> **Note:** The detail level of your report depends on your plan tier. FREE plans do not include validation reports. PRO plans generate BASIC and PRO tier reports. ENTERPRISE plans unlock FULL reports with the deepest analysis.
+
+See also: [Validation Reports](/docs/user-guide/validation-reports)
+
+---
+
+## What should I do next?
+
+You have your first validation report in hand. Here is where to go from here.
+
+### Build a financial model
+
+Translate your idea into numbers. Create revenue projections, estimate costs, and calculate when you would break even. FREE plan users get 1 financial model. PRO users get 10, and ENTERPRISE users get 50.
+
+See also: [Financial Modeling](/docs/user-guide/financial-modeling)
+
+### Talk to your AI Business Advisor
+
+Open a conversation with an AI agent that has read your entire project — interviews, reports, and financials. Ask it questions like "What is the biggest risk to this idea?" or "How should I price for university site licenses?"
+
+See also: [AI Business Advisor](/docs/user-guide/ai-business-advisor)
+
+### Export a Business Plan PDF
+
+When you are ready to pitch, export a professionally formatted business plan that combines your validation report, financial model, and strategic recommendations into one document.
+
+See also: [Business Plan PDF](/docs/user-guide/business-plan-pdf)
+
+### Run another interview
+
+If your SPARK results were promising, run a LIGHT or IN_DEPTH interview on the same project to get deeper validation. You can also create new projects to test variations of your idea or entirely different concepts.
+
+> **Tip:** The most successful IdeaFuel users iterate. They run a quick SPARK interview, read the results, refine their description based on the feedback, and then run a deeper interview. Each pass produces sharper insights.
+
+See also: [Subscription Plans](/docs/user-guide/subscription-plans) | [Interview Modes](/docs/user-guide/interview-modes)
+
+---
+
+<!-- SOURCE: user-guide/subscription-plans.md -->
+
+---
+title: "Subscription Plans & Pricing"
+description: "Compare IdeaFuel's FREE, PRO, and ENTERPRISE plans. Understand report quotas, financial model limits, AI quality tiers, and billing details."
+keywords: "IdeaFuel pricing plans, business idea validation pricing, IdeaFuel subscription, IdeaFuel PRO, IdeaFuel ENTERPRISE"
+category: "Plans & Billing"
+og:title: "IdeaFuel Pricing Plans — FREE, PRO & ENTERPRISE Compared"
+og:description: "Find the right IdeaFuel plan for your needs. Compare features, report quotas, financial model limits, and AI quality across all tiers."
+structured_data: "Product"
+canonical: "/docs/user-guide/subscription-plans"
+---
+
+# Subscription Plans & Pricing
+
+**IdeaFuel subscription plans determine how many validation reports you can generate, how many financial models you can build, which interview modes you can access, and the quality of AI analysis powering your results.**
+
+> IdeaFuel offers three plans: FREE for exploring the platform, PRO ($29/mo) for entrepreneurs actively validating ideas, and ENTERPRISE ($99/mo) for teams and power users who need maximum depth and volume. All plans include project creation and dashboard access.
+
+---
+
+## How do the plans compare?
+
+The table below shows every feature side by side. Use it to find the plan that matches your validation needs.
+
+| Feature | FREE ($0) | PRO ($29/mo) | ENTERPRISE ($99/mo) |
+|---|---|---|---|
+| **Spark Reports** | 0 | 5 per month | 10 per month |
+| **Light Interview Reports** | 0 | 3 per month | 5 per month |
+| **In-Depth Interview Reports** | 0 | 1 per month | 2 per month |
+| **Financial Models** | 1 | 10 | 50 |
+| **Report Tiers Available** | None | BASIC + PRO | BASIC + PRO + FULL |
+| **Full Reports** | No | No | Yes |
+| **AI Quality** | Standard | Enhanced | Premium |
+| **Interview Modes** | None | BASIC + PRO | BASIC + PRO + FULL |
+| **Priority Support** | No | Yes | Yes |
+
+---
+
+## What does each feature include?
+
+### Spark Reports
+
+Spark reports are fast, high-level viability checks generated from a short 3-5 question interview. They take about 2 minutes to complete and give you a quick read on whether your idea is worth exploring further.
+
+On the PRO plan you get 5 Spark reports per month. On the ENTERPRISE plan you get 10. FREE plan users do not have access to any reports.
+
+For our AI-powered tutoring app example, a Spark report would tell you in minutes whether the online tutoring market is growing, whether your price point is competitive, and whether there are obvious red flags.
+
+### Light Interview Reports
+
+Light reports come from a more structured 10-15 question interview that typically takes about 8 minutes. The resulting analysis covers market sizing, basic competitive landscape, and a preliminary viability score.
+
+PRO users get 3 Light reports per month. ENTERPRISE users get 5.
+
+### In-Depth Interview Reports
+
+In-Depth reports are the most comprehensive validation IdeaFuel offers. The interview runs 25-35 questions over roughly 20 minutes, and the report covers market analysis, competitive positioning, revenue model assessment, risk identification, and strategic recommendations.
+
+PRO users get 1 In-Depth report per month. ENTERPRISE users get 2.
+
+> **Tip:** Use Spark reports to quickly screen multiple ideas, then spend your Light and In-Depth reports on the concepts that pass that first filter.
+
+### Financial Models
+
+Financial models let you build revenue projections, cost structures, unit economics, and break-even analyses for your idea. The FREE plan includes 1 financial model so you can try the feature. PRO gives you 10, and ENTERPRISE gives you 50.
+
+See also: [Financial Modeling](/docs/user-guide/financial-modeling)
+
+### Full Reports
+
+Full reports are the deepest tier of analysis, available exclusively on the ENTERPRISE plan. They combine everything from BASIC and PRO report tiers with additional sections: detailed TAM/SAM/SOM breakdowns, investor-readiness scoring, go-to-market strategy suggestions, and risk mitigation frameworks.
+
+> **Pro Feature:** Full reports are an ENTERPRISE-only feature. If you are on PRO and need this level of depth for a critical idea, consider upgrading for the month you need it.
+
+### AI Quality
+
+Your plan determines which AI model powers your analysis:
+
+| Plan | AI Quality | What it means |
+|---|---|---|
+| FREE | Standard | Baseline AI analysis — functional but less nuanced |
+| PRO | Enhanced | More sophisticated reasoning, better market data synthesis, richer competitive analysis |
+| ENTERPRISE | Premium | Highest-quality AI with the deepest analytical capabilities, most current data sources, and most detailed outputs |
+
+### Priority Support
+
+PRO and ENTERPRISE users get priority support. Your questions go to the front of the queue, and you can expect responses within a few hours during business days. FREE users have access to community support and documentation.
+
+---
+
+## How do I upgrade my plan?
+
+Upgrading takes less than a minute and your new quotas are available immediately.
+
+1. Click your **profile icon** in the top-right corner.
+2. Select **Subscription** from the dropdown menu.
+3. Choose the plan you want — **PRO** or **ENTERPRISE**.
+4. Click **Upgrade**.
+5. You are redirected to a secure **Stripe checkout** page. Enter your payment details.
+6. Once payment is confirmed, you are redirected back to IdeaFuel with your new plan active.
+
+Your upgraded quotas and features are available instantly. If you had a project waiting for a report, you can generate one right away.
+
+> **Note:** If you are upgrading from FREE to PRO or from PRO to ENTERPRISE, the change takes effect immediately. You get the full monthly quota for the new plan starting from the moment you upgrade.
+
+---
+
+## How does billing work?
+
+IdeaFuel uses simple monthly billing with no long-term contracts.
+
+- **Billing cycle:** Your plan renews on the same date each month (the date you first subscribed). Report quotas reset at renewal.
+- **Payment method:** All payments are processed securely through Stripe. You can use any major credit or debit card.
+- **Cancellation:** You can cancel your subscription at any time from the Subscription page. Your paid features remain active until the end of your current billing period. After that, your account reverts to the FREE plan.
+- **No annual contracts:** All plans are month-to-month. You are never locked in.
+
+> **Tip:** If you only need deeper validation for a specific idea, you can upgrade for a single month, use your reports, and then cancel. Your projects and past reports stay in your account on the FREE plan.
+
+---
+
+## Frequently asked questions
+
+### What happens to my data if I downgrade?
+
+Your data is safe. All projects, interviews, reports, and financial models you have already created remain in your account and are fully accessible, even on the FREE plan. You will not lose any previously generated content.
+
+What changes is your ability to create *new* content. If you downgrade from PRO to FREE, you lose access to interview modes and your report quota drops to zero. You can still view and export everything you built while on the paid plan.
+
+### Do unused reports roll over?
+
+No. Report quotas reset at the beginning of each billing cycle. If your PRO plan gives you 5 Spark reports and you only use 3 this month, those 2 unused reports do not carry over to next month. You start fresh with 5 when your plan renews.
+
+Plan your validation work within each billing cycle to get the most out of your quota.
+
+### Can I switch plans mid-month?
+
+Yes. You can upgrade or downgrade at any time.
+
+**Upgrading mid-month:** Your new plan takes effect immediately and you get the full monthly quota for the higher plan. You are charged the prorated difference for the remainder of your billing cycle.
+
+**Downgrading mid-month:** The downgrade takes effect at the end of your current billing period. You keep access to all paid features until then, so there is no rush to use up your remaining quota the same day.
+
+### Is there a free trial for PRO or ENTERPRISE?
+
+There is no separate free trial. The FREE plan itself serves as your way to explore the platform. You can create projects, build one financial model, and familiarize yourself with the dashboard before committing to a paid plan.
+
+### How do I cancel my subscription?
+
+1. Click your **profile icon** in the top-right corner.
+2. Select **Subscription**.
+3. Click **Cancel Plan**.
+4. Confirm the cancellation.
+
+Your paid features remain active until the end of your current billing period. After that, your account reverts to FREE.
+
+---
+
+See also: [Getting Started](/docs/user-guide/getting-started) | [Validation Reports](/docs/user-guide/validation-reports) | [FAQs & Troubleshooting](/docs/user-guide/faq)
+
+---
+
+<!-- SOURCE: user-guide/interview-modes.md -->
+
+---
+title: "Interview Modes — SPARK, LIGHT & IN_DEPTH"
+description: "Choose the right IdeaFuel interview mode to validate your business idea. Compare SPARK, LIGHT, and IN_DEPTH interviews by depth, time, and output."
+keywords: "AI business idea validation tool, idea interview, SPARK mode, LIGHT mode, IN_DEPTH mode, startup validation"
+category: "User Guide"
+og:title: "Interview Modes — SPARK, LIGHT & IN_DEPTH | IdeaFuel"
+og:description: "Pick the right interview depth for your business idea. From a 30-second SPARK to a comprehensive IN_DEPTH session, IdeaFuel meets you where you are."
+structured_data: "HowTo"
+canonical: "/docs/user-guide/interview-modes"
+---
+
+# Interview Modes — SPARK, LIGHT & IN_DEPTH
+
+**The IdeaFuel interview is a guided, AI-powered conversation that extracts the critical details of your business idea so the platform can validate it against real market data.** Think of it as a structured brainstorming session with an investor who already knows your industry.
+
+> The interview captures up to 43 data points about your idea — covering everything from the problem you solve to your go-to-market plan — and feeds them directly into the [research engine](/docs/user-guide/research-engine) that scores and analyzes your concept.
+
+> **In a nutshell:** IdeaFuel offers three interview modes — SPARK (instant), LIGHT (10 turns), and IN_DEPTH (18+ turns). The deeper you go, the richer your research results and reports. Choose the mode that matches how much you already know about your idea.
+
+---
+
+## Why does the interview matter?
+
+Your interview answers are the foundation of everything IdeaFuel produces. The research engine uses what you share to search the web, scan social channels, and build your reports. Better answers lead to sharper, more actionable insights.
+
+If you give vague or generic responses, the AI has less to work with and your [reports](/docs/user-guide/reports/) will reflect that. Spending an extra few minutes on thoughtful answers pays off in dramatically better output.
+
+---
+
+## How does SPARK Mode work?
+
+SPARK is the fastest way to get a read on your idea. You write a short description of your concept and IdeaFuel instantly generates a preliminary analysis — no back-and-forth required.
+
+**Best for:** Early-stage brainstorming, comparing multiple raw ideas quickly, or getting a gut-check before committing time to a deeper session.
+
+**What you get:** SPARK triggers a streamlined research pipeline that completes in roughly 5 minutes. You receive baseline scores and BASIC-tier reports — enough to tell whether an idea is worth exploring further.
+
+**Limitations:** Because SPARK relies solely on your initial description, it captures fewer data points than the conversational modes. Your scores and reports will be directional rather than precise. You won't receive insights on differentiation, revenue models, or founder-market fit unless you mention them yourself.
+
+> **Tip:** Use SPARK to quickly triage a list of ideas, then run your top pick through a LIGHT or IN_DEPTH interview for the full picture.
+
+### Example
+
+You type: *"An AI-powered tutoring app for college students that adapts to each student's learning style and integrates with university course syllabi."* SPARK takes that single paragraph and kicks off research immediately.
+
+---
+
+## How does LIGHT Mode work?
+
+LIGHT Mode is a focused 10-turn conversation. IdeaFuel walks you through 6 scripted question blocks covering the essentials of your idea, then asks dynamic follow-up questions based on gaps it detects in your answers.
+
+### What question blocks does LIGHT cover?
+
+1. **Problem & Customer** — What pain point are you solving and for whom?
+2. **Pain Severity** — How badly does the target customer feel this problem today?
+3. **Solution** — What does your product or service actually do?
+4. **Differentiation** — Why would someone choose you over existing alternatives?
+5. **Revenue Model** — How do you plan to make money?
+6. **Go-to-Market** — How will you reach your first customers?
+
+After the scripted blocks, the AI may ask up to 4 additional follow-up questions to fill in anything you missed or to probe areas where your answers were vague.
+
+**Best for:** Founders who have a clear concept and want solid validation without a lengthy time commitment. LIGHT hits the sweet spot between speed and depth.
+
+**What you get:** LIGHT triggers the full deep research pipeline (30–60 minutes). You receive detailed scores and access to PRO-tier report sections — significantly richer than SPARK output.
+
+> **Tip:** If the AI asks a follow-up you aren't sure about, say so honestly. "I haven't figured that out yet" is more useful than a vague guess — it helps IdeaFuel flag that area as a risk in your reports.
+
+### Example
+
+The AI asks: *"Who specifically experiences this problem? Describe your ideal customer."* You answer: *"College students in STEM programs at mid-size universities who are struggling with foundational courses like calculus and organic chemistry."* That level of specificity gives the research engine a clear target to investigate.
+
+---
+
+## How does IN_DEPTH Mode work?
+
+IN_DEPTH Mode is the most comprehensive interview available. It covers 10 scripted question blocks across 18 or more turns, with dynamic follow-ups woven throughout. This is the mode to choose when you want IdeaFuel's best possible output.
+
+### What question blocks does IN_DEPTH cover?
+
+1. **Problem & Customer** — The core pain point and who feels it most acutely.
+2. **Pain Severity** — How the customer currently copes and what that costs them.
+3. **Target Customer** — Demographics, psychographics, and where to find them.
+4. **Solution** — Your product's features, form factor, and delivery method.
+5. **Differentiation** — What sets you apart from direct and indirect competitors.
+6. **Why Now** — Market timing, trends, or catalysts that make this the right moment.
+7. **Revenue Model** — Pricing strategy, unit economics, and monetization approach.
+8. **Go-to-Market** — Channels, partnerships, and launch strategy.
+9. **Validation & Traction** — Any evidence you already have (waitlists, LOIs, prototypes, conversations).
+10. **Risks, Moats & Founder Background** — Biggest threats, defensibility, and why you are the right person to build this.
+
+The AI adapts its follow-ups based on confidence scoring — if it detects low confidence in a particular area, it digs deeper. Expect the conversation to feel natural rather than mechanical.
+
+**Best for:** Founders who are seriously evaluating an idea they plan to pursue. If you are about to invest significant time or money, IN_DEPTH gives you the most defensible data to make that decision.
+
+**What you get:** IN_DEPTH triggers the full deep research pipeline (30–60 minutes) and unlocks FULL-tier reports with every available section. You also extract the maximum number of data points, which means your scores are calibrated with the highest possible precision.
+
+**Time commitment:** Plan for 20–30 minutes of active conversation. You can pause and resume if needed.
+
+> **Pro Feature:** IN_DEPTH Mode is available on Pro and Enterprise plans. Free-tier users can access SPARK and LIGHT.
+
+### Example
+
+During the Risks & Moats block, the AI asks: *"What would a well-funded competitor need to replicate your advantage?"* You answer: *"They'd need partnerships with at least 50 universities for syllabus data, plus 6+ months of student interaction data to train the adaptive learning model. We already have 12 pilot partnerships."* That concrete detail directly strengthens your Feasibility Score and Competitive Analysis report.
+
+---
+
+## How do the three modes compare?
+
+| Feature | SPARK | LIGHT | IN_DEPTH |
+|---|---|---|---|
+| **Turns** | 0 (instant) | 10 | 18+ |
+| **Data points captured** | Varies (from description) | ~25 | Up to 43 |
+| **Your time** | 30 seconds | 5–10 minutes | 20–30 minutes |
+| **Research pipeline** | Fast (~5 min) | Full (30–60 min) | Full (30–60 min) |
+| **Report tiers available** | BASIC | PRO | FULL |
+| **Best for** | Quick gut-checks | Solid validation | Maximum depth |
+| **Subscription required** | Free | Free | Pro or Enterprise |
+
+> **Note:** Research time is in addition to your interview time. After you finish the conversation, the pipeline runs in the background — you can close the tab and come back later.
+
+---
+
+## How does the interview actually work?
+
+The interview is a conversational exchange between you and IdeaFuel's AI. Each question block starts with a scripted prompt designed to elicit specific information. Based on your answer, the AI decides whether to move on or ask a clarifying follow-up.
+
+Behind the scenes, every answer you give is evaluated with a confidence score. Low-confidence answers (vague, off-topic, or contradictory) trigger additional probing. High-confidence answers let the AI advance to the next topic efficiently.
+
+You type your answers in plain language — no forms, no dropdowns, no character limits. Write as much or as little as you want, though more detail generally produces better results.
+
+---
+
+## What are the best tips for interview answers?
+
+1. **Be specific.** "College students" is okay. "STEM undergrads at mid-size US universities struggling with foundational courses" is much better.
+2. **Use numbers when you can.** "A large market" tells the AI almost nothing. "There are 20 million college students in the US, and 40% report struggling with at least one STEM course" gives it something to verify.
+3. **Admit what you don't know.** Saying "I haven't validated pricing yet" is more useful than guessing "$10/month" — it flags pricing as a risk the research engine should investigate.
+4. **Describe real conversations.** If you have talked to potential customers, share what they said. Direct quotes and anecdotes produce stronger Customer Profile and Problem Score outputs.
+5. **Think about timing.** The "Why Now" question trips up many founders. Consider what has changed recently — new technology, regulation, cultural shift, pandemic aftereffects — that makes your idea viable today when it wasn't five years ago.
+
+> **Tip:** You can always re-run an interview on the same idea. If your thinking evolves after reading your first set of reports, start a new LIGHT or IN_DEPTH session to capture your updated perspective.
+
+---
+
+## What happens after the interview?
+
+The moment your interview ends, IdeaFuel automatically triggers the appropriate research pipeline.
+
+- **SPARK** kicks off the fast pipeline. Expect results in about 5 minutes.
+- **LIGHT and IN_DEPTH** kick off the full deep research pipeline. Expect results in 30–60 minutes.
+
+You do not need to stay on the page. IdeaFuel emails you when your research is complete and your [reports](/docs/user-guide/reports/) are ready. You can also track progress in real time from your dashboard — see [How to track research progress](/docs/user-guide/research-engine#how-can-i-track-research-progress) for details.
+
+Once research finishes, your [scores](/docs/user-guide/research-engine#how-do-i-understand-my-scores) and reports are available immediately. Start with the [recommended reading order](/docs/user-guide/reports/#which-reports-should-i-read-first) to get the most value from your results.
+
+---
+
+<!-- SOURCE: user-guide/research-engine.md -->
+
+---
+title: "The Research Engine — How IdeaFuel Validates Your Idea"
+description: "Learn how IdeaFuel's automated market research engine works. Understand the research phases, scoring system, and what to expect from your validation results."
+keywords: "automated market research for startups, AI market validation, startup research tool, idea scoring, opportunity score"
+category: "User Guide"
+og:title: "The Research Engine — How IdeaFuel Validates Your Idea | IdeaFuel"
+og:description: "IdeaFuel's multi-phase AI research engine scans the web, social channels, and market data to validate your business idea. Here's how it works."
+structured_data: "HowTo"
+canonical: "/docs/user-guide/research-engine"
+---
+
+# The Research Engine — How IdeaFuel Validates Your Idea
+
+**The research engine is IdeaFuel's multi-phase AI pipeline that takes the data points from your [interview](/docs/user-guide/interview-modes) and validates them against real-world market signals, competitor activity, social conversations, and demand indicators.** It is the core of what makes IdeaFuel more than a questionnaire.
+
+> You answer questions about your idea. The research engine answers questions about the market.
+
+> **In a nutshell:** After your interview, IdeaFuel automatically runs a multi-step research process — scanning the web, analyzing social channels, synthesizing findings, and generating scored reports. SPARK interviews take about 5 minutes. LIGHT and IN_DEPTH interviews trigger a deeper pipeline that takes 30–60 minutes. You get back four key scores and up to nine detailed [reports](/docs/user-guide/reports/).
+
+---
+
+## What does the research engine investigate?
+
+The engine doesn't just Google your idea. It runs structured investigations across six areas, each designed to answer a specific strategic question.
+
+| Research area | What it answers |
+|---|---|
+| **Market landscape** | How big is this opportunity? Who are the existing players? |
+| **Competitor activity** | What are competitors doing well? Where are the gaps? |
+| **Customer signals** | Are real people talking about this problem? What language do they use? |
+| **Timing & trends** | Is demand growing, flat, or declining? What macro forces are at play? |
+| **Demand validation** | Is there evidence that people would pay for a solution like yours? |
+| **Keywords & discoverability** | What are people searching for? How hard would it be to rank? |
+
+### Example
+
+For your AI-powered tutoring app for college students, the engine might discover that searches for "AI tutor" have grown 340% in the past 12 months, that three funded competitors exist but none integrate with university syllabi, and that Reddit threads in r/college consistently mention frustration with generic tutoring platforms. All of that flows into your scores and reports.
+
+---
+
+## What are the research phases?
+
+The research engine runs in four sequential phases. Each phase builds on the one before it. Here is what happens at each step — no technical jargon required.
+
+### Phase 1 — Deep Research
+
+IdeaFuel's AI searches the open web for information related to your idea's market, competitors, and customer landscape. It reads and synthesizes articles, reports, company pages, funding announcements, and product reviews. Think of it as a research analyst spending hours reading — compressed into minutes.
+
+This phase uses advanced AI models to conduct thorough, structured web searches. It doesn't just pull snippets; it reads full pages and extracts relevant data points.
+
+### Phase 2 — Social Research
+
+The engine scans social platforms — Reddit, Twitter/X, and Hacker News — for organic conversations about the problem you are solving. It looks for complaints, feature requests, product recommendations, and sentiment patterns.
+
+Social research matters because it captures unfiltered customer language. The words real people use to describe their frustrations become inputs for your Customer Profile and Keywords & SEO reports.
+
+### Phase 3 — Analysis & Synthesis
+
+Raw data from the first two phases is analyzed, cross-referenced, and distilled into structured findings. The AI identifies patterns, contradictions, and gaps. It compares what you told it in the interview against what it found in the research.
+
+This is where your four scores are calculated. Each score reflects a specific dimension of your idea's viability, weighted by the strength and consistency of the evidence found.
+
+### Phase 4 — Report Generation
+
+The synthesized findings are formatted into your [reports](/docs/user-guide/reports/). Each of the nine report types pulls from different slices of the research data. Reports are generated in the tier that matches your subscription and interview mode.
+
+> **Note:** All four phases run automatically after your interview. You do not need to configure or trigger anything manually.
+
+---
+
+## How do I understand my scores?
+
+IdeaFuel produces four scores, each rated 0–100. These scores are not grades — they are calibrated assessments based on the evidence the research engine found. A score of 60 does not mean you are "failing." It means there is moderate evidence supporting that dimension of your idea.
+
+### Opportunity Score (0–100)
+
+**What it measures:** The overall size and attractiveness of the market you are entering. It factors in market size, growth rate, competitive density, and unmet demand.
+
+- **80–100:** Large, growing market with clear gaps. Strong signal.
+- **60–79:** Solid market with some competition. Worth pursuing with differentiation.
+- **40–59:** Market exists but may be crowded or niche. Validate further.
+- **Below 40:** Limited evidence of meaningful market opportunity. Reconsider scope.
+
+### Problem Score (0–100)
+
+**What it measures:** How real, painful, and widespread the problem is that you are solving. It looks at social mentions, complaint frequency, existing spending on workarounds, and severity indicators.
+
+- **80–100:** People are actively spending money or significant time to solve this problem today.
+- **60–79:** The problem is real and acknowledged, but current solutions may be "good enough" for some.
+- **40–59:** Mixed signals. Some people feel it, others don't. Narrow your target.
+- **Below 40:** Hard to find evidence that this is a pressing problem. Revisit your customer definition.
+
+### Feasibility Score (0–100)
+
+**What it measures:** How realistic it is to build and deliver your proposed solution given current technology, regulations, costs, and your stated resources. It also considers founder-market fit if you provided background information in an IN_DEPTH interview.
+
+- **80–100:** Technically straightforward, no major regulatory barriers, reasonable cost structure.
+- **60–79:** Achievable but with notable challenges (technical complexity, partnerships needed, capital requirements).
+- **40–59:** Significant hurdles identified. Review the risks section of your Business Plan report.
+- **Below 40:** Major feasibility concerns. The research found blockers you should address before proceeding.
+
+### Why Now Score (0–100)
+
+**What it measures:** Whether market conditions, technology shifts, regulatory changes, or cultural trends make this the right moment for your idea. A great idea at the wrong time still fails.
+
+- **80–100:** Strong tailwinds — recent catalysts clearly favor this concept.
+- **60–79:** Favorable conditions exist, but timing isn't urgent. You have a window.
+- **40–59:** Neutral timing. No strong forces pushing for or against.
+- **Below 40:** The research didn't find compelling evidence for why this idea works now versus two years ago.
+
+> **Tip:** Don't obsess over any single score in isolation. Read them together. An idea with a high Opportunity Score but low Feasibility Score tells a different story than one with moderate scores across the board. Use the scores as a starting point, then dig into the [reports](/docs/user-guide/reports/) for the reasoning behind each number.
+
+### Example
+
+Your AI-powered tutoring app for college students might score: Opportunity 78, Problem 82, Feasibility 65, Why Now 85. Translation: the problem is very real, timing is excellent (AI capabilities just became good enough, post-pandemic demand for flexible learning is high), the market is strong, but there are feasibility challenges — perhaps the university partnership model is complex. Your Business Plan report would detail those challenges and suggest mitigations.
+
+---
+
+## Does research quality differ by subscription tier?
+
+Yes. Your subscription tier affects the depth and breadth of the research conducted.
+
+| Capability | Free | Pro | Enterprise |
+|---|---|---|---|
+| **Deep Research depth** | Standard web search | Enhanced search with broader source coverage | Premium search with proprietary data sources |
+| **Social Research channels** | Reddit | Reddit + Twitter/X | Reddit + Twitter/X + Hacker News + niche forums |
+| **Analysis depth** | Core analysis | Extended analysis with nuanced insights | Comprehensive analysis with sector-specific models |
+| **Report tier access** | BASIC | PRO | FULL |
+| **Interview modes** | SPARK, LIGHT | SPARK, LIGHT, IN_DEPTH | SPARK, LIGHT, IN_DEPTH |
+
+> **Pro Feature:** Pro and Enterprise subscribers receive richer competitor analysis, deeper social sentiment data, and access to more detailed report sections. If your Free-tier results are promising, upgrading before re-running the interview can reveal significantly more insight.
+
+---
+
+## How can I track research progress?
+
+Your dashboard shows a real-time status indicator for each active research run. You will see which phase is currently executing and an estimated time remaining.
+
+| Status | What it means |
+|---|---|
+| **Interviewing** | You are still in the interview. Research has not started yet. |
+| **Researching** | Phase 1 (Deep Research) or Phase 2 (Social Research) is running. |
+| **Analyzing** | Phase 3 (Analysis & Synthesis) is processing your data. |
+| **Generating Reports** | Phase 4 is building your reports. Almost done. |
+| **Complete** | Everything is ready. Click through to view your scores and reports. |
+| **Failed** | Something went wrong. See below for next steps. |
+
+IdeaFuel sends you an email notification when your research completes. You do not need to keep the browser open.
+
+---
+
+## How long does research take?
+
+Research time depends on which [interview mode](/docs/user-guide/interview-modes) you used.
+
+- **SPARK interviews** trigger the fast pipeline. Results are typically ready in **about 5 minutes**.
+- **LIGHT and IN_DEPTH interviews** trigger the full deep research pipeline. Results typically take **30–60 minutes**, depending on the complexity of your market and the volume of available data.
+
+Occasionally, research may take longer than 60 minutes if the engine encounters unusually large amounts of data to process. This is normal and usually means your market has a lot of signal — which is a good sign.
+
+> **Note:** Research time is measured from the moment your interview ends, not from when you started it. The clock begins when you submit your final answer.
+
+---
+
+## What if my research fails?
+
+Research failures are rare but can happen due to temporary issues with external data sources. Here is what to do.
+
+1. **Check the status indicator** on your dashboard. If it shows "Failed," click into the project for details.
+2. **Retry the research.** Your dashboard includes a "Retry Research" button that re-runs the pipeline using your existing interview data. You do not need to redo the interview.
+3. **Wait a few minutes and try again.** Most failures are caused by temporary upstream issues that resolve on their own.
+4. **Contact support.** If retrying doesn't work after two attempts, reach out to the IdeaFuel support team. Include your project name and the approximate time the failure occurred so the team can investigate quickly.
+
+> **Tip:** Retrying research does not consume an additional interview credit. You are only charged for the interview itself, not the research runs.
+
+---
+
+<!-- SOURCE: user-guide/reports/index.md -->
+
+---
+title: "Reports Overview — Your AI-Generated Business Analysis"
+description: "Explore IdeaFuel's nine AI-generated business reports. Understand report tiers, navigation, and which reports to read first for your startup idea."
+keywords: "AI-generated business reports, startup validation reports, business plan report, competitive analysis, market research report"
+category: "User Guide"
+og:title: "Reports Overview — Your AI-Generated Business Analysis | IdeaFuel"
+og:description: "IdeaFuel generates nine detailed reports from your interview and research data. Learn what each report covers, which tier unlocks it, and where to start reading."
+structured_data: "ItemList"
+canonical: "/docs/user-guide/reports"
+---
+
+# Reports Overview — Your AI-Generated Business Analysis
+
+**IdeaFuel reports are structured, AI-generated analyses built from the combination of your [interview](/docs/user-guide/interview-modes) answers and the findings of the [research engine](/docs/user-guide/research-engine).** They transform raw data into actionable guidance you can use to make decisions about your business idea.
+
+> Reports are not generic templates filled with your company name. Each report is uniquely generated from the specific data points you provided and the specific market evidence the research engine discovered.
+
+> **In a nutshell:** IdeaFuel produces nine report types covering everything from your business plan to your go-to-market strategy. The depth of each report depends on your subscription tier (BASIC, PRO, or FULL). Start with the Business Plan and Competitive Analysis, then work through the rest based on your immediate priorities.
+
+---
+
+## What reports are available?
+
+IdeaFuel generates nine distinct report types. Each one focuses on a different strategic dimension of your idea. Below is a quick reference — click any report name for its full documentation.
+
+| Report | What it tells you |
+|---|---|
+| [**Business Plan**](/docs/user-guide/reports/business-plan) | A structured overview of your idea's viability — market size, revenue potential, risks, and recommended next steps. |
+| [**Positioning**](/docs/user-guide/reports/positioning) | Where your product fits in the market and how to frame it so your target customer immediately understands its value. |
+| [**Competitive Analysis**](/docs/user-guide/reports/competitive-analysis) | Who your competitors are, what they do well, where they fall short, and how you can differentiate. |
+| [**Why Now**](/docs/user-guide/reports/why-now) | The market forces, technology shifts, and cultural trends that make this the right moment for your idea. |
+| [**Proof Signals**](/docs/user-guide/reports/proof-signals) | Real-world evidence that demand exists — search trends, social mentions, funding activity, and customer behavior patterns. |
+| [**Keywords & SEO**](/docs/user-guide/reports/keywords-seo) | The search terms your target customers use, keyword difficulty, and content opportunities to capture organic traffic. |
+| [**Customer Profile**](/docs/user-guide/reports/customer-profile) | A detailed portrait of your ideal customer — demographics, motivations, frustrations, and buying behavior. |
+| [**Value Equation**](/docs/user-guide/reports/value-equation) | How your product's benefits stack up against cost, effort, and risk from the customer's perspective. |
+| [**Go-to-Market**](/docs/user-guide/reports/go-to-market) | A tactical plan for reaching your first customers — channels, messaging, partnerships, and launch sequence. |
+
+### Example
+
+For your AI-powered tutoring app for college students, the Competitive Analysis might reveal that Chegg and Course Hero dominate the space but focus on content access rather than adaptive tutoring. Your Positioning report would then suggest framing your app as "the personal tutor that actually knows your syllabus" — a gap neither competitor fills. The Go-to-Market report would recommend targeting university teaching assistants as an initial distribution channel.
+
+---
+
+## How do report tiers work?
+
+Every report is divided into sections. The tier determines how many sections you can access. Higher tiers reveal more detailed analysis and more granular recommendations.
+
+| Tier | What you get | Who gets it |
+|---|---|---|
+| **BASIC** | Core sections only — high-level findings and top-line recommendations. Enough to understand the big picture. | Free plan (all interview modes) |
+| **PRO** | Most sections unlocked — detailed analysis, supporting evidence, and specific action items. Covers the majority of each report. | Pro plan with LIGHT or IN_DEPTH interviews |
+| **FULL** | Every section available — the complete analysis with full data tables, extended competitor breakdowns, nuanced scoring explanations, and advanced recommendations. | Enterprise plan with IN_DEPTH interviews |
+
+Your report tier is determined by two factors: your subscription plan and the interview mode you used. A Pro subscriber who runs a SPARK interview receives BASIC-tier reports because SPARK captures fewer data points. Running a LIGHT or IN_DEPTH interview on a Pro plan unlocks PRO-tier content.
+
+> **Note:** Upgrading your subscription does not retroactively upgrade past reports. To get higher-tier reports, upgrade your plan and then re-run the interview. Your previous interview answers are saved, so you can use them as a starting point.
+
+| Subscription | SPARK reports | LIGHT reports | IN_DEPTH reports |
+|---|---|---|---|
+| **Free** | BASIC | BASIC | — (IN_DEPTH not available) |
+| **Pro** | BASIC | PRO | PRO |
+| **Enterprise** | BASIC | PRO | FULL |
+
+> **Pro Feature:** PRO-tier reports include competitive feature matrices, customer persona deep-dives, and detailed keyword opportunity tables that BASIC reports summarize in a single paragraph.
+
+---
+
+## How do I navigate and read a report?
+
+Each report follows a consistent structure so you always know where to find what you need.
+
+1. **Summary section** — A 2–3 paragraph executive summary of the report's key findings. Read this first to decide if you need to go deeper.
+2. **Key findings** — Bulleted highlights of the most important discoveries. These are the data points most likely to influence your decision.
+3. **Detailed analysis** — The full body of the report, organized by subtopic. Each subsection includes evidence, reasoning, and specific recommendations.
+4. **Action items** — Concrete next steps you can take based on the report's findings. These are prioritized by impact.
+5. **Data tables and visuals** — Supporting data presented in tables and charts where applicable (PRO and FULL tiers).
+
+You can jump between sections using the sidebar navigation within each report. Reports also include internal cross-references — when one report's finding is relevant to another report, you will see a direct link.
+
+> **Tip:** Use the "Export" button at the top of any report to download it as a PDF. This is useful for sharing with co-founders, advisors, or investors who don't have IdeaFuel accounts.
+
+---
+
+## Which reports should I read first?
+
+You don't need to read all nine reports in one sitting. Here is the recommended reading order based on the questions most founders need answered first.
+
+1. **Business Plan** — Start here. It gives you the highest-level view of whether your idea holds together.
+2. **Competitive Analysis** — Understand who you are up against before you refine your strategy.
+3. **Customer Profile** — Make sure the person you are building for is clearly defined and reachable.
+4. **Why Now** — Confirm that timing is on your side. This report either accelerates your urgency or suggests patience.
+5. **Positioning** — Now that you know your market, competitors, and customers, refine how you talk about your product.
+6. **Value Equation** — Stress-test whether your product's value justifies its cost from the customer's point of view.
+7. **Go-to-Market** — Plan your launch and early traction strategy.
+8. **Keywords & SEO** — If organic search is part of your distribution plan, dig into this next.
+9. **Proof Signals** — Review the raw evidence behind your scores. Useful for pitch decks and investor conversations.
+
+> **Tip:** If you are preparing for an investor meeting, jump to Proof Signals and Why Now after the Business Plan. Investors care most about market evidence and timing.
+
+---
+
+## How do the reports connect to each other?
+
+The nine reports are not isolated documents — they form an interconnected analysis. Findings in one report directly inform conclusions in others. Understanding these connections helps you read them more effectively.
+
+- **Business Plan** draws from every other report. It is the synthesis layer.
+- **Competitive Analysis** feeds into **Positioning** (how to differentiate) and **Go-to-Market** (which channels competitors underuse).
+- **Customer Profile** informs **Value Equation** (what the customer values most), **Keywords & SEO** (what language they use), and **Go-to-Market** (where to find them).
+- **Why Now** supports **Proof Signals** — timing evidence and demand evidence often overlap but are analyzed through different lenses.
+- **Positioning** and **Value Equation** are two sides of the same coin: Positioning is how you frame it externally, Value Equation is the internal math that justifies the frame.
+- **Keywords & SEO** connects to **Customer Profile** (search intent reveals customer thinking) and **Go-to-Market** (content strategy as a traction channel).
+
+When you see a cross-reference link inside a report, follow it. The context from the linked report often clarifies why a particular recommendation was made.
+
+### Example
+
+Your AI-powered tutoring app's Customer Profile identifies that students search for help most heavily during midterm and finals weeks. That insight appears in three places: the Keywords & SEO report (seasonal keyword strategy), the Go-to-Market report (launch timing recommendation), and the Proof Signals report (search volume spikes as demand evidence). Reading any one of those reports in isolation gives you a useful fact. Reading all three together gives you a strategy.
+
+---
+
+## What should I do after reading my reports?
+
+Your reports are a starting point, not a finish line. Here is how to turn insights into action.
+
+1. **Review your [scores](/docs/user-guide/research-engine#how-do-i-understand-my-scores)** alongside the reports to understand the overall picture.
+2. **Act on the highest-priority action items** listed at the end of each report.
+3. **Share relevant reports** with co-founders, advisors, or mentors for feedback.
+4. **Re-run the interview** if your thinking has evolved. Updated answers produce updated research and reports. See [interview tips](/docs/user-guide/interview-modes#what-are-the-best-tips-for-interview-answers) for how to improve your next session.
+5. **Upgrade your plan** if you are on Free and want deeper analysis. A LIGHT or IN_DEPTH interview on a Pro plan can dramatically increase the specificity and usefulness of your reports.
+
+---
+
+<!-- SOURCE: user-guide/reports/business-plan.md -->
+
+---
+title: "Business Plan Report"
+description: "Understand what the IdeaFuel Business Plan Report covers, how to read it, and how to turn its insights into action."
+keywords: "AI business plan report"
+category: "reports"
+og:title: "Business Plan Report - IdeaFuel Docs"
+og:description: "A structured business plan report generated from your interview, covering market analysis, financials, go-to-market, and more."
+structured_data:
+  type: "Product"
+canonical: "/docs/user-guide/reports/business-plan"
+---
+
+# Business Plan Report
+
+**The Business Plan Report is a structured, investor-ready summary of your startup idea generated directly from your IdeaFuel interview.**
+
+> "In a nutshell" -- This report distills your interview answers into a complete business plan overview. It covers everything from market sizing to financial projections, giving you a ready-to-share document without weeks of research. Think of it as your idea's blueprint.
+
+## What This Report Tells You
+
+The Business Plan Report synthesizes your interview responses with AI-driven market research to produce a comprehensive business overview. It identifies strengths in your concept, flags gaps you may not have considered, and gives you a structured narrative you can share with co-founders, advisors, or investors.
+
+## Sections Included
+
+- **Executive Summary** -- A concise pitch-style overview of your entire business concept.
+- **Company Overview** -- Your company's mission, vision, legal structure, and stage.
+- **Problem & Solution** -- The pain point you address and how your product solves it.
+- **Market Analysis (TAM/SAM/SOM)** -- Total, serviceable, and obtainable market sizing with data sources.
+- **Competitive Landscape** -- Key competitors, their positioning, and where you fit.
+- **Business Model & Revenue** -- How you make money, pricing approach, and unit economics.
+- **Go-to-Market Strategy** -- Your plan for acquiring your first customers.
+- **Financial Projections** -- Revenue, cost, and growth estimates for the first 1-3 years.
+- **Team & Founder Fit** -- Why you and your team are the right people for this problem.
+- **Risks & Mitigation** -- Top risks and concrete strategies to address them.
+- **Funding Requirements** -- Capital needed, use of funds, and suggested fundraising timeline.
+- **Roadmap** -- Key milestones and deliverables over the next 6-18 months.
+
+## How to Read This Report
+
+Start with the Executive Summary for the big picture, then jump to whichever section matters most to your current stage. If you are pre-revenue, focus on Problem & Solution and Market Analysis. If you are fundraising, prioritize Financial Projections and Funding Requirements.
+
+> **Tip:** Compare the AI-generated Market Analysis against your own assumptions. Discrepancies often reveal blind spots worth investigating.
+
+## How to Use This Report
+
+1. Share the Executive Summary with advisors for quick feedback.
+2. Use the Financial Projections section as a starting template for your own spreadsheet model.
+3. Pull the Risks & Mitigation section into your pitch deck to show investors you have thought ahead.
+4. Revisit this report after each major pivot to see how your plan evolves.
+
+> **Note:** This is the report version of your business plan. For the full exportable PDF business plan, see the Business Plan PDF feature.
+
+## Tips for Getting the Most Out of This Report
+
+- Answer interview questions with specifics -- vague answers produce vague reports.
+- Re-run the report after you update your pricing or target market.
+- Use the Roadmap section to set quarterly OKRs.
+
+## Available On
+
+- **Subscription Tiers:** Pro, Teams
+- **Interview Modes:** Full Interview, Quick Interview
+
+> **Pro Feature:** Financial Projections and Funding Requirements sections are available on Pro and Teams tiers only.
+
+## See Also
+
+- [Go-to-Market Report](/docs/user-guide/reports/go-to-market)
+- [Competitive Analysis Report](/docs/user-guide/reports/competitive-analysis)
+- [Value Equation Report](/docs/user-guide/reports/value-equation)
+
+---
+
+<!-- SOURCE: user-guide/reports/positioning.md -->
+
+---
+title: "Positioning Report"
+description: "Learn how the IdeaFuel Positioning Report helps you craft a clear, differentiated brand position in your market."
+keywords: "brand positioning strategy tool"
+category: "reports"
+og:title: "Positioning Report - IdeaFuel Docs"
+og:description: "Define your unique value proposition, target segments, and messaging framework with the Positioning Report."
+structured_data:
+  type: "Product"
+canonical: "/docs/user-guide/reports/positioning"
+---
+
+# Positioning Report
+
+**The Positioning Report helps you articulate exactly why your product matters and to whom, so every piece of marketing you create starts from a clear strategic foundation.**
+
+> "In a nutshell" -- This report defines your competitive alternatives, isolates your unique value, and builds a messaging framework around it. Use it to align your team on how you talk about your product before you write a single landing page.
+
+## What This Report Tells You
+
+The Positioning Report identifies what customers would use if your product did not exist, pinpoints what makes you different, and translates that difference into language your target audience cares about. It gives you a repeatable positioning statement you can apply across channels.
+
+## Sections Included
+
+- **Competitive Alternatives** -- What your customers use today instead of your product (direct competitors, workarounds, doing nothing).
+- **Unique Value Proposition** -- The single most compelling reason a customer should choose you.
+- **Target Audience Segments** -- Two to four distinct buyer segments ranked by fit.
+- **Messaging Framework** -- Key messages, proof points, and objection responses for each segment.
+- **Positioning Statement** -- A fill-in-the-blank statement following the classic positioning formula.
+- **Differentiation Map** -- A visual-ready comparison of your product against alternatives on the dimensions that matter most.
+
+## How to Read This Report
+
+Read Competitive Alternatives first -- your positioning only makes sense relative to what already exists. Then review the Unique Value Proposition to confirm it resonates with your own understanding. If it does not, your interview answers may need more specificity.
+
+> **Tip:** The Differentiation Map is designed to be dropped directly into pitch decks or investor updates.
+
+## How to Use This Report
+
+1. Copy the Positioning Statement into your brand guidelines document.
+2. Hand the Messaging Framework to your copywriter or content team as a brief.
+3. Use Target Audience Segments to prioritize which customer group to pursue first.
+4. Test the Unique Value Proposition in ad copy and measure click-through rates.
+
+## Tips for Getting the Most Out of This Report
+
+- Be brutally honest about competitive alternatives during your interview. The better the input, the sharper the output.
+- Revisit this report when you add a major feature or enter a new market.
+- Pair it with the Customer Profile Report for a complete picture of who you are talking to and what to say.
+
+> **Note:** Positioning is not a one-time exercise. Re-run this report quarterly as your market evolves.
+
+## Available On
+
+- **Subscription Tiers:** Starter, Pro, Teams
+- **Interview Modes:** Full Interview, Quick Interview
+
+## See Also
+
+- [Customer Profile Report](/docs/user-guide/reports/customer-profile)
+- [Competitive Analysis Report](/docs/user-guide/reports/competitive-analysis)
+- [Go-to-Market Report](/docs/user-guide/reports/go-to-market)
+
+---
+
+<!-- SOURCE: user-guide/reports/competitive-analysis.md -->
+
+---
+title: "Competitive Analysis Report"
+description: "Understand how the IdeaFuel Competitive Analysis Report maps your competitive landscape and reveals market gaps."
+keywords: "AI competitor analysis tool"
+category: "reports"
+og:title: "Competitive Analysis Report - IdeaFuel Docs"
+og:description: "Get detailed competitor profiles, SWOT positioning, vulnerability analysis, and market gap identification."
+structured_data:
+  type: "Product"
+canonical: "/docs/user-guide/reports/competitive-analysis"
+---
+
+# Competitive Analysis Report
+
+**The Competitive Analysis Report gives you a structured, research-backed view of who you are competing against, where they are vulnerable, and where the market has room for you.**
+
+> "In a nutshell" -- This report profiles your top competitors across pricing, funding, strengths, and weaknesses. It highlights exploitable gaps and helps you build defensible moats. Use it to make strategic decisions about where to compete and where to differentiate.
+
+## What This Report Tells You
+
+The Competitive Analysis Report identifies direct and indirect competitors based on your interview responses and supplementary AI research. It evaluates each competitor on multiple dimensions and maps your relative positioning so you can see exactly where opportunities and threats exist.
+
+## Sections Included
+
+- **Competitor Profiles** -- For each competitor: name, core product, strengths, weaknesses, pricing model, known funding, and estimated market share.
+- **SWOT Positioning** -- A SWOT analysis that positions your idea relative to the competitive set.
+- **Vulnerability Analysis** -- Specific weaknesses in competitors that you can exploit (poor UX, high churn, underserved segments).
+- **Competitive Moats** -- An assessment of your potential moats: network effects, data advantages, switching costs, brand, or proprietary technology.
+- **Market Gaps** -- Underserved niches or unmet needs that no current competitor adequately addresses.
+
+## How to Read This Report
+
+Start with Competitor Profiles to build baseline familiarity. Then read the SWOT Positioning to understand your relative standing. Spend the most time on Vulnerability Analysis and Market Gaps -- these sections drive your strategic decisions.
+
+> **Tip:** If a competitor has significant funding but poor reviews, that is a signal of opportunity. Customers are dissatisfied and looking for alternatives.
+
+## How to Use This Report
+
+1. Build a competitive battlecard for your sales team using the Competitor Profiles.
+2. Use the Vulnerability Analysis to shape your feature roadmap around competitor weaknesses.
+3. Reference Market Gaps when writing your pitch deck's "Why Us" slide.
+4. Reassess your Competitive Moats every quarter and invest in strengthening the weakest one.
+
+## Tips for Getting the Most Out of This Report
+
+- Name specific competitors during your interview rather than relying on AI discovery alone.
+- Cross-reference competitor pricing with your Value Equation Report for strategic pricing decisions.
+- Track competitor changes over time by re-running this report after major market shifts.
+
+> **Note:** AI-sourced funding and market share data are estimates. Verify critical figures before including them in investor materials.
+
+## Available On
+
+- **Subscription Tiers:** Starter, Pro, Teams
+- **Interview Modes:** Full Interview, Quick Interview
+
+## See Also
+
+- [Positioning Report](/docs/user-guide/reports/positioning)
+- [Why Now Report](/docs/user-guide/reports/why-now)
+- [Proof Signals Report](/docs/user-guide/reports/proof-signals)
+
+---
+
+<!-- SOURCE: user-guide/reports/why-now.md -->
+
+---
+title: "Why Now Report"
+description: "Learn how the IdeaFuel Why Now Report evaluates market timing and helps you determine if this is the right moment for your idea."
+keywords: "market timing analysis startup"
+category: "reports"
+og:title: "Why Now Report - IdeaFuel Docs"
+og:description: "Assess market triggers, technology catalysts, and timing risks to understand whether now is the right moment to launch."
+structured_data:
+  type: "Product"
+canonical: "/docs/user-guide/reports/why-now"
+---
+
+# Why Now Report
+
+**The Why Now Report analyzes whether current market conditions, technology shifts, and consumer trends create a favorable window for your startup idea.**
+
+> "In a nutshell" -- Timing is the number-one predictor of startup success. This report evaluates the forces that make your idea viable today and warns you about risks of moving too early or too late. Use it to build a compelling "Why Now" narrative for investors and your own conviction.
+
+## What This Report Tells You
+
+The Why Now Report examines macro and micro trends that affect your idea's timing. It identifies catalysts that are creating demand right now and assesses how long the window of opportunity is likely to remain open. If timing is unfavorable, it tells you that too.
+
+## Sections Included
+
+- **Market Triggers** -- Recent events, industry shifts, or economic changes creating new demand.
+- **Technology Catalysts** -- Emerging technologies (AI, APIs, infrastructure) that make your product newly possible or dramatically cheaper to build.
+- **Regulatory Changes** -- New or upcoming regulations that open markets or remove barriers.
+- **Consumer Behavior Shifts** -- Changes in how people buy, work, or communicate that align with your product.
+- **Timing Score** -- A qualitative rating (Strong, Moderate, Weak) with a brief rationale.
+- **Window of Opportunity** -- An estimate of how long favorable conditions will persist before the market saturates or shifts.
+- **Risk of Waiting** -- What you stand to lose by delaying six to twelve months.
+
+## How to Read This Report
+
+Check the Timing Score first for the headline verdict. Then read Market Triggers and Technology Catalysts to understand the underlying forces. If the score is Moderate or Weak, pay close attention to Risk of Waiting -- it may still make sense to start building now.
+
+> **Tip:** Investors ask "Why now?" in almost every pitch meeting. Pull language directly from this report to answer that question confidently.
+
+## How to Use This Report
+
+1. Include the top two Market Triggers in your pitch deck's "Why Now" slide.
+2. Use Technology Catalysts to justify your technical architecture decisions.
+3. Monitor Regulatory Changes for compliance requirements you need to plan for.
+4. Set a calendar reminder to re-run this report when your Window of Opportunity is nearing its end.
+
+## Tips for Getting the Most Out of This Report
+
+- Mention specific trends you have observed during your interview -- the AI will validate or challenge them.
+- Combine this report with Proof Signals for a data-backed timing argument.
+- If the Timing Score is Weak, consider pivoting your angle rather than abandoning the idea entirely.
+
+> **Note:** Timing analysis is inherently forward-looking. Treat the Window of Opportunity as a directional estimate, not a guarantee.
+
+## Available On
+
+- **Subscription Tiers:** Pro, Teams
+- **Interview Modes:** Full Interview
+
+> **Pro Feature:** The Timing Score and Window of Opportunity sections are exclusive to Pro and Teams tiers.
+
+## See Also
+
+- [Proof Signals Report](/docs/user-guide/reports/proof-signals)
+- [Competitive Analysis Report](/docs/user-guide/reports/competitive-analysis)
+- [Business Plan Report](/docs/user-guide/reports/business-plan)
+
+---
+
+<!-- SOURCE: user-guide/reports/proof-signals.md -->
+
+---
+title: "Proof Signals Report"
+description: "Learn how the IdeaFuel Proof Signals Report surfaces real-world demand indicators and market validation data for your idea."
+keywords: "market demand validation tool"
+category: "reports"
+og:title: "Proof Signals Report - IdeaFuel Docs"
+og:description: "Discover demand indicators, social proof, search trends, and validation opportunities for your startup idea."
+structured_data:
+  type: "Product"
+canonical: "/docs/user-guide/reports/proof-signals"
+---
+
+# Proof Signals Report
+
+**The Proof Signals Report surfaces real-world evidence of demand for your idea by analyzing social mentions, search trends, competitor traction, and community discussions.**
+
+> "In a nutshell" -- Before you build, you need proof that people actually want what you are planning to create. This report gathers demand signals from across the internet and scores them so you can validate your idea with data instead of gut instinct.
+
+## What This Report Tells You
+
+The Proof Signals Report scans public data sources to find evidence that your target market is actively seeking a solution like yours. It highlights both positive signals (growing demand) and risk factors (declining interest, saturated market) so you can make an informed go/no-go decision.
+
+## Sections Included
+
+- **Demand Indicators** -- Quantitative and qualitative signals that people want a solution in your space.
+- **Social Proof** -- Relevant mentions and discussions from Reddit, Twitter/X, Hacker News, and other communities.
+- **Search Trend Data** -- Google Trends and keyword volume data showing interest over time.
+- **Competitor Traction Signals** -- Evidence of competitor growth (app store rankings, traffic estimates, hiring activity) that confirms market viability.
+- **Validation Opportunities** -- Concrete experiments you can run in the next 30 days to test demand yourself.
+- **Risk Factors** -- Warning signs such as declining search interest, failed predecessors, or market fatigue.
+
+## How to Read This Report
+
+Scan Demand Indicators for the overall signal strength. Then check Social Proof to see real conversations from your target audience. If Competitor Traction Signals are strong but Risk Factors are low, you are entering a validated market with room to grow.
+
+> **Tip:** Copy specific Reddit or Hacker News quotes into your pitch deck to show investors that real people are asking for this solution.
+
+## How to Use This Report
+
+1. Run the Validation Opportunities experiments before committing significant resources.
+2. Use Search Trend Data to time your content marketing and SEO strategy.
+3. Share Social Proof excerpts with your team to build conviction and align on the problem.
+4. Monitor Risk Factors as ongoing KPIs -- if they worsen, reassess your approach.
+
+## Tips for Getting the Most Out of This Report
+
+- Be specific about your niche during the interview. "AI for healthcare" is too broad; "AI scheduling for dental clinics" produces actionable signals.
+- Pair this report with Keywords & SEO for a complete demand picture.
+- Re-run the report monthly during your validation phase to track momentum.
+
+> **Note:** Social mentions are snapshots in time. A single viral thread does not guarantee sustained demand.
+
+## Available On
+
+- **Subscription Tiers:** Starter, Pro, Teams
+- **Interview Modes:** Full Interview, Quick Interview
+
+## See Also
+
+- [Why Now Report](/docs/user-guide/reports/why-now)
+- [Keywords & SEO Report](/docs/user-guide/reports/keywords-seo)
+- [Customer Profile Report](/docs/user-guide/reports/customer-profile)
+
+---
+
+<!-- SOURCE: user-guide/reports/keywords-seo.md -->
+
+---
+title: "Keywords & SEO Report"
+description: "Learn how the IdeaFuel Keywords & SEO Report identifies high-value search terms and content opportunities for your startup."
+keywords: "startup keyword research tool"
+category: "reports"
+og:title: "Keywords & SEO Report - IdeaFuel Docs"
+og:description: "Discover primary, secondary, and long-tail keywords along with search volume trends and content opportunities."
+structured_data:
+  type: "Product"
+canonical: "/docs/user-guide/reports/keywords-seo"
+---
+
+# Keywords & SEO Report
+
+**The Keywords & SEO Report identifies the search terms your target customers are using so you can build a content strategy that drives organic traffic from day one.**
+
+> "In a nutshell" -- This report delivers a prioritized keyword list with volume, competition, and trend data. It also suggests content opportunities so you know exactly what to write, record, or build to attract your audience through search.
+
+## What This Report Tells You
+
+The Keywords & SEO Report translates your product concept into the language your customers actually type into Google. It groups keywords by intent and difficulty, highlights emerging trends, and maps out content gaps you can fill before competitors do.
+
+## Sections Included
+
+- **Primary Keywords** -- High-volume, high-intent terms directly related to your core offering.
+- **Secondary Keywords** -- Related terms that capture adjacent demand and broaden your reach.
+- **Long-Tail Keywords** -- Specific, lower-competition phrases that convert at higher rates.
+- **Search Volume Trends** -- Monthly volume and trajectory (rising, stable, declining) for top keywords.
+- **Competition Analysis** -- Keyword difficulty scores and an overview of who currently ranks for each term.
+- **Content Opportunities** -- Suggested blog posts, landing pages, or tools you can create to rank for target keywords.
+- **Google Trends Data** -- Seasonal patterns and geographic interest breakdowns for your top terms.
+
+## How to Read This Report
+
+Start with Primary Keywords to confirm they match your product intent. Review Search Volume Trends to separate growing opportunities from fading ones. Focus your early efforts on Long-Tail Keywords where competition is low and conversion intent is high.
+
+> **Tip:** Long-tail keywords with rising trends and low competition are your quickest wins. Target these in your first month of content creation.
+
+## How to Use This Report
+
+1. Build your homepage and landing page copy around Primary Keywords.
+2. Create a content calendar using the Content Opportunities section.
+3. Use Long-Tail Keywords as titles for blog posts and FAQ pages.
+4. Track Search Volume Trends monthly to spot emerging topics before competitors.
+
+## Tips for Getting the Most Out of This Report
+
+- Describe your product in plain language during the interview -- jargon-heavy descriptions produce niche keywords that may be too narrow.
+- Combine this report with Proof Signals to validate that search demand translates into real purchasing intent.
+- Use Google Trends Data to time seasonal campaigns and product launches.
+
+> **Note:** Search volume figures are estimates based on available data. Use them for relative prioritization rather than absolute forecasting.
+
+## Available On
+
+- **Subscription Tiers:** Starter, Pro, Teams
+- **Interview Modes:** Full Interview, Quick Interview
+
+## See Also
+
+- [Proof Signals Report](/docs/user-guide/reports/proof-signals)
+- [Go-to-Market Report](/docs/user-guide/reports/go-to-market)
+- [Customer Profile Report](/docs/user-guide/reports/customer-profile)
+
+---
+
+<!-- SOURCE: user-guide/reports/customer-profile.md -->
+
+---
+title: "Customer Profile Report"
+description: "Learn how the IdeaFuel Customer Profile Report builds a detailed portrait of your ideal customer to guide product and marketing decisions."
+keywords: "ideal customer profile generator"
+category: "reports"
+og:title: "Customer Profile Report - IdeaFuel Docs"
+og:description: "Generate detailed ideal customer profiles including demographics, psychographics, pain points, and buying triggers."
+structured_data:
+  type: "Product"
+canonical: "/docs/user-guide/reports/customer-profile"
+---
+
+# Customer Profile Report
+
+**The Customer Profile Report builds a research-backed portrait of your ideal customer so you know exactly who to target, what they care about, and where to reach them.**
+
+> "In a nutshell" -- This report goes beyond basic demographics to map your customer's psychology, frustrations, and buying behavior. Use it to make every product decision and marketing message resonate with the people who are most likely to pay you.
+
+## What This Report Tells You
+
+The Customer Profile Report synthesizes your interview answers with market data to create one or more detailed ideal customer profiles (ICPs). It identifies not just who your customer is but why they buy, what triggers their purchase decision, and which channels you can use to reach them.
+
+## Sections Included
+
+- **Demographics** -- Age, income, job title, company size, geography, and other firmographic or demographic attributes.
+- **Psychographics** -- Values, beliefs, aspirations, and lifestyle traits that influence purchasing decisions.
+- **Pain Points & Frustrations** -- The specific problems your customer faces daily and the emotional weight behind them.
+- **Jobs to Be Done** -- The functional, social, and emotional jobs your customer is hiring a product to accomplish.
+- **Buying Triggers** -- Events, deadlines, or circumstances that push a customer from "interested" to "ready to buy."
+- **Willingness to Pay** -- Estimated price sensitivity and budget ranges for your category.
+- **Where They Hang Out** -- Online and offline channels where your target customer spends time (communities, social platforms, events, publications).
+- **Customer Journey Map** -- The steps from problem awareness to purchase decision, with key touchpoints and objections at each stage.
+
+## How to Read This Report
+
+Read Pain Points & Frustrations first -- if these do not match real problems you have observed, your targeting may be off. Then review Jobs to Be Done to confirm your product addresses the right job. Use Buying Triggers to understand when your customer is ready to act.
+
+> **Tip:** The "Where They Hang Out" section is gold for early-stage marketing. It tells you exactly where to spend your first marketing dollars.
+
+## How to Use This Report
+
+1. Share the full profile with your product team to align feature prioritization around real customer needs.
+2. Use Pain Points and Jobs to Be Done as the foundation for your landing page copy.
+3. Build ad targeting criteria from Demographics and Where They Hang Out.
+4. Map your onboarding flow to the Customer Journey Map to reduce drop-off.
+
+## Tips for Getting the Most Out of This Report
+
+- Describe a specific customer you have spoken to (or imagined in detail) during the interview. Generic descriptions produce generic profiles.
+- If you serve multiple segments, note that during the interview -- the report can generate up to three distinct profiles.
+- Pair this with the Value Equation Report to align pricing with willingness to pay.
+
+> **Note:** Customer profiles are hypotheses until validated. Use the Validation Opportunities in the Proof Signals Report to test your assumptions.
+
+## Available On
+
+- **Subscription Tiers:** Starter, Pro, Teams
+- **Interview Modes:** Full Interview, Quick Interview
+
+## See Also
+
+- [Positioning Report](/docs/user-guide/reports/positioning)
+- [Value Equation Report](/docs/user-guide/reports/value-equation)
+- [Proof Signals Report](/docs/user-guide/reports/proof-signals)
+
+---
+
+<!-- SOURCE: user-guide/reports/value-equation.md -->
+
+---
+title: "Value Equation Report"
+description: "Learn how the IdeaFuel Value Equation Report structures your pricing tiers and value ladder for maximum revenue."
+keywords: "value ladder pricing strategy"
+category: "reports"
+og:title: "Value Equation Report - IdeaFuel Docs"
+og:description: "Build a value ladder from lead magnet to backend offer with structured pricing tiers and revenue projections."
+structured_data:
+  type: "Product"
+canonical: "/docs/user-guide/reports/value-equation"
+---
+
+# Value Equation Report
+
+**The Value Equation Report maps out a complete value ladder and pricing structure so you capture revenue at every stage of the customer relationship.**
+
+> "In a nutshell" -- This report designs your product's value ladder from free lead magnet through premium backend offer. It recommends pricing tiers, defines features per tier, and estimates revenue potential so you can monetize strategically instead of guessing at a price point.
+
+## What This Report Tells You
+
+The Value Equation Report takes your product concept and breaks it into a tiered offering that meets customers at different commitment levels. It aligns each tier with a specific customer segment and projects revenue potential, giving you a pricing architecture you can implement immediately.
+
+## Sections Included
+
+- **Value Ladder** -- A four-stage progression designed to move customers from awareness to maximum lifetime value:
+  - **Lead Magnet** -- A free or very low-cost offer that attracts your target audience and captures contact information.
+  - **Tripwire** -- A low-priced entry product that converts leads into paying customers with minimal friction.
+  - **Core Offer** -- Your primary product or subscription tier that delivers your main value proposition.
+  - **Backend Offer** -- A premium upsell, add-on, or service tier for your most engaged customers.
+- **Pricing Tiers** -- Recommended price points for each stage with market-based justification.
+- **Features Per Tier** -- A breakdown of which features belong at which tier to create clear upgrade incentives.
+- **Target Customer Per Tier** -- The ideal customer profile for each pricing level.
+- **Revenue Potential Per Tier** -- Estimated revenue contribution from each tier based on conversion assumptions.
+
+## How to Read This Report
+
+Start with the Value Ladder overview to understand the full progression. Then examine Pricing Tiers and Features Per Tier together -- the goal is a clear step-up in value at each level. Check that Target Customer Per Tier aligns with the segments in your Customer Profile Report.
+
+> **Tip:** The most common pricing mistake is giving too much away in the free tier. Use the Features Per Tier section to draw a clear line between free and paid.
+
+## How to Use This Report
+
+1. Build your Lead Magnet first -- it is your lowest-risk entry into the market.
+2. Use Features Per Tier to define your MVP scope (your Core Offer tier).
+3. Set up pricing page copy directly from the Pricing Tiers and feature breakdowns.
+4. Use Revenue Potential Per Tier to build financial projections and set growth targets.
+
+## Tips for Getting the Most Out of This Report
+
+- Be specific about what your product does during the interview. Vague products produce vague value ladders.
+- Compare the recommended pricing against competitors using your Competitive Analysis Report.
+- Revisit this report when you add new features to decide which tier they belong in.
+
+> **Pro Feature:** Revenue Potential Per Tier projections with conversion rate modeling are available on Pro and Teams tiers only.
+
+## Available On
+
+- **Subscription Tiers:** Starter (basic), Pro, Teams
+- **Interview Modes:** Full Interview, Quick Interview
+
+## See Also
+
+- [Customer Profile Report](/docs/user-guide/reports/customer-profile)
+- [Business Plan Report](/docs/user-guide/reports/business-plan)
+- [Go-to-Market Report](/docs/user-guide/reports/go-to-market)
+
+---
+
+<!-- SOURCE: user-guide/reports/go-to-market.md -->
+
+---
+title: "Go-to-Market Report"
+description: "Learn how the IdeaFuel Go-to-Market Report builds a channel strategy and launch plan to acquire your first customers."
+keywords: "go to market strategy template"
+category: "reports"
+og:title: "Go-to-Market Report - IdeaFuel Docs"
+og:description: "Get recommended channels, CAC estimates, launch strategy, and a 90-day scaling plan tailored to your startup."
+structured_data:
+  type: "Product"
+canonical: "/docs/user-guide/reports/go-to-market"
+---
+
+# Go-to-Market Report
+
+**The Go-to-Market Report gives you a prioritized, actionable plan for acquiring your first customers and scaling from launch through your first quarter.**
+
+> "In a nutshell" -- This report recommends the best channels for your specific product and audience, estimates customer acquisition costs, and lays out a concrete 90-day plan. Use it to stop guessing where to spend your marketing budget and start executing with confidence.
+
+## What This Report Tells You
+
+The Go-to-Market Report translates your product, pricing, and customer profile into a distribution strategy. It identifies which channels will deliver the highest ROI for your stage, whether you should pursue self-serve or sales-led growth, and what your first 90 days should look like from a tactical standpoint.
+
+## Sections Included
+
+- **Recommended Channels** -- A ranked list of acquisition channels (content marketing, paid ads, partnerships, communities, cold outreach, etc.) with rationale for each.
+- **Primary Channel Deep Dive** -- A detailed playbook for your top-recommended channel, including setup steps, budget guidance, and expected timelines.
+- **Customer Acquisition Cost Estimates** -- Projected CAC for each recommended channel based on industry benchmarks and your pricing model.
+- **Sales Motion** -- Whether your product is best suited for self-serve, sales-assisted, or enterprise sales, with reasoning.
+- **Launch Strategy** -- A pre-launch and launch-day checklist covering audience building, waitlists, PR, and community seeding.
+- **First 90 Days Plan** -- A week-by-week tactical plan covering what to do, what to measure, and when to pivot.
+- **Scaling Roadmap** -- A framework for expanding from your primary channel to secondary channels as you grow.
+
+## How to Read This Report
+
+Start with Recommended Channels to see where the AI thinks you should focus. Read the Primary Channel Deep Dive for immediate action items. Review Customer Acquisition Cost Estimates against your budget to confirm feasibility. The First 90 Days Plan is your execution guide -- bookmark it.
+
+> **Tip:** Resist the urge to pursue all recommended channels at once. Dominate one channel before expanding to the next. The Scaling Roadmap tells you when to make that transition.
+
+## How to Use This Report
+
+1. Follow the Primary Channel Deep Dive as your marketing playbook for month one.
+2. Use Customer Acquisition Cost Estimates to set your initial marketing budget.
+3. Share the Launch Strategy checklist with your team and assign owners to each item.
+4. Review the First 90 Days Plan weekly and adjust based on real performance data.
+
+## Tips for Getting the Most Out of This Report
+
+- Mention your budget constraints during the interview. A bootstrapped founder gets different channel recommendations than a funded startup.
+- Combine this report with Customer Profile to ensure your channel strategy reaches the right audience.
+- Update the Sales Motion recommendation as your product and average deal size evolve.
+
+> **Note:** CAC estimates are based on industry averages and your pricing model. Your actual CAC will vary based on execution quality and market conditions.
+
+## Available On
+
+- **Subscription Tiers:** Starter, Pro, Teams
+- **Interview Modes:** Full Interview, Quick Interview
+
+> **Pro Feature:** The First 90 Days Plan and Scaling Roadmap sections include detailed weekly breakdowns on Pro and Teams tiers.
+
+## See Also
+
+- [Business Plan Report](/docs/user-guide/reports/business-plan)
+- [Keywords & SEO Report](/docs/user-guide/reports/keywords-seo)
+- [Positioning Report](/docs/user-guide/reports/positioning)
+
+---
+
+<!-- SOURCE: user-guide/financial-modeling/index.md -->
+
+---
+title: "Financial Modeling in IdeaFuel"
+description: "Build investor-ready financial models for your startup using IdeaFuel's guided templates, AI-powered assumptions, and scenario analysis."
+keywords: "startup financial model template, financial projections, startup forecasting, revenue model"
+category: "financial-modeling"
+og:title: "Financial Modeling in IdeaFuel"
+og:description: "Create professional startup financial models with guided templates, AI assumptions, and scenario analysis."
+structured_data:
+  type: "HowTo"
+canonical: "/docs/user-guide/financial-modeling/"
+---
+
+# Financial Modeling in IdeaFuel
+
+**Financial modeling** is the process of building a structured forecast of your startup's revenue, costs, and cash position over time. In IdeaFuel, a financial model combines your market research, pricing strategy, and cost assumptions into projected financial statements that you can share with investors, advisors, and co-founders.
+
+> "In a nutshell" — IdeaFuel turns your business idea into a complete five-year financial forecast. Start from research you have already done or pick an industry template, answer a few questions, and get investor-ready projections in minutes.
+
+## When to Build a Financial Model
+
+You get the most value from financial modeling at two key moments:
+
+- **After research** — Once you have validated your market size, customer segments, and pricing through IdeaFuel's [research tools](/docs/user-guide/research/), feed those findings directly into a model.
+- **Before investor conversations** — Investors expect a P&L, cash flow statement, and break-even analysis. A polished model shows you understand the economics of your business.
+
+You can also revisit your model at any time to run what-if scenarios or update assumptions as real data comes in.
+
+## Two Ways to Start
+
+### From a Project
+
+When you create a financial model from an existing IdeaFuel project, your research data automatically seeds the model. Market size, competitive pricing, and customer acquisition estimates flow in as pre-populated assumptions, saving you time and keeping your numbers consistent.
+
+### Standalone
+
+If you want to model a quick idea without a full project, choose **New Financial Model** from the dashboard. Pick an industry template — SaaS, E-commerce, Professional Services, Restaurant/Food, Retail, Construction, Healthcare, Real Estate, Manufacturing, Non-profit, or Freelancer/Solo — and IdeaFuel will configure sensible defaults for that business type.
+
+## Choose Your Knowledge Level
+
+IdeaFuel adapts the modeling experience to your comfort with finance:
+
+| Level | Best For | What You See |
+|---|---|---|
+| **Beginner** | First-time founders | A guided wizard with roughly 10 key inputs. IdeaFuel fills in the rest with AI estimates. |
+| **Standard** | Most entrepreneurs | A typical assumption editor with contextual explanations for every field. |
+| **Expert** | Finance-savvy founders and CFOs | Full line-item control over every assumption, formula, and dependency. |
+
+You can change your knowledge level at any time without losing data.
+
+> **Tip:** Start with Beginner to get a baseline model fast, then switch to Standard or Expert to fine-tune.
+
+## Explore the Docs
+
+Dive deeper into each part of financial modeling:
+
+- [Creating a Model](/docs/user-guide/financial-modeling/creating-a-model/) — Step-by-step guide to building your first model
+- [Assumptions](/docs/user-guide/financial-modeling/assumptions/) — Understand and edit the inputs that drive your projections
+- [Scenarios](/docs/user-guide/financial-modeling/scenarios/) — Compare optimistic, pessimistic, and custom what-if cases
+- [Financial Statements](/docs/user-guide/financial-modeling/statements/) — Read and interpret your P&L, cash flow, and balance sheet
+- [Break-Even Analysis](/docs/user-guide/financial-modeling/break-even/) — Find out when your startup becomes profitable
+- [Exporting](/docs/user-guide/financial-modeling/exporting/) — Share your model as Excel or PDF
+
+## Subscription Limits
+
+| Plan | Models Allowed |
+|---|---|
+| Free | 1 |
+| Pro | 10 |
+| Enterprise | 50 |
+
+> **Pro Feature:** Pro and Enterprise plans unlock unlimited scenarios and PDF export with AI narrative summaries.
+
+Ready to start? Head to [Creating a Model](/docs/user-guide/financial-modeling/creating-a-model/) to build your first forecast.
+
+---
+
+<!-- SOURCE: user-guide/financial-modeling/creating-a-model.md -->
+
+---
+title: "Creating a Financial Model"
+description: "Step-by-step guide to creating a startup financial model in IdeaFuel, from choosing a template to configuring assumptions."
+keywords: "create startup financial model, financial model wizard, startup projections setup"
+category: "financial-modeling"
+og:title: "Creating a Financial Model in IdeaFuel"
+og:description: "Build your first startup financial model step by step with IdeaFuel's guided wizard and industry templates."
+structured_data:
+  type: "HowTo"
+canonical: "/docs/user-guide/financial-modeling/creating-a-model/"
+---
+
+# Creating a Financial Model
+
+**Creating a financial model** in IdeaFuel means defining the key inputs — revenue drivers, cost structure, and growth assumptions — that generate your projected financial statements. The guided wizard walks you through the process regardless of your finance experience.
+
+> "In a nutshell" — Pick a starting point (project or template), choose your knowledge level, answer a handful of questions, and IdeaFuel produces a full five-year forecast you can refine and share.
+
+## Step-by-Step: Build Your First Model
+
+### 1. Choose Your Starting Point
+
+You have two options:
+
+- **From a project** — Open an existing IdeaFuel project and select **Add Financial Model**. Research data you have already gathered (market size, pricing benchmarks, customer segments) will auto-seed your assumptions.
+- **Standalone** — From the dashboard, click **New Financial Model** and select an industry template.
+
+IdeaFuel offers 11 industry templates: SaaS, E-commerce, Professional Services, Restaurant/Food, Retail, Construction, Healthcare, Real Estate, Manufacturing, Non-profit, and Freelancer/Solo. Each template pre-configures revenue line items, cost categories, and growth rates typical for that industry.
+
+> **Tip:** Starting from a project gives you the most accurate baseline because your validated research feeds directly into the model.
+
+### 2. Select Your Knowledge Level
+
+Choose the level that matches your comfort with financial planning:
+
+- **Beginner** — Roughly 10 guided inputs. IdeaFuel fills remaining assumptions with AI estimates.
+- **Standard** — All common assumptions are visible, each with a plain-language explanation.
+- **Expert** — Full line-item control, including custom formulas and dependency editing.
+
+You can switch levels later without losing any data.
+
+### 3. Name and Configure
+
+Give your model a descriptive name (e.g., "Series A Forecast" or "Q3 Pricing Test"). Optionally add a description for your own reference.
+
+Set the **start date** for your projections. IdeaFuel defaults to the current month but you can backdate or forward-date as needed.
+
+### 4. Walk Through the Wizard
+
+The wizard presents [assumption categories](/docs/user-guide/financial-modeling/assumptions/) one at a time:
+
+1. **Pricing** — Define your products, price points, and billing frequency.
+2. **Acquisition** — Estimate how you will attract customers and at what cost.
+3. **Retention** — Set churn rates and expansion revenue expectations.
+4. **Market** — Confirm your addressable market size and growth rate.
+5. **Costs** — Enter fixed costs (rent, salaries) and variable costs (COGS, transaction fees).
+6. **Funding** — Specify any investment rounds, loans, or grants.
+7. **Timeline** — Set launch date, hiring milestones, and expansion triggers.
+
+At each step, IdeaFuel shows contextual tips and industry benchmarks so you can validate your numbers.
+
+> **Note:** In Beginner mode, several categories are combined into fewer screens to keep the process fast.
+
+### 5. Review Auto-Seeded Data
+
+If you started from a project, review the assumptions that were pulled from your research. Each auto-seeded value is tagged with a [confidence level](/docs/user-guide/financial-modeling/assumptions/#confidence-levels) so you know which numbers come from validated research and which are AI estimates.
+
+### 6. Generate Your Model
+
+Click **Generate Model**. IdeaFuel calculates your [financial statements](/docs/user-guide/financial-modeling/statements/) — P&L, Cash Flow, and Balance Sheet — and runs a [break-even analysis](/docs/user-guide/financial-modeling/break-even/).
+
+You land on the model dashboard where you can:
+
+- Edit any assumption and watch projections update in real time
+- Create [scenarios](/docs/user-guide/financial-modeling/scenarios/) to compare outcomes
+- [Export](/docs/user-guide/financial-modeling/exporting/) to Excel or PDF
+
+> **Pro Feature:** Pro and Enterprise plans let you create up to 10 or 50 models respectively. Free accounts are limited to one model.
+
+Your model is saved automatically. Come back any time to refine your assumptions as your business evolves.
+
+---
+
+<!-- SOURCE: user-guide/financial-modeling/assumptions.md -->
+
+---
+title: "Financial Model Assumptions"
+description: "Learn how assumptions drive your IdeaFuel financial model, from pricing and acquisition to costs and funding, and how to edit them with confidence."
+keywords: "financial model assumptions, startup assumption categories, financial projection inputs"
+category: "financial-modeling"
+og:title: "Financial Model Assumptions in IdeaFuel"
+og:description: "Understand the seven assumption categories, confidence levels, and cascade behavior that power your startup financial projections."
+structured_data:
+  type: "Article"
+canonical: "/docs/user-guide/financial-modeling/assumptions/"
+---
+
+# Financial Model Assumptions
+
+**Assumptions** are the individual inputs — numbers, rates, and estimates — that drive every calculation in your financial model. Change an assumption and the linked projections update automatically.
+
+> "In a nutshell" — Your model is only as good as your assumptions. IdeaFuel organizes them into seven categories, tags each with a confidence level, and cascades changes through linked formulas so your statements always stay consistent.
+
+## The Seven Assumption Categories
+
+### Pricing
+
+Define your products or services, their price points, billing frequency (one-time, monthly, annual), and any planned price changes over time.
+
+### Acquisition
+
+Estimate how you will win customers: marketing channels, conversion rates, cost per acquisition (CPA), and organic growth expectations.
+
+### Retention
+
+Set your monthly or annual churn rate, upsell and expansion revenue percentages, and customer lifetime value targets.
+
+### Market
+
+Confirm your total addressable market (TAM), serviceable market (SAM), and realistic share you expect to capture. Include market growth rate if the industry is expanding.
+
+### Costs
+
+Enter fixed costs (salaries, rent, software subscriptions) and variable costs (cost of goods sold, transaction fees, shipping). Separate one-time launch costs from recurring expenses.
+
+### Funding
+
+Specify investment rounds (pre-seed, seed, Series A), loans, grants, or bootstrapping plans. Include expected close dates and dilution terms if relevant.
+
+### Timeline
+
+Set your launch date, hiring milestones, geographic expansion triggers, and any other time-dependent events that affect revenue or costs.
+
+## Confidence Levels
+
+Every assumption carries a confidence tag so you always know where a number came from:
+
+| Level | Meaning |
+|---|---|
+| **User** | You entered this value manually. |
+| **Researched** | Pulled from your IdeaFuel [research data](/docs/user-guide/research/). |
+| **AI Estimate** | Generated by IdeaFuel's AI based on industry benchmarks. |
+| **Calculated** | Derived from a formula that depends on other assumptions. |
+
+> **Tip:** Sort your assumptions by confidence level to quickly find AI estimates that you should validate with real data.
+
+## Editing Assumptions
+
+1. Open your model and navigate to the **Assumptions** tab.
+2. Select a category (e.g., Pricing, Acquisition) or view all assumptions at once.
+3. Click any value to edit it. In Standard and Expert modes, you see the formula and dependencies alongside the input field.
+4. Save your change. Linked values recalculate instantly.
+
+In **Expert mode**, you can also write custom formulas that reference other assumptions by name, giving you full spreadsheet-level control inside IdeaFuel.
+
+## Cascade Behavior
+
+Assumptions are connected through formulas and dependencies. When you change one value, every assumption that depends on it recalculates automatically. For example:
+
+- Increase your **price** and your **revenue per customer** updates, which flows into **total revenue**, **break-even month**, and your **P&L**.
+- Raise your **churn rate** and **customer lifetime value** drops, affecting **long-term revenue** and **cash flow**.
+
+IdeaFuel highlights which downstream values changed after each edit so you can trace the impact.
+
+> **Note:** Calculated assumptions cannot be edited directly. To change them, update the upstream values they depend on.
+
+## Best Practices
+
+- **Start with AI estimates.** Let IdeaFuel populate sensible defaults based on your industry template, then replace them with validated data as you learn more.
+- **Prioritize high-impact assumptions.** Pricing, churn, and customer acquisition cost have the largest effect on most models. Validate these first.
+- **Use scenarios for uncertainty.** Instead of agonizing over a single "right" number, create [optimistic and pessimistic scenarios](/docs/user-guide/financial-modeling/scenarios/) to bound the range.
+- **Revisit regularly.** Update assumptions as you gather real-world data. Swap AI estimates for Researched or User values over time.
+
+Well-grounded assumptions make your model credible to investors and useful to you. Treat them as a living document, not a one-time exercise.
+
+---
+
+<!-- SOURCE: user-guide/financial-modeling/scenarios.md -->
+
+---
+title: "Scenario Analysis"
+description: "Create and compare financial scenarios in IdeaFuel to stress-test your startup model with optimistic, pessimistic, and custom what-if cases."
+keywords: "financial scenario analysis tool, startup scenario planning, what-if analysis financial model"
+category: "financial-modeling"
+og:title: "Scenario Analysis in IdeaFuel"
+og:description: "Compare optimistic, pessimistic, and custom what-if scenarios side by side to stress-test your startup financial model."
+structured_data:
+  type: "Article"
+canonical: "/docs/user-guide/financial-modeling/scenarios/"
+---
+
+# Scenario Analysis
+
+**Scenario analysis** lets you create alternative versions of your financial model by adjusting key assumptions, so you can see how different outcomes affect revenue, costs, and cash position without changing your original forecast.
+
+> "In a nutshell" — Every model starts with a base scenario. Add optimistic, pessimistic, or custom what-if scenarios to explore the range of possible outcomes and prepare for investor questions.
+
+## Why Scenarios Matter
+
+No forecast is certain. Scenarios help you:
+
+- **Bound your risk.** See the worst case so you know how much runway you need.
+- **Quantify upside.** Show investors what happens if growth accelerates.
+- **Test decisions.** Model the impact of hiring faster, raising prices, or entering a new market before you commit.
+
+## Your Base Scenario
+
+When you [create a model](/docs/user-guide/financial-modeling/creating-a-model/), IdeaFuel generates a **base scenario** from your current [assumptions](/docs/user-guide/financial-modeling/assumptions/). This is your best-estimate forecast. All other scenarios branch from it — they inherit the base assumptions and let you override specific values.
+
+## Creating Scenarios
+
+1. Open your model and go to the **Scenarios** tab.
+2. Click **New Scenario**.
+3. Choose a preset type or start from scratch:
+   - **Optimistic** — Pre-adjusts growth rates up and churn rates down.
+   - **Pessimistic** — Pre-adjusts growth rates down and costs up.
+   - **Custom** — A blank slate where you override any assumptions you want.
+4. Name your scenario (e.g., "Delayed Launch" or "Premium Pricing").
+5. Edit the assumptions you want to change. Unchanged values stay linked to the base scenario.
+6. Click **Save**. IdeaFuel recalculates all [financial statements](/docs/user-guide/financial-modeling/statements/) and [break-even](/docs/user-guide/financial-modeling/break-even/) for the new scenario.
+
+> **Tip:** You can create unlimited scenarios on Pro and Enterprise plans. Free accounts include the base scenario only.
+
+## Comparing Scenarios Side by Side
+
+Open the **Compare** view to see two or more scenarios in a single table. IdeaFuel highlights the differences so you can spot the key drivers:
+
+- Revenue and expense totals per period
+- Break-even month for each scenario
+- Cumulative cash position over time
+- Percentage variance from the base case
+
+Use the comparison chart to visualize how revenue and cash diverge across scenarios over your five-year horizon.
+
+## Running What-If Analysis
+
+What-if analysis is a lightweight way to test a single change without creating a full scenario:
+
+1. On the model dashboard, click **What-If**.
+2. Select an assumption (e.g., monthly churn rate).
+3. Drag the slider or type a new value.
+4. Watch the key metrics — revenue, cash, break-even — update in real time.
+
+If you like the result, promote the what-if into a saved scenario with one click.
+
+> **Note:** What-if changes are temporary. If you navigate away without saving, they revert to the base scenario values.
+
+## When to Use Scenarios
+
+| Situation | Recommended Scenarios |
+|---|---|
+| Investor pitch | Base + Optimistic + Pessimistic |
+| Strategic planning | Base + 2-3 custom what-ifs |
+| Pricing decision | Base + one scenario per price point |
+| Hiring plan | Base + "Hire Fast" + "Lean Team" |
+
+Investors expect to see at least three scenarios. Presenting a range demonstrates that you understand the uncertainty in your business and have thought through contingencies.
+
+## Next Steps
+
+- Review your [assumptions](/docs/user-guide/financial-modeling/assumptions/) to make sure your base scenario is solid before branching.
+- Learn how scenarios appear in your [exported reports](/docs/user-guide/financial-modeling/exporting/) — Excel exports include scenario toggle sheets, and PDFs include AI-generated narrative comparisons.
+
+---
+
+<!-- SOURCE: user-guide/financial-modeling/statements.md -->
+
+---
+title: "Financial Statements"
+description: "Understand the three financial statements IdeaFuel generates for your startup: Profit & Loss, Cash Flow, and Balance Sheet."
+keywords: "startup financial statements, income statement startup, cash flow projections, balance sheet forecast"
+category: "financial-modeling"
+og:title: "Financial Statements in IdeaFuel"
+og:description: "Learn how to read and use the P&L, Cash Flow, and Balance Sheet that IdeaFuel generates from your financial model."
+structured_data:
+  type: "Article"
+canonical: "/docs/user-guide/financial-modeling/statements/"
+---
+
+# Financial Statements
+
+**Financial statements** are the output of your model — structured reports that translate your [assumptions](/docs/user-guide/financial-modeling/assumptions/) into projected revenue, expenses, cash position, and net worth over time. IdeaFuel generates three core statements automatically.
+
+> "In a nutshell" — IdeaFuel produces a Profit & Loss statement, a Cash Flow Statement, and a Balance Sheet from your model. Together, they give you (and your investors) a complete picture of your startup's financial trajectory.
+
+## Time Horizons
+
+IdeaFuel structures your projections across three time horizons to balance detail with readability:
+
+| Period | Granularity |
+|---|---|
+| Year 1 | Monthly |
+| Year 2 | Quarterly |
+| Years 3-5 | Annual |
+
+This approach gives you detailed visibility into the critical early months while keeping long-range projections manageable.
+
+## Profit & Loss (Income Statement)
+
+The P&L shows whether your business is making or losing money over each period. It answers the question: **are revenues exceeding expenses?**
+
+Key line items include:
+
+- **Revenue** — Broken down by product, service, or revenue stream based on your [pricing assumptions](/docs/user-guide/financial-modeling/assumptions/#pricing).
+- **Cost of Goods Sold (COGS)** — Direct costs tied to delivering your product.
+- **Gross Margin** — Revenue minus COGS, showing how much you keep per sale.
+- **Operating Expenses** — Salaries, marketing, rent, software, and other overheads.
+- **Net Income** — The bottom line after all expenses. A negative number means you are burning cash.
+
+> **Tip:** Watch your gross margin percentage over time. Improving gross margin is one of the strongest signals investors look for.
+
+## Cash Flow Statement
+
+The Cash Flow Statement tracks the actual movement of money in and out of your business. Profitability on the P&L does not guarantee cash in the bank — this statement shows why.
+
+It has three sections:
+
+### Operating Activities
+
+Cash generated or consumed by day-to-day operations. This includes customer payments received, supplier payments made, and payroll.
+
+### Investing Activities
+
+Cash spent on or received from long-term assets — equipment purchases, security deposits, or proceeds from selling assets.
+
+### Financing Activities
+
+Cash from funding events: investment rounds, loans drawn down, loan repayments, and any dividends or distributions.
+
+The statement ends with your **net cash position** for each period, showing exactly when you run out of runway.
+
+> **Note:** For startups, cash flow is often more important than profit. You can be "profitable" on paper and still run out of cash if customers pay slowly or you invest heavily upfront.
+
+## Balance Sheet
+
+The Balance Sheet is a snapshot of what your company owns and owes at a given point in time. It follows a simple equation: **Assets = Liabilities + Equity**.
+
+- **Assets** — Cash, accounts receivable, inventory, equipment, and prepaid expenses.
+- **Liabilities** — Accounts payable, loans, deferred revenue, and accrued expenses.
+- **Equity** — Founder investment, retained earnings, and investor capital.
+
+The balance sheet is especially relevant if you are seeking debt financing or if investors want to understand your capital structure.
+
+## How to Read Your Statements
+
+1. **Start with the P&L** to understand revenue growth and cost structure.
+2. **Check Cash Flow** to confirm you have enough runway. Look for the month where cumulative cash hits zero — that is when you need funding.
+3. **Review the Balance Sheet** to verify that the assets and liabilities make sense given your business model.
+4. **Compare across [scenarios](/docs/user-guide/financial-modeling/scenarios/)** to see how changes in assumptions shift each statement.
+
+> **Tip:** Click any line item in a statement to trace it back to the underlying assumption. This makes it easy to understand what is driving each number.
+
+## Next Steps
+
+- Run a [break-even analysis](/docs/user-guide/financial-modeling/break-even/) to find the month your startup turns profitable.
+- [Export your statements](/docs/user-guide/financial-modeling/exporting/) as Excel or PDF for investor presentations.
+
+---
+
+<!-- SOURCE: user-guide/financial-modeling/break-even.md -->
+
+---
+title: "Break-Even Analysis"
+description: "Use IdeaFuel's break-even analysis to find the month your startup becomes profitable and communicate runway needs to investors."
+keywords: "startup break even analysis, break even point calculator, startup profitability timeline"
+category: "financial-modeling"
+og:title: "Break-Even Analysis in IdeaFuel"
+og:description: "Find out when your startup turns profitable with IdeaFuel's automated break-even analysis and use it to plan funding and impress investors."
+structured_data:
+  type: "Article"
+canonical: "/docs/user-guide/financial-modeling/break-even/"
+---
+
+# Break-Even Analysis
+
+**Break-even analysis** determines the point at which your startup's total revenue equals its total costs — the month you stop losing money and start generating profit. IdeaFuel calculates this automatically from your financial model.
+
+> "In a nutshell" — Your break-even month tells you how long you need to fund losses before the business sustains itself. It drives funding decisions, pricing strategy, and investor confidence.
+
+## What Break-Even Tells You
+
+The break-even point answers three critical questions:
+
+- **How much runway do you need?** If break-even is month 18, you need at least 18 months of funding to survive.
+- **Is your business model viable?** A break-even point beyond year 5 may signal that your cost structure or pricing needs rethinking.
+- **How sensitive is profitability to your assumptions?** Small changes in price or churn can shift break-even by months. Use [scenarios](/docs/user-guide/financial-modeling/scenarios/) to test this.
+
+## How IdeaFuel Calculates Break-Even
+
+IdeaFuel analyzes your [P&L projections](/docs/user-guide/financial-modeling/statements/) month by month and identifies the first period where cumulative net income turns positive. The calculation accounts for:
+
+- All revenue streams defined in your [pricing assumptions](/docs/user-guide/financial-modeling/assumptions/#pricing)
+- Fixed and variable costs
+- Customer acquisition and churn dynamics
+- Funding inflows from investment rounds or loans
+
+The result appears on your model dashboard as a highlighted month with a visual chart showing the crossover point.
+
+## Fixed vs. Variable Costs
+
+Understanding your cost structure is essential to interpreting break-even:
+
+### Fixed Costs
+
+Expenses that stay constant regardless of sales volume — rent, salaries, software subscriptions, insurance. These create a baseline that revenue must exceed every month.
+
+### Variable Costs
+
+Expenses that scale with revenue — cost of goods sold, transaction fees, shipping, sales commissions. Higher revenue brings higher variable costs, which means your break-even point depends on your **gross margin**, not just total revenue.
+
+> **Tip:** Reducing fixed costs moves your break-even earlier. Improving gross margin (by lowering variable costs or raising prices) has the same effect. Test both approaches with [what-if analysis](/docs/user-guide/financial-modeling/scenarios/#running-what-if-analysis).
+
+## Revenue Model Considerations
+
+Your revenue model significantly affects when you break even:
+
+- **Subscription (SaaS)** — Recurring revenue compounds over time, but high upfront acquisition costs can delay break-even. Watch your CAC payback period alongside break-even.
+- **One-time sales (E-commerce, Retail)** — Each sale must individually contribute margin. Break-even depends heavily on volume and repeat purchase rates.
+- **Project-based (Services, Freelancer)** — Revenue is lumpy. Break-even may fluctuate month to month. Focus on the trend rather than a single crossover point.
+- **Marketplace** — Both supply and demand sides have acquisition costs. Break-even often comes later but scales faster once network effects kick in.
+
+> **Note:** IdeaFuel's industry templates pre-configure the revenue model that best fits your business type. You can adjust it in the [assumptions editor](/docs/user-guide/financial-modeling/assumptions/).
+
+## Using Break-Even in Investor Conversations
+
+Investors will ask about your path to profitability. Here is how to present break-even effectively:
+
+1. **Lead with the number.** "We reach break-even in month 14 under our base scenario."
+2. **Show the range.** Present break-even across your [optimistic, base, and pessimistic scenarios](/docs/user-guide/financial-modeling/scenarios/) — for example, months 10, 14, and 22.
+3. **Connect it to funding.** "We are raising 18 months of runway, which gives us a 4-month buffer beyond our base-case break-even."
+4. **Explain the drivers.** Highlight the two or three assumptions (price, churn, acquisition cost) that most affect the timeline.
+
+> **Tip:** Export your break-even chart as part of a [PDF report](/docs/user-guide/financial-modeling/exporting/) for a polished presentation, or share the interactive [Excel workbook](/docs/user-guide/financial-modeling/exporting/) so investors can explore the numbers themselves.
+
+A credible break-even analysis signals that you understand your unit economics and have a realistic path to sustainability.
+
+---
+
+<!-- SOURCE: user-guide/financial-modeling/exporting.md -->
+
+---
+title: "Exporting Your Financial Model"
+description: "Export your IdeaFuel financial model as an interactive Excel workbook or a presentation-ready PDF with AI narrative summaries."
+keywords: "export financial model excel, financial model PDF, share startup projections, investor financial report"
+category: "financial-modeling"
+og:title: "Exporting Your Financial Model from IdeaFuel"
+og:description: "Download your startup financial model as an Excel workbook with real formulas or a polished PDF report with AI-generated narratives."
+structured_data:
+  type: "HowTo"
+canonical: "/docs/user-guide/financial-modeling/exporting/"
+---
+
+# Exporting Your Financial Model
+
+**Exporting** lets you download your IdeaFuel financial model as a standalone file you can share with investors, advisors, co-founders, or your accountant. IdeaFuel supports two export formats: Excel and PDF.
+
+> "In a nutshell" — Use Excel when you want an interactive workbook your audience can explore and modify. Use PDF when you need a polished, read-only report for presentations. Both formats include all scenarios and your break-even analysis.
+
+## Excel Export
+
+The Excel export produces a professional workbook that goes far beyond a static spreadsheet.
+
+### What You Get
+
+- **Real formulas** — Every cell contains a live formula, not a hard-coded value. Change an assumption and the entire workbook recalculates, just like it does inside IdeaFuel.
+- **Named ranges** — Key inputs and outputs use descriptive named ranges (e.g., `MonthlyChurnRate`, `TotalRevenue_Y1`) so formulas are easy to read and audit.
+- **Scenario toggle sheets** — A dedicated sheet lets you switch between your base, optimistic, pessimistic, and custom [scenarios](/docs/user-guide/financial-modeling/scenarios/). The financial statements update automatically when you select a different scenario.
+- **Structured tabs** — Separate worksheets for Assumptions, P&L, Cash Flow, Balance Sheet, and Break-Even so everything is organized.
+
+### How to Export Excel
+
+1. Open your model and click **Export** in the top toolbar.
+2. Select **Excel (.xlsx)**.
+3. Choose which scenarios to include (all by default).
+4. Click **Download**.
+
+> **Tip:** Share the Excel file with financially sophisticated investors or advisors who want to dig into your numbers and test their own assumptions.
+
+## PDF Export
+
+The PDF export creates a presentation-ready document designed for readability rather than interactivity.
+
+### What You Get
+
+- **Formatted statements** — Your P&L, Cash Flow, and Balance Sheet rendered in clean, print-friendly tables.
+- **Charts and graphs** — Revenue growth, cash runway, and break-even visualizations embedded directly in the report.
+- **AI narrative summaries** — IdeaFuel's AI writes plain-language analysis of each statement, highlighting key trends, risks, and milestones. This saves you from having to interpret every number for your audience.
+- **Scenario comparison** — A summary page comparing key metrics across all your scenarios.
+
+### How to Export PDF
+
+1. Open your model and click **Export** in the top toolbar.
+2. Select **PDF**.
+3. Optionally customize the cover page with your company name and logo.
+4. Click **Generate PDF**. The file is ready to download in a few seconds.
+
+> **Pro Feature:** PDF export with AI narratives is available on Pro and Enterprise plans. Free accounts can export to Excel only.
+
+## When to Use Each Format
+
+| Situation | Recommended Format |
+|---|---|
+| Investor due diligence | Excel — they will want to explore and stress-test |
+| Pitch deck appendix | PDF — clean and self-contained |
+| Board meeting | PDF — easy to present on screen or print |
+| Working with your accountant or CFO | Excel — they can integrate with their own tools |
+| Quick share with a co-founder | Either — PDF for a summary, Excel for collaboration |
+
+## Sharing Best Practices
+
+- **Version your exports.** Include the date or scenario name in the filename (e.g., `Acme_FinModel_BaseCase_2026-03.xlsx`) so recipients know which version they are reviewing.
+- **Add context.** When emailing an export, include a brief note explaining which scenario is your base case and what the key assumptions are. The PDF's AI narratives do this automatically.
+- **Protect sensitive data.** If your model includes confidential assumptions, consider sharing a PDF (which cannot be easily edited) rather than an Excel file.
+
+> **Note:** ERP integration with QuickBooks and Xero for syncing actual financial data into your model is coming soon for Enterprise accounts.
+
+## Next Steps
+
+- Make sure your [assumptions](/docs/user-guide/financial-modeling/assumptions/) are up to date before exporting.
+- Create at least three [scenarios](/docs/user-guide/financial-modeling/scenarios/) (base, optimistic, pessimistic) so your export tells a complete story.
+- Return to the [Financial Modeling overview](/docs/user-guide/financial-modeling/) for links to all related guides.
+
+---
+
+<!-- SOURCE: user-guide/financial-modeling/industry-templates.md -->
+
+---
+title: "Industry Financial Model Templates"
+description: "Pre-built financial model templates for 11 industries — SaaS, e-commerce, restaurants, and more. Start with expert assumptions and customize to fit your business."
+keywords: "industry financial model templates, SaaS financial model, e-commerce financial model, restaurant financial model, business plan templates"
+category: "Financial Modeling"
+og:title: "Industry Financial Model Templates | IdeaFuel"
+og:description: "Jump-start your projections with pre-built financial templates for SaaS, e-commerce, restaurants, retail, healthcare, and more."
+structured_data:
+  type: "HowTo"
+canonical: "/docs/user-guide/financial-modeling/industry-templates"
+---
+
+# Industry Financial Model Templates
+
+**Industry financial model templates** are pre-built sets of assumptions, line items, and revenue structures tailored to specific business types. Instead of starting from a blank spreadsheet, you select a template that already speaks your industry's language — then adjust the numbers to match your vision.
+
+> Start with proven assumptions for your industry, then make them yours. Templates give you the structure; you supply the strategy.
+
+## Why templates matter
+
+Every industry has its own financial DNA. A SaaS company tracks monthly recurring revenue and churn. A restaurant thinks in covers and food cost percentages. Building a model from scratch means researching which metrics matter, what typical ranges look like, and how revenue flows through the business.
+
+Templates handle all of that upfront. You get default assumptions grounded in industry benchmarks, so your first draft is already in the right ballpark.
+
+## Template catalog
+
+IdeaFuel offers 11 industry templates. Each one ships with default assumptions, industry-specific line items, and a revenue model that matches how businesses in that space actually make money.
+
+### SaaS (Software as a Service)
+
+Built around subscription economics. Tracks **monthly recurring revenue (MRR)**, **annual recurring revenue (ARR)**, **churn rate**, **customer acquisition cost (CAC)**, and **lifetime value (LTV)**. Default assumptions include typical SaaS gross margins (70–85%) and monthly logo churn (3–7% for SMB, under 1% for enterprise).
+
+### E-commerce
+
+Models product-based online businesses. Key metrics include **average order value (AOV)**, **cost of goods sold (COGS)**, **conversion rate**, **return rate**, and **customer acquisition cost**. Accounts for shipping costs, payment processing fees, and seasonal demand patterns.
+
+### Professional Services
+
+Designed for consulting firms, agencies, and service businesses. Centers on **billable hours**, **utilization rate**, **average hourly rate**, and **project-based revenue**. Includes assumptions for staff costs, overhead, and the relationship between headcount and revenue capacity.
+
+### Restaurant / Food Service
+
+Covers sit-down restaurants, fast-casual, and food trucks. Key inputs include **average covers per day**, **average check size**, **food cost percentage** (typically 28–35%), **labor cost percentage**, and **seat turnover rate**. Models lunch vs. dinner service separately.
+
+### Retail
+
+For brick-and-mortar and hybrid retail businesses. Tracks **foot traffic**, **conversion rate**, **average transaction value**, **inventory turnover**, and **shrinkage**. Includes assumptions for lease costs, seasonal staffing, and markdown strategies.
+
+### Construction
+
+Project-based revenue model for contractors and builders. Organizes finances by **project pipeline**, **bid win rate**, **project duration**, **materials cost**, and **labor allocation**. Handles the lumpy, milestone-based cash flow patterns typical in construction.
+
+### Healthcare
+
+Models clinics, private practices, and health-tech businesses. Key metrics include **patient volume**, **average revenue per visit**, **payer mix** (insurance vs. self-pay), **collection rate**, and **staffing ratios**. Accounts for regulatory compliance costs.
+
+### Real Estate
+
+Covers rental properties, development, and property management. Tracks **rental yield**, **occupancy rate**, **cap rate**, **operating expenses**, and **debt service coverage ratio**. Models acquisition costs, renovation budgets, and appreciation assumptions.
+
+### Manufacturing
+
+Unit-based production model. Key inputs include **units produced**, **bill of materials (BOM) cost**, **production capacity**, **yield rate**, and **warehousing costs**. Separates fixed manufacturing overhead from variable per-unit costs.
+
+### Non-profit
+
+Grant and donation-driven model. Tracks **grant revenue**, **individual donations**, **program expenses**, **fundraising costs**, and **administrative overhead**. Includes the program expense ratio and other metrics donors and boards care about.
+
+### Freelancer / Solo Business
+
+Simplified model for independent professionals. Centers on **hourly rate**, **billable hours per week**, **utilization rate**, and **project-based pricing**. Accounts for self-employment taxes, benefits costs, and the feast-or-famine revenue cycle.
+
+## How templates differ from each other
+
+Templates are not just cosmetic skins on the same spreadsheet. Each one varies in three fundamental ways:
+
+### Default assumptions
+
+Every template ships with industry-benchmark defaults. A SaaS template assumes 80% gross margins; a restaurant template assumes 30% food costs. These defaults give you a realistic starting point without hours of research.
+
+### Line items
+
+The rows in your model change based on the template. A manufacturing template includes raw materials and production labor. A SaaS template includes server costs and customer success headcount. You see only the line items that matter for your business type.
+
+### Revenue models
+
+How money comes in differs by industry. SaaS uses recurring subscriptions. Construction uses milestone billing. Retail uses daily transaction volume. The template's revenue model determines how your top-line projections are calculated.
+
+## How to customize a template after selecting it
+
+Selecting a template is just the starting point. Every number, line item, and assumption is fully editable.
+
+### Step 1: Review the default assumptions
+
+After selecting a template, scan through the pre-filled assumptions. Each one includes a brief explanation of what it represents and the industry benchmark range.
+
+### Step 2: Adjust key inputs to match your business
+
+Update the defaults to reflect your specific situation. If you are launching a premium SaaS product, raise the average revenue per user. If your restaurant is fast-casual rather than fine dining, lower the average check size.
+
+### Step 3: Add or remove line items
+
+Need a line item the template does not include? Add it. See one that does not apply? Remove it. Your model should reflect your business, not a generic industry average.
+
+### Step 4: Run scenarios
+
+Once your base case looks right, create alternative scenarios to stress-test your assumptions. What happens if churn doubles? What if foot traffic drops 20%?
+
+> **Tip:** Start with the template defaults and adjust incrementally. Changing every assumption at once makes it hard to understand what is driving your projections.
+
+> **Pro Feature:** FREE plan users get 1 financial model. PRO subscribers ($29/mo) get up to 10 models, and ENTERPRISE subscribers ($99/mo) get up to 50 models across all their projects.
+
+> **Note:** If your business spans multiple industries — say, a SaaS platform for restaurants — pick the template that best matches your revenue model (SaaS in this case) and add relevant line items from the other industry manually.
+
+## Related docs
+
+- [Financial Modeling Overview](/docs/user-guide/financial-modeling/) — How the modeling engine works
+- [AI Agent](/docs/user-guide/ai-agent) — Ask the AI Agent to help refine your assumptions
+- [Reports](/docs/user-guide/reports/) — See how financial projections feed into your reports
+- [Business Plan PDF](/docs/user-guide/business-plan-pdf) — Export your model into a comprehensive business plan
+
+---
+
+<!-- SOURCE: user-guide/ai-agent.md -->
+
+---
+title: "AI Agent"
+description: "Your per-project AI business idea assistant. Ask research questions, refine your idea, clarify reports, and brainstorm — all grounded in your actual project data."
+keywords: "AI business idea assistant, AI research assistant, business idea chatbot, idea validation AI"
+category: "AI Agent"
+og:title: "AI Agent — Your Context-Aware Business Assistant | IdeaFuel"
+og:description: "Chat with an AI that knows your research, reports, financials, and interviews. Get answers grounded in your project data, not generic advice."
+structured_data:
+  type: "SoftwareApplication"
+canonical: "/docs/user-guide/ai-agent"
+---
+
+# AI Agent
+
+**The AI Agent** is a per-project conversational assistant that has full context on your research, reports, interviews, and financial data. Unlike generic AI chatbots, every answer it gives is grounded in the specific data IdeaFuel has gathered and generated for your project.
+
+> Think of the AI Agent as a co-founder who has read every report, studied every interview transcript, and memorized your financial model — and is always available to talk through your next move.
+
+## What you can ask
+
+The AI Agent handles five broad categories of questions. You can mix and match freely within a single conversation.
+
+### Research questions
+
+Ask about your target market, customer segments, regulatory landscape, or anything else the research phase uncovered. The agent pulls from your completed research and interview data to give answers specific to your idea.
+
+### Report clarifications
+
+Confused by a finding in your SPARK, LIGHT, or IN_DEPTH report? Ask the agent to explain it, provide additional context, or break down the methodology behind a specific score or recommendation.
+
+### Idea refinement
+
+Use the agent to pressure-test your positioning, explore pivots, or narrow your target audience. It can suggest adjustments based on the competitive landscape and market data in your project.
+
+### Market questions
+
+Ask about market size, growth trends, customer willingness to pay, or competitive dynamics. The agent synthesizes data from your reports and research to give grounded estimates rather than guesses.
+
+### Brainstorming
+
+Need feature ideas, pricing strategies, go-to-market angles, or partnership opportunities? The agent draws on your project data to suggest options that fit your specific market and business model.
+
+## How it works
+
+The AI Agent uses retrieval-augmented generation (RAG) over all of your project data. Here is what that means in practice:
+
+1. **Your question goes in.** You type a question or prompt in the agent chat panel within your project.
+2. **Relevant context gets retrieved.** The system searches across your research results, interview transcripts, generated reports, and financial model data to find the most relevant pieces of information.
+3. **The AI generates a grounded answer.** The language model produces a response that references and builds on your actual project data — not generic internet knowledge.
+4. **Sources are cited.** When the agent references specific data, it tells you where that data came from (e.g., "According to your LIGHT report's competitive analysis..." or "Based on your interview responses about pricing...").
+
+> **Note:** The agent only has access to data within the current project. It cannot see other projects in your account or data from other users.
+
+## Example conversations
+
+Here are five prompts that show what the agent can do, along with the type of output you can expect.
+
+### Prompt 1: Market sizing
+
+> "Based on my research, what's the estimated total addressable market for this idea, and what assumptions drive that number?"
+
+**Expected output:** A dollar figure or range with a breakdown of the assumptions (target customer count, average revenue per customer, geographic scope) drawn from your research and reports.
+
+### Prompt 2: Competitive positioning
+
+> "How does my idea differentiate from the top 3 competitors identified in my LIGHT report?"
+
+**Expected output:** A comparison table or narrative highlighting where your concept has advantages, where competitors are stronger, and where the market has gaps you could fill.
+
+### Prompt 3: Financial sanity check
+
+> "My financial model assumes 5% monthly churn. Is that realistic based on what my research says about this market?"
+
+**Expected output:** An assessment of your churn assumption against industry benchmarks and any relevant data from your research, with a suggested range if the current number seems off.
+
+### Prompt 4: Go-to-market brainstorm
+
+> "Suggest 3 go-to-market strategies I haven't considered, based on my target audience and competitive landscape."
+
+**Expected output:** Three concrete strategies with reasoning tied to your specific customer segments, competitive gaps, and business model.
+
+### Prompt 5: Risk identification
+
+> "What are the biggest risks to this business that my reports haven't fully addressed?"
+
+**Expected output:** A prioritized list of risks (regulatory, market timing, execution, funding) with brief explanations of why each matters for your specific idea.
+
+## Tips for better results
+
+Follow these guidelines to get the most useful answers from the AI Agent.
+
+### Be specific
+
+Instead of "Tell me about my market," try "What's the average customer acquisition cost for businesses targeting the same segment as mine?" Specific questions produce specific, actionable answers.
+
+### Reference report sections
+
+Point the agent to particular sections of your reports. "In the competitive landscape section of my IN_DEPTH report, you mention a gap in enterprise pricing — can you elaborate on how I could exploit that?" gives the agent a clear anchor point.
+
+### Ask follow-ups
+
+The agent remembers the full conversation within a session. Build on previous answers: "You mentioned three customer segments — which one has the highest willingness to pay based on my interview data?"
+
+### Challenge assumptions
+
+Push back on the agent's answers. "That churn estimate seems low — what would happen to my unit economics if churn were 2x higher?" The agent will recalculate and adjust its reasoning.
+
+### Keep questions within scope
+
+The agent excels when questions relate to your project data. Asking "What's the GDP of France?" will get a generic answer. Asking "How does the European market opportunity compare to the US for my idea?" will get a data-grounded one.
+
+## Saving insights
+
+When the AI Agent surfaces a useful insight, you can save it directly to your reports. Click the **Save to Report** button on any agent response to attach that insight as a note on the relevant report section. Saved insights appear in your reports with an "AI Agent" badge so you can distinguish them from the original generated content.
+
+> **Tip:** Save important insights as you go rather than at the end of a long conversation. It is easier to capture context in the moment.
+
+## Availability
+
+> **Pro Feature:** The AI Agent is available to PRO ($29/mo) and ENTERPRISE ($99/mo) subscribers. FREE plan users can see the agent panel but cannot send messages. PRO subscribers get enhanced AI quality, while ENTERPRISE subscribers get premium AI with the highest-quality responses.
+
+## Related docs
+
+- [Reports](/docs/user-guide/reports/) — Understand the reports the agent draws from
+- [Financial Modeling](/docs/user-guide/financial-modeling/) — Learn about the financial data the agent can reference
+- [Interview Modes](/docs/user-guide/interview-modes) — How interviews feed into the agent's knowledge base
+- [Business Plan PDF](/docs/user-guide/business-plan-pdf) — Generate a full business plan after refining your idea with the agent
+
+---
+
+<!-- SOURCE: user-guide/business-plan-pdf.md -->
+
+---
+title: "Business Plan PDF"
+description: "Generate a comprehensive, investor-ready business plan PDF that pulls together your research, reports, and financial projections into one polished document."
+keywords: "AI business plan generator, business plan PDF, investor-ready business plan, startup business plan"
+category: "Business Plan"
+og:title: "AI Business Plan Generator | IdeaFuel"
+og:description: "Turn your IdeaFuel research, reports, and financial models into a professional business plan PDF — ready for investors, banks, and accelerators."
+structured_data:
+  type: "HowTo"
+canonical: "/docs/user-guide/business-plan-pdf"
+---
+
+# Business Plan PDF
+
+**The Business Plan PDF** is a comprehensive, professionally formatted document that pulls together everything IdeaFuel has generated for your project — research findings, report analyses, financial projections, and AI Agent insights — into a single, investor-ready business plan.
+
+> One click turns weeks of research and analysis into a polished business plan. Every section is backed by the data IdeaFuel gathered for your specific idea — no filler, no fluff.
+
+## What you get
+
+The generated PDF is a complete business plan, typically 20–40 pages depending on the depth of your research and reports. It is not a generic template with blanks to fill in. Every section draws from your actual project data, weaving together research results, report findings, financial model outputs, and any insights you saved from the AI Agent.
+
+The document is formatted for professional presentation with consistent typography, charts pulled from your financial model, and proper section numbering.
+
+## Prerequisites
+
+Before you can generate a business plan PDF, your project must meet one requirement:
+
+- **Research status must be COMPLETE.** The research phase must be fully finished — all interviews conducted and all research data gathered. You cannot generate a plan from partial research.
+
+> **Tip:** You do not need reports or a financial model to generate a plan, but the document will be significantly richer if you have them. At minimum, complete your research and generate at least one report before creating your PDF.
+
+## Cover styles
+
+Choose from **4 cover styles** when generating your plan:
+
+1. **Classic** — Clean, traditional layout with your project name and date. Best for bank loan applications and formal presentations.
+2. **Modern** — Bold typography with accent colors. Well-suited for startup pitch decks and accelerator applications.
+3. **Minimal** — Stripped-down design with plenty of whitespace. Works well when the content should speak for itself.
+4. **Bold** — High-contrast design with strong visual hierarchy. Stands out in a stack of applications.
+
+All four styles produce the same content — only the visual presentation differs.
+
+## Sections included
+
+Every business plan PDF contains the following sections, each populated from your project data.
+
+### Cover page
+
+Your project name, business tagline, your name, and the generation date. Styled according to your chosen cover design.
+
+### Executive Summary
+
+A concise overview of the entire plan — the problem, your solution, the market opportunity, your business model, and key financial highlights. This section is generated last (internally) so it can summarize everything that follows.
+
+### Company Overview
+
+Your business description, mission, vision, legal structure, and founding team context. Draws from your project setup and founder profile.
+
+### Problem & Solution
+
+The customer pain points your research identified and how your idea addresses them. References specific findings from your research and interview data.
+
+### Market Analysis
+
+Market size (TAM, SAM, SOM), growth trends, customer segments, and demand signals. Pulls from your research data and report market analysis sections.
+
+### Competitive Landscape
+
+Key competitors, their strengths and weaknesses, your differentiation, and positioning strategy. Sources data from your report competitive analysis.
+
+### Business Model
+
+How you make money — revenue streams, pricing strategy, unit economics, and cost structure. Connects your financial model assumptions to the market context from your reports.
+
+### Go-to-Market Strategy
+
+Customer acquisition channels, launch strategy, early traction plans, and growth levers. Synthesizes recommendations from your reports and any AI Agent insights you saved.
+
+### Financial Projections
+
+Revenue forecasts, expense breakdowns, cash flow projections, and key metrics — all pulled directly from your financial model. Includes charts and tables.
+
+### Team
+
+Founder background, skills, and relevant experience. Draws from your founder profile to make the case for founder-market fit.
+
+### Risks & Mitigation
+
+Key risks identified across your research and reports, paired with mitigation strategies. Covers market risk, execution risk, competitive risk, and regulatory risk.
+
+### Appendix
+
+Supporting data, detailed financial tables, methodology notes, and any additional research data that did not fit in the main sections.
+
+## How to generate your business plan
+
+Follow these steps to create your PDF.
+
+### Step 1: Open your project
+
+Navigate to the project you want to generate a business plan for. Make sure the research status shows **COMPLETE**.
+
+### Step 2: Go to the Business Plan tab
+
+Click the **Business Plan** tab in your project navigation. If your research is not complete, this tab will show a message explaining what is needed.
+
+### Step 3: Choose a cover style
+
+Select one of the four cover styles. You can preview each one before committing.
+
+### Step 4: Click Generate
+
+Click the **Generate Business Plan** button. Generation typically takes 1–3 minutes depending on the amount of project data.
+
+### Step 5: Review and download
+
+Once generation is complete, you can preview the plan in-browser before downloading. The PDF is saved to your project and can be re-downloaded at any time.
+
+## Downloading and sharing
+
+After generation, you have two options:
+
+- **Download PDF** — Save the file to your device. The filename follows the format `[Project Name] - Business Plan.pdf`.
+- **Copy share link** — Generate a shareable link that allows anyone with the URL to view (but not edit) your business plan. Useful for sending to advisors or co-founders for review.
+
+> **Note:** Share links do not require the viewer to have an IdeaFuel account.
+
+## When to generate your business plan
+
+Timing matters. Generate your business plan at the right stage to get the most value.
+
+### After reviewing your reports
+
+Read through your SPARK, LIGHT, or IN_DEPTH reports first. If anything needs clarification or adjustment, address it before generating the plan.
+
+### After AI Agent refinement (recommended)
+
+Use the AI Agent to pressure-test your assumptions, explore alternatives, and save key insights. These saved insights enrich the business plan, especially the strategy and risk sections.
+
+### After finalizing your financial model
+
+Your financial projections section is only as good as your model. Finalize your assumptions, run your scenarios, and make sure the numbers tell a coherent story before generating.
+
+> **Tip:** You can regenerate the business plan as many times as you need. If you update your financial model or save new AI Agent insights, generate a fresh plan to capture the changes.
+
+## Using your business plan
+
+The generated PDF is designed for real-world use across several contexts.
+
+### Investor meetings
+
+Share the plan with angel investors, VCs, or friends-and-family investors. The Executive Summary and Financial Projections sections are formatted to answer the questions investors ask first.
+
+### Bank loans and SBA applications
+
+Lenders want to see market validation, realistic projections, and risk awareness. The plan covers all three, with data backing every claim.
+
+### Accelerator and incubator applications
+
+Most programs ask for a business plan or detailed summary. The generated PDF meets or exceeds the depth expected by programs like Y Combinator, Techstars, and similar accelerators.
+
+### Internal alignment
+
+Even if you are not raising money, the plan serves as an internal strategy document. Share it with co-founders, advisors, or early team members to get everyone on the same page.
+
+> **Pro Feature:** Business plan PDF generation is available on all plans, but the depth and quality of the underlying reports and AI insights depend on your subscription tier. PRO ($29/mo) and ENTERPRISE ($99/mo) subscribers get richer reports and AI Agent access, which produce more comprehensive business plans.
+
+## Related docs
+
+- [Reports](/docs/user-guide/reports/) — The reports that feed into your business plan
+- [Financial Modeling](/docs/user-guide/financial-modeling/) — How your projections are built
+- [AI Agent](/docs/user-guide/ai-agent) — Refine your idea before generating the plan
+- [Account Settings](/docs/user-guide/account-settings) — Update your founder profile to improve the Team section
+
+---
+
+<!-- SOURCE: user-guide/daily-trend-pick.md -->
+
+---
+title: "Daily Trend Pick"
+description: "Discover emerging business opportunities every day. IdeaFuel's Daily Trend Pick uses Google Trends, SERP analysis, and AI to surface ideas worth exploring."
+keywords: "trending business ideas, daily business trends, emerging business opportunities, Google Trends business ideas"
+category: "Discovery"
+og:title: "Daily Trend Pick — Trending Business Ideas | IdeaFuel"
+og:description: "Every day, IdeaFuel surfaces a new business opportunity backed by trend data, growth scores, and purchase proof. See what's trending now."
+structured_data:
+  type: "WebApplication"
+canonical: "/docs/user-guide/daily-trend-pick"
+---
+
+# Daily Trend Pick
+
+**Daily Trend Pick** is an automated daily discovery feature that surfaces emerging business opportunities by combining Google Trends data, SERP analysis, and AI-powered classification. Every day, you get a new idea backed by real signals — not hunches.
+
+> Stop scrolling Reddit and Twitter for business ideas. Daily Trend Pick does the discovery work for you — one vetted, data-backed opportunity delivered every day.
+
+## How it works
+
+Daily Trend Pick runs a three-stage pipeline every 24 hours to identify and evaluate emerging opportunities.
+
+### Stage 1: Trend detection
+
+The system monitors Google Trends for search terms showing unusual growth patterns — spikes, sustained increases, or breakout signals across multiple geographies. It filters out noise (celebrity gossip, memes, seasonal patterns) and focuses on terms with commercial intent.
+
+### Stage 2: SERP analysis
+
+For each candidate trend, the system analyzes search engine results pages to understand what already exists in the market. It looks at the density of established players, the quality of existing solutions, and whether searchers are finding what they need.
+
+### Stage 3: AI classification
+
+An AI model evaluates each trend and classifies the business opportunity. It assesses the type of business that could serve this trend (SaaS, e-commerce, services, content, etc.), identifies the target customer, and evaluates the window of opportunity.
+
+## What the daily pick shows
+
+Each daily pick is a self-contained briefing with several data points.
+
+### Trend data
+
+The underlying search trend, including volume trajectory, geographic distribution, and related queries. You see where the trend is growing fastest and what adjacent topics people are searching for.
+
+### Growth score
+
+A 0–100 score reflecting the strength and sustainability of the trend's growth. Higher scores indicate faster growth with signals of lasting demand rather than a one-time spike.
+
+### Purchase proof
+
+Evidence that people are already spending money in or around this trend. This might include existing products, paid ads running on related terms, crowdfunding campaigns, or e-commerce listings. Purchase proof separates "people are curious" from "people are buying."
+
+### Pain points
+
+Specific problems or frustrations that searchers and potential customers are expressing. These are identified from forums, review sites, social media, and Q&A platforms. Pain points tell you where the opportunity has the most friction — and therefore the most room for a solution.
+
+### News spike risk
+
+An indicator of whether the trend is driven by a specific news event that may be short-lived. High news spike risk means the trend could fade once the news cycle moves on. Low risk suggests organic, sustained interest.
+
+## Viewing today's pick
+
+Navigate to the **Daily Trend Pick** section from your dashboard. Today's pick is displayed front and center with all data points visible. New picks are published daily, typically in the early morning (UTC).
+
+## Browsing history
+
+Scroll below today's pick to browse the full archive of previous daily picks. Each historical pick retains all its original data, so you can revisit opportunities you may have skipped initially.
+
+> **Tip:** Trends that scored well weeks ago but have continued growing since are often the strongest opportunities. Check back on past picks that caught your eye.
+
+## How to turn a trend into a project
+
+When a daily pick sparks an idea, you can turn it directly into an IdeaFuel project.
+
+1. **Click "Start Project"** on any daily pick (today's or historical).
+2. **The trend data pre-fills your project context.** Your new project starts with the trend's data, pain points, and market signals already attached.
+3. **Begin your research.** The interview and research phase will build on the trend data, giving the AI a head start on understanding your market.
+
+This shortcut saves you from manually entering context that the system already has. Your research results will be richer because the AI starts with a concrete market signal rather than a blank slate.
+
+## Scoring explained
+
+Three scores help you evaluate each daily pick at a glance.
+
+### Growth score (0–100)
+
+Measures the trajectory of search interest. A score of 80+ means rapid, accelerating growth. A score of 40–60 means steady, moderate growth. Below 40 indicates early-stage signals that may or may not develop.
+
+**What drives it:** Rate of change in search volume, consistency across time periods, and geographic spread.
+
+### Purchase proof (0–100)
+
+Measures evidence that money is already flowing in this space. A score of 80+ means strong commercial activity — ads, products, transactions. A score of 40–60 means some commercial activity but significant gaps. Below 40 means mostly informational interest with limited spending.
+
+**What drives it:** Paid ad density on related terms, existing product listings, crowdfunding activity, and affiliate content volume.
+
+### News spike risk (Low / Medium / High)
+
+Indicates how much of the trend is driven by a specific news event versus organic interest.
+
+- **Low** — Growth is organic and distributed across time. Safe to build on.
+- **Medium** — Some news-driven activity, but underlying organic interest exists. Proceed with awareness.
+- **High** — Trend is primarily driven by a single news event. Wait to see if interest persists before investing heavily.
+
+> **Note:** A high growth score combined with low news spike risk and strong purchase proof is the strongest signal. Look for picks where all three indicators align.
+
+## Related docs
+
+- [Getting Started](/docs/user-guide/getting-started) — How to create your first project
+- [Interview Modes](/docs/user-guide/interview-modes) — Choose the right interview mode after starting a trend-based project
+- [Reports](/docs/user-guide/reports/) — Validate a trend with in-depth research reports
+- [AI Agent](/docs/user-guide/ai-agent) — Explore a trend further with the AI Agent
+
+---
+
+<!-- SOURCE: user-guide/account-settings.md -->
+
+---
+title: "Account Settings"
+description: "Manage your IdeaFuel profile, founder background, billing, security, and data privacy settings. Everything you need to configure your account."
+keywords: "IdeaFuel account settings, manage subscription, founder profile, billing settings"
+category: "Account"
+og:title: "Account Settings | IdeaFuel"
+og:description: "Update your profile, manage your subscription, configure security, and control your data privacy — all from one place."
+structured_data:
+  type: "WebPage"
+canonical: "/docs/user-guide/account-settings"
+---
+
+# Account Settings
+
+**Account settings** is where you manage everything about your IdeaFuel account — your profile, founder background, subscription, security, and data privacy preferences. Access it by clicking your avatar in the top-right corner and selecting **Settings**.
+
+> Your account settings do more than store your name and email. Your founder profile directly shapes the AI's analysis, and your subscription tier determines which features and report depths you can access.
+
+## Profile settings
+
+### Name
+
+Your display name appears on shared business plans and within team-facing features. Update it any time under **Settings > Profile**.
+
+### Email
+
+Your email address is used for login, notifications, and account recovery. If you signed up with Google OAuth, this is your Google email. To change your email, update it under **Settings > Profile** and confirm through the verification link sent to the new address.
+
+### Avatar
+
+Your profile photo appears in the top-right corner and on shared documents. Upload a custom image or use the auto-generated initials avatar. Recommended size: 256x256 pixels or larger.
+
+## Founder profile
+
+Your founder profile is not just a bio — it actively feeds into the AI's analysis across your projects.
+
+### Background
+
+Describe your professional background, domain expertise, and relevant experience. The AI uses this to assess founder-market fit in your reports and business plans. A detailed background produces better, more personalized analysis.
+
+### Skills
+
+List your core skills — technical, business, creative, operational. The AI considers your skill set when evaluating execution risk and identifying gaps in your team section.
+
+### Experience
+
+Specify your years of experience, previous ventures, and industry knowledge. First-time founders get different guidance than serial entrepreneurs, and the AI adapts its recommendations accordingly.
+
+> **Tip:** Be thorough and honest in your founder profile. The AI uses this data to give you realistic assessments of founder-market fit. An inflated profile leads to overly optimistic analysis; an accurate one leads to actionable advice.
+
+## Billing management
+
+### View your current plan
+
+See your active subscription tier, billing cycle, next payment date, and usage against your plan limits. IdeaFuel offers three plans:
+
+| Feature | FREE ($0) | PRO ($29/mo) | ENTERPRISE ($99/mo) |
+|---|---|---|---|
+| Reports | 0 | 5 SPARK / 3 LIGHT / 1 IN_DEPTH | 10 SPARK / 5 LIGHT / 2 IN_DEPTH |
+| Financial models | 1 | 10 | 50 |
+| AI quality | Standard | Enhanced | Premium |
+| Support | Community | Priority | Priority |
+
+### Upgrade your plan
+
+Click **Upgrade** next to any higher tier to switch immediately. You are charged the prorated difference for the remainder of your current billing cycle. All new features and limits are available instantly after upgrade.
+
+### Downgrade your plan
+
+Click **Change Plan** and select a lower tier. The downgrade takes effect at the end of your current billing cycle — you keep access to your current tier's features until then. See the FAQ for details on what happens to your data when you downgrade.
+
+### Payment methods
+
+Add, remove, or update credit and debit cards under **Settings > Billing > Payment Methods**. IdeaFuel accepts Visa, Mastercard, and American Express. Your default payment method is charged on each billing cycle.
+
+> **Note:** All payments are processed securely through Stripe. IdeaFuel never stores your full card number.
+
+## Security
+
+### Google OAuth
+
+If you signed up with Google, your account is linked to your Google identity. You can see the linked Google account under **Settings > Security**. To unlink or switch Google accounts, contact support.
+
+### Password management
+
+If you created your account with email and password, you can update your password under **Settings > Security > Change Password**. Passwords must be at least 12 characters. Use a password manager for best security.
+
+> **Tip:** If you signed in with Google OAuth, you do not have a separate IdeaFuel password. Your account security is managed through your Google account — make sure you have two-factor authentication enabled on Google.
+
+## Data & privacy
+
+### What is stored
+
+IdeaFuel stores the following data associated with your account:
+
+- **Profile data** — Name, email, avatar, founder profile
+- **Project data** — Research results, interview transcripts, generated reports, financial models, AI Agent conversation history, saved insights
+- **Business plans** — Generated PDFs and share links
+- **Usage data** — Feature usage metrics for plan limit tracking
+- **Billing data** — Subscription tier and payment history (full card details are stored by Stripe, not IdeaFuel)
+
+### How your data is secured
+
+- All data is encrypted in transit (TLS 1.3) and at rest (AES-256)
+- Project data is isolated per account — no cross-account data access
+- AI model providers do not retain your project data for training purposes
+- Regular security audits and penetration testing
+- SOC 2 Type II compliance
+
+### Data export
+
+You can export all your project data at any time under **Settings > Data & Privacy > Export Data**. The export includes your research, reports, financial models, and AI Agent conversations in standard formats (JSON and PDF).
+
+### Account deletion
+
+To permanently delete your account and all associated data, go to **Settings > Data & Privacy > Delete Account**. This action is irreversible. You will be asked to confirm twice and enter your password (or re-authenticate with Google) before deletion proceeds.
+
+> **Note:** After deletion, all your data is permanently removed within 30 days. Shared business plan links will stop working immediately.
+
+## Related docs
+
+- [Getting Started](/docs/user-guide/getting-started) — Set up your first project
+- [AI Agent](/docs/user-guide/ai-agent) — How your founder profile influences AI responses
+- [Business Plan PDF](/docs/user-guide/business-plan-pdf) — Your founder profile feeds the Team section
+- [FAQ](/docs/user-guide/faq) — Common billing and account questions
+
+---
+
+<!-- SOURCE: user-guide/faq.md -->
+
+---
+title: "Frequently Asked Questions"
+description: "Answers to common questions about IdeaFuel — getting started, reports, financial modeling, the AI Agent, billing, and technical details."
+keywords: "IdeaFuel FAQ, IdeaFuel help, IdeaFuel questions, idea validation FAQ"
+category: "Support"
+og:title: "IdeaFuel FAQ — Frequently Asked Questions"
+og:description: "Find answers to the most common questions about IdeaFuel, from getting started to billing and technical details."
+structured_data:
+  type: "FAQPage"
+canonical: "/docs/user-guide/faq"
+---
+
+# Frequently Asked Questions
+
+**This FAQ** covers the most common questions IdeaFuel users ask, organized by category. If your question is not answered here, reach out through the in-app support chat or email support@ideafuel.com.
+
+> Quick answers to real questions — from "how long does research take?" to "what happens if I downgrade?" Find what you need by category below.
+
+---
+
+## Getting Started
+
+### How long does research take?
+
+Research typically takes 5–15 minutes depending on the complexity of your idea and the interview mode you select. The Quick Chat mode is the fastest (5–7 minutes), while the Deep Dive mode takes longer (10–15 minutes) but produces more comprehensive data for your reports.
+
+After the interview phase, background research runs automatically and usually completes within 2–5 minutes. You will receive a notification when your research status changes to COMPLETE.
+
+### What is the best interview mode for my idea?
+
+It depends on how well-formed your idea is:
+
+- **Quick Chat** — Best when you have a clear concept and want fast validation. Gets to the point quickly.
+- **Guided** — Best for most users. Walks you through structured questions that cover all the angles the AI needs for thorough analysis.
+- **Deep Dive** — Best when your idea is complex, spans multiple markets, or you want the richest possible data for your reports.
+
+See [Interview Modes](/docs/user-guide/interview-modes) for a detailed comparison.
+
+### Can I redo an interview?
+
+Yes. You can restart the interview phase from your project settings. Keep in mind that redoing the interview resets your research data and any reports generated from the previous interview. Your financial models are preserved.
+
+> **Tip:** If you just want to add context rather than start over, use the AI Agent to provide additional details. The agent can incorporate new information without wiping your existing research.
+
+### How many projects can I create?
+
+There is no limit on the number of projects you can create on any plan. However, your plan determines how many reports and financial models you can generate across all projects. See the plan comparison below:
+
+| | FREE ($0) | PRO ($29/mo) | ENTERPRISE ($99/mo) |
+|---|---|---|---|
+| Projects | Unlimited | Unlimited | Unlimited |
+| Reports | 0 | 5 SPARK / 3 LIGHT / 1 IN_DEPTH | 10 SPARK / 5 LIGHT / 2 IN_DEPTH |
+| Financial models | 1 | 10 | 50 |
+
+---
+
+## Reports
+
+### Why is my report missing sections?
+
+Reports require complete research data to populate every section. The most common reasons for missing sections:
+
+- **Research is not COMPLETE.** If your research is still in progress, some sections will be empty. Wait for the COMPLETE status before reviewing.
+- **Interview was too brief.** Short interviews produce less data for the AI to work with. Consider redoing the interview with the Guided or Deep Dive mode.
+- **The idea is very niche.** For highly specialized ideas, publicly available market data may be limited. The AI notes this in the report rather than fabricating data.
+
+### How do I get Full-tier reports?
+
+Report depth depends on your subscription tier:
+
+- **FREE** — No reports included. Upgrade to PRO or ENTERPRISE to generate reports.
+- **PRO ($29/mo)** — Access to SPARK (quick overview), LIGHT (moderate depth), and IN_DEPTH (comprehensive) reports within your monthly limits.
+- **ENTERPRISE ($99/mo)** — Higher limits on all report tiers with premium AI quality for deeper analysis.
+
+> **Note:** IN_DEPTH reports use the most quota (1 per month on PRO, 2 on ENTERPRISE) but provide the most comprehensive analysis including detailed competitive research, financial benchmarking, and strategic recommendations.
+
+### Can I edit or customize reports?
+
+Reports themselves are read-only — you cannot edit the AI-generated content directly. However, you can:
+
+- **Save AI Agent insights** to any report section, adding your own context and refinements.
+- **Use the AI Agent** to ask follow-up questions about specific report findings.
+- **Regenerate a report** after providing additional context through the AI Agent (uses one report credit).
+
+### What is the difference between SPARK, LIGHT, and IN_DEPTH reports?
+
+| Aspect | SPARK | LIGHT | IN_DEPTH |
+|---|---|---|---|
+| Length | 2–4 pages | 8–12 pages | 20–35 pages |
+| Market analysis | High-level overview | Segment breakdown | Full TAM/SAM/SOM with sources |
+| Competitive analysis | Top 3 competitors | 5–8 competitors with positioning | Detailed competitive matrix |
+| Financial indicators | Basic viability signal | Unit economics outline | Full financial benchmarking |
+| Time to generate | ~30 seconds | ~1 minute | ~3 minutes |
+| Best for | Quick gut check | Serious evaluation | Investor-ready analysis |
+
+---
+
+## Financial Modeling
+
+### Can I import data from QuickBooks or Xero?
+
+Not currently. Financial models in IdeaFuel are forward-looking projection tools designed for new business ideas. Since most users are pre-revenue, integrations with accounting software are not yet supported. If you have historical data you want to incorporate, enter it manually as custom assumptions in your model.
+
+### What formulas does the Excel export include?
+
+The Excel export preserves all formulas and cell references from your IdeaFuel model. Revenue calculations, expense rollups, cash flow formulas, and summary metrics are all live formulas — not hard-coded values. You can modify assumptions in the exported spreadsheet and watch projections update automatically.
+
+> **Tip:** The exported Excel file includes a "Model Guide" tab that documents each formula and assumption, making it easy for accountants or advisors to review your work.
+
+### How accurate are the AI-generated assumptions?
+
+AI-generated assumptions are based on industry benchmarks, publicly available data, and patterns from similar businesses. They are a reasonable starting point, not a guarantee. Always review and adjust assumptions based on:
+
+- Your specific market knowledge
+- Conversations with potential customers
+- Local cost structures (rent, labor, materials)
+- Your competitive positioning (premium vs. budget)
+
+The AI tells you the benchmark range for each assumption so you can see where your numbers fall relative to industry norms.
+
+### Can I create multiple scenarios?
+
+Yes. Every financial model supports multiple scenarios (e.g., Conservative, Base Case, Optimistic). Each scenario has its own set of assumptions, and you can compare projections across scenarios side by side. This is especially useful for stress-testing your model before generating a business plan.
+
+> **Pro Feature:** FREE plan users get 1 financial model total. PRO ($29/mo) gets 10 models, and ENTERPRISE ($99/mo) gets 50 models. Scenarios are available within any model on all plans.
+
+---
+
+## AI Agent
+
+### What can I ask the AI Agent?
+
+Anything related to your project. The agent excels at:
+
+- Explaining report findings in plain language
+- Pressure-testing your assumptions
+- Brainstorming go-to-market strategies
+- Comparing your idea to competitors
+- Identifying risks you may have missed
+- Suggesting pivots or refinements based on your research data
+
+See [AI Agent](/docs/user-guide/ai-agent) for example prompts and tips.
+
+### Does the agent remember previous conversations?
+
+The agent remembers the full conversation within a single session. If you close the chat and come back later, the agent starts a new session but still has access to all your project data (research, reports, financials, saved insights). It does not recall the specific back-and-forth from earlier sessions.
+
+### How is the agent different from ChatGPT?
+
+Three key differences:
+
+1. **Context.** The IdeaFuel agent has full access to your project's research, reports, interviews, and financial data. ChatGPT does not.
+2. **Grounding.** Answers are grounded in your specific data, not general internet knowledge. When the agent makes a claim, it references your project data.
+3. **Integration.** You can save agent insights directly to your reports and business plan. The agent is part of the IdeaFuel workflow, not a separate tool.
+
+> **Pro Feature:** The AI Agent is available to PRO ($29/mo) and ENTERPRISE ($99/mo) subscribers only.
+
+---
+
+## Billing
+
+### How do I cancel my subscription?
+
+Go to **Settings > Billing > Manage Subscription** and click **Cancel**. Your subscription remains active until the end of your current billing cycle. After cancellation:
+
+- You keep access to all features until the billing period ends.
+- Your projects, research, and reports are preserved (they do not get deleted).
+- You revert to FREE plan limits when the paid period expires.
+
+### What happens to my data if I downgrade?
+
+All your data is preserved. Nothing is deleted when you downgrade. However:
+
+- If you have more financial models than your new plan allows, existing models become **read-only**. You can view and export them but cannot edit or create new ones until you are within limits.
+- Reports you have already generated remain accessible regardless of your plan.
+- AI Agent access is removed if you downgrade to FREE.
+
+### Do unused reports roll over?
+
+No. Report credits reset at the beginning of each billing cycle. Unused SPARK, LIGHT, and IN_DEPTH report credits do not carry over to the next month. Use them or lose them.
+
+> **Tip:** If you have unused report credits near the end of your billing cycle, generate reports for any projects you have been sitting on. There is no cost beyond your existing subscription.
+
+### Can I switch plans mid-month?
+
+Yes. Upgrades take effect immediately, and you are charged the prorated difference for the remainder of your billing cycle. Downgrades take effect at the end of your current billing cycle so you do not lose access to features you have already paid for.
+
+---
+
+## Technical
+
+### What browsers are supported?
+
+IdeaFuel supports the latest two versions of:
+
+- Google Chrome
+- Mozilla Firefox
+- Microsoft Edge
+- Apple Safari
+
+For the best experience, use Chrome or Firefox. Internet Explorer is not supported.
+
+### Is there a mobile app?
+
+Not yet. IdeaFuel is a web application optimized for desktop and tablet browsers. The interface is responsive and works on mobile devices, but the full experience — especially financial modeling and report review — is best on a larger screen. A dedicated mobile app is on the roadmap.
+
+### How is my data secured?
+
+IdeaFuel takes data security seriously:
+
+- **Encryption in transit** — All connections use TLS 1.3.
+- **Encryption at rest** — All stored data is encrypted with AES-256.
+- **Data isolation** — Each account's data is logically isolated. No cross-account access is possible.
+- **AI provider policies** — AI model providers do not retain your data for training.
+- **Compliance** — SOC 2 Type II certified.
+- **Regular audits** — Independent security audits and penetration testing are conducted regularly.
+
+See [Account Settings > Data & Privacy](/docs/user-guide/account-settings#data--privacy) for more details.
+
+### Can I export all my data?
+
+Yes. Go to **Settings > Data & Privacy > Export Data** to download a complete export of your account data. The export includes:
+
+- Project data (research, interviews, reports) in JSON and PDF formats
+- Financial models in Excel format
+- AI Agent conversation logs in JSON format
+- Your profile and founder profile data
+
+The export is generated within a few minutes and provided as a ZIP file download.
+
+---
+
+## Related docs
+
+- [Getting Started](/docs/user-guide/getting-started) — Create your first project
+- [Interview Modes](/docs/user-guide/interview-modes) — Choose the right interview approach
+- [Reports](/docs/user-guide/reports/) — Understand report tiers and content
+- [Financial Modeling](/docs/user-guide/financial-modeling/) — Build and customize projections
+- [Industry Templates](/docs/user-guide/financial-modeling/industry-templates) — Pre-built models for 11 industries
+- [AI Agent](/docs/user-guide/ai-agent) — Your context-aware research assistant
+- [Business Plan PDF](/docs/user-guide/business-plan-pdf) — Generate investor-ready documents
+- [Daily Trend Pick](/docs/user-guide/daily-trend-pick) — Discover emerging opportunities
+- [Account Settings](/docs/user-guide/account-settings) — Manage your account
+
+---
+
