@@ -15,6 +15,8 @@ interface AssumptionWithMeta {
   category: AssumptionCategory;
   formula: string | null;
   staleness?: { isStale: boolean };
+  parentId?: string | null;
+  aggregationMode?: string | null;
 }
 
 interface AssumptionGridProps {
@@ -23,7 +25,11 @@ interface AssumptionGridProps {
   cascadedKeys: Set<string>;
   selectedCategories: Set<AssumptionCategory>;
   selectedConfidence: AssumptionConfidence | null;
+  projectId?: string;
   onSelect: (id: string) => void;
+  onAddSub?: (parentId: string, data: { name: string; key: string; value: string; valueType: string }) => void;
+  onDeleteSub?: (id: string) => void;
+  onUpdateSubValue?: (id: string, value: string) => void;
 }
 
 const CATEGORY_ORDER: AssumptionCategory[] = [
@@ -46,10 +52,28 @@ export const AssumptionGrid = memo(function AssumptionGrid({
   cascadedKeys,
   selectedCategories,
   selectedConfidence,
+  projectId,
   onSelect,
+  onAddSub,
+  onDeleteSub,
+  onUpdateSubValue,
 }: AssumptionGridProps) {
+  // Build parent → children map
+  const childrenMap = useMemo(() => {
+    const map = new Map<string, AssumptionWithMeta[]>();
+    for (const a of assumptions) {
+      if (a.parentId) {
+        const list = map.get(a.parentId) ?? [];
+        list.push(a);
+        map.set(a.parentId, list);
+      }
+    }
+    return map;
+  }, [assumptions]);
+
   const filtered = useMemo(() => {
-    let result = assumptions;
+    // Only show top-level assumptions (no parentId)
+    let result = assumptions.filter((a) => !a.parentId);
     if (selectedCategories.size > 0) {
       result = result.filter((a) => selectedCategories.has(a.category));
     }
@@ -108,7 +132,20 @@ export const AssumptionGrid = memo(function AssumptionGrid({
                 isStale={a.staleness?.isStale}
                 isSelected={selectedId === a.id}
                 cascadePulse={cascadedKeys.has(a.key)}
+                children_={childrenMap.get(a.id)?.map((c) => ({
+                  id: c.id,
+                  name: c.name,
+                  key: c.key,
+                  value: c.value,
+                  unit: c.unit,
+                  formula: c.formula,
+                }))}
+                aggregationMode={a.aggregationMode}
+                projectId={projectId}
                 onClick={onSelect}
+                onAddSub={onAddSub}
+                onDeleteSub={onDeleteSub}
+                onUpdateSubValue={onUpdateSubValue}
               />
             ))}
           </div>
