@@ -21,6 +21,7 @@ export function getStripeClient(): Stripe {
 export const STRIPE_PRICE_ID_MAP = {
   PRO: 'STRIPE_PRO_PRICE_ID',
   ENTERPRISE: 'STRIPE_ENTERPRISE_PRICE_ID',
+  SCALE: 'STRIPE_SCALE_PRICE_ID',
 } as const;
 
 export type StripeTier = keyof typeof STRIPE_PRICE_ID_MAP;

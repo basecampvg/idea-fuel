@@ -404,6 +404,260 @@ export function CoverV4({ title, subtitle }: CoverProps) {
 }
 
 // ============================================================================
+// Back Cover Variants
+// ============================================================================
+
+export function BackCoverV1() {
+  return (
+    <div
+      className="relative flex flex-col justify-between w-full h-full overflow-hidden"
+      style={{ backgroundColor: '#161513' }}
+    >
+      <img
+        src="/ideafuel-logo.svg"
+        alt=""
+        className="absolute pointer-events-none select-none"
+        style={{
+          bottom: '10%',
+          left: '-10%',
+          height: '65%',
+          opacity: 0.04,
+          filter: 'grayscale(100%) brightness(2)',
+          transform: 'scaleX(-1)',
+        }}
+      />
+      <div
+        className="absolute"
+        style={{
+          bottom: 0,
+          left: '28%',
+          width: '1px',
+          height: '35%',
+          background: 'linear-gradient(to top, #E32B1A, transparent)',
+          opacity: 0.3,
+        }}
+      />
+      <div
+        className="absolute"
+        style={{
+          top: '22%',
+          right: 0,
+          width: '65%',
+          height: '1px',
+          background: 'linear-gradient(to left, #E32B1A, transparent)',
+          opacity: 0.5,
+        }}
+      />
+      <div className="flex-1" />
+      <div className="flex flex-col items-center justify-center flex-1">
+        <div
+          style={{
+            width: '3em',
+            height: '3px',
+            background: 'linear-gradient(to right, #E32B1A, #DB4D40)',
+            borderRadius: '2px',
+            marginBottom: '1.5em',
+          }}
+        />
+        <p className="font-bold text-neutral-200" style={{ fontSize: '1.4em' }}>
+          <span style={{ color: '#E32B1A' }}>IDEA</span>FUEL
+        </p>
+      </div>
+      <div className="flex justify-between items-end px-[8%] pb-[6%]">
+        <p className="text-neutral-600" style={{ fontSize: '0.5em' }}>
+          &copy; {new Date().getFullYear()} IdeaFuel. All rights reserved.
+        </p>
+        <p className="text-neutral-600" style={{ fontSize: '0.5em' }}>
+          Confidential &mdash; For Intended Recipients Only
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export function BackCoverV2() {
+  return (
+    <div
+      className="relative flex flex-col w-full h-full overflow-hidden"
+      style={{ backgroundColor: '#161513' }}
+    >
+      <div
+        className="absolute"
+        style={{
+          right: '7%',
+          top: 0,
+          bottom: 0,
+          width: '2px',
+          background: '#E32B1A',
+        }}
+      />
+      <div className="flex-1 flex flex-col items-center justify-center">
+        <div
+          style={{
+            width: '2.5em',
+            height: '1px',
+            backgroundColor: '#E32B1A',
+            opacity: 0.6,
+            marginBottom: '2em',
+          }}
+        />
+        <p className="font-semibold text-neutral-300" style={{ fontSize: '1.2em' }}>
+          <span style={{ color: '#E32B1A' }}>IDEA</span>FUEL
+        </p>
+      </div>
+      <div style={{ paddingLeft: '10%', paddingRight: '18%', paddingBottom: '7%' }}>
+        <div
+          className="mb-4"
+          style={{ width: '100%', height: '1px', backgroundColor: 'rgba(255,255,255,0.08)' }}
+        />
+        <div className="flex justify-between items-center">
+          <p className="text-neutral-600" style={{ fontSize: '0.5em' }}>
+            &copy; {new Date().getFullYear()} IdeaFuel. All rights reserved.
+          </p>
+          <p className="text-neutral-600" style={{ fontSize: '0.5em' }}>
+            Confidential &mdash; For Intended Recipients Only
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function BackCoverV3() {
+  return (
+    <div
+      className="relative flex flex-col justify-between w-full h-full overflow-hidden"
+      style={{
+        background: 'linear-gradient(315deg, #161513 0%, #161513 40%, #1a1210 60%, #E32B1A 100%)',
+      }}
+    >
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at 15% 85%, rgba(227,43,26,0.35) 0%, transparent 55%)',
+        }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at 5% 95%, rgba(219,77,64,0.25) 0%, transparent 40%)',
+        }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E")`,
+          backgroundSize: '128px 128px',
+        }}
+      />
+      <div className="flex-1" />
+      <div className="flex flex-col items-center justify-center flex-1">
+        <img
+          src="/ideafuel-logo.svg"
+          alt=""
+          className="pointer-events-none select-none mb-6"
+          style={{
+            height: '15%',
+            opacity: 0.2,
+            filter: 'brightness(3) saturate(0)',
+          }}
+        />
+        <p className="font-bold text-white" style={{ fontSize: '1.2em' }}>
+          <span style={{ color: '#E32B1A' }}>IDEA</span>FUEL
+        </p>
+      </div>
+      <div className="flex justify-between items-center px-[8%] pb-[6%] pt-[3%]">
+        <p className="text-white/30" style={{ fontSize: '0.45em' }}>
+          &copy; {new Date().getFullYear()} IdeaFuel. All rights reserved.
+        </p>
+        <p className="text-white/30" style={{ fontSize: '0.45em' }}>
+          Confidential &mdash; For Intended Recipients Only
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export function BackCoverV4() {
+  return (
+    <div className="relative flex w-full h-full overflow-hidden">
+      <div
+        className="flex flex-col justify-between relative"
+        style={{ width: '62%', backgroundColor: '#161513' }}
+      >
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: '40%',
+            background: 'linear-gradient(to left, rgba(227,43,26,0.06), transparent)',
+          }}
+        />
+        <div className="flex-1" />
+        <div className="px-[10%] pb-[8%]">
+          <div
+            className="mb-3"
+            style={{ width: '100%', height: '1px', backgroundColor: 'rgba(255,255,255,0.06)' }}
+          />
+          <p className="text-neutral-600" style={{ fontSize: '0.45em' }}>
+            &copy; {new Date().getFullYear()} IdeaFuel. All rights reserved.
+          </p>
+          <p className="text-neutral-700 mt-1" style={{ fontSize: '0.42em' }}>
+            Confidential &mdash; For Intended Recipients Only
+          </p>
+        </div>
+      </div>
+      <div
+        className="flex flex-col items-center justify-center relative"
+        style={{
+          width: '38%',
+          background: 'linear-gradient(180deg, #E32B1A 0%, #C82617 100%)',
+        }}
+      >
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: `repeating-linear-gradient(
+              45deg,
+              transparent,
+              transparent 20px,
+              rgba(0,0,0,0.04) 20px,
+              rgba(0,0,0,0.04) 21px
+            )`,
+          }}
+        />
+        <img
+          src="/ideafuel-logo.svg"
+          alt=""
+          className="relative"
+          style={{
+            height: '22%',
+            filter: 'brightness(0) invert(1)',
+            opacity: 0.9,
+          }}
+        />
+        <div className="relative mt-6 text-center">
+          <p
+            className="font-display font-extrabold text-white leading-none"
+            style={{ fontSize: '1.3em', letterSpacing: '0.12em' }}
+          >
+            IDEA
+          </p>
+          <p
+            className="font-display font-light text-white/80 leading-none mt-1"
+            style={{ fontSize: '1.3em', letterSpacing: '0.35em' }}
+          >
+            FUEL
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // Variant Registry
 // ============================================================================
 
@@ -419,4 +673,15 @@ export type CoverStyleId = '1' | '2' | '3' | '4';
 export function getCoverComponent(styleId: string) {
   const variant = COVER_VARIANTS.find((v) => v.id === styleId);
   return variant?.Component ?? CoverV1;
+}
+
+const BACK_COVER_MAP: Record<string, React.FC> = {
+  '1': BackCoverV1,
+  '2': BackCoverV2,
+  '3': BackCoverV3,
+  '4': BackCoverV4,
+};
+
+export function getBackCoverComponent(styleId: string) {
+  return BACK_COVER_MAP[styleId] ?? BackCoverV1;
 }

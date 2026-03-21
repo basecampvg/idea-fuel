@@ -577,7 +577,7 @@ export const adminRouter = router({
     .input(
       z.object({
         userId: z.string(),
-        tier: z.enum(['FREE', 'PRO', 'ENTERPRISE']),
+        tier: z.enum(['FREE', 'PRO', 'ENTERPRISE', 'SCALE', 'TESTER']),
       })
     )
     .mutation(async ({ ctx, input }) => {

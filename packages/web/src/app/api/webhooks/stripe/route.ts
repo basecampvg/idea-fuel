@@ -22,9 +22,10 @@ function getStripeClient(): Stripe {
  * Map a Stripe Price ID back to our subscription tier.
  * Returns 'FREE' if the price ID doesn't match any known tier.
  */
-function priceIdToTier(priceId: string): 'PRO' | 'ENTERPRISE' | null {
+function priceIdToTier(priceId: string): 'PRO' | 'ENTERPRISE' | 'SCALE' | null {
   if (priceId === process.env.STRIPE_PRO_PRICE_ID) return 'PRO';
   if (priceId === process.env.STRIPE_ENTERPRISE_PRICE_ID) return 'ENTERPRISE';
+  if (priceId === process.env.STRIPE_SCALE_PRICE_ID) return 'SCALE';
   return null;
 }
 
@@ -74,7 +75,7 @@ async function handleCheckoutSessionCompleted(event: Stripe.Event) {
 
   const userId = subscription.metadata?.userId;
   const rawTier = subscription.metadata?.tier;
-  const tier = rawTier === 'PRO' || rawTier === 'ENTERPRISE' ? rawTier : undefined;
+  const tier = rawTier === 'PRO' || rawTier === 'ENTERPRISE' || rawTier === 'SCALE' ? rawTier : undefined;
 
   if (!userId || !tier) {
     console.error('[Webhook] checkout.session.completed: missing metadata', {

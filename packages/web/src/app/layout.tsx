@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next';
-import Script from 'next/script';
 import { Geist, Geist_Mono, Outfit } from 'next/font/google';
 import { SessionProvider } from 'next-auth/react';
 import { TRPCProvider } from '@/lib/trpc/provider';
@@ -66,7 +65,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${geist.variable} ${geistMono.variable} ${outfit.variable}`}>
       <head>
-        <Script id="fb-pixel" strategy="beforeInteractive">{`
+        <script dangerouslySetInnerHTML={{ __html: `
 !function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -77,7 +76,7 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
 fbq('init', '2377129659366978');
 fbq('track', 'PageView');
-        `}</Script>
+        `}} />
         <noscript>
           <img height="1" width="1" style={{ display: 'none' }}
             src="https://www.facebook.com/tr?id=2377129659366978&ev=PageView&noscript=1"
@@ -85,13 +84,13 @@ fbq('track', 'PageView');
           />
         </noscript>
         {/* Google tag (gtag.js) */}
-        <Script src="https://www.googletagmanager.com/gtag/js?id=G-TL8JCYJ4DW" strategy="beforeInteractive" />
-        <Script id="gtag-init" strategy="beforeInteractive">{`
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-P91R7RYB92"></script>
+        <script dangerouslySetInnerHTML={{ __html: `
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
-gtag('config', 'G-TL8JCYJ4DW');
-        `}</Script>
+gtag('config', 'G-P91R7RYB92');
+        `}} />
       </head>
       <body className="antialiased" suppressHydrationWarning>
         <script

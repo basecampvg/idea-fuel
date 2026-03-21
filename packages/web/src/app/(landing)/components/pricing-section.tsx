@@ -33,6 +33,7 @@ const TIERS: TierData[] = [
       { label: 'Light Interview Reports', value: false },
       { label: 'In-Depth Interview Reports', value: false },
       { label: 'Full Report Access', value: false },
+      { label: 'Expand Pipeline', value: false },
       { label: 'AI Quality', value: 'Standard' },
       { label: 'Priority Support', value: false },
       { label: 'Draft Ideas', value: 'Unlimited' },
@@ -49,6 +50,7 @@ const TIERS: TierData[] = [
       { label: 'Light Interview Reports', value: '3 reports', highlight: true },
       { label: 'In-Depth Interview Reports', value: '1 report', highlight: true },
       { label: 'Full Report Access', value: false },
+      { label: 'Expand Pipeline', value: false },
       { label: 'AI Quality', value: 'Enhanced' },
       { label: 'Priority Support', value: true },
       { label: 'Draft Ideas', value: 'Unlimited' },
@@ -65,6 +67,24 @@ const TIERS: TierData[] = [
       { label: 'Light Interview Reports', value: '5 reports', highlight: true },
       { label: 'In-Depth Interview Reports', value: '2 reports', highlight: true },
       { label: 'Full Report Access', value: true, highlight: true },
+      { label: 'Expand Pipeline', value: false },
+      { label: 'AI Quality', value: 'Premium' },
+      { label: 'Priority Support', value: true },
+      { label: 'Draft Ideas', value: 'Unlimited' },
+    ],
+  },
+  {
+    name: 'Scale',
+    tagline: 'Expand what works. Find what\'s next.',
+    price: '$199',
+    priceSub: '/month',
+    featured: false,
+    features: [
+      { label: 'Spark Reports', value: '10 reports', highlight: true },
+      { label: 'Light Interview Reports', value: '5 reports', highlight: true },
+      { label: 'In-Depth Interview Reports', value: '2 reports', highlight: true },
+      { label: 'Full Report Access', value: true, highlight: true },
+      { label: 'Expand Pipeline', value: true, highlight: true },
       { label: 'AI Quality', value: 'Premium' },
       { label: 'Priority Support', value: true },
       { label: 'Draft Ideas', value: 'Unlimited' },
@@ -304,7 +324,7 @@ export function PricingSection() {
         <div
           ref={cardsRef}
           data-anim="pricing-cards"
-          className="mt-16 grid gap-6 sm:gap-8 md:grid-cols-3"
+          className="mt-16 grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-4"
         >
           {TIERS.map((tier, i) => (
             <TierCard key={tier.name} tier={tier} index={i} />

@@ -140,6 +140,9 @@ export async function POST(req: Request) {
       await page.setCookie(...cookies);
     }
 
+    // Set viewport to A4 proportions so content fills the page 1:1
+    await page.setViewport({ width: 794, height: 1123 });
+
     // Navigate and wait for content to render
     await page.goto(reportUrl, { waitUntil: 'networkidle0', timeout: 30000 });
 
@@ -154,6 +157,7 @@ export async function POST(req: Request) {
       format: 'A4',
       printBackground: true,
       displayHeaderFooter: false,
+      margin: { top: '0', right: '0', bottom: '0', left: '0' },
     });
 
     await browser.close();

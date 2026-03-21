@@ -2,7 +2,7 @@
 
 import { trpc } from '@/lib/trpc/client';
 import { FinancialChart } from '@/app/(dashboard)/projects/[id]/reports/business-plan/components/financial-chart';
-import { getCoverComponent } from '@/app/(dashboard)/projects/[id]/reports/business-plan/components/cover-variants';
+import { getCoverComponent, getBackCoverComponent } from '@/app/(dashboard)/projects/[id]/reports/business-plan/components/cover-variants';
 import ReactMarkdown from 'react-markdown';
 import { Loader2, TrendingUp } from 'lucide-react';
 import { useSearchParams, useParams } from 'next/navigation';
@@ -108,7 +108,7 @@ function formatDate(date: Date): string {
 function CoverPage({ title, subtitle, coverStyle }: { title: string; subtitle?: string; coverStyle: string }) {
   const CoverComponent = getCoverComponent(coverStyle);
   return (
-    <div className="print-cover-page" style={{ fontSize: '16px', height: '297mm' }}>
+    <div className="print-cover-page" style={{ fontSize: '16px', height: '100vh' }}>
       <CoverComponent title={title} subtitle={subtitle} />
     </div>
   );
@@ -517,34 +517,53 @@ export default function BusinessPlanPrintPage() {
     <div id="business-plan-report" className="print-document bg-white text-neutral-900 min-h-screen">
       <style>{`
         @media print {
-          /* Cover page: full-bleed, no margins */
-          @page :first {
-            size: A4;
-            margin: 0;
-          }
-          /* All other pages: breathing room at top/bottom */
+          /* Default: content pages get margins */
           @page {
             size: A4;
             margin: 14mm 18mm;
           }
-          body {
+          /* Cover: full bleed */
+          @page :first {
+            margin: 0;
+          }
+          /* Back cover: full bleed via named page */
+          @page back-cover {
+            margin: 0;
+          }
+          html, body {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            background: white !important;
+            background-color: white !important;
+            --background: 0 0% 100% !important;
+          }
+          .print-document {
+            max-width: none !important;
+            margin: 0 !important;
+            width: 100% !important;
           }
           .print-cover-page {
+            width: 100%;
+            height: 100vh;
             page-break-after: always;
+          }
+          .print-back-page {
+            page: back-cover;
+            width: 100%;
+            height: 100vh;
           }
           .print-page-break {
             page-break-before: always;
           }
-          .print-section {
-            page-break-inside: avoid;
+          /* Keep section title with its content */
+          .print-section h2,
+          .print-section .flex.items-baseline {
+            break-after: avoid;
           }
           /* Prevent orphaned lines and mid-element splits */
           .print-section p {
             orphans: 3;
             widows: 3;
-            break-inside: avoid;
           }
           .print-section li {
             break-inside: avoid;
@@ -552,16 +571,24 @@ export default function BusinessPlanPrintPage() {
           .print-section tr {
             break-inside: avoid;
           }
-          /* Keep small self-contained blocks together */
-          .print-section .grid > * {
+          /* Keep visual blocks together — push to next page if they don't fit */
+          .print-section .grid,
+          .print-section .grid > *,
+          .print-section table,
+          .print-section .recharts-responsive-container,
+          .print-section > div > .mt-6 {
             break-inside: avoid;
           }
         }
 
         /* Screen preview styling */
+        @media screen {
+          .print-document {
+            max-width: 850px;
+            margin: 0 auto;
+          }
+        }
         .print-document {
-          max-width: 850px;
-          margin: 0 auto;
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
       `}</style>
@@ -573,27 +600,10 @@ export default function BusinessPlanPrintPage() {
         coverStyle={coverStyle}
       />
 
-      {/* Table of Contents */}
-      <div className="px-16 py-16">
-        <h2 className="text-sm font-mono uppercase tracking-[4px] text-neutral-400 mb-8">
-          Table of Contents
-        </h2>
-        <div className="space-y-3">
-          {sections.map((s) => (
-            <div key={s.number} className="flex items-baseline gap-4">
-              <span className="text-sm font-mono text-red-600">{String(s.number).padStart(2, '0')}</span>
-              <span className="text-base text-neutral-800">{s.title}</span>
-              <span className="flex-1 border-b border-dotted border-neutral-300 mx-2" />
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Sections */}
       {sections.map((s) => (
         <div key={s.number}>
-          <PageBreak />
-          <div className="print-section px-16 py-14">
+          <div className="print-section px-16 py-7">
             <SectionTitle number={s.number} title={s.title} />
             {s.content}
           </div>
@@ -601,21 +611,11 @@ export default function BusinessPlanPrintPage() {
       ))}
 
       {/* Back page */}
-      <PageBreak />
-      <div className="flex flex-col justify-center items-center min-h-[100vh] px-16 bg-neutral-950">
-        <div className="w-24 h-1 bg-red-500 mb-6" />
-        <p className="text-2xl font-bold text-neutral-200">
-          <span className="text-red-500">IDEA</span>FUEL
-        </p>
-        <p className="mt-3 text-sm text-neutral-500">
-          AI-Powered Business Intelligence
-        </p>
-        <p className="mt-8 text-xs text-neutral-600">
-          This document was generated on {formatDate(new Date())} and contains proprietary analysis.
-        </p>
-        <p className="mt-1 text-xs text-neutral-600">
-          &copy; {new Date().getFullYear()} IdeaFuel. All rights reserved.
-        </p>
+      <div className="print-back-page">
+        {(() => {
+          const BackCover = getBackCoverComponent(coverStyle);
+          return <BackCover />;
+        })()}
       </div>
     </div>
   );

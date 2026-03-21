@@ -85,9 +85,9 @@ export function DocsSidebar() {
       <aside
         className={`
           fixed top-0 left-0 z-40 h-full w-[280px] overflow-y-auto
-          border-r border-[hsl(var(--border))] bg-[hsl(var(--background))]
-          pt-[88px] pb-8 transition-transform duration-300 ease-out
-          lg:sticky lg:top-[88px] lg:z-auto lg:h-[calc(100vh-88px)] lg:translate-x-0
+          border-r border-[#333] bg-[#161513]
+          pt-[72px] pb-8 transition-transform duration-300 ease-out
+          lg:sticky lg:top-[72px] lg:z-auto lg:h-[calc(100vh-72px)] lg:translate-x-0
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
         onClick={() => setMobileOpen(false)}

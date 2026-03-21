@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import type { SubscriptionTier } from '../db/schema';
 import { configService } from '../services/config';
+import { getOpenAIKeyPool } from './key-pool';
 
 // Re-export retry utility from deep-research for convenience
 export { withExponentialBackoff, type RetryOptions } from './deep-research';
@@ -9,18 +10,37 @@ export { withExponentialBackoff, type RetryOptions } from './deep-research';
 // Set OPENAI_USE_GPT52_PARAMS=true when you have access to GPT-5.2's reasoning/text params
 export const USE_GPT52_PARAMS = process.env.OPENAI_USE_GPT52_PARAMS === 'true';
 
-// Lazy-initialized OpenAI client — avoids crash at build time when OPENAI_API_KEY is not set
-let _openai: OpenAI | null = null;
+// =============================================================================
+// OPENAI CLIENT WITH KEY POOL ROTATION
+// Caches one client per API key to avoid re-creating clients on every call.
+// When multiple keys are configured (comma-separated in OPENAI_API_KEY),
+// each call to getOpenAIClient() round-robins through available keys.
+// =============================================================================
+
+const _clientCache = new Map<string, OpenAI>();
 
 export function getOpenAIClient(): OpenAI {
-  if (!_openai) {
-    _openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+  const pool = getOpenAIKeyPool();
+  const apiKey = pool.getKey();
+
+  let client = _clientCache.get(apiKey);
+  if (!client) {
+    client = new OpenAI({
+      apiKey,
       timeout: 600000, // 10 minute timeout for xhigh reasoning
       maxRetries: 2,
     });
+    _clientCache.set(apiKey, client);
   }
-  return _openai;
+  return client;
+}
+
+/**
+ * Mark the most recently used OpenAI key as rate-limited.
+ * Call this when you catch a 429 from OpenAI.
+ */
+export function markOpenAIKeyRateLimited(durationMs?: number): void {
+  getOpenAIKeyPool().markCurrentRateLimited(durationMs);
 }
 
 /** @deprecated Use getOpenAIClient() for lazy initialization */

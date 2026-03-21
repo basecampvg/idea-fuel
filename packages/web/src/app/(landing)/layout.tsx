@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { MegaNav } from '@/components/navigation/mega-nav';
 
 export const metadata: Metadata = {
   title: 'Idea Fuel — Stop Guessing. Start Building.',
@@ -29,46 +30,7 @@ export default function LandingLayout({
 }) {
   return (
     <div className="min-h-screen bg-[#161513]">
-      {/* Fixed nav — outside ScrollSmoother */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#333] bg-[#161513]">
-        <div className="mx-auto flex h-[88px] max-w-[1800px] items-center justify-between px-6 lg:px-20">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5">
-            <img
-              src="/ideafuel-logo.svg"
-              alt="Idea Fuel"
-              className="h-8 w-auto"
-            />
-            {/* Brand text */}
-            <span className="font-mono text-xl font-medium uppercase tracking-[3px]">
-              <span className="text-white">idea</span>
-              <span className="text-gradient-brand">fuel</span>
-            </span>
-          </Link>
-
-          {/* Nav links */}
-          <nav className="hidden items-center gap-0 sm:flex">
-            <Link
-              href="/#how-it-works"
-              className="px-5 py-2 text-sm font-semibold uppercase tracking-[1px] text-white transition-colors hover:text-[#e32b1a]"
-            >
-              How It Works
-            </Link>
-            <Link
-              href="/demo-report"
-              className="px-5 py-2 text-sm font-semibold uppercase tracking-[1px] text-white transition-colors hover:text-[#e32b1a]"
-            >
-              Sample Report
-            </Link>
-            <a
-              href="#start"
-              className="ml-2 px-5 py-2 text-sm font-semibold uppercase tracking-[1px] text-gradient-brand transition-opacity hover:opacity-80"
-            >
-              Start for Free
-            </a>
-          </nav>
-        </div>
-      </header>
+      <MegaNav variant="landing" />
 
       {/* Main content */}
       <main>{children}</main>

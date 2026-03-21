@@ -8,7 +8,7 @@ interface FeatureComparisonProps {
   currentTier: SubscriptionTier;
 }
 
-const tiers: SubscriptionTier[] = ['FREE', 'PRO', 'ENTERPRISE'];
+const tiers: SubscriptionTier[] = ['FREE', 'PRO', 'ENTERPRISE', 'SCALE'];
 
 export function FeatureComparison({ currentTier }: FeatureComparisonProps) {
   return (
@@ -48,7 +48,7 @@ export function FeatureComparison({ currentTier }: FeatureComparisonProps) {
                 <div className="text-xs text-muted-foreground">{feature.description}</div>
               </td>
               {tiers.map((tier) => {
-                const value = feature[tier.toLowerCase() as 'free' | 'pro' | 'enterprise'];
+                const value = feature[tier.toLowerCase() as 'free' | 'pro' | 'enterprise' | 'scale'];
                 const isHighlighted = tier === currentTier;
 
                 return (
@@ -105,7 +105,7 @@ export function FeatureComparisonMobile({ currentTier }: FeatureComparisonProps)
             </h3>
             <ul className="space-y-2">
               {TIER_FEATURES.map((feature) => {
-                const value = feature[tier.toLowerCase() as 'free' | 'pro' | 'enterprise'];
+                const value = feature[tier.toLowerCase() as 'free' | 'pro' | 'enterprise' | 'scale'];
                 const included = typeof value === 'boolean' ? value : true;
 
                 return (

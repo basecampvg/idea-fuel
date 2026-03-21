@@ -10,7 +10,7 @@ import { LoadingScreen } from '@/components/ui/spinner';
 import { trpc } from '@/lib/trpc/client';
 import type { SubscriptionTier } from '@forge/shared';
 
-const tiers: SubscriptionTier[] = ['FREE', 'PRO', 'ENTERPRISE'];
+const tiers: SubscriptionTier[] = ['FREE', 'PRO', 'ENTERPRISE', 'SCALE'];
 
 export default function PlansPage() {
   const { tier: currentTier, isLoading, isSubscribed } = useSubscription();
@@ -34,7 +34,7 @@ export default function PlansPage() {
       } else {
         // No subscription — create checkout session
         const { url } = await createCheckout.mutateAsync({
-          tier: tier as 'PRO' | 'ENTERPRISE',
+          tier: tier as 'PRO' | 'ENTERPRISE' | 'SCALE',
         });
         window.location.href = url;
       }
@@ -80,7 +80,7 @@ export default function PlansPage() {
         </div>
 
         {/* Tier Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {tiers.map((tier) => (
             <TierCard
               key={tier}

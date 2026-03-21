@@ -16,6 +16,7 @@ import {
   ProviderError,
   ProviderRateLimitError,
 } from '../types';
+import { getPerplexityKeyPool } from '../../lib/key-pool';
 
 const DEEP_RESEARCH_MODEL = 'sonar-deep-research';
 
@@ -28,19 +29,30 @@ function getPollingInterval(elapsedMs: number): number {
 
 export class PerplexityProvider implements AIProvider {
   name = 'perplexity' as const;
-  private client: Perplexity;
+  private clientCache = new Map<string, Perplexity>();
 
   constructor() {
-    const apiKey = process.env.PERPLEXITY_API_KEY;
-    if (!apiKey) {
+    const pool = getPerplexityKeyPool();
+    if (pool.size === 0) {
       throw new Error('PERPLEXITY_API_KEY is required to initialize PerplexityProvider');
     }
+  }
 
-    this.client = new Perplexity({
-      apiKey,
-      maxRetries: 0, // We handle retries at the pipeline level via withExponentialBackoff
-      timeout: 60000, // 60s per HTTP request (polling calls are quick)
-    });
+  /** Get a client using the next available key from the pool */
+  private getClient(): Perplexity {
+    const pool = getPerplexityKeyPool();
+    const apiKey = pool.getKey();
+
+    let client = this.clientCache.get(apiKey);
+    if (!client) {
+      client = new Perplexity({
+        apiKey,
+        maxRetries: 0, // We handle retries at the pipeline level via withExponentialBackoff
+        timeout: 60000, // 60s per HTTP request (polling calls are quick)
+      });
+      this.clientCache.set(apiKey, client);
+    }
+    return client;
   }
 
   async isAvailable(): Promise<boolean> {
@@ -56,7 +68,7 @@ export class PerplexityProvider implements AIProvider {
 
     try {
       // Quick ping using a lightweight model
-      await this.client.chat.completions.create({
+      await this.getClient().chat.completions.create({
         model: 'sonar',
         messages: [{ role: 'user', content: 'Hi' }],
       });
@@ -81,7 +93,7 @@ export class PerplexityProvider implements AIProvider {
 
     try {
       // 1. Submit async deep research job
-      const submission = await this.client.async.chat.completions.create({
+      const submission = await this.getClient().async.chat.completions.create({
         idempotency_key: idempotencyKey,
         request: {
           model: DEEP_RESEARCH_MODEL,
@@ -119,7 +131,7 @@ export class PerplexityProvider implements AIProvider {
         const interval = getPollingInterval(elapsed);
         await new Promise(resolve => setTimeout(resolve, interval));
 
-        const result = await this.client.async.chat.completions.get(requestId);
+        const result = await this.getClient().async.chat.completions.get(requestId);
 
         console.log(`[Perplexity] [${requestId}] Status: ${result.status} (${Math.round((Date.now() - startTime) / 1000)}s elapsed)`);
 

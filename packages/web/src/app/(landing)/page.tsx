@@ -8,7 +8,7 @@ import { WaitlistForm } from './components/waitlist-form';
 import { FlameHero } from './components/flame-hero';
 import { PhoneMockup } from './components/phone-mockup';
 import { ScrollingReportGrid } from './components/scrolling-report-grid';
-import { ReportDashboard } from './components/report-dashboard';
+// import { ReportDashboard } from './components/report-dashboard';
 // import { PricingSection } from './components/pricing-section';
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
@@ -682,27 +682,47 @@ export default function LandingPage() {
             {/* Vertical Divider (desktop only) */}
             <div className="mx-8 hidden h-[70vh] w-px bg-gradient-to-b from-transparent via-[#2a2a2a] to-transparent lg:block" />
 
-            {/* Right Column: Report Dashboard (desktop only) */}
+            {/* Right Column: Report CTAs (desktop only) */}
             <div
               data-anim="s4-dashboard"
-              className="hidden min-w-0 flex-1 lg:block"
-              style={{ height: 'calc(100vh - 160px)' }}
+              className="hidden min-w-0 flex-1 lg:flex lg:flex-col lg:items-center lg:justify-center lg:gap-6"
             >
-              <ReportDashboard />
+              <a
+                href="/demo-report"
+                className="group flex w-full max-w-[400px] items-center gap-5 rounded-xl border border-[#2a2a2a] bg-[#0e0d0c] px-8 py-6 transition-all hover:border-[#e32b1a]/40 hover:bg-[#1a1918]"
+              >
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-[#e32b1a]/10">
+                  <svg className="h-7 w-7 text-[#e32b1a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-[#d4d4d4] group-hover:text-white">View Sample Report</p>
+                  <p className="mt-1 text-sm text-[#928e87]">Interactive web version</p>
+                </div>
+              </a>
             </div>
           </div>
         </section>
 
-        {/* ─── Slide 4b: Report Dashboard (mobile/tablet only) ─── */}
+        {/* ─── Slide 4b: Report CTAs (mobile/tablet only) ─── */}
         <section data-slide data-mobile-only className="slide bg-[#161513] pt-[88px] lg:hidden">
-          <div className="flex h-[calc(100vh-88px)] w-full items-center justify-center overflow-hidden px-3">
-            <div
+          <div className="flex h-[calc(100vh-88px)] w-full flex-col items-center justify-center gap-4 px-6">
+            <a
               data-anim="s4b-dashboard"
-              className="w-full max-w-[480px] rounded-xl border border-[#2a2a2a] bg-[#0e0d0c]"
-              style={{ height: 'calc(100vh - 120px)' }}
+              href="/demo-report"
+              className="group flex w-full max-w-[400px] items-center gap-4 rounded-xl border border-[#2a2a2a] bg-[#0e0d0c] px-6 py-5 transition-all hover:border-[#e32b1a]/40"
             >
-              <ReportDashboard />
-            </div>
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#e32b1a]/10">
+                <svg className="h-6 w-6 text-[#e32b1a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-base font-bold text-[#d4d4d4]">View Sample Report</p>
+                <p className="mt-0.5 text-sm text-[#928e87]">Interactive web version</p>
+              </div>
+            </a>
           </div>
         </section>
       </div>

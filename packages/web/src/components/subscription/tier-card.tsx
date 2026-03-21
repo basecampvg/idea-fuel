@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, X, Crown, Sparkles, Building2, FlaskConical } from 'lucide-react';
+import { Check, X, Crown, Sparkles, Building2, FlaskConical, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { SubscriptionTier } from '@forge/shared';
@@ -24,6 +24,7 @@ const tierIcons: Record<SubscriptionTier, typeof Sparkles> = {
   FREE: Sparkles,
   PRO: Crown,
   ENTERPRISE: Building2,
+  SCALE: Zap,
   TESTER: FlaskConical,
 };
 
@@ -42,6 +43,11 @@ const tierColors: Record<SubscriptionTier, { icon: string; border: string; glow:
     icon: 'text-accent',
     border: 'border-accent/40',
     glow: 'shadow-[0_0_30px_rgba(139,92,246,0.15)]',
+  },
+  SCALE: {
+    icon: 'text-amber-500',
+    border: 'border-amber-500/40',
+    glow: 'shadow-[0_0_30px_rgba(245,158,11,0.15)]',
   },
   TESTER: {
     icon: 'text-emerald-500',
@@ -87,6 +93,11 @@ export function TierCard({
       included: features.reportTierAccess.includes('FULL'),
     },
     {
+      name: 'Expand Pipeline',
+      value: null,
+      included: !!features.expandPipelineAccess,
+    },
+    {
       name: 'AI Quality',
       value: features.aiQuality.charAt(0).toUpperCase() + features.aiQuality.slice(1),
       included: true,
@@ -128,7 +139,7 @@ export function TierCard({
         <div
           className={`
             mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full
-            ${tier === 'PRO' ? 'bg-primary/10' : tier === 'ENTERPRISE' ? 'bg-accent/10' : 'bg-muted'}
+            ${tier === 'PRO' ? 'bg-primary/10' : tier === 'ENTERPRISE' ? 'bg-accent/10' : tier === 'SCALE' ? 'bg-amber-500/10' : 'bg-muted'}
           `}
         >
           <Icon className={`h-6 w-6 ${colors.icon}`} />

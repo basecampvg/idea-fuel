@@ -17,7 +17,7 @@ export const billingRouter = router({
   createCheckoutSession: protectedProcedure
     .input(
       z.object({
-        tier: z.enum(['PRO', 'ENTERPRISE']),
+        tier: z.enum(['PRO', 'ENTERPRISE', 'SCALE']),
       })
     )
     .mutation(async ({ ctx, input }) => {

@@ -82,6 +82,21 @@ function isRetryableError(error: unknown): boolean {
 }
 
 /**
+ * Check if an error is specifically a rate limit (429) error
+ */
+function isRateLimitError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const err = error as Record<string, unknown>;
+  if (err.status === 429) return true;
+  if (err.statusCode === 429) return true;
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase();
+    return msg.includes('rate limit') || msg.includes('too many requests') || msg.includes('429');
+  }
+  return false;
+}
+
+/**
  * Extract retry-after delay from error (for rate limits)
  */
 function getRetryAfterMs(error: unknown): number | null {
@@ -115,6 +130,8 @@ export interface RetryOptions {
   isRetryable?: (error: unknown) => boolean;
   /** Callback for logging retry attempts */
   onRetry?: (attempt: number, error: unknown, delayMs: number) => void;
+  /** Callback when a rate limit (429) is detected — use to rotate API keys */
+  onRateLimited?: (error: unknown) => void;
 }
 
 /**
@@ -148,6 +165,7 @@ export async function withExponentialBackoff<T>(
     maxDelayMs = 60000,
     isRetryable = isRetryableError,
     onRetry,
+    onRateLimited,
   } = options;
 
   let lastError: unknown;
@@ -163,6 +181,11 @@ export async function withExponentialBackoff<T>(
       // Check if we should retry
       if (attempt >= maxAttempts || !isRetryable(error)) {
         throw error;
+      }
+
+      // Notify rate-limit callback for key rotation (429 detection)
+      if (onRateLimited && isRateLimitError(error)) {
+        onRateLimited(error);
       }
 
       // Calculate delay with exponential backoff and jitter
@@ -290,6 +313,13 @@ const DEFAULT_MARKET_DOMAINS = [
   'reuters.com',
   'ft.com',
   'wsj.com',
+  'cbinsights.com',
+  'census.gov',
+  'bls.gov',
+  'bea.gov',
+  'alliedmarketresearch.com',
+  'researchandmarkets.com',
+  'euromonitor.com',
 ];
 
 const DEFAULT_COMPETITOR_DOMAINS = [
@@ -339,6 +369,13 @@ export const SEARCH_DOMAINS = {
     'reuters.com',
     'ft.com',
     'wsj.com',
+    'cbinsights.com',
+    'census.gov',
+    'bls.gov',
+    'bea.gov',
+    'alliedmarketresearch.com',
+    'researchandmarkets.com',
+    'euromonitor.com',
   ],
 
   // Competitor and product research
@@ -361,6 +398,7 @@ export const SEARCH_DOMAINS = {
     'saastr.com',
     'firstround.com',
     'a16z.com',
+    'pitchbook.com',
   ],
 } as const;
 
@@ -379,20 +417,27 @@ export const SOCIAL_PROOF_DOMAINS = [...SEARCH_DOMAINS.social];
 // =============================================================================
 
 /**
- * Lazy-initialized OpenAI client for deep research with extended timeout.
- * Deep research can take 5-10 minutes for comprehensive analysis.
+ * OpenAI client for deep research with extended timeout and key pool rotation.
+ * Caches one client per API key. Each call round-robins through available keys.
  */
-let _deepResearchClient: OpenAI | null = null;
+import { getOpenAIKeyPool } from './key-pool';
+
+const _deepResearchClientCache = new Map<string, OpenAI>();
 
 function getDeepResearchClient(): OpenAI {
-  if (!_deepResearchClient) {
-    _deepResearchClient = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+  const pool = getOpenAIKeyPool();
+  const apiKey = pool.getKey();
+
+  let client = _deepResearchClientCache.get(apiKey);
+  if (!client) {
+    client = new OpenAI({
+      apiKey,
       timeout: DEEP_RESEARCH_TIMEOUT,
       maxRetries: 1, // Don't retry expensive deep research calls
     });
+    _deepResearchClientCache.set(apiKey, client);
   }
-  return _deepResearchClient;
+  return client;
 }
 
 export const deepResearchClient = new Proxy({} as OpenAI, {

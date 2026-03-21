@@ -7,6 +7,7 @@ import type {
   ProviderUnavailableError,
 } from '../types';
 import type { SocialProofPost } from '../../services/research-ai';
+import { getBraveKeyPool } from '../../lib/key-pool';
 
 /**
  * Brave Search API Provider
@@ -18,7 +19,6 @@ import type { SocialProofPost } from '../../services/research-ai';
  */
 
 interface BraveSearchConfig {
-  apiKey: string;
   baseUrl: string;
   timeout: number;
 }
@@ -44,18 +44,13 @@ export class BraveSearchProvider implements SearchProvider {
   private config: BraveSearchConfig;
 
   constructor() {
-    this.config = this.initConfig();
-  }
-
-  private initConfig(): BraveSearchConfig {
-    const apiKey = process.env.BRAVE_SEARCH_API_KEY;
-
-    if (!apiKey) {
+    // Validate that at least one key exists
+    const pool = getBraveKeyPool();
+    if (pool.size === 0) {
       throw new Error('BRAVE_SEARCH_API_KEY environment variable is not set');
     }
 
-    return {
-      apiKey,
+    this.config = {
       baseUrl: 'https://api.search.brave.com/res/v1',
       timeout: 30000, // 30 second timeout
     };
@@ -109,9 +104,12 @@ export class BraveSearchProvider implements SearchProvider {
     const url = `${this.config.baseUrl}/web/search?${params}`;
 
     try {
+      const pool = getBraveKeyPool();
+      const apiKey = pool.getKey();
+
       const response = await fetch(url, {
         headers: {
-          'X-Subscription-Token': this.config.apiKey,
+          'X-Subscription-Token': apiKey,
           Accept: 'application/json',
         },
         signal: AbortSignal.timeout(options?.timeout || this.config.timeout),
@@ -120,9 +118,13 @@ export class BraveSearchProvider implements SearchProvider {
       if (!response.ok) {
         // Handle rate limits and errors
         if (response.status === 429) {
-          const retryAfter = response.headers.get('retry-after');
+          const retryAfterHeader = response.headers.get('retry-after');
+          const cooldownMs = retryAfterHeader
+            ? parseInt(retryAfterHeader, 10) * 1000
+            : undefined;
+          pool.markRateLimited(apiKey, cooldownMs);
           throw new Error(
-            `Brave Search rate limit exceeded${retryAfter ? `, retry after ${retryAfter}s` : ''}`
+            `Brave Search rate limit exceeded${retryAfterHeader ? `, retry after ${retryAfterHeader}s` : ''}`
           );
         }
 

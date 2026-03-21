@@ -158,7 +158,9 @@ export default function SettingsPage() {
                 </p>
                 <Badge
                   variant={
-                    subscription?.tier === 'ENTERPRISE'
+                    subscription?.tier === 'SCALE'
+                      ? 'success'
+                      : subscription?.tier === 'ENTERPRISE'
                       ? 'success'
                       : subscription?.tier === 'PRO'
                       ? 'info'

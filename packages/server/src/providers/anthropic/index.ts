@@ -10,6 +10,7 @@ import type {
   SearchProvider,
   SearchResult,
 } from '../types';
+import { getAnthropicKeyPool } from '../../lib/key-pool';
 
 /**
  * Anthropic Claude API Provider
@@ -24,24 +25,35 @@ import type {
 
 export class AnthropicProvider implements AIProvider {
   name = 'anthropic' as const;
-  private client: Anthropic;
+  private clientCache = new Map<string, Anthropic>();
 
   // Model selection - latest Claude models
   private readonly SONNET_MODEL = 'claude-sonnet-4-5-20250929';
   private readonly OPUS_MODEL = 'claude-opus-4-6';
 
   constructor() {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-
-    if (!apiKey) {
+    // Validate that at least one key exists
+    const pool = getAnthropicKeyPool();
+    if (pool.size === 0) {
       throw new Error('ANTHROPIC_API_KEY environment variable is not set');
     }
+  }
 
-    this.client = new Anthropic({
-      apiKey,
-      timeout: 1200000, // 20 minute timeout (Opus + large extraction prompts need >10min)
-      maxRetries: 2,
-    });
+  /** Get a client using the next available key from the pool */
+  private getClient(): Anthropic {
+    const pool = getAnthropicKeyPool();
+    const apiKey = pool.getKey();
+
+    let client = this.clientCache.get(apiKey);
+    if (!client) {
+      client = new Anthropic({
+        apiKey,
+        timeout: 1200000, // 20 minute timeout (Opus + large extraction prompts need >10min)
+        maxRetries: 2,
+      });
+      this.clientCache.set(apiKey, client);
+    }
+    return client;
   }
 
   async isAvailable(): Promise<boolean> {
@@ -58,7 +70,7 @@ export class AnthropicProvider implements AIProvider {
 
     try {
       // Simple health check with minimal token usage
-      await this.client.messages.create({
+      await this.getClient().messages.create({
         model: this.SONNET_MODEL,
         max_tokens: 10,
         messages: [{ role: 'user', content: 'Hi' }],
@@ -110,7 +122,8 @@ export class AnthropicProvider implements AIProvider {
   async extract<T>(prompt: string, schema: z.ZodSchema<T>, options?: AIRequestOptions): Promise<T> {
     const model = this.selectModel(options);
 
-    const createParams: Parameters<typeof this.client.messages.create>[0] = {
+    const client = this.getClient();
+    const createParams: Parameters<typeof client.messages.create>[0] = {
       model,
       max_tokens: options?.maxTokens || 16000,
       temperature: options?.temperature ?? 0.2,
@@ -125,7 +138,7 @@ export class AnthropicProvider implements AIProvider {
       ? { headers: { 'anthropic-beta': 'context-1m-2025-08-07' }, timeout: 1800000 }
       : undefined;
 
-    const response = await this.client.messages.create(createParams, requestOptions) as AnthropicMessage;
+    const response = await this.getClient().messages.create(createParams, requestOptions) as AnthropicMessage;
 
     const content = response.content[0];
     if (content.type !== 'text') {
@@ -176,7 +189,7 @@ export class AnthropicProvider implements AIProvider {
   async generate(prompt: string, options?: AIRequestOptions): Promise<string> {
     const model = this.selectModel(options);
 
-    const response = await this.client.messages.create({
+    const response = await this.getClient().messages.create({
       model,
       max_tokens: options?.maxTokens || 16000,
       temperature: options?.temperature ?? 1.0,
@@ -228,7 +241,7 @@ export class AnthropicProvider implements AIProvider {
 
     const synthesisPrompt = `${prompt}\n\n# Search Results\n\n${context}\n\nSynthesize the above search results to answer the research question. Include inline citations like [1], [2].`;
 
-    const response = await this.client.messages.create({
+    const response = await this.getClient().messages.create({
       model: this.OPUS_MODEL, // Use Opus for synthesis quality
       max_tokens: options.maxTokens || 50000,
       temperature: options.temperature ?? 1.0,
@@ -264,7 +277,7 @@ export class AnthropicProvider implements AIProvider {
   }
 
   private async extractSearchQueries(prompt: string): Promise<string[]> {
-    const response = await this.client.messages.create({
+    const response = await this.getClient().messages.create({
       model: this.SONNET_MODEL,
       max_tokens: 1000,
       messages: [

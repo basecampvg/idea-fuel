@@ -16,6 +16,7 @@ export interface SubscriptionFeatures {
   interviewModes: readonly InterviewMode[];
   prioritySupport: boolean;
   aiQuality: 'standard' | 'enhanced' | 'premium';
+  expandPipelineAccess?: boolean;
 }
 
 export const SUBSCRIPTION_FEATURES: Record<SubscriptionTier, SubscriptionFeatures> = {
@@ -43,6 +44,15 @@ export const SUBSCRIPTION_FEATURES: Record<SubscriptionTier, SubscriptionFeature
     prioritySupport: true,
     aiQuality: 'premium',
   },
+  SCALE: {
+    reportLimits: { SPARK: 10, LIGHT: 5, IN_DEPTH: 2 },
+    financialModelLimit: 100,
+    reportTierAccess: ['BASIC', 'PRO', 'FULL'] as const,
+    interviewModes: ['SPARK', 'LIGHT', 'IN_DEPTH'] as const,
+    prioritySupport: true,
+    aiQuality: 'premium',
+    expandPipelineAccess: true,
+  },
   TESTER: {
     reportLimits: { SPARK: 1, LIGHT: 1, IN_DEPTH: 1 },
     financialModelLimit: 50,
@@ -50,6 +60,7 @@ export const SUBSCRIPTION_FEATURES: Record<SubscriptionTier, SubscriptionFeature
     interviewModes: ['SPARK', 'LIGHT', 'IN_DEPTH'] as const,
     prioritySupport: true,
     aiQuality: 'premium',
+    expandPipelineAccess: true,
   },
 } as const;
 
@@ -63,6 +74,7 @@ export const SUBSCRIPTION_PRICING: Record<SubscriptionTier, SubscriptionPricing>
   FREE: { price: 0, period: 'forever', currency: 'USD' },
   PRO: { price: 29, period: 'month', currency: 'USD' },
   ENTERPRISE: { price: 99, period: 'month', currency: 'USD' },
+  SCALE: { price: 199, period: 'month', currency: 'USD' },
   TESTER: { price: 0, period: 'forever', currency: 'USD' },
 } as const;
 
@@ -74,6 +86,7 @@ export interface TierFeature {
   free: boolean | string;
   pro: boolean | string;
   enterprise: boolean | string;
+  scale: boolean | string;
 }
 
 export const TIER_FEATURES: TierFeature[] = [
@@ -84,6 +97,7 @@ export const TIER_FEATURES: TierFeature[] = [
     free: false,
     pro: '5 reports',
     enterprise: '10 reports',
+    scale: '10 reports',
   },
   {
     id: 'light',
@@ -92,6 +106,7 @@ export const TIER_FEATURES: TierFeature[] = [
     free: false,
     pro: '3 reports',
     enterprise: '5 reports',
+    scale: '5 reports',
   },
   {
     id: 'in_depth',
@@ -100,6 +115,7 @@ export const TIER_FEATURES: TierFeature[] = [
     free: false,
     pro: '1 report',
     enterprise: '2 reports',
+    scale: '2 reports',
   },
   {
     id: 'financial_models',
@@ -108,6 +124,7 @@ export const TIER_FEATURES: TierFeature[] = [
     free: '1 model',
     pro: '10 models',
     enterprise: '50 models',
+    scale: '100 models',
   },
   {
     id: 'full_reports',
@@ -116,6 +133,16 @@ export const TIER_FEATURES: TierFeature[] = [
     free: false,
     pro: false,
     enterprise: true,
+    scale: true,
+  },
+  {
+    id: 'expand_pipeline',
+    name: 'Expand Pipeline',
+    description: 'Adjacency scan, competitor portfolio, demand mining & pricing ceiling',
+    free: false,
+    pro: false,
+    enterprise: false,
+    scale: true,
   },
   {
     id: 'ai_quality',
@@ -124,6 +151,7 @@ export const TIER_FEATURES: TierFeature[] = [
     free: false,
     pro: 'Enhanced',
     enterprise: 'Premium',
+    scale: 'Premium',
   },
   {
     id: 'support',
@@ -132,11 +160,12 @@ export const TIER_FEATURES: TierFeature[] = [
     free: false,
     pro: true,
     enterprise: true,
+    scale: true,
   },
 ];
 
 // Upgrade reason types for modal content
-export type UpgradeReasonType = 'interview_mode' | 'report_limit' | 'report_tier' | 'feature';
+export type UpgradeReasonType = 'interview_mode' | 'report_limit' | 'report_tier' | 'feature' | 'expand_access';
 
 export interface UpgradeReason {
   type: UpgradeReasonType;
@@ -202,6 +231,20 @@ export function getUpgradePromptContent(
       };
     }
 
+    case 'expand_access':
+      return {
+        title: 'Unlock Expand Pipeline',
+        description:
+          'The Expand pipeline helps you grow an existing business with adjacency scans, competitor portfolios, demand mining, and pricing ceiling analysis.',
+        benefits: [
+          'Adjacency scan for new opportunities',
+          'Competitor portfolio analysis',
+          'Demand mining research',
+          'Pricing ceiling optimization',
+        ],
+        recommendedTier: 'SCALE',
+      };
+
     case 'feature':
     default:
       return {
@@ -265,4 +308,12 @@ export function getFinancialModelsRemaining(
 ): number {
   const limit = SUBSCRIPTION_FEATURES[tier].financialModelLimit;
   return Math.max(0, limit - currentCount);
+}
+
+/**
+ * Check if a subscription tier has access to the Expand pipeline.
+ * Only SCALE and TESTER tiers have expand pipeline access.
+ */
+export function canAccessExpandPipeline(tier: SubscriptionTier): boolean {
+  return tier === 'SCALE' || tier === 'TESTER';
 }
