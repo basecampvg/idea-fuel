@@ -6,7 +6,7 @@ import { trpc } from '@/lib/trpc/client';
 import { useSubscription } from '@/components/subscription/use-subscription';
 import { LoadingScreen } from '@/components/ui/spinner';
 import { Flame, Feather, Zap, Bookmark, ArrowUp, TrendingUp, Paperclip, Sparkles, Lock, Info, X, ChevronLeft } from 'lucide-react';
-import { PROJECT_TITLE_MAX } from '@forge/shared';
+import { PROJECT_TITLE_MAX, canAccessExpandPipeline } from '@forge/shared';
 import type { ResearchEngine, ProjectMode, BusinessContext, ClassificationResult, ExpandTrackId, ExpandTrackProgress } from '@forge/shared';
 import { ModeSelector } from './components/mode-selector';
 import { BusinessContextIntake } from './components/business-context-intake';
@@ -179,7 +179,7 @@ const isDev = process.env.NODE_ENV === 'development';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { canAccessMode, showUpgradePrompt } = useSubscription();
+  const { tier, canAccessMode, showUpgradePrompt } = useSubscription();
   const [ideaDescription, setIdeaDescription] = useState('');
   const [selectedMode, setSelectedMode] = useState<string>('IN_DEPTH');
   const [researchEngine, setResearchEngine] = useState<ResearchEngine>('OPENAI');
@@ -727,7 +727,12 @@ export default function DashboardPage() {
       {/* Mode Selector (shown when no mode selected) */}
       {!projectMode && (
         <div className="animate-fade-in-up mb-8" style={{ animationDelay: '100ms' }}>
-          <ModeSelector selected={projectMode} onSelect={handleModeSelect} />
+          <ModeSelector
+            selected={projectMode}
+            onSelect={handleModeSelect}
+            expandLocked={!canAccessExpandPipeline(tier)}
+            onExpandLocked={() => showUpgradePrompt({ type: 'expand_access' })}
+          />
         </div>
       )}
 

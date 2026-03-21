@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { eq, and, desc, count, inArray, sql } from 'drizzle-orm';
 import { router, protectedProcedure } from '../trpc';
-import { createProjectSchema, updateProjectSchema, startInterviewSchema, businessContextSchema } from '@forge/shared';
-import type { ChatMessage, InterviewMode, BusinessContext } from '@forge/shared';
+import { createProjectSchema, updateProjectSchema, startInterviewSchema, businessContextSchema, canAccessExpandPipeline } from '@forge/shared';
+import type { ChatMessage, InterviewMode, BusinessContext, SubscriptionTier } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
 import { projects, interviews, reports, research, users } from '../db/schema';
 import { generateOpeningQuestion } from '../services/interview-ai';
@@ -155,6 +155,21 @@ export const projectRouter = router({
    * For EXPAND mode: runs AI classification inline and seeds vertical-specific assumptions
    */
   create: protectedProcedure.input(createProjectSchema).mutation(async ({ ctx, input }) => {
+    // Gate EXPAND mode behind SCALE/TESTER subscription
+    if (input.mode === 'EXPAND') {
+      const user = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.userId),
+        columns: { subscription: true },
+      });
+      const tier = (user?.subscription as SubscriptionTier) ?? 'FREE';
+      if (!canAccessExpandPipeline(tier)) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Expand mode requires a Scale subscription. Please upgrade to access the Expand pipeline.',
+        });
+      }
+    }
+
     const results = await ctx.db.insert(projects).values({
       title: input.title,
       description: input.description,

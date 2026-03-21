@@ -171,6 +171,7 @@ export const SUBSCRIPTION_TIER_LABELS: Record<string, string> = {
   FREE: 'Free',
   PRO: 'Pro',
   ENTERPRISE: 'Enterprise',
+  SCALE: 'Scale',
   TESTER: 'Tester',
 };
 
@@ -178,6 +179,7 @@ export const SUBSCRIPTION_TIER_DESCRIPTIONS: Record<string, string> = {
   FREE: 'Basic reports with core insights',
   PRO: 'Pro-level reports with enhanced analysis',
   ENTERPRISE: 'Full reports with all premium features',
+  SCALE: 'Everything in Enterprise plus Expand pipeline',
   TESTER: 'Full access with 1 report per mode',
 };
 

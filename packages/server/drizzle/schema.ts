@@ -15,7 +15,7 @@ export const ReportType = pgEnum("ReportType", ['BUSINESS_PLAN', 'POSITIONING', 
 export const ResearchPhase = pgEnum("ResearchPhase", ['QUEUED', 'DEEP_RESEARCH', 'SYNTHESIS', 'SOCIAL_RESEARCH', 'REPORT_GENERATION', 'BUSINESS_PLAN_GENERATION', 'COMPLETE', 'QUERY_GENERATION', 'DATA_COLLECTION'])
 export const ResearchStatus = pgEnum("ResearchStatus", ['PENDING', 'IN_PROGRESS', 'COMPLETE', 'FAILED'])
 export const SparkJobStatus = pgEnum("SparkJobStatus", ['QUEUED', 'RUNNING_KEYWORDS', 'RUNNING_RESEARCH', 'RUNNING_PARALLEL', 'SYNTHESIZING', 'ENRICHING', 'COMPLETE', 'PARTIAL_COMPLETE', 'FAILED'])
-export const SubscriptionTier = pgEnum("SubscriptionTier", ['FREE', 'PRO', 'ENTERPRISE'])
+export const SubscriptionTier = pgEnum("SubscriptionTier", ['FREE', 'PRO', 'ENTERPRISE', 'SCALE', 'TESTER'])
 export const UserRole = pgEnum("UserRole", ['USER', 'EDITOR', 'ADMIN', 'SUPER_ADMIN'])
 
 

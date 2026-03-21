@@ -86,7 +86,7 @@ export type SendMessageInput = z.infer<typeof sendMessageSchema>;
 // ============================================
 // User validators
 // ============================================
-export const subscriptionTierSchema = z.enum(['FREE', 'PRO', 'ENTERPRISE', 'TESTER']);
+export const subscriptionTierSchema = z.enum(['FREE', 'PRO', 'ENTERPRISE', 'SCALE', 'TESTER']);
 
 export const createUserSchema = z.object({
   email: z.string().email('Invalid email address').max(254, 'Email too long'),

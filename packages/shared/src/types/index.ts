@@ -54,7 +54,7 @@ export type SparkJobStatus =
 export type ResearchStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETE' | 'FAILED';
 
 // Subscription tiers for users
-export type SubscriptionTier = 'FREE' | 'PRO' | 'ENTERPRISE' | 'TESTER';
+export type SubscriptionTier = 'FREE' | 'PRO' | 'ENTERPRISE' | 'SCALE' | 'TESTER';
 
 // 13 Report types available (10 Launch + 3 Expand)
 export type ReportType =

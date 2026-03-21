@@ -2508,7 +2508,7 @@ function mergeChunkInsights(
  * Returns true if the tier qualifies for 1M token holistic extraction.
  */
 export function isLongContextTier(tier: SubscriptionTier): boolean {
-  return tier === 'ENTERPRISE' || tier === 'TESTER';
+  return tier === 'ENTERPRISE' || tier === 'SCALE' || tier === 'TESTER';
 }
 
 /**
