@@ -184,25 +184,25 @@ DESCRIPTION: ${context.ideaDescription}
 ${dataContext}
 === END RESEARCH DATA ===
 
-Respond with a JSON object matching this exact schema. Each narrative section should be 1-2 focused paragraphs — concise, data-rich, zero filler. Every paragraph must contain at least one specific number, metric, or data point. Write to persuade an investor scanning this in 5 minutes.
+Respond with a JSON object matching this exact schema. Each narrative section should be 3-4 substantive paragraphs — data-rich, zero filler. Every paragraph must contain at least one specific number, metric, or data point. Write to persuade an investor who will spend 15-20 minutes reading this.
 
 VISUAL FORMAT RULES: The frontend renders these as rich visual cards. To maximize visual impact:
 - Use bullet points (with "- " prefix) liberally for lists, comparisons, and key takeaways
 - Use "**bold**" markdown for key metrics, names, and emphasis
 - Structure content so it reads well in short visual blocks, not walls of text
 - Lead each section with the most important insight or number
-- For sections with tables/charts already rendered by the UI (Problem, Market, Competitive, Business Model, Financial), keep prose shorter — the visuals carry the weight
+- For sections with tables/charts already rendered by the UI (Problem, Market, Competitive, Business Model, Financial), the visuals complement the prose but the narrative should still provide thorough analysis
 
 {
-  "executiveSummary": "1-2 punchy paragraphs: core value prop, target market size, revenue model, why this wins. Should stand alone as a pitch.",
-  "problemNarrative": "1 paragraph + bullet points: articulate the problem with evidence from pain points and demand signals. Keep brief — a pain points table is shown alongside this.",
-  "solutionNarrative": "1-2 paragraphs: how the solution addresses key pain points. Include the user story. Explain the unique approach with bullet points for features.",
-  "marketNarrative": "1 paragraph + bullet points: market analysis, growth drivers, segments. Keep brief — TAM/SAM/SOM cards are shown alongside this.",
-  "competitiveNarrative": "1 paragraph + bullet points: competitive positioning, defensible advantages. Keep brief — a competitor table is shown alongside this.",
-  "businessModelNarrative": "1-2 paragraphs + bullet points: revenue model, pricing strategy, unit economics. A pricing tier table is shown alongside this.",
-  "gtmStrategy": "1-2 paragraphs with bullet points: launch channels, acquisition strategy, first 90 days, key milestones. Use a numbered list for the phased approach.",
-  "customerProfile": "1-2 paragraphs with bullet points: ideal customer segments, demographics, psychographics, buying behavior. Use bullet points for persona attributes.",
-  "financialNarrative": "1 paragraph: brief commentary on projections and key assumptions. Keep short — a financial chart is shown alongside this.",
+  "executiveSummary": "3-4 paragraphs: core value prop, target market size, revenue model, competitive advantage, and why this wins now. Should stand alone as a compelling pitch.",
+  "problemNarrative": "3-4 paragraphs + bullet points: articulate the problem with evidence from pain points and demand signals. Quantify the cost of the status quo.",
+  "solutionNarrative": "3-4 paragraphs: how the solution addresses key pain points. Include the user story. Explain the unique approach with bullet points for features.",
+  "marketNarrative": "3-4 paragraphs + bullet points: market analysis, growth drivers, segments, and expansion opportunities.",
+  "competitiveNarrative": "3-4 paragraphs + bullet points: competitive positioning, defensible advantages, and why incumbents can't easily replicate this.",
+  "businessModelNarrative": "3-4 paragraphs + bullet points: revenue model, pricing strategy, unit economics, and path to profitability.",
+  "gtmStrategy": "3-4 paragraphs with bullet points: launch channels, acquisition strategy, first 90 days, key milestones. Use a numbered list for the phased approach.",
+  "customerProfile": "3-4 paragraphs with bullet points: ideal customer segments, demographics, psychographics, buying behavior. Use bullet points for persona attributes.",
+  "financialNarrative": "2-3 paragraphs: commentary on projections, key assumptions, and sensitivity analysis. A financial chart is shown alongside this.",
   "financialProjections": {
     "year1": { "revenue": <number in dollars>, "costs": <number>, "profit": <number (can be negative)> },
     "year2": { "revenue": <number>, "costs": <number>, "profit": <number> },
@@ -210,11 +210,11 @@ VISUAL FORMAT RULES: The frontend renders these as rich visual cards. To maximiz
     "breakEvenMonth": <number 1-36>,
     "assumptions": ["assumption 1", "assumption 2", "assumption 3", "assumption 4", "assumption 5"]
   },
-  "productRoadmap": "Use bullet points or numbered phases: MVP scope, 6-month milestones, 12-month vision. List concrete features per phase.",
-  "teamOperations": "1 paragraph + bullet points: key roles needed, org structure, operational requirements. List critical hires.",
-  "riskAnalysis": "Use bullet points: top 5 risks, each with severity and mitigation strategy. Format as '**Risk**: description — **Mitigation**: action'.",
-  "fundingRequirements": "1 paragraph + bullet points: funding amount, use of funds breakdown, target milestones. Use a bulleted allocation list.",
-  "exitStrategy": "1 paragraph + bullet points: potential exit paths, comparable exits, timeline, target acquirers or IPO scenario."
+  "productRoadmap": "3-4 paragraphs with bullet points or numbered phases: MVP scope, 6-month milestones, 12-month vision, and long-term moat. List concrete features per phase.",
+  "teamOperations": "3-4 paragraphs + bullet points: key roles needed, org structure, operational requirements, and scaling plan. List critical hires with rationale.",
+  "riskAnalysis": "3-4 paragraphs + bullet points: top 5-7 risks, each with severity and mitigation strategy. Format as '**Risk**: description — **Mitigation**: action'.",
+  "fundingRequirements": "3-4 paragraphs + bullet points: funding amount, use of funds breakdown, target milestones, and expected ROI. Use a bulleted allocation list.",
+  "exitStrategy": "3-4 paragraphs + bullet points: potential exit paths, comparable exits, timeline, target acquirers or IPO scenario, and valuation rationale."
 }
 
 ${context.financialModelData
