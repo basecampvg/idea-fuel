@@ -146,9 +146,12 @@ export const billingRouter = router({
       throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
     }
 
+    // For Stripe subscribers, stripeSubscriptionId is set. For RevenueCat (mobile IAP)
+    // subscribers, stripeSubscriptionId is null but stripeCurrentPeriodEnd is reused
+    // for the RevenueCat expiration date. So we only enforce the period-end check
+    // when the date is present, and don't require stripeSubscriptionId.
     const isSubscribed =
       user.subscription !== 'FREE' &&
-      !!user.stripeSubscriptionId &&
       (user.stripeCurrentPeriodEnd ? user.stripeCurrentPeriodEnd > new Date() : true);
 
     return {

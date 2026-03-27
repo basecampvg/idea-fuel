@@ -14,6 +14,8 @@ import { scenarioRouter } from './scenario';
 import { snapshotRouter } from './snapshot';
 import { exportRouter } from './export';
 import { billingRouter } from './billing';
+import { sparkCardRouter } from './sparkCard';
+import { noteRouter } from './note';
 
 /**
  * Main application router
@@ -35,6 +37,8 @@ export const appRouter = router({
   snapshot: snapshotRouter,
   export: exportRouter,
   billing: billingRouter,
+  sparkCard: sparkCardRouter,
+  note: noteRouter,
 });
 
 // Export type definition for client usage

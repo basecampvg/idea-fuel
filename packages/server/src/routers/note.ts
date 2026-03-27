@@ -1,0 +1,256 @@
+/**
+ * Note Router — CRUD + AI refinement + promote-to-project
+ *
+ * Procedures:
+ * - list:    Return user's notes sorted by updatedAt desc
+ * - get:     Return single note by id (ownership check)
+ * - create:  Insert empty note for user, return it
+ * - update:  Update content by id (ownership check)
+ * - delete:  Delete by id (ownership check), return success
+ * - refine:  Read note content, validate >= 50 chars, call refineNote(), save + return
+ * - promote: Read note refinement, create project + update note atomically, return projectId
+ */
+
+import { eq, and, desc } from 'drizzle-orm';
+import { TRPCError } from '@trpc/server';
+import { router, protectedProcedure } from '../trpc';
+import {
+  createNoteSchema,
+  updateNoteSchema,
+  refineNoteSchema,
+  promoteNoteSchema,
+  deleteNoteSchema,
+  NOTE_REFINE_MIN_CHARS,
+} from '@forge/shared';
+import { notes, projects } from '../db/schema';
+import { refineNote } from '../services/note-ai';
+
+export const noteRouter = router({
+  /**
+   * List all notes for the current user, sorted by updatedAt desc.
+   */
+  list: protectedProcedure.query(async ({ ctx }) => {
+    const results = await ctx.db
+      .select()
+      .from(notes)
+      .where(eq(notes.userId, ctx.userId))
+      .orderBy(desc(notes.updatedAt));
+
+    return results;
+  }),
+
+  /**
+   * Get a single note by id (ownership check).
+   */
+  get: protectedProcedure
+    .input(refineNoteSchema) // { id: string } — reuse the same shape
+    .query(async ({ ctx, input }) => {
+      const note = await ctx.db.query.notes.findFirst({
+        where: and(eq(notes.id, input.id), eq(notes.userId, ctx.userId)),
+      });
+
+      if (!note) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'NOTE_NOT_FOUND',
+        });
+      }
+
+      return note;
+    }),
+
+  /**
+   * Create a new empty note for the user.
+   */
+  create: protectedProcedure
+    .input(createNoteSchema)
+    .mutation(async ({ ctx }) => {
+      const [note] = await ctx.db
+        .insert(notes)
+        .values({
+          userId: ctx.userId,
+        })
+        .returning();
+
+      if (!note) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to create note',
+        });
+      }
+
+      return note;
+    }),
+
+  /**
+   * Update note content by id (ownership check).
+   */
+  update: protectedProcedure
+    .input(updateNoteSchema)
+    .mutation(async ({ ctx, input }) => {
+      const existing = await ctx.db.query.notes.findFirst({
+        where: and(eq(notes.id, input.id), eq(notes.userId, ctx.userId)),
+        columns: { id: true },
+      });
+
+      if (!existing) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'NOTE_NOT_FOUND',
+        });
+      }
+
+      await ctx.db
+        .update(notes)
+        .set({ content: input.content })
+        .where(eq(notes.id, input.id));
+
+      return { success: true };
+    }),
+
+  /**
+   * Delete a note by id (ownership check).
+   */
+  delete: protectedProcedure
+    .input(deleteNoteSchema)
+    .mutation(async ({ ctx, input }) => {
+      const existing = await ctx.db.query.notes.findFirst({
+        where: and(eq(notes.id, input.id), eq(notes.userId, ctx.userId)),
+        columns: { id: true },
+      });
+
+      if (!existing) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'NOTE_NOT_FOUND',
+        });
+      }
+
+      await ctx.db.delete(notes).where(eq(notes.id, input.id));
+
+      return { success: true };
+    }),
+
+  /**
+   * Refine a note using AI.
+   * Reads note content, validates >= 50 chars, calls Haiku, saves results.
+   */
+  refine: protectedProcedure
+    .input(refineNoteSchema)
+    .mutation(async ({ ctx, input }) => {
+      const note = await ctx.db.query.notes.findFirst({
+        where: and(eq(notes.id, input.id), eq(notes.userId, ctx.userId)),
+        columns: { id: true, content: true },
+      });
+
+      if (!note) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'NOTE_NOT_FOUND',
+        });
+      }
+
+      if (note.content.length < NOTE_REFINE_MIN_CHARS) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Note must be at least ${NOTE_REFINE_MIN_CHARS} characters to refine`,
+        });
+      }
+
+      let refinement;
+      try {
+        refinement = await refineNote(note.content);
+      } catch (error) {
+        console.error('[NoteRouter] Refinement failed:', error instanceof Error ? error.message : error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'REFINEMENT_FAILED',
+          cause: error,
+        });
+      }
+
+      // Save refinement results to the note
+      await ctx.db
+        .update(notes)
+        .set({
+          refinedTitle: refinement.title,
+          refinedDescription: refinement.description,
+          refinedTags: refinement.tags,
+          lastRefinedAt: new Date(),
+        })
+        .where(eq(notes.id, input.id));
+
+      return {
+        refinedTitle: refinement.title,
+        refinedDescription: refinement.description,
+        refinedTags: refinement.tags,
+      };
+    }),
+
+  /**
+   * Promote a refined note to a project.
+   * Creates a project from the refinement data and links it to the note (atomic transaction).
+   */
+  promote: protectedProcedure
+    .input(promoteNoteSchema)
+    .mutation(async ({ ctx, input }) => {
+      const note = await ctx.db.query.notes.findFirst({
+        where: and(eq(notes.id, input.id), eq(notes.userId, ctx.userId)),
+        columns: {
+          id: true,
+          refinedTitle: true,
+          refinedDescription: true,
+          promotedProjectId: true,
+        },
+      });
+
+      if (!note) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'NOTE_NOT_FOUND',
+        });
+      }
+
+      if (!note.refinedTitle || !note.refinedDescription) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'NO_REFINEMENT',
+        });
+      }
+
+      if (note.promotedProjectId) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Note has already been promoted',
+        });
+      }
+
+      // Create project + link note atomically
+      const result = await ctx.db.transaction(async (tx) => {
+        const [project] = await tx
+          .insert(projects)
+          .values({
+            title: note.refinedTitle!,
+            description: note.refinedDescription!,
+            userId: ctx.userId,
+          })
+          .returning({ id: projects.id });
+
+        if (!project) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to create project',
+          });
+        }
+
+        await tx
+          .update(notes)
+          .set({ promotedProjectId: project.id })
+          .where(eq(notes.id, input.id));
+
+        return { projectId: project.id };
+      });
+
+      return result;
+    }),
+});

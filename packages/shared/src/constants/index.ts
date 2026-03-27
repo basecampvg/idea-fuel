@@ -2,6 +2,7 @@
 
 // Re-export subscription constants
 export * from './subscription';
+export * from './revenuecat';
 
 export const APP_NAME = 'ideationLab';
 export const APP_VERSION = '0.1.0';
@@ -172,6 +173,8 @@ export const SUBSCRIPTION_TIER_LABELS: Record<string, string> = {
   PRO: 'Pro',
   ENTERPRISE: 'Enterprise',
   TESTER: 'Tester',
+  MOBILE: 'Mobile',
+  SCALE: 'Agency',
 };
 
 export const SUBSCRIPTION_TIER_DESCRIPTIONS: Record<string, string> = {
@@ -179,6 +182,8 @@ export const SUBSCRIPTION_TIER_DESCRIPTIONS: Record<string, string> = {
   PRO: 'Pro-level reports with enhanced analysis',
   ENTERPRISE: 'Full reports with all premium features',
   TESTER: 'Full access with 1 report per mode',
+  MOBILE: 'Mobile quick validation cards',
+  SCALE: 'Agency-grade pipeline with advanced analysis tools',
 };
 
 // Report type labels (10 report types)

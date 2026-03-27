@@ -1,40 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Linking, StyleSheet } from 'react-native';
 import { Tabs, Redirect, useRouter } from 'expo-router';
-import { Mic, ShieldCheck, Settings, ArrowUpRight, X } from 'lucide-react-native';
+import { Mic, ShieldCheck, NotebookPen, Settings, ArrowUpRight, X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingScreen } from '../../components/ui';
-import { colors } from '../../lib/theme';
+import { colors, fonts } from '../../lib/theme';
 
 function CustomTabBar({ state, descriptors, navigation, insets }: any) {
-  const [dismissed, setDismissed] = useState(false);
-
   return (
     <View>
-      {/* Promo banner */}
-      {!dismissed && (
-        <View style={bannerStyles.container}>
-          <TouchableOpacity
-            style={bannerStyles.content}
-            onPress={() => Linking.openURL('https://ideafuel.ai')}
-            activeOpacity={0.8}
-          >
-            <Text style={bannerStyles.text}>
-              Validate your idea on the web
-            </Text>
-            <ArrowUpRight size={14} color="#FFFFFF" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setDismissed(true)}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={bannerStyles.dismiss}
-          >
-            <X size={14} color="rgba(255,255,255,0.5)" />
-          </TouchableOpacity>
-        </View>
-      )}
-
       {/* Standard tab bar */}
       <View style={[
         tabStyles.bar,
@@ -49,6 +24,8 @@ function CustomTabBar({ state, descriptors, navigation, insets }: any) {
             ? <Mic size={22} color={color} />
             : route.name === 'vault'
             ? <ShieldCheck size={22} color={color} />
+            : route.name === 'notes'
+            ? <NotebookPen size={22} color={color} />
             : <Settings size={22} color={color} />;
 
           return (
@@ -83,6 +60,7 @@ export default function TabsLayout() {
   const { isLoading, isAuthenticated } = useAuth();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   if (isLoading) {
     return <LoadingScreen message="Loading..." />;
@@ -99,6 +77,29 @@ export default function TabsLayout() {
     </View>
   );
 
+  const BannerComponent = () =>
+    !bannerDismissed ? (
+      <View style={bannerStyles.container}>
+        <TouchableOpacity
+          style={bannerStyles.content}
+          onPress={() => Linking.openURL('https://ideafuel.ai')}
+          activeOpacity={0.8}
+        >
+          <Text style={bannerStyles.text}>
+            Validate your idea on the web
+          </Text>
+          <ArrowUpRight size={14} color="#FFFFFF" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setBannerDismissed(true)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          style={bannerStyles.dismiss}
+        >
+          <X size={14} color="rgba(255,255,255,0.5)" />
+        </TouchableOpacity>
+      </View>
+    ) : null;
+
   return (
     <Tabs
       tabBar={(props) => <CustomTabBar {...props} insets={insets} />}
@@ -111,6 +112,7 @@ export default function TabsLayout() {
         },
         headerShadowVisible: false,
         headerTitle,
+        headerBottom: () => <BannerComponent />,
       }}
     >
       <Tabs.Screen
@@ -124,6 +126,16 @@ export default function TabsLayout() {
           tabPress: (e) => {
             e.preventDefault();
             router.replace('/(tabs)/vault' as any);
+          },
+        }}
+      />
+      <Tabs.Screen
+        name="notes"
+        options={{ title: 'Notes' }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            router.replace('/(tabs)/notes' as any);
           },
         }}
       />
@@ -167,14 +179,14 @@ const headerStyles = StyleSheet.create({
     alignItems: 'center',
   },
   wordmarkIdea: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 14,
+    fontFamily: fonts.outfit.semiBold,
     letterSpacing: 4,
     color: '#BCBCBC',
   },
   wordmarkFuel: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 14,
+    fontFamily: fonts.outfit.semiBold,
     letterSpacing: 4,
     color: colors.brand,
   },

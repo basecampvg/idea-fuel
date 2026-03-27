@@ -51,6 +51,22 @@ export const SUBSCRIPTION_FEATURES: Record<SubscriptionTier, SubscriptionFeature
     prioritySupport: true,
     aiQuality: 'premium',
   },
+  MOBILE: {
+    reportLimits: { SPARK: 0, LIGHT: 0, IN_DEPTH: 0 },
+    financialModelLimit: 0,
+    reportTierAccess: [] as const,
+    interviewModes: [] as const,
+    prioritySupport: false,
+    aiQuality: 'standard',
+  },
+  SCALE: {
+    reportLimits: { SPARK: 10, LIGHT: 5, IN_DEPTH: 2 },
+    financialModelLimit: 100,
+    reportTierAccess: ['BASIC', 'PRO', 'FULL'] as const,
+    interviewModes: ['SPARK', 'LIGHT', 'IN_DEPTH'] as const,
+    prioritySupport: true,
+    aiQuality: 'premium',
+  },
 } as const;
 
 export interface SubscriptionPricing {
@@ -64,6 +80,8 @@ export const SUBSCRIPTION_PRICING: Record<SubscriptionTier, SubscriptionPricing>
   PRO: { price: 29, period: 'month', currency: 'USD' },
   ENTERPRISE: { price: 99, period: 'month', currency: 'USD' },
   TESTER: { price: 0, period: 'forever', currency: 'USD' },
+  MOBILE: { price: 5.99, period: 'month', currency: 'USD' },
+  SCALE: { price: 349.99, period: 'month', currency: 'USD' },
 } as const;
 
 // Feature list for tier comparison display

@@ -71,6 +71,27 @@
       "when": 1773609372210,
       "tag": "0009_fair_harry_osborn",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1774578766122,
+      "tag": "0010_fair_alex_power",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1774635314463,
+      "tag": "0011_lively_sentinels",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1774642879643,
+      "tag": "0012_rich_phil_sheldon",
+      "breakpoints": true
     }
   ]
 }

@@ -9,11 +9,25 @@ import {
   StyleSheet,
   RefreshControl,
 } from 'react-native';
-import { CheckCircle, ChevronRight, Search, Archive } from 'lucide-react-native';
+import Animated, { FadeInUp } from 'react-native-reanimated';
+import {
+  CheckCircle,
+  ChevronRight,
+  Search,
+  Archive,
+  Lightbulb,
+  CircleCheck,
+  Clock,
+  XCircle,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  HelpCircle,
+} from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { triggerHaptic } from '../../../components/ui/Button';
 import { trpc } from '../../../lib/trpc';
-import { colors } from '../../../lib/theme';
+import { colors, fonts } from '../../../lib/theme';
 
 function formatRelativeTime(date: Date): string {
   const now = new Date();
@@ -27,6 +41,76 @@ function formatRelativeTime(date: Date): string {
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function getCardMeta(item: any) {
+  const cardResult = item.cardResult as any;
+  if (!cardResult) {
+    return {
+      verdict: null,
+      icon: Lightbulb,
+      iconColor: colors.brand,
+      iconBg: colors.brandMuted,
+      badgeLabel: 'Draft',
+      badgeColor: colors.brand,
+      badgeBg: colors.brandMuted,
+      accentColor: null,
+    };
+  }
+  const verdict = cardResult.verdict as 'proceed' | 'watchlist' | 'drop';
+  if (verdict === 'proceed') {
+    return {
+      verdict,
+      icon: CircleCheck,
+      iconColor: colors.success,
+      iconBg: 'rgba(34, 197, 94, 0.15)',
+      badgeLabel: 'Proceed',
+      badgeColor: colors.success,
+      badgeBg: 'rgba(34, 197, 94, 0.15)',
+      accentColor: colors.success,
+      problemSeverity: cardResult.problemSeverity,
+      marketSignal: cardResult.marketSignal,
+      tamLow: cardResult.tamEstimate?.low,
+    };
+  }
+  if (verdict === 'watchlist') {
+    return {
+      verdict,
+      icon: Clock,
+      iconColor: colors.warning,
+      iconBg: 'rgba(245, 158, 11, 0.15)',
+      badgeLabel: 'Watchlist',
+      badgeColor: colors.warning,
+      badgeBg: 'rgba(245, 158, 11, 0.15)',
+      accentColor: colors.warning,
+      problemSeverity: cardResult.problemSeverity,
+      marketSignal: cardResult.marketSignal,
+      tamLow: cardResult.tamEstimate?.low,
+    };
+  }
+  // drop
+  return {
+    verdict,
+    icon: XCircle,
+    iconColor: colors.destructive,
+    iconBg: 'rgba(239, 68, 68, 0.15)',
+    badgeLabel: 'Drop',
+    badgeColor: colors.destructive,
+    badgeBg: 'rgba(239, 68, 68, 0.15)',
+    accentColor: colors.destructive,
+    problemSeverity: cardResult.problemSeverity,
+    marketSignal: cardResult.marketSignal,
+    tamLow: cardResult.tamEstimate?.low,
+  };
+}
+
+function getMarketSignalLabel(signal: string) {
+  switch (signal) {
+    case 'rising': return { label: 'Rising', color: colors.success };
+    case 'flat': return { label: 'Flat', color: colors.muted };
+    case 'declining': return { label: 'Declining', color: colors.destructive };
+    default: return { label: 'Unknown', color: colors.mutedDim };
+  }
 }
 
 export default function VaultScreen() {
@@ -71,42 +155,92 @@ export default function VaultScreen() {
     );
   }, [deleteMutation]);
 
-  const renderItem = useCallback(({ item }: { item: any }) => {
-    const hasResearch = item.research?.status === 'COMPLETE';
+  const renderItem = useCallback(({ item, index }: { item: any; index: number }) => {
+    const meta = getCardMeta(item);
+    const IconComponent = meta.icon;
+    const hasResult = !!meta.verdict;
+    const cardResult = item.cardResult as any;
 
     return (
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => router.push(`/(tabs)/vault/${item.id}` as any)}
-        onLongPress={() => {
-          triggerHaptic('light');
-          handleDelete(item.id, item.title);
-        }}
-        activeOpacity={0.7}
-        delayLongPress={400}
+      <Animated.View
+        entering={FadeInUp.delay(index * 80).springify()}
       >
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle} numberOfLines={1}>
-            {item.title}
-          </Text>
-          {hasResearch && (
-            <View style={styles.researchBadge}>
-              <CheckCircle size={14} color={colors.success} />
+        <TouchableOpacity
+          style={[
+            styles.card,
+            hasResult && { borderLeftWidth: 3, borderLeftColor: meta.accentColor },
+          ]}
+          onPress={() => router.push(`/(tabs)/vault/${item.id}` as any)}
+          onLongPress={() => {
+            triggerHaptic('light');
+            handleDelete(item.id, item.title);
+          }}
+          activeOpacity={0.7}
+          delayLongPress={400}
+        >
+          {/* Top section: icon + text */}
+          <View style={styles.cardTop}>
+            <View style={[styles.cardIcon, { backgroundColor: meta.iconBg }]}>
+              <IconComponent size={20} color={meta.iconColor} />
+            </View>
+            <View style={styles.cardText}>
+              <Text style={styles.cardTitle} numberOfLines={1}>
+                {item.title}
+              </Text>
+              {item.description ? (
+                <Text style={styles.cardDescription} numberOfLines={2}>
+                  {item.description}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+
+          {/* Stats bar for validated cards */}
+          {hasResult && cardResult && (
+            <View style={styles.statsBar}>
+              <View style={styles.statCell}>
+                <Text style={[styles.statValue, { color: meta.badgeColor }]}>
+                  {meta.badgeLabel}
+                </Text>
+                <Text style={styles.statLabel}>Verdict</Text>
+              </View>
+              <View style={[styles.statCell, styles.statCellBorder]}>
+                <Text style={styles.statValue}>
+                  {cardResult.problemSeverity ? `${Math.round(cardResult.problemSeverity)}/5` : '-'}
+                </Text>
+                <Text style={styles.statLabel}>Problem</Text>
+              </View>
+              <View style={[styles.statCell, styles.statCellBorder]}>
+                <Text style={[
+                  styles.statValue,
+                  { color: getMarketSignalLabel(cardResult.marketSignal).color },
+                ]}>
+                  {getMarketSignalLabel(cardResult.marketSignal).label}
+                </Text>
+                <Text style={styles.statLabel}>Market</Text>
+              </View>
+              <View style={[styles.statCell, styles.statCellBorder]}>
+                <Text style={styles.statValue}>
+                  {cardResult.tamEstimate?.low ?? '-'}
+                </Text>
+                <Text style={styles.statLabel}>TAM</Text>
+              </View>
             </View>
           )}
-        </View>
-        {item.description ? (
-          <Text style={styles.cardDescription} numberOfLines={2}>
-            {item.description}
-          </Text>
-        ) : null}
-        <View style={styles.cardFooter}>
-          <Text style={styles.cardTime}>
-            Edited {formatRelativeTime(new Date(item.updatedAt))}
-          </Text>
-          <ChevronRight size={16} color={colors.mutedDim} />
-        </View>
-      </TouchableOpacity>
+
+          {/* Footer */}
+          <View style={styles.cardFooter}>
+            <Text style={styles.cardTime}>
+              {formatRelativeTime(new Date(item.updatedAt))}
+            </Text>
+            <View style={[styles.badge, { backgroundColor: meta.badgeBg }]}>
+              <Text style={[styles.badgeText, { color: meta.badgeColor }]}>
+                {meta.badgeLabel}
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
     );
   }, [router, handleDelete]);
 
@@ -188,7 +322,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 28,
-    fontWeight: '700',
+    fontFamily: fonts.outfit.bold,
     color: colors.foreground,
     letterSpacing: -0.5,
   },
@@ -220,40 +354,88 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 14,
-    padding: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
   },
-  cardHeader: {
+  cardTop: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 16,
+    paddingBottom: 12,
+    gap: 14,
+  },
+  cardIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  cardText: {
+    flex: 1,
+    minWidth: 0,
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: fonts.outfit.semiBold,
     color: colors.foreground,
-    flex: 1,
-    marginRight: 8,
-  },
-  researchBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    marginBottom: 4,
   },
   cardDescription: {
-    fontSize: 14,
+    fontSize: 13,
+    fontFamily: fonts.geist.regular,
     color: colors.muted,
-    lineHeight: 20,
-    marginBottom: 8,
+    lineHeight: 18,
+  },
+  statsBar: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  statCell: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+  },
+  statCellBorder: {
+    borderLeftWidth: 1,
+    borderLeftColor: colors.border,
+  },
+  statValue: {
+    fontSize: 14,
+    fontFamily: fonts.mono.medium,
+    color: colors.foreground,
+  },
+  statLabel: {
+    fontSize: 10,
+    fontFamily: fonts.outfit.medium,
+    color: colors.mutedDim,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 2,
   },
   cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
   },
   cardTime: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: fonts.mono.regular,
     color: colors.mutedDim,
+  },
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontFamily: fonts.mono.medium,
   },
   emptyState: {
     flex: 1,

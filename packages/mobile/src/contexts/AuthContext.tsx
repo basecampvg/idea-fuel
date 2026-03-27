@@ -3,6 +3,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { secureStorage } from '../lib/storage';
 import { API_URL, AUTH_CONFIG } from '../lib/constants';
+import { initPurchases, logOutPurchases } from '../lib/purchases';
 
 // Complete auth session for web browser
 WebBrowser.maybeCompleteAuthSession();
@@ -58,6 +59,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await secureStorage.setRefreshToken(data.refreshToken);
       }
       setUser(data.user);
+      // Initialize RevenueCat SDK after successful sign-in
+      initPurchases(data.user.id).catch(() => {});
     } catch (error) {
       console.error('Token exchange failed:', error);
       throw error;
@@ -94,6 +97,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (res.ok) {
               const data = await res.json();
               setUser(data.user);
+              // Initialize RevenueCat SDK on session restore
+              initPurchases(data.user.id).catch(() => {});
             } else {
               // Token invalid, clear storage
               await secureStorage.clearAll();
@@ -137,6 +142,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json();
       await secureStorage.setToken(data.token);
       setUser(data.user);
+      // Initialize RevenueCat SDK after dev sign-in
+      initPurchases(data.user.id).catch(() => {});
     } catch (error) {
       console.error('Dev sign-in failed:', error);
       throw error;
@@ -145,6 +152,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = useCallback(async () => {
     try {
+      // Log out of RevenueCat before clearing local state
+      await logOutPurchases();
+
       const token = await secureStorage.getToken();
       if (token) {
         // Notify backend of logout

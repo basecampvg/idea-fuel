@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
-import { colors as theme } from '../../lib/theme';
+import { colors as theme, fonts } from '../../lib/theme';
 
 const colors = {
   primary: theme.brand,
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    fontWeight: '600',
+    fontFamily: fonts.outfit.semiBold,
   },
   leftIcon: {
     marginRight: 8,

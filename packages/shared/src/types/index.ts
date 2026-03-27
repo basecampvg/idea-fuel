@@ -49,7 +49,7 @@ export type SparkJobStatus =
 export type ResearchStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETE' | 'FAILED';
 
 // Subscription tiers for users
-export type SubscriptionTier = 'FREE' | 'PRO' | 'ENTERPRISE' | 'TESTER';
+export type SubscriptionTier = 'FREE' | 'PRO' | 'ENTERPRISE' | 'TESTER' | 'MOBILE' | 'SCALE';
 
 // 10 Report types available
 export type ReportType =
@@ -795,6 +795,35 @@ export interface SparkResult {
 }
 
 // =============================================================================
+// Mobile Quick Validation Card Types
+// =============================================================================
+
+export interface CardResult {
+  verdict: 'proceed' | 'watchlist' | 'drop';
+  summary: string;              // 1-2 sentence summary
+  problemSeverity: number;      // 1-5 scale
+  marketSignal: 'rising' | 'flat' | 'declining' | 'unknown';
+  tamEstimate: {
+    low: string;                // e.g. "$500M"
+    high: string;               // e.g. "$2B"
+    basis: string;              // 1-sentence explanation
+  };
+  competitors: Array<{
+    name: string;
+    oneLiner: string;           // what they do
+  }>;                           // max 3
+  biggestRisk: string;          // 1 sentence
+  nextExperiment: string;       // 1 actionable step
+  citations: string[];          // URLs from Sonar Pro
+  rawResponse?: string;         // original Sonar Pro text (for fallback display)
+}
+
+export interface CardChatMessage {
+  role: 'assistant' | 'user';
+  content: string;
+}
+
+// =============================================================================
 // Data Quality / Confidence Scoring Types
 // =============================================================================
 
@@ -1171,6 +1200,16 @@ export type LineItemFormula =
   | { formulaType: 'uniform'; formula: string }
   | { formulaType: 'periodic'; firstPeriodFormula: string; formula: string }
   | { formulaType: 'subtotal'; children: string[] };
+
+// =============================================================================
+// Note Types (Brain Dump + AI Refinement)
+// =============================================================================
+
+export interface NoteRefinement {
+  title: string;
+  description: string;
+  tags: string[];
+}
 
 export interface TemplateDefinition {
   slug: string;

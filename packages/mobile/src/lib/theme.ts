@@ -41,3 +41,24 @@ export const colors = {
 } as const;
 
 export type ThemeColors = typeof colors;
+
+export const fonts = {
+  // Outfit — display/heading font (titles, buttons, labels)
+  outfit: {
+    regular: 'Outfit-Regular',
+    medium: 'Outfit-Medium',
+    semiBold: 'Outfit-SemiBold',
+    bold: 'Outfit-Bold',
+  },
+  // Geist — body font (descriptions, chat, paragraphs)
+  geist: {
+    regular: 'Geist-Regular',
+    medium: 'Geist-Medium',
+    semiBold: 'Geist-SemiBold',
+  },
+  // Geist Mono — tags, badges, status pills, stat values
+  mono: {
+    regular: 'GeistMono-Regular',
+    medium: 'GeistMono-Medium',
+  },
+} as const;

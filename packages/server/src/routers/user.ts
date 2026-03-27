@@ -16,6 +16,8 @@ export const userRouter = router({
         name: true,
         image: true,
         subscription: true,
+        stripeSubscriptionId: true,
+        stripeCurrentPeriodEnd: true,
         role: true,
         founderProfile: true,
         createdAt: true,

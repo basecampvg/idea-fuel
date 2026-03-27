@@ -71,7 +71,7 @@ export type SendMessageInput = z.infer<typeof sendMessageSchema>;
 // ============================================
 // User validators
 // ============================================
-export const subscriptionTierSchema = z.enum(['FREE', 'PRO', 'ENTERPRISE', 'TESTER']);
+export const subscriptionTierSchema = z.enum(['FREE', 'PRO', 'ENTERPRISE', 'TESTER', 'MOBILE', 'SCALE']);
 
 export const createUserSchema = z.object({
   email: z.string().email('Invalid email address').max(254, 'Email too long'),
@@ -291,6 +291,96 @@ export type SparkJobStatusInput = z.infer<typeof sparkJobStatusSchema>;
 export type SparkKeywordsInput = z.infer<typeof sparkKeywordsSchema>;
 export type SparkResultInput = z.infer<typeof sparkResultSchema>;
 export type StartSparkInput = z.infer<typeof startSparkSchema>;
+
+// ============================================
+// SparkCard validators (mobile quick validation)
+// ============================================
+export const cardChatMessageSchema = z.object({
+  role: z.enum(['assistant', 'user']),
+  content: z.string().min(1).max(500),
+});
+
+export const chatCardSchema = z.object({
+  projectId: entityId,
+  turn: z.number().int().min(0).max(3),
+  message: z.string().max(500).default(''),
+});
+
+export const validateCardSchema = z.object({
+  projectId: entityId,
+  chatMessages: z.array(cardChatMessageSchema).min(1).max(10),
+});
+
+export const promoteCardSchema = z.object({
+  projectId: entityId,
+});
+
+export const cardResultSchema = z.object({
+  verdict: z.enum(['proceed', 'watchlist', 'drop']),
+  summary: z.string(),
+  problemSeverity: z.number().min(1).max(5),
+  marketSignal: z.enum(['rising', 'flat', 'declining', 'unknown']),
+  tamEstimate: z.object({
+    low: z.string(),
+    high: z.string(),
+    basis: z.string(),
+  }),
+  competitors: z.array(z.object({
+    name: z.string(),
+    oneLiner: z.string(),
+  })).max(3),
+  biggestRisk: z.string(),
+  nextExperiment: z.string(),
+  citations: z.array(z.string()),
+  rawResponse: z.string().optional(),
+});
+
+export type CardChatMessageInput = z.infer<typeof cardChatMessageSchema>;
+export type ChatCardInput = z.infer<typeof chatCardSchema>;
+export type ValidateCardInput = z.infer<typeof validateCardSchema>;
+export type PromoteCardInput = z.infer<typeof promoteCardSchema>;
+export type CardResultInput = z.infer<typeof cardResultSchema>;
+
+// ============================================
+// Note validators (Brain Dump + AI Refinement)
+// ============================================
+export const NOTE_CONTENT_MAX = 50000;
+export const NOTE_TITLE_MAX = 200;
+export const NOTE_DESC_MAX = 2000;
+export const NOTE_TAG_MAX = 50;
+export const NOTE_TAGS_MAX = 10;
+export const NOTE_REFINE_MIN_CHARS = 50;
+
+export const createNoteSchema = z.object({});
+export type CreateNoteInput = z.infer<typeof createNoteSchema>;
+
+export const updateNoteSchema = z.object({
+  id: entityId,
+  content: z.string().max(NOTE_CONTENT_MAX, 'Content too long'),
+});
+export type UpdateNoteInput = z.infer<typeof updateNoteSchema>;
+
+export const refineNoteSchema = z.object({
+  id: entityId,
+});
+export type RefineNoteInput = z.infer<typeof refineNoteSchema>;
+
+export const promoteNoteSchema = z.object({
+  id: entityId,
+});
+export type PromoteNoteInput = z.infer<typeof promoteNoteSchema>;
+
+export const deleteNoteSchema = z.object({
+  id: entityId,
+});
+export type DeleteNoteInput = z.infer<typeof deleteNoteSchema>;
+
+export const noteRefinementSchema = z.object({
+  title: z.string().min(1).max(NOTE_TITLE_MAX),
+  description: z.string().min(1).max(NOTE_DESC_MAX),
+  tags: z.array(z.string().min(1).max(NOTE_TAG_MAX)).min(1).max(NOTE_TAGS_MAX),
+});
+export type NoteRefinementInput = z.infer<typeof noteRefinementSchema>;
 
 // ============================================
 // Assumption validators
