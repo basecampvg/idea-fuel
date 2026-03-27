@@ -1,0 +1,1 @@
+ALTER TYPE "public"."SubscriptionTier" ADD VALUE 'SCALE';

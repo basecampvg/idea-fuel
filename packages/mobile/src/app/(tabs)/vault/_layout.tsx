@@ -48,6 +48,18 @@ export default function VaultStackLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="[id]/validate"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="[id]/card"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

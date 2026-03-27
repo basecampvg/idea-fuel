@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, ViewProps, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import { colors } from '../../lib/theme';
+import { colors, fonts } from '../../lib/theme';
 
 const localColors = {
   mutedBg: '#262422',
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: fonts.mono.medium,
   },
   statusDot: {
     // Base styles - size and color applied dynamically

@@ -16,6 +16,8 @@ const TIER_STYLES: Record<SubscriptionTier, string> = {
   PRO: 'bg-primary/15 text-primary',
   ENTERPRISE: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
   TESTER: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+  MOBILE: 'bg-blue-500/15 text-blue-600 dark:text-blue-400',
+  SCALE: 'bg-violet-500/15 text-violet-600 dark:text-violet-400',
 };
 
 function BreadcrumbSeparator() {

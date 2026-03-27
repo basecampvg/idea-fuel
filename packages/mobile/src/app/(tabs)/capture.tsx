@@ -21,7 +21,7 @@ import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { IdeaFuelLogo } from '../../components/IdeaFuelLogo';
 import { SloganSVG } from '../../components/SloganSVG';
-import { colors } from '../../lib/theme';
+import { colors, fonts } from '../../lib/theme';
 
 // expo-speech-recognition requires a dev build — safely handle Expo Go
 let SpeechModule: any = null;
@@ -255,6 +255,7 @@ export default function CaptureScreen() {
         <KeyboardAvoidingView
           style={styles.container}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
         >
           {mode === 'voice' ? (
             <View style={styles.voiceContainer}>
@@ -534,6 +535,7 @@ const styles = StyleSheet.create({
   },
   transcriptText: {
     fontSize: 15,
+    fontFamily: fonts.geist.regular,
     color: colors.foreground,
     lineHeight: 22,
     textAlign: 'center',
@@ -613,7 +615,7 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 16,
     color: colors.muted,
-    fontWeight: '500',
+    fontFamily: fonts.outfit.medium,
     marginBottom: 4,
   },
   prompt: {
@@ -636,6 +638,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     fontSize: 16,
+    fontFamily: fonts.geist.regular,
     color: colors.foreground,
     lineHeight: 24,
     minHeight: 100,

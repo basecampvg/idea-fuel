@@ -9,13 +9,34 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import { Lock, LogOut, ChevronRight } from 'lucide-react-native';
-import { trpc } from '../../lib/trpc';
-import { useAuth } from '../../contexts/AuthContext';
-import { colors } from '../../lib/theme';
+import { Lock, LogOut, ChevronRight, Crown } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { trpc } from '../../../lib/trpc';
+import { useAuth } from '../../../contexts/AuthContext';
+import { Badge } from '../../../components/ui/Badge';
+import { colors, fonts } from '../../../lib/theme';
+
+const TIER_LABELS: Record<string, string> = {
+  FREE: 'Free',
+  MOBILE: 'Mobile',
+  PRO: 'Pro',
+  ENTERPRISE: 'Enterprise',
+  SCALE: 'Scale',
+  TESTER: 'Tester',
+};
+
+const TIER_BADGE_VARIANT: Record<string, 'default' | 'success' | 'primary' | 'accent' | 'info' | 'warning'> = {
+  FREE: 'default',
+  MOBILE: 'primary',
+  PRO: 'accent',
+  ENTERPRISE: 'info',
+  SCALE: 'warning',
+  TESTER: 'success',
+};
 
 export default function SettingsScreen() {
   const { signOut, refreshUser } = useAuth();
+  const router = useRouter();
   const [name, setName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [nameFocused, setNameFocused] = useState(false);
@@ -146,6 +167,32 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Subscription Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Subscription</Text>
+
+          <View style={styles.card}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push('/(tabs)/settings/plans' as any)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.menuIconContainer, { backgroundColor: colors.brandMuted }]}>
+                <Crown size={20} color={colors.brand} />
+              </View>
+              <View style={styles.menuContent}>
+                <Text style={styles.menuTitle}>Manage Plan</Text>
+                <View style={styles.planBadgeRow}>
+                  <Badge variant={TIER_BADGE_VARIANT[user?.subscription ?? 'FREE'] || 'default'}>
+                    {TIER_LABELS[user?.subscription ?? 'FREE'] || 'Free'}
+                  </Badge>
+                </View>
+              </View>
+              <ChevronRight size={20} color={colors.muted} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Account Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
@@ -214,7 +261,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 28,
-    fontWeight: '700',
+    fontFamily: fonts.outfit.bold,
     color: colors.foreground,
     letterSpacing: -0.5,
   },
@@ -259,7 +306,7 @@ const styles = StyleSheet.create({
   },
   profileName: {
     fontSize: 17,
-    fontWeight: '600',
+    fontFamily: fonts.outfit.semiBold,
     color: colors.foreground,
     marginBottom: 2,
   },
@@ -354,6 +401,10 @@ const styles = StyleSheet.create({
   menuSubtitle: {
     fontSize: 13,
     color: colors.muted,
+  },
+  planBadgeRow: {
+    flexDirection: 'row',
+    marginTop: 2,
   },
   footer: {
     alignItems: 'center',

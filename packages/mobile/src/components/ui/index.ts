@@ -4,6 +4,7 @@ export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 export { Badge, StatusDot } from './Badge';
 export { Spinner, LoadingScreen, ThinkingIndicator } from './Spinner';
 export { EmptyState } from './EmptyState';
+export { IdeaCard } from './IdeaCard';
 export { GlobalHeader } from './GlobalHeader';
 export { CollapsibleSection } from './CollapsibleSection';
 export { ProgressMeter, ConfidenceDots } from './ProgressMeter';

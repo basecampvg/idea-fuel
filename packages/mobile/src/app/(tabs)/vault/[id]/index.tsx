@@ -10,13 +10,13 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { CloudUpload, CheckCircle, AlertCircle, ChevronLeft, Trash2 } from 'lucide-react-native';
+import { CloudUpload, CheckCircle, AlertCircle, ChevronLeft, Trash2, Zap, CreditCard } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
-import { triggerHaptic } from '../../../../components/ui/Button';
+import { Button, triggerHaptic } from '../../../../components/ui/Button';
 import { MarkdownEditor, type MarkdownEditorRef } from '../../../../components/editor/MarkdownEditor';
 import { useAutoSave, type SaveStatus } from '../../../../hooks/useAutoSave';
 import { trpc } from '../../../../lib/trpc';
-import { colors } from '../../../../lib/theme';
+import { colors, fonts } from '../../../../lib/theme';
 
 function SaveIndicator({ status }: { status: SaveStatus }) {
   if (status === 'idle') return null;
@@ -166,6 +166,7 @@ export default function NotebookScreen() {
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
         {/* Header */}
         <View style={styles.header}>
@@ -202,6 +203,34 @@ export default function NotebookScreen() {
             <Text style={styles.description} numberOfLines={3}>
               {project.description}
             </Text>
+          )}
+        </View>
+
+        {/* Quick Validate / View Card */}
+        <View style={styles.validateSection}>
+          {project.cardResult ? (
+            <Button
+              variant="accent"
+              size="md"
+              onPress={() => router.push(`/(tabs)/vault/${id}/card` as any)}
+              leftIcon={<CreditCard size={18} color={colors.white} />}
+              style={styles.validateButton}
+            >
+              View Card
+            </Button>
+          ) : (
+            <TouchableOpacity
+              onPress={() => router.push(`/(tabs)/vault/${id}/validate` as any)}
+              disabled={title.trim().length < 3}
+              activeOpacity={0.85}
+              style={[
+                styles.quickValidateButton,
+                title.trim().length < 3 && styles.quickValidateButtonDisabled,
+              ]}
+            >
+              <Zap size={20} color={colors.white} />
+              <Text style={styles.quickValidateText}>Quick Validate</Text>
+            </TouchableOpacity>
           )}
         </View>
 
@@ -283,7 +312,7 @@ const styles = StyleSheet.create({
   },
   titleInput: {
     fontSize: 24,
-    fontWeight: '700',
+    fontFamily: fonts.outfit.bold,
     color: colors.foreground,
     letterSpacing: -0.3,
     padding: 0,
@@ -291,9 +320,35 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
+    fontFamily: fonts.geist.regular,
     color: colors.mutedDim,
     lineHeight: 20,
     marginTop: 8,
+  },
+  validateSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
+  validateButton: {
+    width: '100%',
+  },
+  quickValidateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#E8421A',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+  },
+  quickValidateButtonDisabled: {
+    opacity: 0.4,
+  },
+  quickValidateText: {
+    fontSize: 16,
+    fontFamily: fonts.outfit.semiBold,
+    color: colors.white,
   },
   divider: {
     height: 1,

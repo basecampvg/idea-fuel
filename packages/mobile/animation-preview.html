@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IdeaFuel Mobile Animation Preview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #161513;
+    --card: #1A1918;
+    --surface: #1E1D1B;
+    --border: #2A2A2A;
+    --fg: #E8E4DC;
+    --muted: #8A8680;
+    --muted-dim: #555555;
+    --brand: #E32B1A;
+    --brand-bright: #E8421A;
+    --brand-muted: rgba(227, 43, 26, 0.15);
+    --brand-glow: rgba(227, 43, 26, 0.4);
+    --accent: #14B8A6;
+    --success: #22C55E;
+    --warning: #F59E0B;
+    --destructive: #EF4444;
+  }
+
+  body {
+    background: #0a0a0a;
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', sans-serif;
+    display: flex;
+    gap: 40px;
+    padding: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  h1 {
+    width: 100%;
+    text-align: center;
+    font-size: 14px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0;
+  }
+  h1 span { color: var(--brand); }
+
+  .section-label {
+    width: 100%;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted-dim);
+    margin-top: 20px;
+    margin-bottom: -20px;
+  }
+
+  /* Phone frame */
+  .phone {
+    width: 375px;
+    height: 720px;
+    background: var(--bg);
+    border-radius: 40px;
+    overflow: hidden;
+    border: 2px solid var(--border);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .phone-content {
+    padding: 60px 0 0;
+    height: 100%;
+    overflow-y: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .phone-content::-webkit-scrollbar { display: none; }
+
+  .phone-header {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    background: var(--bg);
+    padding: 16px 20px 10px;
+    z-index: 10;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 3px;
+    font-weight: 600;
+  }
+  .phone-header .idea { color: #BCBCBC; }
+  .phone-header .fuel { color: var(--brand); }
+
+  .replay-btn {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 20;
+    font-family: inherit;
+  }
+  .replay-btn:hover { color: var(--fg); border-color: var(--muted); }
+
+  .phone-label {
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted-dim);
+    margin-top: 10px;
+    letter-spacing: 1px;
+  }
+
+  /* =========================================
+     1. VAULT LIST — Staggered fade-in
+     ========================================= */
+  .vault-item {
+    margin: 10px 16px;
+    background: var(--card);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    opacity: 0;
+    transform: translateY(20px);
+    overflow: hidden;
+  }
+  .vault-item.animate {
+    animation: fadeSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  .vault-item .card-top {
+    padding: 16px 16px 12px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .vault-item .card-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: var(--brand-muted);
+    color: var(--brand);
+  }
+  .vault-item .card-icon.validated {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--success);
+  }
+  .vault-item .card-icon.watchlist-icon {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning);
+  }
+  .vault-item .card-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .vault-item .card-text {
+    flex: 1;
+    min-width: 0;
+  }
+  .vault-item .title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .vault-item .desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .vault-item .card-stats {
+    display: flex;
+    border-top: 1px solid var(--border);
+  }
+  .vault-item .stat {
+    flex: 1;
+    padding: 10px 14px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+  }
+  .vault-item .stat:last-child {
+    border-right: none;
+  }
+  .vault-item .stat-val {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--fg);
+  }
+  .vault-item .stat-val.rising { color: var(--success); }
+  .vault-item .stat-val.watchlist { color: var(--warning); }
+  .vault-item .stat-val.drop { color: var(--destructive); }
+  .vault-item .stat-lbl {
+    font-size: 10px;
+    color: var(--muted-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+  }
+  .vault-item .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px 12px;
+    font-size: 12px;
+    color: var(--muted-dim);
+  }
+  .vault-item .badge {
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .vault-item .badge.draft {
+    background: var(--brand-muted);
+    color: var(--brand);
+  }
+  .vault-item .badge.validated {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--success);
+  }
+  .vault-item .badge.watchlist {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning);
+  }
+  /* Validated card has a subtle left accent */
+  .vault-item.has-result {
+    border-left: 3px solid var(--success);
+  }
+  .vault-item.has-result.result-watchlist {
+    border-left-color: var(--warning);
+  }
+  .vault-item.has-result.result-drop {
+    border-left-color: var(--destructive);
+  }
+
+  @keyframes fadeSlideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* =========================================
+     2. CHAT BUBBLES — Slide in from sides
+     ========================================= */
+  .chat-area {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .bubble {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.5;
+    opacity: 0;
+  }
+  .bubble.assistant {
+    background: var(--surface);
+    color: var(--fg);
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    transform: translateX(-30px);
+  }
+  .bubble.user {
+    background: var(--brand);
+    color: #fff;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+    transform: translateX(30px);
+  }
+  .bubble.animate.assistant {
+    animation: slideFromLeft 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  .bubble.animate.user {
+    animation: slideFromRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  @keyframes slideFromLeft {
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes slideFromRight {
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Typing indicator */
+  .typing {
+    display: flex;
+    gap: 4px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-radius: 18px;
+    border-bottom-left-radius: 4px;
+    align-self: flex-start;
+    opacity: 0;
+  }
+  .typing.animate {
+    animation: fadeIn 0.3s ease forwards;
+  }
+  .typing .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+    animation: typingBounce 1.2s ease-in-out infinite;
+  }
+  .typing .dot:nth-child(2) { animation-delay: 0.15s; }
+  .typing .dot:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-6px); opacity: 1; }
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  /* Turn dots */
+  .turn-progress {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+  }
+  .turn-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .turn-dot.active {
+    background: var(--brand);
+    transform: scale(1.3);
+  }
+  .turn-label {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted-dim);
+  }
+
+  /* =========================================
+     3. VALIDATION CARD — Sequential reveal
+     ========================================= */
+  .card-section {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  .card-section.animate {
+    animation: fadeSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  .verdict-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .verdict-badge.proceed {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--success);
+  }
+  .verdict-badge.watchlist {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning);
+  }
+  .verdict-badge.drop {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--destructive);
+  }
+  .verdict-badge.animate-badge {
+    animation: badgePop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  @keyframes badgePop {
+    0% { opacity: 0; transform: scale(0.3); }
+    50% { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  .card-container {
+    margin: 0 16px;
+    padding: 20px;
+    background: var(--card);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+  }
+  .card-summary {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--fg);
+    margin: 16px 0;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .stat-box {
+    flex: 1;
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .stat-value { font-size: 16px; font-weight: 600; }
+  .severity-dots {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    margin-top: 6px;
+  }
+  .severity-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.3s ease;
+  }
+  .severity-dot.filled { background: var(--warning); }
+  .severity-dot.animate-dot {
+    animation: dotPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  @keyframes dotPop {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+  }
+
+  .signal-icon { font-size: 20px; }
+  .signal-rising { color: var(--success); }
+  .signal-flat { color: var(--warning); }
+  .signal-declining { color: var(--destructive); }
+
+  .tam-section {
+    margin: 16px 0;
+    padding: 14px;
+    background: var(--surface);
+    border-radius: 12px;
+  }
+  .tam-range {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--fg);
+  }
+  .tam-basis {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .tam-label {
+    font-size: 11px;
+    color: var(--muted-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+
+  .competitor-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--surface);
+    border-radius: 10px;
+    margin: 6px 0;
+  }
+  .competitor-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .competitor-name { font-size: 14px; font-weight: 600; }
+  .competitor-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .callout {
+    padding: 14px;
+    border-radius: 12px;
+    margin: 8px 0;
+    border-left: 3px solid;
+  }
+  .callout.risk {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: var(--destructive);
+  }
+  .callout.experiment {
+    background: rgba(20, 184, 166, 0.08);
+    border-color: var(--accent);
+  }
+  .callout-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .callout.risk .callout-label { color: var(--destructive); }
+  .callout.experiment .callout-label { color: var(--accent); }
+  .callout-text { font-size: 13px; line-height: 1.5; color: var(--fg); }
+
+  .section-title {
+    font-size: 12px;
+    color: var(--muted-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 16px 0 8px;
+    font-weight: 600;
+  }
+
+  /* CTA Button */
+  .cta-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: calc(100% - 32px);
+    margin: 20px 16px;
+    padding: 16px;
+    background: var(--brand-bright);
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* =========================================
+     4. QUICK VALIDATE BUTTON — Pulse
+     ========================================= */
+  .validate-btn {
+    margin: 12px 20px;
+    padding: 14px;
+    background: var(--brand-bright);
+    border-radius: 16px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .validate-btn .pulse-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    border: 2px solid var(--brand);
+    animation: pulseRing 2s ease-in-out infinite;
+  }
+  @keyframes pulseRing {
+    0% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 0; transform: scale(1.05); }
+    100% { opacity: 0; transform: scale(1.05); }
+  }
+
+  .validate-btn .shimmer {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+    animation: shimmerSlide 3s ease-in-out infinite;
+  }
+  @keyframes shimmerSlide {
+    0% { left: -100%; }
+    40% { left: 100%; }
+    100% { left: 100%; }
+  }
+
+  /* =========================================
+     5. LOADING STATE — Pulsing rings
+     ========================================= */
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 24px;
+    padding: 40px;
+  }
+  .loading-rings {
+    position: relative;
+    width: 100px;
+    height: 100px;
+  }
+  .loading-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--brand);
+    animation: ringPulse 2s ease-out infinite;
+  }
+  .loading-ring:nth-child(2) { animation-delay: 0.4s; }
+  .loading-ring:nth-child(3) { animation-delay: 0.8s; }
+  @keyframes ringPulse {
+    0% { transform: scale(0.5); opacity: 0.8; }
+    100% { transform: scale(1.5); opacity: 0; }
+  }
+  .loading-core {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--brand);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    animation: corePulse 2s ease-in-out infinite;
+  }
+  @keyframes corePulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.1); }
+  }
+  .loading-status {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--fg);
+    text-align: center;
+    min-height: 24px;
+  }
+  .loading-status .text-fade {
+    animation: textFade 0.5s ease forwards;
+  }
+  @keyframes textFade {
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .loading-sub {
+    font-size: 13px;
+    color: var(--muted-dim);
+  }
+</style>
+</head>
+<body>
+
+<h1>IDEA <span>FUEL</span> &mdash; Animation Preview</h1>
+
+<!-- ============ VAULT LIST ============ -->
+<p class="section-label">Vault List &mdash; Staggered Entry</p>
+<div class="phone" id="vault-phone">
+  <div class="phone-header">
+    <span class="idea">IDEA </span><span class="fuel">FUEL</span>
+  </div>
+  <button class="replay-btn" onclick="replayVault()">Replay</button>
+  <div class="phone-content" style="padding-top: 50px;">
+    <div class="vault-item" data-delay="0">
+      <div class="card-top">
+        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg></div>
+        <div class="card-text">
+          <div class="title">PetConnect - AI Pet Health</div>
+          <div class="desc">A wearable device and mobile app that monitors pet vital signs in real-time, using AI to detect early signs of illness.</div>
+        </div>
+      </div>
+      <div class="footer"><span>2m ago</span><span class="badge draft">Draft</span></div>
+    </div>
+
+    <div class="vault-item has-result" data-delay="1">
+      <div class="card-top">
+        <div class="card-icon validated"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z"/><path d="m9 12 2 2 4-4" stroke="#fff" fill="none"/></svg></div>
+        <div class="card-text">
+          <div class="title">MealPrep AI</div>
+          <div class="desc">Personalized weekly meal plans generated from your fridge contents, dietary goals, and local grocery deals.</div>
+        </div>
+      </div>
+      <div class="card-stats">
+        <div class="stat">
+          <div class="stat-val rising">Proceed</div>
+          <div class="stat-lbl">Verdict</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">4/5</div>
+          <div class="stat-lbl">Problem</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val rising">Rising</div>
+          <div class="stat-lbl">Market</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">$1.2B</div>
+          <div class="stat-lbl">TAM</div>
+        </div>
+      </div>
+      <div class="footer"><span>1h ago</span><span class="badge validated">Validated</span></div>
+    </div>
+
+    <div class="vault-item has-result result-watchlist" data-delay="2">
+      <div class="card-top">
+        <div class="card-icon watchlist-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+        <div class="card-text">
+          <div class="title">FreelanceFlow</div>
+          <div class="desc">All-in-one invoicing, time tracking, and client management for solo freelancers.</div>
+        </div>
+      </div>
+      <div class="card-stats">
+        <div class="stat">
+          <div class="stat-val watchlist">Watchlist</div>
+          <div class="stat-lbl">Verdict</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">3/5</div>
+          <div class="stat-lbl">Problem</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" style="color: var(--muted);">Flat</div>
+          <div class="stat-lbl">Market</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">$680M</div>
+          <div class="stat-lbl">TAM</div>
+        </div>
+      </div>
+      <div class="footer"><span>3h ago</span><span class="badge watchlist">Watchlist</span></div>
+    </div>
+
+    <div class="vault-item" data-delay="3">
+      <div class="card-top">
+        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg></div>
+        <div class="card-text">
+          <div class="title">GreenRoute</div>
+          <div class="desc">Carbon-optimized delivery routing for e-commerce. Same-day delivery with 40% lower emissions.</div>
+        </div>
+      </div>
+      <div class="footer"><span>1d ago</span><span class="badge draft">Draft</span></div>
+    </div>
+
+    <div class="vault-item" data-delay="4">
+      <div class="card-top">
+        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg></div>
+        <div class="card-text">
+          <div class="title">StudyBuddy</div>
+          <div class="desc">AI tutor that creates practice exams from your lecture notes and textbook highlights.</div>
+        </div>
+      </div>
+      <div class="footer"><span>2d ago</span><span class="badge draft">Draft</span></div>
+    </div>
+  </div>
+  <p class="phone-label">Staggered fade + slide up with spring</p>
+</div>
+
+<!-- ============ CHAT ============ -->
+<p class="section-label">Chat &mdash; Bubble Slide-In + Typing Indicator</p>
+<div class="phone" id="chat-phone">
+  <div class="phone-header">
+    <span class="idea">IDEA </span><span class="fuel">FUEL</span>
+  </div>
+  <button class="replay-btn" onclick="replayChat()">Replay</button>
+  <div class="phone-content" style="padding-top: 50px;">
+    <div class="turn-progress">
+      <div class="turn-dot" id="dot0"></div>
+      <div class="turn-dot" id="dot1"></div>
+      <div class="turn-dot" id="dot2"></div>
+    </div>
+    <div class="turn-label" id="turnLabel">1 of 3 questions</div>
+    <div class="chat-area" id="chatArea">
+      <!-- Bubbles injected by JS -->
+    </div>
+  </div>
+  <p class="phone-label">Spring slide from left/right + typing dots</p>
+</div>
+
+<!-- ============ LOADING ============ -->
+<p class="section-label">Validation Loading &mdash; Pulsing Rings + Text Crossfade</p>
+<div class="phone" id="loading-phone">
+  <div class="phone-header">
+    <span class="idea">IDEA </span><span class="fuel">FUEL</span>
+  </div>
+  <button class="replay-btn" onclick="replayLoading()">Replay</button>
+  <div class="phone-content">
+    <div class="loading-container">
+      <div class="loading-rings">
+        <div class="loading-ring"></div>
+        <div class="loading-ring"></div>
+        <div class="loading-ring"></div>
+        <div class="loading-core"><svg viewBox="0 0 24 24" width="22" height="22" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      </div>
+      <div class="loading-status" id="loadingStatus">Researching your market...</div>
+      <div class="loading-sub">This can take 30-60 seconds</div>
+    </div>
+  </div>
+  <p class="phone-label">Pulsing rings + crossfading status text</p>
+</div>
+
+<!-- ============ VALIDATION CARD ============ -->
+<p class="section-label">Validation Card &mdash; Sequential Section Reveal</p>
+<div class="phone" id="card-phone">
+  <div class="phone-header">
+    <span class="idea">IDEA </span><span class="fuel">FUEL</span>
+  </div>
+  <button class="replay-btn" onclick="replayCard()">Replay</button>
+  <div class="phone-content" style="padding-top: 50px;">
+    <div class="card-container">
+      <!-- Verdict -->
+      <div class="card-section" data-card-delay="0" style="text-align: center;">
+        <div class="verdict-badge proceed" id="verdictBadge"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M20 6 9 17l-5-5"/></svg> PROCEED</div>
+      </div>
+
+      <!-- Summary -->
+      <div class="card-section" data-card-delay="1">
+        <div class="card-summary">Strong demand signal in the pet health monitoring space. Growing market with clear pain points around early illness detection and preventive care costs.</div>
+      </div>
+
+      <!-- Stats -->
+      <div class="card-section" data-card-delay="2">
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="stat-label">Problem</div>
+            <div class="stat-value">4/5</div>
+            <div class="severity-dots">
+              <div class="severity-dot filled" data-dot-delay="0"></div>
+              <div class="severity-dot filled" data-dot-delay="1"></div>
+              <div class="severity-dot filled" data-dot-delay="2"></div>
+              <div class="severity-dot filled" data-dot-delay="3"></div>
+              <div class="severity-dot" data-dot-delay="4"></div>
+            </div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Market</div>
+            <div class="signal-icon signal-rising">&#8599;</div>
+            <div class="stat-value signal-rising" style="font-size:14px;">Rising</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAM -->
+      <div class="card-section" data-card-delay="3">
+        <div class="tam-section">
+          <div class="tam-label">Total Addressable Market</div>
+          <div class="tam-range">$2.8B &mdash; $4.5B</div>
+          <div class="tam-basis">Based on 85M US pet owners, 12% adoption at $35/mo avg</div>
+        </div>
+      </div>
+
+      <!-- Competitors -->
+      <div class="card-section" data-card-delay="4">
+        <div class="section-title">Competitors</div>
+        <div class="competitor-item">
+          <div class="competitor-avatar">W</div>
+          <div>
+            <div class="competitor-name">Whistle</div>
+            <div class="competitor-desc">GPS + health tracking collar, $150M+ revenue</div>
+          </div>
+        </div>
+        <div class="competitor-item">
+          <div class="competitor-avatar">F</div>
+          <div>
+            <div class="competitor-name">FitBark</div>
+            <div class="competitor-desc">Activity & sleep monitor for dogs, 500K+ users</div>
+          </div>
+        </div>
+        <div class="competitor-item">
+          <div class="competitor-avatar">P</div>
+          <div>
+            <div class="competitor-name">PetPace</div>
+            <div class="competitor-desc">Clinical-grade vitals collar, vet-focused</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Risk -->
+      <div class="card-section" data-card-delay="5">
+        <div class="callout risk">
+          <div class="callout-label"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-right:4px;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Biggest Risk</div>
+          <div class="callout-text">Whistle (owned by Mars Petcare) could add AI diagnostics to their existing 1M+ device install base faster than a startup can acquire users.</div>
+        </div>
+      </div>
+
+      <!-- Next Experiment -->
+      <div class="card-section" data-card-delay="6">
+        <div class="callout experiment">
+          <div class="callout-label"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-right:4px;"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>Next Experiment</div>
+          <div class="callout-text">Post on r/dogs and r/pets: "Would you pay $30/mo for an AI that detects your pet's illness early?" Track upvotes and DM requests over 48 hours. 50+ DMs = strong signal.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="card-section" data-card-delay="7">
+      <button class="cta-btn"><svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-3px;"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg> Unlock Full Research</button>
+    </div>
+  </div>
+  <p class="phone-label">Each section fades in sequentially with spring</p>
+</div>
+
+<!-- ============ DETAIL + PULSE BUTTON ============ -->
+<p class="section-label">Detail Screen &mdash; Button Pulse + Shimmer</p>
+<div class="phone" id="detail-phone">
+  <div class="phone-header">
+    <span class="idea">IDEA </span><span class="fuel">FUEL</span>
+  </div>
+  <div class="phone-content" style="padding-top: 50px;">
+    <div style="padding: 16px 20px;">
+      <div style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">PetConnect - AI Pet Health</div>
+      <div style="font-size: 14px; color: var(--muted); line-height: 1.5; margin-bottom: 4px;">A wearable device and mobile app that monitors pet vital signs in real-time, using AI to detect early signs of illness and alerting owners before conditions become serious.</div>
+    </div>
+    <div class="validate-btn">
+      <div class="pulse-ring"></div>
+      <div class="shimmer"></div>
+      <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg> Quick Validate
+    </div>
+    <div style="height: 1px; background: var(--border); margin: 0 20px;"></div>
+    <div style="padding: 20px; color: var(--muted-dim); font-size: 14px;">Start writing...</div>
+  </div>
+  <p class="phone-label">Subtle pulse ring + shimmer draws the eye</p>
+</div>
+
+<script>
+  // ========== VAULT ==========
+  function replayVault() {
+    const items = document.querySelectorAll('#vault-phone .vault-item');
+    items.forEach(el => { el.classList.remove('animate'); el.style.animationDelay = ''; });
+    requestAnimationFrame(() => {
+      items.forEach((el, i) => {
+        el.style.animationDelay = `${i * 80}ms`;
+        el.classList.add('animate');
+      });
+    });
+  }
+  setTimeout(replayVault, 500);
+
+  // ========== CHAT ==========
+  const chatScript = [
+    { role: 'assistant', text: 'What problem are you solving, and what happens if it stays unsolved?', dot: 0 },
+    { role: 'user', text: 'Pet owners can\'t tell when their animals are sick until it\'s too late. Vet bills skyrocket because everything becomes an emergency.' },
+    { role: 'assistant', text: 'Who has this problem today, and how are they currently dealing with it?', dot: 1 },
+    { role: 'user', text: 'Dog and cat owners, especially millennials who treat pets like family. They Google symptoms or wait for annual vet visits.' },
+    { role: 'assistant', text: 'How will this make money? (e.g., subscription, one-time purchase, marketplace, ads)', dot: 2 },
+    { role: 'user', text: '$149 device + $29/mo subscription for AI monitoring and vet telehealth.' },
+  ];
+
+  let chatTimeout;
+  function replayChat() {
+    clearTimeout(chatTimeout);
+    const area = document.getElementById('chatArea');
+    area.innerHTML = '';
+    document.querySelectorAll('.turn-dot').forEach(d => d.classList.remove('active'));
+    document.getElementById('turnLabel').textContent = '1 of 3 questions';
+
+    let delay = 300;
+    chatScript.forEach((msg, i) => {
+      // Show typing indicator before assistant messages
+      if (msg.role === 'assistant') {
+        chatTimeout = setTimeout(() => {
+          const typing = document.createElement('div');
+          typing.className = 'typing';
+          typing.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+          area.appendChild(typing);
+          requestAnimationFrame(() => typing.classList.add('animate'));
+          area.scrollTop = area.scrollHeight;
+        }, delay);
+        delay += 800;
+      }
+
+      chatTimeout = setTimeout(() => {
+        // Remove typing indicator
+        const typing = area.querySelector('.typing');
+        if (typing) typing.remove();
+
+        const bubble = document.createElement('div');
+        bubble.className = `bubble ${msg.role}`;
+        bubble.textContent = msg.text;
+        area.appendChild(bubble);
+        requestAnimationFrame(() => bubble.classList.add('animate'));
+        area.scrollTop = area.scrollHeight;
+
+        if (msg.dot !== undefined) {
+          document.getElementById('dot' + msg.dot).classList.add('active');
+          document.getElementById('turnLabel').textContent = `${msg.dot + 1} of 3 questions`;
+        }
+      }, delay);
+      delay += msg.role === 'user' ? 1200 : 600;
+    });
+  }
+  setTimeout(replayChat, 800);
+
+  // ========== LOADING ==========
+  const loadingMessages = [
+    'Researching your market...',
+    'Analyzing competitors...',
+    'Estimating market size...',
+    'Identifying risks...',
+    'Building your card...',
+  ];
+  let loadingIdx = 0;
+  let loadingInterval;
+
+  function replayLoading() {
+    clearInterval(loadingInterval);
+    loadingIdx = 0;
+    const el = document.getElementById('loadingStatus');
+    el.innerHTML = `<span class="text-fade">${loadingMessages[0]}</span>`;
+    loadingInterval = setInterval(() => {
+      loadingIdx = (loadingIdx + 1) % loadingMessages.length;
+      el.innerHTML = `<span class="text-fade">${loadingMessages[loadingIdx]}</span>`;
+    }, 2500);
+  }
+  setTimeout(replayLoading, 500);
+
+  // ========== CARD ==========
+  function replayCard() {
+    const sections = document.querySelectorAll('#card-phone .card-section');
+    const badge = document.getElementById('verdictBadge');
+    const dots = document.querySelectorAll('#card-phone .severity-dot.filled');
+
+    sections.forEach(el => { el.classList.remove('animate'); el.style.animationDelay = ''; });
+    badge.classList.remove('animate-badge');
+    dots.forEach(el => { el.classList.remove('animate-dot'); el.style.animationDelay = ''; });
+
+    requestAnimationFrame(() => {
+      sections.forEach((el, i) => {
+        const delay = i * 200;
+        el.style.animationDelay = `${delay}ms`;
+        el.classList.add('animate');
+      });
+
+      // Badge pop
+      setTimeout(() => badge.classList.add('animate-badge'), 100);
+
+      // Severity dots
+      dots.forEach((dot, i) => {
+        dot.style.animationDelay = `${600 + i * 100}ms`;
+        dot.classList.add('animate-dot');
+      });
+    });
+  }
+  setTimeout(replayCard, 600);
+</script>
+
+</body>
+</html>

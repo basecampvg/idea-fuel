@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, X, Crown, Sparkles, Building2, FlaskConical } from 'lucide-react';
+import { Check, X, Crown, Sparkles, Building2, FlaskConical, Smartphone, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { SubscriptionTier } from '@forge/shared';
@@ -25,6 +25,8 @@ const tierIcons: Record<SubscriptionTier, typeof Sparkles> = {
   PRO: Crown,
   ENTERPRISE: Building2,
   TESTER: FlaskConical,
+  MOBILE: Smartphone,
+  SCALE: Rocket,
 };
 
 const tierColors: Record<SubscriptionTier, { icon: string; border: string; glow: string }> = {
@@ -47,6 +49,16 @@ const tierColors: Record<SubscriptionTier, { icon: string; border: string; glow:
     icon: 'text-emerald-500',
     border: 'border-emerald-500/40',
     glow: 'shadow-[0_0_30px_rgba(16,185,129,0.15)]',
+  },
+  MOBILE: {
+    icon: 'text-blue-500',
+    border: 'border-blue-500/40',
+    glow: 'shadow-[0_0_30px_rgba(59,130,246,0.15)]',
+  },
+  SCALE: {
+    icon: 'text-violet-500',
+    border: 'border-violet-500/40',
+    glow: 'shadow-[0_0_30px_rgba(139,92,246,0.15)]',
   },
 };
 

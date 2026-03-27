@@ -20,7 +20,7 @@ import { relations, sql } from 'drizzle-orm';
 // ENUMS
 // =============================================================================
 
-export const subscriptionTierEnum = pgEnum('SubscriptionTier', ['FREE', 'PRO', 'ENTERPRISE', 'TESTER']);
+export const subscriptionTierEnum = pgEnum('SubscriptionTier', ['FREE', 'PRO', 'ENTERPRISE', 'TESTER', 'MOBILE', 'SCALE']);
 export const userRoleEnum = pgEnum('UserRole', ['USER', 'EDITOR', 'ADMIN', 'SUPER_ADMIN']);
 export const projectStatusEnum = pgEnum('ProjectStatus', ['CAPTURED', 'INTERVIEWING', 'RESEARCHING', 'COMPLETE']);
 export const interviewModeEnum = pgEnum('InterviewMode', ['SPARK', 'LIGHT', 'IN_DEPTH']);
@@ -127,6 +127,10 @@ export const users = pgTable('User', {
   stripeSubscriptionId: text('stripe_subscription_id'),
   stripePriceId: text('stripe_price_id'),
   stripeCurrentPeriodEnd: timestamp('stripe_current_period_end', { precision: 3, mode: 'date' }),
+  // Mobile quick validation card fields
+  freeCardUsed: boolean('free_card_used').default(false).notNull(),
+  mobileCardCount: integer('mobile_card_count').default(0).notNull(),
+  mobileCardResetAt: timestamp('mobile_card_reset_at', { precision: 3, mode: 'date' }),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
 }, (table) => [
@@ -189,6 +193,10 @@ export const projects = pgTable('Project', {
   notes: text(),
   status: projectStatusEnum().default('CAPTURED').notNull(),
   userId: text().notNull(),
+  // Mobile quick validation card fields
+  promoted: boolean().default(false).notNull(),
+  promotedAt: timestamp('promoted_at', { precision: 3, mode: 'date' }),
+  cardResult: jsonb('card_result'),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
 }, (table) => [
@@ -200,6 +208,36 @@ export const projects = pgTable('Project', {
     foreignColumns: [users.id],
     name: 'Project_userId_fkey',
   }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
+// NOTES (Brain Dump + AI Refinement)
+// =============================================================================
+
+export const notes = pgTable('Note', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  content: text().default('').notNull(),
+  refinedTitle: text('refined_title'),
+  refinedDescription: text('refined_description'),
+  refinedTags: jsonb('refined_tags').$type<string[]>(),
+  lastRefinedAt: timestamp('last_refined_at', { precision: 3, mode: 'date' }),
+  promotedProjectId: text('promoted_project_id'),
+  userId: text().notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+}, (table) => [
+  index('Note_userId_idx').using('btree', table.userId.asc().nullsLast()),
+  index('Note_userId_updatedAt_idx').using('btree', table.userId.asc(), table.updatedAt.desc().nullsLast()),
+  foreignKey({
+    columns: [table.userId],
+    foreignColumns: [users.id],
+    name: 'Note_userId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+  foreignKey({
+    columns: [table.promotedProjectId],
+    foreignColumns: [projects.id],
+    name: 'Note_promotedProjectId_fkey',
+  }).onUpdate('cascade').onDelete('set null'),
 ]);
 
 // =============================================================================
@@ -1039,6 +1077,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   agentInsights: many(agentInsights),
   financialModels: many(financialModels),
   erpConnections: many(erpConnections),
+  notes: many(notes),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -1059,6 +1098,12 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   agentInsights: many(agentInsights),
   embeddings: many(embeddings),
   financialModels: many(financialModels),
+  promotedNotes: many(notes),
+}));
+
+export const notesRelations = relations(notes, ({ one }) => ({
+  user: one(users, { fields: [notes.userId], references: [users.id] }),
+  promotedProject: one(projects, { fields: [notes.promotedProjectId], references: [projects.id] }),
 }));
 
 export const interviewsRelations = relations(interviews, ({ one }) => ({
