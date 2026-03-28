@@ -21,7 +21,8 @@
       },
       "infoPlist": {
         "NSSpeechRecognitionUsageDescription": "Idea Fuel needs speech recognition to transcribe your spoken ideas.",
-        "NSMicrophoneUsageDescription": "Idea Fuel needs your microphone to capture ideas by voice."
+        "NSMicrophoneUsageDescription": "Idea Fuel needs your microphone to capture ideas by voice.",
+        "NSPhotoLibraryUsageDescription": "Idea Fuel needs access to your photo library to let you add images to your ideas."
       }
     },
     "android": {
