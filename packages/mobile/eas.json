@@ -4,7 +4,18 @@
     "appVersionSource": "remote"
   },
   "build": {
+    "base": {
+      "node": "20.18.0",
+      "pnpm": {
+        "version": "9.15.0"
+      },
+      "env": {
+        "NPM_CONFIG_SHAMEFULLY_HOIST": "true",
+        "NPM_CONFIG_NODE_LINKER": "hoisted"
+      }
+    },
     "development": {
+      "extends": "base",
       "developmentClient": true,
       "distribution": "internal",
       "ios": {
@@ -12,13 +23,33 @@
       }
     },
     "preview": {
-      "distribution": "internal"
+      "extends": "base",
+      "distribution": "internal",
+      "autoIncrement": true
+    },
+    "testflight": {
+      "extends": "base",
+      "distribution": "store",
+      "autoIncrement": true,
+      "channel": "testflight"
     },
     "production": {
-      "autoIncrement": true
+      "extends": "base",
+      "distribution": "store",
+      "autoIncrement": true,
+      "channel": "production"
     }
   },
   "submit": {
-    "production": {}
+    "testflight": {
+      "ios": {
+        "ascAppId": "6761184838"
+      }
+    },
+    "production": {
+      "ios": {
+        "ascAppId": "6761184838"
+      }
+    }
   }
 }
