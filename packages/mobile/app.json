@@ -33,7 +33,6 @@
       "package": "com.ideafuel.mobile",
       "usesCleartextTraffic": true,
       "permissions": [
-        "android.permission.RECORD_AUDIO",
         "android.permission.RECORD_AUDIO"
       ]
     },
@@ -69,12 +68,6 @@
         "projectId": "04c6955c-0463-430f-ba65-5f1933a7f9e0"
       }
     },
-    "owner": "basecampvg",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/04c6955c-0463-430f-ba65-5f1933a7f9e0"
-    }
+    "owner": "basecampvg"
   }
 }
