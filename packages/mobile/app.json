@@ -59,10 +59,10 @@
     },
     "extra": {
       "apiUrl": "http://10.0.0.202:3006",
-      "googleWebClientId": "897374181299-cgmmlpl915mh08sr6i451l1hbqst8ira.apps.googleusercontent.com",
-      "googleIosClientId": "897374181299-74sbbislgbdqrt7opacl3s06f7bn8cv4.apps.googleusercontent.com",
+      "googleWebClientId": "117953471324-40im20410td9hoan1drsgj2sfpj797lu.apps.googleusercontent.com",
+      "googleIosClientId": "117953471324-40im20410td9hoan1drsgj2sfpj797lu.apps.googleusercontent.com",
       "googleAndroidClientId": "",
-      "googleExpoClientId": "897374181299-cgmmlpl915mh08sr6i451l1hbqst8ira.apps.googleusercontent.com",
+      "googleExpoClientId": "117953471324-40im20410td9hoan1drsgj2sfpj797lu.apps.googleusercontent.com",
       "revenueCatPublicIosKey": "appl_yzuLhHKhGMYnNKxMiJYfdPDDRXp",
       "revenueCatPublicAndroidKey": "",
       "eas": {
