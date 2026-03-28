@@ -146,13 +146,16 @@ export const billingRouter = router({
       throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
     }
 
-    // For Stripe subscribers, stripeSubscriptionId is set. For RevenueCat (mobile IAP)
-    // subscribers, stripeSubscriptionId is null but stripeCurrentPeriodEnd is reused
-    // for the RevenueCat expiration date. So we only enforce the period-end check
-    // when the date is present, and don't require stripeSubscriptionId.
+    // TODO: Add `subscription_source` column (e.g. 'stripe' | 'revenuecat' | null) to the
+    // User table to track where the subscription originated. This will allow source-specific
+    // billing logic and auditing. Requires a new DB migration.
+
+    // Require a valid, non-expired period end for all paid subscriptions.
+    // Both Stripe and RevenueCat paths must set stripeCurrentPeriodEnd.
     const isSubscribed =
       user.subscription !== 'FREE' &&
-      (user.stripeCurrentPeriodEnd ? user.stripeCurrentPeriodEnd > new Date() : true);
+      !!user.stripeCurrentPeriodEnd &&
+      user.stripeCurrentPeriodEnd > new Date();
 
     return {
       tier: user.subscription,

@@ -26,7 +26,10 @@
         "backgroundColor": "#161513"
       },
       "package": "com.ideafuel.mobile",
-      "usesCleartextTraffic": true
+      "usesCleartextTraffic": true,
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -57,8 +60,9 @@
       "revenueCatPublicIosKey": "appl_yzuLhHKhGMYnNKxMiJYfdPDDRXp",
       "revenueCatPublicAndroidKey": "",
       "eas": {
-        "projectId": ""
+        "projectId": "04c6955c-0463-430f-ba65-5f1933a7f9e0"
       }
-    }
+    },
+    "owner": "basecampvg"
   }
 }

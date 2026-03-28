@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { timingSafeEqual } from 'node:crypto';
 import { db, schema } from '@forge/server';
 import { eq } from 'drizzle-orm';
 import { REVENUECAT_PRODUCT_MAP } from '@forge/shared';
@@ -73,7 +74,12 @@ async function handleInitialPurchase(event: RevenueCatEvent) {
   }
 
   const previousTier = existingUser.subscription;
-  const expirationDate = expirationAtMs ? new Date(expirationAtMs) : null;
+
+  // Always set a non-null expiration so the subscription auto-expires if not renewed.
+  // If RevenueCat doesn't provide one, default to 30 days from now.
+  const expirationDate = expirationAtMs
+    ? new Date(expirationAtMs)
+    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
   await db
     .update(schema.users)
@@ -285,7 +291,12 @@ export async function POST(request: Request) {
   }
 
   const authorization = request.headers.get('authorization');
-  if (!authorization || authorization !== `Bearer ${authKey}`) {
+  const expected = `Bearer ${authKey}`;
+  if (
+    !authorization ||
+    authorization.length !== expected.length ||
+    !timingSafeEqual(Buffer.from(authorization), Buffer.from(expected))
+  ) {
     console.error('[RevenueCat Webhook] Authorization failed');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -306,7 +317,7 @@ export async function POST(request: Request) {
 
   const { type: eventType, app_user_id: appUserId } = event;
 
-  console.log(`[RevenueCat Webhook] Received event: ${eventType} for user: ${appUserId}`);
+  console.log(`[RevenueCat Webhook] Received event: ${eventType} for user: ${appUserId?.slice(0, 8)}...`);
 
   // Check if user exists for events that need a user
   if (!appUserId) {

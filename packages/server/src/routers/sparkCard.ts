@@ -7,7 +7,7 @@
  * - promote: Marks a project as promoted and returns a web URL
  */
 
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, gt } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { router, protectedProcedure } from '../trpc';
 import {
@@ -158,12 +158,17 @@ export const sparkCardRouter = router({
 
           // State C: Paid cards available
           if (freeCardUsed && mobileCardCount > 0) {
-            await tx
+            const result = await tx
               .update(users)
               .set({
-                mobileCardCount: sql`${users.mobileCardCount} - 1`,
+                mobileCardCount: sql`mobile_card_count - 1`,
               })
-              .where(eq(users.id, ctx.userId));
+              .where(and(eq(users.id, ctx.userId), gt(users.mobileCardCount, 0)))
+              .returning();
+
+            if (result.length === 0) {
+              throw new TRPCError({ code: 'FORBIDDEN', message: 'NO_CARDS_REMAINING' });
+            }
 
             return {
               type: 'paid' as const,
@@ -263,7 +268,7 @@ export const sparkCardRouter = router({
       await ctx.db
         .update(projects)
         .set({ cardResult })
-        .where(eq(projects.id, projectId));
+        .where(and(eq(projects.id, projectId), eq(projects.userId, ctx.userId)));
 
       console.log(`[SparkCard] Validation complete for project ${projectId}, verdict: ${cardResult.verdict}`);
 
@@ -364,7 +369,7 @@ async function refundCard(
         break;
     }
 
-    console.log(`[SparkCard] Refunded card (type: ${consumption.type}) for user ${userId}`);
+    console.log(`[SparkCard] Refunded card (type: ${consumption.type}) for user ${userId.slice(0, 8)}...`);
   } catch (refundError) {
     // Log but don't throw — the original error is more important
     console.error(`[SparkCard] Failed to refund card:`, refundError);
