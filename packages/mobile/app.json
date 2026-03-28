@@ -58,7 +58,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "apiUrl": "http://10.0.0.202:3006",
+      "apiUrl": "https://app.ideafuel.ai",
       "googleWebClientId": "117953471324-40im20410td9hoan1drsgj2sfpj797lu.apps.googleusercontent.com",
       "googleIosClientId": "117953471324-n6ufvodls46kvk9ekagd3jfoagbnn7aj.apps.googleusercontent.com",
       "googleAndroidClientId": "",
