@@ -31,7 +31,7 @@
         "backgroundColor": "#161513"
       },
       "package": "com.ideafuel.mobile",
-      "usesCleartextTraffic": true,
+      "usesCleartextTraffic": false,
       "permissions": [
         "android.permission.RECORD_AUDIO"
       ]

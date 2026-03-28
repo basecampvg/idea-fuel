@@ -131,20 +131,25 @@ export default function CaptureScreen() {
     }
   }, [isListening, pulseAnim, pulseOpacity]);
 
+  // Track finalized speech text separately so interim results don't overwrite it
+  const finalizedText = useRef('');
+
   // Speech recognition events
   useSpeechEvent('result', (event: any) => {
     const transcript = event.results[0]?.transcript || '';
     if (transcript) {
-      setIdeaText((prev) => {
-        if (event.isFinal) {
-          return prev ? `${prev} ${transcript}` : transcript;
-        }
-        const lines = prev.split('\n');
-        if (lines.length > 0 && !prev.endsWith('\n')) {
-          return transcript;
-        }
-        return transcript;
-      });
+      if (event.isFinal) {
+        finalizedText.current = finalizedText.current
+          ? `${finalizedText.current} ${transcript}`
+          : transcript;
+        setIdeaText(finalizedText.current);
+      } else {
+        // Show finalized text + current interim transcript
+        const display = finalizedText.current
+          ? `${finalizedText.current} ${transcript}`
+          : transcript;
+        setIdeaText(display);
+      }
     }
   });
 
@@ -214,6 +219,7 @@ export default function CaptureScreen() {
         type: 'success',
       });
       setIdeaText('');
+      finalizedText.current = '';
       utils.project.list.invalidate();
     },
     onError: () => {
@@ -234,7 +240,7 @@ export default function CaptureScreen() {
     if (!title) return;
 
     if (isListening) {
-      SpeechModule.stop();
+      SpeechModule?.stop();
       setIsListening(false);
     }
 
@@ -399,7 +405,7 @@ export default function CaptureScreen() {
               isActive={mode === 'voice'}
               onPress={() => {
                 if (isListening) {
-                  SpeechModule.stop();
+                  SpeechModule?.stop();
                   setIsListening(false);
                 }
                 setMode('voice');
@@ -411,7 +417,7 @@ export default function CaptureScreen() {
               isActive={mode === 'text'}
               onPress={() => {
                 if (isListening) {
-                  SpeechModule.stop();
+                  SpeechModule?.stop();
                   setIsListening(false);
                 }
                 setMode('text');

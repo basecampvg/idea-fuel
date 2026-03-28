@@ -55,7 +55,8 @@ export default function SettingsScreen() {
       Alert.alert('Success', 'Profile updated successfully');
     },
     onError: (error) => {
-      Alert.alert('Error', 'Failed to update profile: ' + error.message);
+      if (__DEV__) console.error('Profile update failed:', error);
+      Alert.alert('Error', 'Failed to update profile. Please try again.');
     },
     onSettled: () => {
       setIsSaving(false);

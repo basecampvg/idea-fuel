@@ -29,33 +29,37 @@ export function useAutoSave({
   const lastSavedContent = useRef<string>('');
   const hasPendingChanges = useRef(false);
   const savedIndicatorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryCount = useRef(0);
+  const MAX_RETRIES = 2;
 
   const utils = trpc.useUtils();
   const updateMutation = trpc.project.update.useMutation({
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       hasPendingChanges.current = false;
+      retryCount.current = 0;
+      lastSavedContent.current = variables.data[field] as string;
       setSaveStatus('saved');
       if (savedIndicatorTimer.current) clearTimeout(savedIndicatorTimer.current);
       savedIndicatorTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
-      // Invalidate project cache so other screens see the update
       utils.project.get.invalidate({ id: projectId });
       utils.project.list.invalidate();
     },
     onError: () => {
       setSaveStatus('error');
-      // Retry once after 3 seconds
-      setTimeout(async () => {
-        const content = await getContent();
-        if (content !== lastSavedContent.current) {
-          performSave(content);
-        }
-      }, 3000);
+      if (retryCount.current < MAX_RETRIES) {
+        retryCount.current += 1;
+        setTimeout(async () => {
+          const content = await getContent();
+          if (content !== lastSavedContent.current) {
+            performSave(content);
+          }
+        }, 3000);
+      }
     },
   });
 
   const performSave = useCallback((content: string) => {
     if (content === lastSavedContent.current) return;
-    lastSavedContent.current = content;
     setSaveStatus('saving');
     updateMutation.mutate({
       id: projectId,

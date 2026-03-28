@@ -188,7 +188,7 @@ export default function ValidateScreen() {
   // Refs
   const flatListRef = useRef<FlatList>(null);
   const inputRef = useRef<TextInput>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // tRPC mutations
   const chatMutation = trpc.sparkCard.chat.useMutation();
@@ -277,10 +277,11 @@ export default function ValidateScreen() {
       setPhase('validating');
       setThinkingIndex(0);
 
-      // 90-second timeout via AbortController
-      const controller = new AbortController();
-      abortControllerRef.current = controller;
-      const timeoutId = setTimeout(() => controller.abort(), 90000);
+      // 90-second timeout — show error if validation takes too long
+      timeoutRef.current = setTimeout(() => {
+        setPhase('error');
+        showToast({ message: 'Validation timed out — tap retry', type: 'error' });
+      }, 90000);
 
       // Format messages for the API
       const formattedMessages = chatMessages.map((m) => ({
@@ -292,7 +293,7 @@ export default function ValidateScreen() {
         { projectId: id!, chatMessages: formattedMessages },
         {
           onSuccess: () => {
-            clearTimeout(timeoutId);
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
             triggerHaptic('success');
             // Invalidate project cache so card screen gets fresh data
             utils.project.get.invalidate({ id: id! });
@@ -300,7 +301,7 @@ export default function ValidateScreen() {
             router.replace(`/(tabs)/vault/${id}/card` as any);
           },
           onError: (error) => {
-            clearTimeout(timeoutId);
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
             triggerHaptic('error');
 
             const errorMsg = error.message;

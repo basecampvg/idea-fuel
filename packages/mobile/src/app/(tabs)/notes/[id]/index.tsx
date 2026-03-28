@@ -141,6 +141,7 @@ export default function NoteEditorScreen() {
   }, [navigation, flush]);
 
   // Auto-trigger refine at 50 chars (first time only)
+  // Polls for save to finish before firing refine to avoid stale-read race
   useEffect(() => {
     if (
       !hasAutoRefined.current &&
@@ -149,14 +150,19 @@ export default function NoteEditorScreen() {
       !refineMutation.isPending
     ) {
       hasAutoRefined.current = true;
-      // Flush content first, then refine
       flush();
-      // Small delay to allow save to start
-      setTimeout(() => {
-        refineMutation.mutate({ id: id! });
-      }, 500);
+      // Wait for save to settle (check every 200ms, up to 3s)
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        if (saveStatus !== 'saving' || attempts >= 15) {
+          clearInterval(interval);
+          refineMutation.mutate({ id: id! });
+        }
+      }, 200);
+      return () => clearInterval(interval);
     }
-  }, [content, initialLoaded, id, refineMutation, flush]);
+  }, [content, initialLoaded, id, refineMutation, flush, saveStatus]);
 
   const handleContentChange = useCallback((text: string) => {
     setContent(text);
@@ -184,10 +190,16 @@ export default function NoteEditorScreen() {
       return;
     }
     flush();
-    setTimeout(() => {
-      refineMutation.mutate({ id: id! });
-    }, 500);
-  }, [content, id, flush, refineMutation]);
+    // Wait for save to settle before refining
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      if (saveStatus !== 'saving' || attempts >= 15) {
+        clearInterval(interval);
+        refineMutation.mutate({ id: id! });
+      }
+    }, 200);
+  }, [content, id, flush, refineMutation, saveStatus]);
 
   const handlePromote = useCallback(() => {
     promoteMutation.mutate({ id: id! });

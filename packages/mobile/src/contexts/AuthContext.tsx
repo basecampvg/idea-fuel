@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
+import { useQueryClient } from '@tanstack/react-query';
 import { secureStorage } from '../lib/storage';
 import { API_URL, AUTH_CONFIG } from '../lib/constants';
 import { initPurchases, logOutPurchases } from '../lib/purchases';
@@ -20,7 +21,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   signInWithGoogle: () => Promise<void>;
-  devSignIn: (email: string) => Promise<void>;
+  devSignIn?: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -30,6 +31,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   // Google OAuth configuration
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -41,13 +43,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Exchange Google token for our session token
   const exchangeToken = useCallback(async (googleToken: string) => {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
       const res = await fetch(`${API_URL}/api/auth/mobile/google`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ token: googleToken }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       if (!res.ok) {
         throw new Error('Failed to exchange token');
@@ -70,7 +76,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Handle Google OAuth response
   useEffect(() => {
     if (response?.type === 'success' && response.authentication?.accessToken) {
-      exchangeToken(response.authentication.accessToken);
+      exchangeToken(response.authentication.accessToken).catch((err) => {
+        console.error('Google token exchange failed:', err);
+        setUser(null);
+      });
     }
   }, [response, exchangeToken]);
 
@@ -125,30 +134,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await promptAsync();
   }, [request, promptAsync]);
 
-  // Dev-only sign in — bypasses Google OAuth
-  const devSignIn = useCallback(async (email: string) => {
-    try {
-      const res = await fetch(`${API_URL}/api/auth/mobile/dev-signin`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
+  // Dev-only sign in — bypasses Google OAuth (stripped from production builds)
+  const devSignIn = __DEV__
+    ? async (email: string) => {
+        try {
+          const res = await fetch(`${API_URL}/api/auth/mobile/dev-signin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Dev sign-in failed');
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Dev sign-in failed');
+          }
+
+          const data = await res.json();
+          await secureStorage.setToken(data.token);
+          setUser(data.user);
+          initPurchases(data.user.id).catch(() => {});
+        } catch (error) {
+          console.error('Dev sign-in failed:', error);
+          throw error;
+        }
       }
-
-      const data = await res.json();
-      await secureStorage.setToken(data.token);
-      setUser(data.user);
-      // Initialize RevenueCat SDK after dev sign-in
-      initPurchases(data.user.id).catch(() => {});
-    } catch (error) {
-      console.error('Dev sign-in failed:', error);
-      throw error;
-    }
-  }, []);
+    : undefined;
 
   const signOut = useCallback(async () => {
     try {
@@ -170,8 +180,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       await secureStorage.clearAll();
       setUser(null);
+      queryClient.clear();
     }
-  }, []);
+  }, [queryClient]);
 
   const refreshUser = useCallback(async () => {
     const token = await secureStorage.getToken();

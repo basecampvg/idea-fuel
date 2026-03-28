@@ -26,11 +26,15 @@ export function useNoteAutoSave({
   const lastSavedContent = useRef<string>('');
   const hasPendingChanges = useRef(false);
   const savedIndicatorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryCount = useRef(0);
+  const MAX_RETRIES = 2;
 
   const utils = trpc.useUtils();
   const updateMutation = trpc.note.update.useMutation({
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       hasPendingChanges.current = false;
+      retryCount.current = 0;
+      lastSavedContent.current = variables.content;
       setSaveStatus('saved');
       if (savedIndicatorTimer.current) clearTimeout(savedIndicatorTimer.current);
       savedIndicatorTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
@@ -39,19 +43,20 @@ export function useNoteAutoSave({
     },
     onError: () => {
       setSaveStatus('error');
-      // Retry once after 3 seconds
-      setTimeout(() => {
-        const content = getContent();
-        if (content !== lastSavedContent.current) {
-          performSave(content);
-        }
-      }, 3000);
+      if (retryCount.current < MAX_RETRIES) {
+        retryCount.current += 1;
+        setTimeout(() => {
+          const content = getContent();
+          if (content !== lastSavedContent.current) {
+            performSave(content);
+          }
+        }, 3000);
+      }
     },
   });
 
   const performSave = useCallback((content: string) => {
     if (content === lastSavedContent.current) return;
-    lastSavedContent.current = content;
     setSaveStatus('saving');
     updateMutation.mutate({ id: noteId, content });
   }, [noteId, updateMutation]);
@@ -79,7 +84,7 @@ export function useNoteAutoSave({
     }
   }, [getContent, debounceMs, maxIntervalMs, performSave]);
 
-  /** Flush any pending changes immediately */
+  /** Flush any pending changes immediately. Returns a promise that resolves when the save mutation settles. */
   const flush = useCallback(() => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     if (maxIntervalTimer.current) {

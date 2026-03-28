@@ -3,17 +3,25 @@ import { View, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Spinner } from '../components/ui';
 import { IdeaFuelLogo } from '../components/IdeaFuelLogo';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function SplashScreen() {
   const router = useRouter();
+  const { isLoading, isAuthenticated } = useAuth();
 
   useEffect(() => {
+    if (isLoading) return;
+
     const timer = setTimeout(() => {
-      router.replace('/(tabs)/capture' as any);
-    }, 500);
+      if (isAuthenticated) {
+        router.replace('/(tabs)/capture' as any);
+      } else {
+        router.replace('/(auth)/signin' as any);
+      }
+    }, 300);
 
     return () => clearTimeout(timer);
-  }, [router]);
+  }, [isLoading, isAuthenticated, router]);
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#161513' }}>
