@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, Linking, StyleSheet } from 'react-native';
-import { Tabs, Redirect, useRouter } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
 import { Mic, ShieldCheck, NotebookPen, Settings, ArrowUpRight, X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
@@ -15,7 +15,7 @@ function CustomTabBar({ state, descriptors, navigation, insets }: any) {
         tabStyles.bar,
         { paddingBottom: insets.bottom + 4 },
       ]}>
-        {state.routes.map((route, index) => {
+        {state.routes.map((route: any, index: number) => {
           const { options } = descriptors[route.key];
           const isFocused = state.index === index;
           const color = isFocused ? colors.brand : colors.mutedDim;
@@ -37,8 +37,15 @@ function CustomTabBar({ state, descriptors, navigation, insets }: any) {
                   target: route.key,
                   canPreventDefault: true,
                 });
-                if (!isFocused && !event.defaultPrevented) {
+                if (event.defaultPrevented) return;
+
+                if (!isFocused) {
                   navigation.navigate(route.name);
+                } else {
+                  // Pop to top of the nested stack when tapping the already-focused tab.
+                  // This replaces the old router.replace() approach which caused a full
+                  // navigation state replacement and SIGABRT crashes under Fabric.
+                  navigation.navigate(route.name, { screen: 'index' });
                 }
               }}
               style={tabStyles.tab}
@@ -56,11 +63,42 @@ function CustomTabBar({ state, descriptors, navigation, insets }: any) {
   );
 }
 
+const headerTitle = () => (
+  <View style={headerStyles.wordmark}>
+    <Text style={headerStyles.wordmarkIdea}>IDEA </Text>
+    <Text style={headerStyles.wordmarkFuel}>FUEL</Text>
+  </View>
+);
+
+function Banner({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <View style={bannerStyles.container}>
+      <TouchableOpacity
+        style={bannerStyles.content}
+        onPress={() => Linking.openURL('https://ideafuel.ai')}
+        activeOpacity={0.8}
+      >
+        <Text style={bannerStyles.text}>
+          Validate your idea on the web
+        </Text>
+        <ArrowUpRight size={14} color="#FFFFFF" />
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={onDismiss}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        style={bannerStyles.dismiss}
+      >
+        <X size={14} color="rgba(255,255,255,0.5)" />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 export default function TabsLayout() {
   const { isLoading, isAuthenticated } = useAuth();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const dismissBanner = useCallback(() => setBannerDismissed(true), []);
 
   if (isLoading) {
     return <LoadingScreen message="Loading..." />;
@@ -69,36 +107,6 @@ export default function TabsLayout() {
   if (!isAuthenticated) {
     return <Redirect href="/(auth)/signin" />;
   }
-
-  const headerTitle = () => (
-    <View style={headerStyles.wordmark}>
-      <Text style={headerStyles.wordmarkIdea}>IDEA </Text>
-      <Text style={headerStyles.wordmarkFuel}>FUEL</Text>
-    </View>
-  );
-
-  const BannerComponent = () =>
-    !bannerDismissed ? (
-      <View style={bannerStyles.container}>
-        <TouchableOpacity
-          style={bannerStyles.content}
-          onPress={() => Linking.openURL('https://ideafuel.ai')}
-          activeOpacity={0.8}
-        >
-          <Text style={bannerStyles.text}>
-            Validate your idea on the web
-          </Text>
-          <ArrowUpRight size={14} color="#FFFFFF" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setBannerDismissed(true)}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          style={bannerStyles.dismiss}
-        >
-          <X size={14} color="rgba(255,255,255,0.5)" />
-        </TouchableOpacity>
-      </View>
-    ) : null;
 
   return (
     <Tabs
@@ -112,7 +120,10 @@ export default function TabsLayout() {
         },
         headerShadowVisible: false,
         headerTitle,
-        headerBottom: () => <BannerComponent />,
+        // @ts-expect-error headerBottom works at runtime but isn't in BottomTabNavigationOptions type
+        headerBottom: bannerDismissed
+          ? undefined
+          : () => <Banner onDismiss={dismissBanner} />,
       }}
     >
       <Tabs.Screen
@@ -122,22 +133,10 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="vault"
         options={{ title: 'Vault' }}
-        listeners={{
-          tabPress: (e) => {
-            e.preventDefault();
-            router.replace('/(tabs)/vault' as any);
-          },
-        }}
       />
       <Tabs.Screen
         name="notes"
         options={{ title: 'Notes' }}
-        listeners={{
-          tabPress: (e) => {
-            e.preventDefault();
-            router.replace('/(tabs)/notes' as any);
-          },
-        }}
       />
       <Tabs.Screen
         name="settings"

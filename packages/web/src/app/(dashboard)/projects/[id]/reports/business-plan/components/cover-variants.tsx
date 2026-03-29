@@ -27,7 +27,7 @@ export function CoverV1({ title, subtitle }: CoverProps) {
   return (
     <div
       className="relative flex flex-col justify-between w-full h-full overflow-hidden"
-      style={{ backgroundColor: '#161513' }}
+      style={{ backgroundColor: '#0A0A0A' }}
     >
       <img
         src="/ideafuel-logo.svg"
@@ -131,7 +131,7 @@ export function CoverV2({ title, subtitle }: CoverProps) {
   return (
     <div
       className="relative flex flex-col w-full h-full overflow-hidden"
-      style={{ backgroundColor: '#161513' }}
+      style={{ backgroundColor: '#0A0A0A' }}
     >
       <div
         className="absolute"
@@ -214,7 +214,7 @@ export function CoverV3({ title, subtitle }: CoverProps) {
     <div
       className="relative flex flex-col justify-between w-full h-full overflow-hidden"
       style={{
-        background: 'linear-gradient(135deg, #161513 0%, #161513 40%, #1a1210 60%, #E32B1A 100%)',
+        background: 'linear-gradient(135deg, #0A0A0A 0%, #0A0A0A 40%, #110a08 60%, #E32B1A 100%)',
       }}
     >
       <div
@@ -350,7 +350,7 @@ export function CoverV4({ title, subtitle }: CoverProps) {
       </div>
       <div
         className="flex flex-col justify-between relative"
-        style={{ width: '62%', backgroundColor: '#161513' }}
+        style={{ width: '62%', backgroundColor: '#0A0A0A' }}
       >
         <div
           className="absolute pointer-events-none"

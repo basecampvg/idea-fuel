@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { InteractionManager } from 'react-native';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { useQueryClient } from '@tanstack/react-query';
@@ -65,8 +66,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await secureStorage.setRefreshToken(data.refreshToken);
       }
       setUser(data.user);
-      // Initialize RevenueCat SDK after successful sign-in
-      initPurchases(data.user.id).catch(() => {});
+      // Defer RevenueCat init until after navigation animations complete
+      // to avoid TurboModule calls during Fabric mount transactions.
+      InteractionManager.runAfterInteractions(() => {
+        initPurchases(data.user.id).catch(() => {});
+      });
     } catch (error) {
       console.error('Token exchange failed:', error);
       throw error;
@@ -106,8 +110,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (res.ok) {
               const data = await res.json();
               setUser(data.user);
-              // Initialize RevenueCat SDK on session restore
-              initPurchases(data.user.id).catch(() => {});
+              // Defer RevenueCat init until after navigation animations complete
+              InteractionManager.runAfterInteractions(() => {
+                initPurchases(data.user.id).catch(() => {});
+              });
             } else {
               // Token invalid, clear storage
               await secureStorage.clearAll();
@@ -152,7 +158,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const data = await res.json();
           await secureStorage.setToken(data.token);
           setUser(data.user);
-          initPurchases(data.user.id).catch(() => {});
+          InteractionManager.runAfterInteractions(() => {
+            initPurchases(data.user.id).catch(() => {});
+          });
         } catch (error) {
           console.error('Dev sign-in failed:', error);
           throw error;

@@ -25,7 +25,7 @@
   /* IDEA FUEL Brand Colors */
   --brand-red: #e32b1a;
   --brand-red-end: #db4d40;
-  --brand-bg: #161513;
+  --brand-bg: #0A0A0A;
 
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -984,11 +984,11 @@ p {
 .dark,
 :root {
   /* Core Colors */
-  --background: 60 3% 7%;
+  --background: 0 0% 4%;
   --foreground: 0 0% 91%;
-  --card: 0 0% 8%;
+  --card: 0 0% 7%;
   --card-foreground: 0 0% 91%;
-  --popover: 0 0% 8%;
+  --popover: 0 0% 7%;
   --popover-foreground: 0 0% 91%;
 
   /* Primary - #E8513D */
@@ -1004,12 +1004,12 @@ p {
   --accent-foreground: 0 0% 100%;
 
   /* Muted */
-  --muted: 0 0% 12%;
+  --muted: 0 0% 9%;
   --muted-foreground: 0 0% 55%;
 
   /* Borders & Inputs */
-  --border: 0 0% 16%;
-  --input: 0 0% 12%;
+  --border: 0 0% 13%;
+  --input: 0 0% 9%;
   --ring: 7 80% 57%;
 
   /* Status Colors */
@@ -1039,21 +1039,21 @@ p {
   --chart-stroke: 7 80% 57%;
   --chart-axis: 0 0% 55%;
   --chart-grid: 0 0% 100% / 0.08;
-  --chart-tooltip-bg: 0 0% 6%;
-  --chart-tooltip-border: 0 0% 18%;
+  --chart-tooltip-bg: 0 0% 4%;
+  --chart-tooltip-border: 0 0% 15%;
   --chart-tooltip-text: 0 0% 100%;
 
   /* Aurora Background */
-  --aurora-end: 0 0% 8%;
+  --aurora-end: 0 0% 5%;
 
   /* Sidebar */
-  --sidebar: 0 0% 7%;
+  --sidebar: 0 0% 4%;
   --sidebar-foreground: 0 0% 91%;
   --sidebar-primary: 160 84% 44%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 0 0% 12%;
+  --sidebar-accent: 0 0% 9%;
   --sidebar-accent-foreground: 0 0% 91%;
-  --sidebar-border: 0 0% 16%;
+  --sidebar-border: 0 0% 13%;
   --sidebar-ring: 160 84% 44%;
 }
 

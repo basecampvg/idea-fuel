@@ -29,7 +29,7 @@ function ValidationUI({ c }: { c: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '320px' }}>
       {/* Interview card */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: '#1c1b19', border: '1px solid #222222', borderRadius: '12px', padding: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: c, display: 'flex' }} />
@@ -38,26 +38,26 @@ function ValidationUI({ c }: { c: string }) {
           <span style={{ fontSize: '11px', color: '#4ade80', padding: '2px 8px', borderRadius: '20px', background: '#4ade8018' }}>Live</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <div style={{ width: '85%', height: '4px', borderRadius: '2px', background: '#2a2a2a', display: 'flex' }} />
-          <div style={{ width: '60%', height: '4px', borderRadius: '2px', background: '#2a2a2a', display: 'flex' }} />
-          <div style={{ width: '40%', height: '4px', borderRadius: '2px', background: '#2a2a2a', display: 'flex' }} />
+          <div style={{ width: '85%', height: '4px', borderRadius: '2px', background: '#222222', display: 'flex' }} />
+          <div style={{ width: '60%', height: '4px', borderRadius: '2px', background: '#222222', display: 'flex' }} />
+          <div style={{ width: '40%', height: '4px', borderRadius: '2px', background: '#222222', display: 'flex' }} />
         </div>
       </div>
       {/* Score cards */}
       <div style={{ display: 'flex', gap: '10px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '14px', width: '50%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: '#1c1b19', border: '1px solid #222222', borderRadius: '12px', padding: '14px', width: '50%' }}>
           <span style={{ fontSize: '10px', color: '#666' }}>Problem Score</span>
           <span style={{ fontSize: '22px', fontWeight: 700, color: c, letterSpacing: '-0.5px' }}>8.4</span>
           <div style={{ width: '75%', height: '5px', borderRadius: '3px', background: c, display: 'flex' }} />
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '14px', width: '50%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: '#1c1b19', border: '1px solid #222222', borderRadius: '12px', padding: '14px', width: '50%' }}>
           <span style={{ fontSize: '10px', color: '#666' }}>Willingness to Pay</span>
           <span style={{ fontSize: '22px', fontWeight: 700, color: '#fff', letterSpacing: '-0.5px' }}>72%</span>
           <div style={{ width: '72%', height: '5px', borderRadius: '3px', background: '#4ade80', display: 'flex' }} />
         </div>
       </div>
       {/* Demand signal */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#1c1b19', border: '1px solid #222222', borderRadius: '12px', padding: '14px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <span style={{ fontSize: '10px', color: '#666' }}>Demand Validated</span>
           <span style={{ fontSize: '12px', color: '#4ade80', fontWeight: 700 }}>15 / 20 confirm</span>
@@ -74,7 +74,7 @@ function FinancialUI({ c, c2 }: { c: string; c2: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '320px' }}>
       {/* Chart card */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#1c1b19', border: '1px solid #222222', borderRadius: '12px', padding: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: '10px', color: '#666' }}>Revenue Projection</span>
           <span style={{ fontSize: '11px', color: c, padding: '2px 8px', borderRadius: '20px', background: `${c}18` }}>12 months</span>
@@ -87,21 +87,21 @@ function FinancialUI({ c, c2 }: { c: string; c2: string }) {
       </div>
       {/* Metric row */}
       <div style={{ display: 'flex', gap: '8px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '10px', padding: '12px', flex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', background: '#1c1b19', border: '1px solid #222222', borderRadius: '10px', padding: '12px', flex: 1 }}>
           <span style={{ fontSize: '9px', color: '#666' }}>CAC</span>
           <span style={{ fontSize: '18px', fontWeight: 700, color: '#fff' }}>$42</span>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '10px', padding: '12px', flex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', background: '#1c1b19', border: '1px solid #222222', borderRadius: '10px', padding: '12px', flex: 1 }}>
           <span style={{ fontSize: '9px', color: '#666' }}>LTV</span>
           <span style={{ fontSize: '18px', fontWeight: 700, color: c }}>$380</span>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '10px', padding: '12px', flex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', background: '#1c1b19', border: '1px solid #222222', borderRadius: '10px', padding: '12px', flex: 1 }}>
           <span style={{ fontSize: '9px', color: '#666' }}>LTV/CAC</span>
           <span style={{ fontSize: '18px', fontWeight: 700, color: '#4ade80' }}>9.0x</span>
         </div>
       </div>
       {/* Breakeven */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#1c1b19', border: '1px solid #222222', borderRadius: '12px', padding: '14px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <span style={{ fontSize: '10px', color: '#666' }}>Breakeven</span>
           <span style={{ fontSize: '14px', color: '#fff', fontWeight: 700 }}>Month 8</span>
@@ -118,7 +118,7 @@ function FinancialUI({ c, c2 }: { c: string; c2: string }) {
 function CompetitorUI({ c }: { c: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '320px' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#1c1b19', border: '1px solid #222222', borderRadius: '12px', padding: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: '10px', color: '#666' }}>Market Position</span>
           <span style={{ fontSize: '11px', color: c, padding: '2px 8px', borderRadius: '20px', background: `${c}18` }}>4 players</span>
@@ -138,12 +138,12 @@ function CompetitorUI({ c }: { c: string }) {
         ))}
       </div>
       <div style={{ display: 'flex', gap: '10px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '14px', width: '50%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: '#1c1b19', border: '1px solid #222222', borderRadius: '12px', padding: '14px', width: '50%' }}>
           <span style={{ fontSize: '10px', color: '#666' }}>Gap Found</span>
           <span style={{ fontSize: '14px', color: c, fontWeight: 700 }}>SMB Segment</span>
           <span style={{ fontSize: '10px', color: '#555' }}>Underserved by all</span>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '14px', width: '50%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: '#1c1b19', border: '1px solid #222222', borderRadius: '12px', padding: '14px', width: '50%' }}>
           <span style={{ fontSize: '10px', color: '#666' }}>Avg. Rating</span>
           <div style={{ display: 'flex', gap: '3px' }}>
             {[1,2,3].map(i => <div key={i} style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f59e0b', display: 'flex' }} />)}
@@ -159,7 +159,7 @@ function CompetitorUI({ c }: { c: string }) {
 function ResearchUI({ c, c2 }: { c: string; c2: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '320px' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#1c1b19', border: '1px solid #222222', borderRadius: '12px', padding: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: c, display: 'flex' }} />
           <span style={{ fontSize: '12px', color: '#aaa', fontWeight: 700 }}>AI Research Pipeline</span>
@@ -179,11 +179,11 @@ function ResearchUI({ c, c2 }: { c: string; c2: string }) {
         ))}
       </div>
       <div style={{ display: 'flex', gap: '10px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '14px', width: '50%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', background: '#1c1b19', border: '1px solid #222222', borderRadius: '12px', padding: '14px', width: '50%' }}>
           <span style={{ fontSize: '10px', color: '#666' }}>TAM</span>
           <span style={{ fontSize: '22px', fontWeight: 700, color: c, letterSpacing: '-0.5px' }}>$4.2B</span>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '14px', width: '50%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', background: '#1c1b19', border: '1px solid #222222', borderRadius: '12px', padding: '14px', width: '50%' }}>
           <span style={{ fontSize: '10px', color: '#666' }}>Sources</span>
           <span style={{ fontSize: '22px', fontWeight: 700, color: c2, letterSpacing: '-0.5px' }}>142</span>
         </div>
@@ -195,7 +195,7 @@ function ResearchUI({ c, c2 }: { c: string; c2: string }) {
 function DefaultUI({ c, c2 }: { c: string; c2: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '320px' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#1c1b19', border: '1px solid #222222', borderRadius: '12px', padding: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: c, display: 'flex' }} />
           <span style={{ fontSize: '12px', color: '#aaa', fontWeight: 700 }}>Idea Score</span>
@@ -209,11 +209,11 @@ function DefaultUI({ c, c2 }: { c: string; c2: string }) {
         </div>
       </div>
       <div style={{ display: 'flex', gap: '10px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '14px', width: '50%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', background: '#1c1b19', border: '1px solid #222222', borderRadius: '12px', padding: '14px', width: '50%' }}>
           <span style={{ fontSize: '10px', color: '#666' }}>Opportunity</span>
           <span style={{ fontSize: '22px', fontWeight: 700, color: '#4ade80', letterSpacing: '-0.5px' }}>High</span>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', background: '#1c1b19', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '14px', width: '50%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', background: '#1c1b19', border: '1px solid #222222', borderRadius: '12px', padding: '14px', width: '50%' }}>
           <span style={{ fontSize: '10px', color: '#666' }}>Feasibility</span>
           <span style={{ fontSize: '22px', fontWeight: 700, color: c, letterSpacing: '-0.5px' }}>Strong</span>
         </div>
@@ -248,7 +248,7 @@ export async function GET(req: NextRequest) {
 
   return new ImageResponse(
     (
-      <div style={{ width: '100%', height: '100%', display: 'flex', fontFamily: 'Geist', background: '#161513', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ width: '100%', height: '100%', display: 'flex', fontFamily: 'Geist', background: '#0A0A0A', position: 'relative', overflow: 'hidden' }}>
         {/* Gradient glow */}
         <div style={{ position: 'absolute', top: '-60px', right: '-40px', width: '500px', height: '500px', borderRadius: '50%', background: accent.from, opacity: 0.07, filter: 'blur(100px)' }} />
         <div style={{ position: 'absolute', bottom: '-80px', left: '300px', width: '400px', height: '400px', borderRadius: '50%', background: accent.via, opacity: 0.05, filter: 'blur(80px)' }} />

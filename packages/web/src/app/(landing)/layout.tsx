@@ -28,9 +28,9 @@ export default function LandingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#161513]">
+    <div className="min-h-screen bg-[#0A0A0A]">
       {/* Fixed nav — outside ScrollSmoother */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#333] bg-[#161513]">
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#333] bg-[#0A0A0A]">
         <div className="mx-auto flex h-[88px] max-w-[1800px] items-center justify-between px-6 lg:px-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">

@@ -3,7 +3,7 @@ import { View, Text, ViewProps, StyleSheet, ViewStyle, TextStyle } from 'react-n
 import { colors, fonts } from '../../lib/theme';
 
 const localColors = {
-  mutedBg: '#262422',
+  mutedBg: '#1A1A1A',
   info: '#3B82F6',
   statusDraft: '#A1A1AA',
   statusInterview: '#FBBF24',
@@ -102,9 +102,9 @@ export function StatusDot({ status, size = 'md' }: StatusDotProps) {
 
 const styles = StyleSheet.create({
   badge: {
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    borderRadius: 9999,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
   },
   badgeText: {
     fontSize: 12,

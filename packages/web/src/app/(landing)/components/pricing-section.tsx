@@ -262,7 +262,7 @@ export function PricingSection() {
     <section
       ref={sectionRef}
       id="pricing"
-      className="relative overflow-hidden bg-[#161513] py-24 sm:py-32"
+      className="relative overflow-hidden bg-[#0A0A0A] py-24 sm:py-32"
     >
       {/* Subtle radial glow behind cards */}
       <div

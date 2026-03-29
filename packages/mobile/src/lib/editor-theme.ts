@@ -8,7 +8,7 @@ export const editorDarkThemeCSS = `
   }
 
   body {
-    background-color: #161513;
+    background-color: #0A0A0A;
     color: #E8E4DC;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     font-size: 16px;
@@ -95,7 +95,7 @@ export const editorDarkThemeCSS = `
 
   /* Code */
   code {
-    background-color: #1A1918;
+    background-color: #111111;
     color: #E32B1A;
     padding: 2px 6px;
     border-radius: 4px;
@@ -104,8 +104,8 @@ export const editorDarkThemeCSS = `
   }
 
   pre {
-    background-color: #1A1918;
-    border: 1px solid #2A2A2A;
+    background-color: #111111;
+    border: 1px solid #222222;
     border-radius: 8px;
     padding: 12px 16px;
     margin: 12px 0;
@@ -173,7 +173,7 @@ export const editorDarkThemeCSS = `
   /* Horizontal rule */
   hr {
     border: none;
-    border-top: 1px solid #2A2A2A;
+    border-top: 1px solid #222222;
     margin: 20px 0;
   }
 

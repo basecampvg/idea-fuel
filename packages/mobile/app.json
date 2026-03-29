@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#161513"
+      "backgroundColor": "#0A0A0A"
     },
     "ios": {
       "supportsTablet": true,
@@ -28,7 +28,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#161513"
+        "backgroundColor": "#0A0A0A"
       },
       "package": "com.ideafuel.mobile",
       "usesCleartextTraffic": false,
@@ -50,6 +50,16 @@
         {
           "microphonePermission": "Idea Fuel needs your microphone to capture ideas by voice.",
           "speechRecognitionPermission": "Idea Fuel needs speech recognition to transcribe your spoken ideas."
+        }
+      ],
+      "./plugins/patch-turbomodule",
+      "expo-web-browser",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "buildReactNativeFromSource": true
+          }
         }
       ]
     ],

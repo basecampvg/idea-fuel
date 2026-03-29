@@ -257,9 +257,9 @@ export default function DemoReportPage() {
   return (
     <div className="flex h-[calc(100vh-88px)] overflow-hidden pt-[88px]">
       {/* ── Sidebar (production style) ────────────────────────── */}
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-[#2a2a2a] bg-[#0f0f0e] lg:flex">
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-[#222222] bg-[#0f0f0e] lg:flex">
         {/* Back link + Project info */}
-        <div className="border-b border-[#2a2a2a] px-5 py-4">
+        <div className="border-b border-[#222222] px-5 py-4">
           <a href="/" className="mb-3 flex items-center gap-1.5 text-xs text-[#928e87] transition-colors hover:text-[#d4d4d4]">
             <IconArrowLeft />
             Back to Vault
@@ -285,7 +285,7 @@ export default function DemoReportPage() {
                     className={`relative flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] transition-all ${
                       isActive
                         ? 'bg-[#e32b1a]/10 font-semibold text-[#e32b1a]'
-                        : 'text-[#928e87] hover:bg-[#161513] hover:text-[#d4d4d4]'
+                        : 'text-[#928e87] hover:bg-[#0A0A0A] hover:text-[#d4d4d4]'
                     }`}
                   >
                     {/* Active indicator bar */}
@@ -303,7 +303,7 @@ export default function DemoReportPage() {
           ))}
 
           {/* Divider */}
-          <div className="mx-2 my-5 h-px bg-[#2a2a2a]" />
+          <div className="mx-2 my-5 h-px bg-[#222222]" />
 
           {/* Reports sub-section */}
           <div>
@@ -333,11 +333,11 @@ export default function DemoReportPage() {
         </nav>
 
         {/* Bottom utility bar */}
-        <div className="flex items-center gap-1 border-t border-[#2a2a2a] px-4 py-3">
-          <button className="rounded-lg p-2 text-[#928e87]/50 transition-colors hover:bg-[#161513] hover:text-[#928e87]">
+        <div className="flex items-center gap-1 border-t border-[#222222] px-4 py-3">
+          <button className="rounded-lg p-2 text-[#928e87]/50 transition-colors hover:bg-[#0A0A0A] hover:text-[#928e87]">
             <IconMoon />
           </button>
-          <button className="rounded-lg p-2 text-[#928e87]/50 transition-colors hover:bg-[#161513] hover:text-[#928e87]">
+          <button className="rounded-lg p-2 text-[#928e87]/50 transition-colors hover:bg-[#0A0A0A] hover:text-[#928e87]">
             <IconLayout />
           </button>
         </div>
@@ -346,7 +346,7 @@ export default function DemoReportPage() {
       {/* ── Main Area ─────────────────────────────────────────── */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Header */}
-        <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#2a2a2a] bg-[#161513] px-6">
+        <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#222222] bg-[#0A0A0A] px-6">
           <div className="flex items-center gap-3">
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#e32b1a] lg:hidden">
               <span className="text-xs font-black text-white">IF</span>
@@ -358,17 +358,17 @@ export default function DemoReportPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="rounded-lg border border-[#2a2a2a] px-3 py-1.5 text-xs font-bold text-[#928e87] transition-colors hover:border-[#e32b1a] hover:text-[#e32b1a]">
+            <button className="rounded-lg border border-[#222222] px-3 py-1.5 text-xs font-bold text-[#928e87] transition-colors hover:border-[#e32b1a] hover:text-[#e32b1a]">
               Download PDF
             </button>
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2a2a2a]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#222222]">
               <span className="text-xs font-bold text-[#928e87]">MN</span>
             </div>
           </div>
         </header>
 
         {/* Mobile Nav (horizontal scrollable tabs) */}
-        <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-[#2a2a2a] bg-[#0f0f0e] px-4 py-2 lg:hidden">
+        <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-[#222222] bg-[#0f0f0e] px-4 py-2 lg:hidden">
           {NAV_GROUPS.flatMap((g) => g.items).map((item) => (
             <button
               key={item.id}
@@ -376,7 +376,7 @@ export default function DemoReportPage() {
               className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
                 activeSection === item.id
                   ? 'bg-[#e32b1a] text-white'
-                  : 'text-[#928e87] hover:bg-[#2a2a2a] hover:text-[#d4d4d4]'
+                  : 'text-[#928e87] hover:bg-[#222222] hover:text-[#d4d4d4]'
               }`}
             >
               {item.label}
@@ -389,37 +389,37 @@ export default function DemoReportPage() {
           <div className="mx-auto max-w-4xl space-y-16 px-6 py-8 lg:px-10 lg:py-12">
             {/* OVERVIEW */}
             <FullScoresSection />
-            <div className="h-px bg-[#2a2a2a]" />
+            <div className="h-px bg-[#222222]" />
             <FullBusinessFitSection />
-            <div className="h-px bg-[#2a2a2a]" />
+            <div className="h-px bg-[#222222]" />
 
             {/* MARKET */}
             <FullMarketSection />
-            <div className="h-px bg-[#2a2a2a]" />
+            <div className="h-px bg-[#222222]" />
             <FullTimingSection />
-            <div className="h-px bg-[#2a2a2a]" />
+            <div className="h-px bg-[#222222]" />
             <FullKeywordsSection />
-            <div className="h-px bg-[#2a2a2a]" />
+            <div className="h-px bg-[#222222]" />
 
             {/* VALIDATION */}
             <FullProofSignalsSection />
-            <div className="h-px bg-[#2a2a2a]" />
+            <div className="h-px bg-[#222222]" />
             <FullPainPointsSection />
-            <div className="h-px bg-[#2a2a2a]" />
+            <div className="h-px bg-[#222222]" />
             <FullCompetitorsSection />
-            <div className="h-px bg-[#2a2a2a]" />
+            <div className="h-px bg-[#222222]" />
 
             {/* STRATEGY */}
             <FullPositioningSection />
-            <div className="h-px bg-[#2a2a2a]" />
+            <div className="h-px bg-[#222222]" />
             <FullValueLadderSection />
-            <div className="h-px bg-[#2a2a2a]" />
+            <div className="h-px bg-[#222222]" />
             <FullTechStackSection />
-            <div className="h-px bg-[#2a2a2a]" />
+            <div className="h-px bg-[#222222]" />
             <FullActionPromptsSection />
 
             {/* Footer CTA */}
-            <div className="rounded-lg border border-[#e32b1a]/30 bg-[#1a1210] p-8 text-center">
+            <div className="rounded-lg border border-[#e32b1a]/30 bg-[#110a08] p-8 text-center">
               <p className="font-display text-2xl font-black uppercase text-[#d4d4d4]">Get your own report</p>
               <p className="mt-2 text-sm text-[#928e87]">Sign up for early access and get a full analysis for your business idea.</p>
               <a

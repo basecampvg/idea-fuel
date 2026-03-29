@@ -139,7 +139,7 @@ export default async function BlogPage({
               className={`
                 px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200
                 ${!activeTag
-                  ? 'bg-white text-[#161513]'
+                  ? 'bg-white text-[#0A0A0A]'
                   : 'text-[#928e87] border border-[#333] hover:border-[#555] hover:text-white'
                 }
               `}
@@ -153,7 +153,7 @@ export default async function BlogPage({
                 className={`
                   px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200
                   ${activeTag === tag
-                    ? 'bg-white text-[#161513]'
+                    ? 'bg-white text-[#0A0A0A]'
                     : 'text-[#928e87] border border-[#333] hover:border-[#555] hover:text-white'
                   }
                 `}
@@ -167,7 +167,7 @@ export default async function BlogPage({
         {/* ── Featured Post ── */}
         {featured && (
           <Link href={`/blog/${featured.slug}`} className="group block mb-12">
-            <article className="grid md:grid-cols-2 gap-0 rounded-2xl overflow-hidden border border-[#2a2a2a] bg-[#1c1b19] transition-all duration-300 hover:border-[#E8513D]/30 hover:shadow-[0_0_60px_-15px_rgba(232,81,61,0.15)]">
+            <article className="grid md:grid-cols-2 gap-0 rounded-2xl overflow-hidden border border-[#222222] bg-[#1c1b19] transition-all duration-300 hover:border-[#E8513D]/30 hover:shadow-[0_0_60px_-15px_rgba(232,81,61,0.15)]">
               {/* Cover — no text overlay, info panel handles it */}
               <div className="relative overflow-hidden">
                 {featured.coverImage ? (
@@ -247,7 +247,7 @@ export default async function BlogPage({
                 href={`/blog/${post.slug}`}
                 className="group block"
               >
-                <article className="h-full flex flex-col rounded-2xl overflow-hidden border border-[#2a2a2a] bg-[#1c1b19] transition-all duration-300 hover:border-[#E8513D]/30 hover:shadow-[0_0_40px_-12px_rgba(232,81,61,0.1)] hover:-translate-y-0.5">
+                <article className="h-full flex flex-col rounded-2xl overflow-hidden border border-[#222222] bg-[#1c1b19] transition-all duration-300 hover:border-[#E8513D]/30 hover:shadow-[0_0_40px_-12px_rgba(232,81,61,0.1)] hover:-translate-y-0.5">
                   {/* Cover */}
                   <div className="relative overflow-hidden">
                     {post.coverImage ? (

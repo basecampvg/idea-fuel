@@ -5,8 +5,8 @@ import { ChevronRight } from 'lucide-react-native';
 import { trpc } from '../lib/trpc';
 
 const colors = {
-  card: '#1A1918',
-  border: '#1F1E1C',
+  card: '#111111',
+  border: '#181818',
   foreground: '#E8E4DC',
   muted: '#8A8680',
   mutedDim: '#5A5855',

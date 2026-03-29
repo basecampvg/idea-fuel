@@ -96,19 +96,19 @@ interface SizeStyle {
 
 const sizeStyles: Record<ButtonSize, SizeStyle> = {
   sm: {
-    container: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+    container: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 9999 },
     text: { fontSize: 14 },
   },
   md: {
-    container: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12 },
+    container: { paddingHorizontal: 22, paddingVertical: 12, borderRadius: 9999 },
     text: { fontSize: 16 },
   },
   lg: {
-    container: { paddingHorizontal: 24, paddingVertical: 14, borderRadius: 16 },
+    container: { paddingHorizontal: 28, paddingVertical: 16, borderRadius: 9999 },
     text: { fontSize: 18 },
   },
   icon: {
-    container: { padding: 10, borderRadius: 12 },
+    container: { padding: 10, borderRadius: 9999 },
     text: { fontSize: 16 },
   },
 };

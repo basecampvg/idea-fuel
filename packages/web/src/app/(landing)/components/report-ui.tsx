@@ -15,7 +15,7 @@ export function SectionLabel({ children }: { children: ReactNode }) {
 
 export function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-3">
+    <div className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-3">
       <p className="font-mono text-[10px] font-bold uppercase tracking-[1.5px] text-[#928e87]">{label}</p>
       <p className="mt-1 font-display text-xl font-black leading-tight text-[#d4d4d4]">{value}</p>
       {sub && <p className="mt-1 text-xs text-[#928e87]">{sub}</p>}
@@ -27,7 +27,7 @@ export function Badge({ children, variant = 'default' }: { children: ReactNode; 
   const colors = {
     high: 'bg-[#e32b1a] text-white',
     medium: 'bg-[#e32b1a]/40 text-[#e32b1a]',
-    low: 'bg-[#2a2a2a] text-[#928e87]',
+    low: 'bg-[#222222] text-[#928e87]',
     default: 'bg-[#2a2220] text-[#e32b1a]/90',
   };
   return (
@@ -50,7 +50,7 @@ export function ScoreGauge({ label, value, maxValue, size = 'default' }: { label
         <path
           d={`M 4 ${h - 2} A ${radius} ${radius} 0 0 1 ${w - 4} ${h - 2}`}
           fill="none"
-          stroke="#2a2a2a"
+          stroke="#222222"
           strokeWidth="4"
           strokeLinecap="round"
         />
@@ -86,7 +86,7 @@ export function ProgressBar({ value, max, label }: { value: number; max: number;
         <span className="font-mono text-sm font-bold tracking-[1.5px] text-[#d4d4d4]">{label}</span>
         <span className="font-display text-base font-black text-[#d4d4d4]">${value}M</span>
       </div>
-      <div className="h-2.5 w-full rounded-full bg-[#2a2a2a]">
+      <div className="h-2.5 w-full rounded-full bg-[#222222]">
         <div className="h-full rounded-full bg-[#e32b1a]" style={{ width: `${pct}%`, opacity: 0.5 + (pct / 100) * 0.5 }} />
       </div>
     </div>
@@ -119,7 +119,7 @@ export function MarketFunnel({
 
           {/* Bar container */}
           <div className="relative flex-1">
-            <div className="h-10 w-full rounded-lg bg-[#2a2a2a]/40" />
+            <div className="h-10 w-full rounded-lg bg-[#222222]/40" />
             <div
               className="absolute inset-y-0 left-0 flex items-center rounded-lg"
               style={{
@@ -152,12 +152,12 @@ export function MarketFunnel({
 
 export function ViewFullReportCTA() {
   return (
-    <div className="mt-6 border-t border-[#2a2a2a] pt-4">
+    <div className="mt-6 border-t border-[#222222] pt-4">
       <a
         href="/demo-report"
         target="_blank"
         rel="noopener noreferrer"
-        className="group flex items-center justify-center gap-2 rounded-lg border border-[#e32b1a]/30 bg-[#1a1210] px-4 py-3 text-sm font-bold text-[#e32b1a] transition-all hover:border-[#e32b1a] hover:bg-[#e32b1a]/10"
+        className="group flex items-center justify-center gap-2 rounded-lg border border-[#e32b1a]/30 bg-[#110a08] px-4 py-3 text-sm font-bold text-[#e32b1a] transition-all hover:border-[#e32b1a] hover:bg-[#e32b1a]/10"
       >
         View Full Report
         <span className="transition-transform group-hover:translate-x-1">&rarr;</span>

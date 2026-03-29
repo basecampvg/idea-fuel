@@ -7,13 +7,13 @@
 
 export const colors = {
   // ── Surfaces ──
-  background: '#161513',
-  card: '#1A1918',
-  surface: '#1E1D1B',
+  background: '#0A0A0A',
+  card: '#111111',
+  surface: '#161616',
 
   // ── Borders ──
-  border: '#2A2A2A',
-  borderSubtle: '#1F1E1C',
+  border: '#222222',
+  borderSubtle: '#181818',
 
   // ── Text ──
   foreground: '#E8E4DC',

@@ -48,17 +48,17 @@ function SummaryPanel() {
       </div>
 
       {/* Score Metadata */}
-      <div className="flex gap-3 rounded-lg bg-[#161513] p-3">
+      <div className="flex gap-3 rounded-lg bg-[#0A0A0A] p-3">
         <div className="flex-1 text-center">
           <p className="font-display text-base font-black text-[#d4d4d4]">{SCORE_METADATA.averageConfidence}%</p>
           <p className="text-[10px] uppercase tracking-[1px] text-[#928e87]">Avg Confidence</p>
         </div>
-        <div className="w-px bg-[#2a2a2a]" />
+        <div className="w-px bg-[#222222]" />
         <div className="flex-1 text-center">
           <p className="font-display text-base font-black text-[#d4d4d4]">{SCORE_METADATA.passCount}</p>
           <p className="text-[10px] uppercase tracking-[1px] text-[#928e87]">Passes</p>
         </div>
-        <div className="w-px bg-[#2a2a2a]" />
+        <div className="w-px bg-[#222222]" />
         <div className="flex-1 text-center">
           <p className="font-display text-base font-black text-[#d4d4d4]">&plusmn;{SCORE_METADATA.maxDeviation}</p>
           <p className="text-[10px] uppercase tracking-[1px] text-[#928e87]">Max Deviation</p>
@@ -72,7 +72,7 @@ function SummaryPanel() {
       {KEYWORD_TRENDS.length > 0 && (
         <div className="space-y-2">
           {KEYWORD_TRENDS.map((t) => (
-            <div key={t.keyword} className="flex items-center justify-between rounded-lg border border-[#2a2a2a] bg-[#161513] px-3 py-2">
+            <div key={t.keyword} className="flex items-center justify-between rounded-lg border border-[#222222] bg-[#0A0A0A] px-3 py-2">
               <span className="text-sm font-bold text-[#d4d4d4]">{t.keyword}</span>
               <div className="flex items-center gap-3">
                 <span className="font-mono text-xs text-[#928e87]">{t.volume.toLocaleString()} vol</span>
@@ -95,7 +95,7 @@ function SummaryPanel() {
       <p className="text-[10px] font-bold uppercase tracking-[1.5px] text-[#928e87]">Long-Tail</p>
       <div className="flex flex-wrap gap-1.5">
         {KEYWORDS.longTail.slice(0, 8).map((k) => (
-          <span key={k} className="rounded bg-[#161513] px-2 py-1 text-xs text-[#928e87]">{k}</span>
+          <span key={k} className="rounded bg-[#0A0A0A] px-2 py-1 text-xs text-[#928e87]">{k}</span>
         ))}
       </div>
 
@@ -125,7 +125,7 @@ function MarketPanel() {
       <SectionLabel>Target Segments</SectionLabel>
       <div className="space-y-2">
         {MARKET_SIZING.segments.map((s) => (
-          <div key={s.name} className="flex items-center justify-between rounded border border-[#2a2a2a] bg-[#161513] px-3 py-2">
+          <div key={s.name} className="flex items-center justify-between rounded border border-[#222222] bg-[#0A0A0A] px-3 py-2">
             <span className="text-sm font-bold text-[#d4d4d4]">{s.name}</span>
             <div className="flex gap-3">
               <span className="text-xs text-[#928e87]">SAM {s.samContribution}%</span>
@@ -138,7 +138,7 @@ function MarketPanel() {
       <SectionLabel>Geographic Breakdown</SectionLabel>
       <div className="flex gap-2">
         {MARKET_SIZING.geographic.map((g) => (
-          <div key={g.region} className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#161513] p-3 text-center">
+          <div key={g.region} className="flex-1 rounded-lg border border-[#222222] bg-[#0A0A0A] p-3 text-center">
             <p className="font-display text-lg font-black text-[#d4d4d4]">{g.percentage}%</p>
             <p className="text-xs text-[#928e87]">{g.region}</p>
           </div>
@@ -169,7 +169,7 @@ function CompetitorsPanel() {
       </div>
 
       {COMPETITORS.slice(0, 4).map((c) => (
-        <div key={c.name} className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-3">
+        <div key={c.name} className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-3">
           <div className="mb-2 flex items-start justify-between gap-2">
             <p className="text-sm font-bold text-[#d4d4d4]">{c.name}</p>
             <span className="shrink-0 text-xs font-medium text-[#e32b1a]">{c.pricingModel.split(' ')[0]}</span>
@@ -220,7 +220,7 @@ function PainPointsPanel() {
       </div>
 
       {top10.map((p, i) => (
-        <div key={i} className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-3">
+        <div key={i} className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-3">
           <div className="flex items-start gap-2">
             <Badge variant={p.severity}>{p.severity}</Badge>
             <div className="min-w-0 flex-1">
@@ -243,7 +243,7 @@ function PositioningPanel() {
   return (
     <div className="space-y-4">
       <SectionLabel>Unique Value Proposition</SectionLabel>
-      <div className="rounded-lg border border-[#e32b1a]/30 bg-[#1a1210] p-4">
+      <div className="rounded-lg border border-[#e32b1a]/30 bg-[#110a08] p-4">
         <p className="text-sm font-medium leading-relaxed text-[#d4d4d4]">&ldquo;{POSITIONING.uniqueValueProposition}&rdquo;</p>
       </div>
 
@@ -259,25 +259,25 @@ function PositioningPanel() {
 
       <SectionLabel>Messaging</SectionLabel>
       <div className="space-y-2">
-        <div className="rounded border border-[#2a2a2a] bg-[#161513] p-3">
+        <div className="rounded border border-[#222222] bg-[#0A0A0A] p-3">
           <p className="text-[10px] font-bold uppercase text-[#928e87]">Headline</p>
           <p className="mt-1 text-sm font-bold text-[#d4d4d4]">{POSITIONING.messagingFramework.headline}</p>
         </div>
-        <div className="rounded border border-[#2a2a2a] bg-[#161513] p-3">
+        <div className="rounded border border-[#222222] bg-[#0A0A0A] p-3">
           <p className="text-[10px] font-bold uppercase text-[#928e87]">Subheadline</p>
           <p className="mt-1 text-sm text-[#d4d4d4]">{POSITIONING.messagingFramework.subheadline}</p>
         </div>
       </div>
 
       <SectionLabel>Ideal Customer</SectionLabel>
-      <div className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-3">
+      <div className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-3">
         <p className="text-sm font-bold text-[#d4d4d4]">{POSITIONING.idealCustomerProfile.persona}</p>
         <p className="mt-1 text-xs text-[#928e87]">{POSITIONING.idealCustomerProfile.demographics}</p>
       </div>
 
       <SectionLabel>Top Objection Handlers</SectionLabel>
       {POSITIONING.messagingFramework.objectionHandlers.slice(0, 2).map((oh, i) => (
-        <div key={i} className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-3">
+        <div key={i} className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-3">
           <p className="text-sm font-bold text-[#d4d4d4]">&ldquo;{oh.objection}&rdquo;</p>
           <p className="mt-1.5 text-xs leading-relaxed text-[#928e87]">{oh.response}</p>
         </div>
@@ -305,7 +305,7 @@ function TimingPanel() {
 
       <SectionLabel>Market Catalysts</SectionLabel>
       {WHY_NOW.catalysts.slice(0, 3).map((c) => (
-        <div key={c.event} className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-3">
+        <div key={c.event} className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-3">
           <div className="mb-1.5 flex items-start gap-2">
             <Badge variant={c.impact}>{c.impact}</Badge>
             <p className="text-sm font-bold text-[#d4d4d4]">{c.event}</p>
@@ -316,7 +316,7 @@ function TimingPanel() {
       ))}
 
       <SectionLabel>Urgency Narrative</SectionLabel>
-      <div className="rounded-lg border border-[#e32b1a]/20 bg-[#1a1210] p-4">
+      <div className="rounded-lg border border-[#e32b1a]/20 bg-[#110a08] p-4">
         <p className="text-sm leading-relaxed text-[#d4d4d4]">{WHY_NOW.urgencyNarrative}</p>
       </div>
 
@@ -342,7 +342,7 @@ function BusinessPanel() {
           <div
             key={t.tier}
             className={`rounded-lg border p-3 ${
-              t.highlighted ? 'border-[#e32b1a] bg-[#1a1210]' : 'border-[#2a2a2a] bg-[#161513]'
+              t.highlighted ? 'border-[#e32b1a] bg-[#110a08]' : 'border-[#222222] bg-[#0A0A0A]'
             }`}
           >
             <p className="font-mono text-[10px] font-bold uppercase tracking-[1.5px] text-[#928e87]">{t.label}</p>
@@ -359,7 +359,7 @@ function BusinessPanel() {
         <StatCard label="MVP Time" value="9-12mo" />
         <StatCard label="Solo" value={EXECUTION.soloFriendly ? 'Yes' : 'No'} />
       </div>
-      <div className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-3">
+      <div className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-3">
         <p className="text-[10px] font-bold uppercase text-[#e32b1a]">Biggest Risk</p>
         <p className="mt-1 text-xs leading-relaxed text-[#928e87]">{EXECUTION.biggestRisk}</p>
       </div>
@@ -369,7 +369,7 @@ function BusinessPanel() {
         <StatCard label="GTM Clarity" value={GTM.rating.toUpperCase()} sub={`${GTM.confidence}% confidence`} />
         <StatCard label="CAC" value="$15-25K" sub="Per resort (early stage)" />
       </div>
-      <div className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-3">
+      <div className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-3">
         <p className="text-[10px] font-bold uppercase text-[#928e87]">Primary Channel</p>
         <p className="mt-1 text-xs leading-relaxed text-[#928e87]">{GTM.primaryChannel}</p>
       </div>
@@ -386,11 +386,11 @@ function BlueprintPanel() {
   return (
     <div className="space-y-4">
       <SectionLabel>User Story</SectionLabel>
-      <div className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-3">
+      <div className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-3">
         <p className="text-sm font-bold text-[#d4d4d4]">{USER_STORY.protagonist.name}</p>
         <p className="text-xs text-[#928e87]">{USER_STORY.protagonist.title} — {USER_STORY.protagonist.setting}</p>
       </div>
-      <div className="rounded-lg border border-[#e32b1a]/20 bg-[#1a1210] p-4">
+      <div className="rounded-lg border border-[#e32b1a]/20 bg-[#110a08] p-4">
         <p className="text-sm italic leading-relaxed text-[#d4d4d4]">{USER_STORY.quote}</p>
       </div>
 
@@ -545,7 +545,7 @@ export function ReportDashboard({ className = '' }: { className?: string }) {
       onMouseLeave={handleMouseLeave}
     >
       {/* Tab Bar */}
-      <div className="flex shrink-0 border-b border-[#2a2a2a]">
+      <div className="flex shrink-0 border-b border-[#222222]">
         {REPORT_TABS.map((tab, i) => (
           <button
             key={tab.id}
@@ -567,7 +567,7 @@ export function ReportDashboard({ className = '' }: { className?: string }) {
           <div
             key={REPORT_TABS[i].id}
             data-tab-panel={i}
-            className="absolute inset-0 overflow-y-auto overflow-x-hidden px-4 py-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#2a2a2a]"
+            className="absolute inset-0 overflow-y-auto overflow-x-hidden px-4 py-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#222222]"
             ref={(el) => { scrollRefs.current[i] = el; }}
             style={{
               opacity: i === 0 ? 1 : 0,
@@ -580,7 +580,7 @@ export function ReportDashboard({ className = '' }: { className?: string }) {
       </div>
 
       {/* Progress Bar */}
-      <div className="h-[2px] shrink-0 bg-[#2a2a2a]">
+      <div className="h-[2px] shrink-0 bg-[#222222]">
         <div ref={progressRef} className="h-full w-0 bg-[#e32b1a]" />
       </div>
 

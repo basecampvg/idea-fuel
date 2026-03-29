@@ -495,7 +495,7 @@ export default function LandingPage() {
         </section>
 
         {/* ─── Slide 2: Capture Your Idea (text) ─── */}
-        <section data-slide className="slide bg-[#161513] pt-[88px]">
+        <section data-slide className="slide bg-[#0A0A0A] pt-[88px]">
           <div className="mx-auto flex h-[calc(100vh-88px)] w-full max-w-[1800px] items-center gap-12 px-6 lg:gap-20 lg:px-20">
             {/* Left Column: Text */}
             <div className="flex-1">
@@ -561,7 +561,7 @@ export default function LandingPage() {
         </section>
 
         {/* ─── Slide 2b: Phone Mockup (mobile/tablet only) ─── */}
-        <section data-slide data-mobile-only className="slide bg-[#161513] pt-[88px] lg:hidden">
+        <section data-slide data-mobile-only className="slide bg-[#0A0A0A] pt-[88px] lg:hidden">
           <div className="flex h-[calc(100vh-88px)] w-full items-center justify-center px-6">
             <div data-anim="s2b-phone" className="w-full max-w-[320px]">
               <PhoneMockup />
@@ -570,7 +570,7 @@ export default function LandingPage() {
         </section>
 
         {/* ─── Slide 3: Research & Validate (text) ─── */}
-        <section data-slide className="slide bg-[#161513] pt-[88px]">
+        <section data-slide className="slide bg-[#0A0A0A] pt-[88px]">
           <div className="mx-auto flex h-[calc(100vh-88px)] w-full max-w-[1800px] items-center gap-12 px-6 lg:gap-20 lg:px-20">
             {/* Left Column: Text */}
             <div className="flex-1">
@@ -626,7 +626,7 @@ export default function LandingPage() {
         </section>
 
         {/* ─── Slide 3b: Scrolling Report Grid (mobile/tablet only) ─── */}
-        <section data-slide data-mobile-only className="slide bg-[#161513] pt-[88px] lg:hidden">
+        <section data-slide data-mobile-only className="slide bg-[#0A0A0A] pt-[88px] lg:hidden">
           <div className="flex h-[calc(100vh-88px)] w-full items-center justify-center overflow-hidden px-3">
             <div data-anim="s3b-grid" className="h-[70vh] w-full">
               <ScrollingReportGrid className="h-full" />
@@ -635,7 +635,7 @@ export default function LandingPage() {
         </section>
 
         {/* ─── Slide 4: Your Report (text) ─── */}
-        <section data-slide className="slide bg-[#161513] pt-[88px]">
+        <section data-slide className="slide bg-[#0A0A0A] pt-[88px]">
           <div className="mx-auto flex h-[calc(100vh-88px)] w-full max-w-[1800px] items-center px-6 lg:px-20">
             {/* Left Column: Text (narrow) */}
             <div className="w-full shrink-0 lg:w-[30%]">
@@ -680,7 +680,7 @@ export default function LandingPage() {
             </div>
 
             {/* Vertical Divider (desktop only) */}
-            <div className="mx-8 hidden h-[70vh] w-px bg-gradient-to-b from-transparent via-[#2a2a2a] to-transparent lg:block" />
+            <div className="mx-8 hidden h-[70vh] w-px bg-gradient-to-b from-transparent via-[#222222] to-transparent lg:block" />
 
             {/* Right Column: Report Dashboard (desktop only) */}
             <div
@@ -694,11 +694,11 @@ export default function LandingPage() {
         </section>
 
         {/* ─── Slide 4b: Report Dashboard (mobile/tablet only) ─── */}
-        <section data-slide data-mobile-only className="slide bg-[#161513] pt-[88px] lg:hidden">
+        <section data-slide data-mobile-only className="slide bg-[#0A0A0A] pt-[88px] lg:hidden">
           <div className="flex h-[calc(100vh-88px)] w-full items-center justify-center overflow-hidden px-3">
             <div
               data-anim="s4b-dashboard"
-              className="w-full max-w-[480px] rounded-xl border border-[#2a2a2a] bg-[#0e0d0c]"
+              className="w-full max-w-[480px] rounded-xl border border-[#222222] bg-[#0e0d0c]"
               style={{ height: 'calc(100vh - 120px)' }}
             >
               <ReportDashboard />

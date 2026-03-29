@@ -8,9 +8,9 @@ const appUrl =
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#161513]">
+    <div className="min-h-screen bg-[#0A0A0A]">
       {/* Header — matches landing page brand */}
-      <header className="border-b border-[#333] bg-[#161513]">
+      <header className="border-b border-[#333] bg-[#0A0A0A]">
         <div className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-6">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">

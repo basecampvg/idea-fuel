@@ -50,12 +50,12 @@ export function FullScoresSection() {
           <p className="font-display text-xl font-black text-[#d4d4d4]">{SCORE_METADATA.averageConfidence}%</p>
           <p className="text-xs uppercase tracking-[1px] text-[#928e87]">Avg Confidence</p>
         </div>
-        <div className="w-px bg-[#2a2a2a]" />
+        <div className="w-px bg-[#222222]" />
         <div className="flex-1 text-center">
           <p className="font-display text-xl font-black text-[#d4d4d4]">{SCORE_METADATA.passCount}</p>
           <p className="text-xs uppercase tracking-[1px] text-[#928e87]">Passes</p>
         </div>
-        <div className="w-px bg-[#2a2a2a]" />
+        <div className="w-px bg-[#222222]" />
         <div className="flex-1 text-center">
           <p className="font-display text-xl font-black text-[#d4d4d4]">&plusmn;{SCORE_METADATA.maxDeviation}</p>
           <p className="text-xs uppercase tracking-[1px] text-[#928e87]">Max Deviation</p>
@@ -65,7 +65,7 @@ export function FullScoresSection() {
       <SectionLabel>Score Justifications</SectionLabel>
       <div className="grid gap-4 lg:grid-cols-2">
         {justifications.map((j) => (
-          <div key={j.score} className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4">
+          <div key={j.score} className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4">
             <div className="mb-2 flex items-center gap-2">
               <span className="font-display text-lg font-black text-[#d4d4d4]">{j.score}/100</span>
               <Badge variant={j.confidence === 'high' ? 'high' : j.confidence === 'low' ? 'low' : 'medium'}>{j.confidence}</Badge>
@@ -106,7 +106,7 @@ export function FullBusinessFitSection() {
         <StatCard label="Solo Friendly" value={EXECUTION.soloFriendly ? 'Yes' : 'No'} />
       </div>
 
-      <div className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4">
+      <div className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4">
         <p className="text-xs font-bold uppercase text-[#e32b1a]">Biggest Risk</p>
         <p className="mt-2 text-sm leading-relaxed text-[#928e87]">{EXECUTION.biggestRisk}</p>
       </div>
@@ -135,7 +135,7 @@ export function FullBusinessFitSection() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4">
+      <div className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4">
         <p className="text-xs font-bold uppercase text-[#928e87]">Recommended First Hire</p>
         <p className="mt-2 text-sm leading-relaxed text-[#928e87]">{FOUNDER_FIT.recommendedFirstHire}</p>
       </div>
@@ -169,7 +169,7 @@ export function FullMarketSection() {
       <SectionLabel>Target Segments</SectionLabel>
       <div className="space-y-2">
         {MARKET_SIZING.segments.map((s) => (
-          <div key={s.name} className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4">
+          <div key={s.name} className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-bold text-[#d4d4d4]">{s.name}</span>
               <div className="flex gap-4">
@@ -186,7 +186,7 @@ export function FullMarketSection() {
       <SectionLabel>Geographic Breakdown</SectionLabel>
       <div className="grid grid-cols-3 gap-3">
         {MARKET_SIZING.geographic.map((g) => (
-          <div key={g.region} className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4 text-center">
+          <div key={g.region} className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4 text-center">
             <p className="font-display text-2xl font-black text-[#d4d4d4]">{g.percentage}%</p>
             <p className="text-sm font-medium text-[#928e87]">{g.region}</p>
             <p className="mt-1 text-xs text-[#928e87]">{g.notes}</p>
@@ -226,7 +226,7 @@ export function FullMarketSection() {
       <SectionLabel>Adjacent Markets ({MARKET_ANALYSIS.adjacentMarkets.length})</SectionLabel>
       <div className="grid gap-3 lg:grid-cols-2">
         {MARKET_ANALYSIS.adjacentMarkets.map((m) => (
-          <div key={m.name} className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-3">
+          <div key={m.name} className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-3">
             <p className="text-sm font-bold text-[#d4d4d4]">{m.name}</p>
             <p className="mt-1 text-xs text-[#928e87]">{m.relevance}</p>
           </div>
@@ -242,7 +242,7 @@ export function FullMarketSection() {
 
       <SectionLabel>Sources ({MARKET_SIZING.sources.length})</SectionLabel>
       {MARKET_SIZING.sources.map((s, i) => (
-        <div key={i} className="flex items-center justify-between border-b border-[#2a2a2a] py-2 last:border-0">
+        <div key={i} className="flex items-center justify-between border-b border-[#222222] py-2 last:border-0">
           <span className="text-sm text-[#928e87]">{s.title}</span>
           <span className="text-xs text-[#928e87]">{s.date}</span>
         </div>
@@ -272,7 +272,7 @@ export function FullTimingSection() {
       <SectionLabel>Catalysts ({WHY_NOW.catalysts.length})</SectionLabel>
       <div className="space-y-3">
         {WHY_NOW.catalysts.map((c) => (
-          <div key={c.event} className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4">
+          <div key={c.event} className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4">
             <div className="mb-2 flex items-start gap-2">
               <Badge variant={c.impact}>{c.impact}</Badge>
               <p className="text-sm font-bold text-[#d4d4d4]">{c.event}</p>
@@ -300,7 +300,7 @@ export function FullTimingSection() {
       ))}
 
       <SectionLabel>Urgency Narrative</SectionLabel>
-      <div className="rounded-lg border border-[#e32b1a]/20 bg-[#1a1210] p-5">
+      <div className="rounded-lg border border-[#e32b1a]/20 bg-[#110a08] p-5">
         <p className="text-sm leading-relaxed text-[#d4d4d4]">{WHY_NOW.urgencyNarrative}</p>
       </div>
     </section>
@@ -328,7 +328,7 @@ export function FullKeywordsSection() {
           <p className="mb-1 text-xs font-bold uppercase text-[#928e87]">Secondary ({KEYWORDS.secondary.length})</p>
           <div className="flex flex-wrap gap-1.5">
             {KEYWORDS.secondary.map((k) => (
-              <span key={k} className="rounded bg-[#2a2a2a] px-2 py-1 text-xs text-[#928e87]">{k}</span>
+              <span key={k} className="rounded bg-[#222222] px-2 py-1 text-xs text-[#928e87]">{k}</span>
             ))}
           </div>
         </div>
@@ -336,7 +336,7 @@ export function FullKeywordsSection() {
           <p className="mb-1 text-xs font-bold uppercase text-[#928e87]">Long-tail ({KEYWORDS.longTail.length})</p>
           <div className="flex flex-wrap gap-1.5">
             {KEYWORDS.longTail.map((k) => (
-              <span key={k} className="rounded bg-[#2a2a2a] px-2 py-1 text-xs text-[#928e87]">{k}</span>
+              <span key={k} className="rounded bg-[#222222] px-2 py-1 text-xs text-[#928e87]">{k}</span>
             ))}
           </div>
         </div>
@@ -345,7 +345,7 @@ export function FullKeywordsSection() {
       <SectionLabel>Trends ({KEYWORD_TRENDS.length})</SectionLabel>
       <div className="grid gap-3 lg:grid-cols-3">
         {KEYWORD_TRENDS.map((kt) => (
-          <div key={kt.keyword} className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-3">
+          <div key={kt.keyword} className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-3">
             <p className="text-sm font-bold text-[#d4d4d4]">{kt.keyword}</p>
             <p className="text-xs text-[#928e87]">Volume: {kt.volume.toLocaleString()} &middot; Growth: +{kt.growth}%</p>
           </div>
@@ -385,7 +385,7 @@ export function FullProofSignalsSection() {
 
       <SectionLabel>Risk Mitigation ({PROOF_SIGNALS.riskMitigation.length})</SectionLabel>
       {PROOF_SIGNALS.riskMitigation.map((rm, i) => (
-        <div key={i} className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4">
+        <div key={i} className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4">
           <div className="mb-1 flex items-center gap-2">
             <Badge variant={rm.severity}>{rm.severity}</Badge>
             <p className="text-sm font-bold text-[#d4d4d4]">{rm.risk}</p>
@@ -396,7 +396,7 @@ export function FullProofSignalsSection() {
 
       <SectionLabel>Validation Experiments ({PROOF_SIGNALS.validationExperiments.length})</SectionLabel>
       {PROOF_SIGNALS.validationExperiments.map((v, i) => (
-        <div key={i} className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4">
+        <div key={i} className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4">
           <p className="text-sm font-bold text-[#d4d4d4]">{v.experiment}</p>
           <div className="mt-1 flex gap-4">
             <span className="text-xs text-[#928e87]">Cost: {v.cost}</span>
@@ -409,7 +409,7 @@ export function FullProofSignalsSection() {
       <SectionLabel>Validation Opportunities ({PROOF_SIGNALS.validationOpportunities.length})</SectionLabel>
       {PROOF_SIGNALS.validationOpportunities.map((vo, i) => (
         <div key={i} className="flex items-start gap-2 py-1">
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#2a2a2a] text-[10px] font-bold text-[#d4d4d4]">{i + 1}</span>
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#222222] text-[10px] font-bold text-[#d4d4d4]">{i + 1}</span>
           <p className="text-sm text-[#928e87]">{vo}</p>
         </div>
       ))}
@@ -440,7 +440,7 @@ export function FullPainPointsSection() {
 
       <div className="space-y-3">
         {PAIN_POINTS.map((p, i) => (
-          <div key={i} className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4">
+          <div key={i} className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4">
             <div className="mb-2 flex items-start gap-3">
               <Badge variant={p.severity}>{p.severity}</Badge>
               <p className="text-sm font-bold leading-snug text-[#d4d4d4]">{p.problem}</p>
@@ -470,7 +470,7 @@ export function FullCompetitorsSection() {
 
       <div className="space-y-4">
         {COMPETITORS.map((c) => (
-          <div key={c.name} className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-5">
+          <div key={c.name} className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-5">
             <div className="mb-3 flex items-start justify-between">
               <div>
                 <p className="text-base font-bold text-[#d4d4d4]">{c.name}</p>
@@ -515,7 +515,7 @@ export function FullPositioningSection() {
       <h2 className="font-display text-2xl font-black uppercase tracking-tight text-[#d4d4d4]">Positioning</h2>
 
       <SectionLabel>Unique Value Proposition</SectionLabel>
-      <div className="rounded-lg border border-[#e32b1a]/30 bg-[#1a1210] p-5">
+      <div className="rounded-lg border border-[#e32b1a]/30 bg-[#110a08] p-5">
         <p className="text-base font-medium leading-relaxed text-[#d4d4d4]">&ldquo;{POSITIONING.uniqueValueProposition}&rdquo;</p>
       </div>
 
@@ -535,7 +535,7 @@ export function FullPositioningSection() {
       <SectionLabel>Messaging Pillars ({POSITIONING.messagingPillars.length})</SectionLabel>
       <div className="grid gap-3 lg:grid-cols-2">
         {POSITIONING.messagingPillars.map((p, i) => (
-          <div key={i} className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-3">
+          <div key={i} className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-3">
             <p className="text-sm text-[#d4d4d4]">{p}</p>
           </div>
         ))}
@@ -543,22 +543,22 @@ export function FullPositioningSection() {
 
       <SectionLabel>Messaging Framework</SectionLabel>
       <div className="space-y-3">
-        <div className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4">
+        <div className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4">
           <p className="text-xs font-bold uppercase text-[#928e87]">Headline</p>
           <p className="mt-1 text-base font-bold text-[#d4d4d4]">{POSITIONING.messagingFramework.headline}</p>
         </div>
-        <div className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4">
+        <div className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4">
           <p className="text-xs font-bold uppercase text-[#928e87]">Subheadline</p>
           <p className="mt-1 text-sm text-[#d4d4d4]">{POSITIONING.messagingFramework.subheadline}</p>
         </div>
-        <div className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4">
+        <div className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4">
           <p className="text-xs font-bold uppercase text-[#928e87]">Elevator Pitch</p>
           <p className="mt-1 text-sm leading-relaxed text-[#928e87]">{POSITIONING.messagingFramework.elevatorPitch}</p>
         </div>
       </div>
 
       <SectionLabel>Ideal Customer Profile</SectionLabel>
-      <div className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4">
+      <div className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4">
         <p className="text-base font-bold text-[#d4d4d4]">{POSITIONING.idealCustomerProfile.persona}</p>
         <p className="mt-1 text-sm text-[#928e87]">{POSITIONING.idealCustomerProfile.demographics}</p>
         <p className="mt-2 text-sm text-[#928e87]">{POSITIONING.idealCustomerProfile.psychographics}</p>
@@ -573,14 +573,14 @@ export function FullPositioningSection() {
 
       <SectionLabel>Objection Handlers ({POSITIONING.messagingFramework.objectionHandlers.length})</SectionLabel>
       {POSITIONING.messagingFramework.objectionHandlers.map((oh, i) => (
-        <div key={i} className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4">
+        <div key={i} className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4">
           <p className="text-sm font-bold text-[#d4d4d4]">&ldquo;{oh.objection}&rdquo;</p>
           <p className="mt-2 text-sm leading-relaxed text-[#928e87]">{oh.response}</p>
         </div>
       ))}
 
       <SectionLabel>Competitive Positioning</SectionLabel>
-      <div className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4">
+      <div className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4">
         <p className="text-xs font-bold uppercase text-[#928e87]">Category: {POSITIONING.competitivePositioning.category}</p>
         <p className="mt-2 text-sm text-[#d4d4d4]">{POSITIONING.competitivePositioning.against}</p>
         <p className="mt-2 text-sm text-[#928e87]"><span className="font-bold text-[#d4d4d4]">Proof Point:</span> {POSITIONING.competitivePositioning.proofPoint}</p>
@@ -603,7 +603,7 @@ export function FullValueLadderSection() {
           <div
             key={t.tier}
             className={`rounded-lg border p-4 ${
-              t.highlighted ? 'border-[#e32b1a] bg-[#1a1210]' : 'border-[#2a2a2a] bg-[#161513]'
+              t.highlighted ? 'border-[#e32b1a] bg-[#110a08]' : 'border-[#222222] bg-[#0A0A0A]'
             }`}
           >
             <p className="font-mono text-[10px] font-bold uppercase tracking-[1.5px] text-[#928e87]">{t.label}</p>
@@ -617,7 +617,7 @@ export function FullValueLadderSection() {
       <SectionLabel>Critical Path ({EXECUTION.criticalPath.length} steps)</SectionLabel>
       {EXECUTION.criticalPath.map((step, i) => (
         <div key={i} className="flex items-start gap-3 py-1">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#2a2a2a] text-xs font-bold text-[#d4d4d4]">{i + 1}</span>
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#222222] text-xs font-bold text-[#d4d4d4]">{i + 1}</span>
           <p className="text-sm text-[#928e87]">{step}</p>
         </div>
       ))}
@@ -629,7 +629,7 @@ export function FullValueLadderSection() {
         <StatCard label="First Milestone" value="3 Partners" sub="Within 6 months" />
       </div>
 
-      <div className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4">
+      <div className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4">
         <p className="text-xs font-bold uppercase text-[#928e87]">Primary Channel</p>
         <p className="mt-2 text-sm leading-relaxed text-[#928e87]">{GTM.primaryChannel}</p>
       </div>
@@ -665,7 +665,7 @@ export function FullTechStackSection() {
           <SectionLabel>{layer}</SectionLabel>
           <div className="space-y-1">
             {items.map((item) => (
-              <div key={item.name} className="flex items-center justify-between border-b border-[#2a2a2a] py-2 last:border-0">
+              <div key={item.name} className="flex items-center justify-between border-b border-[#222222] py-2 last:border-0">
                 <div>
                   <p className="text-sm font-bold text-[#d4d4d4]">{item.name}</p>
                   <p className="text-xs text-[#928e87]">{item.purpose}</p>
@@ -687,19 +687,19 @@ export function FullTechStackSection() {
 
       {/* User Story included here as bonus context */}
       <SectionLabel>User Story</SectionLabel>
-      <div className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4">
+      <div className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4">
         <p className="text-base font-bold text-[#d4d4d4]">{USER_STORY.protagonist.name}</p>
         <p className="text-sm text-[#928e87]">{USER_STORY.protagonist.title} — {USER_STORY.protagonist.setting}</p>
       </div>
-      <div className="rounded-lg border border-[#e32b1a]/20 bg-[#1a1210] p-5">
+      <div className="rounded-lg border border-[#e32b1a]/20 bg-[#110a08] p-5">
         <p className="text-sm italic leading-relaxed text-[#d4d4d4]">{USER_STORY.quote}</p>
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-lg border border-[#b44a3e]/30 bg-[#161513] p-4">
+        <div className="rounded-lg border border-[#b44a3e]/30 bg-[#0A0A0A] p-4">
           <p className="text-xs font-bold uppercase text-[#b44a3e]">Before</p>
           <p className="mt-2 text-sm leading-relaxed text-[#928e87]">{USER_STORY.dayInTheLife.before}</p>
         </div>
-        <div className="rounded-lg border border-[#6b8a6b]/30 bg-[#161513] p-4">
+        <div className="rounded-lg border border-[#6b8a6b]/30 bg-[#0A0A0A] p-4">
           <p className="text-xs font-bold uppercase text-[#6b8a6b]">After</p>
           <p className="mt-2 text-sm leading-relaxed text-[#928e87]">{USER_STORY.dayInTheLife.after}</p>
         </div>
@@ -718,7 +718,7 @@ export function FullActionPromptsSection() {
 
       <div className="grid gap-3 lg:grid-cols-2">
         {ACTION_PROMPTS.map((ap) => (
-          <div key={ap.id} className="rounded-lg border border-[#2a2a2a] bg-[#161513] p-4">
+          <div key={ap.id} className="rounded-lg border border-[#222222] bg-[#0A0A0A] p-4">
             <div className="mb-1 flex items-center gap-2">
               <Badge>{ap.category}</Badge>
               <p className="text-sm font-bold text-[#d4d4d4]">{ap.title}</p>

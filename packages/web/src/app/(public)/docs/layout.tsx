@@ -23,9 +23,9 @@ export default function DocsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#161513]">
+    <div className="min-h-screen bg-[#0A0A0A]">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#333] bg-[#161513]/80 backdrop-blur-xl">
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#333] bg-[#0A0A0A]/80 backdrop-blur-xl">
         <div className="mx-auto flex h-[72px] max-w-[1800px] items-center justify-between px-6 lg:px-8">
           {/* Logo */}
           <div className="flex items-center gap-6">

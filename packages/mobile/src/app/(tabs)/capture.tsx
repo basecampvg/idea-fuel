@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
+  InteractionManager,
 } from 'react-native';
 import { Mic, Square, Zap, PenLine } from 'lucide-react-native';
 import { triggerHaptic } from '../../components/ui/Button';
@@ -23,15 +24,25 @@ import { IdeaFuelLogo } from '../../components/IdeaFuelLogo';
 import { SloganSVG } from '../../components/SloganSVG';
 import { colors, fonts } from '../../lib/theme';
 
-// expo-speech-recognition requires a dev build — safely handle Expo Go
+// Defer loading expo-speech-recognition until after the initial Fabric mount
+// transaction completes. Loading it eagerly at module level triggers TurboModule
+// void method invocations during the splash→tabs navigation, which races with
+// Fabric's view hierarchy updates and causes SIGABRT under New Architecture.
+let _speechModuleResolved = false;
 let SpeechModule: any = null;
-let useSpeechEvent: any = () => {};
-try {
-  const mod = require('expo-speech-recognition');
-  SpeechModule = mod.SpeechModule;
-  useSpeechEvent = mod.useSpeechEvent;
-} catch {
-  // Not available in Expo Go — voice mode will fall back to text
+let _useSpeechEvent: any = null;
+
+function loadSpeechModule(): boolean {
+  if (_speechModuleResolved) return SpeechModule !== null && typeof _useSpeechEvent === 'function';
+  _speechModuleResolved = true;
+  try {
+    const mod = require('expo-speech-recognition');
+    SpeechModule = mod.ExpoSpeechRecognitionModule ?? null;
+    _useSpeechEvent = typeof mod.useSpeechRecognitionEvent === 'function' ? mod.useSpeechRecognitionEvent : null;
+    return SpeechModule !== null && _useSpeechEvent !== null;
+  } catch {
+    return false;
+  }
 }
 
 const PROJECT_TITLE_MAX = 80;
@@ -62,11 +73,11 @@ function ModeTogglePill({ label, icon, isActive, onPress }: {
           justifyContent: 'center',
           gap: 6,
           paddingVertical: 10,
-          borderRadius: 12,
+          borderRadius: 9999,
         },
         isActive
           ? { backgroundColor: '#8B2418', borderWidth: 2, borderColor: '#E32B1A' }
-          : { backgroundColor: '#1E1D1B', borderWidth: 1, borderColor: '#2A2A2A' },
+          : { backgroundColor: '#161616', borderWidth: 1, borderColor: '#222222' },
       ]}
     >
       {icon}
@@ -134,38 +145,17 @@ export default function CaptureScreen() {
   // Track finalized speech text separately so interim results don't overwrite it
   const finalizedText = useRef('');
 
-  // Speech recognition events
-  useSpeechEvent('result', (event: any) => {
-    const transcript = event.results[0]?.transcript || '';
-    if (transcript) {
-      if (event.isFinal) {
-        finalizedText.current = finalizedText.current
-          ? `${finalizedText.current} ${transcript}`
-          : transcript;
-        setIdeaText(finalizedText.current);
-      } else {
-        // Show finalized text + current interim transcript
-        const display = finalizedText.current
-          ? `${finalizedText.current} ${transcript}`
-          : transcript;
-        setIdeaText(display);
+  // Defer loading the speech native module until after the initial navigation
+  // animation completes, avoiding TurboModule calls during Fabric mount.
+  const [speechReady, setSpeechReady] = useState(false);
+  useEffect(() => {
+    const handle = InteractionManager.runAfterInteractions(() => {
+      if (loadSpeechModule()) {
+        setSpeechReady(true);
       }
-    }
-  });
-
-  useSpeechEvent('end', () => {
-    setIsListening(false);
-  });
-
-  useSpeechEvent('error', (event: any) => {
-    setIsListening(false);
-    if (event.error !== 'no-speech') {
-      showToast({
-        message: 'Voice recognition error',
-        type: 'error',
-      });
-    }
-  });
+    });
+    return () => handle.cancel();
+  }, []);
 
   const toggleListening = useCallback(async () => {
     if (!SpeechModule) {
@@ -257,6 +247,14 @@ export default function CaptureScreen() {
 
   return (
     <View style={styles.safeArea}>
+      {speechReady && (
+        <SpeechListeners
+          finalizedText={finalizedText}
+          setIdeaText={setIdeaText}
+          setIsListening={setIsListening}
+          showToast={showToast}
+        />
+      )}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
           style={styles.container}
@@ -428,6 +426,55 @@ export default function CaptureScreen() {
       </TouchableWithoutFeedback>
     </View>
   );
+}
+
+/**
+ * Child component that mounts ONLY after the speech module is loaded.
+ * Isolates useSpeechEvent hooks so they never run during the initial
+ * Fabric mount transaction (which would crash on TurboModule queue).
+ */
+function SpeechListeners({
+  finalizedText,
+  setIdeaText,
+  setIsListening,
+  showToast,
+}: {
+  finalizedText: React.MutableRefObject<string>;
+  setIdeaText: (t: string) => void;
+  setIsListening: (v: boolean) => void;
+  showToast: ReturnType<typeof import('../../contexts/ToastContext').useToast>['showToast'];
+}) {
+  const useSpeechEvent = _useSpeechEvent!;
+
+  useSpeechEvent('result', (event: any) => {
+    const transcript = event.results[0]?.transcript || '';
+    if (transcript) {
+      if (event.isFinal) {
+        finalizedText.current = finalizedText.current
+          ? `${finalizedText.current} ${transcript}`
+          : transcript;
+        setIdeaText(finalizedText.current);
+      } else {
+        const display = finalizedText.current
+          ? `${finalizedText.current} ${transcript}`
+          : transcript;
+        setIdeaText(display);
+      }
+    }
+  });
+
+  useSpeechEvent('end', () => {
+    setIsListening(false);
+  });
+
+  useSpeechEvent('error', (event: any) => {
+    setIsListening(false);
+    if (event.error !== 'no-speech') {
+      showToast({ message: 'Voice recognition error', type: 'error' });
+    }
+  });
+
+  return null;
 }
 
 /** Animated sound bar for the waveform visualization */

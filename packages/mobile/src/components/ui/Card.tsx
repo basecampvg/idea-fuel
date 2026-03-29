@@ -101,7 +101,7 @@ export function CardFooter({ children, style, ...props }: CardFooterProps) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.card,
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: colors.border,
     overflow: 'hidden',

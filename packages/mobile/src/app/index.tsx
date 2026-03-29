@@ -24,7 +24,7 @@ export default function SplashScreen() {
   }, [isLoading, isAuthenticated, router]);
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#161513' }}>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0A0A0A' }}>
       <View style={{ alignItems: 'center' }}>
         {/* Flame logo */}
         <View style={{ marginBottom: 20 }}>

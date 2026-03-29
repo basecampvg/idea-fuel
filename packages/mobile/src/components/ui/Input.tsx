@@ -3,7 +3,7 @@ import { View, Text, TextInput, TextInputProps, StyleSheet, ViewStyle } from 're
 import { colors } from '../../lib/theme';
 
 const localColors = {
-  mutedBg: '#262422',
+  mutedBg: '#1A1A1A',
 };
 
 interface InputProps extends TextInputProps {
@@ -75,11 +75,11 @@ const styles = StyleSheet.create({
     color: colors.foreground,
   },
   input: {
-    borderRadius: 16,
+    borderRadius: 9999,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 14,
     fontSize: 16,
     color: colors.foreground,
@@ -103,10 +103,10 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
   ideaInputContainer: {
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(31, 30, 28, 0.6)',
-    backgroundColor: 'rgba(26, 25, 24, 0.8)',
+    borderColor: 'rgba(34, 34, 34, 0.6)',
+    backgroundColor: 'rgba(17, 17, 17, 0.8)',
   },
   ideaInputFocused: {
     borderColor: colors.brandGlow,
