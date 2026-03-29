@@ -11,7 +11,7 @@
  * - promote: Read note refinement, create project + update note atomically, return projectId
  */
 
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, isNull } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { router, protectedProcedure } from '../trpc';
 import {
@@ -33,7 +33,7 @@ export const noteRouter = router({
     const results = await ctx.db
       .select()
       .from(notes)
-      .where(eq(notes.userId, ctx.userId))
+      .where(and(eq(notes.userId, ctx.userId), isNull(notes.promotedProjectId)))
       .orderBy(desc(notes.updatedAt));
 
     return results;
@@ -238,7 +238,7 @@ export const noteRouter = router({
         });
       }
 
-      // Create project + link note atomically
+      // Create project + mark note as promoted atomically
       const result = await ctx.db.transaction(async (tx) => {
         const [project] = await tx
           .insert(projects)
@@ -256,6 +256,7 @@ export const noteRouter = router({
           });
         }
 
+        // Mark note as promoted so it's filtered from the list
         await tx
           .update(notes)
           .set({ promotedProjectId: project.id })
@@ -263,6 +264,9 @@ export const noteRouter = router({
 
         return { projectId: project.id };
       });
+
+      // Delete the note after the transaction commits
+      await ctx.db.delete(notes).where(eq(notes.id, input.id));
 
       return result;
     }),

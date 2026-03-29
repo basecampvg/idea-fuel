@@ -118,16 +118,27 @@ export default function VaultScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data, isLoading, refetch, isRefetching } = trpc.project.list.useQuery({});
-
-  // Refetch when screen gains focus (e.g. returning from validate/card screens)
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch])
-  );
+  const { data, isLoading, refetch } = trpc.project.list.useQuery({});
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   const utils = trpc.useUtils();
+
+  // Refetch when screen gains focus (e.g. returning from validate/card screens)
+  // Use invalidate() so it refetches in the background without triggering RefreshControl
+  useFocusEffect(
+    useCallback(() => {
+      utils.project.list.invalidate();
+    }, [utils])
+  );
+
+  const handleRefresh = useCallback(async () => {
+    setIsManualRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsManualRefreshing(false);
+    }
+  }, [refetch]);
   const deleteMutation = trpc.project.delete.useMutation({
     onSuccess: () => {
       triggerHaptic('success');
@@ -317,8 +328,8 @@ export default function VaultScreen() {
         ListEmptyComponent={renderEmpty}
         refreshControl={
           <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={refetch}
+            refreshing={isManualRefreshing}
+            onRefresh={handleRefresh}
             tintColor={colors.brand}
           />
         }

@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { RefreshCw, CheckCircle } from 'lucide-react-native';
+import { CheckCircle } from 'lucide-react-native';
 import { Button, triggerHaptic } from './Button';
 import { Badge } from './Badge';
 import { Spinner } from './Spinner';
@@ -11,82 +11,68 @@ interface IdeaCardProps {
   refinedTitle: string;
   refinedDescription: string;
   refinedTags: string[];
-  isStale: boolean;
+
   isPromoted: boolean;
   isRefining: boolean;
   isPromoting: boolean;
-  refineCooldown?: number;
-  onRefine: () => void;
   onPromote: () => void;
+  onCollapse?: () => void;
 }
 
 export function IdeaCard({
   refinedTitle,
   refinedDescription,
   refinedTags,
-  isStale,
+
   isPromoted,
   isRefining,
   isPromoting,
-  refineCooldown = 0,
-  onRefine,
   onPromote,
+  onCollapse,
 }: IdeaCardProps) {
-  const isCoolingDown = refineCooldown > 0;
   return (
     <Animated.View entering={FadeIn.duration(300)} style={styles.container}>
-      {/* Header row */}
-      <View style={styles.header}>
-        <Text style={styles.title} numberOfLines={2}>
-          {refinedTitle}
+      {/* Tappable body area — collapses the card (does not wrap action buttons) */}
+      <TouchableOpacity activeOpacity={0.8} onPress={onCollapse} disabled={!onCollapse} style={styles.bodyTouchable}>
+        {/* Header row */}
+        <View style={styles.header}>
+          <Text style={styles.title} numberOfLines={2}>
+            {refinedTitle}
+          </Text>
+          {isPromoted && (
+            <Badge variant="success">Promoted</Badge>
+          )}
+        </View>
+
+        {/* Description */}
+        <Text style={styles.description} numberOfLines={4}>
+          {refinedDescription}
         </Text>
-        {isPromoted && (
-          <Badge variant="success">Promoted</Badge>
+
+        {/* Tags */}
+        {refinedTags.length > 0 && (
+          <View style={styles.tagsRow}>
+            {refinedTags.map((tag) => (
+              <View key={tag} style={styles.tagChip}>
+                <Text style={styles.tagText}>{tag}</Text>
+              </View>
+            ))}
+          </View>
         )}
-      </View>
 
-      {/* Description */}
-      <Text style={styles.description} numberOfLines={4}>
-        {refinedDescription}
-      </Text>
 
-      {/* Tags */}
-      {refinedTags.length > 0 && (
-        <View style={styles.tagsRow}>
-          {refinedTags.map((tag) => (
-            <View key={tag} style={styles.tagChip}>
-              <Text style={styles.tagText}>{tag}</Text>
-            </View>
-          ))}
+      </TouchableOpacity>
+
+      {/* Refining indicator */}
+      {isRefining && (
+        <View style={styles.refiningRow}>
+          <Spinner size="small" color={colors.brand} />
+          <Text style={styles.refiningText}>Updating...</Text>
         </View>
       )}
 
-      {/* Stale indicator */}
-      {isStale && !isPromoted && (
-        <Text style={styles.staleText}>
-          Based on earlier content — tap Refine to update
-        </Text>
-      )}
-
-      {/* Action buttons */}
+      {/* Action button */}
       <View style={styles.actions}>
-        <Button
-          variant="outline"
-          size="sm"
-          onPress={onRefine}
-          disabled={isRefining || isPromoted || isCoolingDown}
-          leftIcon={
-            isRefining ? (
-              <Spinner size="small" color={colors.foreground} />
-            ) : (
-              <RefreshCw size={14} color={isCoolingDown ? colors.mutedDim : colors.foreground} />
-            )
-          }
-          style={styles.refineButton}
-        >
-          {isRefining ? 'Refining...' : isCoolingDown ? `Wait ${refineCooldown}s` : 'Refine'}
-        </Button>
-
         {isPromoted ? (
           <Button
             variant="primary"
@@ -126,6 +112,9 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
   },
+  bodyTouchable: {
+    gap: 12,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -161,19 +150,21 @@ const styles = StyleSheet.create({
     ...fonts.geist.medium,
     color: colors.brand,
   },
-  staleText: {
+
+  refiningRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  refiningText: {
     fontSize: 12,
-    ...fonts.outfit.regular,
-    color: colors.warning,
-    fontStyle: 'italic',
+    ...fonts.outfit.medium,
+    color: colors.brand,
   },
   actions: {
     flexDirection: 'row',
     gap: 8,
     marginTop: 4,
-  },
-  refineButton: {
-    flex: 1,
   },
   promoteButton: {
     flex: 1,

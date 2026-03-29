@@ -16,10 +16,12 @@ import {
   AlertCircle,
   ChevronLeft,
   Trash2,
+  Rocket,
 } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
-import { triggerHaptic } from '../../../../components/ui/Button';
+import { Button, triggerHaptic } from '../../../../components/ui/Button';
 import { IdeaCard } from '../../../../components/ui/IdeaCard';
+import { BottomSheet } from '../../../../components/ui/BottomSheet';
 import { MarkdownEditor, type MarkdownEditorRef } from '../../../../components/editor/MarkdownEditor';
 import { useNoteAutoSave, type SaveStatus } from '../../../../hooks/useNoteAutoSave';
 import { trpc } from '../../../../lib/trpc';
@@ -51,16 +53,9 @@ export default function NoteEditorScreen() {
   const editorRef = useRef<MarkdownEditorRef>(null);
   const [initialLoaded, setInitialLoaded] = useState(false);
   const [cardCollapsed, setCardCollapsed] = useState(false);
-  const [refineCooldown, setRefineCooldown] = useState(0);
-  const hasAutoRefined = useRef(false);
+  const [showPromotedSheet, setShowPromotedSheet] = useState(false);
+  const autoRefineTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contentLengthRef = useRef(0);
-
-  // Countdown timer for refine cooldown
-  useEffect(() => {
-    if (refineCooldown <= 0) return;
-    const timer = setTimeout(() => setRefineCooldown(refineCooldown - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [refineCooldown]);
 
   // Auto-collapse IdeaCard when keyboard appears so editor has room
   useEffect(() => {
@@ -94,23 +89,27 @@ export default function NoteEditorScreen() {
       utils.note.get.invalidate({ id: id! });
       utils.note.list.invalidate();
     },
-    onError: (err) => {
-      triggerHaptic('error');
-      if (err.message.startsWith('REFINE_COOLDOWN:')) {
-        const seconds = parseInt(err.message.split(':')[1], 10);
-        setRefineCooldown(seconds);
-      } else if (err.message === 'REFINEMENT_FAILED') {
-        Alert.alert('Refinement Failed', "Couldn't refine — tap Refine to retry.");
-      }
+    onError: () => {
+      // Silent fail — auto-refine will retry on next typing pause
     },
   });
 
+  const promotedRef = useRef(false);
+
   const promoteMutation = trpc.note.promote.useMutation({
     onSuccess: () => {
+      promotedRef.current = true;
       triggerHaptic('success');
+      // Kill pending auto-refine so it doesn't fire on a deleted note
+      if (autoRefineTimer.current) {
+        clearTimeout(autoRefineTimer.current);
+        autoRefineTimer.current = null;
+      }
+      // Nuke note caches — reset forces a fresh fetch next time
+      utils.note.list.reset();
       utils.note.get.invalidate({ id: id! });
-      utils.note.list.invalidate();
-      Alert.alert('Idea Created', 'Find it in your Vault.');
+      utils.project.list.invalidate();
+      setShowPromotedSheet(true);
     },
     onError: (err) => {
       triggerHaptic('error');
@@ -144,29 +143,26 @@ export default function NoteEditorScreen() {
       setInitialContent(note.content ?? '');
       contentLengthRef.current = (note.content ?? '').length;
       setInitialLoaded(true);
-      // If note already has a refinement, mark auto-refine as done
-      if (note.refinedTitle) {
-        hasAutoRefined.current = true;
-      }
     }
   }, [note, initialLoaded, setInitialContent]);
 
-  // Flush pending saves on navigate away
+  // Flush pending saves on navigate away (skip if note was promoted/deleted)
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', () => {
-      flush();
+      if (!promotedRef.current) flush();
     });
     return unsubscribe;
   }, [navigation, flush]);
 
-  // Auto-trigger refine when editor content reaches 50 chars (first time only)
-  const checkAutoRefine = useCallback(async () => {
-    if (hasAutoRefined.current || !initialLoaded || refineMutation.isPending) return;
-    if (!editorRef.current) return;
-    const md = await editorRef.current.getMarkdown();
-    contentLengthRef.current = md.length;
-    if (md.length >= 50) {
-      hasAutoRefined.current = true;
+  // Auto-refine after 3s of no typing, if content is long enough
+  const scheduleAutoRefine = useCallback(() => {
+    if (autoRefineTimer.current) clearTimeout(autoRefineTimer.current);
+    autoRefineTimer.current = setTimeout(async () => {
+      if (!editorRef.current || refineMutation.isPending || promotedRef.current) return;
+      const md = await editorRef.current.getMarkdown();
+      contentLengthRef.current = md.length;
+      if (md.length < 50) return;
+      // Flush save first, then refine once save settles
       flush();
       let attempts = 0;
       const interval = setInterval(() => {
@@ -176,13 +172,20 @@ export default function NoteEditorScreen() {
           refineMutation.mutate({ id: id! });
         }
       }, 200);
-    }
-  }, [initialLoaded, refineMutation, flush, saveStatus, id]);
+    }, 3000);
+  }, [refineMutation, flush, saveStatus, id]);
+
+  // Clean up auto-refine timer
+  useEffect(() => {
+    return () => {
+      if (autoRefineTimer.current) clearTimeout(autoRefineTimer.current);
+    };
+  }, []);
 
   const handleEditorChange = useCallback(() => {
     markDirty();
-    checkAutoRefine();
-  }, [markDirty, checkAutoRefine]);
+    scheduleAutoRefine();
+  }, [markDirty, scheduleAutoRefine]);
 
   const handleDelete = useCallback(() => {
     Alert.alert(
@@ -198,25 +201,6 @@ export default function NoteEditorScreen() {
       ],
     );
   }, [id, deleteMutation]);
-
-  const handleRefine = useCallback(async () => {
-    if (!editorRef.current) return;
-    const md = await editorRef.current.getMarkdown();
-    if (md.length < 50) {
-      Alert.alert('Too Short', 'Write at least 50 characters before refining.');
-      return;
-    }
-    flush();
-    // Wait for save to settle before refining
-    let attempts = 0;
-    const interval = setInterval(() => {
-      attempts++;
-      if (saveStatus !== 'saving' || attempts >= 15) {
-        clearInterval(interval);
-        refineMutation.mutate({ id: id! });
-      }
-    }, 200);
-  }, [id, flush, refineMutation, saveStatus]);
 
   const handlePromote = useCallback(() => {
     promoteMutation.mutate({ id: id! });
@@ -284,47 +268,33 @@ export default function NoteEditorScreen() {
 
         {/* IdeaCard at top when refinement exists — capped height so editor always has room */}
         {note.refinedTitle && (
-          <TouchableOpacity
-            style={styles.ideaCardContainer}
-            activeOpacity={0.8}
-            onPress={() => setCardCollapsed(!cardCollapsed)}
-          >
+          <View style={styles.ideaCardContainer}>
             {cardCollapsed ? (
-              <View style={styles.collapsedCard}>
-                <Text style={styles.collapsedTitle} numberOfLines={1}>
-                  {note.refinedTitle}
-                </Text>
-                <Text style={styles.collapsedHint}>Tap to expand</Text>
-              </View>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setCardCollapsed(false)}
+              >
+                <View style={styles.collapsedCard}>
+                  <Text style={styles.collapsedTitle} numberOfLines={1}>
+                    {note.refinedTitle}
+                  </Text>
+                  <Text style={styles.collapsedHint}>Tap to expand</Text>
+                </View>
+              </TouchableOpacity>
             ) : (
               <IdeaCard
                 refinedTitle={note.refinedTitle}
                 refinedDescription={note.refinedDescription ?? ''}
                 refinedTags={note.refinedTags ?? []}
-                isStale={isStale}
+
                 isPromoted={isPromoted}
                 isRefining={refineMutation.isPending}
                 isPromoting={promoteMutation.isPending}
-                refineCooldown={refineCooldown}
-                onRefine={handleRefine}
                 onPromote={handlePromote}
+                onCollapse={() => setCardCollapsed(true)}
               />
             )}
-          </TouchableOpacity>
-        )}
-
-        {/* Refinement error state */}
-        {refineMutation.isError && !note.refinedTitle && (
-          <TouchableOpacity
-            style={styles.refineError}
-            onPress={handleRefine}
-            activeOpacity={0.7}
-          >
-            <AlertCircle size={16} color={colors.warning} />
-            <Text style={styles.refineErrorText}>
-              Couldn't refine — tap to retry
-            </Text>
-          </TouchableOpacity>
+          </View>
         )}
 
         {/* Refining indicator (first time, no card yet) */}
@@ -340,11 +310,44 @@ export default function NoteEditorScreen() {
           <MarkdownEditor
             ref={editorRef}
             initialContent={note.content ?? ''}
-            placeholder="Start writing your idea..."
+            placeholder="Brain dump your idea here. Once you pause typing, AI will refine it into something sharp..."
             onChange={handleEditorChange}
           />
         )}
       </KeyboardAvoidingView>
+
+      {/* Promoted success sheet */}
+      <BottomSheet
+        visible={showPromotedSheet}
+        onClose={() => {
+          setShowPromotedSheet(false);
+          router.back();
+          router.navigate('/(tabs)/vault');
+        }}
+        showCloseButton={false}
+      >
+        <View style={styles.promotedSheet}>
+          <View style={styles.promotedIconCircle}>
+            <Rocket size={28} color={colors.brand} />
+          </View>
+          <Text style={styles.promotedTitle}>Idea Created</Text>
+          <Text style={styles.promotedDescription}>
+            Your note has been refined into an idea and promoted to the Vault, where you can validate it and dive deeper.
+          </Text>
+          <Button
+            variant="primary"
+            size="lg"
+            onPress={() => {
+              setShowPromotedSheet(false);
+              router.back();
+              router.navigate('/(tabs)/vault');
+            }}
+            style={styles.promotedButton}
+          >
+            Go to Vault
+          </Button>
+        </View>
+      </BottomSheet>
     </View>
   );
 }
@@ -432,23 +435,6 @@ const styles = StyleSheet.create({
     ...fonts.outfit.regular,
     color: colors.mutedDim,
   },
-  refineError: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    padding: 12,
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.2)',
-  },
-  refineErrorText: {
-    fontSize: 13,
-    ...fonts.outfit.medium,
-    color: colors.warning,
-  },
   refiningIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -463,5 +449,36 @@ const styles = StyleSheet.create({
     fontSize: 13,
     ...fonts.outfit.medium,
     color: colors.brand,
+  },
+  promotedSheet: {
+    alignItems: 'center',
+    gap: 16,
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  promotedIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.brandMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  promotedTitle: {
+    fontSize: 20,
+    ...fonts.outfit.bold,
+    color: colors.foreground,
+  },
+  promotedDescription: {
+    fontSize: 15,
+    ...fonts.geist.regular,
+    color: colors.muted,
+    lineHeight: 22,
+    textAlign: 'center',
+    paddingHorizontal: 8,
+  },
+  promotedButton: {
+    width: '100%',
+    marginTop: 8,
   },
 });

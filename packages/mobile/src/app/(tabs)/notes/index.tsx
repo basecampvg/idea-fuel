@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -197,15 +197,26 @@ export default function NotesListScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const utils = trpc.useUtils();
-  const { data: notes, isLoading, refetch, isRefetching } = trpc.note.list.useQuery();
+  const { data: notes, isLoading, refetch } = trpc.note.list.useQuery();
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   // Refetch notes when screen gains focus (e.g. navigating back from detail)
+  // Use invalidate() so it refetches in the background without triggering RefreshControl
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      refetch();
+      utils.note.list.invalidate();
     });
     return unsubscribe;
-  }, [navigation, refetch]);
+  }, [navigation, utils]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsManualRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsManualRefreshing(false);
+    }
+  }, [refetch]);
 
   const createMutation = trpc.note.create.useMutation({
     onSuccess: (newNote) => {
@@ -300,8 +311,8 @@ export default function NotesListScreen() {
         ListEmptyComponent={renderEmpty}
         refreshControl={
           <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={refetch}
+            refreshing={isManualRefreshing}
+            onRefresh={handleRefresh}
             tintColor={colors.brand}
           />
         }
