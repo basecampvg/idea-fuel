@@ -295,8 +295,9 @@ export default function ValidateScreen() {
           onSuccess: () => {
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
             triggerHaptic('success');
-            // Invalidate project cache so card screen gets fresh data
+            // Invalidate project cache so card screen + vault list get fresh data
             utils.project.get.invalidate({ id: id! });
+            utils.project.list.invalidate();
             // Navigate to card screen
             router.replace(`/(tabs)/vault/${id}/card` as any);
           },

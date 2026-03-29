@@ -23,8 +23,9 @@ import {
   TrendingDown,
   Minus,
   HelpCircle,
+  Zap,
 } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { triggerHaptic } from '../../../components/ui/Button';
 import { trpc } from '../../../lib/trpc';
 import { colors, fonts } from '../../../lib/theme';
@@ -118,6 +119,14 @@ export default function VaultScreen() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const { data, isLoading, refetch, isRefetching } = trpc.project.list.useQuery({});
+
+  // Refetch when screen gains focus (e.g. returning from validate/card screens)
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
+
   const utils = trpc.useUtils();
   const deleteMutation = trpc.project.delete.useMutation({
     onSuccess: () => {
@@ -158,7 +167,7 @@ export default function VaultScreen() {
   const renderItem = useCallback(({ item, index }: { item: any; index: number }) => {
     const meta = getCardMeta(item);
     const IconComponent = meta.icon;
-    const hasResult = !!meta.verdict;
+    const hasResult = !!item.cardResult;
     const cardResult = item.cardResult as any;
 
     return (
@@ -168,7 +177,7 @@ export default function VaultScreen() {
         <TouchableOpacity
           style={[
             styles.card,
-            hasResult && { borderLeftWidth: 3, borderLeftColor: meta.accentColor },
+            hasResult && meta.accentColor && { borderLeftWidth: 3, borderLeftColor: meta.accentColor },
           ]}
           onPress={() => router.push(`/(tabs)/vault/${item.id}` as any)}
           onLongPress={() => {
@@ -194,6 +203,19 @@ export default function VaultScreen() {
               ) : null}
             </View>
           </View>
+
+          {/* Validation status prompt */}
+          {!hasResult ? (
+            <View style={styles.validatePrompt}>
+              <Zap size={14} color={colors.brand} />
+              <Text style={styles.validatePromptText}>Tap to validate this idea</Text>
+            </View>
+          ) : (
+            <View style={styles.validatePrompt}>
+              <CheckCircle size={14} color={colors.success} />
+              <Text style={[styles.validatePromptText, { color: colors.success }]}>Validated</Text>
+            </View>
+          )}
 
           {/* Stats bar for validated cards */}
           {hasResult && cardResult && (
@@ -387,6 +409,18 @@ const styles = StyleSheet.create({
     fontFamily: fonts.geist.regular,
     color: colors.muted,
     lineHeight: 18,
+  },
+  validatePrompt: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  validatePromptText: {
+    fontSize: 12,
+    fontFamily: fonts.mono.regular,
+    color: colors.brand,
   },
   statsBar: {
     flexDirection: 'row',

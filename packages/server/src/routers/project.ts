@@ -55,6 +55,7 @@ export const projectRouter = router({
             description: projects.description,
             notes: projects.notes,
             status: projects.status,
+            cardResult: projects.cardResult,
             createdAt: projects.createdAt,
             updatedAt: projects.updatedAt,
             _count: {
@@ -83,6 +84,7 @@ export const projectRouter = router({
         description: p.description,
         notes: p.notes,
         status: p.status,
+        cardResult: p.cardResult,
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
         _count: p._count,
