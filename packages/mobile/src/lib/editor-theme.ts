@@ -35,13 +35,19 @@ export const editorDarkThemeCSS = `
     outline: none;
   }
 
-  /* Placeholder */
+  /* Placeholder — only show when the entire editor is empty */
+  .ProseMirror.is-editor-empty:first-child::before,
   .ProseMirror p.is-editor-empty:first-child::before {
     color: #5A5855;
     content: attr(data-placeholder);
     float: left;
     height: 0;
     pointer-events: none;
+  }
+
+  /* Hide placeholder as soon as any content or formatting exists */
+  .ProseMirror:not(.is-editor-empty) p.is-editor-empty:first-child::before {
+    content: none;
   }
 
   /* Headings */

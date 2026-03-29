@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
-  Pressable,
   Keyboard,
   Platform,
   StyleSheet,
@@ -15,7 +14,7 @@ import {
   Easing,
   InteractionManager,
 } from 'react-native';
-import { Mic, Square, Zap, PenLine } from 'lucide-react-native';
+import { Mic, Square, ArrowUp } from 'lucide-react-native';
 import { triggerHaptic } from '../../components/ui/Button';
 import { trpc } from '../../lib/trpc';
 import { useToast } from '../../contexts/ToastContext';
@@ -47,8 +46,6 @@ function loadSpeechModule(): boolean {
 
 const PROJECT_TITLE_MAX = 80;
 
-type CaptureMode = 'voice' | 'text';
-
 function extractTitleAndDescription(text: string): { title: string; description: string } {
   const lines = text.split('\n');
   const title = lines[0].trim().slice(0, PROJECT_TITLE_MAX);
@@ -56,49 +53,27 @@ function extractTitleAndDescription(text: string): { title: string; description:
   return { title, description };
 }
 
-function ModeTogglePill({ label, icon, isActive, onPress }: {
-  label: string;
-  icon: React.ReactNode;
-  isActive: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[
-        {
-          flex: 1,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 6,
-          paddingVertical: 10,
-          borderRadius: 9999,
-        },
-        isActive
-          ? { backgroundColor: '#8B2418', borderWidth: 2, borderColor: '#E32B1A' }
-          : { backgroundColor: '#161616', borderWidth: 1, borderColor: '#222222' },
-      ]}
-    >
-      {icon}
-      <Text style={{ fontSize: 14, fontWeight: '600', color: isActive ? '#FFFFFF' : '#8A8680' }}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 export default function CaptureScreen() {
   const { user } = useAuth();
   const { showToast } = useToast();
-  const [mode, setMode] = useState<CaptureMode>('voice');
   const [ideaText, setIdeaText] = useState('');
   const [isListening, setIsListening] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [inputFocused, setInputFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
-  // Pulse animation for record button
+  const shouldHideLogo = ideaText.length > 0 || isListening;
+  const logoFade = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.timing(logoFade, {
+      toValue: shouldHideLogo ? 0 : 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [shouldHideLogo]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Pulse animation for mic button when listening
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const pulseOpacity = useRef(new Animated.Value(0)).current;
 
@@ -108,7 +83,7 @@ export default function CaptureScreen() {
         Animated.sequence([
           Animated.parallel([
             Animated.timing(pulseAnim, {
-              toValue: 1.6,
+              toValue: 1.8,
               duration: 1200,
               easing: Easing.out(Easing.ease),
               useNativeDriver: true,
@@ -160,10 +135,9 @@ export default function CaptureScreen() {
   const toggleListening = useCallback(async () => {
     if (!SpeechModule) {
       showToast({
-        message: 'Voice dictation requires a dev build — switching to text',
+        message: 'Voice dictation not available',
         type: 'info',
       });
-      setMode('text');
       return;
     }
 
@@ -190,10 +164,9 @@ export default function CaptureScreen() {
       triggerHaptic('medium');
     } catch (err) {
       showToast({
-        message: 'Voice dictation not available — use text mode',
+        message: 'Voice dictation not available',
         type: 'error',
       });
-      setMode('text');
     }
   }, [isListening, showToast]);
 
@@ -234,13 +207,10 @@ export default function CaptureScreen() {
       setIsListening(false);
     }
 
+    Keyboard.dismiss();
     setIsSubmitting(true);
     createProject.mutate({ title, description: description || title });
   }, [ideaText, isSubmitting, isListening, createProject]);
-
-  const handleBlur = useCallback(() => {
-    setIsFocused(false);
-  }, []);
 
   const { title } = extractTitleAndDescription(ideaText.trim());
   const canCapture = title.length > 0 && !isSubmitting;
@@ -261,166 +231,88 @@ export default function CaptureScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
         >
-          {mode === 'voice' ? (
-            <View style={styles.voiceContainer}>
-              {/* ── Top section: logo + slogan (centered in upper half) ── */}
-              <View style={styles.voiceTopSpacer} />
-              <View style={styles.voiceTopSection}>
-                <View style={styles.flameContainer}>
-                  <IdeaFuelLogo size={120} />
-                </View>
+          {/* ── Center: Logo + Slogan (fades when active) ── */}
+          <View style={styles.centerSection}>
+            <Animated.View
+              pointerEvents={shouldHideLogo ? 'none' : 'auto'}
+              style={[styles.logoArea, { opacity: logoFade }]}
+            >
+              <IdeaFuelLogo size={120} />
+              <View style={{ marginTop: 24 }}>
                 <SloganSVG width={260} />
               </View>
+            </Animated.View>
 
-              {/* ── Middle section: transcript + soundwave ── */}
-              <View style={styles.voiceMiddleSection}>
-                {ideaText.length > 0 && (
-                  <View style={styles.transcriptBox}>
-                    <Text style={styles.transcriptText} numberOfLines={4}>
-                      {ideaText}
-                    </Text>
-                  </View>
-                )}
-
-                <View style={styles.soundwaveContainer}>
-                  {isListening && (
-                    <View style={styles.soundwaveBars}>
-                      {Array.from({ length: 24 }).map((_, i) => (
-                        <SoundBar key={i} index={i} active={isListening} />
-                      ))}
-                    </View>
-                  )}
+            {/* Soundwave — shown when listening and logo is faded */}
+            {isListening && (
+              <View style={styles.soundwaveOverlay}>
+                <View style={styles.soundwaveBars}>
+                  {Array.from({ length: 24 }).map((_, i) => (
+                    <SoundBar key={i} index={i} active={isListening} />
+                  ))}
                 </View>
+                <Text style={styles.listeningLabel}>listening...</Text>
               </View>
+            )}
+          </View>
 
-              {/* ── Bottom section: record button + save + status ── */}
-              <View style={styles.voiceBottomSection}>
-                {canCapture && !isListening && (
+          {/* ── Bottom: Input bar ── */}
+          <View style={styles.inputBarWrapper}>
+            <View style={[
+              styles.inputBar,
+              (inputFocused || isListening) && styles.inputBarActive,
+            ]}>
+              <TextInput
+                ref={inputRef}
+                style={styles.inputField}
+                value={ideaText}
+                onChangeText={setIdeaText}
+                onFocus={() => setInputFocused(true)}
+                onBlur={() => setInputFocused(false)}
+                placeholder="Capture your idea..."
+                placeholderTextColor={colors.mutedDim}
+                multiline
+                maxLength={500}
+              />
+              <View style={styles.inputActions}>
+                {canCapture && (
                   <TouchableOpacity
-                    style={styles.captureButtonSmall}
+                    style={styles.sendButton}
                     onPress={handleCapture}
                     activeOpacity={0.7}
                   >
                     {isSubmitting ? (
                       <ActivityIndicator size="small" color="#fff" />
                     ) : (
-                      <Text style={styles.captureButtonSmallText}>Save Idea</Text>
+                      <ArrowUp size={18} color="#fff" strokeWidth={2.5} />
                     )}
                   </TouchableOpacity>
                 )}
-
-                <View style={styles.recordButtonWrapper}>
+                <TouchableOpacity
+                  style={[
+                    styles.micButton,
+                    isListening && styles.micButtonActive,
+                  ]}
+                  onPress={toggleListening}
+                  activeOpacity={0.7}
+                >
                   <Animated.View
                     style={[
-                      styles.pulseRing,
+                      styles.micPulseRing,
                       {
                         transform: [{ scale: pulseAnim }],
                         opacity: pulseOpacity,
                       },
                     ]}
                   />
-                  <TouchableOpacity
-                    style={[
-                      styles.recordButton,
-                      isListening && styles.recordButtonActive,
-                    ]}
-                    onPress={toggleListening}
-                    activeOpacity={0.8}
-                  >
-                    {isListening ? (
-                      <Square size={22} color="#fff" fill="#fff" />
-                    ) : (
-                      <Mic size={26} color="#fff" />
-                    )}
-                  </TouchableOpacity>
-                </View>
-
-                <Text style={styles.statusLabel}>
-                  {isListening ? 'listening...' : 'tap to speak'}
-                </Text>
-              </View>
-            </View>
-          ) : (
-            /* ─── Text Mode ─── */
-            <View style={styles.textContainer}>
-              <View style={styles.textHeader}>
-                <Text style={styles.greeting}>
-                  Hey {user?.name?.split(' ')[0] || 'there'}
-                </Text>
-                <Text style={styles.prompt}>What's your idea?</Text>
-              </View>
-
-              <View
-                style={[
-                  styles.inputCard,
-                  isFocused && styles.inputCardFocused,
-                ]}
-              >
-                <TextInput
-                  ref={inputRef}
-                  style={styles.textInput}
-                  value={ideaText}
-                  onChangeText={setIdeaText}
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={handleBlur}
-                  placeholder="Type your idea here..."
-                  placeholderTextColor={colors.mutedDim}
-                  multiline
-                  autoFocus
-                  textAlignVertical="top"
-                  returnKeyType="default"
-                />
-              </View>
-
-              <View style={styles.textBottomSection}>
-                <TouchableOpacity
-                  style={[
-                    styles.captureButton,
-                    !canCapture && styles.captureButtonDisabled,
-                  ]}
-                  onPress={handleCapture}
-                  disabled={!canCapture}
-                  activeOpacity={0.7}
-                >
-                  {isSubmitting ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  {isListening ? (
+                    <Square size={14} color="#fff" fill="#fff" />
                   ) : (
-                    <>
-                      <Zap size={18} color="#FFFFFF" />
-                      <Text style={styles.captureButtonText}>Capture</Text>
-                    </>
+                    <Mic size={18} color={colors.brand} />
                   )}
                 </TouchableOpacity>
               </View>
             </View>
-          )}
-
-          {/* Mode toggle (always visible at bottom) */}
-          <View style={styles.modeToggle}>
-            <ModeTogglePill
-              label="Voice"
-              icon={<Mic size={18} color={mode === 'voice' ? '#FFFFFF' : colors.muted} />}
-              isActive={mode === 'voice'}
-              onPress={() => {
-                if (isListening) {
-                  SpeechModule?.stop();
-                  setIsListening(false);
-                }
-                setMode('voice');
-              }}
-            />
-            <ModeTogglePill
-              label="Text"
-              icon={<PenLine size={18} color={mode === 'text' ? '#FFFFFF' : colors.muted} />}
-              isActive={mode === 'text'}
-              onPress={() => {
-                if (isListening) {
-                  SpeechModule?.stop();
-                  setIsListening(false);
-                }
-                setMode('text');
-              }}
-            />
           </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
@@ -535,69 +427,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // ── Header ──
-  headerBar: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  wordmarkIdea: {
-    fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: 4,
-    color: '#BCBCBC',
-  },
-  wordmarkFuel: {
-    fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: 4,
-    color: colors.brand,
-  },
-
-  // ── Voice Mode ──
-  voiceContainer: {
-    flex: 1,
-    paddingHorizontal: 24,
-  },
-  voiceTopSpacer: {
-    flex: 0.6,
-  },
-  voiceTopSection: {
-    alignItems: 'center',
-    gap: 24,
-  },
-  flameContainer: {
-    marginBottom: 0,
-  },
-  voiceMiddleSection: {
+  // ── Center: Logo area ──
+  centerSection: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  transcriptBox: {
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 16,
-    maxWidth: '100%',
-    width: '100%',
-  },
-  transcriptText: {
-    fontSize: 15,
-    fontFamily: fonts.geist.regular,
-    color: colors.foreground,
-    lineHeight: 22,
-    textAlign: 'center',
-  },
-  soundwaveContainer: {
-    height: 50,
-    width: '100%',
-    justifyContent: 'center',
+  logoArea: {
+    position: 'absolute',
     alignItems: 'center',
+  },
+  soundwaveOverlay: {
+    position: 'absolute',
+    alignItems: 'center',
+    gap: 16,
   },
   soundwaveBars: {
     flexDirection: 'row',
@@ -605,151 +448,75 @@ const styles = StyleSheet.create({
     gap: 3,
     height: 50,
   },
-  voiceBottomSection: {
-    alignItems: 'center',
-    paddingBottom: 48,
-    gap: 8,
-  },
-  recordButtonWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pulseRing: {
-    position: 'absolute',
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: colors.brand,
-  },
-  recordButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.brand,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.brand,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 20,
-    elevation: 12,
-  },
-  recordButtonActive: {
-    backgroundColor: '#C82617',
-  },
-  statusLabel: {
-    fontSize: 10,
+  listeningLabel: {
+    fontSize: 11,
     fontWeight: '500',
     letterSpacing: 2,
     color: colors.mutedDim,
     textTransform: 'lowercase',
   },
-  captureButtonSmall: {
-    backgroundColor: colors.brand,
-    borderRadius: 12,
-    paddingHorizontal: 32,
-    paddingVertical: 12,
-  },
-  captureButtonSmallText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
-  },
 
-  // ── Text Mode ──
-  textContainer: {
-    flex: 1,
-    paddingTop: 8,
+  // ── Bottom: Input bar ──
+  inputBarWrapper: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
   },
-  textHeader: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  greeting: {
-    fontSize: 16,
-    color: colors.muted,
-    fontFamily: fonts.outfit.medium,
-    marginBottom: 4,
-  },
-  prompt: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.foreground,
-    letterSpacing: -0.5,
-  },
-  inputCard: {
-    marginHorizontal: 20,
+  inputBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.card,
-    borderRadius: 16,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: 16,
-    minHeight: 140,
+    paddingLeft: 18,
+    paddingRight: 8,
+    paddingVertical: 8,
+    minHeight: 52,
   },
-  inputCardFocused: {
-    borderColor: `${colors.brand}50`,
+  inputBarActive: {
+    borderColor: '#333333',
   },
-  textInput: {
+  inputField: {
+    flex: 1,
     fontSize: 16,
     fontFamily: fonts.geist.regular,
     color: colors.foreground,
-    lineHeight: 24,
-    minHeight: 100,
-    padding: 0,
+    lineHeight: 22,
+    maxHeight: 120,
+    paddingVertical: 0,
+    paddingRight: 8,
   },
-  textBottomSection: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    paddingBottom: 8,
-  },
-  captureButton: {
-    backgroundColor: colors.brand,
-    borderRadius: 14,
-    paddingVertical: 16,
+  inputActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  captureButtonDisabled: {
-    opacity: 0.4,
-  },
-  captureButtonText: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '700',
-  },
-
-  // ── Mode Toggle ──
-  modeToggle: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingBottom: 8,
-    paddingHorizontal: 20,
-  },
-  modeToggleButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     gap: 6,
-    paddingVertical: 10,
-    borderRadius: 12,
+    paddingBottom: 2,
+  },
+  sendButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.brand,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  micButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'visible',
   },
-  modeToggleActive: {
-    backgroundColor: '#8B2418',
-    borderColor: colors.brand,
-    borderWidth: 2,
+  micButtonActive: {
+    backgroundColor: colors.brand,
   },
-  modeToggleText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.muted,
-  },
-  modeToggleTextActive: {
-    color: '#FFFFFF',
+  micPulseRing: {
+    position: 'absolute',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.brand,
   },
 });

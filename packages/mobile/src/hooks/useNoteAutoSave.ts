@@ -6,8 +6,8 @@ export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 interface UseNoteAutoSaveOptions {
   noteId: string;
-  /** Function that returns the current content to save */
-  getContent: () => string;
+  /** Function that returns the current content to save (can be async) */
+  getContent: () => string | Promise<string>;
   /** Debounce delay in ms (default: 1500) */
   debounceMs?: number;
   /** Max interval between saves in ms (default: 30000) */
@@ -39,14 +39,13 @@ export function useNoteAutoSave({
       if (savedIndicatorTimer.current) clearTimeout(savedIndicatorTimer.current);
       savedIndicatorTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
       utils.note.get.invalidate({ id: noteId });
-      utils.note.list.invalidate();
     },
     onError: () => {
       setSaveStatus('error');
       if (retryCount.current < MAX_RETRIES) {
         retryCount.current += 1;
-        setTimeout(() => {
-          const content = getContent();
+        setTimeout(async () => {
+          const content = await getContent();
           if (content !== lastSavedContent.current) {
             performSave(content);
           }
@@ -67,32 +66,32 @@ export function useNoteAutoSave({
 
     // Reset debounce timer
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      const content = getContent();
+    debounceTimer.current = setTimeout(async () => {
+      const content = await getContent();
       performSave(content);
     }, debounceMs);
 
     // Start max interval timer if not already running
     if (!maxIntervalTimer.current) {
-      maxIntervalTimer.current = setTimeout(() => {
+      maxIntervalTimer.current = setTimeout(async () => {
         maxIntervalTimer.current = null;
         if (hasPendingChanges.current) {
-          const content = getContent();
+          const content = await getContent();
           performSave(content);
         }
       }, maxIntervalMs);
     }
   }, [getContent, debounceMs, maxIntervalMs, performSave]);
 
-  /** Flush any pending changes immediately. Returns a promise that resolves when the save mutation settles. */
-  const flush = useCallback(() => {
+  /** Flush any pending changes immediately */
+  const flush = useCallback(async () => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     if (maxIntervalTimer.current) {
       clearTimeout(maxIntervalTimer.current);
       maxIntervalTimer.current = null;
     }
     if (hasPendingChanges.current) {
-      const content = getContent();
+      const content = await getContent();
       performSave(content);
     }
   }, [getContent, performSave]);

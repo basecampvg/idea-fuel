@@ -200,7 +200,7 @@ export default function NotebookScreen() {
             maxLength={80}
           />
           {project.description && (
-            <Text style={styles.description} numberOfLines={3}>
+            <Text style={styles.description}>
               {project.description}
             </Text>
           )}
@@ -210,7 +210,7 @@ export default function NotebookScreen() {
         <View style={styles.validateSection}>
           {project.cardResult ? (
             <Button
-              variant="accent"
+              variant="primary"
               size="md"
               onPress={() => router.push(`/(tabs)/vault/${id}/card` as any)}
               leftIcon={<CreditCard size={18} color={colors.white} />}

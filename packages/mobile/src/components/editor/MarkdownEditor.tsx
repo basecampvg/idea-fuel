@@ -33,9 +33,9 @@ const ideaFuelEditorTheme = {
       flexBasis: 'auto' as any,
       minWidth: 0,
       // Pill shape
-      height: 36,
-      maxHeight: 36,
-      borderRadius: 18,
+      height: 44,
+      maxHeight: 44,
+      borderRadius: 22,
       // Visually lift above the dark background
       backgroundColor: '#2D2B28',
       borderWidth: 1,
@@ -160,6 +160,35 @@ function htmlToMarkdown(html: string): string {
   return md.trim();
 }
 
+/**
+ * Convert Markdown→HTML for TenTap/ProseMirror.
+ * `marked` outputs standard HTML checkboxes, but TenTap expects
+ * `data-type="taskList"` / `data-type="taskItem"` attributes.
+ */
+function markdownToHtml(md: string): string {
+  let html = marked.parse(md) as string;
+
+  // Convert marked's checkbox list items into TenTap taskItem format
+  // marked: <li><input disabled="" type="checkbox"> text</li>
+  // tentap: <li data-type="taskItem" data-checked="false"><label><input type="checkbox"></label><div><p>text</p></div></li>
+  html = html.replace(
+    /<li><input\s+checked=""\s+disabled=""\s+type="checkbox">\s*([\s\S]*?)<\/li>/gi,
+    '<li data-type="taskItem" data-checked="true"><label><input type="checkbox" checked></label><div><p>$1</p></div></li>'
+  );
+  html = html.replace(
+    /<li><input\s+disabled=""\s+type="checkbox">\s*([\s\S]*?)<\/li>/gi,
+    '<li data-type="taskItem" data-checked="false"><label><input type="checkbox"></label><div><p>$1</p></div></li>'
+  );
+
+  // Wrap the parent <ul> containing taskItems with data-type="taskList"
+  html = html.replace(
+    /<ul>\s*(<li data-type="taskItem"[\s\S]*?)<\/ul>/gi,
+    '<ul data-type="taskList">$1</ul>'
+  );
+
+  return html;
+}
+
 export interface MarkdownEditorRef {
   getMarkdown: () => Promise<string>;
   setMarkdown: (md: string) => void;
@@ -174,7 +203,7 @@ interface MarkdownEditorProps {
 
 export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>(
   ({ initialContent = '', placeholder = 'Start writing...', onChange, editable = true }, ref) => {
-    const initialHtml = initialContent ? marked.parse(initialContent) as string : '';
+    const initialHtml = initialContent ? markdownToHtml(initialContent) : '';
 
     const editor = useEditorBridge({
       autofocus: false,
@@ -199,8 +228,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
         return htmlToMarkdown(html);
       },
       setMarkdown: (md: string) => {
-        const html = marked.parse(md) as string;
-        editor.setContent(html);
+        editor.setContent(markdownToHtml(md));
       },
     }), [editor]);
 

@@ -1,0 +1,25 @@
+diff --git a/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm b/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
+--- a/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
++++ b/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
+@@ -470,7 +470,20 @@
+     @try {
+       [inv invokeWithTarget:strongModule];
+     } @catch (NSException *exception) {
+-      throw convertNSExceptionToJSError(runtime, exception, std::string{moduleName}, methodNameStr);
++      if (shouldVoidMethodsExecuteSync_) {
++        throw convertNSExceptionToJSError(runtime, exception, std::string{moduleName}, methodNameStr);
++      } else {
++        // On async dispatch queues, rethrowing a C++ exception has no handler
++        // and triggers std::terminate -> abort(). Log instead.
++        // See: https://github.com/facebook/react-native/issues/54859
++        NSString *message = [NSString stringWithFormat:
++          @"Exception '%@' in void TurboModule method %s.%s: %@",
++          exception.name,
++          moduleName,
++          methodNameStr.c_str(),
++          exception.reason ?: @"(no reason)"];
++        RCTLogError(@"%@", message);
++      }
+     } @finally {
+       [retainedObjectsForInvocation removeAllObjects];
+     }

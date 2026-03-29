@@ -1,15 +1,14 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   Alert,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  ScrollView,
+  Keyboard,
 } from 'react-native';
 import {
   CloudUpload,
@@ -21,6 +20,7 @@ import {
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { triggerHaptic } from '../../../../components/ui/Button';
 import { IdeaCard } from '../../../../components/ui/IdeaCard';
+import { MarkdownEditor, type MarkdownEditorRef } from '../../../../components/editor/MarkdownEditor';
 import { useNoteAutoSave, type SaveStatus } from '../../../../hooks/useNoteAutoSave';
 import { trpc } from '../../../../lib/trpc';
 import { colors, fonts } from '../../../../lib/theme';
@@ -48,13 +48,18 @@ export default function NoteEditorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const navigation = useNavigation();
-  const [content, setContent] = useState('');
+  const editorRef = useRef<MarkdownEditorRef>(null);
   const [initialLoaded, setInitialLoaded] = useState(false);
+  const [cardCollapsed, setCardCollapsed] = useState(false);
   const hasAutoRefined = useRef(false);
-  const contentRef = useRef('');
+  const contentLengthRef = useRef(0);
 
-  // Keep ref in sync for auto-save getContent
-  contentRef.current = content;
+  // Auto-collapse IdeaCard when keyboard appears so editor has room
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => setCardCollapsed(true));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => setCardCollapsed(false));
+    return () => { showSub.remove(); hideSub.remove(); };
+  }, []);
 
   const { data: note, isLoading, error } = trpc.note.get.useQuery(
     { id: id! },
@@ -114,7 +119,10 @@ export default function NoteEditorScreen() {
     setInitialContent,
   } = useNoteAutoSave({
     noteId: id!,
-    getContent: () => contentRef.current,
+    getContent: async () => {
+      if (!editorRef.current) return '';
+      return await editorRef.current.getMarkdown();
+    },
     debounceMs: 1500,
     maxIntervalMs: 30000,
   });
@@ -122,8 +130,8 @@ export default function NoteEditorScreen() {
   // Set initial data when note loads
   useEffect(() => {
     if (note && !initialLoaded) {
-      setContent(note.content ?? '');
       setInitialContent(note.content ?? '');
+      contentLengthRef.current = (note.content ?? '').length;
       setInitialLoaded(true);
       // If note already has a refinement, mark auto-refine as done
       if (note.refinedTitle) {
@@ -140,18 +148,15 @@ export default function NoteEditorScreen() {
     return unsubscribe;
   }, [navigation, flush]);
 
-  // Auto-trigger refine at 50 chars (first time only)
-  // Polls for save to finish before firing refine to avoid stale-read race
-  useEffect(() => {
-    if (
-      !hasAutoRefined.current &&
-      content.length >= 50 &&
-      initialLoaded &&
-      !refineMutation.isPending
-    ) {
+  // Auto-trigger refine when editor content reaches 50 chars (first time only)
+  const checkAutoRefine = useCallback(async () => {
+    if (hasAutoRefined.current || !initialLoaded || refineMutation.isPending) return;
+    if (!editorRef.current) return;
+    const md = await editorRef.current.getMarkdown();
+    contentLengthRef.current = md.length;
+    if (md.length >= 50) {
       hasAutoRefined.current = true;
       flush();
-      // Wait for save to settle (check every 200ms, up to 3s)
       let attempts = 0;
       const interval = setInterval(() => {
         attempts++;
@@ -160,14 +165,13 @@ export default function NoteEditorScreen() {
           refineMutation.mutate({ id: id! });
         }
       }, 200);
-      return () => clearInterval(interval);
     }
-  }, [content, initialLoaded, id, refineMutation, flush, saveStatus]);
+  }, [initialLoaded, refineMutation, flush, saveStatus, id]);
 
-  const handleContentChange = useCallback((text: string) => {
-    setContent(text);
+  const handleEditorChange = useCallback(() => {
     markDirty();
-  }, [markDirty]);
+    checkAutoRefine();
+  }, [markDirty, checkAutoRefine]);
 
   const handleDelete = useCallback(() => {
     Alert.alert(
@@ -184,8 +188,10 @@ export default function NoteEditorScreen() {
     );
   }, [id, deleteMutation]);
 
-  const handleRefine = useCallback(() => {
-    if (content.length < 50) {
+  const handleRefine = useCallback(async () => {
+    if (!editorRef.current) return;
+    const md = await editorRef.current.getMarkdown();
+    if (md.length < 50) {
       Alert.alert('Too Short', 'Write at least 50 characters before refining.');
       return;
     }
@@ -199,7 +205,7 @@ export default function NoteEditorScreen() {
         refineMutation.mutate({ id: id! });
       }
     }, 200);
-  }, [content, id, flush, refineMutation, saveStatus]);
+  }, [id, flush, refineMutation, saveStatus]);
 
   const handlePromote = useCallback(() => {
     promoteMutation.mutate({ id: id! });
@@ -265,14 +271,21 @@ export default function NoteEditorScreen() {
           </TouchableOpacity>
         </View>
 
-        <ScrollView
-          style={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* IdeaCard at top when refinement exists */}
-          {note.refinedTitle && (
-            <View style={styles.ideaCardContainer}>
+        {/* IdeaCard at top when refinement exists — capped height so editor always has room */}
+        {note.refinedTitle && (
+          <TouchableOpacity
+            style={styles.ideaCardContainer}
+            activeOpacity={0.8}
+            onPress={() => setCardCollapsed(!cardCollapsed)}
+          >
+            {cardCollapsed ? (
+              <View style={styles.collapsedCard}>
+                <Text style={styles.collapsedTitle} numberOfLines={1}>
+                  {note.refinedTitle}
+                </Text>
+                <Text style={styles.collapsedHint}>Tap to expand</Text>
+              </View>
+            ) : (
               <IdeaCard
                 refinedTitle={note.refinedTitle}
                 refinedDescription={note.refinedDescription ?? ''}
@@ -284,44 +297,41 @@ export default function NoteEditorScreen() {
                 onRefine={handleRefine}
                 onPromote={handlePromote}
               />
-            </View>
-          )}
+            )}
+          </TouchableOpacity>
+        )}
 
-          {/* Refinement error state */}
-          {refineMutation.isError && !note.refinedTitle && (
-            <TouchableOpacity
-              style={styles.refineError}
-              onPress={handleRefine}
-              activeOpacity={0.7}
-            >
-              <AlertCircle size={16} color={colors.warning} />
-              <Text style={styles.refineErrorText}>
-                Couldn't refine — tap to retry
-              </Text>
-            </TouchableOpacity>
-          )}
+        {/* Refinement error state */}
+        {refineMutation.isError && !note.refinedTitle && (
+          <TouchableOpacity
+            style={styles.refineError}
+            onPress={handleRefine}
+            activeOpacity={0.7}
+          >
+            <AlertCircle size={16} color={colors.warning} />
+            <Text style={styles.refineErrorText}>
+              Couldn't refine — tap to retry
+            </Text>
+          </TouchableOpacity>
+        )}
 
-          {/* Refining indicator (first time, no card yet) */}
-          {refineMutation.isPending && !note.refinedTitle && (
-            <View style={styles.refiningIndicator}>
-              <ActivityIndicator size="small" color={colors.brand} />
-              <Text style={styles.refiningText}>AI is refining your idea...</Text>
-            </View>
-          )}
+        {/* Refining indicator (first time, no card yet) */}
+        {refineMutation.isPending && !note.refinedTitle && (
+          <View style={styles.refiningIndicator}>
+            <ActivityIndicator size="small" color={colors.brand} />
+            <Text style={styles.refiningText}>AI is refining your idea...</Text>
+          </View>
+        )}
 
-          {/* Text editor */}
-          <TextInput
-            style={styles.editor}
-            value={content}
-            onChangeText={handleContentChange}
+        {/* Rich text editor */}
+        {initialLoaded && (
+          <MarkdownEditor
+            ref={editorRef}
+            initialContent={note.content ?? ''}
             placeholder="Start writing your idea..."
-            placeholderTextColor={colors.mutedDim}
-            multiline
-            textAlignVertical="top"
-            autoFocus={!note.content}
-            scrollEnabled={false}
+            onChange={handleEditorChange}
           />
-        </ScrollView>
+        )}
       </KeyboardAvoidingView>
     </View>
   );
@@ -383,12 +393,32 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: fonts.outfit.medium,
   },
-  scrollContent: {
-    flex: 1,
-  },
   ideaCardContainer: {
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 12,
+  },
+  collapsedCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  collapsedTitle: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: fonts.outfit.semiBold,
+    color: colors.foreground,
+    marginRight: 8,
+  },
+  collapsedHint: {
+    fontSize: 12,
+    fontFamily: fonts.outfit.regular,
+    color: colors.mutedDim,
   },
   refineError: {
     flexDirection: 'row',
@@ -421,16 +451,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: fonts.outfit.medium,
     color: colors.brand,
-  },
-  editor: {
-    flex: 1,
-    fontSize: 16,
-    fontFamily: fonts.geist.regular,
-    color: colors.foreground,
-    lineHeight: 24,
-    paddingHorizontal: 20,
-    paddingTop: 4,
-    paddingBottom: 40,
-    minHeight: 300,
   },
 });
