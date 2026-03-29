@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,17 @@ import {
   StyleSheet,
   RefreshControl,
 } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
-import { NotebookPen, CheckCircle, Plus } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import Animated, {
+  FadeInUp,
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+  runOnJS,
+} from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { NotebookPen, CheckCircle, Plus, Trash2, ChevronRight } from 'lucide-react-native';
+import { useRouter, useNavigation } from 'expo-router';
 import { triggerHaptic } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { trpc } from '../../../lib/trpc';
@@ -66,11 +74,138 @@ function getNoteMeta(note: any) {
   };
 }
 
+const SWIPE_THRESHOLD = 80;
+
+function SwipeableNoteCard({
+  note,
+  onPress,
+  onDelete,
+}: {
+  note: any;
+  onPress: () => void;
+  onDelete: () => void;
+}) {
+  const translateX = useSharedValue(0);
+  const meta = getNoteMeta(note);
+  const IconComponent = meta.icon;
+  const title = deriveTitle(note);
+
+  const panGesture = Gesture.Pan()
+    .activeOffsetX([-10, 10])
+    .failOffsetY([-5, 5])
+    .onUpdate((event) => {
+      // Clamp: allow left swipe up to -120, right swipe up to 120
+      translateX.value = Math.max(-120, Math.min(120, event.translationX));
+    })
+    .onEnd((event) => {
+      if (event.translationX < -SWIPE_THRESHOLD) {
+        // Swiped left — snap to show delete
+        translateX.value = withTiming(-100, { duration: 200, easing: Easing.out(Easing.cubic) });
+        runOnJS(triggerHaptic)('light');
+      } else if (event.translationX > SWIPE_THRESHOLD) {
+        // Swiped right — navigate to card
+        translateX.value = withTiming(0, { duration: 200, easing: Easing.out(Easing.cubic) });
+        runOnJS(triggerHaptic)('light');
+        runOnJS(onPress)();
+      } else {
+        // Snap back
+        translateX.value = withTiming(0, { duration: 200, easing: Easing.out(Easing.cubic) });
+      }
+    });
+
+  const tapGesture = Gesture.Tap().onEnd(() => {
+    if (translateX.value < -50) {
+      // If delete action is showing, snap back
+      translateX.value = withTiming(0, { duration: 200, easing: Easing.out(Easing.cubic) });
+    } else {
+      runOnJS(onPress)();
+    }
+  });
+
+  const composedGesture = Gesture.Race(panGesture, tapGesture);
+
+  const cardStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  const deleteActionStyle = useAnimatedStyle(() => ({
+    opacity: translateX.value < -20 ? 1 : 0,
+  }));
+
+  const openActionStyle = useAnimatedStyle(() => ({
+    opacity: translateX.value > 20 ? 1 : 0,
+  }));
+
+  return (
+    <View style={styles.swipeContainer}>
+      {/* Delete action (revealed on left swipe) */}
+      <Animated.View style={[styles.swipeActionDelete, deleteActionStyle]}>
+        <TouchableOpacity
+          style={styles.swipeActionTouchable}
+          onPress={() => {
+            translateX.value = withTiming(0, { duration: 200, easing: Easing.out(Easing.cubic) });
+            onDelete();
+          }}
+          activeOpacity={0.7}
+        >
+          <Trash2 size={22} color={colors.white} />
+          <Text style={styles.swipeActionText}>Delete</Text>
+        </TouchableOpacity>
+      </Animated.View>
+
+      {/* Open action (revealed on right swipe) */}
+      <Animated.View style={[styles.swipeActionOpen, openActionStyle]}>
+        <View style={styles.swipeActionTouchable}>
+          <ChevronRight size={22} color={colors.white} />
+          <Text style={styles.swipeActionText}>Open</Text>
+        </View>
+      </Animated.View>
+
+      {/* Card content */}
+      <GestureDetector gesture={composedGesture}>
+        <Animated.View style={[styles.card, cardStyle]}>
+          <View style={styles.cardTop}>
+            <View style={[styles.cardIcon, { backgroundColor: meta.iconBg }]}>
+              <IconComponent size={20} color={meta.iconColor} />
+            </View>
+            <View style={styles.cardText}>
+              <Text style={styles.cardTitle} numberOfLines={1}>
+                {title}
+              </Text>
+              {note.content ? (
+                <Text style={styles.cardDescription} numberOfLines={2}>
+                  {note.content}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+          <View style={styles.cardFooter}>
+            <Text style={styles.cardTime}>
+              {formatRelativeTime(new Date(note.updatedAt))}
+            </Text>
+            {meta.badgeVariant && meta.badgeLabel && (
+              <Badge variant={meta.badgeVariant}>{meta.badgeLabel}</Badge>
+            )}
+          </View>
+        </Animated.View>
+      </GestureDetector>
+    </View>
+  );
+}
+
 export default function NotesListScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const utils = trpc.useUtils();
-
   const { data: notes, isLoading, refetch, isRefetching } = trpc.note.list.useQuery();
+
+  // Refetch notes when screen gains focus (e.g. navigating back from detail)
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      refetch();
+    });
+    return unsubscribe;
+  }, [navigation, refetch]);
 
   const createMutation = trpc.note.create.useMutation({
     onSuccess: (newNote) => {
@@ -115,49 +250,13 @@ export default function NotesListScreen() {
   }, [deleteMutation]);
 
   const renderItem = useCallback(({ item, index }: { item: any; index: number }) => {
-    const meta = getNoteMeta(item);
-    const IconComponent = meta.icon;
-    const title = deriveTitle(item);
-
     return (
       <Animated.View entering={FadeInUp.delay(index * 80).springify()}>
-        <TouchableOpacity
-          style={styles.card}
+        <SwipeableNoteCard
+          note={item}
           onPress={() => router.push(`/(tabs)/notes/${item.id}` as any)}
-          onLongPress={() => {
-            triggerHaptic('light');
-            handleDelete(item.id, title);
-          }}
-          activeOpacity={0.7}
-          delayLongPress={400}
-        >
-          {/* Top section: icon + text */}
-          <View style={styles.cardTop}>
-            <View style={[styles.cardIcon, { backgroundColor: meta.iconBg }]}>
-              <IconComponent size={20} color={meta.iconColor} />
-            </View>
-            <View style={styles.cardText}>
-              <Text style={styles.cardTitle} numberOfLines={1}>
-                {title}
-              </Text>
-              {item.content ? (
-                <Text style={styles.cardDescription} numberOfLines={2}>
-                  {item.content}
-                </Text>
-              ) : null}
-            </View>
-          </View>
-
-          {/* Footer */}
-          <View style={styles.cardFooter}>
-            <Text style={styles.cardTime}>
-              {formatRelativeTime(new Date(item.updatedAt))}
-            </Text>
-            {meta.badgeVariant && meta.badgeLabel && (
-              <Badge variant={meta.badgeVariant}>{meta.badgeLabel}</Badge>
-            )}
-          </View>
-        </TouchableOpacity>
+          onDelete={() => handleDelete(item.id, deriveTitle(item))}
+        />
       </Animated.View>
     );
   }, [router, handleDelete]);
@@ -237,7 +336,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 28,
-    fontFamily: fonts.outfit.bold,
+    ...fonts.outfit.bold,
     color: colors.foreground,
     letterSpacing: -0.5,
   },
@@ -274,13 +373,13 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    fontFamily: fonts.outfit.semiBold,
+    ...fonts.outfit.semiBold,
     color: colors.foreground,
     marginBottom: 4,
   },
   cardDescription: {
     fontSize: 13,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     color: colors.muted,
     lineHeight: 18,
   },
@@ -293,7 +392,7 @@ const styles = StyleSheet.create({
   },
   cardTime: {
     fontSize: 12,
-    fontFamily: fonts.mono.regular,
+    ...fonts.geist.regular,
     color: colors.mutedDim,
   },
   emptyState: {
@@ -314,12 +413,12 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 18,
-    fontFamily: fonts.outfit.semiBold,
+    ...fonts.outfit.semiBold,
     color: colors.foreground,
   },
   emptyDescription: {
     fontSize: 14,
-    fontFamily: fonts.outfit.regular,
+    ...fonts.outfit.regular,
     color: colors.muted,
     textAlign: 'center',
     maxWidth: 280,
@@ -338,8 +437,45 @@ const styles = StyleSheet.create({
   },
   emptyCtaText: {
     fontSize: 16,
-    fontFamily: fonts.outfit.semiBold,
+    ...fonts.outfit.semiBold,
     color: colors.white,
+  },
+  swipeContainer: {
+    position: 'relative',
+  },
+  swipeActionDelete: {
+    position: 'absolute',
+    right: 8,
+    top: 0,
+    bottom: 0,
+    width: 92,
+    backgroundColor: colors.destructive,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  swipeActionOpen: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 100,
+    backgroundColor: colors.brand,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  swipeActionTouchable: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
+    width: '100%',
+  },
+  swipeActionText: {
+    color: colors.white,
+    fontSize: 12,
+    ...fonts.outfit.semiBold,
   },
   fab: {
     position: 'absolute',

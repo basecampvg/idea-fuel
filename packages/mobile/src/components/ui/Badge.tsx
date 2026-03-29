@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 12,
-    fontFamily: fonts.mono.medium,
+    ...fonts.outfit.semiBold,
   },
   statusDot: {
     // Base styles - size and color applied dynamically

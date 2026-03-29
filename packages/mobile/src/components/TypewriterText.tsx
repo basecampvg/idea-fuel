@@ -89,14 +89,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    fontFamily: fonts.mono.regular,
+    ...fonts.mono.regular,
     fontSize: 16,
     color: colors.muted,
     textAlign: 'center',
     lineHeight: 24,
   },
   cursor: {
-    fontFamily: fonts.mono.regular,
+    ...fonts.mono.regular,
     fontSize: 16,
     color: colors.brand,
   },

@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontFamily: fonts.outfit.semiBold,
+    ...fonts.outfit.semiBold,
     color: colors.foreground,
   },
   scrollView: {
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
   },
   projectTitle: {
     fontSize: 22,
-    fontFamily: fonts.outfit.bold,
+    ...fonts.outfit.bold,
     color: colors.foreground,
     letterSpacing: -0.3,
   },

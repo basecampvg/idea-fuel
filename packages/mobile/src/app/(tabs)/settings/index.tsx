@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 28,
-    fontFamily: fonts.outfit.bold,
+    ...fonts.outfit.bold,
     color: colors.foreground,
     letterSpacing: -0.5,
   },
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
   },
   profileName: {
     fontSize: 17,
-    fontFamily: fonts.outfit.semiBold,
+    ...fonts.outfit.semiBold,
     color: colors.foreground,
     marginBottom: 2,
   },

@@ -4,6 +4,7 @@
  *
  * Brand colors extracted from phone/ideafuellogo.svg and landing page mockup.
  */
+import { Platform, type TextStyle } from 'react-native';
 
 export const colors = {
   // ── Surfaces ──
@@ -42,23 +43,44 @@ export const colors = {
 
 export type ThemeColors = typeof colors;
 
+/**
+ * Font system — SF Pro on iOS (system font), Roboto on Android.
+ *
+ * Each font token is a partial TextStyle object containing fontFamily +
+ * fontWeight. Spread into styles: { ...fonts.outfit.bold, fontSize: 28 }
+ *
+ * The legacy API (fonts.outfit.bold as a string) is preserved via toString()
+ * so existing code using `fontFamily: fonts.outfit.bold` continues to compile
+ * and render with the system font — weight just comes from fontWeight now.
+ */
+const sf = Platform.OS === 'ios' ? 'System' : undefined;
+const mono = Platform.OS === 'ios' ? 'SF Mono' : 'monospace';
+
+type FontToken = TextStyle & { toString(): string };
+
+function token(family: string | undefined, weight: TextStyle['fontWeight']): FontToken {
+  const value = family ?? '';
+  return {
+    fontFamily: family,
+    fontWeight: weight,
+    toString: () => value,
+  } as FontToken;
+}
+
 export const fonts = {
-  // Outfit — display/heading font (titles, buttons, labels)
   outfit: {
-    regular: 'Outfit-Regular',
-    medium: 'Outfit-Medium',
-    semiBold: 'Outfit-SemiBold',
-    bold: 'Outfit-Bold',
+    regular:  token(sf, '400'),
+    medium:   token(sf, '500'),
+    semiBold: token(sf, '600'),
+    bold:     token(sf, '700'),
   },
-  // Geist — body font (descriptions, chat, paragraphs)
   geist: {
-    regular: 'Geist-Regular',
-    medium: 'Geist-Medium',
-    semiBold: 'Geist-SemiBold',
+    regular:  token(sf, '400'),
+    medium:   token(sf, '500'),
+    semiBold: token(sf, '600'),
   },
-  // Geist Mono — tags, badges, status pills, stat values
   mono: {
-    regular: 'GeistMono-Regular',
-    medium: 'GeistMono-Medium',
+    regular: token(mono, '400'),
+    medium:  token(mono, '500'),
   },
 } as const;

@@ -1,7 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View,
-  Text,
   TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
@@ -14,6 +13,7 @@ import {
   Easing,
   InteractionManager,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Mic, Square, ArrowUp } from 'lucide-react-native';
 import { triggerHaptic } from '../../components/ui/Button';
 import { trpc } from '../../lib/trpc';
@@ -21,6 +21,7 @@ import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { IdeaFuelLogo } from '../../components/IdeaFuelLogo';
 import { SloganSVG } from '../../components/SloganSVG';
+import { OrbAnimation, type OrbState } from '../../components/OrbAnimation';
 import { colors, fonts } from '../../lib/theme';
 
 // Defer loading expo-speech-recognition until after the initial Fabric mount
@@ -58,9 +59,13 @@ export default function CaptureScreen() {
   const { showToast } = useToast();
   const [ideaText, setIdeaText] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
+
+  // Orb state: idle → listening (mic on, waiting) → talking (speech detected)
+  const orbState: OrbState = isListening ? (isSpeaking ? 'talking' : 'listening') : null;
 
   const shouldHideLogo = ideaText.length > 0 || isListening;
   const logoFade = useRef(new Animated.Value(1)).current;
@@ -144,6 +149,7 @@ export default function CaptureScreen() {
     if (isListening) {
       SpeechModule.stop();
       setIsListening(false);
+      setIsSpeaking(false);
       triggerHaptic('light');
       return;
     }
@@ -205,6 +211,7 @@ export default function CaptureScreen() {
     if (isListening) {
       SpeechModule?.stop();
       setIsListening(false);
+      setIsSpeaking(false);
     }
 
     Keyboard.dismiss();
@@ -222,6 +229,7 @@ export default function CaptureScreen() {
           finalizedText={finalizedText}
           setIdeaText={setIdeaText}
           setIsListening={setIsListening}
+          setIsSpeaking={setIsSpeaking}
           showToast={showToast}
         />
       )}
@@ -231,29 +239,27 @@ export default function CaptureScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
         >
-          {/* ── Center: Logo + Slogan (fades when active) ── */}
+          {/* ── Center: Logo + Slogan / Orb when listening ── */}
           <View style={styles.centerSection}>
-            <Animated.View
-              pointerEvents={shouldHideLogo ? 'none' : 'auto'}
-              style={[styles.logoArea, { opacity: logoFade }]}
-            >
-              <IdeaFuelLogo size={120} />
-              <View style={{ marginTop: 24 }}>
-                <SloganSVG width={260} />
-              </View>
-            </Animated.View>
-
-            {/* Soundwave — shown when listening and logo is faded */}
+            {/* Orb — only mounted when listening */}
             {isListening && (
-              <View style={styles.soundwaveOverlay}>
-                <View style={styles.soundwaveBars}>
-                  {Array.from({ length: 24 }).map((_, i) => (
-                    <SoundBar key={i} index={i} active={isListening} />
-                  ))}
-                </View>
-                <Text style={styles.listeningLabel}>listening...</Text>
+              <View style={styles.orbContainer}>
+                <OrbAnimation state={orbState} />
               </View>
             )}
+
+            {!isListening && (
+              <Animated.View
+                pointerEvents={shouldHideLogo ? 'none' : 'auto'}
+                style={[styles.logoArea, { opacity: logoFade }]}
+              >
+                <IdeaFuelLogo size={120} />
+                <View style={{ marginTop: 24 }}>
+                  <SloganSVG width={260} />
+                </View>
+              </Animated.View>
+            )}
+
           </View>
 
           {/* ── Bottom: Input bar ── */}
@@ -262,6 +268,13 @@ export default function CaptureScreen() {
               styles.inputBar,
               (inputFocused || isListening) && styles.inputBarActive,
             ]}>
+              {/* Orange glow on the top stroke — flat, doesn't wrap corners */}
+              <LinearGradient
+                colors={['transparent', colors.brand, 'transparent']}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={styles.inputBarTopGlow}
+              />
               <TextInput
                 ref={inputRef}
                 style={styles.inputField}
@@ -329,93 +342,59 @@ function SpeechListeners({
   finalizedText,
   setIdeaText,
   setIsListening,
+  setIsSpeaking,
   showToast,
 }: {
   finalizedText: React.MutableRefObject<string>;
   setIdeaText: (t: string) => void;
   setIsListening: (v: boolean) => void;
+  setIsSpeaking: (v: boolean) => void;
   showToast: ReturnType<typeof import('../../contexts/ToastContext').useToast>['showToast'];
 }) {
   const useSpeechEvent = _useSpeechEvent!;
+  const speakingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useSpeechEvent('result', (event: any) => {
     const transcript = event.results[0]?.transcript || '';
     if (transcript) {
+      // Speech detected — switch orb to "talking"
+      setIsSpeaking(true);
+
+      // Clear any pending fallback timer
+      if (speakingTimer.current) clearTimeout(speakingTimer.current);
+
       if (event.isFinal) {
         finalizedText.current = finalizedText.current
           ? `${finalizedText.current} ${transcript}`
           : transcript;
         setIdeaText(finalizedText.current);
+        setIsSpeaking(false);
       } else {
         const display = finalizedText.current
           ? `${finalizedText.current} ${transcript}`
           : transcript;
         setIdeaText(display);
+
+        // If no new result within 500ms, drop back to listening
+        speakingTimer.current = setTimeout(() => setIsSpeaking(false), 500);
       }
     }
   });
 
   useSpeechEvent('end', () => {
     setIsListening(false);
+    setIsSpeaking(false);
   });
 
   useSpeechEvent('error', (event: any) => {
     setIsListening(false);
+    setIsSpeaking(false);
     if (event.error !== 'no-speech') {
       showToast({ message: 'Voice recognition error', type: 'error' });
     }
   });
 
   return null;
-}
-
-/** Animated sound bar for the waveform visualization */
-function SoundBar({ index, active }: { index: number; active: boolean }) {
-  const height = useRef(new Animated.Value(8)).current;
-
-  useEffect(() => {
-    if (active) {
-      const animation = Animated.loop(
-        Animated.sequence([
-          Animated.timing(height, {
-            toValue: 8 + Math.random() * 32,
-            duration: 200 + Math.random() * 300,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: false,
-          }),
-          Animated.timing(height, {
-            toValue: 4 + Math.random() * 12,
-            duration: 200 + Math.random() * 300,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: false,
-          }),
-        ])
-      );
-      const timer = setTimeout(() => animation.start(), index * 40);
-      return () => {
-        clearTimeout(timer);
-        animation.stop();
-      };
-    } else {
-      Animated.timing(height, {
-        toValue: 8,
-        duration: 300,
-        useNativeDriver: false,
-      }).start();
-    }
-  }, [active, height, index]);
-
-  return (
-    <Animated.View
-      style={{
-        width: 3,
-        height,
-        borderRadius: 1.5,
-        backgroundColor: colors.brand,
-        opacity: 0.6,
-      }}
-    />
-  );
 }
 
 const styles = StyleSheet.create({
@@ -437,23 +416,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignItems: 'center',
   },
-  soundwaveOverlay: {
+  orbContainer: {
     position: 'absolute',
     alignItems: 'center',
-    gap: 16,
-  },
-  soundwaveBars: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    height: 50,
-  },
-  listeningLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    letterSpacing: 2,
-    color: colors.mutedDim,
-    textTransform: 'lowercase',
+    justifyContent: 'center',
   },
 
   // ── Bottom: Input bar ──
@@ -472,14 +438,22 @@ const styles = StyleSheet.create({
     paddingRight: 8,
     paddingVertical: 8,
     minHeight: 52,
+    overflow: 'hidden',
   },
   inputBarActive: {
     borderColor: '#333333',
   },
+  inputBarTopGlow: {
+    position: 'absolute',
+    top: -1,
+    left: 24,
+    right: 24,
+    height: 2,
+  },
   inputField: {
     flex: 1,
     fontSize: 16,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     color: colors.foreground,
     lineHeight: 22,
     maxHeight: 120,

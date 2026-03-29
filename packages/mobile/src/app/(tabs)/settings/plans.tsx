@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   },
   currentPlanLabel: {
     fontSize: 13,
-    fontFamily: fonts.geist.medium,
+    ...fonts.geist.medium,
     color: colors.muted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -361,13 +361,13 @@ const styles = StyleSheet.create({
   },
   currentPlanTier: {
     fontSize: 24,
-    fontFamily: fonts.outfit.bold,
+    ...fonts.outfit.bold,
     color: colors.foreground,
     letterSpacing: -0.5,
   },
   periodEnd: {
     fontSize: 13,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     color: colors.muted,
   },
   // Plans
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 14,
-    fontFamily: fonts.geist.medium,
+    ...fonts.geist.medium,
     color: colors.muted,
   },
   // Dev notice
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   },
   devNoticeText: {
     fontSize: 12,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     color: colors.muted,
     textAlign: 'center',
     lineHeight: 18,

@@ -802,15 +802,19 @@ export interface CardResult {
   verdict: 'proceed' | 'watchlist' | 'drop';
   summary: string;              // 1-2 sentence summary
   problemSeverity: number;      // 1-5 scale
+  problemEvidence?: string;     // 2-3 sentences: search volume, forum posts, spending signals
   marketSignal: 'rising' | 'flat' | 'declining' | 'unknown';
+  marketEvidence?: string;      // 2-3 sentences: specific growth %, VC funding, trend data
   tamEstimate: {
     low: string;                // e.g. "$500M"
     high: string;               // e.g. "$2B"
     basis: string;              // 1-sentence explanation
+    assumptions?: string;       // bottom-up calculation breakdown
   };
   competitors: Array<{
     name: string;
     oneLiner: string;           // what they do
+    traction?: string;          // users, revenue, funding if known
   }>;                           // max 3
   biggestRisk: string;          // 1 sentence
   nextExperiment: string;       // 1 actionable step

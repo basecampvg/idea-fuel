@@ -15,6 +15,7 @@ interface IdeaCardProps {
   isPromoted: boolean;
   isRefining: boolean;
   isPromoting: boolean;
+  refineCooldown?: number;
   onRefine: () => void;
   onPromote: () => void;
 }
@@ -27,9 +28,11 @@ export function IdeaCard({
   isPromoted,
   isRefining,
   isPromoting,
+  refineCooldown = 0,
   onRefine,
   onPromote,
 }: IdeaCardProps) {
+  const isCoolingDown = refineCooldown > 0;
   return (
     <Animated.View entering={FadeIn.duration(300)} style={styles.container}>
       {/* Header row */}
@@ -71,17 +74,17 @@ export function IdeaCard({
           variant="outline"
           size="sm"
           onPress={onRefine}
-          disabled={isRefining || isPromoted}
+          disabled={isRefining || isPromoted || isCoolingDown}
           leftIcon={
             isRefining ? (
               <Spinner size="small" color={colors.foreground} />
             ) : (
-              <RefreshCw size={14} color={colors.foreground} />
+              <RefreshCw size={14} color={isCoolingDown ? colors.mutedDim : colors.foreground} />
             )
           }
           style={styles.refineButton}
         >
-          {isRefining ? 'Refining...' : 'Refine'}
+          {isRefining ? 'Refining...' : isCoolingDown ? `Wait ${refineCooldown}s` : 'Refine'}
         </Button>
 
         {isPromoted ? (
@@ -132,13 +135,13 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     fontSize: 18,
-    fontFamily: fonts.outfit.bold,
+    ...fonts.outfit.bold,
     color: colors.foreground,
     letterSpacing: -0.2,
   },
   description: {
     fontSize: 14,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     color: colors.muted,
     lineHeight: 20,
   },
@@ -155,12 +158,12 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: 12,
-    fontFamily: fonts.mono.regular,
+    ...fonts.geist.medium,
     color: colors.brand,
   },
   staleText: {
     fontSize: 12,
-    fontFamily: fonts.outfit.regular,
+    ...fonts.outfit.regular,
     color: colors.warning,
     fontStyle: 'italic',
   },

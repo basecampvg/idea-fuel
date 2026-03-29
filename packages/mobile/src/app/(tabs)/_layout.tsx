@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, Linking, StyleSheet } from 'react-native';
 import { Tabs, Redirect } from 'expo-router';
-import { Mic, ShieldCheck, NotebookPen, Settings, ArrowUpRight, X } from 'lucide-react-native';
+import { Mic, Vault, NotebookPen, Settings, ArrowUpRight, X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingScreen } from '../../components/ui';
@@ -18,12 +18,12 @@ function CustomTabBar({ state, descriptors, navigation, insets }: any) {
         {state.routes.map((route: any, index: number) => {
           const { options } = descriptors[route.key];
           const isFocused = state.index === index;
-          const color = isFocused ? colors.brand : colors.mutedDim;
+          const color = isFocused ? colors.brand : colors.white;
 
           const icon = route.name === 'capture'
             ? <Mic size={22} color={color} />
             : route.name === 'vault'
-            ? <ShieldCheck size={22} color={color} />
+            ? <Vault size={22} color={color} />
             : route.name === 'notes'
             ? <NotebookPen size={22} color={color} />
             : <Settings size={22} color={color} />;
@@ -179,13 +179,13 @@ const headerStyles = StyleSheet.create({
   },
   wordmarkIdea: {
     fontSize: 14,
-    fontFamily: fonts.outfit.semiBold,
+    ...fonts.outfit.semiBold,
     letterSpacing: 4,
     color: '#BCBCBC',
   },
   wordmarkFuel: {
     fontSize: 14,
-    fontFamily: fonts.outfit.semiBold,
+    ...fonts.outfit.semiBold,
     letterSpacing: 4,
     color: colors.brand,
   },

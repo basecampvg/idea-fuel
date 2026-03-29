@@ -90,11 +90,11 @@ export function useNoteAutoSave({
       clearTimeout(maxIntervalTimer.current);
       maxIntervalTimer.current = null;
     }
-    if (hasPendingChanges.current) {
+    if (hasPendingChanges.current && !updateMutation.isPending) {
       const content = await getContent();
       performSave(content);
     }
-  }, [getContent, performSave]);
+  }, [getContent, performSave, updateMutation.isPending]);
 
   /** Set the initial content (so we don't save unchanged content) */
   const setInitialContent = useCallback((content: string) => {

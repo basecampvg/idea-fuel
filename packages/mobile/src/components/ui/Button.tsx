@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    fontFamily: fonts.outfit.semiBold,
+    ...fonts.outfit.semiBold,
   },
   leftIcon: {
     marginRight: 8,

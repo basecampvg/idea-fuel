@@ -142,14 +142,21 @@ Return ONLY valid JSON matching this exact schema — no markdown, no code fence
   "verdict": "proceed" | "watchlist" | "drop",
   "summary": "1-2 sentence summary of the validation finding",
   "problemSeverity": 1-5,
+  "problemEvidence": "2-3 sentences: what evidence exists that people actively seek solutions? Include search volume, forum activity, spending patterns, or other demand signals found in the research.",
   "marketSignal": "rising" | "flat" | "declining" | "unknown",
+  "marketEvidence": "2-3 sentences with specific numbers: growth percentages, VC funding amounts, Google Trends direction, new entrants, regulatory tailwinds. Cite specific figures like 'X grew Y% since Z' or 'VC funding reached $X in 2025'.",
   "tamEstimate": {
     "low": "$X million/billion",
     "high": "$Y million/billion",
-    "basis": "brief explanation of how TAM was estimated"
+    "basis": "brief explanation of how TAM was estimated",
+    "assumptions": "Bottom-up calculation: (number of potential customers) × (willingness to pay). E.g. '12M US small businesses × $50/mo = $7.2B'"
   },
   "competitors": [
-    { "name": "Competitor Name", "oneLiner": "What they do in one line" }
+    {
+      "name": "Competitor Name",
+      "oneLiner": "What they do in one line",
+      "traction": "Known traction: users, revenue, funding rounds. E.g. '50K users, $5M Series A (2024)' or 'bootstrapped, ~$2M ARR'"
+    }
   ],
   "biggestRisk": "The single biggest risk in one sentence",
   "nextExperiment": "One concrete actionable experiment to run next",
@@ -159,9 +166,16 @@ Return ONLY valid JSON matching this exact schema — no markdown, no code fence
 Rules:
 - competitors array: max 3 entries
 - problemSeverity: integer 1-5
-- If data is missing, use reasonable defaults: "unknown" for strings, 3 for severity, "unknown" for marketSignal
+- problemEvidence, marketEvidence, tamEstimate.assumptions, competitors[].traction: extract from the research text. If the research doesn't mention specific data for these, omit the field rather than guessing.
+- If data is missing for required fields, use reasonable defaults: "unknown" for strings, 3 for severity, "unknown" for marketSignal
 - citations: include any URLs found in the research text
-- Every field is REQUIRED`;
+- Every non-optional field is REQUIRED
+
+Verdict consistency — derive the verdict from the extracted scores using this rubric:
+- "proceed": problemSeverity >= 4 AND marketSignal is "rising" AND competitors array is non-empty
+- "drop": problemSeverity <= 2 OR marketSignal is "declining"
+- "watchlist": everything else (severity 3, flat/unknown market, or mixed signals)
+If the research text states a different verdict than what the rubric produces, use the rubric. The scores determine the verdict, not the other way around.`;
 
 /**
  * Calls Anthropic Haiku to extract a structured CardResult from raw Sonar Pro prose.
@@ -217,8 +231,10 @@ export async function extractCardResult(
     // Validate with Zod schema
     const result = cardResultSchema.safeParse(parsed);
     if (result.success) {
-      console.log('[CardAI] Extraction successful, verdict:', result.data.verdict);
-      return result.data;
+      // Enforce verdict consistency from scores (don't trust LLM verdict)
+      const enforced = enforceVerdict(result.data);
+      console.log('[CardAI] Extraction successful, verdict:', enforced.verdict);
+      return enforced;
     }
 
     // Validation failed — log errors and fall back
@@ -230,6 +246,40 @@ export async function extractCardResult(
     console.error('[CardAI] Extraction failed:', error instanceof Error ? error.message : error);
     return buildFallbackCard(sonarResponse, citations);
   }
+}
+
+/**
+ * Enforce verdict consistency based on extracted scores.
+ * This is the single source of truth — LLM-generated verdicts are overridden.
+ *
+ * Rubric:
+ *   proceed:   severity >= 4 AND market is rising AND has competitors (validated market)
+ *   drop:      severity <= 2 OR market is declining
+ *   watchlist: everything else
+ */
+function enforceVerdict(card: CardResult): CardResult {
+  const { problemSeverity, marketSignal, competitors } = card;
+
+  let verdict: CardResult['verdict'];
+
+  // Drop conditions (any one is sufficient)
+  if (problemSeverity <= 2 || marketSignal === 'declining') {
+    verdict = 'drop';
+  }
+  // Proceed conditions (all must be true)
+  else if (problemSeverity >= 4 && marketSignal === 'rising' && competitors.length > 0) {
+    verdict = 'proceed';
+  }
+  // Everything else
+  else {
+    verdict = 'watchlist';
+  }
+
+  if (verdict !== card.verdict) {
+    console.log(`[CardAI] Verdict override: ${card.verdict} → ${verdict} (severity=${problemSeverity}, market=${marketSignal}, competitors=${competitors.length})`);
+  }
+
+  return { ...card, verdict };
 }
 
 /**

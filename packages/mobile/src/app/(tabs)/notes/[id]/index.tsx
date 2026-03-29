@@ -51,8 +51,16 @@ export default function NoteEditorScreen() {
   const editorRef = useRef<MarkdownEditorRef>(null);
   const [initialLoaded, setInitialLoaded] = useState(false);
   const [cardCollapsed, setCardCollapsed] = useState(false);
+  const [refineCooldown, setRefineCooldown] = useState(0);
   const hasAutoRefined = useRef(false);
   const contentLengthRef = useRef(0);
+
+  // Countdown timer for refine cooldown
+  useEffect(() => {
+    if (refineCooldown <= 0) return;
+    const timer = setTimeout(() => setRefineCooldown(refineCooldown - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [refineCooldown]);
 
   // Auto-collapse IdeaCard when keyboard appears so editor has room
   useEffect(() => {
@@ -88,7 +96,10 @@ export default function NoteEditorScreen() {
     },
     onError: (err) => {
       triggerHaptic('error');
-      if (err.message === 'REFINEMENT_FAILED') {
+      if (err.message.startsWith('REFINE_COOLDOWN:')) {
+        const seconds = parseInt(err.message.split(':')[1], 10);
+        setRefineCooldown(seconds);
+      } else if (err.message === 'REFINEMENT_FAILED') {
         Alert.alert('Refinement Failed', "Couldn't refine — tap Refine to retry.");
       }
     },
@@ -294,6 +305,7 @@ export default function NoteEditorScreen() {
                 isPromoted={isPromoted}
                 isRefining={refineMutation.isPending}
                 isPromoting={promoteMutation.isPending}
+                refineCooldown={refineCooldown}
                 onRefine={handleRefine}
                 onPromote={handlePromote}
               />
@@ -359,7 +371,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    fontFamily: fonts.outfit.regular,
+    ...fonts.outfit.regular,
     color: colors.muted,
     textAlign: 'center',
   },
@@ -374,7 +386,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 15,
-    fontFamily: fonts.outfit.medium,
+    ...fonts.outfit.medium,
     color: colors.foreground,
   },
   header: {
@@ -391,7 +403,7 @@ const styles = StyleSheet.create({
   },
   saveText: {
     fontSize: 13,
-    fontFamily: fonts.outfit.medium,
+    ...fonts.outfit.medium,
   },
   ideaCardContainer: {
     paddingHorizontal: 20,
@@ -411,13 +423,13 @@ const styles = StyleSheet.create({
   collapsedTitle: {
     flex: 1,
     fontSize: 14,
-    fontFamily: fonts.outfit.semiBold,
+    ...fonts.outfit.semiBold,
     color: colors.foreground,
     marginRight: 8,
   },
   collapsedHint: {
     fontSize: 12,
-    fontFamily: fonts.outfit.regular,
+    ...fonts.outfit.regular,
     color: colors.mutedDim,
   },
   refineError: {
@@ -434,7 +446,7 @@ const styles = StyleSheet.create({
   },
   refineErrorText: {
     fontSize: 13,
-    fontFamily: fonts.outfit.medium,
+    ...fonts.outfit.medium,
     color: colors.warning,
   },
   refiningIndicator: {
@@ -449,7 +461,7 @@ const styles = StyleSheet.create({
   },
   refiningText: {
     fontSize: 13,
-    fontFamily: fonts.outfit.medium,
+    ...fonts.outfit.medium,
     color: colors.brand,
   },
 });

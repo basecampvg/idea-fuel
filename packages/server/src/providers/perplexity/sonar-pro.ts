@@ -79,9 +79,25 @@ export async function sonarProResearch(brief: string): Promise<{ text: string; c
 - Not vague advice like "talk to customers" — give a specific channel, message, and success metric
 
 ### 7. Verdict (proceed, watchlist, or drop)
-- proceed = strong signal, real pain, viable market, founder should build an MVP
-- watchlist = interesting but unproven, needs more signal before committing
-- drop = weak pain, shrinking market, or insurmountable competition
+Derive the verdict deterministically from your scores above using this rubric:
+
+**proceed** (ALL of these must be true):
+- Problem Severity >= 4
+- Market Signal is "rising"
+- At least 1 competitor exists (validates the market)
+- No single risk that is truly insurmountable
+
+**drop** (ANY of these is sufficient):
+- Problem Severity <= 2
+- Market Signal is "declining"
+- A dominant incumbent could trivially replicate this as a feature
+
+**watchlist** (everything else):
+- Problem Severity is 3, OR
+- Market Signal is "flat" or "unknown", OR
+- Severity is high but market signal is unclear
+
+Apply the rubric strictly. Do NOT override it with subjective judgment. If the scores say "proceed" but your gut says otherwise, trust the scores and note your concern in the Biggest Risk section instead.
 
 ## Data Sources
 Prioritize data from authoritative, verifiable sources. Pull from:
@@ -107,7 +123,7 @@ Always cite the specific source and date for each data point. Prefer recent data
       },
     ],
     max_tokens: 4000,
-    temperature: 0.2,
+    temperature: 0,
   });
 
   // Extract text from first choice

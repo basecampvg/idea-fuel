@@ -126,12 +126,12 @@ const styles = StyleSheet.create({
   },
   tierName: {
     fontSize: 18,
-    fontFamily: fonts.outfit.bold,
+    ...fonts.outfit.bold,
     letterSpacing: -0.3,
   },
   price: {
     fontSize: 16,
-    fontFamily: fonts.mono.medium,
+    ...fonts.mono.medium,
     color: colors.foreground,
   },
   features: {
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: 13,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     color: colors.muted,
     flex: 1,
     lineHeight: 18,
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   },
   webMessageText: {
     fontSize: 13,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     color: colors.muted,
   },
   loadingContainer: {
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     color: colors.muted,
   },
 });

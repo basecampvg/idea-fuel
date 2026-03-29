@@ -32,15 +32,19 @@ interface CardResult {
   verdict: 'proceed' | 'watchlist' | 'drop';
   summary: string;
   problemSeverity: number;
+  problemEvidence?: string;
   marketSignal: 'rising' | 'flat' | 'declining' | 'unknown';
+  marketEvidence?: string;
   tamEstimate: {
     low: string;
     high: string;
     basis: string;
+    assumptions?: string;
   };
   competitors: Array<{
     name: string;
     oneLiner: string;
+    traction?: string;
   }>;
   biggestRisk: string;
   nextExperiment: string;
@@ -216,6 +220,26 @@ export function ValidationCard({ cardResult }: ValidationCardProps) {
           </View>
         </Animated.View>
 
+        {/* Evidence details — fade in at 500ms */}
+        {(cardResult.problemEvidence || cardResult.marketEvidence) && (
+          <Animated.View entering={FadeIn.delay(500).duration(400)}>
+            <View style={styles.evidenceContainer}>
+              {cardResult.problemEvidence && (
+                <View style={styles.evidenceItem}>
+                  <Text style={styles.evidenceLabel}>Problem Evidence</Text>
+                  <Text style={styles.evidenceText}>{cardResult.problemEvidence}</Text>
+                </View>
+              )}
+              {cardResult.marketEvidence && (
+                <View style={styles.evidenceItem}>
+                  <Text style={styles.evidenceLabel}>Market Evidence</Text>
+                  <Text style={styles.evidenceText}>{cardResult.marketEvidence}</Text>
+                </View>
+              )}
+            </View>
+          </Animated.View>
+        )}
+
         {/* TAM Range — fade in at 600ms */}
         <Animated.View entering={FadeIn.delay(600).duration(400)}>
           <View style={styles.section}>
@@ -224,6 +248,9 @@ export function ValidationCard({ cardResult }: ValidationCardProps) {
               {cardResult.tamEstimate.low} — {cardResult.tamEstimate.high}
             </Text>
             <Text style={styles.tamBasis}>{cardResult.tamEstimate.basis}</Text>
+            {cardResult.tamEstimate.assumptions && (
+              <Text style={styles.tamAssumptions}>{cardResult.tamEstimate.assumptions}</Text>
+            )}
           </View>
         </Animated.View>
 
@@ -239,6 +266,9 @@ export function ValidationCard({ cardResult }: ValidationCardProps) {
                 <View key={idx} style={styles.competitorRow}>
                   <Text style={styles.competitorName}>{comp.name}</Text>
                   <Text style={styles.competitorOneLiner}>{comp.oneLiner}</Text>
+                  {comp.traction && (
+                    <Text style={styles.competitorTraction}>{comp.traction}</Text>
+                  )}
                 </View>
               ))}
             </View>
@@ -306,7 +336,7 @@ const styles = StyleSheet.create({
   },
   summaryText: {
     fontSize: 16,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     color: colors.foreground,
     lineHeight: 24,
   },
@@ -324,7 +354,7 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 12,
     color: colors.muted,
-    fontFamily: fonts.outfit.medium,
+    ...fonts.outfit.medium,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -340,7 +370,7 @@ const styles = StyleSheet.create({
   },
   severityLabel: {
     fontSize: 13,
-    fontFamily: fonts.mono.medium,
+    ...fonts.mono.medium,
     marginLeft: 4,
   },
   signalRow: {
@@ -350,7 +380,29 @@ const styles = StyleSheet.create({
   },
   signalText: {
     fontSize: 14,
-    fontFamily: fonts.mono.medium,
+    ...fonts.mono.medium,
+  },
+  evidenceContainer: {
+    gap: 12,
+  },
+  evidenceItem: {
+    backgroundColor: colors.surface,
+    borderRadius: 10,
+    padding: 12,
+    gap: 6,
+  },
+  evidenceLabel: {
+    fontSize: 11,
+    color: colors.muted,
+    ...fonts.outfit.semiBold,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  evidenceText: {
+    fontSize: 13,
+    ...fonts.geist.regular,
+    color: colors.foreground,
+    lineHeight: 19,
   },
   section: {
     gap: 8,
@@ -363,21 +415,32 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     color: colors.muted,
-    fontFamily: fonts.outfit.semiBold,
+    ...fonts.outfit.semiBold,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   tamRange: {
     fontSize: 20,
-    fontFamily: fonts.mono.medium,
+    ...fonts.mono.medium,
     color: colors.foreground,
     letterSpacing: -0.3,
   },
   tamBasis: {
     fontSize: 13,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     color: colors.mutedDim,
     lineHeight: 18,
+  },
+  tamAssumptions: {
+    fontSize: 12,
+    ...fonts.geist.regular,
+    color: colors.muted,
+    lineHeight: 17,
+    marginTop: 4,
+    backgroundColor: colors.surface,
+    borderRadius: 8,
+    padding: 10,
+    overflow: 'hidden',
   },
   competitorRow: {
     backgroundColor: colors.surface,
@@ -387,14 +450,21 @@ const styles = StyleSheet.create({
   },
   competitorName: {
     fontSize: 14,
-    fontFamily: fonts.outfit.semiBold,
+    ...fonts.outfit.semiBold,
     color: colors.foreground,
   },
   competitorOneLiner: {
     fontSize: 13,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     color: colors.muted,
     lineHeight: 18,
+  },
+  competitorTraction: {
+    fontSize: 12,
+    ...fonts.geist.regular,
+    color: colors.accent,
+    lineHeight: 16,
+    marginTop: 2,
   },
   riskBox: {
     backgroundColor: 'rgba(245, 158, 11, 0.08)',
@@ -419,12 +489,12 @@ const styles = StyleSheet.create({
   },
   calloutTitle: {
     fontSize: 13,
-    fontFamily: fonts.outfit.semiBold,
+    ...fonts.outfit.semiBold,
     color: colors.foreground,
   },
   calloutBody: {
     fontSize: 14,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     color: colors.muted,
     lineHeight: 20,
   },
@@ -436,13 +506,13 @@ const styles = StyleSheet.create({
   },
   citationText: {
     fontSize: 12,
-    fontFamily: fonts.mono.regular,
+    ...fonts.geist.regular,
     color: colors.accent,
     flex: 1,
   },
   rawResponseText: {
     fontSize: 14,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     color: colors.foreground,
     lineHeight: 22,
     marginTop: 12,

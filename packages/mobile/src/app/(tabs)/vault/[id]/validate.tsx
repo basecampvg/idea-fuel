@@ -641,7 +641,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontFamily: fonts.outfit.semiBold,
+    ...fonts.outfit.semiBold,
     color: colors.foreground,
   },
   turnIndicator: {
@@ -659,7 +659,7 @@ const styles = StyleSheet.create({
   turnText: {
     fontSize: 12,
     color: colors.muted,
-    fontFamily: fonts.geist.medium,
+    ...fonts.geist.medium,
     marginLeft: 4,
   },
   messageList: {
@@ -685,7 +685,7 @@ const styles = StyleSheet.create({
   },
   messageText: {
     fontSize: 15,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     lineHeight: 22,
   },
   assistantText: {
@@ -755,7 +755,7 @@ const styles = StyleSheet.create({
   suggestionText: {
     flex: 1,
     fontSize: 15,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     color: colors.foreground,
     lineHeight: 22,
   },
@@ -792,7 +792,7 @@ const styles = StyleSheet.create({
   },
   thinkingText: {
     fontSize: 16,
-    fontFamily: fonts.geist.medium,
+    ...fonts.geist.medium,
     color: colors.foreground,
     textAlign: 'center',
   },

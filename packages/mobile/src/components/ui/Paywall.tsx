@@ -158,14 +158,14 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 22,
-    fontFamily: fonts.outfit.bold,
+    ...fonts.outfit.bold,
     color: colors.foreground,
     textAlign: 'center',
     letterSpacing: -0.3,
   },
   subtext: {
     fontSize: 14,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     color: colors.muted,
     textAlign: 'center',
     lineHeight: 20,

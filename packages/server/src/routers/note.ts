@@ -140,7 +140,7 @@ export const noteRouter = router({
     .mutation(async ({ ctx, input }) => {
       const note = await ctx.db.query.notes.findFirst({
         where: and(eq(notes.id, input.id), eq(notes.userId, ctx.userId)),
-        columns: { id: true, content: true },
+        columns: { id: true, content: true, lastRefinedAt: true },
       });
 
       if (!note) {
@@ -148,6 +148,19 @@ export const noteRouter = router({
           code: 'NOT_FOUND',
           message: 'NOTE_NOT_FOUND',
         });
+      }
+
+      // Enforce 60-second cooldown between refinements
+      const REFINE_COOLDOWN_MS = 60_000;
+      if (note.lastRefinedAt) {
+        const elapsed = Date.now() - new Date(note.lastRefinedAt).getTime();
+        if (elapsed < REFINE_COOLDOWN_MS) {
+          const retryAfter = Math.ceil((REFINE_COOLDOWN_MS - elapsed) / 1000);
+          throw new TRPCError({
+            code: 'TOO_MANY_REQUESTS',
+            message: `REFINE_COOLDOWN:${retryAfter}`,
+          });
+        }
       }
 
       if (note.content.length < NOTE_REFINE_MIN_CHARS) {

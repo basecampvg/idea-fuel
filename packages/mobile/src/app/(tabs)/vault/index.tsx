@@ -217,35 +217,32 @@ export default function VaultScreen() {
             </View>
           )}
 
-          {/* Stats bar for validated cards */}
+          {/* Stats pills for validated cards — Grok-style enclosed grid */}
           {hasResult && cardResult && (
-            <View style={styles.statsBar}>
-              <View style={styles.statCell}>
-                <Text style={[styles.statValue, { color: meta.badgeColor }]}>
+            <View style={styles.statsGrid}>
+              <View style={[styles.statPill, { borderColor: meta.accentColor ?? colors.border }]}>
+                <Text style={styles.statPillLabel}>Verdict</Text>
+                <Text style={[styles.statPillValue, { color: meta.badgeColor }]}>
                   {meta.badgeLabel}
                 </Text>
-                <Text style={styles.statLabel}>Verdict</Text>
               </View>
-              <View style={[styles.statCell, styles.statCellBorder]}>
-                <Text style={styles.statValue}>
+              <View style={styles.statPill}>
+                <Text style={styles.statPillLabel}>Problem</Text>
+                <Text style={styles.statPillValue}>
                   {cardResult.problemSeverity ? `${Math.round(cardResult.problemSeverity)}/5` : '-'}
                 </Text>
-                <Text style={styles.statLabel}>Problem</Text>
               </View>
-              <View style={[styles.statCell, styles.statCellBorder]}>
-                <Text style={[
-                  styles.statValue,
-                  { color: getMarketSignalLabel(cardResult.marketSignal).color },
-                ]}>
+              <View style={styles.statPill}>
+                <Text style={styles.statPillLabel}>Market</Text>
+                <Text style={[styles.statPillValue, { color: getMarketSignalLabel(cardResult.marketSignal).color }]}>
                   {getMarketSignalLabel(cardResult.marketSignal).label}
                 </Text>
-                <Text style={styles.statLabel}>Market</Text>
               </View>
-              <View style={[styles.statCell, styles.statCellBorder]}>
-                <Text style={styles.statValue}>
+              <View style={styles.statPill}>
+                <Text style={styles.statPillLabel}>TAM</Text>
+                <Text style={styles.statPillValue}>
                   {cardResult.tamEstimate?.low ?? '-'}
                 </Text>
-                <Text style={styles.statLabel}>TAM</Text>
               </View>
             </View>
           )}
@@ -344,7 +341,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 28,
-    fontFamily: fonts.outfit.bold,
+    ...fonts.outfit.bold,
     color: colors.foreground,
     letterSpacing: -0.5,
   },
@@ -400,13 +397,13 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    fontFamily: fonts.outfit.semiBold,
+    ...fonts.outfit.semiBold,
     color: colors.foreground,
     marginBottom: 4,
   },
   cardDescription: {
     fontSize: 13,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     color: colors.muted,
     lineHeight: 18,
   },
@@ -419,36 +416,39 @@ const styles = StyleSheet.create({
   },
   validatePromptText: {
     fontSize: 12,
-    fontFamily: fonts.mono.regular,
+    ...fonts.geist.medium,
     color: colors.brand,
   },
-  statsBar: {
+  statsGrid: {
     flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 14,
   },
-  statCell: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
+  statPill: {
+    width: '47%',
+    flexGrow: 1,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     alignItems: 'center',
+    gap: 3,
   },
-  statCellBorder: {
-    borderLeftWidth: 1,
-    borderLeftColor: colors.border,
-  },
-  statValue: {
-    fontSize: 14,
-    fontFamily: fonts.mono.medium,
-    color: colors.foreground,
-  },
-  statLabel: {
+  statPillLabel: {
     fontSize: 10,
-    fontFamily: fonts.outfit.medium,
+    ...fonts.outfit.medium,
     color: colors.mutedDim,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginTop: 2,
+  },
+  statPillValue: {
+    fontSize: 15,
+    ...fonts.mono.medium,
+    color: colors.foreground,
   },
   cardFooter: {
     flexDirection: 'row',
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
   },
   cardTime: {
     fontSize: 12,
-    fontFamily: fonts.mono.regular,
+    ...fonts.geist.regular,
     color: colors.mutedDim,
   },
   badge: {
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 10,
-    fontFamily: fonts.mono.medium,
+    ...fonts.outfit.semiBold,
   },
   emptyState: {
     flex: 1,

@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   tagline: {
-    fontFamily: fonts.mono.medium,
+    ...fonts.outfit.semiBold,
     fontSize: 22,
     color: colors.foreground,
     textAlign: 'center',

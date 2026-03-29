@@ -225,7 +225,7 @@ export default function NotebookScreen() {
               activeOpacity={0.85}
               style={[
                 styles.quickValidateButton,
-                title.trim().length < 3 && styles.quickValidateButtonDisabled,
+                initialNotesLoaded && title.trim().length < 3 && styles.quickValidateButtonDisabled,
               ]}
             >
               <Zap size={20} color={colors.white} />
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   },
   titleInput: {
     fontSize: 24,
-    fontFamily: fonts.outfit.bold,
+    ...fonts.outfit.bold,
     color: colors.foreground,
     letterSpacing: -0.3,
     padding: 0,
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    fontFamily: fonts.geist.regular,
+    ...fonts.geist.regular,
     color: colors.mutedDim,
     lineHeight: 20,
     marginTop: 8,
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#E8421A',
+    backgroundColor: colors.brand,
     borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 20,
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   },
   quickValidateText: {
     fontSize: 16,
-    fontFamily: fonts.outfit.semiBold,
+    ...fonts.outfit.semiBold,
     color: colors.white,
   },
   divider: {
