@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { RefreshCw, ExternalLink, Crown } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { trpc } from '../../../lib/trpc';
@@ -36,7 +37,7 @@ const PURCHASABLE_TIERS: { key: SubscriptionTier; name: string; rcProductSuffix:
   { key: 'MOBILE', name: 'Mobile', rcProductSuffix: 'ideafuel_mobile_monthly' },
   { key: 'PRO', name: 'Pro', rcProductSuffix: 'ideafuel_pro_monthly' },
   { key: 'ENTERPRISE', name: 'Enterprise', rcProductSuffix: 'ideafuel_enterprise_monthly' },
-  { key: 'SCALE', name: 'Scale', rcProductSuffix: 'ideafuel_scale_monthly' },
+  { key: 'SCALE', name: 'Scale', rcProductSuffix: 'ideafuel_agency_monthly' },
 ];
 
 const TIER_BADGE_VARIANT: Record<string, 'default' | 'success' | 'primary' | 'accent' | 'info' | 'warning'> = {
@@ -220,23 +221,30 @@ export default function PlansScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Current Plan Header */}
-        <View style={styles.currentPlanCard}>
-          <View style={styles.currentPlanRow}>
-            <Crown size={20} color={colors.brand} />
-            <Text style={styles.currentPlanLabel}>Current Plan</Text>
+        <LinearGradient
+          colors={[colors.glassBorderStart, colors.glassBorderEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.currentPlanGradient}
+        >
+          <View style={styles.currentPlanCard}>
+            <View style={styles.currentPlanRow}>
+              <Crown size={20} color={colors.brand} />
+              <Text style={styles.currentPlanLabel}>Current Plan</Text>
+            </View>
+            <View style={styles.currentPlanDetails}>
+              <Text style={styles.currentPlanTier}>{tierLabel}</Text>
+              <Badge variant={TIER_BADGE_VARIANT[currentTier] || 'default'}>
+                {isStripeSubscriber ? 'Web' : 'Active'}
+              </Badge>
+            </View>
+            {periodEndLabel && (
+              <Text style={styles.periodEnd}>
+                {isStripeSubscriber ? 'Managed on web' : `Renews ${periodEndLabel}`}
+              </Text>
+            )}
           </View>
-          <View style={styles.currentPlanDetails}>
-            <Text style={styles.currentPlanTier}>{tierLabel}</Text>
-            <Badge variant={TIER_BADGE_VARIANT[currentTier] || 'default'}>
-              {isStripeSubscriber ? 'Web' : 'Active'}
-            </Badge>
-          </View>
-          {periodEndLabel && (
-            <Text style={styles.periodEnd}>
-              {isStripeSubscriber ? 'Managed on web' : `Renews ${periodEndLabel}`}
-            </Text>
-          )}
-        </View>
+        </LinearGradient>
 
         {/* Plan Cards */}
         <View style={styles.plansSection}>
@@ -332,15 +340,18 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     gap: 20,
   },
+  currentPlanGradient: {
+    borderRadius: 16,
+    padding: 1,
+    marginTop: 8,
+  },
   // Current plan header card
   currentPlanCard: {
     backgroundColor: colors.card,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: 15,
     padding: 16,
     gap: 8,
-    marginTop: 8,
+    overflow: 'hidden',
   },
   currentPlanRow: {
     flexDirection: 'row',

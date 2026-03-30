@@ -77,9 +77,9 @@ export const editorDarkThemeCSS = `
 
   /* Links */
   a {
-    color: #14B8A6;
+    color: #0393F8;
     text-decoration: underline;
-    text-decoration-color: rgba(20, 184, 166, 0.4);
+    text-decoration-color: rgba(3, 147, 248, 0.4);
     text-underline-offset: 2px;
   }
 

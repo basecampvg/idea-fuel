@@ -8,6 +8,7 @@ import {
   Platform,
   UIManager,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronDown, ChevronUp } from 'lucide-react-native';
 
 // Enable LayoutAnimation on Android
@@ -48,42 +49,51 @@ export function CollapsibleSection({
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.header}
-        onPress={toggleCollapse}
-        activeOpacity={0.7}
-      >
-        <View style={styles.headerLeft}>
-          <View style={[styles.iconContainer, { backgroundColor: iconBgColor }]}>
-            {icon}
+    <LinearGradient
+      colors={[colors.glassBorderStart, colors.glassBorderEnd]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradientBorder}
+    >
+      <View style={styles.container}>
+        <TouchableOpacity
+          style={styles.header}
+          onPress={toggleCollapse}
+          activeOpacity={0.7}
+        >
+          <View style={styles.headerLeft}>
+            <View style={[styles.iconContainer, { backgroundColor: iconBgColor }]}>
+              {icon}
+            </View>
+            <View style={styles.headerText}>
+              <Text style={styles.title}>{title}</Text>
+              {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+            </View>
           </View>
-          <View style={styles.headerText}>
-            <Text style={styles.title}>{title}</Text>
-            {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+          <View style={styles.chevronContainer}>
+            {isCollapsed ? (
+              <ChevronDown size={20} color={colors.muted} />
+            ) : (
+              <ChevronUp size={20} color={colors.muted} />
+            )}
           </View>
-        </View>
-        <View style={styles.chevronContainer}>
-          {isCollapsed ? (
-            <ChevronDown size={20} color={colors.muted} />
-          ) : (
-            <ChevronUp size={20} color={colors.muted} />
-          )}
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
 
-      {!isCollapsed && <View style={styles.content}>{children}</View>}
-    </View>
+        {!isCollapsed && <View style={styles.content}>{children}</View>}
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradientBorder: {
+    borderRadius: 16,
+    padding: 1,
+    marginBottom: 12,
+  },
   container: {
     backgroundColor: colors.card,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: 12,
+    borderRadius: 15,
     overflow: 'hidden',
   },
   header: {

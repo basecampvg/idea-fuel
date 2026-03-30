@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { trpc } from '../lib/trpc';
+import { colors as themeColors } from '../lib/theme';
 
 const colors = {
   card: '#111111',
@@ -37,22 +39,29 @@ export function RecentDrafts() {
     <View style={styles.container}>
       <Text style={styles.header}>Recent</Text>
       {items.map((project) => (
-        <TouchableOpacity
+        <LinearGradient
           key={project.id}
-          style={styles.card}
-          onPress={() => router.push(`/(tabs)/vault/${project.id}` as any)}
-          activeOpacity={0.7}
+          colors={[themeColors.glassBorderStart, themeColors.glassBorderEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradientBorder}
         >
-          <View style={styles.cardContent}>
-            <Text style={styles.title} numberOfLines={1}>
-              {project.title}
-            </Text>
-            <Text style={styles.time}>
-              {formatRelativeTime(new Date(project.updatedAt))}
-            </Text>
-          </View>
-          <ChevronRight size={16} color={colors.mutedDim} />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => router.push(`/(tabs)/vault/${project.id}` as any)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.cardContent}>
+              <Text style={styles.title} numberOfLines={1}>
+                {project.title}
+              </Text>
+              <Text style={styles.time}>
+                {formatRelativeTime(new Date(project.updatedAt))}
+              </Text>
+            </View>
+            <ChevronRight size={16} color={colors.mutedDim} />
+          </TouchableOpacity>
+        </LinearGradient>
       ))}
     </View>
   );
@@ -71,16 +80,18 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  gradientBorder: {
+    borderRadius: 12,
+    padding: 1,
+    marginBottom: 8,
+  },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: 11,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    marginBottom: 8,
   },
   cardContent: {
     flex: 1,

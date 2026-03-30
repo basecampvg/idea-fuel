@@ -8,7 +8,7 @@ const localColors = {
   statusDraft: '#A1A1AA',
   statusInterview: '#FBBF24',
   statusResearch: '#60A5FA',
-  statusComplete: '#34D399',
+  statusComplete: '#0393F8',
 };
 
 type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' | 'accent';
@@ -29,7 +29,7 @@ const variantStyles: Record<BadgeVariant, VariantStyle> = {
     text: { color: colors.muted },
   },
   success: {
-    container: { backgroundColor: 'rgba(34, 197, 94, 0.2)' },
+    container: { backgroundColor: 'rgba(3, 147, 248, 0.2)' },
     text: { color: colors.success },
   },
   warning: {
@@ -49,7 +49,7 @@ const variantStyles: Record<BadgeVariant, VariantStyle> = {
     text: { color: colors.brand },
   },
   accent: {
-    container: { backgroundColor: 'rgba(20, 184, 166, 0.2)' },
+    container: { backgroundColor: 'rgba(3, 147, 248, 0.2)' },
     text: { color: colors.accent },
   },
 };

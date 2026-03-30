@@ -22,6 +22,7 @@
       "infoPlist": {
         "NSSpeechRecognitionUsageDescription": "Idea Fuel needs speech recognition to transcribe your spoken ideas.",
         "NSMicrophoneUsageDescription": "Idea Fuel needs your microphone to capture ideas by voice.",
+        "NSCameraUsageDescription": "Idea Fuel needs your camera to capture photos for your ideas.",
         "NSPhotoLibraryUsageDescription": "Idea Fuel needs access to your photo library to let you add images to your ideas."
       }
     },
@@ -50,6 +51,13 @@
         {
           "microphonePermission": "Idea Fuel needs your microphone to capture ideas by voice.",
           "speechRecognitionPermission": "Idea Fuel needs speech recognition to transcribe your spoken ideas."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Idea Fuel needs your camera to capture photos for your ideas.",
+          "photosPermission": "Idea Fuel needs access to your photo library to add images to your ideas."
         }
       ],
       "./plugins/patch-turbomodule",

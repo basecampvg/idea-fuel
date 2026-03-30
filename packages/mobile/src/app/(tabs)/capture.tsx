@@ -37,6 +37,7 @@ import { OrbAnimation, type OrbState } from '../../components/OrbAnimation';
 import { colors, fonts } from '../../lib/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WelcomeSheet } from '../../components/ui/WelcomeSheet';
+import { useAIConsentGate } from '../../hooks/useAIConsentGate';
 
 // Defer loading expo-speech-recognition until after the initial Fabric mount
 // transaction completes. Loading it eagerly at module level triggers TurboModule
@@ -101,6 +102,9 @@ export default function CaptureScreen() {
     setShowWelcome(false);
     AsyncStorage.setItem('ideafuel_has_seen_welcome', 'true');
   }, []);
+
+  // AI consent gate
+  const { checkConsent, ConsentGate } = useAIConsentGate();
 
   // Orb state: idle → listening (mic on, waiting) → talking (speech detected)
   const orbState: OrbState = isListening ? (isSpeaking ? 'talking' : 'listening') : null;
@@ -317,6 +321,10 @@ export default function CaptureScreen() {
     const { title, description } = extractTitleAndDescription(trimmed);
     if (!title) return;
 
+    // Gate: require AI consent before submitting
+    const granted = await checkConsent();
+    if (!granted) return;
+
     if (isListening) {
       SpeechModule?.stop();
       setIsListening(false);
@@ -380,7 +388,7 @@ export default function CaptureScreen() {
       triggerHaptic('error');
       showToast({ message: 'Failed to upload images', type: 'error' });
     }
-  }, [ideaText, isSubmitting, isListening, createProject, attachments, aiConsent, getUploadUrl, showToast]);
+  }, [ideaText, isSubmitting, isListening, createProject, attachments, aiConsent, getUploadUrl, showToast, checkConsent]);
 
   const { title } = extractTitleAndDescription(ideaText.trim());
   const canCapture = title.length > 0 && !isSubmitting;
@@ -535,6 +543,7 @@ export default function CaptureScreen() {
         anchorY={popoverAnchorY}
       />
       {showWelcome && <WelcomeSheet onDismiss={handleDismissWelcome} />}
+      {ConsentGate}
     </View>
   );
 }

@@ -32,6 +32,7 @@ import { Paywall } from '../../../../components/ui/Paywall';
 import { useToast } from '../../../../contexts/ToastContext';
 import { trpc } from '../../../../lib/trpc';
 import { colors, fonts } from '../../../../lib/theme';
+import { useAIConsentGate } from '../../../../hooks/useAIConsentGate';
 
 interface ChatMessage {
   role: 'assistant' | 'user';
@@ -169,7 +170,8 @@ function PulsingCore() {
 }
 
 export default function ValidateScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, refine } = useLocalSearchParams<{ id: string; refine?: string }>();
+  const isRefineMode = refine === '1';
   const router = useRouter();
   const { showToast } = useToast();
 
@@ -190,29 +192,44 @@ export default function ValidateScreen() {
   const inputRef = useRef<TextInput>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // AI consent gate
+  const { checkConsent, ConsentGate } = useAIConsentGate();
+
   // tRPC mutations
   const chatMutation = trpc.sparkCard.chat.useMutation();
   const validateMutation = trpc.sparkCard.validate.useMutation();
   const utils = trpc.useUtils();
 
-  // Start chat on mount — get first question
+  // Start chat on mount — get first question (or show refine prompt)
   useEffect(() => {
-    chatMutation.mutate(
-      { projectId: id!, turn: 0, message: '' },
-      {
-        onSuccess: (data) => {
-          if (data.question) {
-            setMessages([{ role: 'assistant', content: data.question }]);
-            setCurrentTurn(1);
-            setSuggestions(data.suggestions ?? []);
-          }
+    if (isRefineMode) {
+      setMessages([
+        { role: 'assistant', content: 'Please tell me how you would like to refine your idea.' },
+      ]);
+      setCurrentTurn(1);
+      return;
+    }
+
+    // Gate: require AI consent before starting chat
+    checkConsent().then((granted) => {
+      if (!granted) return;
+      chatMutation.mutate(
+        { projectId: id!, turn: 0, message: '' },
+        {
+          onSuccess: (data) => {
+            if (data.question) {
+              setMessages([{ role: 'assistant', content: data.question }]);
+              setCurrentTurn(1);
+              setSuggestions(data.suggestions ?? []);
+            }
+          },
+          onError: () => {
+            triggerHaptic('error');
+            showToast({ message: 'Failed to start validation', type: 'error' });
+          },
         },
-        onError: () => {
-          triggerHaptic('error');
-          showToast({ message: 'Failed to start validation', type: 'error' });
-        },
-      },
-    );
+      );
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -244,6 +261,13 @@ export default function ValidateScreen() {
     setUserInput('');
     setIsSending(true);
 
+    // In refine mode, skip the chat endpoint and go straight to validation
+    if (isRefineMode) {
+      setIsSending(false);
+      startValidation(updatedMessages);
+      return;
+    }
+
     chatMutation.mutate(
       { projectId: id!, turn: currentTurn, message: trimmed },
       {
@@ -270,7 +294,7 @@ export default function ValidateScreen() {
         },
       },
     );
-  }, [userInput, isSending, messages, id, currentTurn, chatMutation, showToast]);
+  }, [userInput, isSending, messages, id, currentTurn, chatMutation, showToast, isRefineMode]);
 
   const startValidation = useCallback(
     (chatMessages: ChatMessage[]) => {
@@ -292,11 +316,17 @@ export default function ValidateScreen() {
       validateMutation.mutate(
         { projectId: id!, chatMessages: formattedMessages },
         {
-          onSuccess: () => {
+          onSuccess: (data) => {
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
             triggerHaptic('success');
-            // Invalidate project cache so card screen + vault list get fresh data
-            utils.project.get.invalidate({ id: id! });
+            // Directly update the cached project with the new cardResult so the
+            // card screen renders it immediately (invalidate alone only schedules
+            // a background refetch for *active* queries, and the card screen
+            // isn't mounted yet at this point).
+            utils.project.get.setData({ id: id! }, (old) => {
+              if (!old) return old;
+              return { ...old, cardResult: data.cardResult };
+            });
             utils.project.list.invalidate();
             // Navigate to card screen
             router.replace(`/(tabs)/vault/${id}/card` as any);
@@ -308,6 +338,7 @@ export default function ValidateScreen() {
             const errorMsg = error.message;
 
             if (errorMsg === 'CARD_LIMIT_REACHED') {
+              setPhase('chat');
               setShowPaywall(true);
               return;
             }
@@ -493,19 +524,23 @@ export default function ValidateScreen() {
           >
             <ChevronLeft size={24} color={colors.foreground} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Quick Validate</Text>
+          <Text style={styles.headerTitle}>
+            {isRefineMode ? 'Refine Idea' : 'Quick Validate'}
+          </Text>
           <View style={{ width: 24 }} />
         </View>
 
-        {/* Turn indicator with animated dots */}
-        <View style={styles.turnIndicator}>
-          {[0, 1, 2].map((i) => (
-            <AnimatedTurnDot key={i} active={currentTurn > i} />
-          ))}
-          <Text style={styles.turnText}>
-            {Math.min(currentTurn, 3)} of 3 questions
-          </Text>
-        </View>
+        {/* Turn indicator with animated dots (hidden in refine mode) */}
+        {!isRefineMode && (
+          <View style={styles.turnIndicator}>
+            {[0, 1, 2].map((i) => (
+              <AnimatedTurnDot key={i} active={currentTurn > i} />
+            ))}
+            <Text style={styles.turnText}>
+              {Math.min(currentTurn, 3)} of 3 questions
+            </Text>
+          </View>
+        )}
 
         {/* Messages */}
         <FlatList
@@ -589,7 +624,7 @@ export default function ValidateScreen() {
             style={styles.textInput}
             value={userInput}
             onChangeText={setUserInput}
-            placeholder="Type your answer..."
+            placeholder={isRefineMode ? "Describe how you'd like to refine..." : "Type your answer..."}
             placeholderTextColor={colors.mutedDim}
             multiline
             maxLength={500}
@@ -620,6 +655,7 @@ export default function ValidateScreen() {
       >
         <Paywall compact />
       </BottomSheet>
+      {ConsentGate}
     </View>
   );
 }

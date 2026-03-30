@@ -1,0 +1,26 @@
+diff --git a/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm b/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
+index 2a677974ca8a929849109f294bddcb239bb202d0..2e757e104f96b8a7862079e8b203a77313c94a91 100644
+--- a/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
++++ b/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
+@@ -435,7 +435,20 @@ TraceSection s(
+     @try {
+       [inv invokeWithTarget:strongModule];
+     } @catch (NSException *exception) {
+-      throw convertNSExceptionToJSError(runtime, exception, std::string{moduleName}, methodNameStr);
++      if (shouldVoidMethodsExecuteSync_) {
++        throw convertNSExceptionToJSError(runtime, exception, std::string{moduleName}, methodNameStr);
++      } else {
++        // On async dispatch queues, rethrowing a C++ exception has no handler
++        // and triggers std::terminate -> abort(). Log instead.
++        // See: https://github.com/facebook/react-native/issues/54859
++        NSString *message = [NSString stringWithFormat:
++          @"Exception '%@' in void TurboModule method %s.%s: %@",
++          exception.name,
++          moduleName,
++          methodNameStr.c_str(),
++          exception.reason ?: @"(no reason)"];
++        RCTLogError(@"%@", message);
++      }
+     } @finally {
+       [retainedObjectsForInvocation removeAllObjects];
+     }

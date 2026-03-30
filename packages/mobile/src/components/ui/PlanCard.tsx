@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Check, Globe } from 'lucide-react-native';
 import { Button } from './Button';
 import { Badge } from './Badge';
@@ -43,75 +44,90 @@ export function PlanCard({
   const accentColor = TIER_COLORS[tierKey] || colors.brand;
   const isDisabled = state === 'current' || state === 'web-active' || state === 'lower-tier' || state === 'loading';
 
+  // Current plan gets an accent-tinted glass gradient; others get the standard glass
+  const gradientColors: [string, string] = state === 'current'
+    ? [`${accentColor}40`, `${accentColor}10`]
+    : [colors.glassBorderStart, colors.glassBorderEnd];
+
   return (
-    <Animated.View
-      entering={FadeIn.delay(index * 80).duration(300)}
-      style={[styles.card, { borderColor: state === 'current' ? accentColor : colors.border }]}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={[styles.tierName, { color: accentColor }]}>{tierName}</Text>
-          {state === 'current' && (
-            <Badge variant="success">Current Plan</Badge>
-          )}
-          {state === 'web-active' && (
-            <Badge variant="info">Active via Web</Badge>
-          )}
+    <Animated.View entering={FadeIn.delay(index * 80).duration(300)}>
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientBorder}
+      >
+        <View style={styles.card}>
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <Text style={[styles.tierName, { color: accentColor }]}>{tierName}</Text>
+              {state === 'current' && (
+                <Badge variant="success">Current Plan</Badge>
+              )}
+              {state === 'web-active' && (
+                <Badge variant="info">Active via Web</Badge>
+              )}
+            </View>
+            <Text style={styles.price}>{price}</Text>
+          </View>
+
+          {/* Features */}
+          <View style={styles.features}>
+            {features.map((feature, i) => (
+              <View key={i} style={styles.featureRow}>
+                <Check size={14} color={accentColor} style={styles.checkIcon} />
+                <Text style={styles.featureText}>{feature}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Action */}
+          <View style={styles.footer}>
+            {state === 'web-active' ? (
+              <View style={styles.webMessage}>
+                <Globe size={14} color={colors.muted} />
+                <Text style={styles.webMessageText}>Manage on ideafuel.ai</Text>
+              </View>
+            ) : state === 'loading' ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color={accentColor} />
+                <Text style={styles.loadingText}>Processing...</Text>
+              </View>
+            ) : (
+              <Button
+                variant={state === 'available' ? 'primary' : 'outline'}
+                size="md"
+                disabled={isDisabled}
+                onPress={onSubscribe}
+                style={styles.subscribeButton}
+                haptic={state === 'available' ? 'medium' : 'none'}
+              >
+                {state === 'current'
+                  ? 'Current Plan'
+                  : state === 'lower-tier'
+                    ? 'Included'
+                    : `Subscribe to ${tierName}`}
+              </Button>
+            )}
+          </View>
         </View>
-        <Text style={styles.price}>{price}</Text>
-      </View>
-
-      {/* Features */}
-      <View style={styles.features}>
-        {features.map((feature, i) => (
-          <View key={i} style={styles.featureRow}>
-            <Check size={14} color={accentColor} style={styles.checkIcon} />
-            <Text style={styles.featureText}>{feature}</Text>
-          </View>
-        ))}
-      </View>
-
-      {/* Action */}
-      <View style={styles.footer}>
-        {state === 'web-active' ? (
-          <View style={styles.webMessage}>
-            <Globe size={14} color={colors.muted} />
-            <Text style={styles.webMessageText}>Manage on ideafuel.ai</Text>
-          </View>
-        ) : state === 'loading' ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color={accentColor} />
-            <Text style={styles.loadingText}>Processing...</Text>
-          </View>
-        ) : (
-          <Button
-            variant={state === 'available' ? 'primary' : 'outline'}
-            size="md"
-            disabled={isDisabled}
-            onPress={onSubscribe}
-            style={styles.subscribeButton}
-            haptic={state === 'available' ? 'medium' : 'none'}
-          >
-            {state === 'current'
-              ? 'Current Plan'
-              : state === 'lower-tier'
-                ? 'Included'
-                : `Subscribe to ${tierName}`}
-          </Button>
-        )}
-      </View>
+      </LinearGradient>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  gradientBorder: {
+    borderRadius: 16,
+    padding: 1,
+  },
   card: {
     backgroundColor: colors.card,
-    borderRadius: 16,
-    borderWidth: 1,
+    borderRadius: 15,
     padding: 16,
     gap: 14,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',

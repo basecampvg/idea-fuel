@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, ViewProps, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../../lib/theme';
 
 interface CardProps extends ViewProps {
@@ -17,21 +18,21 @@ export function Card({ children, variant = 'default', style, ...props }: CardPro
       shadowRadius: 8,
       elevation: 4,
     },
-    interactive: {
-      // Press states handled by TouchableOpacity wrapper
-    },
+    interactive: {},
   };
 
   return (
-    <View
-      style={[
-        styles.card,
-        variantStyles[variant],
-        style,
-      ]}
-      {...props}
-    >
-      {children}
+    <View style={[variantStyles[variant], style]} {...props}>
+      <LinearGradient
+        colors={[colors.glassBorderStart, colors.glassBorderEnd]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientBorder}
+      >
+        <View style={styles.cardInner}>
+          {children}
+        </View>
+      </LinearGradient>
     </View>
   );
 }
@@ -99,11 +100,13 @@ export function CardFooter({ children, style, ...props }: CardFooterProps) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.card,
+  gradientBorder: {
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.border,
+    padding: 1,
+  },
+  cardInner: {
+    backgroundColor: colors.card,
+    borderRadius: 19,
     overflow: 'hidden',
   },
   cardHeader: {

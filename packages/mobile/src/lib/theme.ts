@@ -28,13 +28,17 @@ export const colors = {
   brandGlow: 'rgba(227, 43, 26, 0.4)',
 
   // ── Accent (used sparingly) ──
-  accent: '#14B8A6',
+  accent: '#0393F8',
 
   // ── Status ──
-  success: '#22C55E',
+  success: '#0393F8',
   warning: '#F59E0B',
   destructive: '#EF4444',
   destructiveMuted: 'rgba(239, 68, 68, 0.1)',
+
+  // ── Glass borders (subtle gradient strokes) ──
+  glassBorderStart: 'rgba(255, 255, 255, 0.08)',
+  glassBorderEnd: 'rgba(255, 255, 255, 0.02)',
 
   // ── Misc ──
   white: '#FFFFFF',

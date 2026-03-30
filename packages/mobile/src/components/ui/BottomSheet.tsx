@@ -10,6 +10,7 @@ import {
   Dimensions,
   Keyboard,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { X } from 'lucide-react-native';
 
 import { colors } from '../../lib/theme';
@@ -150,29 +151,33 @@ export function BottomSheet({
             },
           ]}
         >
-          {/* Handle Bar */}
-          <View style={styles.handleContainer}>
-            <View style={styles.handle} />
-          </View>
+          <BlurView intensity={40} tint="dark" style={styles.blurFill}>
+            <View style={styles.darkOverlay}>
+              {/* Handle Bar */}
+              <View style={styles.handleContainer}>
+                <View style={styles.handle} />
+              </View>
 
-          {/* Header */}
-          {(title || showCloseButton) && (
-            <View style={styles.header}>
-              {title && <Text style={styles.title}>{title}</Text>}
-              {showCloseButton && (
-                <TouchableOpacity
-                  onPress={handleBackdropPress}
-                  style={styles.closeButton}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                  <X size={20} color={colors.muted} />
-                </TouchableOpacity>
+              {/* Header */}
+              {(title || showCloseButton) && (
+                <View style={styles.header}>
+                  {title && <Text style={styles.title}>{title}</Text>}
+                  {showCloseButton && (
+                    <TouchableOpacity
+                      onPress={handleBackdropPress}
+                      style={styles.closeButton}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <X size={20} color={colors.muted} />
+                    </TouchableOpacity>
+                  )}
+                </View>
               )}
-            </View>
-          )}
 
-          {/* Content */}
-          <View style={styles.content}>{children}</View>
+              {/* Content */}
+              <View style={styles.content}>{children}</View>
+            </View>
+          </BlurView>
         </Animated.View>
       </View>
     </Modal>
@@ -192,14 +197,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   sheet: {
-    backgroundColor: colors.card,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    overflow: 'hidden',
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
     borderColor: colors.border,
     maxHeight: SCREEN_HEIGHT * 0.85,
+  },
+  blurFill: {
+    flex: 1,
+  },
+  darkOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(10, 10, 10, 0.7)',
   },
   handleContainer: {
     alignItems: 'center',

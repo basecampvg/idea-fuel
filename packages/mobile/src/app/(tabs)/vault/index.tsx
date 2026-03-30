@@ -23,10 +23,14 @@ import {
   TrendingDown,
   Minus,
   HelpCircle,
+  SlidersHorizontal,
+  Trash2,
   Zap,
 } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { triggerHaptic } from '../../../components/ui/Button';
+import { BottomSheet } from '../../../components/ui/BottomSheet';
 import { trpc } from '../../../lib/trpc';
 import { colors, fonts } from '../../../lib/theme';
 
@@ -64,10 +68,10 @@ function getCardMeta(item: any) {
       verdict,
       icon: CircleCheck,
       iconColor: colors.success,
-      iconBg: 'rgba(34, 197, 94, 0.15)',
+      iconBg: 'rgba(3, 147, 248, 0.15)',
       badgeLabel: 'Proceed',
       badgeColor: colors.success,
-      badgeBg: 'rgba(34, 197, 94, 0.15)',
+      badgeBg: 'rgba(3, 147, 248, 0.15)',
       accentColor: colors.success,
       problemSeverity: cardResult.problemSeverity,
       marketSignal: cardResult.marketSignal,
@@ -117,6 +121,11 @@ function getMarketSignalLabel(signal: string) {
 export default function VaultScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<'all' | 'validated' | 'draft'>('all');
+  const [filterVerdict, setFilterVerdict] = useState<'all' | 'proceed' | 'watchlist' | 'drop'>('all');
+
+  const hasActiveFilters = filterStatus !== 'all' || filterVerdict !== 'all';
 
   const { data, isLoading, refetch } = trpc.project.list.useQuery({});
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
@@ -151,14 +160,31 @@ export default function VaultScreen() {
   });
 
   const items = useMemo(() => {
-    const projects = data?.items ?? [];
-    if (!searchQuery.trim()) return projects;
-    const query = searchQuery.toLowerCase();
-    return projects.filter((p) =>
-      p.title.toLowerCase().includes(query) ||
-      p.description?.toLowerCase().includes(query)
-    );
-  }, [data?.items, searchQuery]);
+    let projects = data?.items ?? [];
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      projects = projects.filter((p) =>
+        p.title.toLowerCase().includes(query) ||
+        p.description?.toLowerCase().includes(query)
+      );
+    }
+
+    // Status filter
+    if (filterStatus === 'validated') {
+      projects = projects.filter((p) => !!(p as any).cardResult);
+    } else if (filterStatus === 'draft') {
+      projects = projects.filter((p) => !(p as any).cardResult);
+    }
+
+    // Verdict filter
+    if (filterVerdict !== 'all') {
+      projects = projects.filter((p) => (p as any).cardResult?.verdict === filterVerdict);
+    }
+
+    return projects;
+  }, [data?.items, searchQuery, filterStatus, filterVerdict]);
 
   const handleDelete = useCallback((projectId: string, title: string) => {
     Alert.alert(
@@ -185,20 +211,40 @@ export default function VaultScreen() {
       <Animated.View
         entering={FadeInUp.delay(index * 80).springify()}
       >
-        <TouchableOpacity
-          style={[
-            styles.card,
-            hasResult && meta.accentColor && { borderLeftWidth: 3, borderLeftColor: meta.accentColor },
-          ]}
-          onPress={() => router.push(`/(tabs)/vault/${item.id}` as any)}
-          onLongPress={() => {
-            triggerHaptic('light');
-            handleDelete(item.id, item.title);
-          }}
-          activeOpacity={0.7}
-          delayLongPress={400}
+        <LinearGradient
+          colors={[colors.glassBorderStart, colors.glassBorderEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradientBorder}
         >
-          {/* Top section: icon + text */}
+          <TouchableOpacity
+            style={[
+              styles.card,
+              hasResult && meta.accentColor && { borderLeftWidth: 3, borderLeftColor: meta.accentColor },
+            ]}
+            onPress={() => router.push(
+              hasResult
+                ? `/(tabs)/vault/${item.id}/card` as any
+                : `/(tabs)/vault/${item.id}` as any
+            )}
+            onLongPress={() => {
+              triggerHaptic('light');
+              handleDelete(item.id, item.title);
+            }}
+            activeOpacity={0.7}
+            delayLongPress={400}
+          >
+          {/* Subtle radial glow based on verdict */}
+          {hasResult && meta.accentColor && (
+            <LinearGradient
+              colors={[`${meta.accentColor}18`, `${meta.accentColor}08`, 'transparent']}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 0.7, y: 0.5 }}
+              style={StyleSheet.absoluteFill}
+            />
+          )}
+
+          {/* Top section: icon + text + delete */}
           <View style={styles.cardTop}>
             <View style={[styles.cardIcon, { backgroundColor: meta.iconBg }]}>
               <IconComponent size={20} color={meta.iconColor} />
@@ -213,6 +259,13 @@ export default function VaultScreen() {
                 </Text>
               ) : null}
             </View>
+            <TouchableOpacity
+              onPress={() => handleDelete(item.id, item.title)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={styles.deleteButton}
+            >
+              <Trash2 size={16} color={colors.mutedDim} />
+            </TouchableOpacity>
           </View>
 
           {/* Validation status prompt */}
@@ -231,9 +284,9 @@ export default function VaultScreen() {
           {/* Stats pills for validated cards — Grok-style enclosed grid */}
           {hasResult && cardResult && (
             <View style={styles.statsGrid}>
-              <View style={[styles.statPill, { borderColor: meta.accentColor ?? colors.border }]}>
+              <View style={styles.statPill}>
                 <Text style={styles.statPillLabel}>Verdict</Text>
-                <Text style={[styles.statPillValue, { color: meta.badgeColor }]}>
+                <Text style={styles.statPillValue}>
                   {meta.badgeLabel}
                 </Text>
               </View>
@@ -245,7 +298,7 @@ export default function VaultScreen() {
               </View>
               <View style={styles.statPill}>
                 <Text style={styles.statPillLabel}>Market</Text>
-                <Text style={[styles.statPillValue, { color: getMarketSignalLabel(cardResult.marketSignal).color }]}>
+                <Text style={styles.statPillValue}>
                   {getMarketSignalLabel(cardResult.marketSignal).label}
                 </Text>
               </View>
@@ -260,16 +313,32 @@ export default function VaultScreen() {
 
           {/* Footer */}
           <View style={styles.cardFooter}>
-            <Text style={styles.cardTime}>
-              {formatRelativeTime(new Date(item.updatedAt))}
-            </Text>
-            <View style={[styles.badge, { backgroundColor: meta.badgeBg }]}>
-              <Text style={[styles.badgeText, { color: meta.badgeColor }]}>
-                {meta.badgeLabel}
+            <View style={styles.footerLeft}>
+              <Text style={styles.cardTime}>
+                {formatRelativeTime(new Date(item.updatedAt))}
               </Text>
+              <View style={[styles.badge, { backgroundColor: meta.badgeBg }]}>
+                <Text style={[styles.badgeText, { color: meta.badgeColor }]}>
+                  {meta.badgeLabel}
+                </Text>
+              </View>
             </View>
+            <TouchableOpacity
+              style={[styles.actionButton, hasResult ? styles.actionButtonMuted : styles.actionButtonBrand]}
+              onPress={() => router.push(
+                hasResult
+                  ? `/(tabs)/vault/${item.id}/card` as any
+                  : `/(tabs)/vault/${item.id}/validate` as any
+              )}
+            >
+              <Text style={[styles.actionButtonText, hasResult ? styles.actionButtonTextMuted : styles.actionButtonTextBrand]}>
+                {hasResult ? 'View Report' : 'Validate Idea'}
+              </Text>
+              <ChevronRight size={12} color={hasResult ? colors.muted : colors.brand} />
+            </TouchableOpacity>
           </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </LinearGradient>
       </Animated.View>
     );
   }, [router, handleDelete]);
@@ -305,18 +374,32 @@ export default function VaultScreen() {
         <Text style={styles.headerTitle}>Vault</Text>
       </View>
 
-      {/* Search */}
-      <View style={styles.searchContainer}>
-        <Search size={18} color={colors.mutedDim} />
-        <TextInput
-          style={styles.searchInput}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Search ideas..."
-          placeholderTextColor={colors.mutedDim}
-          returnKeyType="search"
-          clearButtonMode="while-editing"
-        />
+      {/* Search + Filter */}
+      <View style={styles.searchRow}>
+        <View style={styles.searchContainer}>
+          <LinearGradient
+            colors={['transparent', colors.brand, 'transparent']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={styles.searchTopGlow}
+          />
+          <Search size={18} color={colors.mutedDim} />
+          <TextInput
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search ideas..."
+            placeholderTextColor={colors.mutedDim}
+            returnKeyType="search"
+            clearButtonMode="while-editing"
+          />
+        </View>
+        <TouchableOpacity
+          style={[styles.filterButton, hasActiveFilters && styles.filterButtonActive]}
+          onPress={() => setShowFilters(true)}
+        >
+          <SlidersHorizontal size={18} color={hasActiveFilters ? colors.brand : colors.mutedDim} />
+        </TouchableOpacity>
       </View>
 
       {/* List */}
@@ -336,6 +419,61 @@ export default function VaultScreen() {
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
       />
+
+      {/* Filter Overlay */}
+      <BottomSheet
+        visible={showFilters}
+        onClose={() => setShowFilters(false)}
+        title="Filter"
+      >
+        {/* Status Section */}
+        <Text style={styles.filterSectionLabel}>Status</Text>
+        <View style={styles.filterChipRow}>
+          {(['all', 'validated', 'draft'] as const).map((val) => (
+            <TouchableOpacity
+              key={val}
+              style={[styles.filterChip, filterStatus === val && styles.filterChipActive]}
+              onPress={() => { triggerHaptic('light'); setFilterStatus(val); }}
+            >
+              <Text style={[styles.filterChipText, filterStatus === val && styles.filterChipTextActive]}>
+                {val === 'all' ? 'All' : val === 'validated' ? 'Validated' : 'Draft'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Verdict Section */}
+        <Text style={styles.filterSectionLabel}>Verdict</Text>
+        <View style={styles.filterChipRow}>
+          {(['all', 'proceed', 'watchlist', 'drop'] as const).map((val) => (
+            <TouchableOpacity
+              key={val}
+              style={[styles.filterChip, filterVerdict === val && styles.filterChipActive]}
+              onPress={() => { triggerHaptic('light'); setFilterVerdict(val); }}
+            >
+              <Text style={[styles.filterChipText, filterVerdict === val && styles.filterChipTextActive]}>
+                {val === 'all' ? 'All' : val.charAt(0).toUpperCase() + val.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Actions */}
+        <View style={styles.filterActions}>
+          <TouchableOpacity
+            style={styles.filterResetButton}
+            onPress={() => { setFilterStatus('all'); setFilterVerdict('all'); }}
+          >
+            <Text style={styles.filterResetText}>Reset</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.filterApplyButton}
+            onPress={() => setShowFilters(false)}
+          >
+            <Text style={styles.filterApplyText}>View</Text>
+          </TouchableOpacity>
+        </View>
+      </BottomSheet>
     </View>
   );
 }
@@ -356,18 +494,46 @@ const styles = StyleSheet.create({
     color: colors.foreground,
     letterSpacing: -0.5,
   },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginBottom: 16,
+    gap: 10,
+  },
   searchContainer: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,
-    marginHorizontal: 20,
-    marginBottom: 16,
     paddingHorizontal: 14,
     paddingVertical: 10,
     gap: 10,
+    overflow: 'hidden',
+  },
+  filterButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterButtonActive: {
+    borderColor: colors.brand,
+    backgroundColor: colors.brandMuted,
+  },
+  searchTopGlow: {
+    position: 'absolute',
+    top: -1,
+    left: 24,
+    right: 24,
+    height: 2,
   },
   searchInput: {
     flex: 1,
@@ -380,11 +546,13 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     flexGrow: 1,
   },
+  gradientBorder: {
+    borderRadius: 16,
+    padding: 1,
+  },
   card: {
     backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
+    borderRadius: 15,
     overflow: 'hidden',
   },
   cardTop: {
@@ -393,6 +561,9 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 12,
     gap: 14,
+  },
+  deleteButton: {
+    padding: 4,
   },
   cardIcon: {
     width: 42,
@@ -468,6 +639,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 12,
   },
+  footerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   cardTime: {
     fontSize: 12,
     ...fonts.geist.regular,
@@ -481,6 +657,30 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 10,
     ...fonts.outfit.semiBold,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+  },
+  actionButtonBrand: {
+    backgroundColor: colors.brandMuted,
+  },
+  actionButtonMuted: {
+    backgroundColor: colors.surface,
+  },
+  actionButtonText: {
+    fontSize: 11,
+    ...fonts.outfit.semiBold,
+  },
+  actionButtonTextBrand: {
+    color: colors.brand,
+  },
+  actionButtonTextMuted: {
+    color: colors.muted,
   },
   emptyState: {
     flex: 1,
@@ -499,5 +699,67 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.muted,
     textAlign: 'center',
+  },
+  // ── Filter content ──
+  filterSectionLabel: {
+    fontSize: 14,
+    ...fonts.outfit.medium,
+    color: colors.muted,
+    marginBottom: 12,
+  },
+  filterChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 24,
+  },
+  filterChip: {
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 99,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  filterChipActive: {
+    backgroundColor: colors.foreground,
+    borderColor: colors.foreground,
+  },
+  filterChipText: {
+    fontSize: 14,
+    ...fonts.geist.medium,
+    color: colors.muted,
+  },
+  filterChipTextActive: {
+    color: colors.background,
+  },
+  filterActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  filterResetButton: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 99,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+  },
+  filterResetText: {
+    fontSize: 16,
+    ...fonts.geist.medium,
+    color: colors.muted,
+  },
+  filterApplyButton: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 99,
+    backgroundColor: colors.foreground,
+    alignItems: 'center',
+  },
+  filterApplyText: {
+    fontSize: 16,
+    ...fonts.geist.medium,
+    color: colors.background,
   },
 });

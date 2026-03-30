@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { CheckCircle } from 'lucide-react-native';
 import { Button, triggerHaptic } from './Button';
 import { Badge } from './Badge';
@@ -31,86 +32,98 @@ export function IdeaCard({
   onCollapse,
 }: IdeaCardProps) {
   return (
-    <Animated.View entering={FadeIn.duration(300)} style={styles.container}>
-      {/* Tappable body area — collapses the card (does not wrap action buttons) */}
-      <TouchableOpacity activeOpacity={0.8} onPress={onCollapse} disabled={!onCollapse} style={styles.bodyTouchable}>
-        {/* Header row */}
-        <View style={styles.header}>
-          <Text style={styles.title} numberOfLines={2}>
-            {refinedTitle}
-          </Text>
-          {isPromoted && (
-            <Badge variant="success">Promoted</Badge>
-          )}
-        </View>
+    <Animated.View entering={FadeIn.duration(300)}>
+      <LinearGradient
+        colors={[colors.glassBorderStart, colors.glassBorderEnd]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientBorder}
+      >
+        <View style={styles.container}>
+          {/* Tappable body area — collapses the card (does not wrap action buttons) */}
+          <TouchableOpacity activeOpacity={0.8} onPress={onCollapse} disabled={!onCollapse} style={styles.bodyTouchable}>
+            {/* Header row */}
+            <View style={styles.header}>
+              <Text style={styles.title} numberOfLines={2}>
+                {refinedTitle}
+              </Text>
+              {isPromoted && (
+                <Badge variant="success">Promoted</Badge>
+              )}
+            </View>
 
-        {/* Description */}
-        <Text style={styles.description} numberOfLines={4}>
-          {refinedDescription}
-        </Text>
+            {/* Description */}
+            <Text style={styles.description} numberOfLines={4}>
+              {refinedDescription}
+            </Text>
 
-        {/* Tags */}
-        {refinedTags.length > 0 && (
-          <View style={styles.tagsRow}>
-            {refinedTags.map((tag) => (
-              <View key={tag} style={styles.tagChip}>
-                <Text style={styles.tagText}>{tag}</Text>
+            {/* Tags */}
+            {refinedTags.length > 0 && (
+              <View style={styles.tagsRow}>
+                {refinedTags.map((tag) => (
+                  <View key={tag} style={styles.tagChip}>
+                    <Text style={styles.tagText}>{tag}</Text>
+                  </View>
+                ))}
               </View>
-            ))}
+            )}
+
+
+          </TouchableOpacity>
+
+          {/* Refining indicator */}
+          {isRefining && (
+            <View style={styles.refiningRow}>
+              <Spinner size="small" color={colors.brand} />
+              <Text style={styles.refiningText}>Updating...</Text>
+            </View>
+          )}
+
+          {/* Action button */}
+          <View style={styles.actions}>
+            {isPromoted ? (
+              <Button
+                variant="primary"
+                size="sm"
+                disabled
+                leftIcon={<CheckCircle size={14} color={colors.white} />}
+                style={styles.promoteButton}
+              >
+                Promoted
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                size="sm"
+                onPress={() => {
+                  triggerHaptic('success');
+                  onPromote();
+                }}
+                disabled={isPromoting || !refinedTitle}
+                isLoading={isPromoting}
+                style={styles.promoteButton}
+              >
+                Promote to Idea
+              </Button>
+            )}
           </View>
-        )}
-
-
-      </TouchableOpacity>
-
-      {/* Refining indicator */}
-      {isRefining && (
-        <View style={styles.refiningRow}>
-          <Spinner size="small" color={colors.brand} />
-          <Text style={styles.refiningText}>Updating...</Text>
         </View>
-      )}
-
-      {/* Action button */}
-      <View style={styles.actions}>
-        {isPromoted ? (
-          <Button
-            variant="primary"
-            size="sm"
-            disabled
-            leftIcon={<CheckCircle size={14} color={colors.white} />}
-            style={styles.promoteButton}
-          >
-            Promoted
-          </Button>
-        ) : (
-          <Button
-            variant="primary"
-            size="sm"
-            onPress={() => {
-              triggerHaptic('success');
-              onPromote();
-            }}
-            disabled={isPromoting || !refinedTitle}
-            isLoading={isPromoting}
-            style={styles.promoteButton}
-          >
-            Promote to Idea
-          </Button>
-        )}
-      </View>
+      </LinearGradient>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  gradientBorder: {
+    borderRadius: 16,
+    padding: 1,
+  },
   container: {
     backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
+    borderRadius: 15,
     padding: 16,
     gap: 12,
+    overflow: 'hidden',
   },
   bodyTouchable: {
     gap: 12,

@@ -17,6 +17,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { LinearGradient } from 'expo-linear-gradient';
 import { NotebookPen, CheckCircle, Plus, Trash2, ChevronRight } from 'lucide-react-native';
 import { useRouter, useNavigation } from 'expo-router';
 import { triggerHaptic } from '../../../components/ui/Button';
@@ -51,7 +52,7 @@ function getNoteMeta(note: any) {
     return {
       icon: CheckCircle,
       iconColor: colors.success,
-      iconBg: 'rgba(34, 197, 94, 0.15)',
+      iconBg: 'rgba(3, 147, 248, 0.15)',
       badgeVariant: 'success' as const,
       badgeLabel: 'Promoted',
     };
@@ -163,30 +164,39 @@ function SwipeableNoteCard({
 
       {/* Card content */}
       <GestureDetector gesture={composedGesture}>
-        <Animated.View style={[styles.card, cardStyle]}>
-          <View style={styles.cardTop}>
-            <View style={[styles.cardIcon, { backgroundColor: meta.iconBg }]}>
-              <IconComponent size={20} color={meta.iconColor} />
-            </View>
-            <View style={styles.cardText}>
-              <Text style={styles.cardTitle} numberOfLines={1}>
-                {title}
-              </Text>
-              {note.content ? (
-                <Text style={styles.cardDescription} numberOfLines={2}>
-                  {note.content}
+        <Animated.View style={cardStyle}>
+          <LinearGradient
+            colors={[colors.glassBorderStart, colors.glassBorderEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.gradientBorder}
+          >
+            <View style={styles.card}>
+              <View style={styles.cardTop}>
+                <View style={[styles.cardIcon, { backgroundColor: meta.iconBg }]}>
+                  <IconComponent size={20} color={meta.iconColor} />
+                </View>
+                <View style={styles.cardText}>
+                  <Text style={styles.cardTitle} numberOfLines={1}>
+                    {title}
+                  </Text>
+                  {note.content ? (
+                    <Text style={styles.cardDescription} numberOfLines={2}>
+                      {note.content}
+                    </Text>
+                  ) : null}
+                </View>
+              </View>
+              <View style={styles.cardFooter}>
+                <Text style={styles.cardTime}>
+                  {formatRelativeTime(new Date(note.updatedAt))}
                 </Text>
-              ) : null}
+                {meta.badgeVariant && meta.badgeLabel && (
+                  <Badge variant={meta.badgeVariant}>{meta.badgeLabel}</Badge>
+                )}
+              </View>
             </View>
-          </View>
-          <View style={styles.cardFooter}>
-            <Text style={styles.cardTime}>
-              {formatRelativeTime(new Date(note.updatedAt))}
-            </Text>
-            {meta.badgeVariant && meta.badgeLabel && (
-              <Badge variant={meta.badgeVariant}>{meta.badgeLabel}</Badge>
-            )}
-          </View>
+          </LinearGradient>
         </Animated.View>
       </GestureDetector>
     </View>
@@ -356,11 +366,13 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
     flexGrow: 1,
   },
+  gradientBorder: {
+    borderRadius: 16,
+    padding: 1,
+  },
   card: {
     backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
+    borderRadius: 15,
     overflow: 'hidden',
   },
   cardTop: {

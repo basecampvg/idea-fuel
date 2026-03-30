@@ -212,7 +212,7 @@ export function ValidationCard({ cardResult }: ValidationCardProps) {
               <Text style={styles.statLabel}>Market Signal</Text>
               <View style={styles.signalRow}>
                 <SignalIcon size={16} color={signal.color} />
-                <Text style={[styles.signalText, { color: signal.color }]}>
+                <Text style={styles.signalText}>
                   {signal.label}
                 </Text>
               </View>
@@ -399,10 +399,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   evidenceText: {
-    fontSize: 13,
+    fontSize: 15,
     ...fonts.geist.regular,
     color: colors.foreground,
-    lineHeight: 19,
+    lineHeight: 22,
   },
   section: {
     gap: 8,
@@ -426,16 +426,16 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   tamBasis: {
-    fontSize: 13,
+    fontSize: 15,
     ...fonts.geist.regular,
     color: colors.mutedDim,
-    lineHeight: 18,
+    lineHeight: 22,
   },
   tamAssumptions: {
-    fontSize: 12,
+    fontSize: 15,
     ...fonts.geist.regular,
     color: colors.muted,
-    lineHeight: 17,
+    lineHeight: 22,
     marginTop: 4,
     backgroundColor: colors.surface,
     borderRadius: 8,
@@ -454,16 +454,16 @@ const styles = StyleSheet.create({
     color: colors.foreground,
   },
   competitorOneLiner: {
-    fontSize: 13,
+    fontSize: 15,
     ...fonts.geist.regular,
     color: colors.muted,
-    lineHeight: 18,
+    lineHeight: 22,
   },
   competitorTraction: {
-    fontSize: 12,
+    fontSize: 15,
     ...fonts.geist.regular,
     color: colors.accent,
-    lineHeight: 16,
+    lineHeight: 22,
     marginTop: 2,
   },
   riskBox: {
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   experimentBox: {
-    backgroundColor: 'rgba(20, 184, 166, 0.08)',
+    backgroundColor: 'rgba(3, 147, 248, 0.08)',
     borderRadius: 12,
     padding: 14,
     borderLeftWidth: 3,
@@ -493,10 +493,10 @@ const styles = StyleSheet.create({
     color: colors.foreground,
   },
   calloutBody: {
-    fontSize: 14,
+    fontSize: 15,
     ...fonts.geist.regular,
     color: colors.muted,
-    lineHeight: 20,
+    lineHeight: 22,
   },
   citationRow: {
     flexDirection: 'row',
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   citationText: {
-    fontSize: 12,
+    fontSize: 15,
     ...fonts.geist.regular,
     color: colors.accent,
     flex: 1,
