@@ -16,6 +16,7 @@ import { exportRouter } from './export';
 import { billingRouter } from './billing';
 import { sparkCardRouter } from './sparkCard';
 import { noteRouter } from './note';
+import { attachmentRouter } from './attachment';
 
 /**
  * Main application router
@@ -39,6 +40,7 @@ export const appRouter = router({
   billing: billingRouter,
   sparkCard: sparkCardRouter,
   note: noteRouter,
+  attachment: attachmentRouter,
 });
 
 // Export type definition for client usage
