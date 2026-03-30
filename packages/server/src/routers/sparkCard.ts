@@ -19,7 +19,7 @@ import type { CardResult } from '@forge/shared';
 import { users, projects } from '../db/schema';
 import { db } from '../db/drizzle';
 import { sonarProResearch } from '../providers/perplexity/sonar-pro';
-import { CARD_CHAT_QUESTIONS, buildResearchBrief, extractCardResult, generateSuggestions } from '../services/card-ai';
+import { CARD_CHAT_QUESTIONS, buildResearchBrief, extractCardResult, refineProjectDetails, generateSuggestions } from '../services/card-ai';
 
 // ============================================================================
 // Router
@@ -91,7 +91,7 @@ export const sparkCardRouter = router({
   validate: protectedProcedure
     .input(validateCardSchema)
     .mutation(async ({ ctx, input }) => {
-      const { projectId, chatMessages } = input;
+      const { projectId, chatMessages, isRefine } = input;
 
       // ------------------------------------------------------------------
       // Step 1: Eligibility check + consume card in a transaction
@@ -273,19 +273,49 @@ export const sparkCardRouter = router({
       }
 
       // ------------------------------------------------------------------
-      // Step 6: Save CardResult to project
+      // Step 6: Refine project details if this is a refinement
       // ------------------------------------------------------------------
+      let refinedTitle: string | undefined;
+      let refinedDescription: string | undefined;
+
+      if (isRefine) {
+        // Extract the user's refinement message (last user message in chat)
+        const userRefinement = chatMessages.filter(m => m.role === 'user').pop()?.content;
+        if (userRefinement) {
+          const refined = await refineProjectDetails(
+            project.title,
+            project.description,
+            userRefinement,
+          );
+          if (refined) {
+            refinedTitle = refined.title;
+            refinedDescription = refined.description;
+          }
+        }
+      }
+
+      // ------------------------------------------------------------------
+      // Step 7: Save CardResult (and refined details) to project
+      // ------------------------------------------------------------------
+      const updateSet: Record<string, unknown> = { cardResult };
+      if (refinedTitle) updateSet.title = refinedTitle;
+      if (refinedDescription) updateSet.description = refinedDescription;
+
       await ctx.db
         .update(projects)
-        .set({ cardResult })
+        .set(updateSet)
         .where(and(eq(projects.id, projectId), eq(projects.userId, ctx.userId)));
 
-      console.log(`[SparkCard] Validation complete for project ${projectId}, verdict: ${cardResult.verdict}`);
+      console.log(`[SparkCard] Validation complete for project ${projectId}, verdict: ${cardResult.verdict}${isRefine ? ', refined' : ''}`);
 
       // ------------------------------------------------------------------
-      // Step 7: Return
+      // Step 8: Return
       // ------------------------------------------------------------------
-      return { cardResult };
+      return {
+        cardResult,
+        ...(refinedTitle && { refinedTitle }),
+        ...(refinedDescription && { refinedDescription }),
+      };
     }),
 
   /**

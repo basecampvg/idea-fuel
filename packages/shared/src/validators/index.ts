@@ -320,6 +320,7 @@ export const chatCardSchema = z.object({
 export const validateCardSchema = z.object({
   projectId: entityId,
   chatMessages: z.array(cardChatMessageSchema).min(1).max(10),
+  isRefine: z.boolean().optional(),
 });
 
 export const promoteCardSchema = z.object({

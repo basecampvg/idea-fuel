@@ -314,18 +314,22 @@ export default function ValidateScreen() {
       }));
 
       validateMutation.mutate(
-        { projectId: id!, chatMessages: formattedMessages },
+        { projectId: id!, chatMessages: formattedMessages, isRefine: isRefineMode },
         {
           onSuccess: (data) => {
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
             triggerHaptic('success');
-            // Directly update the cached project with the new cardResult so the
-            // card screen renders it immediately (invalidate alone only schedules
-            // a background refetch for *active* queries, and the card screen
-            // isn't mounted yet at this point).
+            // Directly update the cached project with the new cardResult (and
+            // refined title/description if this was a refinement) so the card
+            // screen renders it immediately.
             utils.project.get.setData({ id: id! }, (old) => {
               if (!old) return old;
-              return { ...old, cardResult: data.cardResult };
+              return {
+                ...old,
+                cardResult: data.cardResult,
+                ...(data.refinedTitle && { title: data.refinedTitle }),
+                ...(data.refinedDescription && { description: data.refinedDescription }),
+              };
             });
             utils.project.list.invalidate();
             // Navigate to card screen

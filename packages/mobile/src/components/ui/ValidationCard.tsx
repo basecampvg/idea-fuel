@@ -381,6 +381,7 @@ const styles = StyleSheet.create({
   signalText: {
     fontSize: 14,
     ...fonts.mono.medium,
+    color: colors.foreground,
   },
   evidenceContainer: {
     gap: 12,

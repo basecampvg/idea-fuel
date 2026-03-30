@@ -283,6 +283,45 @@ function enforceVerdict(card: CardResult): CardResult {
 }
 
 /**
+ * Given the original project and the user's refinement message, produce a refined
+ * title and description via Haiku. Returns null on failure (non-blocking).
+ */
+export async function refineProjectDetails(
+  originalTitle: string,
+  originalDescription: string,
+  refinementMessage: string,
+): Promise<{ title: string; description: string } | null> {
+  const client = getAnthropicClient();
+
+  try {
+    const response = await client.messages.create({
+      model: HAIKU_MODEL,
+      max_tokens: 500,
+      temperature: 0,
+      system: `You update a startup idea's title and description based on the founder's refinement request. Return ONLY valid JSON with "title" and "description" fields. The title should be concise (under 80 chars). The description should be 1-3 sentences incorporating the refinement. No markdown, no code fences.`,
+      messages: [
+        {
+          role: 'user',
+          content: `Original title: ${originalTitle}\nOriginal description: ${originalDescription}\n\nFounder's refinement: ${refinementMessage}\n\nReturn the updated title and description as JSON.`,
+        },
+      ],
+    });
+
+    const content = response.content[0];
+    if (content.type !== 'text') return null;
+
+    const parsed = JSON.parse(content.text.trim().replace(/```(?:json)?\s*\n?|```/g, ''));
+    if (typeof parsed.title === 'string' && typeof parsed.description === 'string') {
+      return { title: parsed.title, description: parsed.description };
+    }
+    return null;
+  } catch (error) {
+    console.error('[CardAI] Refinement extraction failed:', error instanceof Error ? error.message : error);
+    return null;
+  }
+}
+
+/**
  * Build a fallback CardResult when extraction fails.
  * Provides a valid CardResult with rawResponse so the mobile app can still display something.
  */

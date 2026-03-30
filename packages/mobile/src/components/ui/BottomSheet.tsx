@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { X } from 'lucide-react-native';
 
 import { colors } from '../../lib/theme';
@@ -117,26 +118,37 @@ export function BottomSheet({
 
         <GestureDetector gesture={panGesture}>
           <Animated.View style={[styles.sheet, sheetStyle]}>
-            <View style={styles.handleContainer}>
-              <View style={styles.handle} />
-            </View>
+            <BlurView intensity={40} tint="dark" style={styles.blurFill}>
+              <View style={styles.darkOverlay}>
+                <LinearGradient
+                  colors={['transparent', colors.brand, 'transparent']}
+                  start={{ x: 0, y: 0.5 }}
+                  end={{ x: 1, y: 0.5 }}
+                  style={styles.topGlow}
+                />
 
-            {(title || showCloseButton) && (
-              <View style={styles.header}>
-                {title && <Text style={styles.title}>{title}</Text>}
-                {showCloseButton && (
-                  <TouchableOpacity
-                    onPress={dismiss}
-                    style={styles.closeButton}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  >
-                    <X size={20} color={colors.muted} />
-                  </TouchableOpacity>
+                <View style={styles.handleContainer}>
+                  <View style={styles.handle} />
+                </View>
+
+                {(title || showCloseButton) && (
+                  <View style={styles.header}>
+                    {title && <Text style={styles.title}>{title}</Text>}
+                    {showCloseButton && (
+                      <TouchableOpacity
+                        onPress={dismiss}
+                        style={styles.closeButton}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
+                        <X size={20} color={colors.muted} />
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 )}
-              </View>
-            )}
 
-            <View style={styles.content}>{children}</View>
+                <View style={styles.content}>{children}</View>
+              </View>
+            </BlurView>
           </Animated.View>
         </GestureDetector>
       </View>
@@ -154,14 +166,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   sheet: {
-    backgroundColor: 'rgba(10, 10, 10, 0.75)',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: colors.border,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    overflow: 'hidden',
     maxHeight: SCREEN_HEIGHT * 0.85,
+  },
+  blurFill: {},
+  darkOverlay: {
+    backgroundColor: 'rgba(10, 10, 10, 0.7)',
+  },
+  topGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 24,
+    right: 24,
+    height: 2,
   },
   handleContainer: {
     alignItems: 'center',
