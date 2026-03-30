@@ -286,7 +286,7 @@ export default function CaptureScreen() {
       const attachmentMetadata: Array<{
         storagePath: string;
         fileName: string;
-        mimeType: string;
+        mimeType: 'image/jpeg' | 'image/png' | 'image/heic';
         sizeBytes: number;
         order: number;
       }> = [];
@@ -318,7 +318,7 @@ export default function CaptureScreen() {
         attachmentMetadata.push({
           storagePath,
           fileName: att.fileName,
-          mimeType: att.mimeType,
+          mimeType: att.mimeType as 'image/jpeg' | 'image/png' | 'image/heic',
           sizeBytes: att.sizeBytes,
           order: i,
         });
