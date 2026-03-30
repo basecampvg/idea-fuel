@@ -4,7 +4,7 @@ import { router, protectedProcedure } from '../trpc';
 import { createProjectSchema, updateProjectSchema, startInterviewSchema } from '@forge/shared';
 import type { ChatMessage, InterviewMode } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
-import { projects, interviews, reports, research, users } from '../db/schema';
+import { projects, interviews, reports, research, users, projectAttachments } from '../db/schema';
 import { generateOpeningQuestion } from '../services/interview-ai';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { enqueueResearchPipeline } from '../jobs';
@@ -151,22 +151,44 @@ export const projectRouter = router({
    * Create a new project (starts as a draft idea with status CAPTURED)
    */
   create: protectedProcedure.input(createProjectSchema).mutation(async ({ ctx, input }) => {
-    const results = await ctx.db.insert(projects).values({
-      title: input.title,
-      description: input.description,
-      userId: ctx.userId,
-    }).returning();
+    const project = await ctx.db.transaction(async (tx) => {
+      const results = await tx.insert(projects).values({
+        title: input.title,
+        description: input.description,
+        userId: ctx.userId,
+      }).returning();
 
-    const project = results[0];
-    if (!project) {
-      throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to create project' });
-    }
+      const created = results[0];
+      if (!created) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to create project' });
+      }
+
+      if (input.attachments && input.attachments.length > 0) {
+        await tx.insert(projectAttachments).values(
+          input.attachments.map((att) => ({
+            projectId: created.id,
+            userId: ctx.userId,
+            storagePath: att.storagePath,
+            fileName: att.fileName,
+            mimeType: att.mimeType,
+            sizeBytes: att.sizeBytes,
+            order: att.order,
+            aiConsent: input.aiConsentForImages ?? false,
+          }))
+        );
+      }
+
+      return created;
+    });
 
     logAuditAsync({
       userId: ctx.userId,
       action: 'PROJECT_CREATE',
       resource: formatResource('project', project.id),
-      metadata: { title: project.title },
+      metadata: {
+        title: project.title,
+        attachmentCount: input.attachments?.length ?? 0,
+      },
     });
 
     return project;
