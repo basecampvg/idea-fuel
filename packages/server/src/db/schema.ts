@@ -211,6 +211,41 @@ export const projects = pgTable('Project', {
 ]);
 
 // =============================================================================
+// PROJECT ATTACHMENTS (Images attached at capture time)
+// =============================================================================
+
+export const projectAttachments = pgTable('ProjectAttachment', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  storagePath: text('storage_path').notNull(),
+  fileName: text('file_name').notNull(),
+  mimeType: text('mime_type').notNull(),
+  sizeBytes: integer('size_bytes').notNull(),
+  order: integer().default(0).notNull(),
+  aiConsent: boolean('ai_consent').default(false).notNull(),
+  projectId: text('project_id').notNull(),
+  userId: text('user_id').notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('ProjectAttachment_projectId_idx').using('btree', table.projectId.asc().nullsLast()),
+  index('ProjectAttachment_userId_idx').using('btree', table.userId.asc().nullsLast()),
+  foreignKey({
+    columns: [table.projectId],
+    foreignColumns: [projects.id],
+    name: 'ProjectAttachment_projectId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+  foreignKey({
+    columns: [table.userId],
+    foreignColumns: [users.id],
+    name: 'ProjectAttachment_userId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+export const projectAttachmentsRelations = relations(projectAttachments, ({ one }) => ({
+  project: one(projects, { fields: [projectAttachments.projectId], references: [projects.id] }),
+  user: one(users, { fields: [projectAttachments.userId], references: [users.id] }),
+}));
+
+// =============================================================================
 // NOTES (Brain Dump + AI Refinement)
 // =============================================================================
 
@@ -1099,6 +1134,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   embeddings: many(embeddings),
   financialModels: many(financialModels),
   promotedNotes: many(notes),
+  attachments: many(projectAttachments),
 }));
 
 export const notesRelations = relations(notes, ({ one }) => ({
