@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View,
+  Text,
   TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
@@ -12,9 +13,13 @@ import {
   Animated,
   Easing,
   InteractionManager,
+  Switch,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as ImagePicker from 'expo-image-picker';
 import { Mic, Square, ArrowUp, Paperclip } from 'lucide-react-native';
+import { AttachmentPopover } from '../../components/AttachmentPopover';
+import { ThumbnailStrip, type LocalAttachment } from '../../components/ThumbnailStrip';
 import { triggerHaptic } from '../../components/ui/Button';
 import { trpc } from '../../lib/trpc';
 import { useToast } from '../../contexts/ToastContext';
@@ -63,6 +68,14 @@ export default function CaptureScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
+
+  const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
+  const [showPopover, setShowPopover] = useState(false);
+  const [aiConsent, setAiConsent] = useState(false);
+  const [popoverAnchorY, setPopoverAnchorY] = useState(0);
+  const inputBarRef = useRef<View>(null);
+
+  const MAX_ATTACHMENTS = 5;
 
   // Orb state: idle → listening (mic on, waiting) → talking (speech detected)
   const orbState: OrbState = isListening ? (isSpeaking ? 'talking' : 'listening') : null;
@@ -128,6 +141,62 @@ export default function CaptureScreen() {
     return () => handle.cancel();
   }, []);
 
+  const handleOpenPopover = useCallback(() => {
+    inputBarRef.current?.measureInWindow((_x, y, _w, _h) => {
+      setPopoverAnchorY(y > 0 ? y : 200);
+      setShowPopover(true);
+    });
+  }, []);
+
+  const processPickerResult = useCallback((result: ImagePicker.ImagePickerResult) => {
+    if (result.canceled || !result.assets) return;
+
+    const remaining = MAX_ATTACHMENTS - attachments.length;
+    const newImages = result.assets.slice(0, remaining).map((asset) => ({
+      uri: asset.uri,
+      fileName: asset.fileName || `image-${Date.now()}.jpg`,
+      mimeType: (asset.mimeType || 'image/jpeg') as string,
+      sizeBytes: asset.fileSize || 0,
+    }));
+
+    setAttachments((prev) => [...prev, ...newImages]);
+  }, [attachments.length]);
+
+  const handleCamera = useCallback(async () => {
+    setShowPopover(false);
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      showToast({ message: 'Camera permission required', type: 'error' });
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
+    });
+    processPickerResult(result);
+  }, [showToast, processPickerResult]);
+
+  const handlePhotos = useCallback(async () => {
+    setShowPopover(false);
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      showToast({ message: 'Photo library permission required', type: 'error' });
+      return;
+    }
+    const remaining = MAX_ATTACHMENTS - attachments.length;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      selectionLimit: remaining,
+      quality: 0.8,
+    });
+    processPickerResult(result);
+  }, [showToast, attachments.length, processPickerResult]);
+
+  const handleRemoveAttachment = useCallback((index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
   const toggleListening = useCallback(async () => {
     if (!SpeechModule) {
       showToast({
@@ -180,6 +249,8 @@ export default function CaptureScreen() {
       });
       setIdeaText('');
       finalizedText.current = '';
+      setAttachments([]);
+      setAiConsent(false);
       utils.project.list.invalidate();
     },
     onError: () => {
@@ -192,7 +263,9 @@ export default function CaptureScreen() {
     },
   });
 
-  const handleCapture = useCallback(() => {
+  const getUploadUrl = trpc.attachment.getUploadUrl.useMutation();
+
+  const handleCapture = useCallback(async () => {
     const trimmed = ideaText.trim();
     if (!trimmed || isSubmitting) return;
 
@@ -207,8 +280,62 @@ export default function CaptureScreen() {
 
     Keyboard.dismiss();
     setIsSubmitting(true);
-    createProject.mutate({ title, description: description || title });
-  }, [ideaText, isSubmitting, isListening, createProject]);
+
+    try {
+      // Upload attachments first
+      const attachmentMetadata: Array<{
+        storagePath: string;
+        fileName: string;
+        mimeType: string;
+        sizeBytes: number;
+        order: number;
+      }> = [];
+
+      for (let i = 0; i < attachments.length; i++) {
+        const att = attachments[i];
+        const { uploadUrl, storagePath } = await getUploadUrl.mutateAsync({
+          fileName: att.fileName,
+          mimeType: att.mimeType as 'image/jpeg' | 'image/png' | 'image/heic',
+        });
+
+        // Upload directly to Supabase Storage
+        const response = await fetch(att.uri);
+        const blob = await response.blob();
+
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': att.mimeType,
+          },
+          body: blob,
+        });
+
+        if (!uploadResponse.ok) {
+          showToast({ message: `Failed to upload image ${i + 1}`, type: 'error' });
+          continue;
+        }
+
+        attachmentMetadata.push({
+          storagePath,
+          fileName: att.fileName,
+          mimeType: att.mimeType,
+          sizeBytes: att.sizeBytes,
+          order: i,
+        });
+      }
+
+      createProject.mutate({
+        title,
+        description: description || title,
+        attachments: attachmentMetadata.length > 0 ? attachmentMetadata : undefined,
+        aiConsentForImages: attachmentMetadata.length > 0 ? aiConsent : false,
+      });
+    } catch {
+      setIsSubmitting(false);
+      triggerHaptic('error');
+      showToast({ message: 'Failed to upload images', type: 'error' });
+    }
+  }, [ideaText, isSubmitting, isListening, createProject, attachments, aiConsent, getUploadUrl, showToast]);
 
   const { title } = extractTitleAndDescription(ideaText.trim());
   const canCapture = title.length > 0 && !isSubmitting;
@@ -252,7 +379,7 @@ export default function CaptureScreen() {
 
           {/* ── Bottom: Input bar ── */}
           <View style={styles.inputBarWrapper}>
-            <View style={[
+            <View ref={inputBarRef} style={[
               styles.inputBar,
               (inputFocused || isListening) && styles.inputBarActive,
             ]}>
@@ -278,15 +405,36 @@ export default function CaptureScreen() {
                 maxLength={500}
               />
 
+              {/* Thumbnail strip */}
+              <ThumbnailStrip
+                attachments={attachments}
+                onRemove={handleRemoveAttachment}
+              />
+
+              {/* AI consent toggle */}
+              {attachments.length > 0 && (
+                <View style={styles.consentRow}>
+                  <Text style={styles.consentLabel}>Let AI analyze your images</Text>
+                  <Switch
+                    value={aiConsent}
+                    onValueChange={setAiConsent}
+                    trackColor={{ false: colors.surface, true: colors.brandMuted }}
+                    thumbColor={aiConsent ? colors.brand : colors.muted}
+                  />
+                </View>
+              )}
+
               {/* Row 2: Action buttons */}
               <View style={styles.inputActionsRow}>
                 {/* Left: Paperclip */}
                 <View style={styles.inputActionsLeft}>
                   <TouchableOpacity
                     style={styles.paperclipButton}
+                    onPress={handleOpenPopover}
                     activeOpacity={0.7}
+                    disabled={attachments.length >= MAX_ATTACHMENTS}
                   >
-                    <Paperclip size={18} color={colors.muted} />
+                    <Paperclip size={18} color={attachments.length >= MAX_ATTACHMENTS ? colors.mutedDim : colors.muted} />
                   </TouchableOpacity>
                 </View>
 
@@ -334,6 +482,13 @@ export default function CaptureScreen() {
           </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
+      <AttachmentPopover
+        visible={showPopover}
+        onClose={() => setShowPopover(false)}
+        onCamera={handleCamera}
+        onPhotos={handlePhotos}
+        anchorY={popoverAnchorY}
+      />
     </View>
   );
 }
@@ -528,5 +683,16 @@ const styles = StyleSheet.create({
     height: 34,
     borderRadius: 17,
     backgroundColor: colors.brand,
+  },
+  consentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 10,
+  },
+  consentLabel: {
+    fontSize: 13,
+    color: colors.muted,
+    ...fonts.geist.regular,
   },
 });
