@@ -14,9 +14,20 @@ export const PROJECT_TITLE_MAX = 80;
 export const PROJECT_DESC_MAX = 5000;
 export const PROJECT_DESC_MIN = 10;
 
+export const attachmentMetadataSchema = z.object({
+  storagePath: z.string().min(1),
+  fileName: z.string().min(1),
+  mimeType: z.enum(['image/jpeg', 'image/png', 'image/heic']),
+  sizeBytes: z.number().int().positive().max(5 * 1024 * 1024), // 5MB max
+  order: z.number().int().min(0).max(4),
+});
+export type AttachmentMetadata = z.infer<typeof attachmentMetadataSchema>;
+
 export const createProjectSchema = z.object({
   title: z.string().min(1, 'Title is required').max(PROJECT_TITLE_MAX, 'Title too long'),
   description: z.string().max(PROJECT_DESC_MAX, 'Description too long').default(''),
+  attachments: z.array(attachmentMetadataSchema).max(5).optional(),
+  aiConsentForImages: z.boolean().default(false),
 });
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 
