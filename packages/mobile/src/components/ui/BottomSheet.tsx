@@ -1,21 +1,28 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  Pressable,
   Modal,
   StyleSheet,
-  Animated,
   Dimensions,
   Keyboard,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  runOnJS,
+} from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { BlurView } from 'expo-blur';
 import { X } from 'lucide-react-native';
 
 import { colors } from '../../lib/theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const DISMISS_THRESHOLD = 100;
 
 interface BottomSheetProps {
   visible: boolean;
@@ -32,86 +39,60 @@ export function BottomSheet({
   children,
   showCloseButton = true,
 }: BottomSheetProps) {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [canClose, setCanClose] = useState(false);
-  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-  const backdropOpacity = useRef(new Animated.Value(0)).current;
-  const isAnimating = useRef(false);
+  const translateY = useSharedValue(SCREEN_HEIGHT);
+  const backdropOpacity = useSharedValue(0);
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const startY = useSharedValue(0);
 
-  // Handle visibility changes
-  useEffect(() => {
-    if (visible && !modalVisible) {
-      // Opening
-      Keyboard.dismiss();
-      setCanClose(false);
-      setModalVisible(true);
-    }
-  }, [visible, modalVisible]);
-
-  // Animate in after modal is visible
-  useEffect(() => {
-    if (modalVisible && visible) {
-      // Reset values
-      translateY.setValue(SCREEN_HEIGHT);
-      backdropOpacity.setValue(0);
-      isAnimating.current = true;
-
-      // Animate in (faster spring)
-      Animated.parallel([
-        Animated.spring(translateY, {
-          toValue: 0,
-          useNativeDriver: true,
-          tension: 100,
-          friction: 12,
-        }),
-        Animated.timing(backdropOpacity, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        isAnimating.current = false;
-        // Only allow closing after animation completes
-        setCanClose(true);
-      });
-    }
-  }, [modalVisible, visible]);
-
-  // Handle external close (visible becomes false)
-  useEffect(() => {
-    if (!visible && modalVisible && canClose) {
-      handleClose();
-    }
-  }, [visible, modalVisible, canClose]);
-
-  const handleClose = () => {
-    if (isAnimating.current || !canClose) return;
-    isAnimating.current = true;
-
-    Animated.parallel([
-      Animated.timing(translateY, {
-        toValue: SCREEN_HEIGHT,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(backdropOpacity, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      isAnimating.current = false;
-      setModalVisible(false);
-      setCanClose(false);
-      onClose();
+  const dismiss = useCallback(() => {
+    backdropOpacity.value = withTiming(0, { duration: 200 });
+    translateY.value = withTiming(SCREEN_HEIGHT, { duration: 250 }, (finished) => {
+      if (finished) {
+        runOnJS(setModalVisible)(false);
+        runOnJS(onClose)();
+      }
     });
-  };
+  }, [onClose]);
 
-  const handleBackdropPress = () => {
-    if (canClose && !isAnimating.current) {
-      handleClose();
+  useEffect(() => {
+    if (visible) {
+      Keyboard.dismiss();
+      setModalVisible(true);
+      requestAnimationFrame(() => {
+        translateY.value = withTiming(0, { duration: 300 });
+        backdropOpacity.value = withTiming(1, { duration: 300 });
+      });
+    } else if (modalVisible) {
+      dismiss();
     }
-  };
+  }, [visible]);
+
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      startY.value = translateY.value;
+    })
+    .onUpdate((event) => {
+      const newY = startY.value + event.translationY;
+      translateY.value = Math.max(0, newY);
+      const progress = Math.max(0, 1 - newY / (SCREEN_HEIGHT * 0.4));
+      backdropOpacity.value = progress;
+    })
+    .onEnd((event) => {
+      if (event.translationY > DISMISS_THRESHOLD || event.velocityY > 500) {
+        runOnJS(dismiss)();
+      } else {
+        translateY.value = withTiming(0, { duration: 250 });
+        backdropOpacity.value = withTiming(1, { duration: 200 });
+      }
+    });
+
+  const sheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  const backdropStyle = useAnimatedStyle(() => ({
+    opacity: backdropOpacity.value * 0.3,
+  }));
 
   if (!modalVisible) return null;
 
@@ -121,64 +102,43 @@ export function BottomSheet({
       transparent
       animationType="none"
       statusBarTranslucent
-      onRequestClose={handleBackdropPress}
+      onRequestClose={dismiss}
     >
+      <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
+
       <View style={styles.container}>
-        {/* Backdrop */}
-        <Pressable
-          style={styles.backdropPressable}
-          onPress={handleBackdropPress}
+        <TouchableOpacity
+          style={StyleSheet.absoluteFill}
+          activeOpacity={1}
+          onPress={dismiss}
         >
-          <Animated.View
-            style={[
-              styles.backdrop,
-              {
-                opacity: backdropOpacity.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, 0.5],
-                }),
-              },
-            ]}
-          />
-        </Pressable>
+          <Animated.View style={[styles.backdrop, backdropStyle]} />
+        </TouchableOpacity>
 
-        {/* Sheet */}
-        <Animated.View
-          style={[
-            styles.sheet,
-            {
-              transform: [{ translateY }],
-            },
-          ]}
-        >
-          <BlurView intensity={40} tint="dark" style={styles.blurFill}>
-            <View style={styles.darkOverlay}>
-              {/* Handle Bar */}
-              <View style={styles.handleContainer}>
-                <View style={styles.handle} />
-              </View>
-
-              {/* Header */}
-              {(title || showCloseButton) && (
-                <View style={styles.header}>
-                  {title && <Text style={styles.title}>{title}</Text>}
-                  {showCloseButton && (
-                    <TouchableOpacity
-                      onPress={handleBackdropPress}
-                      style={styles.closeButton}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    >
-                      <X size={20} color={colors.muted} />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              )}
-
-              {/* Content */}
-              <View style={styles.content}>{children}</View>
+        <GestureDetector gesture={panGesture}>
+          <Animated.View style={[styles.sheet, sheetStyle]}>
+            <View style={styles.handleContainer}>
+              <View style={styles.handle} />
             </View>
-          </BlurView>
-        </Animated.View>
+
+            {(title || showCloseButton) && (
+              <View style={styles.header}>
+                {title && <Text style={styles.title}>{title}</Text>}
+                {showCloseButton && (
+                  <TouchableOpacity
+                    onPress={dismiss}
+                    style={styles.closeButton}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <X size={20} color={colors.muted} />
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+
+            <View style={styles.content}>{children}</View>
+          </Animated.View>
+        </GestureDetector>
       </View>
     </Modal>
   );
@@ -189,29 +149,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
   },
-  backdropPressable: {
-    ...StyleSheet.absoluteFillObject,
-  },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: '#000',
   },
   sheet: {
+    backgroundColor: 'rgba(10, 10, 10, 0.75)',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    overflow: 'hidden',
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
     borderColor: colors.border,
     maxHeight: SCREEN_HEIGHT * 0.85,
-  },
-  blurFill: {
-    flex: 1,
-  },
-  darkOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(10, 10, 10, 0.7)',
   },
   handleContainer: {
     alignItems: 'center',

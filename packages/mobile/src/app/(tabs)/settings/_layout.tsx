@@ -47,8 +47,7 @@ export default function SettingsStackLayout() {
       <Stack.Screen
         name="plans"
         options={{
-          title: 'Manage Plan',
-          // @ts-expect-error -- react-native-screens 4.18+ API, not yet in Expo Router types
+          title: 'Upgrade your plan',
           unstable_headerLeftItems: () => [
             {
               type: 'custom',
@@ -62,7 +61,6 @@ export default function SettingsStackLayout() {
         name="about"
         options={{
           title: 'About',
-          // @ts-expect-error -- react-native-screens 4.18+ API, not yet in Expo Router types
           unstable_headerLeftItems: () => [
             {
               type: 'custom',

@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Sparkles, ChevronRight } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button, triggerHaptic } from './Button';
+import { PlanFeatureRow } from './PlanFeatureRow';
 import { useToast } from '../../contexts/ToastContext';
 import {
   getOfferings,
   purchasePackage,
   isPurchasesAvailable,
 } from '../../lib/purchases';
-import { MOBILE_IAP_PRICES } from '@forge/shared';
+import { MOBILE_IAP_PRICES, MOBILE_IAP_FEATURES, MOBILE_IAP_FEATURE_ICONS } from '@forge/shared';
 import { colors, fonts } from '../../lib/theme';
 
 interface PaywallProps {
@@ -101,10 +102,36 @@ export function Paywall({ compact = false, onPurchaseSuccess }: PaywallProps) {
 
       {/* Subtext */}
       <Text style={styles.subtext}>
-        Your free validation has been used. Subscribe to get 10 quick validation
-        cards per month, or upgrade to the full IdeaFuel experience for deep
-        market research.
+        Your free validation has been used. Subscribe for more.
       </Text>
+
+      {/* Feature list with icons */}
+      <View style={styles.featureList}>
+        {(MOBILE_IAP_FEATURES.MOBILE ?? []).map((feature, i) => (
+          <PlanFeatureRow
+            key={i}
+            text={feature}
+            iconName={MOBILE_IAP_FEATURE_ICONS.MOBILE?.[feature]}
+            accentColor={colors.brand}
+            index={i}
+          />
+        ))}
+      </View>
+
+      {/* Tier preview pills */}
+      <View style={styles.tierPills}>
+        {(['Pro', 'Enterprise', 'Scale'] as const).map((name) => (
+          <TouchableOpacity
+            key={name}
+            style={styles.tierPill}
+            onPress={handleSeeAllPlans}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.tierPillText}>{name}</Text>
+          </TouchableOpacity>
+        ))}
+        <ChevronRight size={14} color={colors.mutedDim} />
+      </View>
 
       {/* Buttons */}
       <View style={styles.buttonGroup}>
@@ -169,6 +196,27 @@ const styles = StyleSheet.create({
     color: colors.muted,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  featureList: {
+    width: '100%',
+    gap: 0,
+    paddingHorizontal: 4,
+  },
+  tierPills: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  tierPill: {
+    backgroundColor: colors.surface,
+    borderRadius: 9999,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  tierPillText: {
+    fontSize: 12,
+    ...fonts.geist.medium,
+    color: colors.muted,
   },
   buttonGroup: {
     width: '100%',

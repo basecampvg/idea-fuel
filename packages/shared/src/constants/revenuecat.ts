@@ -42,6 +42,42 @@ export const MOBILE_IAP_PRICES: Record<string, string> = {
  * UI copy for mobile plan cards — feature bullet points per tier.
  * Used in the Plans screen and paywall components.
  */
+/**
+ * Icon names (lucide-react-native) for each feature per tier.
+ * Keyed by feature text to pair with MOBILE_IAP_FEATURES.
+ */
+export const MOBILE_IAP_FEATURE_ICONS: Record<string, Record<string, string>> = {
+  MOBILE: {
+    '10 quick validation cards/month': 'Zap',
+    'AI-powered idea refinement': 'Sparkles',
+    'Voice & text capture': 'Mic',
+  },
+  PRO: {
+    'Everything in Mobile': 'ChevronUp',
+    '5 Spark reports': 'FileText',
+    '3 Light interview reports': 'Users',
+    '1 In-Depth deep dive': 'Search',
+    '10 financial models': 'BarChart3',
+    'Full research pipeline': 'Rocket',
+  },
+  ENTERPRISE: {
+    'Everything in Pro': 'ChevronUp',
+    '10 Spark reports': 'FileText',
+    '5 Light interview reports': 'Users',
+    '2 In-Depth deep dives': 'Search',
+    '50 financial models': 'BarChart3',
+    'Priority support': 'Shield',
+  },
+  SCALE: {
+    'Everything in Enterprise': 'ChevronUp',
+    'Expand pipeline access': 'Rocket',
+    '100 financial models': 'BarChart3',
+    'Adjacency scan & competitor portfolio': 'Monitor',
+    'Demand mining & pricing ceiling': 'TrendingUp',
+    'Opportunity scorecard': 'Award',
+  },
+};
+
 export const MOBILE_IAP_FEATURES: Record<string, string[]> = {
   MOBILE: [
     '10 quick validation cards/month',
