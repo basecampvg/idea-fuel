@@ -16,7 +16,14 @@ import {
   Switch,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as ImagePicker from 'expo-image-picker';
+// expo-image-picker has native code — defer loading to avoid crash if native
+// module isn't in the current dev client build. Same pattern as expo-speech-recognition.
+let ImagePicker: typeof import('expo-image-picker') | null = null;
+try {
+  ImagePicker = require('expo-image-picker');
+} catch {
+  // Native module not available in this build
+}
 import { Mic, Square, ArrowUp, Paperclip } from 'lucide-react-native';
 import { AttachmentPopover } from '../../components/AttachmentPopover';
 import { ThumbnailStrip, type LocalAttachment } from '../../components/ThumbnailStrip';
@@ -148,7 +155,7 @@ export default function CaptureScreen() {
     });
   }, []);
 
-  const processPickerResult = useCallback((result: ImagePicker.ImagePickerResult) => {
+  const processPickerResult = useCallback((result: { canceled: boolean; assets?: Array<{ uri: string; fileName?: string | null; mimeType?: string | null; fileSize?: number | null }> | null }) => {
     if (result.canceled || !result.assets) return;
 
     const remaining = MAX_ATTACHMENTS - attachments.length;
@@ -164,6 +171,10 @@ export default function CaptureScreen() {
 
   const handleCamera = useCallback(async () => {
     setShowPopover(false);
+    if (!ImagePicker) {
+      showToast({ message: 'Image picker not available — rebuild required', type: 'error' });
+      return;
+    }
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
       showToast({ message: 'Camera permission required', type: 'error' });
@@ -178,6 +189,10 @@ export default function CaptureScreen() {
 
   const handlePhotos = useCallback(async () => {
     setShowPopover(false);
+    if (!ImagePicker) {
+      showToast({ message: 'Image picker not available — rebuild required', type: 'error' });
+      return;
+    }
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       showToast({ message: 'Photo library permission required', type: 'error' });
