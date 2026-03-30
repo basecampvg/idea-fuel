@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,11 @@ import {
   TextInput,
   ActivityIndicator,
   StyleSheet,
+  Animated,
+  Platform,
 } from 'react-native';
-import { Lock, LogOut, ChevronRight, Crown } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Lock, LogOut, ChevronRight, Crown, Info } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { trpc } from '../../../lib/trpc';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -40,6 +43,15 @@ export default function SettingsScreen() {
   const [name, setName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [nameFocused, setNameFocused] = useState(false);
+  const glowAnim = useRef(new Animated.Value(0)).current;
+
+  const animateGlow = (toValue: number) => {
+    Animated.timing(glowAnim, {
+      toValue,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  };
 
   const { data: user, isLoading: userLoading } = trpc.user.me.useQuery();
 
@@ -108,112 +120,185 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Profile</Text>
 
-          <View style={styles.card}>
-            {/* Avatar & Info */}
-            <View style={styles.profileRow}>
-              <View style={[styles.avatar, { backgroundColor: colors.brandMuted }]}>
-                <Text style={[styles.avatarText, { color: colors.brand }]}>
-                  {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
-                </Text>
+          <LinearGradient
+            colors={[colors.glassBorderStart, colors.glassBorderEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.gradientBorder}
+          >
+            <View style={styles.card}>
+              {/* Avatar & Info */}
+              <View style={styles.profileRow}>
+                <View style={[styles.avatar, { backgroundColor: colors.brandMuted }]}>
+                  <Text style={[styles.avatarText, { color: colors.brand }]}>
+                    {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+                  </Text>
+                </View>
+                <View style={styles.profileInfo}>
+                  <Text style={styles.profileName}>{user?.name || 'No name set'}</Text>
+                  <Text style={styles.profileEmail}>{user?.email}</Text>
+                </View>
               </View>
-              <View style={styles.profileInfo}>
-                <Text style={styles.profileName}>{user?.name || 'No name set'}</Text>
-                <Text style={styles.profileEmail}>{user?.email}</Text>
+
+              {/* Divider */}
+              <View style={styles.divider} />
+
+              {/* Name Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Display Name</Text>
+                <View style={styles.inputGlowWrapper}>
+                  <Animated.View
+                    pointerEvents="none"
+                    style={[
+                      styles.inputGlowEffect,
+                      {
+                        opacity: glowAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0, 1],
+                        }),
+                      },
+                    ]}
+                  />
+                  <View style={styles.inputWrapper}>
+                    <LinearGradient
+                      colors={['transparent', colors.brand, 'transparent']}
+                      start={{ x: 0, y: 0.5 }}
+                      end={{ x: 1, y: 0.5 }}
+                      style={styles.inputTopGlow}
+                    />
+                    <TextInput
+                      value={name}
+                      onChangeText={setName}
+                      onFocus={() => { setNameFocused(true); animateGlow(1); }}
+                      onBlur={() => { setNameFocused(false); animateGlow(0); }}
+                      placeholder="Your name"
+                      placeholderTextColor={`${colors.muted}80`}
+                      style={[
+                        styles.textInput,
+                        nameFocused && styles.textInputFocused,
+                      ]}
+                    />
+                  </View>
+                </View>
               </View>
-            </View>
 
-            {/* Divider */}
-            <View style={styles.divider} />
-
-            {/* Name Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Display Name</Text>
-              <TextInput
-                value={name}
-                onChangeText={setName}
-                onFocus={() => setNameFocused(true)}
-                onBlur={() => setNameFocused(false)}
-                placeholder="Your name"
-                placeholderTextColor={`${colors.muted}80`}
-                style={[
-                  styles.textInput,
-                  nameFocused && styles.textInputFocused,
-                ]}
-              />
-            </View>
-
-            {/* Email (read-only) */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email</Text>
-              <View style={styles.readOnlyInput}>
-                <Text style={styles.readOnlyText}>{user?.email || ''}</Text>
-                <Lock size={16} color={colors.muted} />
+              {/* Email (read-only) */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Email</Text>
+                <View style={styles.readOnlyInput}>
+                  <Text style={styles.readOnlyText}>{user?.email || ''}</Text>
+                  <Lock size={16} color={colors.muted} />
+                </View>
+                <Text style={styles.helperText}>Email cannot be changed</Text>
               </View>
-              <Text style={styles.helperText}>Email cannot be changed</Text>
-            </View>
 
-            {/* Save Button */}
-            <TouchableOpacity
-              style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
-              onPress={handleUpdateProfile}
-              disabled={isSaving}
-              activeOpacity={0.8}
-            >
-              {isSaving ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.saveButtonText}>Save Changes</Text>
-              )}
-            </TouchableOpacity>
-          </View>
+              {/* Save Button */}
+              <TouchableOpacity
+                style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+                onPress={handleUpdateProfile}
+                disabled={isSaving}
+                activeOpacity={0.8}
+              >
+                {isSaving ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.saveButtonText}>Save Changes</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
         </View>
 
         {/* Subscription Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Subscription</Text>
 
-          <View style={styles.card}>
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => router.push('/(tabs)/settings/plans' as any)}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.menuIconContainer, { backgroundColor: colors.brandMuted }]}>
-                <Crown size={20} color={colors.brand} />
-              </View>
-              <View style={styles.menuContent}>
-                <Text style={styles.menuTitle}>Manage Plan</Text>
-                <View style={styles.planBadgeRow}>
-                  <Badge variant={TIER_BADGE_VARIANT[user?.subscription ?? 'FREE'] || 'default'}>
-                    {TIER_LABELS[user?.subscription ?? 'FREE'] || 'Free'}
-                  </Badge>
+          <LinearGradient
+            colors={[colors.glassBorderStart, colors.glassBorderEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.gradientBorder}
+          >
+            <View style={styles.card}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => router.push('/(tabs)/settings/plans' as any)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.menuIconContainer, { backgroundColor: colors.brandMuted }]}>
+                  <Crown size={20} color={colors.brand} />
                 </View>
-              </View>
-              <ChevronRight size={20} color={colors.muted} />
-            </TouchableOpacity>
-          </View>
+                <View style={styles.menuContent}>
+                  <Text style={styles.menuTitle}>Manage Plan</Text>
+                  <View style={styles.planBadgeRow}>
+                    <Badge variant={TIER_BADGE_VARIANT[user?.subscription ?? 'FREE'] || 'default'}>
+                      {TIER_LABELS[user?.subscription ?? 'FREE'] || 'Free'}
+                    </Badge>
+                  </View>
+                </View>
+                <ChevronRight size={20} color={colors.muted} />
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
         </View>
 
         {/* Account Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
 
-          <View style={styles.card}>
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={handleSignOut}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.menuIconContainer, { backgroundColor: colors.destructiveMuted }]}>
-                <LogOut size={20} color={colors.destructive} />
-              </View>
-              <View style={styles.menuContent}>
-                <Text style={styles.menuTitle}>Sign Out</Text>
-                <Text style={styles.menuSubtitle}>Sign out of your account</Text>
-              </View>
-              <ChevronRight size={20} color={colors.muted} />
-            </TouchableOpacity>
-          </View>
+          <LinearGradient
+            colors={[colors.glassBorderStart, colors.glassBorderEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.gradientBorder}
+          >
+            <View style={styles.card}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={handleSignOut}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.menuIconContainer, { backgroundColor: colors.destructiveMuted }]}>
+                  <LogOut size={20} color={colors.destructive} />
+                </View>
+                <View style={styles.menuContent}>
+                  <Text style={styles.menuTitle}>Sign Out</Text>
+                  <Text style={styles.menuSubtitle}>Sign out of your account</Text>
+                </View>
+                <ChevronRight size={20} color={colors.muted} />
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
+        </View>
+
+
+        {/* About Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Info</Text>
+
+          <LinearGradient
+            colors={[colors.glassBorderStart, colors.glassBorderEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.gradientBorder}
+          >
+            <View style={styles.card}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => router.push('/(tabs)/settings/about' as any)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.menuIconContainer, { backgroundColor: 'rgba(3, 147, 248, 0.15)' }]}>
+                  <Info size={20} color={colors.accent} />
+                </View>
+                <View style={styles.menuContent}>
+                  <Text style={styles.menuTitle}>About</Text>
+                  <Text style={styles.menuSubtitle}>Licenses, app info & links</Text>
+                </View>
+                <ChevronRight size={20} color={colors.muted} />
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
         </View>
 
         {/* Footer */}
@@ -278,12 +363,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     marginLeft: 4,
   },
+  gradientBorder: {
+    borderRadius: 16,
+    padding: 1,
+  },
   card: {
     backgroundColor: colors.card,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: 15,
     padding: 16,
+    overflow: 'hidden',
   },
   profileRow: {
     flexDirection: 'row',
@@ -329,6 +417,42 @@ const styles = StyleSheet.create({
     color: colors.foreground,
     marginBottom: 8,
   },
+  inputGlowWrapper: {
+    position: 'relative',
+  },
+  inputGlowEffect: {
+    position: 'absolute',
+    top: -4,
+    left: -4,
+    right: -4,
+    bottom: -4,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: 'rgba(227, 43, 26, 0.35)',
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.brand,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.6,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
+  },
+  inputWrapper: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  inputTopGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 24,
+    right: 24,
+    height: 2,
+    zIndex: 1,
+  },
   textInput: {
     backgroundColor: colors.surface,
     borderWidth: 1,
@@ -340,7 +464,7 @@ const styles = StyleSheet.create({
     color: colors.foreground,
   },
   textInputFocused: {
-    borderColor: `${colors.brand}50`,
+    borderColor: colors.brandGlow,
   },
   readOnlyInput: {
     flexDirection: 'row',
