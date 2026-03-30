@@ -103,6 +103,7 @@ export const userRouter = router({
       where: eq(users.id, ctx.userId),
       columns: {
         subscription: true,
+        role: true,
       },
     });
 
@@ -116,6 +117,7 @@ export const userRouter = router({
     return {
       tier: user.subscription,
       features: SUBSCRIPTION_FEATURES[user.subscription],
+      isSuperAdmin: user.role === 'SUPER_ADMIN',
     };
   }),
 });

@@ -70,6 +70,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   // Override tier via NEXT_PUBLIC_FORCE_TIER env var for testing (e.g. NEXT_PUBLIC_FORCE_TIER=ENTERPRISE)
   const forceTier = process.env.NEXT_PUBLIC_FORCE_TIER as SubscriptionTier | undefined;
   const tier: SubscriptionTier = forceTier || (subscriptionData?.tier ?? 'FREE');
+  const isSuperAdmin = subscriptionData?.isSuperAdmin ?? false;
   const features: SubscriptionFeatures = SUBSCRIPTION_FEATURES[tier];
 
   // Stripe billing state
@@ -78,20 +79,20 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     : null;
   const isSubscribed = billingData?.isSubscribed ?? false;
 
-  // Check methods using shared helpers
+  // Check methods using shared helpers — SUPER_ADMIN bypasses all limits
   const canAccessMode = useCallback(
-    (mode: InterviewMode) => canAccessInterviewMode(tier, mode),
-    [tier]
+    (mode: InterviewMode) => isSuperAdmin || canAccessInterviewMode(tier, mode),
+    [tier, isSuperAdmin]
   );
 
   const canCreateReportCheck = useCallback(
-    (mode: InterviewMode, currentModeCount: number) => checkCanCreateReport(tier, mode, currentModeCount),
-    [tier]
+    (mode: InterviewMode, currentModeCount: number) => isSuperAdmin || checkCanCreateReport(tier, mode, currentModeCount),
+    [tier, isSuperAdmin]
   );
 
   const canAccessReportTierCheck = useCallback(
-    (reportTier: ReportTier) => checkReportTierAccess(tier, reportTier),
-    [tier]
+    (reportTier: ReportTier) => isSuperAdmin || checkReportTierAccess(tier, reportTier),
+    [tier, isSuperAdmin]
   );
 
   // Modal control methods

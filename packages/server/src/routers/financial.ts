@@ -80,24 +80,27 @@ export const financialRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found' });
       }
 
-      // Enforce model limit per subscription tier
+      // Enforce model limit per subscription tier (SUPER_ADMIN bypasses)
       const user = await ctx.db.query.users.findFirst({
         where: eq(users.id, ctx.userId),
-        columns: { subscription: true },
+        columns: { subscription: true, role: true },
       });
-      const tier = (user?.subscription ?? 'FREE') as keyof typeof SUBSCRIPTION_FEATURES;
-      const limit = SUBSCRIPTION_FEATURES[tier]?.financialModelLimit ?? 1;
 
-      const [{ value: currentCount }] = await ctx.db
-        .select({ value: count() })
-        .from(financialModels)
-        .where(and(eq(financialModels.userId, ctx.userId), ne(financialModels.status, 'ARCHIVED')));
+      if (user?.role !== 'SUPER_ADMIN') {
+        const tier = (user?.subscription ?? 'FREE') as keyof typeof SUBSCRIPTION_FEATURES;
+        const limit = SUBSCRIPTION_FEATURES[tier]?.financialModelLimit ?? 1;
 
-      if (currentCount >= limit) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: `You've reached the limit of ${limit} financial model${limit !== 1 ? 's' : ''} on your ${tier} plan. Upgrade to create more.`,
-        });
+        const [{ value: currentCount }] = await ctx.db
+          .select({ value: count() })
+          .from(financialModels)
+          .where(and(eq(financialModels.userId, ctx.userId), ne(financialModels.status, 'ARCHIVED')));
+
+        if (currentCount >= limit) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: `You've reached the limit of ${limit} financial model${limit !== 1 ? 's' : ''} on your ${tier} plan. Upgrade to create more.`,
+          });
+        }
       }
 
       // Resolve template if provided

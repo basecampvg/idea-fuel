@@ -22,7 +22,7 @@ import {
   deleteNoteSchema,
   NOTE_REFINE_MIN_CHARS,
 } from '@forge/shared';
-import { notes, projects } from '../db/schema';
+import { notes, projects, users } from '../db/schema';
 import { refineNote } from '../services/note-ai';
 
 export const noteRouter = router({
@@ -150,9 +150,13 @@ export const noteRouter = router({
         });
       }
 
-      // Enforce 60-second cooldown between refinements
+      // Enforce 60-second cooldown between refinements (SUPER_ADMIN bypasses)
       const REFINE_COOLDOWN_MS = 60_000;
-      if (note.lastRefinedAt) {
+      const caller = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.userId),
+        columns: { role: true },
+      });
+      if (caller?.role !== 'SUPER_ADMIN' && note.lastRefinedAt) {
         const elapsed = Date.now() - new Date(note.lastRefinedAt).getTime();
         if (elapsed < REFINE_COOLDOWN_MS) {
           const retryAfter = Math.ceil((REFINE_COOLDOWN_MS - elapsed) / 1000);

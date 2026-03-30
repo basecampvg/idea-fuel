@@ -113,6 +113,7 @@ export const sparkCardRouter = router({
               freeCardUsed: true,
               mobileCardCount: true,
               mobileCardResetAt: true,
+              role: true,
             },
           });
 
@@ -121,6 +122,15 @@ export const sparkCardRouter = router({
           }
 
           const { freeCardUsed, mobileCardCount, mobileCardResetAt } = user;
+
+          // SUPER_ADMIN bypasses card limits entirely
+          if (user.role === 'SUPER_ADMIN') {
+            return {
+              type: 'paid' as const,
+              previousFreeCardUsed: freeCardUsed,
+              previousMobileCardCount: mobileCardCount,
+            };
+          }
 
           // State A: Free card available
           if (!freeCardUsed) {
