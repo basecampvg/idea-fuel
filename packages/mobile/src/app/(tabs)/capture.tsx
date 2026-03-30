@@ -35,6 +35,8 @@ import { IdeaFuelLogo } from '../../components/IdeaFuelLogo';
 import { SloganSVG } from '../../components/SloganSVG';
 import { OrbAnimation, type OrbState } from '../../components/OrbAnimation';
 import { colors, fonts } from '../../lib/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { WelcomeSheet } from '../../components/ui/WelcomeSheet';
 
 // Defer loading expo-speech-recognition until after the initial Fabric mount
 // transaction completes. Loading it eagerly at module level triggers TurboModule
@@ -79,10 +81,26 @@ export default function CaptureScreen() {
   const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
   const [showPopover, setShowPopover] = useState(false);
   const [aiConsent, setAiConsent] = useState(false);
-  const [popoverAnchorY, setPopoverAnchorY] = useState(0);
+  const [popoverAnchorY, setPopoverAnchorY] = useState(200);
   const inputBarRef = useRef<View>(null);
 
   const MAX_ATTACHMENTS = 5;
+
+  // Welcome sheet — first launch only
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem('ideafuel_has_seen_welcome').then((value) => {
+      if (value === null) {
+        setTimeout(() => setShowWelcome(true), 300);
+      }
+    });
+  }, []);
+
+  const handleDismissWelcome = useCallback(() => {
+    setShowWelcome(false);
+    AsyncStorage.setItem('ideafuel_has_seen_welcome', 'true');
+  }, []);
 
   // Orb state: idle → listening (mic on, waiting) → talking (speech detected)
   const orbState: OrbState = isListening ? (isSpeaking ? 'talking' : 'listening') : null;
@@ -148,11 +166,14 @@ export default function CaptureScreen() {
     return () => handle.cancel();
   }, []);
 
-  const handleOpenPopover = useCallback(() => {
+  const handleInputBarLayout = useCallback(() => {
     inputBarRef.current?.measureInWindow((_x, y, _w, _h) => {
-      setPopoverAnchorY(y > 0 ? y : 200);
-      setShowPopover(true);
+      if (y > 0) setPopoverAnchorY(y);
     });
+  }, []);
+
+  const handleOpenPopover = useCallback(() => {
+    setShowPopover(true);
   }, []);
 
   const processPickerResult = useCallback((result: { canceled: boolean; assets?: Array<{ uri: string; fileName?: string | null; mimeType?: string | null; fileSize?: number | null }> | null }) => {
@@ -169,8 +190,18 @@ export default function CaptureScreen() {
     setAttachments((prev) => [...prev, ...newImages]);
   }, [attachments.length]);
 
+  // Wait for the popover Modal to fully dismiss before presenting
+  // native picker UI. UIImagePickerController (camera) crashes if
+  // presented while a Modal is still animating out.
+  const afterPopoverDismiss = useCallback(
+    (fn: () => void) => {
+      setShowPopover(false);
+      setTimeout(fn, 400);
+    },
+    [],
+  );
+
   const handleCamera = useCallback(async () => {
-    setShowPopover(false);
     if (!ImagePicker) {
       showToast({ message: 'Image picker not available — rebuild required', type: 'error' });
       return;
@@ -188,7 +219,6 @@ export default function CaptureScreen() {
   }, [showToast, processPickerResult]);
 
   const handlePhotos = useCallback(async () => {
-    setShowPopover(false);
     if (!ImagePicker) {
       showToast({ message: 'Image picker not available — rebuild required', type: 'error' });
       return;
@@ -394,7 +424,7 @@ export default function CaptureScreen() {
 
           {/* ── Bottom: Input bar ── */}
           <View style={styles.inputBarWrapper}>
-            <View ref={inputBarRef} style={[
+            <View ref={inputBarRef} onLayout={handleInputBarLayout} style={[
               styles.inputBar,
               (inputFocused || isListening) && styles.inputBarActive,
             ]}>
@@ -500,10 +530,11 @@ export default function CaptureScreen() {
       <AttachmentPopover
         visible={showPopover}
         onClose={() => setShowPopover(false)}
-        onCamera={handleCamera}
-        onPhotos={handlePhotos}
+        onCamera={() => afterPopoverDismiss(handleCamera)}
+        onPhotos={() => afterPopoverDismiss(handlePhotos)}
         anchorY={popoverAnchorY}
       />
+      {showWelcome && <WelcomeSheet onDismiss={handleDismissWelcome} />}
     </View>
   );
 }
