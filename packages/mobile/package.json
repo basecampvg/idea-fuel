@@ -33,6 +33,7 @@
     "@trpc/react-query": "^11.0.0-rc.682",
     "expo": "~55.0.9",
     "expo-auth-session": "~55.0.10",
+    "expo-blur": "~55.0.10",
     "expo-build-properties": "~55.0.10",
     "expo-constants": "~55.0.9",
     "expo-crypto": "~55.0.10",
