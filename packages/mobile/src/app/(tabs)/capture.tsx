@@ -14,7 +14,7 @@ import {
   InteractionManager,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Mic, Square, ArrowUp } from 'lucide-react-native';
+import { Mic, Square, ArrowUp, Paperclip } from 'lucide-react-native';
 import { triggerHaptic } from '../../components/ui/Button';
 import { trpc } from '../../lib/trpc';
 import { useToast } from '../../contexts/ToastContext';
@@ -67,16 +67,7 @@ export default function CaptureScreen() {
   // Orb state: idle → listening (mic on, waiting) → talking (speech detected)
   const orbState: OrbState = isListening ? (isSpeaking ? 'talking' : 'listening') : null;
 
-  const shouldHideLogo = ideaText.length > 0 || isListening;
-  const logoFade = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    Animated.timing(logoFade, {
-      toValue: shouldHideLogo ? 0 : 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [shouldHideLogo]); // eslint-disable-line react-hooks/exhaustive-deps
+  const showLogo = !inputFocused && ideaText.length === 0 && !isListening;
 
   // Pulse animation for mic button when listening
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -248,16 +239,13 @@ export default function CaptureScreen() {
               </View>
             )}
 
-            {!isListening && (
-              <Animated.View
-                pointerEvents={shouldHideLogo ? 'none' : 'auto'}
-                style={[styles.logoArea, { opacity: logoFade }]}
-              >
+            {showLogo && (
+              <View style={styles.logoArea}>
                 <IdeaFuelLogo size={120} />
                 <View style={{ marginTop: 24 }}>
                   <SloganSVG width={260} />
                 </View>
-              </Animated.View>
+              </View>
             )}
 
           </View>
@@ -268,13 +256,15 @@ export default function CaptureScreen() {
               styles.inputBar,
               (inputFocused || isListening) && styles.inputBarActive,
             ]}>
-              {/* Orange glow on the top stroke — flat, doesn't wrap corners */}
+              {/* Orange glow on the top stroke */}
               <LinearGradient
                 colors={['transparent', colors.brand, 'transparent']}
                 start={{ x: 0, y: 0.5 }}
                 end={{ x: 1, y: 0.5 }}
                 style={styles.inputBarTopGlow}
               />
+
+              {/* Row 1: Text input */}
               <TextInput
                 ref={inputRef}
                 style={styles.inputField}
@@ -287,43 +277,58 @@ export default function CaptureScreen() {
                 multiline
                 maxLength={500}
               />
-              <View style={styles.inputActions}>
-                {canCapture && (
+
+              {/* Row 2: Action buttons */}
+              <View style={styles.inputActionsRow}>
+                {/* Left: Paperclip */}
+                <View style={styles.inputActionsLeft}>
                   <TouchableOpacity
-                    style={styles.sendButton}
-                    onPress={handleCapture}
+                    style={styles.paperclipButton}
                     activeOpacity={0.7}
                   >
-                    {isSubmitting ? (
-                      <ActivityIndicator size="small" color="#fff" />
+                    <Paperclip size={18} color={colors.muted} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Right: Mic + Send */}
+                <View style={styles.inputActionsRight}>
+                  {canCapture && (
+                    <TouchableOpacity
+                      style={styles.sendButton}
+                      onPress={handleCapture}
+                      activeOpacity={0.7}
+                    >
+                      {isSubmitting ? (
+                        <ActivityIndicator size="small" color="#fff" />
+                      ) : (
+                        <ArrowUp size={18} color="#fff" strokeWidth={2.5} />
+                      )}
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity
+                    style={[
+                      styles.micButton,
+                      isListening && styles.micButtonActive,
+                    ]}
+                    onPress={toggleListening}
+                    activeOpacity={0.7}
+                  >
+                    <Animated.View
+                      style={[
+                        styles.micPulseRing,
+                        {
+                          transform: [{ scale: pulseAnim }],
+                          opacity: pulseOpacity,
+                        },
+                      ]}
+                    />
+                    {isListening ? (
+                      <Square size={14} color="#fff" fill="#fff" />
                     ) : (
-                      <ArrowUp size={18} color="#fff" strokeWidth={2.5} />
+                      <Mic size={18} color={colors.brand} />
                     )}
                   </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                  style={[
-                    styles.micButton,
-                    isListening && styles.micButtonActive,
-                  ]}
-                  onPress={toggleListening}
-                  activeOpacity={0.7}
-                >
-                  <Animated.View
-                    style={[
-                      styles.micPulseRing,
-                      {
-                        transform: [{ scale: pulseAnim }],
-                        opacity: pulseOpacity,
-                      },
-                    ]}
-                  />
-                  {isListening ? (
-                    <Square size={14} color="#fff" fill="#fff" />
-                  ) : (
-                    <Mic size={18} color={colors.brand} />
-                  )}
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>
@@ -428,20 +433,35 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   inputBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
     backgroundColor: colors.card,
     borderRadius: 24,
     borderWidth: 1,
     borderColor: colors.border,
-    paddingLeft: 18,
-    paddingRight: 8,
-    paddingVertical: 8,
-    minHeight: 52,
-    overflow: 'hidden',
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 10,
+    // Shadow always present (invisible) to avoid compositing change on focus
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.brand,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0,
+        shadowRadius: 16,
+      },
+      android: {},
+    }),
   },
   inputBarActive: {
-    borderColor: '#333333',
+    borderColor: colors.brandGlow,
+    ...Platform.select({
+      ios: {
+        shadowOpacity: 0.7,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   inputBarTopGlow: {
     position: 'absolute',
@@ -451,20 +471,36 @@ const styles = StyleSheet.create({
     height: 2,
   },
   inputField: {
-    flex: 1,
     fontSize: 16,
     ...fonts.geist.regular,
     color: colors.foreground,
     lineHeight: 22,
     maxHeight: 120,
     paddingVertical: 0,
-    paddingRight: 8,
+    paddingBottom: 10,
   },
-  inputActions: {
+  inputActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  inputActionsLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingBottom: 2,
+  },
+  inputActionsRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  paperclipButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sendButton: {
     width: 34,
