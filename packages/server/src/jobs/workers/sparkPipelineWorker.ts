@@ -1,12 +1,13 @@
 import { Worker, Job } from 'bullmq';
 import { createRedisConnection } from '../../lib/redis';
 import { db } from '../../db/drizzle';
-import { eq } from 'drizzle-orm';
-import { research, projects } from '../../db/schema';
+import { eq, and } from 'drizzle-orm';
+import { research, projects, projectAttachments } from '../../db/schema';
 import { QUEUE_NAMES, SparkPipelineJobData } from '../queues';
 import { SPARK_STATUS_PROGRESS } from '@forge/shared';
 import type { SparkJobStatus } from '@forge/shared';
 import { runSparkPipeline } from '../../services/spark-ai';
+import { supabase, ATTACHMENT_BUCKET } from '../../lib/supabase';
 
 /**
  * Spark Pipeline Worker
@@ -22,9 +23,42 @@ export function createSparkPipelineWorker() {
       console.log(`[SparkWorker] Processing Spark for research ${researchId} (engine: ${engine || 'OPENAI'})`);
       const startTime = Date.now();
 
+      // Fetch consented image attachments
+      let imageBase64s: Array<{ base64: string; mimeType: string }> | undefined;
+      if (supabase) {
+        const consentedAttachments = await db.query.projectAttachments.findMany({
+          where: and(
+            eq(projectAttachments.projectId, projectId),
+            eq(projectAttachments.aiConsent, true),
+          ),
+          orderBy: (t, { asc }) => [asc(t.order)],
+        });
+
+        if (consentedAttachments.length > 0) {
+          console.log(`[SparkWorker] Found ${consentedAttachments.length} consented image(s) for project ${projectId}`);
+          const images: Array<{ base64: string; mimeType: string }> = [];
+          for (const att of consentedAttachments) {
+            const { data, error } = await supabase.storage
+              .from(ATTACHMENT_BUCKET)
+              .download(att.storagePath);
+            if (!error && data) {
+              const buffer = Buffer.from(await data.arrayBuffer());
+              images.push({
+                base64: buffer.toString('base64'),
+                mimeType: att.mimeType,
+              });
+            }
+          }
+          if (images.length > 0) {
+            imageBase64s = images;
+          }
+        }
+      }
+
       try {
         const result = await runSparkPipeline(description, {
           engine,
+          imageBase64s,
           onStatusChange: async (status: SparkJobStatus) => {
             // Check for user-initiated cancellation (not pipeline errors)
             const current = await db.query.research.findFirst({

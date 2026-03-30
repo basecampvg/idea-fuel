@@ -505,6 +505,7 @@ export interface SparkPipelineOptions {
   includeTrends?: boolean;
   useParallelPipeline?: boolean;
   engine?: 'OPENAI' | 'PERPLEXITY';
+  imageBase64s?: Array<{ base64: string; mimeType: string }>;
 }
 
 /**
@@ -523,7 +524,12 @@ export async function runSparkPipeline(
     includeTrends = true,
     useParallelPipeline = USE_PARALLEL_PIPELINE,
     engine,
+    imageBase64s,
   } = options;
+
+  const descriptionWithImages = imageBase64s && imageBase64s.length > 0
+    ? `${ideaDescription}\n\n[The user attached ${imageBase64s.length} image(s) providing visual context for their idea.]`
+    : ideaDescription;
 
   // Use legacy pipeline if parallel is disabled
   if (!useParallelPipeline) {
@@ -537,7 +543,7 @@ export async function runSparkPipeline(
   // Call 1: Generate keywords (now includes LLM-generated expanded queries)
   // =========================================================================
   await onStatusChange?.('RUNNING_KEYWORDS');
-  const keywords = await generateSparkKeywords(ideaDescription, engine);
+  const keywords = await generateSparkKeywords(descriptionWithImages, engine);
 
   // =========================================================================
   // Step 1.5: Query expansion (templates + SerpAPI rising queries)
@@ -573,9 +579,9 @@ export async function runSparkPipeline(
   };
 
   const [demandSettled, tamSettled, competitorSettled] = await Promise.allSettled([
-    staggeredCall(() => runDemandResearch(ideaDescription, keywords, expansionPromptSection, { engine }), 0),
-    staggeredCall(() => runTamResearch(ideaDescription, keywords, expansionPromptSection, { engine }), 1),
-    staggeredCall(() => runCompetitorResearch(ideaDescription, keywords, expansionPromptSection, { engine }), 2),
+    staggeredCall(() => runDemandResearch(descriptionWithImages, keywords, expansionPromptSection, { engine }), 0),
+    staggeredCall(() => runTamResearch(descriptionWithImages, keywords, expansionPromptSection, { engine }), 1),
+    staggeredCall(() => runCompetitorResearch(descriptionWithImages, keywords, expansionPromptSection, { engine }), 2),
   ]);
 
   // Extract results with graceful degradation
@@ -605,7 +611,7 @@ export async function runSparkPipeline(
   // =========================================================================
   await onStatusChange?.('SYNTHESIZING');
   const result = await synthesizeSparkResults(
-    ideaDescription,
+    descriptionWithImages,
     keywords,
     demandResult,
     tamResult,
