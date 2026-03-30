@@ -48,6 +48,12 @@ export default function SettingsStackLayout() {
           title: 'Manage Plan',
         }}
       />
+      <Stack.Screen
+        name="about"
+        options={{
+          title: 'About',
+        }}
+      />
     </Stack>
   );
 }
