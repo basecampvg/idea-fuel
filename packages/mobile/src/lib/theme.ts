@@ -77,6 +77,7 @@ export const fonts = {
     medium:   token(sf, '500'),
     semiBold: token(sf, '600'),
     bold:     token(sf, '700'),
+    black:    token('Outfit-Black', '900'),
   },
   geist: {
     regular:  token(sf, '400'),

@@ -35,16 +35,18 @@ export default function SplashScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text style={{
             fontSize: 24,
-            fontWeight: '700',
-            letterSpacing: 4,
+            fontFamily: 'Outfit-Black',
+            fontWeight: '900',
+            letterSpacing: 3,
             color: '#BCBCBC',
           }}>
             IDEA{' '}
           </Text>
           <Text style={{
             fontSize: 24,
-            fontWeight: '700',
-            letterSpacing: 4,
+            fontFamily: 'Outfit-Black',
+            fontWeight: '900',
+            letterSpacing: 3,
             color: '#E32B1A',
           }}>
             FUEL

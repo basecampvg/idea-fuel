@@ -1,9 +1,10 @@
 import { createTRPCReact } from '@trpc/react-query';
-import { httpBatchLink } from '@trpc/client';
+import { httpBatchLink, loggerLink } from '@trpc/client';
 import superjson from 'superjson';
 import { QueryClient } from '@tanstack/react-query';
 import { API_URL } from './constants';
 import { secureStorage } from './storage';
+import { logger } from './logger';
 
 // Import AppRouter type from server package
 // Note: This type is shared via workspace
@@ -20,6 +21,17 @@ export const trpc = createTRPCReact<AppRouter>();
 export function createTRPCClient() {
   return trpc.createClient({
     links: [
+      loggerLink({
+        enabled: () => true,
+        logger: (opts) => {
+          if (opts.direction === 'down' && opts.result instanceof Error) {
+            logger.error('trpc', `${opts.type} ${opts.path}: ${opts.result.message}`, {
+              path: opts.path,
+              type: opts.type,
+            });
+          }
+        },
+      }),
       httpBatchLink({
         url: `${API_URL}/api/trpc`,
         transformer: superjson,

@@ -367,12 +367,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   gradientBorder: {
-    borderRadius: 16,
+    borderRadius: 24,
     padding: 1,
   },
   card: {
     backgroundColor: colors.card,
-    borderRadius: 15,
+    borderRadius: 23,
     overflow: 'hidden',
   },
   cardTop: {

@@ -120,12 +120,12 @@ export { TIER_COLORS };
 
 const styles = StyleSheet.create({
   gradientBorder: {
-    borderRadius: 20,
+    borderRadius: 24,
     padding: 1,
   },
   card: {
     backgroundColor: colors.card,
-    borderRadius: 19,
+    borderRadius: 23,
     padding: 24,
     gap: 4,
     overflow: 'hidden',

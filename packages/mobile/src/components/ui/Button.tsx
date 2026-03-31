@@ -9,6 +9,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 
 import { colors as theme, fonts } from '../../lib/theme';
@@ -54,13 +55,15 @@ interface VariantStyle {
   container: ViewStyle;
   text: TextStyle;
   loader: string;
+  gradient?: boolean;
 }
 
 const variantStyles: Record<ButtonVariant, VariantStyle> = {
   primary: {
-    container: { backgroundColor: colors.primary },
+    container: { backgroundColor: 'transparent' },
     text: { color: '#FFFFFF' },
     loader: '#FFFFFF',
+    gradient: true,
   },
   secondary: {
     container: { backgroundColor: colors.secondary },
@@ -170,6 +173,45 @@ export function Button({
     onPress?.(event);
   };
 
+  const buttonContent = isLoading ? (
+    <ActivityIndicator size="small" color={variantStyle.loader} />
+  ) : (
+    <>
+      {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
+      {children && (
+        <Text style={[styles.text, sizeStyle.text, variantStyle.text]}>
+          {children}
+        </Text>
+      )}
+      {rightIcon && <View style={styles.rightIcon}>{rightIcon}</View>}
+    </>
+  );
+
+  if (variantStyle.gradient) {
+    return (
+      <LinearGradient
+        colors={['#DB4D40', '#E32B1A']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[
+          sizeStyle.container,
+          isDisabled && styles.disabled,
+          style,
+        ]}
+      >
+        <TouchableOpacity
+          disabled={isDisabled}
+          onPress={handlePress}
+          style={styles.base}
+          activeOpacity={0.7}
+          {...props}
+        >
+          {buttonContent}
+        </TouchableOpacity>
+      </LinearGradient>
+    );
+  }
+
   return (
     <TouchableOpacity
       disabled={isDisabled}
@@ -184,19 +226,7 @@ export function Button({
       activeOpacity={0.7}
       {...props}
     >
-      {isLoading ? (
-        <ActivityIndicator size="small" color={variantStyle.loader} />
-      ) : (
-        <>
-          {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
-          {children && (
-            <Text style={[styles.text, sizeStyle.text, variantStyle.text]}>
-              {children}
-            </Text>
-          )}
-          {rightIcon && <View style={styles.rightIcon}>{rightIcon}</View>}
-        </>
-      )}
+      {buttonContent}
     </TouchableOpacity>
   );
 }

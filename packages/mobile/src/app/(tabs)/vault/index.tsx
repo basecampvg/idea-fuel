@@ -218,10 +218,7 @@ export default function VaultScreen() {
           style={styles.gradientBorder}
         >
           <TouchableOpacity
-            style={[
-              styles.card,
-              hasResult && meta.accentColor && { borderLeftWidth: 3, borderLeftColor: meta.accentColor },
-            ]}
+            style={styles.card}
             onPress={() => router.push(
               hasResult
                 ? `/(tabs)/vault/${item.id}/card` as any
@@ -234,12 +231,22 @@ export default function VaultScreen() {
             activeOpacity={0.7}
             delayLongPress={400}
           >
-          {/* Subtle radial glow based on verdict */}
+          {/* Stroke gradient at top — matches card accent color */}
+          {hasResult && meta.accentColor && (
+            <LinearGradient
+              colors={['transparent', meta.accentColor, 'transparent']}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={styles.cardTopGlow}
+            />
+          )}
+
+          {/* Subtle glow from top based on verdict */}
           {hasResult && meta.accentColor && (
             <LinearGradient
               colors={[`${meta.accentColor}18`, `${meta.accentColor}08`, 'transparent']}
-              start={{ x: 0, y: 0.5 }}
-              end={{ x: 0.7, y: 0.5 }}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 0.7 }}
               style={StyleSheet.absoluteFill}
             />
           )}
@@ -547,13 +554,21 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   gradientBorder: {
-    borderRadius: 16,
+    borderRadius: 24,
     padding: 1,
   },
   card: {
     backgroundColor: colors.card,
-    borderRadius: 15,
+    borderRadius: 23,
     overflow: 'hidden',
+  },
+  cardTopGlow: {
+    position: 'absolute',
+    top: -1,
+    left: 24,
+    right: 24,
+    height: 2,
+    zIndex: 1,
   },
   cardTop: {
     flexDirection: 'row',

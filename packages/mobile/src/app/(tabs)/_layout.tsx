@@ -179,14 +179,14 @@ const headerStyles = StyleSheet.create({
   },
   wordmarkIdea: {
     fontSize: 14,
-    ...fonts.outfit.semiBold,
-    letterSpacing: 4,
+    ...fonts.outfit.black,
+    letterSpacing: 3,
     color: '#BCBCBC',
   },
   wordmarkFuel: {
     fontSize: 14,
-    ...fonts.outfit.semiBold,
-    letterSpacing: 4,
+    ...fonts.outfit.black,
+    letterSpacing: 3,
     color: colors.brand,
   },
 });

@@ -101,12 +101,12 @@ export function CardFooter({ children, style, ...props }: CardFooterProps) {
 
 const styles = StyleSheet.create({
   gradientBorder: {
-    borderRadius: 20,
+    borderRadius: 24,
     padding: 1,
   },
   cardInner: {
     backgroundColor: colors.card,
-    borderRadius: 19,
+    borderRadius: 23,
     overflow: 'hidden',
   },
   cardHeader: {

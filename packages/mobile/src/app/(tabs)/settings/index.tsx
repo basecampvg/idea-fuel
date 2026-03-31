@@ -364,12 +364,12 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   gradientBorder: {
-    borderRadius: 16,
+    borderRadius: 24,
     padding: 1,
   },
   card: {
     backgroundColor: colors.card,
-    borderRadius: 15,
+    borderRadius: 23,
     padding: 16,
     overflow: 'hidden',
   },

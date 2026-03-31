@@ -1,10 +1,10 @@
-import React, { useRef, useCallback, useEffect } from 'react';
+import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { View, FlatList, Dimensions, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  useAnimatedScrollHandler,
   interpolate,
+  withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
 import { triggerHaptic } from './Button';
@@ -31,15 +31,16 @@ export function PlanPager<T>({
   initialIndex = 0,
   onActiveIndexChange,
 }: PlanPagerProps<T>) {
-  const scrollX = useSharedValue(0);
+  const scrollX = useSharedValue(initialIndex * SNAP_INTERVAL);
   const activeIndex = useRef(initialIndex);
   const flatListRef = useRef<FlatList>(null);
 
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollX.value = event.contentOffset.x;
+  const handleScroll = useCallback(
+    (event: any) => {
+      scrollX.value = event.nativeEvent.contentOffset.x;
     },
-  });
+    [],
+  );
 
   // Pre-scroll to initial index on mount
   useEffect(() => {
@@ -78,7 +79,7 @@ export function PlanPager<T>({
 
   return (
     <View style={styles.container}>
-      <Animated.FlatList
+      <FlatList
         ref={flatListRef}
         data={data}
         renderItem={renderFlatListItem}
@@ -92,7 +93,7 @@ export function PlanPager<T>({
           paddingHorizontal: HORIZONTAL_PADDING,
           gap: CARD_GAP,
         }}
-        onScroll={scrollHandler}
+        onScroll={handleScroll}
         onMomentumScrollEnd={handleMomentumEnd}
         scrollEventThrottle={16}
         getItemLayout={(_, index) => ({
@@ -102,7 +103,7 @@ export function PlanPager<T>({
         })}
       />
 
-      {/* Dot Indicators */}
+      {/* Dot indicators */}
       <View style={styles.dotsContainer}>
         {data.map((_, index) => (
           <DotIndicator

@@ -87,13 +87,13 @@ export function CollapsibleSection({
 
 const styles = StyleSheet.create({
   gradientBorder: {
-    borderRadius: 16,
+    borderRadius: 24,
     padding: 1,
     marginBottom: 12,
   },
   container: {
     backgroundColor: colors.card,
-    borderRadius: 15,
+    borderRadius: 23,
     overflow: 'hidden',
   },
   header: {

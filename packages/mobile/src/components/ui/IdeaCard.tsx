@@ -115,12 +115,12 @@ export function IdeaCard({
 
 const styles = StyleSheet.create({
   gradientBorder: {
-    borderRadius: 16,
+    borderRadius: 24,
     padding: 1,
   },
   container: {
     backgroundColor: colors.card,
-    borderRadius: 15,
+    borderRadius: 23,
     padding: 16,
     gap: 12,
     overflow: 'hidden',

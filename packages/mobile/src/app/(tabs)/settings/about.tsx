@@ -8,11 +8,16 @@ import {
   Linking,
   StyleSheet,
   Platform,
+  Alert,
+  Share,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, ExternalLink, X } from 'lucide-react-native';
+import { Search, ExternalLink, X, Trash2, Activity, Send, AlertTriangle } from 'lucide-react-native';
 import Constants from 'expo-constants';
+import { useQueryClient } from '@tanstack/react-query';
 import { colors, fonts } from '../../../lib/theme';
+import { API_URL } from '../../../lib/constants';
+import { logger } from '../../../lib/logger';
 import licensesData from '../../../data/licenses.json';
 
 interface LicenseEntry {
@@ -28,6 +33,68 @@ const licenses: LicenseEntry[] = licensesData as LicenseEntry[];
 export default function AboutScreen() {
   const [search, setSearch] = useState('');
   const [expandedPkg, setExpandedPkg] = useState<string | null>(null);
+  const [pingMs, setPingMs] = useState<number | null>(null);
+  const [isPinging, setIsPinging] = useState(false);
+  const queryClient = useQueryClient();
+
+  const [showLogs, setShowLogs] = useState(false);
+  const [logRefresh, setLogRefresh] = useState(0);
+
+  const errorCount = logger.errorCount;
+  const logCount = logger.count;
+
+  const handleClearCache = useCallback(() => {
+    Alert.alert('Clear Cache', 'This will clear cached data and diagnostic logs. You may need to reload some screens.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Clear',
+        style: 'destructive',
+        onPress: () => {
+          queryClient.clear();
+          logger.clear();
+          setLogRefresh((n) => n + 1);
+          Alert.alert('Done', 'Cache and logs cleared.');
+        },
+      },
+    ]);
+  }, [queryClient]);
+
+  const handleNetworkDiagnostics = useCallback(async () => {
+    setIsPinging(true);
+    logger.info('diagnostics', 'Network ping started');
+    try {
+      const start = performance.now();
+      await fetch(`${API_URL}/api/trpc`, { method: 'HEAD' });
+      const elapsed = performance.now() - start;
+      const ms = Math.round(elapsed * 10) / 10;
+      setPingMs(ms);
+      logger.info('diagnostics', `Network ping: ${ms}ms`);
+    } catch (err: any) {
+      setPingMs(-1);
+      logger.error('diagnostics', `Network ping failed: ${err?.message ?? 'unknown'}`);
+    } finally {
+      setIsPinging(false);
+      setLogRefresh((n) => n + 1);
+    }
+  }, []);
+
+  const handleShareLogs = useCallback(async () => {
+    const header = [
+      `── IdeaFuel Diagnostics ──`,
+      `Version: ${Constants.expoConfig?.version ?? '?'} (${Platform.OS === 'ios' ? Constants.expoConfig?.ios?.buildNumber : Constants.expoConfig?.android?.versionCode})`,
+      `Platform: ${Platform.OS} ${Platform.Version}`,
+      `Expo SDK: ${Constants.expoConfig?.sdkVersion ?? '?'}`,
+      `API: ${API_URL}`,
+      `Latency: ${pingMs !== null ? (pingMs === -1 ? 'unreachable' : `${pingMs}ms`) : 'not tested'}`,
+      `Log entries: ${logCount} (${errorCount} errors)`,
+      `Exported: ${new Date().toISOString()}`,
+      '',
+      '── Recent Logs ──',
+      logger.formatForShare(),
+    ].join('\n');
+
+    await Share.share({ message: header, title: 'IdeaFuel Diagnostics' });
+  }, [pingMs, logCount, errorCount]);
 
   const filteredLicenses = useMemo(() => {
     if (!search.trim()) return licenses;
@@ -149,6 +216,114 @@ export default function AboutScreen() {
           </LinearGradient>
         </View>
 
+        {/* Storage & Data Section */}
+        <View style={styles.linksSection}>
+          <Text style={styles.sectionTitle}>Storage & Data</Text>
+          <LinearGradient
+            colors={[colors.glassBorderStart, colors.glassBorderEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.gradientBorder}
+          >
+            <View style={styles.linksCard}>
+              <TouchableOpacity
+                style={styles.linkRow}
+                onPress={handleClearCache}
+                activeOpacity={0.7}
+              >
+                <View style={styles.diagnosticRow}>
+                  <Trash2 size={18} color={colors.muted} />
+                  <Text style={styles.linkText}>Cache</Text>
+                </View>
+                <Text style={styles.diagnosticValue}>Clear</Text>
+              </TouchableOpacity>
+              <View style={styles.linkDivider} />
+              <TouchableOpacity
+                style={styles.linkRow}
+                onPress={handleShareLogs}
+                activeOpacity={0.7}
+              >
+                <View style={styles.diagnosticRow}>
+                  <Send size={18} color={colors.muted} />
+                  <Text style={styles.linkText}>Share diagnostic logs</Text>
+                </View>
+                <ExternalLink size={16} color={colors.muted} />
+              </TouchableOpacity>
+              <View style={styles.linkDivider} />
+              <TouchableOpacity
+                style={styles.linkRow}
+                onPress={handleNetworkDiagnostics}
+                activeOpacity={0.7}
+              >
+                <View style={styles.diagnosticRow}>
+                  <Activity size={18} color={colors.muted} />
+                  <Text style={styles.linkText}>Network Diagnostics</Text>
+                </View>
+                <Text style={[
+                  styles.diagnosticValue,
+                  pingMs !== null && pingMs !== -1 && pingMs < 200 && { color: colors.success },
+                  pingMs !== null && pingMs !== -1 && pingMs >= 200 && { color: colors.warning },
+                  pingMs === -1 && { color: colors.destructive },
+                ]}>
+                  {isPinging ? 'Testing...' : pingMs === null ? 'Tap to test' : pingMs === -1 ? 'Unreachable' : `${pingMs}ms`}
+                </Text>
+              </TouchableOpacity>
+              <View style={styles.linkDivider} />
+              <TouchableOpacity
+                style={styles.linkRow}
+                onPress={() => { setLogRefresh((n) => n + 1); setShowLogs((v) => !v); }}
+                activeOpacity={0.7}
+              >
+                <View style={styles.diagnosticRow}>
+                  <AlertTriangle size={18} color={errorCount > 0 ? colors.warning : colors.muted} />
+                  <Text style={styles.linkText}>Error Log</Text>
+                </View>
+                <View style={styles.diagnosticRow}>
+                  {errorCount > 0 && (
+                    <View style={styles.errorBadge}>
+                      <Text style={styles.errorBadgeText}>{errorCount}</Text>
+                    </View>
+                  )}
+                  <Text style={styles.diagnosticValue}>{showLogs ? 'Hide' : 'View'}</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
+
+          {/* Inline log viewer */}
+          {showLogs && (
+            <View style={styles.logViewer}>
+              {logger.getErrors().length === 0 ? (
+                <Text style={styles.logEmpty}>No errors recorded</Text>
+              ) : (
+                logger.getErrors().slice(-50).reverse().map((entry, i) => (
+                  <View key={`${entry.timestamp}-${i}`} style={styles.logEntry}>
+                    <View style={styles.logEntryHeader}>
+                      <Text style={[
+                        styles.logLevel,
+                        entry.level === 'fatal' && { color: colors.destructive },
+                        entry.level === 'error' && { color: colors.warning },
+                      ]}>
+                        {entry.level.toUpperCase()}
+                      </Text>
+                      <Text style={styles.logTimestamp}>
+                        {entry.timestamp.slice(0, 16).replace('T', ' ')}
+                      </Text>
+                    </View>
+                    <Text style={styles.logCategory}>{entry.category}</Text>
+                    <Text style={styles.logMessage} numberOfLines={3}>{entry.message}</Text>
+                    {entry.meta?.stack && (
+                      <Text style={styles.logStack} numberOfLines={3}>
+                        {String(entry.meta.stack)}
+                      </Text>
+                    )}
+                  </View>
+                ))
+              )}
+            </View>
+          )}
+        </View>
+
         {/* Licenses Section Header */}
         <View style={styles.licensesSectionHeader}>
           <Text style={styles.sectionTitle}>Open Source Libraries</Text>
@@ -175,7 +350,7 @@ export default function AboutScreen() {
         </View>
       </View>
     ),
-    [version, buildNumber, search, filteredLicenses.length],
+    [version, buildNumber, search, filteredLicenses.length, handleClearCache, handleShareLogs, handleNetworkDiagnostics, isPinging, pingMs, showLogs, errorCount, logRefresh],
   );
 
   return (
@@ -210,12 +385,12 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   gradientBorder: {
-    borderRadius: 16,
+    borderRadius: 24,
     padding: 1,
   },
   appInfoCard: {
     backgroundColor: colors.card,
-    borderRadius: 15,
+    borderRadius: 23,
     padding: 24,
     alignItems: 'center',
     gap: 8,
@@ -257,7 +432,7 @@ const styles = StyleSheet.create({
   },
   linksCard: {
     backgroundColor: colors.card,
-    borderRadius: 15,
+    borderRadius: 23,
     overflow: 'hidden',
   },
   linkRow: {
@@ -276,6 +451,84 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.border,
     marginLeft: 16,
+  },
+  diagnosticRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  diagnosticValue: {
+    fontSize: 14,
+    ...fonts.mono.medium,
+    color: colors.muted,
+  },
+  errorBadge: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  errorBadgeText: {
+    fontSize: 12,
+    ...fonts.mono.medium,
+    color: colors.warning,
+  },
+
+  // Log viewer
+  logViewer: {
+    marginTop: 12,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 12,
+    gap: 1,
+  },
+  logEmpty: {
+    fontSize: 13,
+    ...fonts.geist.regular,
+    color: colors.mutedDim,
+    textAlign: 'center',
+    paddingVertical: 16,
+  },
+  logEntry: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  logEntryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  logLevel: {
+    fontSize: 11,
+    ...fonts.mono.medium,
+    color: colors.warning,
+    textTransform: 'uppercase',
+  },
+  logTimestamp: {
+    fontSize: 11,
+    ...fonts.mono.regular,
+    color: colors.mutedDim,
+  },
+  logCategory: {
+    fontSize: 11,
+    ...fonts.geist.medium,
+    color: colors.muted,
+    marginBottom: 2,
+  },
+  logMessage: {
+    fontSize: 13,
+    ...fonts.geist.regular,
+    color: colors.foreground,
+    lineHeight: 18,
+  },
+  logStack: {
+    fontSize: 10,
+    ...fonts.mono.regular,
+    color: colors.mutedDim,
+    marginTop: 4,
+    lineHeight: 14,
   },
 
   // Licenses header

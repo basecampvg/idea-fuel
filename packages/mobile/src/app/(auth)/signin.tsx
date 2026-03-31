@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Alert, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, Alert, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -17,9 +17,8 @@ import { TypewriterText } from '../../components/TypewriterText';
 import { colors, fonts } from '../../lib/theme';
 
 export default function SignInScreen() {
-  const { signInWithGoogle, devSignIn } = useAuth();
+  const { signInWithGoogle } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [devEmail, setDevEmail] = useState('');
 
   // Staggered entrance animations
   const logoOpacity = useSharedValue(0);
@@ -117,42 +116,6 @@ export default function SignInScreen() {
             By continuing, you agree to our{'\n'}Terms of Service and Privacy Policy
           </Text>
 
-          {/* Dev-only sign in */}
-          {__DEV__ && (
-            <View style={styles.devSection}>
-              <View style={styles.devDivider}>
-                <View style={styles.devDividerLine} />
-                <Text style={styles.devDividerText}>DEV</Text>
-                <View style={styles.devDividerLine} />
-              </View>
-              <TextInput
-                style={styles.devInput}
-                value={devEmail}
-                onChangeText={setDevEmail}
-                placeholder="your@email.com"
-                placeholderTextColor={`${colors.muted}80`}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              <TouchableOpacity
-                style={styles.devButton}
-                onPress={async () => {
-                  if (!devEmail.trim()) return;
-                  try {
-                    setIsLoading(true);
-                    await devSignIn?.(devEmail.trim());
-                  } catch (error: any) {
-                    Alert.alert('Dev Sign In Failed', error.message);
-                  } finally {
-                    setIsLoading(false);
-                  }
-                }}
-              >
-                <Text style={styles.devButtonText}>Dev Sign In</Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </Animated.View>
       </SafeAreaView>
     </View>
@@ -197,46 +160,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 24,
     lineHeight: 18,
-  },
-  devSection: {
-    marginTop: 24,
-    gap: 12,
-  },
-  devDivider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  devDividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  devDividerText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.muted,
-    letterSpacing: 1,
-  },
-  devInput: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: colors.foreground,
-  },
-  devButton: {
-    backgroundColor: colors.brand,
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center' as const,
-  },
-  devButtonText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
   },
 });

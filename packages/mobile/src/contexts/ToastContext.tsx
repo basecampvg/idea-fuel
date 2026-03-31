@@ -42,12 +42,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [toast, setToast] = useState<ToastData | null>(null);
-  const translateY = useSharedValue(-100);
+  const translateY = useSharedValue(60);
   const opacity = useSharedValue(0);
   const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hideToast = useCallback(() => {
-    translateY.value = withTiming(-100, { duration: 250 });
+    translateY.value = withTiming(60, { duration: 250 });
     opacity.value = withTiming(0, { duration: 250 });
     setTimeout(() => setToast(null), 300);
   }, [translateY, opacity]);
@@ -59,7 +59,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     opacity.value = withTiming(1, { duration: 300 });
     dismissTimer.current = setTimeout(() => {
       hideToast();
-    }, 3000);
+    }, 5000);
   }, [translateY, opacity, hideToast]);
 
   const handlePress = useCallback(() => {
@@ -84,7 +84,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         <Animated.View
           style={[
             styles.container,
-            { top: insets.top + 8 },
+            { bottom: insets.bottom + 175 },
             animatedStyle,
           ]}
         >
@@ -105,7 +105,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               )}
             </View>
             {toast.projectId && (
-              <ChevronRight size={16} color={colors.muted} />
+              <View style={styles.viewAction}>
+                <Text style={styles.viewActionText}>View Capture</Text>
+                <ChevronRight size={14} color={colors.brand} />
+              </View>
             )}
           </TouchableOpacity>
         </Animated.View>
@@ -131,7 +134,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 14,
+    borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 14,
     gap: 12,
@@ -153,5 +156,15 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 13,
     marginTop: 2,
+  },
+  viewAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  viewActionText: {
+    color: colors.brand,
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
