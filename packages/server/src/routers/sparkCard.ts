@@ -239,21 +239,46 @@ export const sparkCardRouter = router({
       }
 
       // ------------------------------------------------------------------
-      // Step 3: Build research brief
+      // Step 3: Refine project details BEFORE research (so brief uses updated context)
       // ------------------------------------------------------------------
-      const brief = buildResearchBrief(project.title, project.description, chatMessages);
+      let refinedTitle: string | undefined;
+      let refinedDescription: string | undefined;
+      let briefTitle = project.title;
+      let briefDescription = project.description;
+
+      if (isRefine) {
+        const userRefinement = chatMessages.filter(m => m.role === 'user').pop()?.content;
+        if (userRefinement) {
+          const refined = await refineProjectDetails(
+            project.title,
+            project.description,
+            userRefinement,
+          );
+          if (refined) {
+            refinedTitle = refined.title;
+            refinedDescription = refined.description;
+            briefTitle = refined.title;
+            briefDescription = refined.description;
+          }
+        }
+      }
 
       // ------------------------------------------------------------------
-      // Steps 4-5: Call Sonar Pro + Extract CardResult (with refund on failure)
+      // Step 4: Build research brief (using refined details if available)
+      // ------------------------------------------------------------------
+      const brief = buildResearchBrief(briefTitle, briefDescription, chatMessages);
+
+      // ------------------------------------------------------------------
+      // Steps 5-6: Call Sonar Pro + Extract CardResult (with refund on failure)
       // ------------------------------------------------------------------
       let cardResult: CardResult;
 
       try {
-        // Step 4: Call Sonar Pro
+        // Step 5: Call Sonar Pro
         console.log(`[SparkCard] Calling Sonar Pro for project ${projectId}...`);
         const sonarResponse = await sonarProResearch(brief);
 
-        // Step 5: Extract CardResult via Haiku
+        // Step 6: Extract CardResult via Haiku
         console.log(`[SparkCard] Extracting CardResult...`);
         cardResult = await extractCardResult(sonarResponse.text, sonarResponse.citations);
       } catch (error) {
@@ -270,28 +295,6 @@ export const sparkCardRouter = router({
           message,
           cause: error,
         });
-      }
-
-      // ------------------------------------------------------------------
-      // Step 6: Refine project details if this is a refinement
-      // ------------------------------------------------------------------
-      let refinedTitle: string | undefined;
-      let refinedDescription: string | undefined;
-
-      if (isRefine) {
-        // Extract the user's refinement message (last user message in chat)
-        const userRefinement = chatMessages.filter(m => m.role === 'user').pop()?.content;
-        if (userRefinement) {
-          const refined = await refineProjectDetails(
-            project.title,
-            project.description,
-            userRefinement,
-          );
-          if (refined) {
-            refinedTitle = refined.title;
-            refinedDescription = refined.description;
-          }
-        }
       }
 
       // ------------------------------------------------------------------
