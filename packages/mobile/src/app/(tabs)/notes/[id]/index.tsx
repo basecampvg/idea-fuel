@@ -357,24 +357,23 @@ export default function NoteEditorScreen() {
             onChange={handleEditorChange}
           />
         )}
+        {/* Extract Ideas bar for Quick Notes */}
+        {note.type === 'QUICK' && (
+          <View style={styles.extractBar}>
+            <Button
+              variant="primary"
+              size="lg"
+              onPress={handleExtractIdeas}
+              isLoading={extractMutation.isPending}
+              disabled={extractMutation.isPending || !canExtract}
+              leftIcon={<Sparkles size={18} color={colors.white} />}
+              style={styles.extractButton}
+            >
+              Extract Ideas
+            </Button>
+          </View>
+        )}
       </KeyboardAvoidingView>
-
-      {/* Extract Ideas bar for Quick Notes */}
-      {note.type === 'QUICK' && (
-        <View style={styles.extractBar}>
-          <Button
-            variant="primary"
-            size="lg"
-            onPress={handleExtractIdeas}
-            isLoading={extractMutation.isPending}
-            disabled={extractMutation.isPending || !canExtract}
-            leftIcon={<Sparkles size={18} color={colors.white} />}
-            style={styles.extractButton}
-          >
-            Extract Ideas
-          </Button>
-        </View>
-      )}
 
       {/* Extraction success sheet */}
       <BottomSheet
