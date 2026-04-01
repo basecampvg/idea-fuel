@@ -1,4 +1,4 @@
-import React, { useImperativeHandle, forwardRef, useCallback, useRef } from 'react';
+import React, { useImperativeHandle, forwardRef, useCallback, useRef, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import {
   RichText,
@@ -205,6 +205,11 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
   ({ initialContent = '', placeholder = 'Start writing...', onChange, editable = true }, ref) => {
     const initialHtml = initialContent ? markdownToHtml(initialContent) : '';
 
+    // Ref ensures the bridge always calls the latest onChange, even though
+    // useEditorBridge captures the callback once at mount.
+    const onChangeRef = useRef(onChange);
+    useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+
     const editor = useEditorBridge({
       autofocus: false,
       avoidIosKeyboard: false,
@@ -218,7 +223,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
         HeadingBridge.configureExtension({ levels: [1, 2, 3] }),
       ],
       onChange: () => {
-        onChange?.();
+        onChangeRef.current?.();
       },
     });
 

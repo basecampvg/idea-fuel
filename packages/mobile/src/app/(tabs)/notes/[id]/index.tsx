@@ -180,8 +180,10 @@ export default function NoteEditorScreen() {
 
   // Auto-refine after 3s of no typing, if content is long enough
   const scheduleAutoRefine = useCallback(() => {
+    if (noteTypeRef.current === 'QUICK') return;
     if (autoRefineTimer.current) clearTimeout(autoRefineTimer.current);
     autoRefineTimer.current = setTimeout(async () => {
+      if (noteTypeRef.current === 'QUICK') return;
       if (!editorRef.current || refineMutation.isPending || promotedRef.current) return;
       const md = await editorRef.current.getMarkdown();
       contentLengthRef.current = md.length;
