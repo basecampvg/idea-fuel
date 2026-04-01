@@ -63,7 +63,8 @@ export type ReportType =
   | 'CUSTOMER_PROFILE'
   | 'VALUE_EQUATION'
   | 'VALUE_LADDER'
-  | 'GO_TO_MARKET';
+  | 'GO_TO_MARKET'
+  | 'CUSTOMER_DISCOVERY';
 
 // Report tiers - determined by subscription + interview mode blend
 // SPARK mode → BASIC tier only (any subscription) - quick validation

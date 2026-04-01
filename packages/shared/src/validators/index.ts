@@ -138,6 +138,7 @@ export const reportTypeSchema = z.enum([
   'VALUE_EQUATION',
   'VALUE_LADDER',
   'GO_TO_MARKET',
+  'CUSTOMER_DISCOVERY',
 ]);
 
 export const reportTierSchema = z.enum(['BASIC', 'PRO', 'FULL']);

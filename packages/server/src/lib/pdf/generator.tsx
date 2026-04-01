@@ -17,7 +17,8 @@ type ReportType =
   | 'CUSTOMER_PROFILE'
   | 'VALUE_EQUATION'
   | 'VALUE_LADDER'
-  | 'GO_TO_MARKET';
+  | 'GO_TO_MARKET'
+  | 'CUSTOMER_DISCOVERY';
 
 type ReportTier = 'BASIC' | 'PRO' | 'FULL';
 

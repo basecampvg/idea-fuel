@@ -15,6 +15,11 @@ import {
   vector,
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
+import {
+  customerInterviews,
+  interviewResponses,
+  ndaSignatures,
+} from './customer-interview-schema';
 
 // =============================================================================
 // ENUMS
@@ -37,6 +42,7 @@ export const sparkJobStatusEnum = pgEnum('SparkJobStatus', [
 export const reportTypeEnum = pgEnum('ReportType', [
   'BUSINESS_PLAN', 'POSITIONING', 'COMPETITIVE_ANALYSIS', 'WHY_NOW', 'PROOF_SIGNALS',
   'KEYWORDS_SEO', 'CUSTOMER_PROFILE', 'VALUE_EQUATION', 'VALUE_LADDER', 'GO_TO_MARKET',
+  'CUSTOMER_DISCOVERY',
 ]);
 export const reportTierEnum = pgEnum('ReportTier', ['BASIC', 'PRO', 'FULL']);
 export const reportStatusEnum = pgEnum('ReportStatus', ['DRAFT', 'GENERATING', 'COMPLETE', 'FAILED']);
@@ -1143,6 +1149,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   financialModels: many(financialModels),
   promotedNotes: many(notes),
   attachments: many(projectAttachments),
+  customerInterviews: many(customerInterviews),
 }));
 
 export const notesRelations = relations(notes, ({ one }) => ({
@@ -1261,4 +1268,33 @@ export const erpConnectionsRelations = relations(erpConnections, ({ one, many })
 export const budgetLineItemsRelations = relations(budgetLineItems, ({ one }) => ({
   model: one(financialModels, { fields: [budgetLineItems.modelId], references: [financialModels.id] }),
   erpConnection: one(erpConnections, { fields: [budgetLineItems.erpConnectionId], references: [erpConnections.id] }),
+}));
+
+// =============================================================================
+// CUSTOMER INTERVIEW (re-exports from customer-interview-schema.ts)
+// =============================================================================
+
+export {
+  customerInterviewGatingEnum,
+  customerInterviewStatusEnum,
+  questionTypeEnum,
+  customerInterviews,
+  interviewResponses,
+  ndaSignatures,
+} from './customer-interview-schema';
+
+export const customerInterviewsRelations = relations(customerInterviews, ({ one, many }) => ({
+  project: one(projects, { fields: [customerInterviews.projectId], references: [projects.id] }),
+  user: one(users, { fields: [customerInterviews.userId], references: [users.id] }),
+  responses: many(interviewResponses),
+  ndaSignatures: many(ndaSignatures),
+}));
+
+export const interviewResponsesRelations = relations(interviewResponses, ({ one }) => ({
+  customerInterview: one(customerInterviews, { fields: [interviewResponses.customerInterviewId], references: [customerInterviews.id] }),
+}));
+
+export const ndaSignaturesRelations = relations(ndaSignatures, ({ one }) => ({
+  customerInterview: one(customerInterviews, { fields: [ndaSignatures.customerInterviewId], references: [customerInterviews.id] }),
+  response: one(interviewResponses, { fields: [ndaSignatures.interviewResponseId], references: [interviewResponses.id] }),
 }));
