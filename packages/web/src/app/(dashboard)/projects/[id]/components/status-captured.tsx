@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Feather, Microscope, Sparkles, Zap, Clock, ArrowRight, Lightbulb, Lock, Pencil, Check, X } from 'lucide-react';
+import { Feather, Microscope, Sparkles, Zap, Clock, ArrowRight, Lightbulb, Lock, Pencil, Check, X, Users } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 import { useSubscription } from '@/components/subscription/use-subscription';
 import { INTERVIEW_MODE_LABELS, INTERVIEW_MODE_DESCRIPTIONS, PROJECT_DESC_MAX, PROJECT_DESC_MIN } from '@forge/shared';
@@ -38,6 +38,12 @@ export function StatusCaptured({ project }: StatusCapturedProps) {
       } else {
         router.push(`/projects/${project.id}/interview`);
       }
+    },
+  });
+
+  const createCustomerInterview = trpc.customerInterview.generate.useMutation({
+    onSuccess: (data) => {
+      router.push(`/projects/${project.id}/customer-interview`);
     },
   });
 
@@ -210,7 +216,7 @@ export function StatusCaptured({ project }: StatusCapturedProps) {
         </div>
 
         {/* Interview Mode Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Spark - Quick Validation (no interview) */}
           <button
             onClick={() => startInterview.mutate({ projectId: project.id, mode: 'SPARK', researchEngine })}
@@ -360,6 +366,44 @@ export function StatusCaptured({ project }: StatusCapturedProps) {
                 </span>
               </div>
               <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary/60 group-hover:translate-x-1 transition-all" />
+            </div>
+          </button>
+
+          {/* Customer Interview - shareable form for real customers */}
+          <button
+            onClick={() => createCustomerInterview.mutate({ projectId: project.id })}
+            disabled={createCustomerInterview.isPending || startInterview.isPending}
+            className="group relative rounded-xl bg-card border border-border p-5 text-left transition-all duration-300 hover:border-teal-500/40 hover:shadow-lg hover:shadow-teal-500/5 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Users className="w-5 h-5 text-teal-500" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-foreground group-hover:text-teal-500 transition-colors">
+                  Customer Interview
+                </h3>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Clock className="w-3 h-3" />
+                  <span>Shareable form</span>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+              Generate a shareable interview for real customers to validate your idea
+            </p>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-teal-500/10 text-teal-500 border border-teal-500/20">
+                  Real Feedback
+                </span>
+                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/20">
+                  Shareable
+                </span>
+              </div>
+              <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-teal-500 group-hover:translate-x-1 transition-all" />
             </div>
           </button>
         </div>
