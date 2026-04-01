@@ -1,7 +1,7 @@
 /**
  * Customer Interview Router
  *
- * Procedures:
+ * Protected procedures (require auth):
  * - generate:        Create a new customer interview with AI-generated questions
  * - regenerate:      Replace questions on a DRAFT interview
  * - publish:         Make interview accessible via shareable link
@@ -10,10 +10,12 @@
  * - getByProject:    Get the latest customer interview for a project
  * - listResponses:   Get all responses for an interview
  * - synthesize:      Generate CUSTOMER_DISCOVERY report from responses
- * - getByUuid:       Get published interview for respondents (public)
- * - verifyPassword:  Check password for PASSWORD-gated interviews (public)
- * - signNda:         Record NDA signature (public)
- * - submitResponse:  Submit form answers (public)
+ *
+ * Public procedures (no auth):
+ * - getByUuid:       Get published interview for respondents
+ * - verifyPassword:  Check password for PASSWORD-gated interviews
+ * - signNda:         Record NDA signature
+ * - submitResponse:  Submit form answers
  */
 
 import { eq, and, desc, count } from 'drizzle-orm';
@@ -34,13 +36,14 @@ import {
   synthesizeResponsesSchema,
   CUSTOMER_INTERVIEW_MIN_RESPONSES_FOR_SYNTHESIS,
 } from '@forge/shared';
+import type { InterviewQuestion, InterviewAnswer, InterviewDataPoints, ChatMessage } from '@forge/shared';
 import {
   customerInterviews,
   interviewResponses,
   ndaSignatures,
   reports,
   projects,
-  research,
+  interviews,
 } from '../db/schema';
 import {
   generateInterviewQuestions,
@@ -52,15 +55,31 @@ const BCRYPT_ROUNDS = 10;
 export const customerInterviewRouter = router({
   /**
    * Generate a new customer interview with AI-produced questions.
+   * Uses whatever project context is available (description, cardResult, interview data, research).
    */
   generate: protectedProcedure
     .input(generateCustomerInterviewSchema)
     .mutation(async ({ ctx, input }) => {
-      // Verify user owns the project
       const project = await ctx.db.query.projects.findFirst({
         where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
         with: {
-          research: true,
+          research: {
+            columns: {
+              synthesizedInsights: true,
+              painPoints: true,
+              positioning: true,
+              sparkResult: true,
+            },
+          },
+          interviews: {
+            where: eq(interviews.status, 'COMPLETE'),
+            orderBy: desc(interviews.createdAt),
+            limit: 1,
+            columns: {
+              collectedData: true,
+              messages: true,
+            },
+          },
         },
       });
 
@@ -68,66 +87,39 @@ export const customerInterviewRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'PROJECT_NOT_FOUND' });
       }
 
-      // Load existing completed interviews for context
-      const completedInterviews = await ctx.db.query.customerInterviews.findMany({
-        where: and(
-          eq(customerInterviews.projectId, input.projectId),
-          eq(customerInterviews.status, 'CLOSED'),
-        ),
-        columns: { id: true, title: true, questions: true },
-      });
-
-      // Build context for AI question generation
-      const researchData = project.research as Record<string, unknown> | null;
+      const interviewRecord = project.interviews[0];
+      const researchRecord = project.research;
 
       let generated;
       try {
         generated = await generateInterviewQuestions({
           projectTitle: project.title,
           projectDescription: project.description ?? '',
-          synthesizedInsights: researchData?.synthesizedInsights,
-          painPoints: researchData?.painPoints,
-          positioning: researchData?.positioning,
-          interviewData: completedInterviews.length > 0 ? completedInterviews : undefined,
+          cardResult: (project as any).cardResult ?? researchRecord?.sparkResult,
+          interviewData: interviewRecord?.collectedData as Partial<InterviewDataPoints> | undefined,
+          interviewMessages: interviewRecord?.messages as unknown as ChatMessage[] | undefined,
+          synthesizedInsights: researchRecord?.synthesizedInsights,
+          painPoints: researchRecord?.painPoints,
+          positioning: researchRecord?.positioning,
         });
       } catch (error) {
-        console.error(
-          '[CustomerInterviewRouter] Question generation failed:',
-          error instanceof Error ? error.message : error,
-        );
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'QUESTION_GENERATION_FAILED',
-          cause: error,
-        });
-      }
-
-      // Hash password if provided
-      let hashedPassword: string | null = null;
-      if (input.password) {
-        hashedPassword = await bcrypt.hash(input.password, BCRYPT_ROUNDS);
+        console.error('[CustomerInterviewRouter] Question generation failed:', error instanceof Error ? error.message : error);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'QUESTION_GENERATION_FAILED', cause: error });
       }
 
       const [created] = await ctx.db
         .insert(customerInterviews)
         .values({
-          id: crypto.randomUUID(),
-          uuid: crypto.randomUUID(),
           projectId: input.projectId,
           userId: ctx.userId,
+          uuid: crypto.randomUUID(),
           title: generated.title,
           questions: generated.questions,
-          gating: input.gating ?? 'PUBLIC',
-          password: hashedPassword,
-          status: 'DRAFT',
         })
         .returning();
 
       if (!created) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to create customer interview',
-        });
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to create customer interview' });
       }
 
       return created;
@@ -139,122 +131,95 @@ export const customerInterviewRouter = router({
   regenerate: protectedProcedure
     .input(regenerateQuestionsSchema)
     .mutation(async ({ ctx, input }) => {
-      const interview = await ctx.db.query.customerInterviews.findFirst({
-        where: and(
-          eq(customerInterviews.id, input.customerInterviewId),
-          eq(customerInterviews.userId, ctx.userId),
-        ),
+      const ci = await ctx.db.query.customerInterviews.findFirst({
+        where: and(eq(customerInterviews.id, input.id), eq(customerInterviews.userId, ctx.userId)),
       });
 
-      if (!interview) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'INTERVIEW_NOT_FOUND' });
+      if (!ci) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'CUSTOMER_INTERVIEW_NOT_FOUND' });
       }
 
-      if (interview.status !== 'DRAFT') {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Only DRAFT interviews can have questions regenerated',
-        });
+      if (ci.status !== 'DRAFT') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Can only regenerate questions for draft interviews' });
       }
 
-      // Load project + research for context
       const project = await ctx.db.query.projects.findFirst({
-        where: eq(projects.id, interview.projectId),
-        with: { research: true },
+        where: eq(projects.id, ci.projectId),
+        with: {
+          research: {
+            columns: { synthesizedInsights: true, painPoints: true, positioning: true, sparkResult: true },
+          },
+          interviews: {
+            where: eq(interviews.status, 'COMPLETE'),
+            orderBy: desc(interviews.createdAt),
+            limit: 1,
+            columns: { collectedData: true, messages: true },
+          },
+        },
       });
 
       if (!project) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'PROJECT_NOT_FOUND' });
       }
 
-      const completedInterviews = await ctx.db.query.customerInterviews.findMany({
-        where: and(
-          eq(customerInterviews.projectId, interview.projectId),
-          eq(customerInterviews.status, 'CLOSED'),
-        ),
-        columns: { id: true, title: true, questions: true },
+      const interviewRecord = project.interviews[0];
+      const researchRecord = project.research;
+
+      const generated = await generateInterviewQuestions({
+        projectTitle: project.title,
+        projectDescription: project.description ?? '',
+        cardResult: (project as any).cardResult ?? researchRecord?.sparkResult,
+        interviewData: interviewRecord?.collectedData as Partial<InterviewDataPoints> | undefined,
+        interviewMessages: interviewRecord?.messages as unknown as ChatMessage[] | undefined,
+        synthesizedInsights: researchRecord?.synthesizedInsights,
+        painPoints: researchRecord?.painPoints,
+        positioning: researchRecord?.positioning,
       });
-
-      const researchData = project.research as Record<string, unknown> | null;
-
-      let generated;
-      try {
-        generated = await generateInterviewQuestions({
-          projectTitle: project.title,
-          projectDescription: project.description ?? '',
-          synthesizedInsights: researchData?.synthesizedInsights,
-          painPoints: researchData?.painPoints,
-          positioning: researchData?.positioning,
-          interviewData: completedInterviews.length > 0 ? completedInterviews : undefined,
-        });
-      } catch (error) {
-        console.error(
-          '[CustomerInterviewRouter] Regeneration failed:',
-          error instanceof Error ? error.message : error,
-        );
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'QUESTION_GENERATION_FAILED',
-          cause: error,
-        });
-      }
 
       await ctx.db
         .update(customerInterviews)
-        .set({
-          title: generated.title,
-          questions: generated.questions,
-        })
-        .where(eq(customerInterviews.id, input.customerInterviewId));
+        .set({ title: generated.title, questions: generated.questions })
+        .where(eq(customerInterviews.id, input.id));
 
-      return { success: true };
+      return { title: generated.title, questions: generated.questions };
     }),
 
   /**
-   * Publish a DRAFT interview so it's accessible via shareable link.
+   * Publish a DRAFT interview — makes it accessible via the shareable link.
    */
   publish: protectedProcedure
     .input(publishCustomerInterviewSchema)
     .mutation(async ({ ctx, input }) => {
-      const interview = await ctx.db.query.customerInterviews.findFirst({
-        where: and(
-          eq(customerInterviews.id, input.customerInterviewId),
-          eq(customerInterviews.userId, ctx.userId),
-        ),
-        columns: { id: true, status: true, gating: true },
+      const ci = await ctx.db.query.customerInterviews.findFirst({
+        where: and(eq(customerInterviews.id, input.id), eq(customerInterviews.userId, ctx.userId)),
       });
 
-      if (!interview) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'INTERVIEW_NOT_FOUND' });
+      if (!ci) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'CUSTOMER_INTERVIEW_NOT_FOUND' });
       }
 
-      if (interview.status !== 'DRAFT') {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Only DRAFT interviews can be published',
-        });
+      if (ci.status !== 'DRAFT') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Interview is already published or closed' });
       }
 
-      // If gating is PASSWORD, require a password
-      if (interview.gating === 'PASSWORD' && !input.password) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'A password is required for PASSWORD-gated interviews',
-        });
+      if (input.gating === 'PASSWORD' && !input.password) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Password is required for PASSWORD gating' });
       }
 
-      const updateValues: Record<string, unknown> = { status: 'PUBLISHED' };
-
-      if (input.password) {
-        updateValues.password = await bcrypt.hash(input.password, BCRYPT_ROUNDS);
-      }
+      const hashedPassword = input.password ? await bcrypt.hash(input.password, BCRYPT_ROUNDS) : null;
 
       await ctx.db
         .update(customerInterviews)
-        .set(updateValues)
-        .where(eq(customerInterviews.id, input.customerInterviewId));
+        .set({
+          status: 'PUBLISHED',
+          gating: input.gating,
+          password: hashedPassword,
+          waitlistEnabled: input.waitlistEnabled,
+          newsletterEnabled: input.newsletterEnabled,
+        })
+        .where(eq(customerInterviews.id, input.id));
 
-      return { success: true };
+      return { uuid: ci.uuid };
     }),
 
   /**
@@ -263,95 +228,71 @@ export const customerInterviewRouter = router({
   close: protectedProcedure
     .input(closeCustomerInterviewSchema)
     .mutation(async ({ ctx, input }) => {
-      const interview = await ctx.db.query.customerInterviews.findFirst({
-        where: and(
-          eq(customerInterviews.id, input.customerInterviewId),
-          eq(customerInterviews.userId, ctx.userId),
-        ),
-        columns: { id: true, status: true },
+      const ci = await ctx.db.query.customerInterviews.findFirst({
+        where: and(eq(customerInterviews.id, input.id), eq(customerInterviews.userId, ctx.userId)),
       });
 
-      if (!interview) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'INTERVIEW_NOT_FOUND' });
+      if (!ci) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'CUSTOMER_INTERVIEW_NOT_FOUND' });
       }
 
       await ctx.db
         .update(customerInterviews)
         .set({ status: 'CLOSED' })
-        .where(eq(customerInterviews.id, input.customerInterviewId));
+        .where(eq(customerInterviews.id, input.id));
 
       return { success: true };
     }),
 
   /**
-   * Get an interview by ID with response count.
+   * Get a customer interview by ID with response count.
    */
   get: protectedProcedure
     .input(getCustomerInterviewSchema)
     .query(async ({ ctx, input }) => {
-      const interview = await ctx.db.query.customerInterviews.findFirst({
-        where: and(
-          eq(customerInterviews.id, input.customerInterviewId),
-          eq(customerInterviews.userId, ctx.userId),
-        ),
+      const ci = await ctx.db.query.customerInterviews.findFirst({
+        where: and(eq(customerInterviews.id, input.id), eq(customerInterviews.userId, ctx.userId)),
+        with: {
+          responses: { columns: { id: true } },
+        },
       });
 
-      if (!interview) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'INTERVIEW_NOT_FOUND' });
+      if (!ci) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'CUSTOMER_INTERVIEW_NOT_FOUND' });
       }
 
-      const [{ value: responseCount }] = await ctx.db
-        .select({ value: count() })
-        .from(interviewResponses)
-        .where(eq(interviewResponses.customerInterviewId, input.customerInterviewId));
-
-      return { ...interview, responseCount: responseCount ?? 0 };
+      return { ...ci, responseCount: ci.responses.length };
     }),
 
   /**
    * Get the latest customer interview for a project (or null).
    */
   getByProject: protectedProcedure
-    .input(generateCustomerInterviewSchema)
+    .input(generateCustomerInterviewSchema) // reuse: { projectId }
     .query(async ({ ctx, input }) => {
-      // Verify project ownership
-      const project = await ctx.db.query.projects.findFirst({
-        where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
-        columns: { id: true },
-      });
-
-      if (!project) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'PROJECT_NOT_FOUND' });
-      }
-
-      const interview = await ctx.db.query.customerInterviews.findFirst({
+      const ci = await ctx.db.query.customerInterviews.findFirst({
         where: and(
           eq(customerInterviews.projectId, input.projectId),
           eq(customerInterviews.userId, ctx.userId),
         ),
-        orderBy: [desc(customerInterviews.createdAt)],
+        orderBy: desc(customerInterviews.createdAt),
+        with: {
+          responses: { columns: { id: true } },
+        },
       });
 
-      if (!interview) {
-        return null;
-      }
-
-      const [{ value: responseCount }] = await ctx.db
-        .select({ value: count() })
-        .from(interviewResponses)
-        .where(eq(interviewResponses.customerInterviewId, interview.id));
-
-      return { ...interview, responseCount: responseCount ?? 0 };
+      if (!ci) return null;
+      return { ...ci, responseCount: ci.responses.length };
     }),
 
   /**
-   * List all responses for an interview (paginated).
+   * List all responses for an interview (most recent first).
    */
   listResponses: protectedProcedure
     .input(listResponsesSchema)
     .query(async ({ ctx, input }) => {
-      // Verify user owns the interview
-      const interview = await ctx.db.query.customerInterviews.findFirst({
+      // Verify ownership
+      const ci = await ctx.db.query.customerInterviews.findFirst({
         where: and(
           eq(customerInterviews.id, input.customerInterviewId),
           eq(customerInterviews.userId, ctx.userId),
@@ -359,18 +300,14 @@ export const customerInterviewRouter = router({
         columns: { id: true },
       });
 
-      if (!interview) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'INTERVIEW_NOT_FOUND' });
+      if (!ci) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'CUSTOMER_INTERVIEW_NOT_FOUND' });
       }
 
-      const responses = await ctx.db.query.interviewResponses.findMany({
+      return ctx.db.query.interviewResponses.findMany({
         where: eq(interviewResponses.customerInterviewId, input.customerInterviewId),
-        orderBy: [desc(interviewResponses.createdAt)],
-        limit: input.limit,
-        offset: (input.page - 1) * input.limit,
+        orderBy: desc(interviewResponses.createdAt),
       });
-
-      return responses;
     }),
 
   /**
@@ -379,140 +316,105 @@ export const customerInterviewRouter = router({
   synthesize: protectedProcedure
     .input(synthesizeResponsesSchema)
     .mutation(async ({ ctx, input }) => {
-      const interview = await ctx.db.query.customerInterviews.findFirst({
+      const ci = await ctx.db.query.customerInterviews.findFirst({
         where: and(
           eq(customerInterviews.id, input.customerInterviewId),
           eq(customerInterviews.userId, ctx.userId),
         ),
+        with: {
+          responses: true,
+          project: {
+            with: {
+              research: {
+                columns: {
+                  synthesizedInsights: true,
+                  painPoints: true,
+                  competitors: true,
+                  positioning: true,
+                },
+              },
+            },
+          },
+        },
       });
 
-      if (!interview) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'INTERVIEW_NOT_FOUND' });
+      if (!ci) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'CUSTOMER_INTERVIEW_NOT_FOUND' });
       }
 
-      const responses = await ctx.db.query.interviewResponses.findMany({
-        where: eq(interviewResponses.customerInterviewId, input.customerInterviewId),
-        orderBy: [desc(interviewResponses.createdAt)],
-      });
-
-      if (responses.length < CUSTOMER_INTERVIEW_MIN_RESPONSES_FOR_SYNTHESIS) {
+      if (ci.responses.length < CUSTOMER_INTERVIEW_MIN_RESPONSES_FOR_SYNTHESIS) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: `At least ${CUSTOMER_INTERVIEW_MIN_RESPONSES_FOR_SYNTHESIS} responses are required to synthesize`,
+          message: `Need at least ${CUSTOMER_INTERVIEW_MIN_RESPONSES_FOR_SYNTHESIS} responses to synthesize`,
         });
       }
 
-      // Load project + research for context
-      const project = await ctx.db.query.projects.findFirst({
-        where: eq(projects.id, interview.projectId),
-        with: { research: true },
+      const questions = ci.questions as InterviewQuestion[];
+      const researchRecord = ci.project.research;
+
+      const synthesis = await synthesizeResponses({
+        projectTitle: ci.project.title,
+        projectDescription: ci.project.description ?? '',
+        questions,
+        responses: ci.responses.map(r => ({
+          answers: r.answers as InterviewAnswer[],
+          respondentName: r.respondentName,
+        })),
+        researchData: researchRecord ? {
+          synthesizedInsights: researchRecord.synthesizedInsights,
+          painPoints: researchRecord.painPoints,
+          competitors: researchRecord.competitors,
+          positioning: researchRecord.positioning,
+        } : undefined,
       });
 
-      if (!project) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'PROJECT_NOT_FOUND' });
-      }
+      const reportContent = [
+        `# Customer Discovery Report: ${ci.project.title}`,
+        '',
+        `## Response Overview\n${synthesis.responseOverview}`,
+        `## Pain Validation\n${synthesis.painValidation}`,
+        `## Severity & Frequency\n${synthesis.severityAndFrequency}`,
+        `## Workaround Analysis\n${synthesis.workaroundAnalysis}`,
+        `## Willingness to Pay\n${synthesis.willingnessToPay}`,
+        `## Key Quotes\n${synthesis.keyQuotes}`,
+        `## Research Delta\n${synthesis.researchDelta}`,
+        `## Confidence Update\n${synthesis.confidenceUpdate}`,
+        `## Recommended Next Steps\n${synthesis.recommendedNextSteps}`,
+      ].join('\n\n');
 
-      const researchData = project.research as Record<string, unknown> | null;
-
-      let synthesis;
-      try {
-        synthesis = await synthesizeResponses({
-          projectTitle: project.title,
-          projectDescription: project.description ?? '',
-          questions: interview.questions,
-          responses: responses.map((r) => ({
-            answers: r.answers,
-            respondentName: r.respondentName,
-          })),
-          researchData: researchData
-            ? {
-                synthesizedInsights: researchData.synthesizedInsights,
-                painPoints: researchData.painPoints,
-                competitors: researchData.competitors,
-                positioning: researchData.positioning,
-              }
-            : undefined,
-        });
-      } catch (error) {
-        console.error(
-          '[CustomerInterviewRouter] Synthesis failed:',
-          error instanceof Error ? error.message : error,
-        );
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'SYNTHESIS_FAILED',
-          cause: error,
-        });
-      }
-
-      // Build markdown content from synthesis sections
-      const content = [
-        `## Response Overview\n\n${synthesis.responseOverview}`,
-        `## Pain Validation\n\n${synthesis.painValidation}`,
-        `## Severity & Frequency\n\n${synthesis.severityAndFrequency}`,
-        `## Workaround Analysis\n\n${synthesis.workaroundAnalysis}`,
-        `## Willingness to Pay\n\n${synthesis.willingnessToPay}`,
-        `## Key Quotes\n\n${synthesis.keyQuotes}`,
-        `## Research Delta\n\n${synthesis.researchDelta}`,
-        `## Confidence Update\n\n${synthesis.confidenceUpdate}`,
-        `## Recommended Next Steps\n\n${synthesis.recommendedNextSteps}`,
-      ].join('\n\n---\n\n');
-
-      // Upsert the CUSTOMER_DISCOVERY report
+      // Upsert report
       const existingReport = await ctx.db.query.reports.findFirst({
         where: and(
-          eq(reports.projectId, interview.projectId),
+          eq(reports.projectId, ci.projectId),
           eq(reports.type, 'CUSTOMER_DISCOVERY'),
-          eq(reports.userId, ctx.userId),
         ),
         columns: { id: true },
       });
 
-      let reportId: string;
-
       if (existingReport) {
-        await ctx.db
-          .update(reports)
-          .set({
-            title: `Customer Discovery — ${interview.title}`,
-            content,
-            sections: synthesis,
-            tier: 'FULL',
-            status: 'COMPLETE',
-          })
-          .where(eq(reports.id, existingReport.id));
-        reportId = existingReport.id;
+        await ctx.db.update(reports).set({
+          content: reportContent,
+          sections: synthesis,
+          status: 'COMPLETE',
+        }).where(eq(reports.id, existingReport.id));
+        return { reportId: existingReport.id };
       } else {
-        const [newReport] = await ctx.db
-          .insert(reports)
-          .values({
-            id: crypto.randomUUID(),
-            projectId: interview.projectId,
-            userId: ctx.userId,
-            type: 'CUSTOMER_DISCOVERY',
-            tier: 'FULL',
-            status: 'COMPLETE',
-            title: `Customer Discovery — ${interview.title}`,
-            content,
-            sections: synthesis,
-          })
-          .returning({ id: reports.id });
-
-        if (!newReport) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to create report',
-          });
-        }
-
-        reportId = newReport.id;
+        const [report] = await ctx.db.insert(reports).values({
+          projectId: ci.projectId,
+          userId: ctx.userId,
+          type: 'CUSTOMER_DISCOVERY',
+          tier: 'FULL',
+          title: `Customer Discovery: ${ci.project.title}`,
+          content: reportContent,
+          sections: synthesis,
+          status: 'COMPLETE',
+        }).returning();
+        return { reportId: report!.id };
       }
-
-      return { reportId };
     }),
 
   // ===========================================================================
-  // PUBLIC PROCEDURES
+  // PUBLIC PROCEDURES (for respondents filling out the form)
   // ===========================================================================
 
   /**
@@ -521,52 +423,49 @@ export const customerInterviewRouter = router({
   getByUuid: publicProcedure
     .input(getCustomerInterviewByUuidSchema)
     .query(async ({ ctx, input }) => {
-      const interview = await ctx.db.query.customerInterviews.findFirst({
+      const ci = await ctx.db.query.customerInterviews.findFirst({
         where: eq(customerInterviews.uuid, input.uuid),
+        columns: {
+          id: true,
+          uuid: true,
+          title: true,
+          questions: true,
+          gating: true,
+          status: true,
+          waitlistEnabled: true,
+          newsletterEnabled: true,
+        },
         with: {
-          project: {
-            columns: { title: true, description: true },
-          },
+          project: { columns: { title: true, description: true } },
         },
       });
 
-      if (!interview || interview.status === 'DRAFT') {
+      if (!ci || ci.status === 'DRAFT') {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'INTERVIEW_NOT_FOUND' });
       }
 
-      // Strip password hash before returning
-      const { password: _password, ...safeInterview } = interview;
-
-      return safeInterview;
+      return ci;
     }),
 
   /**
-   * Verify a respondent's password for PASSWORD-gated interviews.
+   * Verify password for a PASSWORD-gated interview.
    */
   verifyPassword: publicProcedure
     .input(verifyPasswordSchema)
     .mutation(async ({ ctx, input }) => {
-      const interview = await ctx.db.query.customerInterviews.findFirst({
+      const ci = await ctx.db.query.customerInterviews.findFirst({
         where: and(
           eq(customerInterviews.uuid, input.uuid),
           eq(customerInterviews.status, 'PUBLISHED'),
         ),
-        columns: { id: true, gating: true, password: true },
+        columns: { id: true, password: true, gating: true },
       });
 
-      if (!interview) {
+      if (!ci || ci.gating !== 'PASSWORD' || !ci.password) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'INTERVIEW_NOT_FOUND' });
       }
 
-      if (interview.gating !== 'PASSWORD' || !interview.password) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Interview is not password protected',
-        });
-      }
-
-      const valid = await bcrypt.compare(input.password, interview.password);
-
+      const valid = await bcrypt.compare(input.password, ci.password);
       if (!valid) {
         throw new TRPCError({ code: 'UNAUTHORIZED', message: 'INVALID_PASSWORD' });
       }
@@ -575,12 +474,12 @@ export const customerInterviewRouter = router({
     }),
 
   /**
-   * Record an NDA signature before the respondent can view the interview.
+   * Sign the NDA for an NDA-gated interview.
    */
   signNda: publicProcedure
     .input(signNdaSchema)
     .mutation(async ({ ctx, input }) => {
-      const interview = await ctx.db.query.customerInterviews.findFirst({
+      const ci = await ctx.db.query.customerInterviews.findFirst({
         where: and(
           eq(customerInterviews.uuid, input.uuid),
           eq(customerInterviews.status, 'PUBLISHED'),
@@ -588,92 +487,65 @@ export const customerInterviewRouter = router({
         columns: { id: true, gating: true },
       });
 
-      if (!interview) {
+      if (!ci || ci.gating !== 'NDA') {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'INTERVIEW_NOT_FOUND' });
       }
 
-      if (interview.gating !== 'NDA') {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Interview does not require NDA signing',
-        });
-      }
+      // Get IP from headers (works behind Vercel proxy)
+      const forwarded = (ctx as any).req?.headers?.['x-forwarded-for'];
+      const ipAddress = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : 'unknown';
 
-      const [signature] = await ctx.db
+      const [sig] = await ctx.db
         .insert(ndaSignatures)
         .values({
-          id: crypto.randomUUID(),
-          customerInterviewId: interview.id,
-          fullName: input.signerName,
-          email: input.signerEmail,
-          signature: `${input.signerName} — signed via IdeaFuel`,
-          ipAddress: 'unknown',
+          customerInterviewId: ci.id,
+          fullName: input.fullName,
+          email: input.email,
+          signature: input.signature,
+          ipAddress,
         })
-        .returning({ id: ndaSignatures.id });
+        .returning();
 
-      if (!signature) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to record NDA signature',
-        });
-      }
-
-      return { signatureId: signature.id };
+      return { signatureId: sig!.id };
     }),
 
   /**
-   * Submit answers to a customer interview.
+   * Submit a response to a published interview.
    */
   submitResponse: publicProcedure
     .input(submitResponseSchema)
     .mutation(async ({ ctx, input }) => {
-      const interview = await ctx.db.query.customerInterviews.findFirst({
+      const ci = await ctx.db.query.customerInterviews.findFirst({
         where: and(
           eq(customerInterviews.uuid, input.uuid),
           eq(customerInterviews.status, 'PUBLISHED'),
         ),
-        columns: { id: true, status: true },
+        columns: { id: true },
       });
 
-      if (!interview) {
+      if (!ci) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'INTERVIEW_NOT_FOUND' });
       }
 
-      // Verify Turnstile token if TURNSTILE_SECRET_KEY is configured
+      // Verify Cloudflare Turnstile token
       const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
       if (turnstileSecret) {
-        const verifyRes = await fetch(
-          'https://challenges.cloudflare.com/turnstile/v0/siteverify',
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              secret: turnstileSecret,
-              response: input.passwordToken ?? '',
-            }),
-          },
-        );
-        const verifyData = (await verifyRes.json()) as { success: boolean };
-        if (!verifyData.success) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'TURNSTILE_VERIFICATION_FAILED',
-          });
+        const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ secret: turnstileSecret, response: input.turnstileToken }),
+        });
+        const result = await res.json() as { success: boolean };
+        if (!result.success) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'TURNSTILE_FAILED' });
         }
       }
 
-      // Determine a session token for dedup — use ndaSignatureId if provided,
-      // otherwise fall back to a hash of respondentEmail or a new UUID.
-      const sessionToken =
-        input.ndaSignatureId ??
-        input.respondentEmail ??
-        crypto.randomUUID();
-
-      // Check for duplicate submission (customerInterviewId + sessionToken unique)
+      // Check for duplicate submission (unique constraint on customerInterviewId + sessionToken)
       const existing = await ctx.db.query.interviewResponses.findFirst({
         where: and(
-          eq(interviewResponses.customerInterviewId, interview.id),
-          eq(interviewResponses.sessionToken, sessionToken),
+          eq(interviewResponses.customerInterviewId, ci.id),
+          eq(interviewResponses.sessionToken, input.sessionToken),
         ),
         columns: { id: true },
       });
@@ -685,21 +557,17 @@ export const customerInterviewRouter = router({
       const [response] = await ctx.db
         .insert(interviewResponses)
         .values({
-          id: crypto.randomUUID(),
-          customerInterviewId: interview.id,
-          sessionToken,
+          customerInterviewId: ci.id,
+          sessionToken: input.sessionToken,
           answers: input.answers,
+          respondentName: input.respondentName,
           respondentEmail: input.respondentEmail,
+          joinedWaitlist: input.joinedWaitlist,
+          joinedNewsletter: input.joinedNewsletter,
+          completedAt: new Date(),
         })
-        .returning({ id: interviewResponses.id });
+        .returning();
 
-      if (!response) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to save response',
-        });
-      }
-
-      return { alreadySubmitted: false, responseId: response.id };
+      return { alreadySubmitted: false, responseId: response!.id };
     }),
 });
