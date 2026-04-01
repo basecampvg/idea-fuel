@@ -17,7 +17,7 @@ import Animated, {
   runOnJS,
   Easing,
 } from 'react-native-reanimated';
-import { ChevronLeft, Sparkles, Monitor, Search, FileText, BarChart3, Rocket, X } from 'lucide-react-native';
+import { ChevronLeft, Sparkles, Monitor, Search, FileText, BarChart3, Rocket, X, Users } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Button, triggerHaptic } from '../../../../components/ui/Button';
 import { ValidationCard } from '../../../../components/ui/ValidationCard';
@@ -150,6 +150,11 @@ export default function CardScreen() {
     router.replace(`/(tabs)/vault/${id}/validate?refine=1` as any);
   };
 
+  const handleCustomerInterview = () => {
+    triggerHaptic('medium');
+    router.push(`/(tabs)/vault/${id}/customer-interview` as any);
+  };
+
   if (isLoading) {
     return <LoadingScreen message="Loading your card..." />;
   }
@@ -215,6 +220,16 @@ export default function CardScreen() {
             style={styles.fullWidth}
           >
             Go Deeper
+          </Button>
+
+          <Button
+            variant="outline"
+            size="lg"
+            onPress={handleCustomerInterview}
+            leftIcon={<Users size={18} color={colors.accent} />}
+            style={styles.fullWidth}
+          >
+            Talk to Customers
           </Button>
 
           <Button
