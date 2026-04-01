@@ -2,7 +2,7 @@ import { Worker, Job } from 'bullmq';
 import { createRedisConnection } from '../../lib/redis';
 import { db } from '../../db/drizzle';
 import { eq, sql } from 'drizzle-orm';
-import { research, projects, users, interviews } from '../../db/schema';
+import { research, projects, users, interviews, customerInterviews } from '../../db/schema';
 import type { SubscriptionTier } from '../../db/schema';
 import { QUEUE_NAMES, ResearchPipelineJobData } from '../queues';
 import type { ChatMessage, InterviewDataPoints, FounderProfile } from '@forge/shared';
@@ -58,6 +58,28 @@ export function createResearchPipelineWorker() {
           throw new Error(`No completed interview found for project ${projectId}`);
         }
 
+        // Load customer interview responses if available
+        let customerInterviewData: {
+          questions: import('@forge/shared').InterviewQuestion[];
+          responses: Array<{ answers: import('@forge/shared').InterviewAnswer[]; respondentName: string | null }>;
+        } | undefined;
+
+        if (job.data.customerInterviewId) {
+          const ci = await db.query.customerInterviews.findFirst({
+            where: eq(customerInterviews.id, job.data.customerInterviewId),
+            with: { responses: true },
+          });
+          if (ci && ci.responses.length > 0) {
+            customerInterviewData = {
+              questions: ci.questions as import('@forge/shared').InterviewQuestion[],
+              responses: ci.responses.map(r => ({
+                answers: r.answers as import('@forge/shared').InterviewAnswer[],
+                respondentName: r.respondentName,
+              })),
+            };
+          }
+        }
+
         // 2. Get user subscription tier for AI parameters
         const user = await db.query.users.findFirst({
           where: eq(users.id, userId),
@@ -75,6 +97,8 @@ export function createResearchPipelineWorker() {
           canvasContext: notesContext,
           researchId,
           founderProfile: user?.founderProfile as FounderProfile | null,
+          customerInterviewResponses: customerInterviewData?.responses,
+          customerInterviewQuestions: customerInterviewData?.questions,
         };
 
         // 4. Build existing research data for resume capability

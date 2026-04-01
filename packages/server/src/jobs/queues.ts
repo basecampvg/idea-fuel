@@ -42,6 +42,7 @@ export interface ResearchPipelineJobData {
   interviewId?: string;
   mode?: 'LIGHT' | 'IN_DEPTH' | 'SPARK';
   engine?: 'OPENAI' | 'PERPLEXITY';
+  customerInterviewId?: string;
 }
 
 /**

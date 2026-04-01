@@ -50,6 +50,11 @@ export interface ResearchInput {
   canvasContext?: string; // now receives notes text (not canvas blocks)
   researchId?: string;   // used for per-pipeline SerpAPI budget cap
   founderProfile?: import('@forge/shared').FounderProfile | null;
+  customerInterviewResponses?: Array<{
+    answers: import('@forge/shared').InterviewAnswer[];
+    respondentName?: string | null;
+  }>;
+  customerInterviewQuestions?: import('@forge/shared').InterviewQuestion[];
 }
 
 export interface GeneratedQueries {
