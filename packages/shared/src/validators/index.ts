@@ -1,4 +1,5 @@
 // Zod validators for shared schemas
+export * from './customer-interview';
 import { z } from 'zod';
 
 // ============================================

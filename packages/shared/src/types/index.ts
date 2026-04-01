@@ -1,4 +1,5 @@
 // Shared type definitions
+export * from './customer-interview';
 
 // =============================================================================
 // Project Types (Unified: absorbs former Idea + Canvas types)

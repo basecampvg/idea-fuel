@@ -309,6 +309,11 @@ export const INTERVIEW_RESUME_MESSAGES = {
   long: "Welcome back! It's been a few days. Here's a quick summary of what we've covered so far...", // > 24 hours
 };
 
+// Customer Interview
+export const CUSTOMER_INTERVIEW_MIN_RESPONSES_FOR_SYNTHESIS = 3;
+export const CUSTOMER_INTERVIEW_MIN_COMPLETION_SECONDS = 10;
+export const CUSTOMER_INTERVIEW_MAX_QUESTIONS = 12;
+
 // Rate limiting
 export const RATE_LIMITS = {
   api: {
