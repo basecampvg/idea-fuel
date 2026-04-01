@@ -30,6 +30,7 @@
     "@trpc/server": "^11.0.0-rc.682",
     "ai": "^6.0.86",
     "ajv": "^8.17.1",
+    "bcryptjs": "^3.0.3",
     "bullmq": "^5.67.2",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
@@ -48,6 +49,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
     "@types/node": "^22.10.5",
     "@types/react": "19.1.0",
     "@vitest/coverage-v8": "^2.1.0",
