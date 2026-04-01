@@ -367,7 +367,12 @@ export const NOTE_TAG_MAX = 50;
 export const NOTE_TAGS_MAX = 10;
 export const NOTE_REFINE_MIN_CHARS = 50;
 
-export const createNoteSchema = z.object({});
+export const noteTypeSchema = z.enum(['QUICK', 'AI']);
+export type NoteType = z.infer<typeof noteTypeSchema>;
+
+export const createNoteSchema = z.object({
+  type: noteTypeSchema.optional().default('AI'),
+});
 export type CreateNoteInput = z.infer<typeof createNoteSchema>;
 
 export const updateNoteSchema = z.object({
@@ -397,6 +402,21 @@ export const noteRefinementSchema = z.object({
   tags: z.array(z.string().min(1).max(NOTE_TAG_MAX)).min(1).max(NOTE_TAGS_MAX),
 });
 export type NoteRefinementInput = z.infer<typeof noteRefinementSchema>;
+
+export const NOTE_EXTRACT_MIN_CHARS = 50;
+
+export const extractIdeasSchema = z.object({
+  id: entityId,
+});
+export type ExtractIdeasInput = z.infer<typeof extractIdeasSchema>;
+
+export const extractedIdeaSchema = z.object({
+  title: z.string().min(1).max(NOTE_TITLE_MAX),
+  description: z.string().min(1).max(NOTE_DESC_MAX),
+  tags: z.array(z.string().min(1).max(NOTE_TAG_MAX)).min(1).max(NOTE_TAGS_MAX),
+});
+export const extractedIdeasArraySchema = z.array(extractedIdeaSchema).min(1).max(10);
+export type ExtractedIdea = z.infer<typeof extractedIdeaSchema>;
 
 // ============================================
 // Assumption validators

@@ -20,10 +20,12 @@ import {
   refineNoteSchema,
   promoteNoteSchema,
   deleteNoteSchema,
+  extractIdeasSchema,
   NOTE_REFINE_MIN_CHARS,
+  NOTE_EXTRACT_MIN_CHARS,
 } from '@forge/shared';
 import { notes, projects, users } from '../db/schema';
-import { refineNote } from '../services/note-ai';
+import { refineNote, extractIdeasFromNote } from '../services/note-ai';
 
 export const noteRouter = router({
   /**
@@ -64,11 +66,12 @@ export const noteRouter = router({
    */
   create: protectedProcedure
     .input(createNoteSchema)
-    .mutation(async ({ ctx }) => {
+    .mutation(async ({ ctx, input }) => {
       const [note] = await ctx.db
         .insert(notes)
         .values({
           userId: ctx.userId,
+          type: input.type ?? 'AI',
         })
         .returning();
 
@@ -273,5 +276,78 @@ export const noteRouter = router({
       await ctx.db.delete(notes).where(eq(notes.id, input.id));
 
       return result;
+    }),
+
+  /**
+   * Extract multiple business ideas from a quick note using AI.
+   * Creates new AI-typed notes for each extracted idea, with refinement data pre-populated.
+   */
+  extractIdeas: protectedProcedure
+    .input(extractIdeasSchema)
+    .mutation(async ({ ctx, input }) => {
+      const note = await ctx.db.query.notes.findFirst({
+        where: and(eq(notes.id, input.id), eq(notes.userId, ctx.userId)),
+        columns: { id: true, content: true, type: true },
+      });
+
+      if (!note) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'NOTE_NOT_FOUND',
+        });
+      }
+
+      if (note.type !== 'QUICK') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Extract Ideas is only available for Quick Notes',
+        });
+      }
+
+      if (note.content.length < NOTE_EXTRACT_MIN_CHARS) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Note must be at least ${NOTE_EXTRACT_MIN_CHARS} characters to extract ideas`,
+        });
+      }
+
+      let ideas;
+      try {
+        ideas = await extractIdeasFromNote(note.content);
+      } catch (error) {
+        console.error('[NoteRouter] Extraction failed:', error instanceof Error ? error.message : error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'EXTRACTION_FAILED',
+          cause: error,
+        });
+      }
+
+      // Create new AI notes for each extracted idea in a transaction
+      const createdNotes = await ctx.db.transaction(async (tx) => {
+        const results = [];
+        for (const idea of ideas) {
+          const [newNote] = await tx
+            .insert(notes)
+            .values({
+              userId: ctx.userId,
+              type: 'AI',
+              content: `${idea.title}\n\n${idea.description}`,
+              refinedTitle: idea.title,
+              refinedDescription: idea.description,
+              refinedTags: idea.tags,
+              lastRefinedAt: new Date(),
+              sourceNoteId: input.id,
+            })
+            .returning();
+          if (newNote) results.push(newNote);
+        }
+        return results;
+      });
+
+      return {
+        extractedCount: createdNotes.length,
+        noteIds: createdNotes.map((n) => n.id),
+      };
     }),
 });

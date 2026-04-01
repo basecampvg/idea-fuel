@@ -18,10 +18,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
-import { NotebookPen, CheckCircle, Plus, Trash2, ChevronRight } from 'lucide-react-native';
+import { NotebookPen, CheckCircle, Plus, Trash2, ChevronRight, Sparkles } from 'lucide-react-native';
 import { useRouter, useNavigation } from 'expo-router';
 import { triggerHaptic } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
+import { NoteTypePopover } from '../../../components/NoteTypePopover';
 import { trpc } from '../../../lib/trpc';
 import { colors, fonts } from '../../../lib/theme';
 
@@ -57,9 +58,18 @@ function getNoteMeta(note: any) {
       badgeLabel: 'Promoted',
     };
   }
-  if (note.refinedTitle) {
+  if (note.type === 'QUICK') {
     return {
       icon: NotebookPen,
+      iconColor: colors.accent,
+      iconBg: 'rgba(20, 184, 166, 0.15)',
+      badgeVariant: 'accent' as const,
+      badgeLabel: 'Quick',
+    };
+  }
+  if (note.refinedTitle) {
+    return {
+      icon: Sparkles,
       iconColor: colors.brand,
       iconBg: colors.brandMuted,
       badgeVariant: 'primary' as const,
@@ -67,7 +77,7 @@ function getNoteMeta(note: any) {
     };
   }
   return {
-    icon: NotebookPen,
+    icon: Sparkles,
     iconColor: colors.mutedDim,
     iconBg: '#262422',
     badgeVariant: null,
@@ -209,6 +219,7 @@ export default function NotesListScreen() {
   const utils = trpc.useUtils();
   const { data: notes, isLoading, refetch } = trpc.note.list.useQuery();
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+  const [showTypePopover, setShowTypePopover] = useState(false);
 
   // Refetch notes when screen gains focus (e.g. navigating back from detail)
   // Use invalidate() so it refetches in the background without triggering RefreshControl
@@ -252,7 +263,17 @@ export default function NotesListScreen() {
   });
 
   const handleNewNote = useCallback(() => {
-    createMutation.mutate({});
+    setShowTypePopover(true);
+  }, []);
+
+  const handleCreateQuickNote = useCallback(() => {
+    setShowTypePopover(false);
+    createMutation.mutate({ type: 'QUICK' });
+  }, [createMutation]);
+
+  const handleCreateAINote = useCallback(() => {
+    setShowTypePopover(false);
+    createMutation.mutate({ type: 'AI' });
   }, [createMutation]);
 
   const handleDelete = useCallback((noteId: string, title: string) => {
@@ -341,6 +362,14 @@ export default function NotesListScreen() {
           <Plus size={24} color={colors.white} />
         </TouchableOpacity>
       )}
+
+      <NoteTypePopover
+        visible={showTypePopover}
+        onClose={() => setShowTypePopover(false)}
+        onQuickNote={handleCreateQuickNote}
+        onAINote={handleCreateAINote}
+        anchorY={88}
+      />
     </View>
   );
 }

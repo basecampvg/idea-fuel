@@ -75,6 +75,7 @@ export const templateCategoryEnum = pgEnum('TemplateCategory', [
   'TECH', 'SERVICES', 'RETAIL', 'FOOD', 'CONSTRUCTION',
   'HEALTHCARE', 'REAL_ESTATE', 'MANUFACTURING', 'NONPROFIT', 'FREELANCER',
 ]);
+export const noteTypeEnum = pgEnum('NoteType', ['QUICK', 'AI']);
 
 // TypeScript types derived from enums
 export type SubscriptionTier = (typeof subscriptionTierEnum.enumValues)[number];
@@ -252,6 +253,8 @@ export const projectAttachmentsRelations = relations(projectAttachments, ({ one 
 export const notes = pgTable('Note', {
   id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
   content: text().default('').notNull(),
+  type: noteTypeEnum().default('AI').notNull(),
+  sourceNoteId: text('source_note_id'),
   refinedTitle: text('refined_title'),
   refinedDescription: text('refined_description'),
   refinedTags: jsonb('refined_tags').$type<string[]>(),
@@ -272,6 +275,11 @@ export const notes = pgTable('Note', {
     columns: [table.promotedProjectId],
     foreignColumns: [projects.id],
     name: 'Note_promotedProjectId_fkey',
+  }).onUpdate('cascade').onDelete('set null'),
+  foreignKey({
+    columns: [table.sourceNoteId],
+    foreignColumns: [table.id],
+    name: 'Note_sourceNoteId_fkey',
   }).onUpdate('cascade').onDelete('set null'),
 ]);
 
