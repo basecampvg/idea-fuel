@@ -213,11 +213,9 @@ export default function NoteEditorScreen() {
     };
   }, []);
 
-  const handleEditorChange = useCallback(async () => {
+  const handleEditorChange = useCallback(() => {
     markDirty();
-    if (noteTypeRef.current !== 'QUICK') {
-      scheduleAutoRefine();
-    }
+    scheduleAutoRefine();
   }, [markDirty, scheduleAutoRefine]);
 
   const handleDelete = useCallback(() => {
@@ -361,7 +359,7 @@ export default function NoteEditorScreen() {
             ref={editorRef}
             initialContent={note.content ?? ''}
             placeholder={note.type === 'QUICK'
-              ? "Dump your thoughts here. When you're ready, tap Extract Ideas to pull out the good stuff..."
+              ? "Dump your thoughts here..."
               : "Brain dump your idea here. Once you pause typing, AI will refine it into something sharp..."
             }
             onChange={handleEditorChange}

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Option 4: Fluid SVG Waves</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #161513; overflow: hidden; font-family: 'Courier New', monospace; }
+  .bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+  .content {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 1;
+  }
+  .logo {
+    width: 80px; height: 80px; margin-bottom: 32px;
+    background: radial-gradient(circle at 40% 30%, #E32B1A, #DB4D40);
+    clip-path: path('M40 5 C50 25, 70 35, 65 55 C60 70, 50 78, 40 75 C30 78, 20 70, 15 55 C10 35, 30 25, 40 5Z');
+    animation: logoIn 0.8s ease-out 0.3s both;
+  }
+  .tagline {
+    font-size: 22px; color: #E8E4DC; text-align: center;
+    letter-spacing: -0.5px; margin-bottom: 16px;
+    animation: slideUp 0.6s ease-out 0.8s both;
+  }
+  .typewriter-wrap {
+    height: 28px; display: flex; align-items: center; justify-content: center;
+    animation: fadeIn 0.6s ease-out 1.2s both;
+  }
+  .typewriter { font-size: 16px; color: #8A8680; }
+  .cursor { color: #E32B1A; animation: blink 0.8s step-start infinite; }
+  @keyframes logoIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes blink { 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+<svg class="bg" id="bg" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E32B1A" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#161513" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#DB4D40" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#161513" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="g3" x1="50%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" stop-color="#14B8A6" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#161513" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="#161513"/>
+  <path id="wave1" fill="url(#g1)"/>
+  <path id="wave2" fill="url(#g2)"/>
+  <path id="wave3" fill="url(#g3)"/>
+</svg>
+<div class="content">
+  <div class="logo"></div>
+  <div class="tagline">Don't let your ideas die.</div>
+  <div class="typewriter-wrap">
+    <span class="typewriter" id="tw"></span><span class="cursor">|</span>
+  </div>
+</div>
+<script>
+const svg = document.getElementById('bg');
+const wave1 = document.getElementById('wave1');
+const wave2 = document.getElementById('wave2');
+const wave3 = document.getElementById('wave3');
+
+function resize() {
+  svg.setAttribute('viewBox', `0 0 ${innerWidth} ${innerHeight}`);
+}
+resize(); addEventListener('resize', resize);
+
+function buildWavePath(t, yBase, amplitude, freq, phase, segments) {
+  const W = innerWidth, H = innerHeight;
+  let d = `M0,${H}`;
+  for (let i = 0; i <= segments; i++) {
+    const x = (i / segments) * W;
+    const y = yBase + Math.sin(x * freq + t + phase) * amplitude
+                    + Math.sin(x * freq * 0.5 + t * 0.7 + phase * 2) * amplitude * 0.5;
+    d += ` L${x},${y}`;
+  }
+  d += ` L${W},${H} Z`;
+  return d;
+}
+
+function draw(t) {
+  const H = innerHeight;
+  wave1.setAttribute('d', buildWavePath(t * 0.0006, H * 0.3, H * 0.08, 0.003, 0, 80));
+  wave2.setAttribute('d', buildWavePath(t * 0.0004, H * 0.5, H * 0.06, 0.004, 2, 80));
+  wave3.setAttribute('d', buildWavePath(t * 0.0005, H * 0.7, H * 0.05, 0.005, 4, 80));
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+
+// Typewriter
+const phrases = ['validate your ideas in seconds','capture ideas with your voice','deep market research, instantly','find your unfair advantage','turn hunches into business plans'];
+let pi=0,ci=0,deleting=false;
+const tw=document.getElementById('tw');
+function tick(){
+  const phrase=phrases[pi];
+  if(!deleting){ci++;tw.textContent=phrase.slice(0,ci);if(ci===phrase.length){deleting=true;setTimeout(tick,2200);return;}setTimeout(tick,45);}
+  else{ci--;tw.textContent=phrase.slice(0,ci);if(ci===0){deleting=false;pi=(pi+1)%phrases.length;setTimeout(tick,400);return;}setTimeout(tick,25);}
+}
+setTimeout(tick,1800);
+</script>
+</body>
+</html>

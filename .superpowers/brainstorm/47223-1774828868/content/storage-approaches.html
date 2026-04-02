@@ -1,0 +1,84 @@
+<h2>Storage Architecture: Where do the images live?</h2>
+<p class="subtitle">Each approach affects cost, complexity, and how the AI pipeline accesses images</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Supabase Storage (Recommended)</h3>
+      <p>You're already on Supabase for Postgres. Their Storage service gives you S3-compatible object storage with built-in auth policies, presigned URLs, and image transforms — zero new infrastructure.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>No new accounts or credentials — same Supabase project</li>
+            <li>Row-level security policies match your existing auth</li>
+            <li>Built-in image transforms (thumbnails, resize)</li>
+            <li>Presigned upload URLs — mobile uploads direct to storage, no server proxy</li>
+            <li>Free tier: 1GB storage, 2GB bandwidth</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Vendor lock-in to Supabase (though S3-compatible API)</li>
+            <li>Adds @supabase/supabase-js dependency to server</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Cloudflare R2</h3>
+      <p>S3-compatible storage with zero egress fees. Great for high-read workloads, but requires a new Cloudflare account and separate auth layer.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>No egress fees (reads are free)</li>
+            <li>S3-compatible API</li>
+            <li>10GB free tier</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>New account + credentials to manage</li>
+            <li>Must build your own auth/access layer</li>
+            <li>No built-in image transforms</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Direct-to-DB (Base64 in JSONB)</h3>
+      <p>Store compressed images directly in Postgres as base64 in a JSONB column. Simplest implementation — no external storage service at all.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Zero infrastructure — just a column</li>
+            <li>Atomic with project creation (no orphaned files)</li>
+            <li>Simplest implementation by far</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Bloats database size (3-5 images × ~500KB = 1.5-2.5MB per idea)</li>
+            <li>Slower queries when selecting projects</li>
+            <li>Supabase DB has storage limits per plan</li>
+            <li>Not scalable if you add more attachment types later</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

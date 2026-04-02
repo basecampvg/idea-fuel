@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Option 2: Aurora / Gradient Mesh</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #161513; overflow: hidden; font-family: 'Courier New', monospace; }
+  canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+  .content {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 1;
+  }
+  .logo {
+    width: 80px; height: 80px; margin-bottom: 32px;
+    background: radial-gradient(circle at 40% 30%, #E32B1A, #DB4D40);
+    clip-path: path('M40 5 C50 25, 70 35, 65 55 C60 70, 50 78, 40 75 C30 78, 20 70, 15 55 C10 35, 30 25, 40 5Z');
+    animation: logoIn 0.8s ease-out 0.3s both;
+  }
+  .tagline {
+    font-size: 22px; color: #E8E4DC; text-align: center;
+    letter-spacing: -0.5px; margin-bottom: 16px;
+    animation: slideUp 0.6s ease-out 0.8s both;
+  }
+  .typewriter-wrap {
+    height: 28px; display: flex; align-items: center; justify-content: center;
+    animation: fadeIn 0.6s ease-out 1.2s both;
+  }
+  .typewriter { font-size: 16px; color: #8A8680; }
+  .cursor { color: #E32B1A; animation: blink 0.8s step-start infinite; }
+  @keyframes logoIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes blink { 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="content">
+  <div class="logo"></div>
+  <div class="tagline">Don't let your ideas die.</div>
+  <div class="typewriter-wrap">
+    <span class="typewriter" id="tw"></span><span class="cursor">|</span>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H;
+function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+resize(); addEventListener('resize', resize);
+
+// Floating aurora blobs
+const blobs = [
+  { x: 0.3, y: 0.3, r: 0.4, color: [227, 43, 26], speed: 0.0004, phaseX: 0, phaseY: 0.5 },
+  { x: 0.7, y: 0.5, r: 0.35, color: [219, 77, 64], speed: 0.0003, phaseX: 1.5, phaseY: 2.1 },
+  { x: 0.5, y: 0.7, r: 0.3, color: [20, 184, 166], speed: 0.00035, phaseX: 3, phaseY: 0.8 },
+  { x: 0.2, y: 0.6, r: 0.25, color: [227, 43, 26], speed: 0.00045, phaseX: 4.2, phaseY: 3.5 },
+];
+
+function draw(t) {
+  ctx.fillStyle = '#161513';
+  ctx.fillRect(0, 0, W, H);
+
+  blobs.forEach(b => {
+    const cx = (b.x + Math.sin(t * b.speed + b.phaseX) * 0.15) * W;
+    const cy = (b.y + Math.cos(t * b.speed * 0.8 + b.phaseY) * 0.1) * H;
+    const radius = b.r * Math.min(W, H);
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+    g.addColorStop(0, `rgba(${b.color.join(',')}, 0.12)`);
+    g.addColorStop(0.4, `rgba(${b.color.join(',')}, 0.06)`);
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  });
+
+  // Subtle grain overlay
+  const imageData = ctx.getImageData(0, 0, W, H);
+  const data = imageData.data;
+  for (let i = 0; i < data.length; i += 16) {
+    const noise = (Math.random() - 0.5) * 8;
+    data[i] += noise;
+    data[i+1] += noise;
+    data[i+2] += noise;
+  }
+  ctx.putImageData(imageData, 0, 0);
+
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+
+// Typewriter
+const phrases = ['validate your ideas in seconds','capture ideas with your voice','deep market research, instantly','find your unfair advantage','turn hunches into business plans'];
+let pi=0,ci=0,deleting=false;
+const tw=document.getElementById('tw');
+function tick(){
+  const phrase=phrases[pi];
+  if(!deleting){ci++;tw.textContent=phrase.slice(0,ci);if(ci===phrase.length){deleting=true;setTimeout(tick,2200);return;}setTimeout(tick,45);}
+  else{ci--;tw.textContent=phrase.slice(0,ci);if(ci===0){deleting=false;pi=(pi+1)%phrases.length;setTimeout(tick,400);return;}setTimeout(tick,25);}
+}
+setTimeout(tick,1800);
+</script>
+</body>
+</html>

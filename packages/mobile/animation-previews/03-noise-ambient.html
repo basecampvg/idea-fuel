@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Option 3: Noise/Grain + Ambient Motion</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #161513; overflow: hidden; font-family: 'Courier New', monospace; }
+  canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+  .content {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 1;
+  }
+  .logo {
+    width: 80px; height: 80px; margin-bottom: 32px;
+    background: radial-gradient(circle at 40% 30%, #E32B1A, #DB4D40);
+    clip-path: path('M40 5 C50 25, 70 35, 65 55 C60 70, 50 78, 40 75 C30 78, 20 70, 15 55 C10 35, 30 25, 40 5Z');
+    animation: logoIn 0.8s ease-out 0.3s both;
+  }
+  .tagline {
+    font-size: 22px; color: #E8E4DC; text-align: center;
+    letter-spacing: -0.5px; margin-bottom: 16px;
+    animation: slideUp 0.6s ease-out 0.8s both;
+  }
+  .typewriter-wrap {
+    height: 28px; display: flex; align-items: center; justify-content: center;
+    animation: fadeIn 0.6s ease-out 1.2s both;
+  }
+  .typewriter { font-size: 16px; color: #8A8680; }
+  .cursor { color: #E32B1A; animation: blink 0.8s step-start infinite; }
+  @keyframes logoIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes blink { 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="content">
+  <div class="logo"></div>
+  <div class="tagline">Don't let your ideas die.</div>
+  <div class="typewriter-wrap">
+    <span class="typewriter" id="tw"></span><span class="cursor">|</span>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H;
+function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+resize(); addEventListener('resize', resize);
+
+// Simple Perlin-like noise via interpolation
+function lerp(a, b, t) { return a + (b - a) * t; }
+function smoothstep(t) { return t * t * (3 - 2 * t); }
+
+// Pre-generate a noise grid
+const GRID = 16;
+const noiseGrid = Array.from({length: GRID * GRID}, () => Math.random());
+function noise2D(x, y) {
+  const gx = ((x % GRID) + GRID) % GRID;
+  const gy = ((y % GRID) + GRID) % GRID;
+  const ix = Math.floor(gx), iy = Math.floor(gy);
+  const fx = smoothstep(gx - ix), fy = smoothstep(gy - iy);
+  const i = (v) => ((v % GRID) + GRID) % GRID;
+  const a = lerp(noiseGrid[i(iy)*GRID+i(ix)], noiseGrid[i(iy)*GRID+i(ix+1)], fx);
+  const b = lerp(noiseGrid[i(iy+1)*GRID+i(ix)], noiseGrid[i(iy+1)*GRID+i(ix+1)], fx);
+  return lerp(a, b, fy);
+}
+
+// Offscreen buffer for noise (rendered at lower res for performance)
+const noiseCanvas = document.createElement('canvas');
+const noiseCtx = noiseCanvas.getContext('2d');
+const NOISE_SCALE = 4;
+
+function renderNoise(t) {
+  const nw = Math.ceil(W / NOISE_SCALE);
+  const nh = Math.ceil(H / NOISE_SCALE);
+  noiseCanvas.width = nw;
+  noiseCanvas.height = nh;
+  const imageData = noiseCtx.createImageData(nw, nh);
+  const data = imageData.data;
+  const drift = t * 0.0002;
+
+  for (let y = 0; y < nh; y++) {
+    for (let x = 0; x < nw; x++) {
+      const n = noise2D(x * 0.05 + drift, y * 0.05 + drift * 0.7);
+      const v = n * 18;
+      const idx = (y * nw + x) * 4;
+      data[idx] = v;
+      data[idx+1] = v;
+      data[idx+2] = v;
+      data[idx+3] = 255;
+    }
+  }
+  noiseCtx.putImageData(imageData, 0, 0);
+}
+
+// Ambient light sources
+const lights = [
+  { x: 0.35, y: 0.35, color: [227, 43, 26], intensity: 0.1, speed: 0.0003 },
+  { x: 0.65, y: 0.55, color: [100, 20, 10], intensity: 0.08, speed: 0.00025 },
+];
+
+function draw(t) {
+  // Base dark fill
+  ctx.fillStyle = '#0E0D0C';
+  ctx.fillRect(0, 0, W, H);
+
+  // Ambient lights
+  lights.forEach(l => {
+    const cx = (l.x + Math.sin(t * l.speed) * 0.1) * W;
+    const cy = (l.y + Math.cos(t * l.speed * 0.7) * 0.08) * H;
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, W * 0.5);
+    g.addColorStop(0, `rgba(${l.color.join(',')}, ${l.intensity})`);
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  });
+
+  // Draw noise texture
+  renderNoise(t);
+  ctx.globalAlpha = 0.35;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(noiseCanvas, 0, 0, W, H);
+  ctx.globalAlpha = 1;
+  ctx.imageSmoothingEnabled = true;
+
+  // Film grain flicker
+  const grainData = ctx.getImageData(0, 0, W, H);
+  const gd = grainData.data;
+  for (let i = 0; i < gd.length; i += 32) {
+    const n = (Math.random() - 0.5) * 6;
+    gd[i] += n; gd[i+1] += n; gd[i+2] += n;
+  }
+  ctx.putImageData(grainData, 0, 0);
+
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+
+// Typewriter
+const phrases = ['validate your ideas in seconds','capture ideas with your voice','deep market research, instantly','find your unfair advantage','turn hunches into business plans'];
+let pi=0,ci=0,deleting=false;
+const tw=document.getElementById('tw');
+function tick(){
+  const phrase=phrases[pi];
+  if(!deleting){ci++;tw.textContent=phrase.slice(0,ci);if(ci===phrase.length){deleting=true;setTimeout(tick,2200);return;}setTimeout(tick,45);}
+  else{ci--;tw.textContent=phrase.slice(0,ci);if(ci===0){deleting=false;pi=(pi+1)%phrases.length;setTimeout(tick,400);return;}setTimeout(tick,25);}
+}
+setTimeout(tick,1800);
+</script>
+</body>
+</html>
