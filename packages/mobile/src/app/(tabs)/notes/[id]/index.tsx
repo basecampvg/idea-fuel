@@ -17,6 +17,8 @@ import {
   ChevronLeft,
   Trash2,
   Rocket,
+  Pin,
+  PinOff,
 } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { Button, triggerHaptic } from '../../../../components/ui/Button';
@@ -295,14 +297,14 @@ export default function NoteEditorScreen() {
                 onPress={() => unpinMutation.mutate({ noteId: id! })}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Text style={styles.unpinText}>Unpin</Text>
+                <PinOff size={20} color={colors.muted} />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
                 onPress={() => setShowSandboxPicker(true)}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Text style={styles.pinText}>Pin</Text>
+                <Pin size={20} color={colors.foreground} />
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -543,6 +545,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
-  pinText: { fontSize: 15, ...fonts.outfit.semiBold, color: colors.brand },
-  unpinText: { fontSize: 15, ...fonts.outfit.semiBold, color: colors.muted },
 });
