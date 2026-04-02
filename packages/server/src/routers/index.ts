@@ -18,6 +18,7 @@ import { sparkCardRouter } from './sparkCard';
 import { noteRouter } from './note';
 import { attachmentRouter } from './attachment';
 import { customerInterviewRouter } from './customerInterview';
+import { sandboxRouter } from './sandbox';
 
 /**
  * Main application router
@@ -43,6 +44,7 @@ export const appRouter = router({
   note: noteRouter,
   attachment: attachmentRouter,
   customerInterview: customerInterviewRouter,
+  sandbox: sandboxRouter,
 });
 
 // Export type definition for client usage
