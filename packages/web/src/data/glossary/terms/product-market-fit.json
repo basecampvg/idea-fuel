@@ -1,0 +1,21 @@
+{
+  "slug": "product-market-fit",
+  "title": "Product-Market Fit",
+  "category": "strategy",
+  "shortDefinition": "The degree to which your product satisfies strong demand from a specific market segment.",
+  "content": {
+    "definition": "Product-market fit (PMF) is the point at which your product genuinely solves a real problem for a defined group of customers, and those customers are actively pulling it from you. Marc Andreessen, who coined the term, described it simply: you can feel it when it happens. Retention is high, word-of-mouth spreads, and you're struggling to keep up with demand rather than struggling to generate it.",
+    "whyItMatters": "Everything before PMF is a waste of money to scale. Pouring marketing spend into a product that hasn't found its market is how most startups die. PMF is the single most important milestone for an early-stage company because it's the only real proof that you've built something people want, not just something you think they should want.",
+    "howToApply": "Start by defining a narrow, specific customer segment rather than targeting everyone. Use Sean Ellis's PMF survey: ask your users 'How would you feel if you could no longer use this product?' If 40% or more say 'very disappointed,' you likely have PMF. Track retention curves obsessively — if month-over-month retention flattens (instead of continuing to decline), that's a strong signal. Talk to your best customers and your churned customers to understand the gap. Don't try to scale until your NPS is positive and organic referrals account for a meaningful share of new signups.",
+    "commonMistakes": [
+      "Declaring PMF too early based on vanity metrics like signups or initial downloads rather than retention and engagement data.",
+      "Targeting too broad a market and getting mediocre signal from everyone instead of strong signal from a specific segment.",
+      "Pivoting the product instead of the customer segment when early traction is weak — sometimes you have the right product for the wrong audience."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your market and competitors to help you identify which customer segments have the strongest unmet need, so you can focus your PMF search in the right direction from day one."
+  },
+  "relatedTerms": ["total-addressable-market", "minimum-viable-product", "customer-discovery"],
+  "synonyms": ["PMF", "Product-Market Fit"],
+  "seoTitle": "What is Product-Market Fit? | IdeaFuel Glossary",
+  "seoDescription": "Product-market fit is when your product solves a real problem for a specific market. Learn how to measure and achieve it."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "conversion-rate",
+  "title": "Conversion Rate",
+  "category": "analytics",
+  "shortDefinition": "The percentage of visitors or leads who complete a desired action, such as signing up or making a purchase.",
+  "content": {
+    "definition": "Conversion rate measures how effectively you turn one type of user into another — visitors into leads, leads into trials, trials into paying customers, or any other meaningful progression through your funnel. It's expressed as a percentage: if 1,000 people visit your pricing page and 50 start a trial, your visit-to-trial conversion rate is 5%. Conversion rate is not one number — it's a series of rates across every stage of your funnel, and each one is an opportunity for improvement.",
+    "whyItMatters": "Conversion rate improvements compound across your entire acquisition engine. If you double the conversion rate at the top of your funnel, every dollar of ad spend produces twice the output. Unlike increasing traffic or cutting CAC through channel diversification, conversion rate optimization (CRO) improves the efficiency of everything you're already doing. Even a 1% improvement in a high-volume conversion step can meaningfully move CAC and overall unit economics.",
+    "howToApply": "Map your full funnel from first touch to revenue and measure conversion rates at each step. Prioritize optimization efforts at stages with the highest traffic volume and biggest drop-offs — fixing a 50% leak at 10,000 monthly visitors beats fixing a 90% leak at 100 monthly visitors. For each step, form a hypothesis about why users aren't converting, design a test, and measure results with statistical significance before declaring a winner. Test one variable at a time: headline, CTA copy, social proof, pricing page layout, onboarding flow. Use qualitative tools (session recording, user interviews, exit surveys) alongside quantitative data to understand the why behind the numbers.",
+    "commonMistakes": [
+      "Optimizing a conversion step in isolation without understanding upstream or downstream effects — improving trial conversion can hurt paid conversion if you're attracting lower-quality leads.",
+      "Declaring test winners before reaching statistical significance, then acting on noise rather than signal.",
+      "Focusing exclusively on top-of-funnel conversion while ignoring trial-to-paid or onboarding conversion rates, which often have the biggest leverage."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your market and competitors to help you benchmark conversion rates against industry standards and identify which funnel stages are most worth optimizing."
+  },
+  "relatedTerms": ["customer-acquisition-cost", "funnel", "a-b-testing"],
+  "synonyms": ["CVR", "CR", "Conversion Rate Optimization", "CRO"],
+  "seoTitle": "What is Conversion Rate? | IdeaFuel Glossary",
+  "seoDescription": "Conversion rate is the percentage of users who take a desired action. Learn how to measure, benchmark, and improve it across your funnel."
+}

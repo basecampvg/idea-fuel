@@ -1,0 +1,21 @@
+{
+  "slug": "minimum-viable-product",
+  "title": "Minimum Viable Product",
+  "category": "product",
+  "shortDefinition": "The simplest version of a product that delivers enough value to test a core assumption with real users.",
+  "content": {
+    "definition": "A Minimum Viable Product (MVP) is the smallest thing you can build that tests your most critical business assumption. The key word is 'viable' — it has to deliver real value to real users, not just exist. An MVP is not a prototype, a demo, or a half-built app. It's a deliberate, minimal version of your product that lets you learn whether customers will pay for your solution before you invest in building the full version.",
+    "whyItMatters": "Most founders build too much before talking to customers. The MVP discipline forces you to identify your single most important assumption and test it before burning months of engineering time. Eric Ries, who popularized the term through The Lean Startup, framed it as a tool for validated learning. The cost of being wrong goes up exponentially the longer you wait to find out — an MVP compresses that learning cycle.",
+    "howToApply": "Start by identifying the riskiest assumption in your business model — the one thing that, if false, means you have no business. Design the smallest possible experiment to test that assumption. Your MVP might be a landing page with a signup form, a Wizard of Oz service where humans do the work behind the scenes, a concierge service for 5 customers, or a stripped-down app with a single core feature. Define your success criteria before you build: what result would prove the assumption true? Ship it to real users as fast as possible, gather data, and iterate. Resist the urge to add features before you've validated the core.",
+    "commonMistakes": [
+      "Building an MVP that's so minimal it doesn't actually deliver value to users, making feedback meaningless because the product was never viable.",
+      "Spending 6+ months building an MVP — if it takes that long, you're not building an MVP, you're building a product.",
+      "Treating the MVP as the final product and never iterating based on what users tell you."
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation gives you instant feedback on your MVP concept before you write a line of code, stress-testing your assumptions and surfacing the questions you need to answer first."
+  },
+  "relatedTerms": ["product-market-fit", "customer-discovery", "lean-startup"],
+  "synonyms": ["MVP", "Minimum Viable Product", "Prototype"],
+  "seoTitle": "What is a Minimum Viable Product (MVP)? | IdeaFuel Glossary",
+  "seoDescription": "An MVP is the smallest product you can build to test a key assumption. Learn how to design one that actually teaches you something."
+}

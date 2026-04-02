@@ -1,0 +1,21 @@
+{
+  "slug": "customer-acquisition-cost",
+  "title": "Customer Acquisition Cost",
+  "category": "marketing",
+  "shortDefinition": "The total cost to acquire one paying customer, including all sales and marketing spend.",
+  "content": {
+    "definition": "Customer Acquisition Cost (CAC) is the total amount you spend on sales and marketing divided by the number of new customers acquired in that period. It captures every dollar spent to bring a customer through the door: ad spend, sales salaries, marketing tools, content production, and commissions. CAC is only meaningful when paired with Lifetime Value (LTV) — the ratio between the two determines whether your business model works.",
+    "whyItMatters": "CAC is the heartbeat of your unit economics. If it costs you $500 to acquire a customer who pays you $200 total before churning, you're not running a business — you're running a subsidy program. Knowing your CAC tells you how much you need to raise, how fast you can grow, and which acquisition channels are actually worth investing in. Most businesses underestimate CAC by forgetting to include fully-loaded costs like salaries and overhead.",
+    "howToApply": "Calculate CAC by dividing total sales and marketing spend (including salaries, tools, and agency fees) by new customers acquired in the same period. Separate CAC by channel — your paid search CAC might be $150 while your organic content CAC is $20. Track payback period (how many months of revenue to recover CAC) as a complement to LTV:CAC ratio. A healthy SaaS business typically targets LTV:CAC of 3:1 or better, with a payback period under 18 months. Once you have channel-level CAC, double down on the channels with the best payback and cut the rest.",
+    "commonMistakes": [
+      "Calculating CAC using only ad spend and ignoring sales team salaries, which can make CAC look 3-5x lower than it actually is.",
+      "Blending CAC across all channels instead of calculating per-channel — this hides which channels are profitable and which are destroying value.",
+      "Optimizing for lowest CAC instead of best LTV:CAC ratio. Sometimes higher-CAC customers are worth far more over their lifetime."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you calculate and project your CAC across channels, so you can model unit economics before committing budget and identify your most profitable acquisition paths."
+  },
+  "relatedTerms": ["lifetime-value", "unit-economics", "conversion-rate"],
+  "synonyms": ["CAC", "Cost Per Acquisition", "CPA"],
+  "seoTitle": "What is Customer Acquisition Cost (CAC)? | IdeaFuel Glossary",
+  "seoDescription": "CAC is what it costs to acquire one customer. Learn how to calculate it correctly and use it to build a profitable business."
+}

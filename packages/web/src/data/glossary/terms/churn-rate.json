@@ -1,0 +1,21 @@
+{
+  "slug": "churn-rate",
+  "title": "Churn Rate",
+  "category": "growth",
+  "shortDefinition": "The percentage of customers who cancel or stop using your product within a given time period.",
+  "content": {
+    "definition": "Churn rate measures how many customers you lose over a specific period, expressed as a percentage of your total customer base. Customer churn (logo churn) tracks the number of accounts lost. Revenue churn tracks the MRR lost when customers cancel or downgrade. Net revenue churn accounts for expansion revenue from existing customers — if expansion exceeds contraction and cancellation, you can have negative net revenue churn, which is one of the most powerful dynamics in SaaS.",
+    "whyItMatters": "High churn is a product problem wearing a growth disguise. You can't grow a business with a leaky bucket — no matter how much you pour in the top, if customers are flowing out the bottom, you're on a treadmill. Churn directly sets a ceiling on LTV and therefore on how much you can rationally spend on acquisition. A SaaS business churning 5% monthly is losing more than half its customer base every year. Even modest reductions in churn have compounding effects on ARR growth.",
+    "howToApply": "Calculate monthly customer churn rate: (customers lost in month / customers at start of month) x 100. For annual, either compound monthly rates or measure year-over-year directly. Segment churn by cohort (when did customers sign up?), plan tier, and use case — churn is rarely uniform and the patterns reveal where the product is failing. Run exit surveys for every churned customer to identify the top reasons. Look for leading indicators of churn before it happens: declining login frequency, reduced feature usage, support ticket spikes, or missed QBRs. Target the underlying causes, not just retention tactics.",
+    "commonMistakes": [
+      "Measuring customer churn (logos) without measuring revenue churn — you can lose your smallest customers and it looks fine, but lose a few large ones and the business is in trouble.",
+      "Treating all churn as equivalent. Involuntary churn (failed payments) is a completely different problem from voluntary churn (product isn't working for them).",
+      "Ignoring early cohort churn data as a leading indicator of long-term retention problems."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your market and competitors to help you benchmark your churn rate against comparable companies and identify patterns in customer retention behavior."
+  },
+  "relatedTerms": ["lifetime-value", "retention-rate", "net-revenue-retention"],
+  "synonyms": ["Customer Churn", "Attrition Rate", "Logo Churn"],
+  "seoTitle": "What is Churn Rate? | IdeaFuel Glossary",
+  "seoDescription": "Churn rate is the percentage of customers you lose each period. Learn how to measure it, segment it, and reduce it systematically."
+}

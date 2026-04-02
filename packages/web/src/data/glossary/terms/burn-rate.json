@@ -1,0 +1,21 @@
+{
+  "slug": "burn-rate",
+  "title": "Burn Rate",
+  "category": "finance",
+  "shortDefinition": "The rate at which a company spends its cash reserves each month before reaching profitability.",
+  "content": {
+    "definition": "Burn rate is how much cash your company consumes each month. Gross burn is total monthly cash outflows — every dollar you spend. Net burn is gross burn minus revenue — the actual net drain on your cash balance. Most people use net burn when discussing runway. If you have $600K in the bank and a $50K net burn, you have 12 months of runway before you need more capital or need to reach breakeven.",
+    "whyItMatters": "Burn rate is existential. Running out of cash is the most common cause of startup death, and it's almost always preventable if you're tracking burn carefully. Burn also signals your operational discipline: a high burn rate in the absence of clear traction is a warning sign that the business is drifting. Investors scrutinize burn rate because it tells them how long their capital will last and whether the team is making deliberate trade-offs between growth and efficiency.",
+    "howToApply": "Calculate net burn monthly: sum all cash outflows (payroll, rent, software, contractors, marketing spend) and subtract all cash inflows (revenue, prepaid contracts). Track both gross and net burn on a rolling 3-month average to smooth out one-time spikes. Divide your current cash balance by net burn to get runway in months. Run your burn analysis at least monthly, and model three scenarios — base, optimistic, and conservative — so you know your absolute minimum runway. As a rule of thumb, start your next fundraise when you have 6-9 months of runway remaining, not when you're desperate.",
+    "commonMistakes": [
+      "Tracking cash flow only quarterly or irregularly, which means burn surprises often come too late to course-correct before running out of runway.",
+      "Forgetting to account for variable costs that scale with growth, causing burn to spike when the team least expects it.",
+      "Optimizing for low burn so aggressively that the company fails to invest in the activities needed to hit milestones for the next fundraise."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you calculate and project burn rate across scenarios, giving you a live view of runway so you never get caught flat-footed."
+  },
+  "relatedTerms": ["runway", "monthly-recurring-revenue", "unit-economics"],
+  "synonyms": ["Cash Burn", "Monthly Burn", "Net Burn"],
+  "seoTitle": "What is Burn Rate? | IdeaFuel Glossary",
+  "seoDescription": "Burn rate is how fast your startup spends cash each month. Learn how to calculate it, manage it, and use it to plan your runway."
+}

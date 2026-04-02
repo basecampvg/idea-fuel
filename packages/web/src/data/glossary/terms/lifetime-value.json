@@ -1,0 +1,21 @@
+{
+  "slug": "lifetime-value",
+  "title": "Lifetime Value",
+  "category": "marketing",
+  "shortDefinition": "The total revenue a business expects to earn from a single customer over the entire relationship.",
+  "content": {
+    "definition": "Lifetime Value (LTV), also called Customer Lifetime Value (CLV or CLTV), is the total net revenue you can expect from a customer from the moment they sign up until they churn. It accounts for subscription revenue, upsells, and expansions, minus the cost to serve them. LTV is the ceiling on how much you can rationally spend to acquire a customer — you can't spend more to acquire someone than they'll ever pay you.",
+    "whyItMatters": "LTV is what separates businesses that look like they're growing from businesses that are actually building value. A company acquiring customers at a loss justified by high LTV projections needs those projections to be right. Getting LTV wrong is how growth-stage companies burn through capital and collapse. Conversely, if you know your LTV is high and defensible, you can aggressively outspend competitors on acquisition and rationally justify it.",
+    "howToApply": "For subscription businesses, use this formula: LTV = (Average MRR per customer / Churn Rate) x Gross Margin. For transactional businesses: LTV = Average Order Value x Purchase Frequency x Customer Lifespan x Gross Margin. Segment LTV by cohort and acquisition channel — LTV can vary dramatically based on where a customer came from and when they joined. Monitor how LTV evolves over time; a declining LTV trend signals a problem with product value or customer fit. Focus first on improving retention (the denominator in the churn-based formula) as this has a compounding effect on LTV.",
+    "commonMistakes": [
+      "Using gross revenue instead of gross profit in LTV calculations, which inflates the number and makes unit economics look better than they are.",
+      "Using a single LTV number across all customers rather than segmenting by cohort, plan tier, or acquisition channel.",
+      "Projecting LTV based on long time horizons (5-7 years) for a business that's only 12 months old — you don't have the retention data to support it."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you calculate and project LTV by customer segment, so you can build accurate unit economics models and make confident decisions about acquisition spend."
+  },
+  "relatedTerms": ["customer-acquisition-cost", "churn-rate", "unit-economics"],
+  "synonyms": ["LTV", "CLV", "CLTV", "Customer Lifetime Value"],
+  "seoTitle": "What is Lifetime Value (LTV)? | IdeaFuel Glossary",
+  "seoDescription": "LTV is the total revenue from one customer over their lifetime. Learn how to calculate it and use it to drive smarter growth decisions."
+}

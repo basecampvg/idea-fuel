@@ -1,0 +1,21 @@
+{
+  "slug": "total-addressable-market",
+  "title": "Total Addressable Market",
+  "category": "strategy",
+  "shortDefinition": "The total revenue opportunity if your product achieved 100% market share with no competition.",
+  "content": {
+    "definition": "Total Addressable Market (TAM) is the maximum revenue a business could generate if it captured every possible customer in its target market. It's a theoretical ceiling, not a realistic target, but it matters because it tells you whether the opportunity is worth pursuing. A $10M TAM means there's a hard ceiling on how large the business can get; a $10B TAM means the limiting factor is execution, not market size.",
+    "whyItMatters": "TAM determines whether you're building a lifestyle business or a venture-scale company. Investors want to back companies in large markets because even a small percentage of a massive TAM represents a significant business. More practically, TAM shapes your pricing, distribution strategy, and how aggressively you should invest in growth. A small TAM demands capital efficiency; a large one may justify burning cash to win market share before competitors do.",
+    "howToApply": "Use three approaches and triangulate: top-down (industry research reports from Gartner, IBISWorld), bottom-up (count potential customers and multiply by expected annual revenue per customer), and value-theory (how much value does your product create, and what fraction could you capture?). For bottom-up: identify your ICP, estimate the number of them that exist, and multiply by your planned ACV. Always separate TAM (total market), SAM (serviceable addressable market — the portion you can realistically reach), and SOM (serviceable obtainable market — your realistic near-term capture). Investors will trust your numbers more when you show this breakdown.",
+    "commonMistakes": [
+      "Using top-down market reports to justify a large TAM without a bottom-up calculation to validate it — this is the number one red flag for experienced investors.",
+      "Conflating TAM with the market you can actually serve. If you're building software for US-based dentists, your TAM isn't 'the global healthcare software market.'",
+      "Ignoring how your product creates or expands a market category rather than taking share from an existing one."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your market and competitors to help you build a credible bottom-up TAM estimate, pulling from real data on customer counts and pricing benchmarks in your space."
+  },
+  "relatedTerms": ["serviceable-addressable-market", "product-market-fit", "competitive-moat"],
+  "synonyms": ["TAM", "Market Size", "Total Market Opportunity"],
+  "seoTitle": "What is Total Addressable Market (TAM)? | IdeaFuel Glossary",
+  "seoDescription": "TAM is the total revenue opportunity for your product. Learn how to calculate it accurately and avoid common mistakes."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "monthly-recurring-revenue",
+  "title": "Monthly Recurring Revenue",
+  "category": "finance",
+  "shortDefinition": "The predictable, recurring revenue a subscription business generates each month from active subscriptions.",
+  "content": {
+    "definition": "Monthly Recurring Revenue (MRR) is the normalized, predictable revenue a subscription business earns each month from active paying customers. It excludes one-time fees, professional services revenue, and non-recurring charges. MRR is the north star metric for subscription businesses because it captures the compounding nature of the model — every new customer adds to a growing base rather than replacing one-time sales that must be won again each period.",
+    "whyItMatters": "MRR is the single number that tells you whether a subscription business is healthy and growing. Investors value SaaS companies as a multiple of ARR (12x MRR), so every dollar of MRR you add creates a disproportionate increase in company value. MRR also provides the predictability needed to make rational hiring, marketing, and infrastructure investment decisions. A business with $100K MRR can plan 12 months forward with confidence; a transactional business of equivalent size cannot.",
+    "howToApply": "Calculate MRR by summing the normalized monthly value of all active subscriptions — divide annual subscriptions by 12, convert weekly or quarterly plans to monthly equivalents. Decompose MRR into its components: New MRR (from new customers), Expansion MRR (upsells/upgrades from existing customers), Contraction MRR (downgrades), Churned MRR (cancellations), and Reactivation MRR (returning customers). Net New MRR = New + Expansion + Reactivation minus Contraction minus Churned. Track MRR growth rate month-over-month and watch the mix — a business where Expansion MRR is growing as a percentage of New MRR has strong product-led growth dynamics.",
+    "commonMistakes": [
+      "Including one-time setup fees or professional services revenue in MRR, which inflates the number and gives a misleading picture of the recurring business.",
+      "Tracking only total MRR without decomposing it into components — you can't diagnose growth or contraction without seeing the moving parts.",
+      "Confusing cash collected (which varies with billing cycles) with MRR — an annual subscription collected upfront is 12 months of MRR, not one month of large revenue."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you calculate and project MRR growth, model the impact of pricing changes, and forecast revenue under different churn and expansion assumptions."
+  },
+  "relatedTerms": ["annual-recurring-revenue", "burn-rate", "unit-economics"],
+  "synonyms": ["MRR", "Monthly Recurring Revenue", "Recurring Revenue"],
+  "seoTitle": "What is Monthly Recurring Revenue (MRR)? | IdeaFuel Glossary",
+  "seoDescription": "MRR is the predictable monthly revenue from subscriptions. Learn how to calculate it, decompose it, and use it to run your business."
+}

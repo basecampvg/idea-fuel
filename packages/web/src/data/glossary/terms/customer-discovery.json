@@ -1,0 +1,21 @@
+{
+  "slug": "customer-discovery",
+  "title": "Customer Discovery",
+  "category": "strategy",
+  "shortDefinition": "The process of testing business assumptions by talking directly to potential customers before building.",
+  "content": {
+    "definition": "Customer discovery is the first phase of the Lean Startup methodology, coined by Steve Blank. It's the structured process of getting out of the building, talking to potential customers, and testing whether the problem you think exists actually exists — and whether your solution is something people would pay for. Customer discovery is not pitching. It's listening. You're trying to disprove your assumptions, not confirm your biases.",
+    "whyItMatters": "Most founders build products for imaginary customers. They assume they know the problem, assume they know how people experience it, and assume a solution will resonate. Customer discovery is the antidote to assumption-driven product development. The cost of discovering you're solving the wrong problem before you build is near zero. The cost of discovering it after 18 months of development is company-ending. Done right, customer discovery also produces your first customers, your positioning, and the language your sales team will use for years.",
+    "howToApply": "Start by writing down every assumption your business depends on — who the customer is, what problem they have, how they currently solve it, and what they'd pay for a better solution. Rank those assumptions by risk (if this is wrong, we have no business). Design interview questions that test the riskiest assumptions without leading the witness. Talk to a minimum of 20-30 potential customers before drawing conclusions. Use the Mom Test framework: ask about their life (not your product), talk about past behavior (not hypothetical future behavior), and shut up and listen. After each interview, update your assumptions. When you hear the same thing repeatedly without prompting, you've found signal.",
+    "commonMistakes": [
+      "Asking hypothetical questions like 'Would you use this?' instead of behavioral questions like 'How do you currently handle this problem?' — hypotheticals produce polite lies, not useful data.",
+      "Interviewing only people in your network who want to be supportive, rather than genuine strangers who fit your target customer profile.",
+      "Stopping customer discovery after the first few interviews confirm your hypothesis — confirmation bias is strongest in small samples."
+    ],
+    "ideafuelConnection": "IdeaFuel's Customer Interview feature lets you conduct AI-powered interviews to scale your customer discovery, synthesize patterns across responses, and surface the insights that matter most for validating your idea."
+  },
+  "relatedTerms": ["product-market-fit", "minimum-viable-product", "value-proposition"],
+  "synonyms": ["Customer Interviews", "User Research", "Market Validation"],
+  "seoTitle": "What is Customer Discovery? | IdeaFuel Glossary",
+  "seoDescription": "Customer discovery is testing assumptions by talking to potential customers before building. Learn the right questions to ask."
+}

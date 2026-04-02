@@ -1,0 +1,72 @@
+[
+  {
+    "slug": "product-market-fit",
+    "title": "Product-Market Fit",
+    "category": "strategy",
+    "relatedTerms": ["total-addressable-market", "minimum-viable-product", "customer-discovery"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "total-addressable-market",
+    "title": "Total Addressable Market",
+    "category": "strategy",
+    "relatedTerms": ["serviceable-addressable-market", "product-market-fit", "competitive-moat"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "customer-acquisition-cost",
+    "title": "Customer Acquisition Cost",
+    "category": "marketing",
+    "relatedTerms": ["lifetime-value", "unit-economics", "conversion-rate"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "lifetime-value",
+    "title": "Lifetime Value",
+    "category": "marketing",
+    "relatedTerms": ["customer-acquisition-cost", "churn-rate", "unit-economics"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "burn-rate",
+    "title": "Burn Rate",
+    "category": "finance",
+    "relatedTerms": ["runway", "monthly-recurring-revenue", "unit-economics"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "minimum-viable-product",
+    "title": "Minimum Viable Product",
+    "category": "product",
+    "relatedTerms": ["product-market-fit", "customer-discovery", "lean-startup"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "churn-rate",
+    "title": "Churn Rate",
+    "category": "growth",
+    "relatedTerms": ["lifetime-value", "retention-rate", "net-revenue-retention"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "monthly-recurring-revenue",
+    "title": "Monthly Recurring Revenue",
+    "category": "finance",
+    "relatedTerms": ["annual-recurring-revenue", "burn-rate", "unit-economics"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "conversion-rate",
+    "title": "Conversion Rate",
+    "category": "analytics",
+    "relatedTerms": ["customer-acquisition-cost", "funnel", "a-b-testing"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "customer-discovery",
+    "title": "Customer Discovery",
+    "category": "strategy",
+    "relatedTerms": ["product-market-fit", "minimum-viable-product", "value-proposition"],
+    "ideafuelFeature": "interviews"
+  }
+]
