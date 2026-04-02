@@ -25,6 +25,7 @@ export default function CustomerInterviewScreen() {
   const [gating, setGating] = useState<GatingOption>('PUBLIC');
   const [password, setPassword] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [questionsExpanded, setQuestionsExpanded] = useState(false);
   const autoGenerateFired = useRef(false);
 
   const { data: ci, isLoading, refetch } = trpc.customerInterview.getByProject.useQuery(
@@ -149,22 +150,31 @@ export default function CustomerInterviewScreen() {
         {/* Question preview */}
         {questions.length > 0 && (
           <View style={styles.card}>
-            <View style={styles.cardHeader}>
+            <TouchableOpacity
+              style={styles.cardHeader}
+              onPress={() => setQuestionsExpanded(!questionsExpanded)}
+              activeOpacity={0.7}
+            >
               <FileText size={16} color={colors.muted} />
               <Text style={styles.cardHeaderText}>
                 {questions.length} Question{questions.length !== 1 ? 's' : ''}
               </Text>
-            </View>
-            {questions.slice(0, 3).map((q: any, i: number) => (
+              <Text style={styles.expandToggle}>
+                {questionsExpanded ? 'Collapse' : 'View all'}
+              </Text>
+            </TouchableOpacity>
+            {(questionsExpanded ? questions : questions.slice(0, 3)).map((q: any, i: number) => (
               <View key={i} style={styles.questionRow}>
                 <Text style={styles.questionNumber}>{i + 1}.</Text>
-                <Text style={styles.questionText} numberOfLines={2}>
+                <Text style={styles.questionText} numberOfLines={questionsExpanded ? undefined : 2}>
                   {q.question ?? q.text ?? String(q)}
                 </Text>
               </View>
             ))}
-            {questions.length > 3 && (
-              <Text style={styles.moreQuestions}>+{questions.length - 3} more questions</Text>
+            {!questionsExpanded && questions.length > 3 && (
+              <TouchableOpacity onPress={() => setQuestionsExpanded(true)} activeOpacity={0.7}>
+                <Text style={styles.moreQuestions}>+{questions.length - 3} more questions — tap to expand</Text>
+              </TouchableOpacity>
             )}
           </View>
         )}
@@ -353,6 +363,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     ...fonts.outfit.semiBold,
     color: colors.muted,
+    flex: 1,
+  },
+  expandToggle: {
+    fontSize: 13,
+    ...fonts.geist.regular,
+    color: colors.accent,
   },
   questionRow: {
     flexDirection: 'row',
