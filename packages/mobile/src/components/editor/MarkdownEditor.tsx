@@ -1,16 +1,18 @@
-import React, { useImperativeHandle, forwardRef, useCallback, useRef, useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useImperativeHandle, forwardRef, useCallback, useRef, useState, useEffect } from 'react';
+import { View, FlatList, Image, StyleSheet, Keyboard, TouchableOpacity, Platform } from 'react-native';
+import { Keyboard as KeyboardIcon } from 'lucide-react-native';
 import {
   RichText,
-  Toolbar,
   useEditorBridge,
   useEditorContent,
+  useBridgeState,
   TenTapStartKit,
   CoreBridge,
   PlaceholderBridge,
   LinkBridge,
   HeadingBridge,
   DEFAULT_TOOLBAR_ITEMS,
+  type EditorBridge,
 } from '@10play/tentap-editor';
 import { marked } from 'marked';
 import { editorDarkThemeCSS } from '../../lib/editor-theme';
@@ -45,7 +47,7 @@ const ideaFuelEditorTheme = {
       borderTopColor: '#383634',
       borderBottomColor: '#383634',
       // Float inward — clipped icons at edge hint at scrollability
-      marginHorizontal: 24,
+      marginHorizontal: 12,
       marginBottom: 8,
       overflow: 'hidden' as const,
     },
@@ -65,7 +67,7 @@ const ideaFuelEditorTheme = {
       backgroundColor: 'transparent',
     },
     icon: {
-      tintColor: colors.muted,
+      tintColor: colors.foreground,
       height: 32,
       width: 32,
     },
@@ -201,14 +203,66 @@ interface MarkdownEditorProps {
   editable?: boolean;
 }
 
+/**
+ * Custom toolbar that mirrors TenTap's Toolbar but with
+ * showsHorizontalScrollIndicator={false} to hide the scrollbar.
+ */
+function IdeaFuelToolbar({ editor }: { editor: EditorBridge }) {
+  const editorState = useBridgeState(editor);
+  const args = { editor, editorState, setToolbarContext: () => {}, toolbarContext: 'main' as any };
+  const isVisible = editorState.isFocused;
+
+  return (
+    <FlatList
+      data={DEFAULT_TOOLBAR_ITEMS}
+      style={[editor.theme.toolbar.toolbarBody, !isVisible ? { display: 'none' } : undefined]}
+      showsHorizontalScrollIndicator={false}
+      renderItem={({ item }) => (
+        <TouchableOpacity
+          onPress={item.onPress(args)}
+          disabled={item.disabled(args)}
+          style={editor.theme.toolbar.toolbarButton}
+        >
+          <View
+            style={[
+              editor.theme.toolbar.iconWrapper,
+              item.active(args) ? editor.theme.toolbar.iconWrapperActive : undefined,
+              item.disabled(args) ? editor.theme.toolbar.iconWrapperDisabled : undefined,
+            ]}
+          >
+            <Image
+              source={item.image(args)}
+              style={[
+                editor.theme.toolbar.icon,
+                item.active(args) ? editor.theme.toolbar.iconActive : undefined,
+                item.disabled(args) ? editor.theme.toolbar.iconDisabled : undefined,
+              ]}
+              resizeMode="contain"
+            />
+          </View>
+        </TouchableOpacity>
+      )}
+      horizontal
+      keyExtractor={(_, i) => String(i)}
+    />
+  );
+}
+
 export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>(
   ({ initialContent = '', placeholder = 'Start writing...', onChange, editable = true }, ref) => {
     const initialHtml = initialContent ? markdownToHtml(initialContent) : '';
+    const [keyboardVisible, setKeyboardVisible] = useState(false);
 
-    // Ref ensures the bridge always calls the latest onChange, even though
-    // useEditorBridge captures the callback once at mount.
-    const onChangeRef = useRef(onChange);
-    useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+    useEffect(() => {
+      const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+      const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+      const showSub = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
+      const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
+      return () => {
+        showSub.remove();
+        hideSub.remove();
+      };
+    }, []);
 
     const editor = useEditorBridge({
       autofocus: false,
@@ -223,7 +277,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
         HeadingBridge.configureExtension({ levels: [1, 2, 3] }),
       ],
       onChange: () => {
-        onChangeRef.current?.();
+        onChange?.();
       },
     });
 
@@ -242,7 +296,21 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
         <View style={styles.editorWrapper}>
           <RichText editor={editor} />
         </View>
-        <Toolbar editor={editor} items={DEFAULT_TOOLBAR_ITEMS} />
+        <View style={styles.toolbarRow}>
+          <View style={styles.toolbarWrapper}>
+            <IdeaFuelToolbar editor={editor} />
+          </View>
+          {keyboardVisible && (
+            <TouchableOpacity
+              style={styles.dismissButton}
+              onPress={() => editor.blur()}
+              activeOpacity={0.6}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <KeyboardIcon size={20} color={colors.muted} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     );
   }
@@ -256,5 +324,24 @@ const styles = StyleSheet.create({
   },
   editorWrapper: {
     flex: 1,
+  },
+  toolbarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  toolbarWrapper: {
+    flex: 1,
+  },
+  dismissButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#2D2B28',
+    borderWidth: 1,
+    borderColor: '#383634',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    marginBottom: 8,
   },
 });
