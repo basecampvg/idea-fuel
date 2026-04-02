@@ -253,6 +253,26 @@ export const projectAttachmentsRelations = relations(projectAttachments, ({ one 
 }));
 
 // =============================================================================
+// SANDBOXES (Note Collections)
+// =============================================================================
+
+export const sandboxes = pgTable('Sandbox', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  name: text().notNull(),
+  color: text(),
+  userId: text().notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+}, (table) => [
+  index('Sandbox_userId_updatedAt_idx').using('btree', table.userId.asc(), table.updatedAt.desc().nullsLast()),
+  foreignKey({
+    columns: [table.userId],
+    foreignColumns: [users.id],
+    name: 'Sandbox_userId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
 // NOTES (Brain Dump + AI Refinement)
 // =============================================================================
 
@@ -261,6 +281,7 @@ export const notes = pgTable('Note', {
   content: text().default('').notNull(),
   type: noteTypeEnum().default('AI').notNull(),
   sourceNoteId: text('source_note_id'),
+  sandboxId: text('sandbox_id'),
   refinedTitle: text('refined_title'),
   refinedDescription: text('refined_description'),
   refinedTags: jsonb('refined_tags').$type<string[]>(),
@@ -286,6 +307,12 @@ export const notes = pgTable('Note', {
     columns: [table.sourceNoteId],
     foreignColumns: [table.id],
     name: 'Note_sourceNoteId_fkey',
+  }).onUpdate('cascade').onDelete('set null'),
+  index('Note_sandboxId_idx').using('btree', table.sandboxId.asc().nullsLast()),
+  foreignKey({
+    columns: [table.sandboxId],
+    foreignColumns: [sandboxes.id],
+    name: 'Note_sandboxId_fkey',
   }).onUpdate('cascade').onDelete('set null'),
 ]);
 
@@ -1155,6 +1182,12 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
 export const notesRelations = relations(notes, ({ one }) => ({
   user: one(users, { fields: [notes.userId], references: [users.id] }),
   promotedProject: one(projects, { fields: [notes.promotedProjectId], references: [projects.id] }),
+  sandbox: one(sandboxes, { fields: [notes.sandboxId], references: [sandboxes.id] }),
+}));
+
+export const sandboxesRelations = relations(sandboxes, ({ one, many }) => ({
+  user: one(users, { fields: [sandboxes.userId], references: [users.id] }),
+  notes: many(notes),
 }));
 
 export const interviewsRelations = relations(interviews, ({ one }) => ({
