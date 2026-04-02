@@ -9,7 +9,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
-import { ChevronLeft, Users, RefreshCw, Share2, Lock, Globe, FileText } from 'lucide-react-native';
+import { ChevronLeft, Users, RefreshCw, Share2, Lock, Globe, FileText, Eye } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Button, triggerHaptic } from '../../../../components/ui/Button';
 import { LoadingScreen } from '../../../../components/ui/Spinner';
@@ -237,6 +237,30 @@ export default function CustomerInterviewScreen() {
           </View>
         )}
 
+        {/* Responses (when published with responses) */}
+        {isPublished && ci && ci.responseCount > 0 && (
+          <TouchableOpacity
+            style={styles.responsesCard}
+            onPress={() => {
+              // Open responses on web since there's no native responses screen yet
+              const webUrl = `https://app.ideafuel.ai/projects/${id}/customer-interview/responses`;
+              import('react-native').then(({ Linking }) => Linking.openURL(webUrl));
+            }}
+            activeOpacity={0.7}
+          >
+            <View style={styles.responsesCardContent}>
+              <Eye size={20} color={colors.brand} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.responsesTitle}>View Responses</Text>
+                <Text style={styles.responsesSubtitle}>
+                  {ci.responseCount} response{ci.responseCount !== 1 ? 's' : ''} collected
+                </Text>
+              </View>
+              <ChevronLeft size={18} color={colors.muted} style={{ transform: [{ rotate: '180deg' }] }} />
+            </View>
+          </TouchableOpacity>
+        )}
+
         {/* Action buttons */}
         <View style={styles.actionButtons}>
           {isPublished ? (
@@ -452,6 +476,29 @@ const styles = StyleSheet.create({
     ...fonts.geist.regular,
     color: colors.accent,
     lineHeight: 20,
+  },
+  responsesCard: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 16,
+  },
+  responsesCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  responsesTitle: {
+    fontSize: 15,
+    ...fonts.outfit.semiBold,
+    color: colors.foreground,
+  },
+  responsesSubtitle: {
+    fontSize: 13,
+    ...fonts.geist.regular,
+    color: colors.muted,
+    marginTop: 2,
   },
   actionButtons: {
     gap: 8,
