@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { CATEGORY_LABELS, type GlossaryCategory } from '@/lib/glossary';
 
 interface GlossaryTermCardProps {
   slug: string;
@@ -9,7 +8,7 @@ interface GlossaryTermCardProps {
 }
 
 export function GlossaryTermCard({ slug, title, shortDefinition, category }: GlossaryTermCardProps) {
-  const categoryLabel = CATEGORY_LABELS[category as GlossaryCategory] ?? category;
+  const categoryLabel = category.charAt(0).toUpperCase() + category.slice(1);
 
   return (
     <Link

@@ -1,6 +1,6 @@
 // packages/web/src/app/(public)/glossary/page.tsx
 import type { Metadata } from 'next';
-import { getAllTerms, getAlphabetGroups } from '@/lib/glossary';
+import { getAllTerms } from '@/lib/glossary';
 import { GlossaryIndexClient } from '@/components/glossary/glossary-index-client';
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.AUTH_URL || 'http://localhost:3006';
@@ -26,7 +26,6 @@ export const metadata: Metadata = {
 
 export default function GlossaryPage() {
   const terms = getAllTerms();
-  const alphabetGroups = getAlphabetGroups(terms);
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -56,7 +55,7 @@ export default function GlossaryPage() {
           </p>
         </header>
 
-        <GlossaryIndexClient terms={terms} alphabetGroups={alphabetGroups} />
+        <GlossaryIndexClient terms={terms} />
       </div>
     </div>
   );

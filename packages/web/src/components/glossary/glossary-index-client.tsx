@@ -3,16 +3,31 @@
 import { useState, useMemo } from 'react';
 import { GlossaryTermCard } from './glossary-term-card';
 import { GlossaryAlphabetNav } from './glossary-alphabet-nav';
-import { CATEGORY_LABELS, type GlossaryCategory, type GlossaryTerm, type AlphabetGroup } from '@/lib/glossary';
 
-interface GlossaryIndexClientProps {
-  terms: GlossaryTerm[];
-  alphabetGroups: AlphabetGroup[];
+interface GlossaryTermData {
+  slug: string;
+  title: string;
+  category: string;
+  shortDefinition: string;
 }
 
-const ALL_CATEGORIES = Object.keys(CATEGORY_LABELS) as GlossaryCategory[];
+interface GlossaryIndexClientProps {
+  terms: GlossaryTermData[];
+}
 
-export function GlossaryIndexClient({ terms, alphabetGroups }: GlossaryIndexClientProps) {
+const CATEGORY_LABELS: Record<string, string> = {
+  strategy: 'Strategy',
+  marketing: 'Marketing',
+  finance: 'Finance',
+  growth: 'Growth',
+  product: 'Product',
+  analytics: 'Analytics',
+  fundraising: 'Fundraising',
+};
+
+const ALL_CATEGORIES = Object.keys(CATEGORY_LABELS);
+
+export function GlossaryIndexClient({ terms }: GlossaryIndexClientProps) {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
@@ -33,7 +48,7 @@ export function GlossaryIndexClient({ terms, alphabetGroups }: GlossaryIndexClie
   }, [terms, search, activeCategory]);
 
   const filteredGroups = useMemo(() => {
-    const groups = new Map<string, GlossaryTerm[]>();
+    const groups = new Map<string, GlossaryTermData[]>();
     for (const term of filteredTerms) {
       const letter = term.title[0].toUpperCase();
       if (!groups.has(letter)) groups.set(letter, []);
