@@ -27,6 +27,7 @@ import { MarkdownEditor, type MarkdownEditorRef } from '../../../../components/e
 import { useNoteAutoSave, type SaveStatus } from '../../../../hooks/useNoteAutoSave';
 import { trpc } from '../../../../lib/trpc';
 import { colors, fonts } from '../../../../lib/theme';
+import { SandboxPicker } from '../../../../components/SandboxPicker';
 
 function SaveIndicator({ status }: { status: SaveStatus }) {
   if (status === 'idle') return null;
@@ -56,6 +57,7 @@ export default function NoteEditorScreen() {
   const [cardCollapsed, setCardCollapsed] = useState(false);
   const [showPromotedSheet, setShowPromotedSheet] = useState(false);
   const [showExtractedSheet, setShowExtractedSheet] = useState(false);
+  const [showSandboxPicker, setShowSandboxPicker] = useState(false);
   const [extractedCount, setExtractedCount] = useState(0);
   const [canExtract, setCanExtract] = useState(false);
   const autoRefineTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -140,6 +142,29 @@ export default function NoteEditorScreen() {
       } else {
         Alert.alert('Error', 'Failed to extract ideas. Please try again.');
       }
+    },
+  });
+
+  const pinMutation = trpc.note.pinToSandbox.useMutation({
+    onSuccess: () => {
+      triggerHaptic('success');
+      utils.note.get.invalidate({ id });
+      setShowSandboxPicker(false);
+    },
+    onError: () => {
+      triggerHaptic('error');
+      Alert.alert('Error', 'Failed to pin note.');
+    },
+  });
+
+  const unpinMutation = trpc.note.unpinFromSandbox.useMutation({
+    onSuccess: () => {
+      triggerHaptic('success');
+      utils.note.get.invalidate({ id });
+    },
+    onError: () => {
+      triggerHaptic('error');
+      Alert.alert('Error', 'Failed to unpin note.');
     },
   });
 
@@ -298,12 +323,29 @@ export default function NoteEditorScreen() {
             <ChevronLeft size={24} color={colors.foreground} />
           </TouchableOpacity>
           <SaveIndicator status={saveStatus} />
-          <TouchableOpacity
-            onPress={handleDelete}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Trash2 size={20} color={colors.mutedDim} />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            {note?.sandboxId ? (
+              <TouchableOpacity
+                onPress={() => unpinMutation.mutate({ noteId: id! })}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={styles.unpinText}>Unpin</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={() => setShowSandboxPicker(true)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={styles.pinText}>Pin</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              onPress={handleDelete}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Trash2 size={20} color={colors.mutedDim} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* IdeaCard at top when refinement exists — only for AI notes */}
@@ -440,6 +482,12 @@ export default function NoteEditorScreen() {
           </Button>
         </View>
       </BottomSheet>
+
+      <SandboxPicker
+        visible={showSandboxPicker}
+        onClose={() => setShowSandboxPicker(false)}
+        onSelect={(sandboxId) => pinMutation.mutate({ noteId: id!, sandboxId })}
+      />
     </View>
   );
 }
@@ -584,4 +632,11 @@ const styles = StyleSheet.create({
   extractButton: {
     width: '100%',
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  pinText: { fontSize: 15, ...fonts.outfit.semiBold, color: colors.brand },
+  unpinText: { fontSize: 15, ...fonts.outfit.semiBold, color: colors.muted },
 });

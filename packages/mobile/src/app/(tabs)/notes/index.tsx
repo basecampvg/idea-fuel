@@ -201,9 +201,14 @@ function SwipeableNoteCard({
                 <Text style={styles.cardTime}>
                   {formatRelativeTime(new Date(note.updatedAt))}
                 </Text>
-                {meta.badgeVariant && meta.badgeLabel && (
-                  <Badge variant={meta.badgeVariant}>{meta.badgeLabel}</Badge>
-                )}
+                <View style={styles.badgeRow}>
+                  {meta.badgeVariant && meta.badgeLabel && (
+                    <Badge variant={meta.badgeVariant}>{meta.badgeLabel}</Badge>
+                  )}
+                  {note.sandboxId && (
+                    <Badge variant="accent">Pinned</Badge>
+                  )}
+                </View>
               </View>
             </View>
           </LinearGradient>
@@ -213,6 +218,8 @@ function SwipeableNoteCard({
   );
 }
 
+type NoteFilter = 'all' | 'unpinned' | 'pinned';
+
 export default function NotesListScreen() {
   const router = useRouter();
   const navigation = useNavigation();
@@ -220,6 +227,16 @@ export default function NotesListScreen() {
   const { data: notes, isLoading, refetch } = trpc.note.list.useQuery();
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
   const [showTypePopover, setShowTypePopover] = useState(false);
+  const [filter, setFilter] = useState<NoteFilter>('all');
+
+  const filteredNotes = React.useMemo(() => {
+    if (!notes) return [];
+    switch (filter) {
+      case 'pinned': return notes.filter((n: any) => n.sandboxId);
+      case 'unpinned': return notes.filter((n: any) => !n.sandboxId);
+      default: return notes;
+    }
+  }, [notes, filter]);
 
   // Refetch notes when screen gains focus (e.g. navigating back from detail)
   // Use invalidate() so it refetches in the background without triggering RefreshControl
@@ -333,9 +350,24 @@ export default function NotesListScreen() {
         <Text style={styles.headerTitle}>Notes</Text>
       </View>
 
+      {/* Segmented filter */}
+      <View style={styles.segmentedControl}>
+        {(['all', 'unpinned', 'pinned'] as NoteFilter[]).map((f) => (
+          <TouchableOpacity
+            key={f}
+            style={[styles.segment, filter === f && styles.segmentActive]}
+            onPress={() => setFilter(f)}
+          >
+            <Text style={[styles.segmentText, filter === f && styles.segmentTextActive]}>
+              {f === 'all' ? 'All' : f === 'unpinned' ? 'Unpinned' : 'Pinned'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {/* List */}
       <FlatList
-        data={notes ?? []}
+        data={filteredNotes}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
@@ -528,6 +560,36 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 12,
     ...fonts.outfit.semiBold,
+  },
+  segmentedControl: {
+    flexDirection: 'row',
+    marginHorizontal: 20,
+    marginBottom: 12,
+    backgroundColor: colors.surface,
+    borderRadius: 10,
+    padding: 3,
+  },
+  segment: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  segmentActive: {
+    backgroundColor: colors.card,
+  },
+  segmentText: {
+    fontSize: 13,
+    ...fonts.outfit.semiBold,
+    color: colors.mutedDim,
+  },
+  segmentTextActive: {
+    color: colors.foreground,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   fab: {
     position: 'absolute',
