@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, Linking, StyleSheet } from 'react-native';
 import { Tabs, Redirect } from 'expo-router';
-import { Mic, Vault, NotebookPen, Settings, ArrowUpRight, X } from 'lucide-react-native';
+import { Mic, Vault, NotebookPen, Settings, ArrowUpRight, X, FlaskConical } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingScreen } from '../../components/ui';
@@ -26,6 +26,8 @@ function CustomTabBar({ state, descriptors, navigation, insets }: any) {
             ? <Vault size={22} color={color} />
             : route.name === 'notes'
             ? <NotebookPen size={22} color={color} />
+            : route.name === 'sandbox'
+            ? <FlaskConical size={22} color={color} />
             : <Settings size={22} color={color} />;
 
           return (
@@ -137,6 +139,10 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="notes"
         options={{ title: 'Notes' }}
+      />
+      <Tabs.Screen
+        name="sandbox"
+        options={{ title: 'Sandbox' }}
       />
       <Tabs.Screen
         name="settings"
