@@ -17,7 +17,6 @@ import {
   ChevronLeft,
   Trash2,
   Rocket,
-  Sparkles,
 } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { Button, triggerHaptic } from '../../../../components/ui/Button';
@@ -56,10 +55,7 @@ export default function NoteEditorScreen() {
   const [initialLoaded, setInitialLoaded] = useState(false);
   const [cardCollapsed, setCardCollapsed] = useState(false);
   const [showPromotedSheet, setShowPromotedSheet] = useState(false);
-  const [showExtractedSheet, setShowExtractedSheet] = useState(false);
   const [showSandboxPicker, setShowSandboxPicker] = useState(false);
-  const [extractedCount, setExtractedCount] = useState(0);
-  const [canExtract, setCanExtract] = useState(false);
   const autoRefineTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contentLengthRef = useRef(0);
   const noteTypeRef = useRef<string | undefined>(undefined);
@@ -128,23 +124,6 @@ export default function NoteEditorScreen() {
     },
   });
 
-  const extractMutation = trpc.note.extractIdeas.useMutation({
-    onSuccess: (result) => {
-      triggerHaptic('success');
-      utils.note.list.invalidate();
-      setExtractedCount(result.extractedCount);
-      setShowExtractedSheet(true);
-    },
-    onError: (err) => {
-      triggerHaptic('error');
-      if (err.message.includes('at least')) {
-        Alert.alert('Too Short', 'Write a bit more before extracting ideas.');
-      } else {
-        Alert.alert('Error', 'Failed to extract ideas. Please try again.');
-      }
-    },
-  });
-
   const pinMutation = trpc.note.pinToSandbox.useMutation({
     onSuccess: () => {
       triggerHaptic('success');
@@ -190,7 +169,6 @@ export default function NoteEditorScreen() {
       setInitialContent(note.content ?? '');
       contentLengthRef.current = (note.content ?? '').length;
       noteTypeRef.current = note.type;
-      setCanExtract(contentLengthRef.current >= 50);
       setInitialLoaded(true);
     }
   }, [note, initialLoaded, setInitialContent]);
@@ -235,14 +213,7 @@ export default function NoteEditorScreen() {
 
   const handleEditorChange = useCallback(async () => {
     markDirty();
-    if (noteTypeRef.current === 'QUICK') {
-      // Track content length for Extract Ideas button enable/disable
-      if (editorRef.current) {
-        const md = await editorRef.current.getMarkdown();
-        contentLengthRef.current = md.length;
-        setCanExtract(md.length >= 50);
-      }
-    } else {
+    if (noteTypeRef.current !== 'QUICK') {
       scheduleAutoRefine();
     }
   }, [markDirty, scheduleAutoRefine]);
@@ -265,11 +236,6 @@ export default function NoteEditorScreen() {
   const handlePromote = useCallback(() => {
     promoteMutation.mutate({ id: id! });
   }, [id, promoteMutation]);
-
-  const handleExtractIdeas = useCallback(async () => {
-    await flush();
-    extractMutation.mutate({ id: id! });
-  }, [id, extractMutation, flush]);
 
   // Determine if refinement is stale
   const isStale = !!(
@@ -399,56 +365,7 @@ export default function NoteEditorScreen() {
             onChange={handleEditorChange}
           />
         )}
-        {/* Extract Ideas bar for Quick Notes */}
-        {note.type === 'QUICK' && (
-          <View style={styles.extractBar}>
-            <Button
-              variant="primary"
-              size="lg"
-              onPress={handleExtractIdeas}
-              isLoading={extractMutation.isPending}
-              disabled={extractMutation.isPending || !canExtract}
-              leftIcon={<Sparkles size={18} color={colors.white} />}
-              style={styles.extractButton}
-            >
-              Extract Ideas
-            </Button>
-          </View>
-        )}
       </KeyboardAvoidingView>
-
-      {/* Extraction success sheet */}
-      <BottomSheet
-        visible={showExtractedSheet}
-        onClose={() => {
-          setShowExtractedSheet(false);
-          router.back();
-        }}
-        showCloseButton={false}
-      >
-        <View style={styles.promotedSheet}>
-          <View style={[styles.promotedIconCircle, { backgroundColor: 'rgba(20, 184, 166, 0.15)' }]}>
-            <Sparkles size={28} color={colors.accent} />
-          </View>
-          <Text style={styles.promotedTitle}>
-            {extractedCount} {extractedCount === 1 ? 'Idea' : 'Ideas'} Extracted
-          </Text>
-          <Text style={styles.promotedDescription}>
-            AI found {extractedCount} business {extractedCount === 1 ? 'idea' : 'ideas'} in your note. Each one is now a separate AI note you can review and promote.
-          </Text>
-          <Button
-            variant="primary"
-            size="lg"
-            onPress={() => {
-              setShowExtractedSheet(false);
-              router.back();
-            }}
-            style={styles.promotedButton}
-          >
-            View Notes
-          </Button>
-        </View>
-      </BottomSheet>
 
       {/* Promoted success sheet */}
       <BottomSheet
@@ -620,17 +537,6 @@ const styles = StyleSheet.create({
   promotedButton: {
     width: '100%',
     marginTop: 8,
-  },
-  extractBar: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    paddingBottom: 24,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.background,
-  },
-  extractButton: {
-    width: '100%',
   },
   headerActions: {
     flexDirection: 'row',
