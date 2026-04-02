@@ -219,7 +219,7 @@ export function InterviewForm({
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex flex-col">
         {/* Progress bar */}
-        <div className="fixed top-0 left-0 right-0 h-[3px] bg-gray-800 z-50">
+        <div className="fixed top-0 left-0 right-0 h-[3px] bg-neutral-800 z-50">
           <div className="h-full bg-[#E32B1A] transition-all duration-500" style={{ width: '0%' }} />
         </div>
 
@@ -227,9 +227,9 @@ export function InterviewForm({
           <div className="animate-in fade-in duration-300 w-full">
             <h1 className="text-3xl sm:text-4xl font-bold text-white mb-4">{title}</h1>
             {description && (
-              <p className="text-gray-400 text-lg mb-8 leading-relaxed">{description}</p>
+              <p className="text-neutral-400 text-lg mb-8 leading-relaxed">{description}</p>
             )}
-            <p className="text-gray-500 text-sm mb-8">
+            <p className="text-neutral-500 text-sm mb-8">
               {questions.length} question{questions.length !== 1 ? 's' : ''} &middot; Takes 2-5 minutes
             </p>
             <button
@@ -249,7 +249,7 @@ export function InterviewForm({
             href="https://ideafuel.ai"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-400 transition-colors text-sm"
+            className="flex items-center gap-2 text-neutral-600 hover:text-neutral-400 transition-colors text-sm"
           >
             <span>Powered by</span>
             <span className="font-semibold text-[#E32B1A]">IdeaFuel</span>
@@ -267,7 +267,7 @@ export function InterviewForm({
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
         <div className="animate-in fade-in duration-300 text-center">
           <div className="w-10 h-10 rounded-full border-2 border-[#E32B1A] border-t-transparent animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Submitting your responses...</p>
+          <p className="text-neutral-400">Submitting your responses...</p>
         </div>
       </div>
     );
@@ -283,7 +283,7 @@ export function InterviewForm({
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex flex-col">
         {/* Progress bar */}
-        <div className="fixed top-0 left-0 right-0 h-[3px] bg-gray-800 z-50">
+        <div className="fixed top-0 left-0 right-0 h-[3px] bg-neutral-800 z-50">
           <div
             className="h-full bg-[#E32B1A] transition-all duration-500"
             style={{ width: `${progress}%` }}
@@ -293,8 +293,8 @@ export function InterviewForm({
         <div className="flex-1 flex flex-col items-center justify-center px-6 py-16 max-w-2xl mx-auto w-full">
           <div key={animKey} className="animate-in fade-in duration-300 w-full">
             {/* Question number */}
-            <p className="text-gray-500 text-sm mb-3">
-              {questionNumber} <span className="text-gray-700">/ {questions.length}</span>
+            <p className="text-neutral-500 text-sm mb-3">
+              {questionNumber} <span className="text-neutral-700">/ {questions.length}</span>
             </p>
 
             {/* Question text */}
@@ -315,9 +315,9 @@ export function InterviewForm({
                   onKeyDown={handleKeyDown}
                   placeholder="Type your answer..."
                   rows={4}
-                  className="w-full px-4 py-3 rounded-xl bg-gray-900 border border-gray-700 text-white placeholder-gray-600 focus:outline-none focus:border-[#E32B1A]/50 transition-colors resize-none"
+                  className="w-full px-4 py-3 rounded-xl bg-neutral-900 border border-neutral-700 text-white placeholder-neutral-600 focus:outline-none focus:border-[#E32B1A]/50 transition-colors resize-none"
                 />
-                <p className="text-gray-600 text-xs">Press Enter to continue</p>
+                <p className="text-neutral-600 text-xs">Press Enter to continue</p>
               </div>
             )}
 
@@ -331,7 +331,7 @@ export function InterviewForm({
                     className={`w-12 h-12 rounded-full border-2 font-semibold text-lg transition-all ${
                       selectedAnswer === val
                         ? 'bg-[#E32B1A] border-[#E32B1A] text-white scale-110'
-                        : 'border-gray-700 text-gray-400 hover:border-[#E32B1A]/50 hover:text-white'
+                        : 'border-neutral-700 text-neutral-400 hover:border-[#E32B1A]/50 hover:text-white'
                     }`}
                   >
                     {val}
@@ -350,7 +350,7 @@ export function InterviewForm({
                     className={`w-full text-left px-4 py-3 rounded-xl border transition-all ${
                       selectedAnswer === option
                         ? 'bg-[#E32B1A]/10 border-[#E32B1A] text-white'
-                        : 'border-gray-700 text-gray-300 hover:border-gray-500 hover:text-white'
+                        : 'border-neutral-700 text-neutral-300 hover:border-neutral-500 hover:text-white'
                     }`}
                   >
                     {option}
@@ -369,7 +369,7 @@ export function InterviewForm({
                     className={`px-8 py-3 rounded-full border-2 font-semibold transition-all ${
                       selectedAnswer === (opt === 'Yes')
                         ? 'bg-[#E32B1A] border-[#E32B1A] text-white'
-                        : 'border-gray-700 text-gray-400 hover:border-[#E32B1A]/50 hover:text-white'
+                        : 'border-neutral-700 text-neutral-400 hover:border-[#E32B1A]/50 hover:text-white'
                     }`}
                   >
                     {opt}
@@ -387,7 +387,7 @@ export function InterviewForm({
               saveCurrentFreeText();
               goBack();
             }}
-            className="flex items-center gap-2 text-gray-500 hover:text-gray-300 transition-colors"
+            className="flex items-center gap-2 text-neutral-500 hover:text-neutral-300 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -414,7 +414,7 @@ export function InterviewForm({
             href="https://ideafuel.ai"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-400 transition-colors text-sm"
+            className="flex items-center gap-2 text-neutral-600 hover:text-neutral-400 transition-colors text-sm"
           >
             <span>Powered by</span>
             <span className="font-semibold text-[#E32B1A]">IdeaFuel</span>
@@ -433,14 +433,14 @@ export function InterviewForm({
       <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="lazyOnload" />
 
       {/* Progress bar */}
-      <div className="fixed top-0 left-0 right-0 h-[3px] bg-gray-800 z-50">
+      <div className="fixed top-0 left-0 right-0 h-[3px] bg-neutral-800 z-50">
         <div className="h-full bg-[#E32B1A] transition-all duration-500" style={{ width: '100%' }} />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-16 max-w-2xl mx-auto w-full">
         <div key={animKey} className="animate-in fade-in duration-300 w-full">
           <h2 className="text-2xl font-semibold text-white mb-2">Almost done!</h2>
-          <p className="text-gray-400 mb-8">
+          <p className="text-neutral-400 mb-8">
             Optionally leave your contact info — or just submit anonymously.
           </p>
 
@@ -457,28 +457,28 @@ export function InterviewForm({
             />
 
             <div>
-              <label className="block text-sm text-gray-400 mb-1.5">
-                Your name <span className="text-gray-600">(optional)</span>
+              <label className="block text-sm text-neutral-400 mb-1.5">
+                Your name <span className="text-neutral-600">(optional)</span>
               </label>
               <input
                 type="text"
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
                 placeholder="Jane Smith"
-                className="w-full px-4 py-3 rounded-full bg-gray-900 border border-gray-700 text-white placeholder-gray-600 focus:outline-none focus:border-[#E32B1A]/50 transition-colors"
+                className="w-full px-4 py-3 rounded-full bg-neutral-900 border border-neutral-700 text-white placeholder-neutral-600 focus:outline-none focus:border-[#E32B1A]/50 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-1.5">
-                Email <span className="text-gray-600">(optional)</span>
+              <label className="block text-sm text-neutral-400 mb-1.5">
+                Email <span className="text-neutral-600">(optional)</span>
               </label>
               <input
                 type="email"
                 value={contactEmail}
                 onChange={(e) => setContactEmail(e.target.value)}
                 placeholder="jane@example.com"
-                className="w-full px-4 py-3 rounded-full bg-gray-900 border border-gray-700 text-white placeholder-gray-600 focus:outline-none focus:border-[#E32B1A]/50 transition-colors"
+                className="w-full px-4 py-3 rounded-full bg-neutral-900 border border-neutral-700 text-white placeholder-neutral-600 focus:outline-none focus:border-[#E32B1A]/50 transition-colors"
               />
             </div>
 
@@ -490,7 +490,7 @@ export function InterviewForm({
                   onChange={(e) => setJoinedWaitlist(e.target.checked)}
                   className="mt-0.5 h-4 w-4 accent-[#E32B1A]"
                 />
-                <span className="text-gray-300 text-sm">
+                <span className="text-neutral-300 text-sm">
                   Join the waitlist — be first to know when we launch
                 </span>
               </label>
@@ -504,7 +504,7 @@ export function InterviewForm({
                   onChange={(e) => setJoinedNewsletter(e.target.checked)}
                   className="mt-0.5 h-4 w-4 accent-[#E32B1A]"
                 />
-                <span className="text-gray-300 text-sm">
+                <span className="text-neutral-300 text-sm">
                   Subscribe to updates and insights from this project
                 </span>
               </label>
@@ -534,7 +534,7 @@ export function InterviewForm({
       <div className="flex items-center px-6 pb-8 max-w-2xl mx-auto w-full">
         <button
           onClick={goBack}
-          className="flex items-center gap-2 text-gray-500 hover:text-gray-300 transition-colors"
+          className="flex items-center gap-2 text-neutral-500 hover:text-neutral-300 transition-colors"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -548,7 +548,7 @@ export function InterviewForm({
           href="https://ideafuel.ai"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-400 transition-colors text-sm"
+          className="flex items-center gap-2 text-neutral-600 hover:text-neutral-400 transition-colors text-sm"
         >
           <span>Powered by</span>
           <span className="font-semibold text-[#E32B1A]">IdeaFuel</span>

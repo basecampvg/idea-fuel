@@ -150,13 +150,13 @@ export function NdaSignature({ uuid, onSigned }: NdaSignatureProps) {
     <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-xl animate-in fade-in duration-300">
         <h1 className="text-2xl font-bold text-white mb-2">Non-Disclosure Agreement</h1>
-        <p className="text-gray-400 mb-6 text-sm">
+        <p className="text-neutral-400 mb-6 text-sm">
           Please review and sign the NDA below to access this interview.
         </p>
 
         {/* NDA Text */}
-        <div className="border border-gray-700 rounded-xl bg-gray-900 p-4 mb-6 max-h-56 overflow-y-auto text-gray-400 text-xs leading-relaxed space-y-3">
-          <p className="font-semibold text-gray-300 text-sm">
+        <div className="border border-neutral-700 rounded-xl bg-neutral-900 p-4 mb-6 max-h-56 overflow-y-auto text-neutral-400 text-xs leading-relaxed space-y-3">
+          <p className="font-semibold text-neutral-300 text-sm">
             IDEAFUEL NON-DISCLOSURE AGREEMENT
           </p>
           <p>
@@ -164,29 +164,29 @@ export function NdaSignature({ uuid, onSigned }: NdaSignatureProps) {
             (&quot;Discloser&quot;) and the individual signing below (&quot;Recipient&quot;).
           </p>
           <p>
-            <strong className="text-gray-300">1. Confidential Information.</strong> Recipient agrees
+            <strong className="text-neutral-300">1. Confidential Information.</strong> Recipient agrees
             that all information shared during this interview session, including but not limited to
             business concepts, product ideas, strategies, market research, financial data, and any
             other proprietary information disclosed by Discloser (&quot;Confidential Information&quot;),
             is confidential and proprietary to Discloser.
           </p>
           <p>
-            <strong className="text-gray-300">2. Non-Disclosure Obligation.</strong> Recipient agrees
+            <strong className="text-neutral-300">2. Non-Disclosure Obligation.</strong> Recipient agrees
             not to disclose, publish, or share any Confidential Information with any third party
             without prior written consent from Discloser. Recipient shall use the Confidential
             Information solely for the purpose of participating in this interview.
           </p>
           <p>
-            <strong className="text-gray-300">3. Term.</strong> This Agreement shall remain in effect
+            <strong className="text-neutral-300">3. Term.</strong> This Agreement shall remain in effect
             for a period of two (2) years from the date of signing.
           </p>
           <p>
-            <strong className="text-gray-300">4. No License.</strong> Nothing in this Agreement grants
+            <strong className="text-neutral-300">4. No License.</strong> Nothing in this Agreement grants
             Recipient any rights in or to the Confidential Information except as expressly set forth
             herein.
           </p>
           <p>
-            <strong className="text-gray-300">5. Governing Law.</strong> This Agreement shall be
+            <strong className="text-neutral-300">5. Governing Law.</strong> This Agreement shall be
             governed by and construed in accordance with applicable law.
           </p>
           <p>
@@ -197,31 +197,31 @@ export function NdaSignature({ uuid, onSigned }: NdaSignatureProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Full Legal Name</label>
+            <label className="block text-sm text-neutral-400 mb-1.5">Full Legal Name</label>
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Jane Smith"
-              className="w-full px-4 py-3 rounded-full bg-gray-900 border border-gray-700 text-white placeholder-gray-600 focus:outline-none focus:border-[#E32B1A]/50 transition-colors"
+              className="w-full px-4 py-3 rounded-full bg-neutral-900 border border-neutral-700 text-white placeholder-neutral-600 focus:outline-none focus:border-[#E32B1A]/50 transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Email Address</label>
+            <label className="block text-sm text-neutral-400 mb-1.5">Email Address</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="jane@example.com"
-              className="w-full px-4 py-3 rounded-full bg-gray-900 border border-gray-700 text-white placeholder-gray-600 focus:outline-none focus:border-[#E32B1A]/50 transition-colors"
+              className="w-full px-4 py-3 rounded-full bg-neutral-900 border border-neutral-700 text-white placeholder-neutral-600 focus:outline-none focus:border-[#E32B1A]/50 transition-colors"
             />
           </div>
 
           {/* Signature section */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-sm text-gray-400">Signature</label>
+              <label className="block text-sm text-neutral-400">Signature</label>
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -229,7 +229,7 @@ export function NdaSignature({ uuid, onSigned }: NdaSignatureProps) {
                   className={`text-xs px-3 py-1 rounded-full border transition-colors ${
                     signatureMode === 'type'
                       ? 'bg-[#E32B1A] border-[#E32B1A] text-white'
-                      : 'border-gray-700 text-gray-400 hover:border-gray-500'
+                      : 'border-neutral-700 text-neutral-400 hover:border-neutral-500'
                   }`}
                 >
                   Type
@@ -240,7 +240,7 @@ export function NdaSignature({ uuid, onSigned }: NdaSignatureProps) {
                   className={`text-xs px-3 py-1 rounded-full border transition-colors ${
                     signatureMode === 'draw'
                       ? 'bg-[#E32B1A] border-[#E32B1A] text-white'
-                      : 'border-gray-700 text-gray-400 hover:border-gray-500'
+                      : 'border-neutral-700 text-neutral-400 hover:border-neutral-500'
                   }`}
                 >
                   Draw
@@ -255,7 +255,7 @@ export function NdaSignature({ uuid, onSigned }: NdaSignatureProps) {
                   value={typedSignature}
                   onChange={(e) => setTypedSignature(e.target.value)}
                   placeholder="Type your full name"
-                  className="w-full px-4 py-3 rounded-xl bg-gray-900 border border-gray-700 text-white placeholder-gray-600 focus:outline-none focus:border-[#E32B1A]/50 transition-colors"
+                  className="w-full px-4 py-3 rounded-xl bg-neutral-900 border border-neutral-700 text-white placeholder-neutral-600 focus:outline-none focus:border-[#E32B1A]/50 transition-colors"
                   style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '1.25rem' }}
                 />
                 {typedSignature && (
@@ -273,7 +273,7 @@ export function NdaSignature({ uuid, onSigned }: NdaSignatureProps) {
                   ref={canvasRef}
                   width={560}
                   height={160}
-                  className="w-full rounded-xl border border-gray-700 cursor-crosshair touch-none"
+                  className="w-full rounded-xl border border-neutral-700 cursor-crosshair touch-none"
                   style={{ background: '#111111' }}
                   onMouseDown={handleCanvasMouseDown}
                   onMouseMove={handleCanvasMouseMove}
@@ -286,12 +286,12 @@ export function NdaSignature({ uuid, onSigned }: NdaSignatureProps) {
                 <button
                   type="button"
                   onClick={clearCanvas}
-                  className="absolute top-2 right-2 text-xs text-gray-500 hover:text-gray-300 transition-colors"
+                  className="absolute top-2 right-2 text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
                 >
                   Clear
                 </button>
                 {!hasDrawing && (
-                  <p className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm pointer-events-none">
+                  <p className="absolute inset-0 flex items-center justify-center text-neutral-600 text-sm pointer-events-none">
                     Draw your signature here
                   </p>
                 )}
@@ -319,7 +319,7 @@ export function NdaSignature({ uuid, onSigned }: NdaSignatureProps) {
           href="https://ideafuel.ai"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-400 transition-colors text-sm"
+          className="flex items-center gap-2 text-neutral-600 hover:text-neutral-400 transition-colors text-sm"
         >
           <span>Powered by</span>
           <span className="font-semibold text-[#E32B1A]">IdeaFuel</span>

@@ -19,7 +19,7 @@ export function ThankYou() {
 
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-white">Thank you!</h1>
-          <p className="text-gray-400 text-lg max-w-sm">
+          <p className="text-neutral-400 text-lg max-w-sm">
             Your responses have been submitted. We appreciate your time and feedback.
           </p>
         </div>
@@ -31,7 +31,7 @@ export function ThankYou() {
           href="https://ideafuel.ai"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-400 transition-colors text-sm"
+          className="flex items-center gap-2 text-neutral-600 hover:text-neutral-400 transition-colors text-sm"
         >
           <span>Powered by</span>
           <span className="font-semibold text-[#E32B1A]">IdeaFuel</span>
