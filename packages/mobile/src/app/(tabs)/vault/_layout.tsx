@@ -60,6 +60,12 @@ export default function VaultStackLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="[id]/customer-interview"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }
