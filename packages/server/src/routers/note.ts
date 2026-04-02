@@ -13,6 +13,7 @@
 
 import { eq, and, desc, isNull } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import {
   createNoteSchema,
@@ -21,10 +22,12 @@ import {
   promoteNoteSchema,
   deleteNoteSchema,
   extractIdeasSchema,
+  pinToSandboxSchema,
+  unpinFromSandboxSchema,
   NOTE_REFINE_MIN_CHARS,
   NOTE_EXTRACT_MIN_CHARS,
 } from '@forge/shared';
-import { notes, projects, users } from '../db/schema';
+import { notes, projects, users, sandboxes } from '../db/schema';
 import { refineNote, extractIdeasFromNote } from '../services/note-ai';
 
 export const noteRouter = router({
@@ -65,13 +68,28 @@ export const noteRouter = router({
    * Create a new empty note for the user.
    */
   create: protectedProcedure
-    .input(createNoteSchema)
+    .input(createNoteSchema.extend({ sandboxId: z.string().optional() }))
     .mutation(async ({ ctx, input }) => {
+      // If sandboxId provided, verify ownership
+      if (input.sandboxId) {
+        const sandbox = await ctx.db.query.sandboxes.findFirst({
+          where: and(eq(sandboxes.id, input.sandboxId), eq(sandboxes.userId, ctx.userId)),
+          columns: { id: true },
+        });
+        if (!sandbox) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'SANDBOX_NOT_FOUND',
+          });
+        }
+      }
+
       const [note] = await ctx.db
         .insert(notes)
         .values({
           userId: ctx.userId,
           type: input.type ?? 'AI',
+          sandboxId: input.sandboxId ?? null,
         })
         .returning();
 
@@ -349,5 +367,63 @@ export const noteRouter = router({
         extractedCount: createdNotes.length,
         noteIds: createdNotes.map((n) => n.id),
       };
+    }),
+
+  pinToSandbox: protectedProcedure
+    .input(pinToSandboxSchema)
+    .mutation(async ({ ctx, input }) => {
+      const note = await ctx.db.query.notes.findFirst({
+        where: and(eq(notes.id, input.noteId), eq(notes.userId, ctx.userId)),
+        columns: { id: true },
+      });
+
+      if (!note) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'NOTE_NOT_FOUND',
+        });
+      }
+
+      const sandbox = await ctx.db.query.sandboxes.findFirst({
+        where: and(eq(sandboxes.id, input.sandboxId), eq(sandboxes.userId, ctx.userId)),
+        columns: { id: true },
+      });
+
+      if (!sandbox) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'SANDBOX_NOT_FOUND',
+        });
+      }
+
+      await ctx.db
+        .update(notes)
+        .set({ sandboxId: input.sandboxId })
+        .where(eq(notes.id, input.noteId));
+
+      return { success: true };
+    }),
+
+  unpinFromSandbox: protectedProcedure
+    .input(unpinFromSandboxSchema)
+    .mutation(async ({ ctx, input }) => {
+      const note = await ctx.db.query.notes.findFirst({
+        where: and(eq(notes.id, input.noteId), eq(notes.userId, ctx.userId)),
+        columns: { id: true },
+      });
+
+      if (!note) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'NOTE_NOT_FOUND',
+        });
+      }
+
+      await ctx.db
+        .update(notes)
+        .set({ sandboxId: null })
+        .where(eq(notes.id, input.noteId));
+
+      return { success: true };
     }),
 });
