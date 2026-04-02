@@ -421,6 +421,54 @@ export const extractedIdeasArraySchema = z.array(extractedIdeaSchema).min(1).max
 export type ExtractedIdea = z.infer<typeof extractedIdeaSchema>;
 
 // ============================================
+// Sandbox validators
+// ============================================
+export const SANDBOX_NAME_MAX = 100;
+export const SANDBOX_MIN_NOTES_FOR_AI = 2;
+export const SANDBOX_MIN_CHARS_FOR_AI = 100;
+
+export const sandboxColorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Must be a hex color like #FF0000').optional();
+
+export const createSandboxSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(SANDBOX_NAME_MAX, `Name must be under ${SANDBOX_NAME_MAX} characters`),
+  color: sandboxColorSchema,
+});
+export type CreateSandboxInput = z.infer<typeof createSandboxSchema>;
+
+export const updateSandboxSchema = z.object({
+  id: entityId,
+  name: z.string().min(1).max(SANDBOX_NAME_MAX).optional(),
+  color: sandboxColorSchema,
+});
+export type UpdateSandboxInput = z.infer<typeof updateSandboxSchema>;
+
+export const deleteSandboxSchema = z.object({
+  id: entityId,
+});
+export type DeleteSandboxInput = z.infer<typeof deleteSandboxSchema>;
+
+export const getSandboxSchema = z.object({
+  id: entityId,
+});
+export type GetSandboxInput = z.infer<typeof getSandboxSchema>;
+
+export const sandboxAiActionSchema = z.object({
+  id: entityId,
+});
+export type SandboxAiActionInput = z.infer<typeof sandboxAiActionSchema>;
+
+export const pinToSandboxSchema = z.object({
+  noteId: entityId,
+  sandboxId: entityId,
+});
+export type PinToSandboxInput = z.infer<typeof pinToSandboxSchema>;
+
+export const unpinFromSandboxSchema = z.object({
+  noteId: entityId,
+});
+export type UnpinFromSandboxInput = z.infer<typeof unpinFromSandboxSchema>;
+
+// ============================================
 // Assumption validators
 // ============================================
 export const assumptionCategorySchema = z.enum([
