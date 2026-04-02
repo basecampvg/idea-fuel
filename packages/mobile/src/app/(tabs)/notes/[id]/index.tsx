@@ -289,27 +289,28 @@ export default function NoteEditorScreen() {
             <ChevronLeft size={24} color={colors.foreground} />
           </TouchableOpacity>
           <SaveIndicator status={saveStatus} />
-          <View style={styles.headerActions}>
+          <View style={styles.headerPill}>
             {note?.sandboxId ? (
               <TouchableOpacity
+                style={styles.pillButton}
                 onPress={() => unpinMutation.mutate({ noteId: id! })}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <PinOff size={20} color={colors.muted} />
+                <PinOff size={18} color={colors.muted} />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
+                style={styles.pillButton}
                 onPress={() => setShowSandboxPicker(true)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Pin size={20} color={colors.foreground} />
+                <Pin size={18} color={colors.foreground} />
               </TouchableOpacity>
             )}
+            <View style={styles.pillDivider} />
             <TouchableOpacity
+              style={styles.pillButton}
               onPress={handleDelete}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Trash2 size={20} color={colors.mutedDim} />
+              <Trash2 size={18} color={colors.destructive} />
             </TouchableOpacity>
           </View>
         </View>
@@ -538,9 +539,23 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 8,
   },
-  headerActions: {
+  headerPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    backgroundColor: colors.card,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  pillButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pillDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: colors.border,
   },
 });
