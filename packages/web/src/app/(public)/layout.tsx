@@ -28,6 +28,12 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           {/* Nav */}
           <nav className="flex items-center gap-1">
             <Link
+              href="/glossary"
+              className="px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:text-white"
+            >
+              Glossary
+            </Link>
+            <Link
               href="/blog"
               className="px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:text-white"
             >
