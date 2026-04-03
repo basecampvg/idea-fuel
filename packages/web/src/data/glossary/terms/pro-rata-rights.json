@@ -1,0 +1,21 @@
+{
+  "slug": "pro-rata-rights",
+  "title": "Pro Rata Rights",
+  "category": "fundraising",
+  "shortDefinition": "The right for existing investors to invest in future rounds to maintain their ownership percentage.",
+  "content": {
+    "definition": "Pro rata rights allow existing shareholders (usually investors) to participate in future funding rounds in proportion to their current ownership stake. If an investor owns 10% and you raise a Series B, they have the right to invest enough new capital to maintain their 10% ownership if they choose.",
+    "whyItMatters": "This seems innocent on paper but it shapes your entire capital stack. Investors with pro rata rights often become your most engaged shareholders because they're incentivized to keep writing checks as the company grows. On the flip side, pro rata rights can limit your flexibility in negotiations with new investors if existing investors demand to participate at aggressive terms. It also means your lead investors can control capital flow into future rounds.",
+    "howToApply": "As a founder, assume your investors will exercise pro rata rights in every future round where valuation is attractive. Plan your capital needs with this in mind—if your Series A investor has pro rata rights and wants to participate in Series B, they'll reserve capital and might influence pricing. This isn't necessarily bad; strong investors participating in future rounds validates your business. Just model the dilution accordingly and understand that pro rata rights give your lead investor veto power over capital structure decisions.",
+    "commonMistakes": [
+      "Granting pro rata rights to all investors indiscriminately without understanding participation dynamics",
+      "Forgetting that pro rata rights exercise assumptions affect your future capital needs and valuation timing",
+      "Assuming pro rata investors will always participate; sometimes they won't, and you need capital planning for both scenarios"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator lets you model investor participation in future rounds, showing how pro rata rights affect dilution and runway at each stage. Plan your capital strategy knowing which investors will likely participate."
+  },
+  "relatedTerms": ["follow-on-investment", "lead-investor", "dilution"],
+  "synonyms": ["Participation Rights", "Participation Preference"],
+  "seoTitle": "What are Pro Rata Rights? | IdeaFuel Glossary",
+  "seoDescription": "Pro rata rights let investors maintain ownership in future rounds. Understand how they impact your capital structure."
+}

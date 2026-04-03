@@ -1,0 +1,21 @@
+{
+  "slug": "user-story",
+  "title": "User Story",
+  "category": "product",
+  "shortDefinition": "A short description of a feature or capability written from the user's perspective to clarify intent and value.",
+  "content": {
+    "definition": "A user story is a simple narrative that describes what a user needs to accomplish and why. It follows the template: 'As a [user type], I want [capability], so that [benefit].' User stories are smaller than features and larger than tasks—they're the atomic unit of work that teams use to break down product development into manageable, meaningful pieces.",
+    "whyItMatters": "User stories force you to think from the customer's perspective instead of the engineer's perspective. Without them, teams build features in a vacuum, optimizing for technical elegance rather than user outcomes. User stories also create a shared understanding between product, design, and engineering about what problem you're actually solving. They're the guardrail against building cool features nobody needs.",
+    "howToApply": "Write user stories in plain language that non-technical stakeholders can understand. Include acceptance criteria—the specific conditions that must be true for the story to be complete. Keep stories small enough to finish in one sprint (1-2 weeks of work). Test your story by asking: could a designer and engineer independently build this and arrive at the same solution? If not, your story is too vague. Use user interviews and research to validate that your stories align with actual user problems. IdeaFuel's Spark Validation helps you test whether your user stories actually address real problems before your team invests weeks building them.",
+    "commonMistakes": [
+      "Writing technical stories instead of user stories—'Update database schema' instead of 'As a user, I want faster search results'",
+      "Making stories too big to complete in one sprint—you're writing epics, not stories",
+      "Writing stories without acceptance criteria—teams have to guess what done means"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation helps you validate user stories against real market problems, ensuring you're building features that users actually need."
+  },
+  "relatedTerms": ["acceptance-criteria", "product-backlog", "use-case"],
+  "synonyms": ["User Requirement", "Feature Brief"],
+  "seoTitle": "What is a User Story? Template & Best Practices | IdeaFuel Glossary",
+  "seoDescription": "User stories describe what users need and why, in simple narrative form. Learn how to write them to align your team around actual customer problems."
+}

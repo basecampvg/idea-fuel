@@ -1,0 +1,21 @@
+{
+  "slug": "key-performance-indicator",
+  "title": "Key Performance Indicator",
+  "category": "analytics",
+  "shortDefinition": "A measurable value that directly reflects progress toward a specific business objective.",
+  "content": {
+    "definition": "A Key Performance Indicator (KPI) is a quantifiable metric tied directly to a business goal. Unlike vanity metrics (impressive but meaningless), a true KPI directly impacts revenue, retention, or competitive advantage. Effective KPIs are concrete, measurable, and linked to decision-making—if you can't act on it, it's not a KPI.",
+    "whyItMatters": "Teams without clear KPIs drift. Engineers optimize for code cleanliness, marketers chase traffic, support minimizes tickets—all good intentions with no alignment. KPIs create accountability and focus: you know what you're trying to achieve and whether you're winning. They replace politics with measurement.",
+    "howToApply": "Start by defining your strategic priority—grow revenue, reduce churn, expand into new markets. Then pick 3-5 metrics that directly measure success. For a B2B SaaS company scaling upmarket: CAC payback period, net revenue retention, and onboarding time-to-first-value are KPIs. Vanity metrics (sign-ups, downloads) are supporting data, not KPIs. Review KPIs weekly, understand what drives changes, and adjust strategy based on trends. IdeaFuel's Research Engine helps you identify which leading indicators predict KPI movement, allowing you to act before quarterly results arrive.",
+    "commonMistakes": [
+      "Having too many KPIs (more than 5 dilutes focus and creates conflicting priorities)",
+      "Confusing lagging indicators (revenue, churn) with leading indicators you can actually control",
+      "Optimizing KPIs without considering long-term business health—maximizing short-term revenue kills lifetime value"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine identifies which metrics are true KPIs versus noise, and reveals the leading indicators that predict KPI achievement so you can steer the business with confidence."
+  },
+  "relatedTerms": ["okr", "north-star-metric", "metric-vs-vanity-metric"],
+  "synonyms": ["Key Metric", "Performance Metric", "Strategic Indicator"],
+  "seoTitle": "What is a Key Performance Indicator (KPI)? | IdeaFuel Glossary",
+  "seoDescription": "KPIs are measurable metrics tied to business goals. Learn how to define, track, and act on the metrics that matter."
+}

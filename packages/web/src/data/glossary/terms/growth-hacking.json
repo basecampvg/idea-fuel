@@ -1,0 +1,24 @@
+{
+  "slug": "growth-hacking",
+  "title": "Growth Hacking",
+  "category": "growth",
+  "shortDefinition": "Rapid experimentation across acquisition, retention, and monetization channels to find scalable, unconventional growth levers.",
+  "content": {
+    "definition": "Growth hacking is the methodology of rapid, creative experimentation to find scalable channels for user acquisition, retention, or revenue with minimal budget. It's not a tactic—it's a mindset that treats growth as an engineering problem. Growth hackers ask: which combination of product mechanics, referral mechanics, virality, content, partnerships, or distribution tricks can we test and iterate on this week to move the metric that matters most? Growth hacking doesn't mean spammy viral campaigns; it means finding creative, often free or low-cost, ways to acquire users and create lasting loops.",
+    "whyItMatters": "Growth hacking is why startups beat incumbents. A large company has established marketing playbooks (paid ads, sales teams, PR). A startup with a $0 marketing budget can't compete on those channels. But a startup can exploit product mechanics, network effects, or unconventional distribution that the incumbent can't pivot to. Airbnb's growth hack was going to Craigslist, recruiting hosts, and creating dual liquidity. Dropbox's was the referral program that gave free storage per invite. Slack's was becoming the go-to chat tool for teams already using other tools, then expanding within those teams. Growth hacking separates viral companies from grinding ones. Every founder should spend 20% of their time on growth hacking—testing virality, referral mechanics, content, partnerships, integrations—because one hack can change your trajectory.",
+    "howToApply": "Start with your riskiest assumption: what metric must move for your business to work? (MAU, activation, retention, revenue?) Focus on that one metric obsessively. Week 1: identify 5-10 potential growth channels (referral programs, viral loops, content, partnerships, integrations, distribution). Week 2: rapid experiment on the top 3. Week 3: double down on the winner, kill the losers. Metrics that matter: cost to acquire a user through each channel, how much those users retain relative to other channels, and how much expansion/revenue they generate. Build referral mechanics into your product experience—make sharing the default path. Ask: at what moment is the user most likely to invite someone else? After they complete the first high-value action, not randomly. Test copy, incentives, friction. Track virality per feature. Sometimes a feature that takes 5 minutes to build unlocks viral growth. Be willing to break your product roadmap to double down on a growth hack that's working. Airbnb's founders spent weeks on Craigslist automation instead of product features because growth was the bottleneck.",
+    "commonMistakes": [
+      "Confusing growth hacking with marketing campaigns—a Super Bowl ad is not a growth hack. A growth hack is repeatable, low-cost, and compounds. It's a lever, not a one-time push.",
+      "Building growth hacks without measuring—if you can't measure acquisition cost and retention per channel, you're guessing. Every hack needs a metric.",
+      "Optimizing for vanity metrics—1 million impressions on a viral post means nothing if 0% convert to users. Track CAC and retention, not impressions.",
+      "Ignoring retention in pursuit of acquisition—a 50% monthly churn rate kills any growth hack. Retention is the foundation. Growth hacking should improve both.",
+      "Abandoning channels too early—a growth channel might take 3-4 iterations to work. Experiment rigorously before killing it.",
+      "Building referral programs without product-market fit—if people don't love your product, paying them to refer won't help. Fix the product first."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model different growth hacking scenarios and their unit economics, while its Research Engine identifies successful growth hacks in your market that you can adapt and test."
+  },
+  "relatedTerms": ["growth-marketing", "product-led-growth", "viral-coefficient"],
+  "synonyms": ["Growth Marketing", "Rapid Growth Experimentation"],
+  "seoTitle": "Growth Hacking: Strategies, Experiments & Metrics | IdeaFuel",
+  "seoDescription": "Master growth hacking methodology and rapid experimentation. Learn how to build referral loops, optimize CAC, and compound user acquisition."
+}

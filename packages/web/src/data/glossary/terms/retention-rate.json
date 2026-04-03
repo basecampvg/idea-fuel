@@ -1,0 +1,23 @@
+{
+  "slug": "retention-rate",
+  "title": "Retention Rate",
+  "category": "growth",
+  "shortDefinition": "The percentage of customers who remain active with your product after a specific time period, usually monthly.",
+  "content": {
+    "definition": "Retention rate is the percentage of users who stay active and engaged with your product month-to-month. If you start January with 1,000 active users and 900 are still active in February, your month-over-month (MoM) retention is 90%. It's the inverse of churn. While churn measures who leaves, retention measures who stays—same math, different perspective. Retention is the most predictive metric for SaaS success because it directly determines lifetime value and therefore unit economics.",
+    "whyItMatters": "Retention is the difference between a sustainable business and a leaky bucket. You can have 50% MoM churn (50% retention) with a massive sales team and venture funding, but eventually the numbers break—you'd need to acquire 100 new customers every month just to stay flat at 100 users. It's unsustainable. Conversely, if you have 95% MoM retention and acquire 10 new users monthly, you compound growth. Enterprise software often has 95-98% annual retention; consumer apps struggle at 20-40% monthly. The dirty secret: founders obsess over acquisition metrics (CAC, LTV, payback period) when they should obsess over retention first. A $300 CAC only makes sense if your LTV is $3,000+, and LTV is driven entirely by retention. If you're losing 40% of users monthly, your LTV is capped, and your unit economics will never work.",
+    "howToApply": "Measure cohort-based retention: group users by sign-up month, then track what percentage remain active in month 1, month 2, month 3, etc. This reveals whether retention is stable or declining. Track both 'active' (logged in at least once) and 'paying' (if applicable) separately—a free user churning isn't the same as a paying user churning. Calculate: Monthly retention = (Users at end of month - New users in month) ÷ (Users at start of month) × 100. If you start with 1,000, add 100 new, and end with 1,050, retention = (1,050 - 100) ÷ 1,000 = 95%. The magic benchmark: for SaaS, 95% monthly is solid, 90% is okay, 85% is worrying. For consumer, 30% day-7 retention is decent, 50%+ is excellent. Build retention tracking into your analytics from day one, and segment it: by user cohort, by feature usage, by plan tier. Retention gaps between segments show where your product is weak.",
+    "commonMistakes": [
+      "Counting inactive users as retained—if someone has a paid account but hasn't logged in in 6 months, they're not retained. Use activity-based definitions.",
+      "Aggregating retention without segmentation—averaging 95% paid retention with 40% free retention hides the real problem. Segment ruthlessly.",
+      "Measuring retention too early—day-1 retention is inflated (everyone who signed up is still here). Day-7, day-30, and month-3 retention tell the real story.",
+      "Ignoring post-onboarding retention—most churn happens in month 1-3. If your 30-day cohort retention drops 30%, your onboarding is broken.",
+      "Obsessing over retention without understanding why—measure retention, yes, but then ask: who stays and why? Which features do retained users use? Correlate usage to retention."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes retention benchmarks in your market and helps identify what retention rate is realistic for your category, while its cohort analysis tools help you segment and understand why specific user groups churn."
+  },
+  "relatedTerms": ["churn-rate", "net-revenue-retention", "cohort-analysis"],
+  "synonyms": ["User Retention", "Customer Persistence"],
+  "seoTitle": "Retention Rate: Calculate, Benchmark & Improve SaaS Metrics | IdeaFuel",
+  "seoDescription": "Master retention rate calculations and cohort analysis. Learn benchmarks, reduce churn, and build sustainable SaaS unit economics with founder playbook."
+}

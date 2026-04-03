@@ -1,0 +1,21 @@
+{
+  "slug": "option-pool",
+  "title": "Option Pool",
+  "category": "fundraising",
+  "shortDefinition": "Reserved equity allocated for employee stock options, typically 10-20% of company shares.",
+  "content": {
+    "definition": "An option pool is a reserve of company equity set aside for employee stock options. If your company has 1 million shares outstanding and a 15% option pool, 150,000 shares are reserved for employees to purchase at a strike price (usually the valuation at the time of the grant). Employees exercise options by purchasing shares at the strike price and vesting into ownership over time.",
+    "whyItMatters": "The option pool size is critical because it determines how much equity you can give employees without further diluting founders. A 10% pool might be too small if you're planning to hire 30 people. A 25% pool dilutes founders excessively if you're a two-person company with no growth plan. Investors scrutinize option pool size during fundraising because it signals how much founder equity is earmarked for hiring. An undersized pool means you'll have to dilute founders to hire, which creates tension and negotiation friction.",
+    "howToApply": "Standard market is 10-15% for early-stage companies. As you grow and have revenue visibility, some companies shrink the pool as they hit hiring targets. Start with a reasonable estimate of how many people you'll hire in the next 3 years, calculate the equity cost if they all exercise at fair value, and that's your pool. Don't be stingy; a 15% pool is standard and investors expect it. When you grant options to an employee, you're pulling from this pool and reducing available equity for future hires.",
+    "commonMistakes": [
+      "Setting an option pool too small and running out of equity to offer new hires mid-growth",
+      "Not adjusting the pool size as you scale and finding yourself unable to hire without founder dilution",
+      "Granting all of the option pool to the first 5 employees and having nothing for future strategic hires"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool calculates option pool burn and remaining capacity, showing when you need to refresh the pool or authorize new shares. Plan your hiring and equity strategy with visibility into pool depletion."
+  },
+  "relatedTerms": ["cap-table", "vesting-schedule", "dilution"],
+  "synonyms": ["Employee Option Pool", "Share Reserve"],
+  "seoTitle": "What is an Option Pool? | IdeaFuel Glossary",
+  "seoDescription": "Option pools reserve equity for employees. Learn how to size pools and manage hiring incentives effectively."
+}

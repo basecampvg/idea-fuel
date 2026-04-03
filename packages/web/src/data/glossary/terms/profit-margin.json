@@ -1,0 +1,21 @@
+{
+  "slug": "profit-margin",
+  "title": "Profit Margin",
+  "category": "finance",
+  "shortDefinition": "Net profit divided by revenue; shows what percentage of sales becomes actual profit.",
+  "content": {
+    "definition": "Profit margin (net margin) is the bottom line: (Revenue - All Expenses) / Revenue. If you generate 1M in revenue and 200K in net profit, your profit margin is 20%. It's the inverse of your burn rate—the percentage of each dollar sold that actually stays with the company. Gross margin is revenue minus COGS; operating margin is profit before interest and taxes; net margin is profit after everything. Each tells a different story about profitability.",
+    "whyItMatters": "Profit margin is the ultimate scorecard of business efficiency. Two companies with identical revenue can have vastly different fates: one with 30% margins reaches profitability and scales sustainably; one with 5% margins is one downturn away from insolvency. Many founders chase top-line growth obsessed with vanity metrics while margins deteriorate. A 10% profit margin business generating 1B in revenue is objectively healthier than a 50% margin business generating 10M in revenue because scale matters. But scaling something unprofitable just accelerates losses—margins have to be viable.",
+    "howToApply": "Track net margin monthly and set explicit targets by business stage: pre-revenue startups ignore it (you're in accumulation mode), growth-stage startups should be targeting 10-20%, mature SaaS companies 25%+. Understand the drivers of your margin: is it COGS dragging you down, or bloated OpEx? Break profit margin into components: gross margin x (1 - operating expense ratio). This decomposition shows where to focus. Benchmark yourself against competitors and industry standards—if you're 5 points below average, that's significant. Use profit margin to answer 'does this business model actually work?' If it doesn't at scale, fix the model before investing more money.",
+    "commonMistakes": [
+      "Assuming profitability at scale when unit economics don't support it—margin math doesn't change with volume",
+      "Sacrificing margin for growth ('we'll make it up on volume')—this is how companies go bankrupt while scaling",
+      "Not distinguishing between gross and net margin, masking operational inefficiency"
+    ],
+    "ideafuelConnection": "IdeaFuel models profit margin under different scaling scenarios, shows margin sensitivity to key cost drivers, and helps identify which changes have the highest impact on profitability."
+  },
+  "relatedTerms": ["gross-margin", "net-margin", "ebitda"],
+  "synonyms": ["Net Profit Margin", "Bottom Line Margin"],
+  "seoTitle": "What is Profit Margin? | IdeaFuel Glossary",
+  "seoDescription": "Understand profit margin and how to use it to measure and improve your startup's true profitability."
+}

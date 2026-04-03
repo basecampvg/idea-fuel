@@ -1,0 +1,21 @@
+{
+  "slug": "two-sided-market",
+  "title": "Two-Sided Market",
+  "category": "strategy",
+  "shortDefinition": "A platform connecting two distinct user groups (supply and demand) that create value together.",
+  "content": {
+    "definition": "A two-sided market (or two-sided platform) connects two interdependent groups—typically suppliers and consumers—where the platform's value grows as both sides scale. Examples: Uber (drivers + riders), Airbnb (hosts + guests), marketplace apps (sellers + buyers). Neither side has value without the other.",
+    "whyItMatters": "Two-sided markets have extreme network effects—the platform becomes more valuable to both sides as it scales. This creates a powerful moat: a competitor would need both sides simultaneously, which is nearly impossible. But the tradeoff is brutal chicken-egg: you need critical mass on both sides before either side gets value. Most two-sided markets fail in the bootstrapping phase because founders can't solve the supply-demand problem simultaneously.",
+    "howToApply": "Launch one side first—usually supply, since supply is harder to scale. Start with a small geographic area or vertical. Manually handle the matching (e.g., Airbnb founder Brian Chesky manually booked stays to test demand). Once you have 20-30 suppliers and proof of demand, reverse focus to grow demand aggressively. Price should incentivize the supply-constrained side—if you have enough suppliers but no demand, subsidize demand (referral bonuses, lower commissions for first-time buyers). Measure activation rate (% of suppliers that close at least one transaction), not just signup rate. A marketplace with 1,000 inactive sellers is dead.",
+    "commonMistakes": [
+      "Launching balanced growth: trying to grow both sides equally starves both. You need 80/20 ratio of supply to demand; if you're 50/50, neither side gets enough options or engagement.",
+      "Ignoring fraud and quality: the 20% of fraudulent suppliers kill the experience for all buyers. Over-invest in trust and verification early, even if it slows supply growth.",
+      "Assuming network effects happen automatically: they don't. You must actively recruit and onboard both sides. Uber used promo codes and driver bonuses; Airbnb's founders mined Craigslist for photographers to professionalize listings."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you map two-sided marketplace unit economics: calculate take rate, CAC for each side, and the activation rate (% of supply converting to first transaction). Model how supply constraints and demand growth interact."
+  },
+  "relatedTerms": ["platform-business-model", "network-effects", "marketplace-model"],
+  "synonyms": ["Marketplace", "Platform"],
+  "seoTitle": "What is Two-Sided Market? | IdeaFuel Glossary",
+  "seoDescription": "Understand two-sided marketplace strategy: supply/demand dynamics, network effects, and chicken-egg problems."
+}

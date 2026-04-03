@@ -1,0 +1,21 @@
+{
+  "slug": "first-mover-advantage",
+  "title": "First-Mover Advantage",
+  "category": "strategy",
+  "shortDefinition": "The competitive benefit gained by being the first company to enter a market or establish a new category.",
+  "content": {
+    "definition": "First-mover advantage is the edge you gain by entering a market before competitors. Benefits include capturing early customers, building brand recognition, establishing distribution partnerships, accumulating data, recruiting talent, and setting industry standards. Early customers often become advocates and influencers. You define the category and shape customer expectations. However, first-mover advantage is not automatic—execution matters far more than timing.",
+    "whyItMatters": "Some founders treat first-mover status as destiny. \"We're first, we'll win.\" That's wrong. Friendster was first in social networking; Facebook was third and won decisively. Being second or third with better execution beats being first and stalling. That said, being first creates real advantages: you shape the narrative, acquire early customers at low cost, and attract top talent eager to work on a greenfield problem. The question isn't whether you're first—it's whether your first-mover position compounds over time or erodes.",
+    "howToApply": "If you're genuinely first, use it ruthlessly: (1) Lock in early customers with long-term contracts, exclusive partnerships, or switching costs. (2) Move fast to build a network effect or user base before competitors enter. (3) Set the category narrative—define terms, shape expectations, establish best practices. (4) Hire the best engineers and product people before everyone else notices the space. (5) If you raise capital, use it to extend your lead before capital floods the category. If you're second or later, don't panic. (1) Identify what the first mover got wrong. (2) Build a better product or position (\"we serve SMBs; they serve enterprise\"). (3) Learn from their missteps; don't repeat them. (4) Move fast enough to capture mindshare before the market crystallizes.",
+    "commonMistakes": [
+      "Assuming first-mover advantage is forever. Market dynamics change, competitors improve, and customer preferences shift. Treat your lead as fragile and defend it constantly.",
+      "Moving slowly as the first mover. Speed trumps timing. If you're first but ship slowly, a faster second mover will beat you. Use first-mover status to move FASTER, not slower.",
+      "Confusing first-to-market with first-to-succeed. Betamax was first; VHS was better. Myspace was first in social; Facebook was better. Being first to launch and first to win are different things."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes competitor timing, market entry patterns, and category ownership to help you understand whether first-mover advantage exists in your space and whether your execution is fast enough to capitalize on it."
+  },
+  "relatedTerms": ["competitive-moat", "barriers-to-entry", "network-effects"],
+  "synonyms": ["Pioneer Advantage", "Market Leadership", "Early Entrant Advantage"],
+  "seoTitle": "What is First-Mover Advantage? | IdeaFuel Glossary",
+  "seoDescription": "Understand first-mover advantage, when it matters, and how to leverage timing or overcome late entry to win your market."
+}

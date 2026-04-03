@@ -1,0 +1,21 @@
+{
+  "slug": "search-engine-marketing",
+  "title": "Search Engine Marketing",
+  "category": "marketing",
+  "shortDefinition": "Paid advertising on search engines where you bid on keywords to display ads above or beside organic results.",
+  "content": {
+    "definition": "SEM (search engine marketing) is the paid cousin of SEO. You bid on keywords relevant to your business, and when someone searches that term, your ad shows in a prominent spot above organic results. You only pay when someone clicks — this is pay-per-click (PPC) advertising. The main platforms are Google Ads and Bing Ads, with Google capturing 90%+ of search volume. Your cost per click (CPC) varies by keyword competitiveness: commercial keywords like 'CRM software' cost $5–50 per click, while niche keywords cost $0.50–$3. You set a daily budget (Google allocates it across clicks throughout the day), and you can pause campaigns instantly — there's no long-term commitment. SEM is measurable: you track every click, every landing page visit, and every conversion, so you know exactly what each customer costs.",
+    "whyItMatters": "SEM is one of the few channels where you directly reach customers with purchase intent. When someone searches 'how to send bulk emails,' they're problem-aware and ready to evaluate solutions. Unlike display ads (random scrolling) or social media (awareness-stage content), SEM connects money directly to demand. For B2B SaaS with high-value transactions, a $20 click that converts to a $5K annual contract is a 250x return. SEM also provides fast feedback — you can test messaging, landing pages, and offers in real time and adjust within hours. You learn what keywords and messages resonate with your market faster than almost any other channel.",
+    "howToApply": "Start by auditing your SEO keywords and identifying high-intent searches you're not ranking for organically. Bid on those first — your competitor is probably already ranking for them, which validates demand. Set up conversion tracking in Google Ads (lead form submission, trial signup, purchase) so you can calculate CAC and ROAS (return on ad spend). Write ad copy that answers the searcher's question directly and differentiates you in two lines of copy — avoid generic claims like 'best solution.' Separate campaigns by keyword intent: 'branded searches' ('ideafuel pricing') convert highest but cost more per transaction; 'generic searches' ('business validation software') are cheaper per click but require stronger messaging to convert. Land searchers on a relevant landing page focused on that search intent, not your homepage — dedicated pages convert 30–50% higher. Start with a $500–1K monthly budget to learn what works, then scale winning campaigns.",
+    "commonMistakes": [
+      "Bidding on generic keywords ('software') instead of specific, high-intent terms. You'll blow your budget on clicks from people not ready to buy. Prioritize commercial intent.",
+      "Not tracking conversions properly, then spending money on keyword ideas that don't actually drive revenue. Conversion tracking is non-negotiable.",
+      "Sending all paid search traffic to your homepage. A dedicated landing page focused on the search intent converts 2–3x higher and lowers your actual CAC."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling feature forecasts SEM channel performance, calculates CAC by keyword, and projects payback periods so you can allocate budget efficiently across paid channels. Model your growth based on different SEM spend levels."
+  },
+  "relatedTerms": ["paid-traffic", "cost-per-click", "return-on-ad-spend"],
+  "synonyms": ["PPC", "Paid Search", "Google Ads", "Search Ads"],
+  "seoTitle": "What is Search Engine Marketing? | IdeaFuel Glossary",
+  "seoDescription": "SEM is paid search advertising where you bid on keywords. Learn PPC strategy, bidding, and conversion tracking for profitable campaigns."
+}

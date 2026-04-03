@@ -1,0 +1,21 @@
+{
+  "slug": "time-to-value",
+  "title": "Time to Value",
+  "category": "growth",
+  "shortDefinition": "The duration between when a user signs up and when they experience tangible value from your product.",
+  "content": {
+    "definition": "Time to Value (TTV) measures the friction and setup required before a user can see concrete benefit from your product. For a note-taking app, TTV might be 5 minutes (they write a note and feel organized). For an analytics platform, it might be weeks (they need to integrate, collect data, and run reports). Short TTV means users feel rewarded quickly; long TTV means they churn before value arrives.",
+    "whyItMatters": "TTV is the single biggest predictor of retention. A user who experiences value within their first session stays. A user who needs to fumble through setup for a week doesn't. This is non-linear—the difference between 5-minute TTV and 30-minute TTV often means 2-3x higher retention. Startups obsess over feature completeness, but users don't care about your 50-feature roadmap. They care about solving their immediate problem fast. Companies with excellent TTV can charge more (users see ROI faster), can grow with less marketing (users self-advocate), and can survive with smaller teams (less onboarding overhead). It's the ultimate product moat.",
+    "howToApply": "Measure TTV by tracking when users first perform their activation action (send a message, create a post, make a sale). Segment this by user type and device. Then work backwards—if TTV is 3 days but you want it to be 1 day, what's blocking them? Is it setup complexity? Missing data? Unclear next steps? Use session recordings to watch users get stuck, then eliminate those friction points. Build defaults: pre-populated workspaces, templates, sample data that let users see value immediately without creating everything from scratch. Automate setup wherever possible. Test changes by splitting users and measuring TTV—even 10-minute improvements compound over months. Eventually you want TTV under one session; if that's impossible, make session two produce value.",
+    "commonMistakes": [
+      "Measuring TTV as 'days to first feature access' instead of 'days to experienced value'—watching data doesn't equal value",
+      "Not removing setup friction because you think it teaches users your product—friction kills",
+      "Ignoring that different user types have different TTVs—power users might convert with 30-min setup; SMBs need instant value"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation gives you rapid feedback on your TTV through user testing, so you identify and fix friction before wasting time on features nobody uses."
+  },
+  "relatedTerms": ["onboarding", "activation-rate", "user-experience"],
+  "synonyms": ["Value Realization Time", "Time to First Win"],
+  "seoTitle": "What is Time to Value? | IdeaFuel Glossary",
+  "seoDescription": "The duration between sign-up and when users experience tangible value—the primary predictor of retention."
+}

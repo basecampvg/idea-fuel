@@ -1,0 +1,21 @@
+{
+  "slug": "agile",
+  "title": "Agile",
+  "category": "product",
+  "shortDefinition": "A development methodology that prioritizes responding to change over following a plan, through iterative delivery and continuous feedback.",
+  "content": {
+    "definition": "Agile is a set of principles and practices for building products by working in short iterative cycles, soliciting continuous feedback, and adapting your plan based on what you learn. It's the opposite of waterfall, where you spend months planning, then months building what you planned, then months hoping it's what customers wanted.",
+    "whyItMatters": "Agile exists because traditional project management has a catastrophic failure rate—teams spend months building things that don't sell. Agile reduces that failure mode by exposing your assumptions early. You ship small pieces, measure what users actually do with them, and course-correct. This requires humility—admitting your initial plan was probably wrong—but it reduces waste and accelerates learning. Most successful startups are inherently agile, whether or not they use the terminology.",
+    "howToApply": "Don't treat Agile as a bureaucracy with stand-ups and retros and velocity points. Treat it as a mindset: assume your plan is wrong. Ship small increments. Measure. Learn. Adapt. Build the discipline to stop doing things that don't work and immediately start doing things that might. Use sprints to create that rhythm. Focus on outcomes, not activity—did this feature move the needle or not? If not, kill it and try something else. Make decisions based on data from actual users, not debate in meetings. IdeaFuel's Spark Validation embeds this agile mentality by helping you validate assumptions before building them, and measure whether what you built actually moved key metrics.",
+    "commonMistakes": [
+      "Treating Agile as a process instead of a mindset—running rituals without actually adapting your plan",
+      "Agile used as an excuse to ship garbage—'good enough' that never improves",
+      "Building features that don't move key metrics because you didn't validate them first"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation embeds agile principles into your product development by validating assumptions before building them and helping you measure actual impact."
+  },
+  "relatedTerms": ["sprint", "lean-ux", "technical-debt"],
+  "synonyms": ["Iterative Development", "Adaptive Methodology"],
+  "seoTitle": "What is Agile? Agile Development Principles & Practices | IdeaFuel Glossary",
+  "seoDescription": "Agile is a development approach that prioritizes rapid iteration and feedback over rigid planning. Learn how it accelerates learning and reduces waste."
+}

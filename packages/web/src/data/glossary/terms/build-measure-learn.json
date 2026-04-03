@@ -1,0 +1,21 @@
+{
+  "slug": "build-measure-learn",
+  "title": "Build-Measure-Learn",
+  "category": "strategy",
+  "shortDefinition": "Lean Startup framework: rapidly build a minimum viable product, measure customer behavior, learn, iterate. Speed is the moat.",
+  "content": {
+    "definition": "Build-Measure-Learn is the core feedback loop of lean startup methodology. You build the simplest version of your hypothesis (MVP), put it in front of customers, measure what they actually do (not what they say), and learn from the gap between expectation and reality. Then you iterate. This is not \"move fast and break things.\" It's ruthlessly efficient learning. You minimize spending time on features nobody uses. You maximize time on features that drive retention and revenue. Speed matters because the faster you cycle, the faster you learn, the faster you get to product-market fit.",
+    "whyItMatters": "Most founders build wrong. They spend 9 months on a beautiful product nobody wants because they skipped the measure-learn cycle. Build-Measure-Learn prevents this. It forces you to validate assumptions with customers before you commit engineering effort. It also keeps burn lean. If you're cycling weekly instead of quarterly, you discover traction problems or opportunities in days instead of months. Compounding speed over 18 months means the difference between $5M run rate and $50M run rate. This framework is not theoretical. It's how every fast-growing startup actually works.",
+    "howToApply": "Set up weekly or bi-weekly cycles. What's the smallest thing you can build to test your core hypothesis? Build it. Don't polish. Get it to customers. Measure: What fraction signed up? What fraction returned? What did they do first? Why did they stop? Learn: What were you wrong about? What surprised you? What should you prioritize next? The discipline is in velocity and honesty. If you're in a 3-month build cycle, you're too slow. If you're not talking to customers weekly, you're not measuring real behavior. If you're not iterating based on feedback, you're not learning.",
+    "commonMistakes": [
+      "Building a \"MVP\" that's actually a full-featured product. You spend 6 months on your MVP when you should ship in 2 weeks. MVP should be embarrassingly simple—single value prop, one feature, rough UI. If you're embarrassed by your MVP, you've waited too long.",
+      "Measuring the wrong things. Vanity metrics (sign-ups, DAU) feel good but lie. Measure what matters: retention, revenue, NPS, conversion rate. Don't optimize for metrics that don't predict success.",
+      "Learning but not iterating. You talk to customers, get insights, and ignore them. Or you interpret feedback as validation of what you already believed instead of challenging your assumptions. Real learning means changing your plan based on evidence."
+    ],
+    "ideafuelConnection": "Use IdeaFuel's spark-validation feature to run Build-Measure-Learn cycles rapidly. Track retention, conversion, and revenue across iterations to validate core assumptions and accelerate path to PMF."
+  },
+  "relatedTerms": ["lean-startup", "minimum-viable-product", "pivot"],
+  "synonyms": ["Lean cycle", "Rapid experimentation"],
+  "seoTitle": "What is Build-Measure-Learn? | IdeaFuel Glossary",
+  "seoDescription": "Validate assumptions fast with lean startup methodology. Learn how Build-Measure-Learn cycles drive product-market fit."
+}

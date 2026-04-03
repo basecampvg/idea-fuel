@@ -1,0 +1,23 @@
+{
+  "slug": "viral-coefficient",
+  "title": "Viral Coefficient",
+  "category": "growth",
+  "shortDefinition": "The number of new users acquired by each existing user through referrals or sharing, measured as a ratio.",
+  "content": {
+    "definition": "Viral coefficient (often called k-factor) measures how many new users each existing user brings in through word-of-mouth, referrals, or natural sharing. A viral coefficient of 0.5 means each user brings half a new user. A coefficient of 1.0 means each user brings exactly one new user—this is breakeven on organic growth. A coefficient above 1.0 is exponential growth; the network expands faster than any single marketing channel. Below 1.0 and your growth is linear at best.",
+    "whyItMatters": "Viral coefficient separates rocketship companies from grinding ones. Slack, Dropbox, and early Twitter had viral coefficients above 1.0—they grew exponentially with minimal paid marketing spend. Most SaaS companies run k < 1.0, meaning they depend entirely on paid acquisition and content marketing to scale. If your product isn't naturally shareable, no amount of incentivized referral programs will fix it. A k of 1.2 at scale generates compound growth that pays for itself; your CAC (Customer Acquisition Cost) drops monthly as viral loops compound. This is why product-led growth companies obsess over viral coefficient—it's the difference between venture-scale and lifestyle business.",
+    "howToApply": "Calculate viral coefficient by tracking how many new signups come from each cohort of existing users. If 100 users sign up in week 1, track how many brought in their own users in weeks 2, 3, 4, and so on. Calculate: k = (# of users invited / # of inviting users) × (conversion rate of invitees). If your users invited 50 people and 10% convert, and you had 100 active users, then k = (50/100) × 0.1 = 0.05. That's dire. But if 100 users invited 200 people at 40% conversion, k = (200/100) × 0.4 = 0.8. That's closer. Test friction in sharing—is your product easy to invite someone to? Figma's 'share a link' made it drop-dead simple; most software makes it hard. Watch for seasonal spikes: referrals often spike after payoff moments (successfully using the product, completing a big task). Build virality into product moments, not just add-on programs.",
+    "commonMistakes": [
+      "Confusing viral coefficient with referral programs—a $20 referral reward doesn't create virality if the product isn't worth sharing. You're just buying customers at a markup.",
+      "Only counting invited users, not conversion rate—sending 1,000 invites that convert at 1% is better than 500 invites at 2%, but most founders track invites and ignore conversion.",
+      "Measuring one-time coefficient instead of tracking cohorts—viral coefficient changes as users mature. Calculate it per cohort and watch how it stabilizes over time.",
+      "Ignoring how virality compounds—k of 1.2 doesn't sound dramatically better than 1.0, but 1.2^10 (after 10 cycles) is 6x growth vs. linear. Compounding is brutal.",
+      "Building viral features that don't matter—'invite a friend' buttons feel viral, but if users don't care, it won't hit k > 1.0. Start with product-market fit first."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes viral mechanisms in your market and competitor sharing patterns, helping you identify where your product's natural sharing moments are and what viral coefficient you should target based on your business model."
+  },
+  "relatedTerms": ["k-factor", "referral-marketing", "network-effects"],
+  "synonyms": ["K-Factor", "Viral Loop Coefficient"],
+  "seoTitle": "Viral Coefficient (K-Factor): Calculate & Optimize Growth | IdeaFuel",
+  "seoDescription": "Calculate viral coefficient and optimize k-factor for exponential growth. Learn how to build shareable products and compound user acquisition."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "ipo",
+  "title": "IPO",
+  "category": "strategy",
+  "shortDefinition": "Initial Public Offering—selling shares of your company to the public via stock exchange to raise capital and enable founder liquidity.",
+  "content": {
+    "definition": "An IPO (Initial Public Offering) means taking your company public by listing shares on a stock exchange (NASDAQ, NYSE, etc.). You sell shares to public investors—pension funds, retail traders, index funds. The company raises cash and existing shareholders (founders, employees, investors) can sell shares and liquify. You also become subject to SEC regulations, quarterly reporting, and public scrutiny. It's the highest-profile exit, but most founders won't take this path. IPOs require $100M+ revenue, profitable or clear path to profitability, and institutional demand.",
+    "whyItMatters": "IPO is the ultimate exit—maximum scale, maximum public visibility, and maximum founder wealth (in theory). But it's only viable for 1% of startups. The advantage is ongoing capital for acquisitions, R&D, and expansion without dilution. The downside is massive compliance costs (legal, audit, compliance officer), loss of privacy, and quarterly pressure to beat earnings expectations. Public company CEOs face different constraints than founders. You answer to shareholders, short-sellers watch your every move, and misses are punished instantly. Know whether you actually want this before you optimize for it.",
+    "howToApply": "IPO is a 3-5 year plan from serious preparation to actual listing. You need: $100M+ revenue, clear path to profitability or dominant market share, institutional investors on cap table, strong board (VCs push this hard), audited financials for 2 years, and an S-1 narrative that public markets believe. Start with Series B or C. Hire experienced CFO, board members, and lawyers who've done IPOs. The last 12 months before IPO are brutal—roadshow, due diligence, regulatory filing, underwriter negotiations. Only do this if you believe your company's growth story justifies the chaos. If you're tired of fundraising, IPO doesn't solve that. It just transforms fundraising into investor relations.",
+    "commonMistakes": [
+      "Going public too early at low valuation. Public markets punish growth slowdowns. If you list at $1B valuation and miss growth targets, stock tanks and your best employees leave. Better to stay private longer, prove your model, then go public at premium valuation.",
+      "Assuming IPO means unlimited capital. Your stock needs to hold or rise for access to capital. If stock tanks post-IPO, future capital raises are expensive and dilutive. IPO is not a free pass; it's a privilege you need to maintain.",
+      "Losing founder identity in the public transition. Public companies are bureaucratic. If you're a scrappy founder, you'll hate the SEC filings, board politics, and shareholder lawsuits. Only go public if you actually enjoy the operator role post-exit."
+    ],
+    "ideafuelConnection": "Use IdeaFuel's financial-modeling feature to stress-test IPO readiness, model revenue scaling to $100M+, track profitability trajectory, and validate institutional investor narratives."
+  },
+  "relatedTerms": ["exit-strategy", "valuation", "series-c"],
+  "synonyms": ["Going public", "Public offering"],
+  "seoTitle": "What is an IPO? | IdeaFuel Glossary",
+  "seoDescription": "Take your company public and enable founder liquidity. Learn IPO requirements, timelines, and what it actually means for startup founders."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "prototype",
+  "title": "Prototype",
+  "category": "product",
+  "shortDefinition": "A working model of your product that simulates core user interactions without full backend functionality.",
+  "content": {
+    "definition": "A prototype is an interactive mockup that lets users experience your product flow. Unlike a wireframe, prototypes include design and clickable interactions. Unlike a finished product, they don't have real data, full features, or backend logic—just enough to simulate the user experience. Prototypes range from simple Figma clickthrough demos to more sophisticated interactive tools.",
+    "whyItMatters": "Users can't give you honest feedback on a static wireframe. They need to actually click buttons, fill forms, and experience the flow. A prototype lets users discover problems before you build the real thing. This is where you learn whether your solution actually solves the problem, whether users understand your terminology, and whether the flow feels natural or clunky. A 10-hour prototype prototype can save you 100 hours of wasted development.",
+    "howToApply": "Build your prototype in Figma, Framer, or Webflow. Include the critical path—what does a new user do in their first 5 minutes? Add basic navigation and form interaction. Don't perfect every detail; rough edges are fine if they don't distract from testing your core hypothesis. Share it with 10-15 users, either recorded interviews or task-based sessions. Ask them to think aloud as they navigate. Watch where they click the wrong button, where they get confused, where they smile because something works.",
+    "commonMistakes": [
+      "Polishing your prototype until it looks perfect—you're testing the concept, not impressing investors",
+      "Building a prototype that's too narrow—leave room for different user behaviors and questions",
+      "Asking leading questions during user testing instead of watching them stumble and figure it out—'Most users find this intuitive' poisons the feedback"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation evaluates your prototype against real user expectations. Submit your interactive prototype and get instant feedback on whether your core flow actually works."
+  },
+  "relatedTerms": ["wireframe", "minimum-viable-product", "usability-testing"],
+  "synonyms": ["Interactive mockup", "Clickable prototype"],
+  "seoTitle": "What is a Prototype? | IdeaFuel Glossary",
+  "seoDescription": "Learn how prototypes help you validate product ideas before expensive development."
+}

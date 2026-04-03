@@ -1,0 +1,21 @@
+{
+  "slug": "expansion-revenue",
+  "title": "Expansion Revenue",
+  "category": "growth",
+  "shortDefinition": "Additional revenue generated from existing customers through upsells, add-ons, or increased usage.",
+  "content": {
+    "definition": "Expansion revenue is money you earn from customers you already have, beyond their initial contract value. It's the delta between what a customer paid in their first year and what they pay in year two, minus any churn. Expansion includes upsells to higher tiers, add-on purchases, seat additions, overage fees, and usage-based billing upticks. It's the 'low-hanging fruit' of revenue because acquiring a new customer from an existing one costs a fraction of cold acquisition.",
+    "whyItMatters": "In SaaS, expansion revenue is the difference between viable and unsustainable. A business with $1M ARR and flat expansion is slowly dying—churn will inevitably reduce that $1M. A business with $1M ARR and 30% net revenue retention is compounding despite customer losses. Expansion is where the profitability is. Stripe reportedly gets 50%+ of revenue from expansion. It's also the best signal to investors that customers love your product and see value in paying more. A high-expansion business can raise cheaper capital, grow faster, and weather economic downturns better.",
+    "howToApply": "Start by measuring your expansion rate—calculate monthly expansion revenue divided by prior month's ARR. Break it down by reason: which expansions come from upsells vs usage vs seat growth? Identify your expansion-prone segments and customer types, then focus your account management and product investment there. Make expansion easy: create obvious upsell paths, make it trivial to add seats or upgrade plans, and remove friction from the buying process. Track expansion by cohort to see if newer customers expand faster (they shouldn't) and if retention and expansion are correlated (they usually are). Use expansion revenue to offset churn and model sustainable growth.",
+    "commonMistakes": [
+      "Treating expansion as afterthought while obsessing over new customer acquisition",
+      "Pricing your base tier too high, eliminating room for expansion—leave margin for upsells",
+      "Not systematizing expansion—relying on sales luck instead of product and process design"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you model expansion revenue scenarios and calculate net revenue retention across customer cohorts to forecast true unit economics."
+  },
+  "relatedTerms": ["net-revenue-retention", "upselling", "cross-selling"],
+  "synonyms": ["Upsell Revenue", "Growth Revenue"],
+  "seoTitle": "What is Expansion Revenue? | IdeaFuel Glossary",
+  "seoDescription": "Revenue from existing customers through upsells, add-ons, or increased usage—the most profitable growth lever."
+}

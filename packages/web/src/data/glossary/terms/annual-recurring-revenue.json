@@ -1,0 +1,23 @@
+{
+  "slug": "annual-recurring-revenue",
+  "title": "Annual Recurring Revenue",
+  "category": "finance",
+  "shortDefinition": "Predictable revenue from subscriptions or contracts that renew annually, excluding one-time fees.",
+  "content": {
+    "definition": "Annual Recurring Revenue (ARR) is the total revenue from all active subscriptions or contracts that are expected to renew on an annual basis. It's calculated by taking monthly recurring revenue and multiplying by 12, or by summing all customer subscription values that are locked in for a year. ARR is a lagging metric—it reflects what customers have already committed to, not future growth.",
+    "whyItMatters": "ARR is the metric VCs obsess over because it signals business model sustainability and predictable cash flow. A $1M ARR business with 90% net revenue retention is clearly healthier than a $1M ARR business with 70% NRR, even though raw revenue is identical. ARR growth rates matter more than absolute numbers—10% month-over-month growth at $5M ARR gets attention; 2% at $50M ARR signals problems. It's the language of serious business conversations.",
+    "howToApply": "Start tracking ARR from day one if you have subscriptions, even with just a handful of customers. Calculate it as: (sum of all active annual subscription values) + (monthly recurring revenue × 12). Track net new ARR each month—this is your real growth metric, accounting for churn and expansion. Watch the math obsessively: if net new ARR is positive but ARR is dropping, you have a churn problem masking new sales. Use ARR to model path to Series A ($1-2M), Series B ($5-10M), and Series C ($20M+). IdeaFuel's Financial Modeling tool projects your ARR trajectory under different churn and expansion scenarios.",
+    "commonMistakes": [
+      "Counting non-recurring revenue as ARR—one-time fees, implementation fees, and professional services don't belong here. Keep ARR pure.",
+      "Using MRR × 12 when churn is high—this assumes zero attrition, which is fantasy. Factor in expected churn.",
+      "Ignoring expansion revenue separately—upsells and cross-sells are easy to miscalculate. Track new ARR, expansion ARR, and churned ARR separately.",
+      "Claiming ARR before the contract is signed—a handshake or verbal commitment isn't ARR. Money must be locked in contractually.",
+      "Not adjusting for seasonality—annual contracts signed in Q4 create revenue cliffs; ARR at year-end looks inflated if deals are lumpy by season."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool projects your ARR trajectory under different churn and expansion scenarios, helping you model paths to Series A and beyond."
+  },
+  "relatedTerms": ["monthly-recurring-revenue", "net-revenue-retention", "churn-rate"],
+  "synonyms": ["ARR", "Annual Contract Value"],
+  "seoTitle": "Annual Recurring Revenue (ARR): Calculate, Track & Improve | IdeaFuel",
+  "seoDescription": "Master ARR calculations and growth metrics. Learn how to project ARR to Series A, track net new ARR, and manage churn. SaaS founder's guide to recurring revenue."
+}

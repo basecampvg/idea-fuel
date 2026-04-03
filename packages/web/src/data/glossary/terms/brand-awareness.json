@@ -1,0 +1,21 @@
+{
+  "slug": "brand-awareness",
+  "title": "Brand Awareness",
+  "category": "marketing",
+  "shortDefinition": "Percentage of your target market that knows your brand exists.",
+  "content": {
+    "definition": "Brand awareness is how many people in your target market have heard of you and can recall your brand when prompted. It's measured on a spectrum: unaided awareness (they remember you unprompted) and aided awareness (they recognize you when shown your name or logo). It's not the same as liking you or trusting you—it's just knowing you exist. Early-stage, it's the biggest bottleneck to growth. You can't sell to people who don't know you exist.",
+    "whyItMatters": "You can't convert someone who's never heard of you. Brand awareness is the top of the funnel—it's the prerequisite for consideration. In saturated markets, awareness becomes a competitive moat. Higher awareness means more inbound demand, which costs less to convert than cold outreach. For founder-focused products, brand awareness compounds: thought leadership today becomes customer attraction tomorrow. Investors also notice founders with strong awareness—it signals influence, market timing, and ability to attract customers. The better known you are, the easier everything becomes: hiring, partnerships, customer acquisition, fundraising. Brand awareness is an underrated lever early-stage.",
+    "howToApply": "Build awareness through earned and owned channels: content marketing, speaking gigs, press coverage, social presence, communities. Create content that solves real problems your target audience has—they'll share it without being asked. Track your brand awareness using surveys quarterly (Typeform or Qualtrics). Ask target customers if they've heard of you, and if so, where and what they remember. Track which channels drive awareness most efficiently. Early-stage, build awareness where your customers already hang out. For B2B SaaS founders, that's Twitter/X, Hacker News, LinkedIn, and relevant Slack communities. Post consistently—3-4 times weekly minimum. For consumer products, it's TikTok, YouTube, Instagram. The channel matters less than consistency. Commit to a channel for 6+ months before judging ROI.",
+    "commonMistakes": [
+      "Confusing brand awareness with brand love. You can be well-known and still not trusted. Focus on consistent messaging, delivering on your promise, and building credibility through evidence not just claims.",
+      "Expecting awareness without consistent presence. Brand awareness requires repetition and patience. Posting once or twice doesn't build awareness. Commit to weekly presence for 6-12 months minimum.",
+      "Measuring vanity metrics instead of actual awareness. Impressions, follower counts, and reach are noise. Ask people if they've heard of you and what they remember. That's the metric that matters. Survey regularly."
+    ],
+    "ideafuelConnection": "Use research-engine to identify awareness gaps in your target market. Use customer discovery interviews to understand where awareness is building and what messaging sticks."
+  },
+  "relatedTerms": ["brand-equity", "reach", "impression"],
+  "synonyms": ["Brand recognition", "Top-of-funnel presence"],
+  "seoTitle": "What is Brand Awareness? | IdeaFuel Glossary",
+  "seoDescription": "Brand awareness definition: measuring how many customers know your brand and where to build it most effectively."
+}

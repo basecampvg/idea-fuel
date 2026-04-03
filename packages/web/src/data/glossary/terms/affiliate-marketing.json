@@ -1,0 +1,21 @@
+{
+  "slug": "affiliate-marketing",
+  "title": "Affiliate Marketing",
+  "category": "marketing",
+  "shortDefinition": "Pay commissions to partners who drive customer acquisition on performance basis.",
+  "content": {
+    "definition": "Affiliate marketing is a performance-based partnership model where external partners (affiliates) promote your product and earn a commission for each conversion they generate. Unlike traditional advertising where you pay upfront regardless of results, you only pay when someone buys or signs up through their unique tracking link. It's pure leverage without upfront cost—you're effectively outsourcing sales to a distributed network of promoters who have already built trust and audience in their niche.",
+    "whyItMatters": "Affiliate networks give you a distributed sales force without hiring full-time employees. You reach new customer segments through trusted voices already credible in those communities. No cold outreach, no brand damage from aggressive tactics. Better yet, you're paying for results, not guesses. Every dollar spent directly ties to revenue and can be tracked to source. Affiliate programs compound over time: as you recruit better affiliates, their networks overlap less and your total addressable market expands exponentially. For bootstrap founders with limited capital, affiliate programs can become a sustainable acquisition engine without venture funding. It's also a way to test market fit in new verticals without full commitment.",
+    "howToApply": "Start by building a tiered commission structure that makes economics work for both you and affiliates. A typical range is 15-40% depending on your margins and product type. Higher commission attracts better affiliates. Recruit 5-10 high-influence affiliates in your niche before scaling to a broader network—quality absolutely matters more than quantity. Give them promotional assets: landing pages, email templates, pre-written copy, graphics, case studies. Don't make them guess how to sell you or they'll either spam or give up. Create an affiliate portal where they can track conversions, earnings, and performance in real time. Transparency builds trust. Track everything through unique affiliate links, UTM parameters, or dedicated affiliate software like Impact or Refersion. Build monthly payouts into your budget forecasting. Most importantly, make payouts fast, reliable, and transparent. Poor affiliate relations and slow payouts kill programs faster than low commissions ever will.",
+    "commonMistakes": [
+      "Setting commissions too low and wondering why affiliates won't promote. If your unit economics allow it, go higher than your instinct suggests. Good affiliates have options and won't waste time on low-margin programs.",
+      "Recruiting broad networks without vetting. Bad affiliates using spam tactics, misleading claims, or purchased email lists will torpedo your brand and legal standing. Vet ruthlessly and set clear brand guidelines.",
+      "Not providing marketing assets. Affiliates can't sell what they can't describe. You owe them copy, graphics, landing pages, and positioning guidance or they'll create their own (badly). Make their job easy."
+    ],
+    "ideafuelConnection": "Use IdeaFuel's research-engine to identify high-performing affiliate communities and influencers before approaching partners. Apply financial-modeling to calculate commission structures that ensure profitable unit economics while remaining competitive for affiliates."
+  },
+  "relatedTerms": ["referral-marketing", "cost-per-acquisition", "attribution-model"],
+  "synonyms": ["Commission-based partnership", "Performance marketing"],
+  "seoTitle": "What is Affiliate Marketing? | IdeaFuel Glossary",
+  "seoDescription": "Learn how affiliate marketing works, why it matters for SaaS growth, and how to build a commission-based partner network."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "horizontal-integration",
+  "title": "Horizontal Integration",
+  "category": "strategy",
+  "shortDefinition": "Acquiring competitors or merging with similar-stage companies in your market to consolidate market share.",
+  "content": {
+    "definition": "Horizontal integration means buying or merging with competitors who offer similar products or services at the same stage of production. Unlike vertical integration (controlling your supply chain), horizontal integration consolidates market position by eliminating competitors or combining operations. It's a straight power move—reduce competition, increase market share, and gain bargaining leverage.",
+    "whyItMatters": "Horizontal integration directly impacts profitability through cost reduction (consolidated operations, shared overhead) and pricing power (fewer competitors means better margins). For founders, it's the difference between winning a fragmented market or watching 20 smaller competitors chip away your growth. Early-stage founders rarely pursue this, but understanding it matters if you're planning exits or acquisition strategies.",
+    "howToApply": "Start by mapping your competitive landscape—who are the credible competitors you'd actually want to absorb? Horizontal integration works best in consolidation plays where your market has 50+ fragmented players fighting for scraps. Build unit economics so tight that you can acquire a competitor, immediately fold them into your operation, and reduce their costs 20-30%. Time this for when you've proven a repeatable model—don't integrate until you know how to extract value. For founders, focus here late (Series B+) if consolidation is your exit thesis.",
+    "commonMistakes": [
+      "Acquiring without a clear integration plan. You buy a competitor but waste 12 months trying to merge codebases, teams, and cultures. Integration is harder than acquisition—do the math first on what you'll actually eliminate.",
+      "Pursuing horizontal integration instead of solving unit economics. If your own business doesn't work, buying another failing business just multiplies your problems. Fix your model first, then consolidate.",
+      "Ignoring regulatory scrutiny. Horizontal integration attracts antitrust attention if you're combining significant market share. Know your jurisdiction's thresholds before you pitch the deal to investors."
+    ],
+    "ideafuelConnection": "Use IdeaFuel's business-plan feature to map competitive consolidation scenarios and stress-test post-acquisition economics. Model how acquiring 2-3 competitors impacts your unit economics, runway, and path to profitability."
+  },
+  "relatedTerms": ["vertical-integration", "merger-and-acquisition", "economies-of-scale"],
+  "synonyms": ["Market consolidation", "Competitor acquisition"],
+  "seoTitle": "What is Horizontal Integration? | IdeaFuel Glossary",
+  "seoDescription": "Consolidate competitors to dominate fragmented markets. Learn how horizontal integration impacts margins, market share, and exit value."
+}

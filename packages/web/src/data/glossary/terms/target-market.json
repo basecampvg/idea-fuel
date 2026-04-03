@@ -1,0 +1,21 @@
+{
+  "slug": "target-market",
+  "title": "Target Market",
+  "category": "strategy",
+  "shortDefinition": "The specific customer segment you've chosen to focus your product development and marketing efforts on.",
+  "content": {
+    "definition": "Your target market is the segment (or segments) you've decided to serve with your product. It's not just a category; it's a deliberate choice. You've chosen this market because you understand their pain deeply, have a differentiated solution, can reach them affordably, and they can afford your pricing. Your target market definition becomes the north star for product decisions, marketing spend, and hiring. A clear target market answer should be specific enough that you can name actual companies or personas, not vague like 'small businesses.'",
+    "whyItMatters": "Founders without a clear target market default to 'everyone,' which is a recipe for failure. When you're not explicit about your target, your product becomes a Swiss Army knife—decent at everything, great at nothing. Marketing becomes unfocused. Sales takes whoever walks in the door, creating misaligned customers who churn. By contrast, founders with a razor-focused target market build products that feel like they were made specifically for that customer, resulting in word-of-mouth growth and strong retention. Your target market also shapes hiring: a product manager who understands the needs of mid-market agencies is different from one who works with freelancers.",
+    "howToApply": "Define your target market in four dimensions: (1) Industry or function (e.g., marketing agencies), (2) Company size (e.g., 10-50 people), (3) Geographic region (e.g., US and Canada), (4) Primary pain point (e.g., they spend 15+ hours per week on status reports). With these four dimensions, you can name specific companies and actual people. Next, validate by interviewing 10-15 people in your target market: Are they actively looking for solutions to this pain? How much time do they spend on it? What would they pay? Are they happy with current solutions? Then structure your entire go-to-market around reaching and converting this target market specifically. Use IdeaFuel's Research Engine to identify and validate your target market.",
+    "commonMistakes": [
+      "Defining your target market too broadly—'B2B SaaS' or 'software developers' is not specific enough. Add industry and size constraints.",
+      "Choosing a target market you don't understand—build products for markets you know intimately or can get deep access to quickly.",
+      "Ignoring that your target market might change—your first target may not be your best target. Stay open to where you find traction and be willing to pivot."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine helps you identify and analyze your target market, including segment size, growth rate, and competitive landscape. Use it to validate that your target market is large and underserved."
+  },
+  "relatedTerms": ["market-segmentation", "niche-market", "customer-persona"],
+  "synonyms": ["Customer Segment", "Addressable Market"],
+  "seoTitle": "What is a Target Market? | IdeaFuel Glossary",
+  "seoDescription": "Define your target market precisely. Focus product development and marketing on the customer segment most likely to buy."
+}

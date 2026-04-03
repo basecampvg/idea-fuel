@@ -1,0 +1,21 @@
+{
+  "slug": "product-analytics",
+  "title": "Product Analytics",
+  "category": "product",
+  "shortDefinition": "The data that shows how users actually behave in your product, not what you think they do.",
+  "content": {
+    "definition": "Product analytics is the science of tracking and analyzing how people use your product. It's the difference between guessing and knowing. Unlike vanity metrics like 'total signups', product analytics shows activation rates, feature adoption, retention cohorts, and where users get stuck. It's the feedback loop that tells you what's working and what's broken.",
+    "whyItMatters": "Founders without product analytics make decisions based on anecdotes and hunches. You end up building features nobody wants, missing obvious bugs, and wondering why your retention is terrible. Product analytics gives you objective truth. You see which features drive retention, which onboarding flows convert best, and exactly where users drop off. It's the difference between iterating blindly and iterating with purpose.",
+    "howToApply": "Start with 5-10 core metrics: activation rate, feature adoption, time-to-value, retention curve, churn rate. Instrument your product to track these automatically. Set up a dashboard you check daily—your metrics should inform every sprint planning session. Don't measure everything; you'll drown in data. Focus on metrics that correlate with retention or revenue. When you ship a feature, watch the data for two weeks before deciding if it's working. Use cohort analysis to compare how different user groups behave—this catches feature-audience mismatches faster.",
+    "commonMistakes": [
+      "Tracking too many vanity metrics (page views, total users) and ignoring engagement metrics (retention, churn)",
+      "Setting up analytics but never looking at the data, so you have signal you're not using",
+      "Launching features without a hypothesis about what metric should improve, then being surprised when nothing changes"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your product analytics to identify which ideas are actually worth building next. You feed it your user cohorts, feature adoption patterns, and retention data—it surfaces the gaps between what your users need and what you've built."
+  },
+  "relatedTerms": ["feature-adoption", "event-tracking", "north-star-metric"],
+  "synonyms": ["Behavioral Analytics", "User Analytics"],
+  "seoTitle": "What is Product Analytics? | IdeaFuel Glossary",
+  "seoDescription": "Product analytics tracks how users behave in your product. Shows activation rates, retention, feature adoption, and where users get stuck."
+}

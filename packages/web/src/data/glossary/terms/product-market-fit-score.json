@@ -1,0 +1,21 @@
+{
+  "slug": "product-market-fit-score",
+  "title": "Product-Market Fit Score",
+  "category": "product",
+  "shortDefinition": "A numerical measure of how well your product solves a real market problem.",
+  "content": {
+    "definition": "A Product-Market Fit Score is a quantitative way to answer: 'Is this product-market fit or am I delusional?' It combines retention curves, user growth rates, and revenue cohort behavior into a single signal. Most commonly expressed as a percentage or ratio—higher numbers mean stronger fit. There's no universal formula, but most scorecards include: Day 30 retention rate, NPS or satisfaction score, revenue per cohort, and user growth rate.",
+    "whyItMatters": "Without a PMF score, you can't objectively answer when you've reached product-market fit. You get stuck in the middle: growth is okay but not explosive, retention is decent but not sticky, revenue is stable but not scaling. A PMF score forces you to be honest. If your score is low, you know it's time to pivot, not scale. If it's high, you know it's time to hire aggressively and spend on growth. The score also prevents founder bias—you can't argue your way around hard numbers.",
+    "howToApply": "Define your PMF score formula based on your business model. For B2B SaaS: (Day-30 retention rate × 100) + (Net revenue per cohort / cost per acquisition). For consumer: (Day 7 retention × 100) + (organic viral coefficient × 50). Pick metrics you can measure and track weekly. Plot your score over 12 weeks—the trajectory matters more than the absolute number. A rising score is evidence you're moving in the right direction. A flat or declining score means you need to change something. Share your PMF score publicly in investor updates—transparency builds trust and forces accountability.",
+    "commonMistakes": [
+      "Choosing metrics that are easy to look good in rather than predictive of success",
+      "Measuring score only for total users instead of cohorts—newer cohorts always look better",
+      "Changing your PMF formula every month to make yourself look better"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation generates a custom PMF scoring framework for your product before you build new features. It analyzes your current metrics, retention curves, and market position to show which ideas will move your PMF score the most."
+  },
+  "relatedTerms": ["product-market-fit", "retention-rate", "north-star-metric"],
+  "synonyms": ["PMF Metric", "Fit Score"],
+  "seoTitle": "What is Product-Market Fit Score? | IdeaFuel Glossary",
+  "seoDescription": "Product-Market Fit Score quantifies how well your product solves a real market problem using retention, growth, and revenue data."
+}

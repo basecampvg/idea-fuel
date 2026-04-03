@@ -1,0 +1,21 @@
+{
+  "slug": "viral-marketing",
+  "title": "Viral Marketing",
+  "category": "marketing",
+  "shortDefinition": "Product design and messaging that encourages exponential sharing and organic growth.",
+  "content": {
+    "definition": "Viral marketing is when your product or message spreads exponentially because users naturally want to share it with others. Unlike paid campaigns, virality is baked into the product mechanics—each user bringing multiple new users at minimal cost. Think Hotmail's 'Get free email' signature, Slack's invite mechanic, or TikTok's algorithm making videos worth sharing. True viral products have a k-factor (viral coefficient) above 1.0, meaning each customer acquisition drives more than one additional customer acquisition automatically.",
+    "whyItMatters": "Viral loops scale without spending money on ads. When each customer brings 1.5+ new customers (k-factor above 1), growth accelerates exponentially and compounds. Viral products approach $0 CAC on day 100 if the mechanics work properly. Compare this to paid acquisition where every new customer costs the same whether you're customer 100 or customer 10,000. The payback period improves automatically. But here's the hard truth: most products aren't naturally viral. Forcing virality into a boring product doesn't work. You need something people legitimately want to share because it solves a problem or creates status value for them. Virality is a force multiplier, not a foundation.",
+    "howToApply": "First, audit whether your product has natural sharing hooks. Does using it create visible value that others notice? Would someone want to use this if their friend didn't refer it? Dropbox's referral mechanic worked because friends saw shared files and wanted access. Slack worked because getting invited meant the tool was already trusted by someone in your network. Build sharing into the core experience, not as an afterthought. Make referrals rewarding for both parties. Measure k-factor obsessively—calculate it as (new users acquired from referrals) / (total new users acquired). If k < 1.0, you're losing users faster than you're gaining them and the loop doesn't sustain. If k > 1.0, you have a self-sustaining engine. Track cohort k-factors: do users from referrals have higher k than paid users? Most do, which validates investing in the loop over paid channels.",
+    "commonMistakes": [
+      "Forcing virality into a product that doesn't have natural sharing incentives. Spam buttons and artificial share prompts don't drive viral growth, they damage retention and brand trust. Users share when it benefits them, not when you ask.",
+      "Counting vanity metrics like shares instead of measuring actual new sign-ups driven by each referral. Track k-factor and conversion-to-sign-up, not reach. Shares mean nothing without conversions.",
+      "Launching viral features without the retention fundamentals. If your core product sucks, viral acquisition just scales churn and burns capital faster. Build retention first, then virality amplifies the good customer base."
+    ],
+    "ideafuelConnection": "Use quick-validation to test whether your product has viral mechanics with a small cohort before investing heavily. Financial-modeling helps calculate what k-factor you need to hit revenue targets without paid acquisition."
+  },
+  "relatedTerms": ["viral-coefficient", "referral-marketing", "k-factor"],
+  "synonyms": ["Network effects", "Word-of-mouth growth"],
+  "seoTitle": "What is Viral Marketing? | IdeaFuel Glossary",
+  "seoDescription": "Viral marketing strategy: designing products and campaigns that spread exponentially through user networks."
+}

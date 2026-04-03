@@ -1,0 +1,21 @@
+{
+  "slug": "descriptive-analytics",
+  "title": "Descriptive Analytics",
+  "category": "analytics",
+  "shortDefinition": "Analysis that summarizes what happened in the past through dashboards and reports.",
+  "content": {
+    "definition": "Descriptive analytics answers the question: What happened? It aggregates raw data into summaries, dashboards, and reports that show historical performance—revenue by month, users by source, conversion rates by campaign. It's the foundation of most business intelligence, providing the baseline from which all other analytics flow.",
+    "whyItMatters": "You can't improve what you don't measure. Descriptive analytics creates shared visibility across teams: marketing sees which channels drive traffic, product sees which features get used, sales sees which reps close deals. Without a clear descriptive baseline, arguments about strategy become tribal opinion rather than fact-based discussion.",
+    "howToApply": "Define your core metrics: monthly recurring revenue, customer acquisition cost, activation rate, feature usage, support ticket volume. Build dashboards that update daily or weekly. Set targets and track variance. Review trends, not just snapshots—a 5% drop this month matters less if the 12-month trend is up 40%. IdeaFuel's Research Engine helps you identify which metrics actually predict business health (leading indicators) versus which are just rearview mirrors, ensuring your dashboards drive action instead of vanity metrics.",
+    "commonMistakes": [
+      "Confusing counts with rates—10,000 new users is meaningless without context on total growth",
+      "Using descriptive metrics to make predictive decisions without considering future variables",
+      "Over-optimizing for metrics (like sign-ups) that don't correlate with revenue"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine transforms raw descriptive data into actionable insights by connecting metrics to business outcomes, ensuring your dashboards guide real strategy decisions."
+  },
+  "relatedTerms": ["dashboard", "key-performance-indicator", "data-driven-decision-making"],
+  "synonyms": ["Historical Analytics", "Retrospective Analysis", "Reporting"],
+  "seoTitle": "What is Descriptive Analytics? | IdeaFuel Glossary",
+  "seoDescription": "Descriptive analytics summarizes historical data. Learn how to build dashboards and reports that inform business decisions."
+}

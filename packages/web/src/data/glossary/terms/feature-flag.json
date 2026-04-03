@@ -1,0 +1,21 @@
+{
+  "slug": "feature-flag",
+  "title": "Feature Flag",
+  "category": "product",
+  "shortDefinition": "A code toggle that lets you enable or disable features without deploying new code.",
+  "content": {
+    "definition": "A feature flag (or feature toggle) is a conditional piece of code that allows you to turn features on or off in production without releasing a new version. For example, a flag might show a new dashboard only to 10% of users, or hide a broken feature immediately if problems emerge. Flags can be toggled on/off globally, per user, per region, or based on any custom criteria.",
+    "whyItMatters": "Feature flags let you deploy incomplete work to production safely. You can test features with real data and real users without risking widespread breakage. They also eliminate the 'I shipped a bug, now I have to roll back everything' problem—instead you flip a switch and the problem disappears. For teams shipping fast, feature flags transform deployment from an event you fear into a routine action.",
+    "howToApply": "Implement flags around risky features, incomplete work, and experimental changes. Use a feature flag service like LaunchDarkly or build a simple internal system. Deploy your feature behind a flag, test thoroughly with a small percentage of traffic, monitor metrics, and gradually increase rollout. If something breaks, disable the flag immediately—no emergency hotfix, no rollback required. Use flags for A/B tests, beta features, and gradual rollouts.",
+    "commonMistakes": [
+      "Using feature flags as a substitute for proper testing—flags are a deployment tool, not a testing tool",
+      "Leaving old flags in code indefinitely—clean them up once a feature is fully launched or permanently removed",
+      "Toggling flags based on assumptions instead of metrics—'I think users like this' is not data"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation helps you test flagged features rapidly. Submit your feature concept with different flag states and get instant feedback on which version resonates."
+  },
+  "relatedTerms": ["a-b-testing", "beta-testing", "scope-creep"],
+  "synonyms": ["Feature toggle", "Conditional feature"],
+  "seoTitle": "What is a Feature Flag? | IdeaFuel Glossary",
+  "seoDescription": "Feature flags let you deploy features safely and test with real users without risking your product."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "blue-ocean-strategy",
+  "title": "Blue Ocean Strategy",
+  "category": "strategy",
+  "shortDefinition": "Create uncontested market space instead of competing in crowded sectors. Focus on new value creation vs competition.",
+  "content": {
+    "definition": "Blue Ocean Strategy means creating a new market rather than fighting in existing ones (red oceans where sharks circle). Blue oceans are uncontested space where your only competition is indirect alternatives. You don't fight on price or features—you redefine the category. Netflix didn't compete harder on late fees; they eliminated the category (blue ocean). Tesla didn't compete on ICE efficiency; they created electric cars (blue ocean, until others copied). The strategy is to find or create a market where you're the only serious player.",
+    "whyItMatters": "Competition in red oceans destroys margins and founder sanity. Blue oceans offer the opposite: pricing power, lower customer acquisition cost, and easier team retention (people want to work on something novel). The best exits happen in blue oceans because acquirers pay premiums for defensibility and category creation. The catch: blue oceans are hard to find and even harder to defend. Once you're successful, others copy. You have maybe 3-5 years before it becomes a red ocean again. The skill is continuous innovation and continuous category expansion.",
+    "howToApply": "Look for adjacent problems or customer segments that are ignored by existing players. Why is everyone fighting in the same red ocean? What customer need is being underserved? Examine non-consumption: are people solving this problem manually because no tool exists? That's a blue ocean entry point. Example: Figma didn't invent design software (Photoshop, Sketch existed). They found that designers wanted cloud-first collaboration. That was blue ocean. Build something competitors can't easily copy—deep integration, network effects, habit formation. Once you own blue ocean, expand the category before red ocean competitors arrive.",
+    "commonMistakes": [
+      "Confusing \"new market\" with \"niche market.\" A blue ocean is ideally large and growing. A niche is small by definition. Don't create a blue ocean in a market with 10 customers. Vet market size first.",
+      "Creating a blue ocean too early, before customers need it. If your product creates a market that doesn't want to exist yet, you're ahead of adoption curve—essentially fundraising instead of selling. Uber worked because customers wanted it immediately. Some blue oceans require 10 years for adoption.",
+      "Not defending blue ocean from red ocean incumbents. Once you're winning, incumbents follow and undercut you. Plan to own distribution, network effects, or switching costs before competitors arrive. Otherwise blue ocean advantage lasts 18 months."
+    ],
+    "ideafuelConnection": "Use IdeaFuel's research-engine to validate blue ocean opportunity and map competitive gaps. Test whether you're creating a genuinely new category or just repositioning existing solutions."
+  },
+  "relatedTerms": ["disruption", "differentiation", "competitive-moat"],
+  "synonyms": ["Uncontested market", "Category creation"],
+  "seoTitle": "What is Blue Ocean Strategy? | IdeaFuel Glossary",
+  "seoDescription": "Create uncontested markets instead of fighting red oceans. Learn how to find blue ocean opportunities and defend them from competition."
+}

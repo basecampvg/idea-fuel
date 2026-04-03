@@ -1,0 +1,21 @@
+{
+  "slug": "accounts-receivable",
+  "title": "Accounts Receivable",
+  "category": "finance",
+  "shortDefinition": "Money owed to your business by customers who purchased on credit.",
+  "content": {
+    "definition": "Accounts receivable (AR) represents the amount of money customers owe you after they've received products or services but haven't yet paid. It's recorded as a current asset on your balance sheet and reflects sales made on credit terms. The larger your AR, the more cash is tied up in waiting for payment.",
+    "whyItMatters": "AR directly impacts your cash flow—the lifeblood of any startup. If your AR grows while revenue looks strong, you're building an illusion; your actual liquidity is suffering. Large AR balances also signal operational friction: unclear payment terms, weak collection processes, or customers in financial distress. Managing AR aggressively is often the fastest way to improve actual cash position.",
+    "howToApply": "Set clear payment terms upfront (net-30 or net-15, not open-ended). Invoice immediately upon delivery—delays compound cash drag. Track AR aging reports weekly to spot slow payers before they become bad debt. Build a simple collection process: automated reminders at day 15, personal follow-up at day 25, escalation at day 35. For high-value customers, require deposits or milestone-based payments. Consider early payment discounts (1% off for payment within 10 days) if cash crunch is real.",
+    "commonMistakes": [
+      "Treating AR as 'good revenue' when it's actually tied-up cash with collection risk",
+      "Waiting 45+ days to collect because you're conflict-averse or understaffed",
+      "Not tracking which customers are chronically late until your reserves run dry"
+    ],
+    "ideafuelConnection": "IdeaFuel's financial-modeling tools help you project AR levels by customer segment and payment pattern, flag when AR growth outpaces revenue growth, and scenario-plan working capital impacts."
+  },
+  "relatedTerms": ["working-capital", "cash-flow", "revenue-recognition"],
+  "synonyms": ["Trade Receivables", "Credit Sales"],
+  "seoTitle": "What is Accounts Receivable? | IdeaFuel Glossary",
+  "seoDescription": "Learn how accounts receivable affects startup cash flow and how to manage customer payment terms for better liquidity."
+}

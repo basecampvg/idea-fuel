@@ -1,0 +1,21 @@
+{
+  "slug": "product-led-sales",
+  "title": "Product-Led Sales",
+  "category": "analytics",
+  "shortDefinition": "Using product experience and engagement data to inform sales conversations and close deals.",
+  "content": {
+    "definition": "Product-led sales is a go-to-market strategy where your sales team uses product engagement data to identify high-intent prospects, timing conversations for maximum impact, and closing deals by demonstrating the product directly. Unlike traditional sales where you prospect blind and try to create demand, product-led sales starts with users already in your product (either via free tier, trial, or freemium model) and converts them based on their proven engagement and specific use cases. The sales motion becomes consultative—helping users maximize value in your product rather than convincing them the product is valuable.",
+    "whyItMatters": "Product-led sales dramatically improves your close rate because you're selling to people who already understand your product and see its value. You spend sales effort on users showing high intent (high product usage, time spent in key features, returning daily) rather than cold prospects. This approach works especially well for B2B SaaS where users often influence buying decisions before procurement gets involved. The tradeoff is that product-led sales requires excellent onboarding and product experience—if users can't figure out your product in the first hour, they'll never get to the point where they want to buy.",
+    "howToApply": "Implement product analytics to track key engagement behaviors: daily active users, feature adoption rates, time to activation, feature depth, and frequency metrics. Identify your 'aha moment'—the specific user action that best predicts long-term retention and willingness to upgrade. Set up triggered sales outreach when users hit high engagement thresholds (like completing 5 onboarding steps) or when they're at risk (haven't logged in in 30 days). Use IdeaFuel's Business Plan Generator to define your pricing tiers and feature gates that encourage product-led conversion. Train your sales team to sell on top of product value, not to convince users the product is good.",
+    "commonMistakes": [
+      "Building a freemium model without clear conversion mechanics—product-led sales only works if free users naturally progress to wanting paid features",
+      "Contacting users too early in their journey (after 1 feature used) before they've experienced enough value to justify a sales conversation",
+      "Ignoring users who are highly engaged but not in your target market, resulting in sales team effort spent on non-ideal customers"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you structure your pricing tiers and feature gates to support product-led sales. It shows you how to create clear upgrade paths and value communication that drives conversions from free users to paying customers."
+  },
+  "relatedTerms": ["product-led-growth", "sales-qualified-lead", "activation-rate"],
+  "synonyms": ["Product-Qualified Lead", "Expansion Revenue"],
+  "seoTitle": "What is Product-Led Sales? | IdeaFuel Glossary",
+  "seoDescription": "Product-led sales definition: using product engagement to drive sales conversations. Converting high-engagement users to paid customers."
+}

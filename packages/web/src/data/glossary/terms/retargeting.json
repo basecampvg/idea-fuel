@@ -1,0 +1,21 @@
+{
+  "slug": "retargeting",
+  "title": "Retargeting",
+  "category": "marketing",
+  "shortDefinition": "Serving ads to people who visited your site but didn't convert, to bring them back.",
+  "content": {
+    "definition": "Retargeting (also called remarketing) is when you show ads to people who've visited your website but didn't sign up or purchase. You install a tracking pixel on your site, tag visitor browsers, then show them ads across the internet (Google, Facebook, LinkedIn) reminding them of your product. Someone visits your landing page, leaves, and suddenly sees your ads everywhere. It's the 'remember us?' channel that keeps your brand top-of-mind.",
+    "whyItMatters": "Conversion rates on first visit are typically 1-3%. That means 97-99% of your traffic leaves without converting. Retargeting gives you a second, third, fourth chance at those people. It's way cheaper than acquiring new traffic—retargeting CAC is often 50-70% lower than cold acquisition because the audience already knows you exist. High-performing campaigns often have retargeting as their biggest ROI driver. It's the ultimate efficiency channel: you're only paying to reach people who've already shown interest. For SaaS, retargeting is often 5-8x more cost-effective than cold ads. It's also easier to test and optimize.",
+    "howToApply": "Install a tracking pixel (Google Ads, Facebook Pixel, LinkedIn Insight Tag) on your site. Create audience segments based on behavior: people who visited pricing (almost ready to buy), people who visited homepage (early awareness), people who visited a specific product page (interested in feature). Create different ad messages for each segment. Show pricing page visitors ads about features and social proof. Show homepage visitors educational content about your mission and why you're different. Show product page visitors comparison tables and customer testimonials. Set frequency caps—don't show your ad more than 5 times/day or people get annoyed and your brand suffers. Run 30-45 day retargeting windows for B2B, 7-14 days for B2C. Create sense of urgency in retargeting creative: 'Limited offer,' 'Join before prices increase.' Track ROAS (return on ad spend) obsessively.",
+    "commonMistakes": [
+      "Showing the same message to everyone. A visitor on your pricing page is further along than someone on your homepage. Different segments need different ads. Generic creative wastes spend.",
+      "Using frequency wrong. Show ads 2-5 times to someone, not 20. If they haven't converted after 5 exposures, they're probably not going to. Move them to lower-frequency audience.",
+      "Neglecting creative quality. Your brand just rejected them once. Generic ads or ads they've already seen won't win them back. Use social proof, testimonials, education, and urgency in creative."
+    ],
+    "ideafuelConnection": "Use research-engine to understand visitor behavior, segment retargeting audiences by page type and time on site. Apply financial-modeling to calculate retargeting ROAS targets and budget allocation."
+  },
+  "relatedTerms": ["paid-traffic", "attribution-model", "cost-per-click"],
+  "synonyms": ["Remarketing", "Second-chance ads"],
+  "seoTitle": "What is Retargeting? | IdeaFuel Glossary",
+  "seoDescription": "Retargeting explained: use pixel-based ads to convert site visitors who didn't convert on first visit."
+}

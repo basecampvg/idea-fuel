@@ -1,0 +1,21 @@
+{
+  "slug": "differentiation",
+  "title": "Differentiation",
+  "category": "strategy",
+  "shortDefinition": "The specific features, capabilities, or approaches that make your product distinct and harder to copy.",
+  "content": {
+    "definition": "Differentiation is the substantive basis for why you're different. It's not just what you say (positioning)—it's what you actually do or have. Differentiation can be technology (a proprietary algorithm), business model (subscription vs. one-time purchase), distribution (direct to consumer vs. wholesale), customer service, quality, speed, or pricing. Real differentiation creates a competitive moat: something that makes you hard to catch and copy.",
+    "whyItMatters": "Without differentiation, you're interchangeable with competitors and forced into price wars. Customers will jump ship to anyone cheaper or faster. Strong differentiation justifies premium pricing, attracts talent, and creates long-term defensibility. A 10% better product is forgettable; a fundamentally different approach (Uber's mobile-first dispatch vs. radio taxi systems) captures the market. Early validation of differentiation prevents you from building a 'me-too' product that nobody wants.",
+    "howToApply": "Audit your product against three to five direct competitors using a feature matrix. For each feature or capability, ask: Is this unique to us? Would it take a competitor 3+ months to copy? Does it solve a meaningful customer pain? Keep only the differentiators that pass all three tests. Then document the source of each differentiator: is it technology (hard to copy), speed to market (temporary), network effects (increasingly defensible), or workflow efficiency (medium-hard to copy)? Build your roadmap to deepen differentiation in the areas that are hardest to replicate. Test with customers: do they perceive your differentiation, or is it invisible to them?",
+    "commonMistakes": [
+      "Mistaking feature parity for differentiation—if everyone else has the feature, it's not a differentiator anymore, just the cost of entry.",
+      "Differentiating on things customers don't value—you might have the best underlying architecture, but if customers care about ease of use, your tech differentiation is wasted.",
+      "Assuming your differentiation is defensible forever—most differentiators have a 12-24 month window before competitors catch up, so plan for continuous innovation."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you map your competitive differentiation and validate that it matches customer priorities. Use it to stress-test your differentiation thesis."
+  },
+  "relatedTerms": ["positioning", "competitive-moat", "value-proposition"],
+  "synonyms": ["Competitive Advantage", "Unique Value Proposition"],
+  "seoTitle": "What is Differentiation? | IdeaFuel Glossary",
+  "seoDescription": "Build defensible competitive advantages. Create differentiation that justifies premium pricing and market leadership."
+}

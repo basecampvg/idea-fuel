@@ -1,0 +1,21 @@
+{
+  "slug": "marketplace-model",
+  "title": "Marketplace Model",
+  "category": "strategy",
+  "shortDefinition": "A business that earns revenue by taking a commission or fee from transactions between buyers and sellers.",
+  "content": {
+    "definition": "A marketplace model is a specific type of platform business where the company takes a percentage fee from transactions between buyers and sellers. Examples: Amazon (takes a seller fee), Etsy (takes a transaction fee), DoorDash (takes a cut from the order), Upwork (takes a percentage of freelancer earnings). The marketplace operator doesn't own the goods or provide the service—they facilitate and monetize the transaction. Marketplace models are often synonymous with 'platform business models,' though platforms can also monetize through subscriptions or advertising.",
+    "whyItMatters": "Marketplace models scale efficiently because revenue is directly tied to transaction volume, not to unit creation or delivery. Amazon didn't have to source all those products; it let sellers do that. DoorDash doesn't cook food; restaurants do. This creates extraordinary leverage: each percentage point of commission scales linearly with GMV (Gross Merchandise Volume). Marketplace models also attract strategic value—large companies often buy marketplaces for the user base and transaction data. That said, marketplace models require solving the cold-start problem and managing two sides simultaneously, which requires more operational sophistication than single-sided businesses.",
+    "howToApply": "Design your marketplace by choosing two user groups with a transaction opportunity between them, then solve problems for both: (1) Sellers want high-quality buyers, reliable transactions, and simple onboarding. (2) Buyers want good selection, fair pricing, trustworthiness, and fast transactions. Your marketplace value is the ease and trustworthiness of the transaction. Start by surveying both sides: would sellers actively list if you provided X infrastructure? Would buyers actively search if you had Y supply? Test by manually facilitating a small number of transactions to understand friction points. Then decide your take rate: 10%? 15%? 25%? Take rates should be high enough to cover operations but low enough that sellers remain profitable. Use IdeaFuel's Business Plan Generator to model your marketplace GMV, commission structure, and profitability timeline.",
+    "commonMistakes": [
+      "Taking too high a commission—if you take 30% and competitors take 15%, sellers will leave. But if you take 5%, you'll never be profitable. Find the equilibrium.",
+      "Launching without solving trust—both sides need to trust the transaction. Without reviews, buyer verification, or escrow, your marketplace won't work.",
+      "Focusing only on supply, forgetting demand—many founders obsess over recruiting sellers but ignore the buyer side. You need both simultaneously."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model marketplace commission structures, GMV projections, and profitability assumptions. Validate your take rate and unit economics before launch."
+  },
+  "relatedTerms": ["platform-business-model", "two-sided-market", "network-effects"],
+  "synonyms": ["Marketplace Economy", "Transaction-Based Platform"],
+  "seoTitle": "What is a Marketplace Model? | IdeaFuel Glossary",
+  "seoDescription": "Build profitable marketplaces with commission-based revenue. Master two-sided transactions and scaling strategy."
+}

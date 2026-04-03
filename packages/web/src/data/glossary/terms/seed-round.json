@@ -1,0 +1,21 @@
+{
+  "slug": "seed-round",
+  "title": "Seed Round",
+  "category": "fundraising",
+  "shortDefinition": "Initial funding round to validate product-market fit and fund early operations.",
+  "content": {
+    "definition": "A seed round is the first institutional funding a startup raises, typically $500K-$2M, from angel investors, seed funds, or venture capital firms. It's designed to help you build a working product, gain early customers, and prove your fundamental business assumptions before approaching larger investors.",
+    "whyItMatters": "Seed funding is critical because it lets you transition from bootstrap mode to scaling mode. Without it, you're limited to founder capital and friends-and-family money, which constrains your ability to hire, market, and compete. A successful seed round signals to the market that smart money believes in your thesis.",
+    "howToApply": "Before pitching seed investors, you need a compelling deck that shows your founding team, the problem you're solving, your initial traction (beta users, revenue, waitlist), and a clear use of funds. Use a business plan that maps out your 18-month path to Series A readiness—what metrics matter, what team you'll hire, how you'll reach customers. Position yourself as scrappy and resourceful, not just an idea person. Be prepared to discuss your market size conservatively and explain why you have unique insight into the problem. Most importantly, have conviction; seed investors fund teams and founders more than perfect products.",
+    "commonMistakes": [
+      "Waiting until your product is 'perfect' before fundraising—early-stage investors want to see momentum and customer validation, not polish",
+      "Raising too little and extending your runway unrealistically, then running out of cash before reaching Series A milestones",
+      "Giving away too much equity early (>20% per investor) and limiting your ability to incentivize future hires with options"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you build the narrative and financial projections seed investors expect, turning your idea into a fundable thesis backed by realistic unit economics and customer acquisition strategy."
+  },
+  "relatedTerms": ["pre-seed", "series-a", "convertible-note"],
+  "synonyms": ["Seed Funding"],
+  "seoTitle": "What is a Seed Round? | IdeaFuel Glossary",
+  "seoDescription": "Learn what a seed round is and how to raise your first institutional funding. Practical guide for early-stage founders."
+}

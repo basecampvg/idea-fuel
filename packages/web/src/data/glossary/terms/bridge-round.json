@@ -1,0 +1,21 @@
+{
+  "slug": "bridge-round",
+  "title": "Bridge Round",
+  "category": "fundraising",
+  "shortDefinition": "A smaller, interim funding round that bridges the gap to a larger institutional round.",
+  "content": {
+    "definition": "A bridge round is short-term financing—typically $500K-$3M—used to fund operations while closing a larger Series A or B round. It buys runway between rounds and is usually structured as a convertible note or SAFE that converts into equity when the institutional round closes. Bridge investors typically accept higher discounts (20-30%) and laxer terms than they would on a formal round because they're taking on speed and uncertainty risk.",
+    "whyItMatters": "Bridge rounds keep you alive when fundraising takes longer than expected. If Series A closing is 6 months away but you'll run out of cash in 3, a bridge buys time without requiring a full institutional term sheet negotiation. Bridge capital also signals momentum to future lead investors: other investors already committed to you before you closed them. However, bridges can be addictive: if you keep taking bridges instead of closing real rounds, you're likely in trouble or overextending timeline expectations. A bridge should be a tactical tool, not a fundraising crutch.",
+    "howToApply": "Only raise a bridge if you have a credible Series A path—a lead investor interested but not yet committed, serious customer conversations, or a clear metric milestone 6-8 weeks out. Approach existing investors first (seed, angel rounds) because they know you and move faster. Keep bridge rounds small and short-term (typically 12-18 months max). Negotiate caps on discount and valuation floor so you don't get crushed when Series A comes in. Use bridge proceeds to hit the next meaningful milestone: revenue target, customer win, or product feature that changes investor perception. Have a plan to graduate from bridge to institutional before taking the check.",
+    "commonMistakes": [
+      "Taking a bridge without a realistic path to Series A—you're just delaying a difficult conversation and accumulating expensive notes on your cap table",
+      "Raising multiple bridges in sequence—signals that you can't execute timelines or close real rounds; after 2 bridges, investors see a pattern of struggle",
+      "Not accounting for the bridge conversion overhead—your Series A will be more diluted by bridge notes; factor this into your Series A negotiations and cap table plan"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you model runway and capital needs, so you can determine if a bridge round is truly necessary or if you should accelerate product milestones to close Series A sooner."
+  },
+  "relatedTerms": ["runway", "convertible-note", "down-round"],
+  "synonyms": ["Bridge Financing", "Interim Funding", "Convertible Round"],
+  "seoTitle": "What is a Bridge Round? When Do You Need One? | IdeaFuel Glossary",
+  "seoDescription": "A bridge round funds your startup between larger rounds. Learn when to raise one and how to structure it."
+}

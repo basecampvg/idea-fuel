@@ -1,0 +1,21 @@
+{
+  "slug": "post-money-valuation",
+  "title": "Post-money Valuation",
+  "category": "fundraising",
+  "shortDefinition": "What your company is worth after new investors put money in the bank.",
+  "content": {
+    "definition": "Post-money valuation equals your pre-money valuation plus the new capital being invested. If you raise $2M at a $8M pre-money, your post-money is $10M. That $10M is now the total company valuation on your cap table. It's the price per share times the total shares outstanding after the round closes.",
+    "whyItMatters": "Post-money valuation is what actually matters for your cap table and future investor perspective. It's the denominator for calculating equity percentages and dilution. Future investors will compare your post-money to your revenue or user metrics to decide if the next round is expensive. If you raise at $10M post-money with zero revenue, your next round has to justify a higher valuation or you're in a down round. It's also the number that gets reported and shapes your narrative. A higher post-money sounds better in press releases but doesn't mean anything if you didn't spend the valuation wisely.",
+    "howToApply": "Always know both your pre-money and post-money during negotiations—they're linked. If an investor offers $2M, ask what pre-money they're implying. You can then decide if that pre-money is fair, then calculate the post-money immediately. Use post-money to model your cap table: what percentage of the company does each founder own after the round? What percentage do employees own (through options)? What's left for future investors? Be transparent with your team about post-money—it determines how much equity matters in future rounds.",
+    "commonMistakes": [
+      "Conflating post-money valuation with what your company is actually worth—it's just a number both parties agreed to, not objective value",
+      "Ignoring the cash burn implications—a $10M post-money with only $1M runway means you've bought yourself 10 months to prove the business, nothing more",
+      "Not planning for the next round—if you raise at $10M post-money, your next round at $25M post-money needs to show 2.5x+ metrics improvement or it feels flat"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool automatically calculates post-money valuation and shows you the full cap table impact of different fundraising scenarios. See exactly how much equity gets diluted at each round."
+  },
+  "relatedTerms": ["pre-money-valuation", "valuation", "cap-table"],
+  "synonyms": ["Total Valuation", "Fully Diluted Valuation (approximate)"],
+  "seoTitle": "What is Post-money Valuation? How It Affects Your Cap Table | IdeaFuel Glossary",
+  "seoDescription": "Post-money valuation is pre-money plus new investment. Learn how it impacts your equity ownership and cap table."
+}

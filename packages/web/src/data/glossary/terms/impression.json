@@ -1,0 +1,21 @@
+{
+  "slug": "impression",
+  "title": "Impression",
+  "category": "marketing",
+  "shortDefinition": "One instance of your ad or content being displayed to a user, regardless of whether they interact with it.",
+  "content": {
+    "definition": "An impression is counted every time your ad or piece of content appears on someone's screen. You get an impression when someone scrolls past your social media post, sees your search ad, or views your display banner—even if they don't click it. Impressions measure visibility; clicks measure interest.",
+    "whyItMatters": "Impressions are the top of your funnel. You can't get clicks without impressions, and you can't build brand awareness without reaching people repeatedly. But impressions alone are vanity—a million impressions with zero clicks is worthless. Use impressions to diagnose reach problems and to calculate CTR, but always measure through to actual customers.",
+    "howToApply": "Track impressions by campaign, placement, and audience segment. Your goal is to reach enough people who are in-market: high impressions among irrelevant audiences wastes budget. If a campaign gets 100,000 impressions but only 500 clicks (0.5% CTR), your creative or targeting is weak. Increase impressions for campaigns with healthy CTR; pause or fix campaigns with low CTR. For brand awareness, impressions matter more—your goal is frequency and recall. For direct response, impressions are just a means to clicks and conversions. IdeaFuel's Research Engine helps you benchmark impression volume and reach against competitors.",
+    "commonMistakes": [
+      "Celebrating impression volume without checking CTR or conversion. \"We reached 1 million people\" means nothing if none of them buy.",
+      "Running ads to wrong audiences just to inflate impression counts. Quality impressions among in-market prospects beat volume to random people.",
+      "Not accounting for ad fatigue and frequency. Impressions 1-3 to the same person are valuable; impressions 20+ have diminishing returns and higher costs."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine helps you analyze your impression reach and compare visibility metrics against competitors to identify your audience discovery gaps."
+  },
+  "relatedTerms": ["reach", "click-through-rate", "brand-awareness"],
+  "synonyms": ["Ad View", "Content Display"],
+  "seoTitle": "What is an Impression? | IdeaFuel Glossary",
+  "seoDescription": "Understand impressions as a vanity metric and learn how to measure true engagement and conversion instead."
+}

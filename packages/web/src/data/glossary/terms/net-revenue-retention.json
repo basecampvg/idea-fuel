@@ -1,0 +1,23 @@
+{
+  "slug": "net-revenue-retention",
+  "title": "Net Revenue Retention",
+  "category": "growth",
+  "shortDefinition": "The percentage of revenue retained from existing customers, including churn, downgrades, and expansion revenue.",
+  "content": {
+    "definition": "Net Revenue Retention (NRR) measures what percentage of your beginning-of-period revenue comes from the same customer cohort by end of period, including customer churn, downgrades, and expansion (upsells). If you start January with $100K MRR from existing customers, and by February those same customers generate $110K MRR (some paid more, some churned, net effect is growth), your NRR is 110%. NRR above 100% means existing customers generate more revenue over time—you're expanding within your base. Below 100% and customers are shrinking or leaving faster than expansion revenue covers losses.",
+    "whyItMatters": "NRR is the best single metric for SaaS health because it captures the entire customer lifecycle: retention, expansion, and downgrades. A business with $10M ARR and 90% NRR is in serious trouble—customers are leaving or downgrading faster than they expand. A business with $10M ARR and 120% NRR is printing money—existing customers grow the base 20% annually through expansion alone, before any new customer acquisition. VCs use NRR as a proxy for product-market fit and unit economics. Anything above 100% is exceptional; 90-100% is healthy; below 90% signals that customer acquisition cost isn't worth it relative to customer value. The kicker: if NRR is above 110% and CAC payback is under 12 months, you have venture-scale unit economics and can raise easily.",
+    "howToApply": "Calculate NRR monthly: identify your customer base at the start of the period (say January 1), track their revenue throughout the period, and measure what percentage of their starting revenue comes from the same cohort at period-end. Formula: NRR = (beginning customer cohort revenue + expansion revenue - churn/downgrade revenue) ÷ (beginning customer cohort revenue) × 100. If you started January with $100K from 10 customers, lost 1 paying $8K (churn), and the other 9 expanded to $105K total, NRR = ($105K - $8K) ÷ $100K = 97%. Track NRR by customer segment (SMB vs. enterprise, annual vs. monthly payers) because expansion mechanics differ wildly. Enterprise customers often expand 10-20% annually (new teams, more users); SMB rarely expands above 5%. Build this into financial projections: model out your expansion assumption and use it to forecast path to profitability. A 105% NRR changes everything—your growth compounds without relying solely on new customer acquisition.",
+    "commonMistakes": [
+      "Calculating NRR on all customers instead of same-cohort—measuring January starting customers against February revenue will inflate NRR because new customers are included. Keep cohorts clean.",
+      "Ignoring price increases—if you raised prices 10% and customers stayed, that's expansion revenue. Count it. But distinguish one-time price hikes from usage-driven expansion.",
+      "Forgetting to subtract downgrades—if a customer downgrades from $500/month to $250/month, that's -$250. Don't just count the $250 remaining revenue.",
+      "Using NRR without context—an NRR of 110% with 50% annual churn means you're losing half your base and replacing it with expansion from the other half. That's fragile.",
+      "Not tracking by cohort or customer segment—SMB NRR might be 95% while enterprise is 115%. Blending them hides the real problems."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool projects your NRR trajectory under different expansion and churn scenarios, helping you model sustainable growth and understand how expansion revenue compounds your path to profitability."
+  },
+  "relatedTerms": ["retention-rate", "expansion-revenue", "churn-rate"],
+  "synonyms": ["Dollar Retention", "Revenue Retention"],
+  "seoTitle": "Net Revenue Retention (NRR): Calculate & Improve SaaS Growth | IdeaFuel",
+  "seoDescription": "Master NRR calculations and expansion metrics. Learn benchmarks for SaaS NRR, track downgrades vs. expansion, and model sustainable growth."
+}

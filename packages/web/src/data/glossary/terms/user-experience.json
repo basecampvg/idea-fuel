@@ -1,0 +1,21 @@
+{
+  "slug": "user-experience",
+  "title": "User Experience",
+  "category": "product",
+  "shortDefinition": "The overall feel and usability of a product—every interaction a user has from landing on your site to accomplishing their goal.",
+  "content": {
+    "definition": "User experience (UX) is everything about how someone interacts with your product: the speed, the clarity, the flow, the delight, and the friction. It's not just about looks (that's UI)—it's about whether someone can actually use your product to solve their problem without cursing at you.",
+    "whyItMatters": "Bad UX kills products. You can have the best idea and the strongest business model, but if your product is painful to use, people will leave. Good UX is the difference between a product users love and a product users tolerate. It's also a competitive moat: if your product is 10x easier to use than alternatives, users will switch even if you're more expensive. Companies obsessed with UX—Apple, Stripe, Figma—win markets.",
+    "howToApply": "Start by understanding your user: who are they, what's their context, what's their skill level? Then test your product with actual users—watch them try to use it, don't tell them how. Where do they get confused? Where do they get stuck? That's your UX problem. Map the entire user journey—first-time use, regular use, error states, everything. Look for friction: unnecessary steps, unclear labels, slow load times, unintuitive navigation. Fix the biggest friction first. Use data to measure UX improvements: did reducing clicks decrease bounce rate? Did better error messages reduce support tickets? Iterate relentlessly. The best products have been through hundreds of small UX refinements, not one big redesign. IdeaFuel's Spark Validation helps you validate that your UX actually solves user problems before you commit to major design changes.",
+    "commonMistakes": [
+      "Confusing UX with UI design—you can make something beautiful but unusable",
+      "Building UX without user research—you're guessing what users need, not knowing",
+      "Optimizing UX for power users while ignoring beginner experience—products become harder to learn"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation helps you test UX decisions with real users and validate that your product experience actually drives the behaviors that matter to your business."
+  },
+  "relatedTerms": ["user-interface", "usability-testing", "information-architecture"],
+  "synonyms": ["Usability", "Product Experience"],
+  "seoTitle": "What is User Experience (UX)? Definition & Best Practices | IdeaFuel Glossary",
+  "seoDescription": "User experience is how easily and pleasantly someone can use your product. Learn how to research, test, and improve UX to increase adoption and retention."
+}

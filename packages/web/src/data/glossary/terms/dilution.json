@@ -1,0 +1,21 @@
+{
+  "slug": "dilution",
+  "title": "Dilution",
+  "category": "fundraising",
+  "shortDefinition": "Decrease in ownership percentage when new shares are issued through funding or equity grants.",
+  "content": {
+    "definition": "Dilution is what happens to your ownership percentage when your company issues new shares. If you own 100% of 1 million shares and the company issues 1 million new shares, you now own 50% of 2 million shares. Your slice of the pie got smaller, even though you still own the same number of shares. Dilution happens through venture funding rounds, employee option vesting, and secondary transactions.",
+    "whyItMatters": "Understanding dilution is critical because it directly affects your financial outcome in an exit. If you're diluted aggressively, even a $100M exit may only net you $5-10M after investors are paid their preferences. Dilution is also a psychological and motivational issue—if founders feel they're being diluted unfairly, it creates tension with investors and can fracture the team. Properly managing dilution means you can raise the capital you need without giving away more than you should.",
+    "howToApply": "Track dilution by calculating your ownership percentage after each funding round. Use the formula: New Ownership % = Old Shares / New Total Shares. After Series A, for example, if you had 100% of 10M shares and raised $5M at a $10M pre-money valuation, you'd issue 5M new shares (investor gets 5M at $1/share), diluting founders to 67%. It sounds bad, but you've also raised capital and increased company value. Model dilution across multiple funding rounds to understand your endpoint. Generally, founders should expect to own 20-40% at Series C if they've been reasonable; less suggests poor deals earlier. Anti-dilution protection and option pool refreshes are tools to manage dilution, but use them carefully—over-protecting yourself signals to future investors that you're difficult.",
+    "commonMistakes": [
+      "Raising at high valuations early to minimize dilution, then failing to hit growth targets and struggling with Series A conversation",
+      "Not understanding weighted average anti-dilution, which can inadvertently damage future rounds if a down round happens",
+      "Over-correcting by refusing to raise capital to avoid dilution, then getting outflanked by better-funded competitors"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool projects dilution across multiple funding scenarios, showing you the trade-off between capital raised and ownership retention, so you can make informed decisions about each round."
+  },
+  "relatedTerms": ["cap-table", "anti-dilution", "pro-rata-rights"],
+  "synonyms": ["Share Dilution"],
+  "seoTitle": "What is Dilution in Startups? | IdeaFuel Glossary",
+  "seoDescription": "Understand share dilution: how it works, why it matters, and how to manage it across funding rounds."
+}

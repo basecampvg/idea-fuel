@@ -1,0 +1,21 @@
+{
+  "slug": "social-media-marketing",
+  "title": "Social Media Marketing",
+  "category": "marketing",
+  "shortDefinition": "Building brand awareness and driving engagement by creating and sharing content on platforms where your target audience spends time.",
+  "content": {
+    "definition": "Social media marketing is presence on platforms — Twitter/X, LinkedIn, Instagram, TikTok, YouTube, Reddit — where you share content, engage with followers, and build community. Unlike paid ads on these platforms (which are separate from 'social media marketing'), organic social is free but requires consistent effort. Social serves multiple purposes: brand awareness (people learn you exist), community building (followers feel connected to your brand), customer support (responding to questions), talent recruitment, and sometimes direct traffic to your site. Social is also distribution for your content — a single post can reach 10K people for free.",
+    "whyItMatters": "Social proof is real: potential customers check your social media before buying. If you have no presence or a dead channel, it signals immaturity or carelessness. For B2B SaaS, LinkedIn has become essential for founder visibility and recruiting — investors and customers check your founder's LinkedIn. For B2C and startups, Twitter/X and TikTok are where your early adopters hang out. Social also unlocks distribution: a single post from a micro-influencer in your niche can drive more qualified traffic than months of paid ads. Social builds defensibility — a strong community becomes a moat because competitors can't buy what you've built over time. Early adopters are usually on Twitter and TikTok, not on your email list.",
+    "howToApply": "Choose 1–2 platforms where your target audience is most active instead of spreading thin across five. For B2B SaaS founders, LinkedIn and Twitter. For consumer products and creators, Instagram and TikTok. For developer products, Twitter and GitHub. For content and thought leadership, LinkedIn and Medium. Develop a content rhythm: one post per day (for Twitter) or one post per week (for LinkedIn) depending on your capacity and consistency ability. Share insights, behind-the-scenes content, customer stories, wins, and genuine thoughts — not just promotional posts. Post consistently for 6–12 months before expecting meaningful audience growth; most platforms reward consistency. Engage authentically: reply to comments within hours, answer questions, participate in relevant conversations and hashtags, retweet or share others' work. Track which posts drive engagement (likes, comments, shares) and which drive clicks and conversions, then iterate — do more of what works. Use social to listen actively: what are potential customers discussing? What problems and frustrations come up? What language do they use? Use social to understand customer sentiment and pain points — it's free market research that informs your messaging and product roadmap.",
+    "commonMistakes": [
+      "Automating everything or scheduling all posts. Algorithms reward native, authentic, real-time engagement. People can tell the difference between a human's voice and a bot.",
+      "Only posting your own content or always selling. Share others' content, have conversations, build community. Not everything should have your logo or product pitch on it.",
+      "Giving up after three months. Social media requires 6–12 months of consistency to build an engaged audience and unlock distribution. Most founders quit before seeing results."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine identifies trending topics, keywords, competitor activity, and audience pain points in your market so you can create social content that resonates with your target customers and drives engagement and awareness."
+  },
+  "relatedTerms": ["brand-awareness", "engagement-rate", "influencer-marketing"],
+  "synonyms": ["Social Engagement", "Community Building", "Organic Social"],
+  "seoTitle": "What is Social Media Marketing? | IdeaFuel Glossary",
+  "seoDescription": "Social media marketing builds brand awareness and community through organic content. Learn strategy, platforms, and content rhythm."
+}

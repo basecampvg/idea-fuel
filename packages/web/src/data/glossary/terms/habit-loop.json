@@ -1,0 +1,21 @@
+{
+  "slug": "habit-loop",
+  "title": "Habit Loop",
+  "category": "growth",
+  "shortDefinition": "A behavioral cycle of cue, routine, and reward that drives repeated user actions.",
+  "content": {
+    "definition": "A habit loop is the psychological mechanism that transforms a desired behavior into an automatic action. It consists of three components: a cue that triggers the behavior, the routine (the behavior itself), and the reward that reinforces it. When users experience this cycle repeatedly, they develop dependencies on your product. The power of habit loops lies in their automaticity—once formed, users don't consciously decide to use your product; they simply do, as naturally as checking email or scrolling social media.",
+    "whyItMatters": "Habit loops are the foundation of product stickiness and sustainable growth. Users who develop habits around your product use it automatically, reducing churn and increasing lifetime value. A user with one daily habit generates 2-3x more lifetime value than one who remembers your product only occasionally. Companies like Slack and TikTok have built billion-dollar businesses by architecting products that become habitual rather than intentional. The difference between a good product and a category-defining one is often whether users form habits around core features. Habits also create competitive moats—once a user is habituated, switching costs rise dramatically because breaking a habit requires conscious effort.",
+    "howToApply": "First, identify what behavior you want to become habitual—not just any behavior, but the one that delivers maximum value to users. Map the existing context that triggers this behavior (cue)—for habit formation to work, the cue must already exist in the user's daily routine or environment. You can't create new contexts; you have to hijack existing ones. Design the simplest possible action (routine); friction kills habit formation faster than anything. One additional step between cue and reward can reduce formation by 50%. The reward should reinforce the desired outcome and feel immediate—for Slack, the cue is a message notification, the routine is checking the app (one click), and the reward is staying informed and not missing important information. Start with daily or high-frequency cues; behavior needs 21-66 days of repetition to become habitual, depending on complexity. Test different reward types (social validation, progress tracking, utility) to see which drives fastest adoption in your specific market. Track habit formation through engagement metrics and cohort retention curves—the inflection point where users transition from intentional to habitual use is where your product truly becomes sticky. Monitor which features create the strongest loops; double down on those and consider removing features that compete with core habits.",
+    "commonMistakes": [
+      "Assuming friction between cue and routine—the faster users can respond to a cue, the more likely the loop closes. If it takes three clicks to act on a notification, the habit never forms.",
+      "Confusing engagement with habit formation—short-term clicks don't equal habit loops; measure 30+ day retention cohorts to verify true habituation. A user who opens your app once is not habituated.",
+      "Overcomplicating the routine—the most habitual behaviors are the simplest; adding options, features, or friction breaks the loop. Slack's cue-routine is notification-open-message, not notification-open-workspace-select-channel-search-message."
+    ],
+    "ideafuelConnection": "IdeaFuel's Product Spark Validation tool helps you identify and test potential habit loops before full product launch, letting you validate which cue-routine-reward combinations drive retention in your target market."
+  },
+  "relatedTerms": ["engagement-loop", "stickiness", "daily-active-users"],
+  "synonyms": ["Behavioral Loop", "Cue-Routine-Reward Cycle"],
+  "seoTitle": "What is a Habit Loop? | IdeaFuel Glossary",
+  "seoDescription": "Learn how habit loops drive product stickiness and sustainable growth. A cue-routine-reward framework."
+}

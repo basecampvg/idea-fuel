@@ -1,0 +1,21 @@
+{
+  "slug": "feature-adoption",
+  "title": "Feature Adoption",
+  "category": "product",
+  "shortDefinition": "The percentage of your users who actually use a feature you built.",
+  "content": {
+    "definition": "Feature adoption is the metric that answers the brutal question: did anyone care about what you built? It measures the percentage of active users who trigger a specific feature at least once, usually expressed as a simple percentage. Low adoption means you shipped something nobody wanted. High adoption means you nailed the problem.",
+    "whyItMatters": "Many founders ship features that look good in a demo but get zero actual use. You built something because it seemed like a good idea in a meeting, not because users asked for it. Feature adoption is your fast feedback loop for this mistake. If you ship a feature and adoption is below 5% after two weeks, you have a signal problem—either users don't know it exists, they don't understand it, or they don't need it. Tracking adoption prevents you from wasting engineering time building features in the wrong direction.",
+    "howToApply": "Set an adoption target before you ship: 'We'll consider this successful if 30% of power users try it in the first month.' Ship the feature and instrument it with a simple event: 'feature_used'. Pull the data weekly and watch the curve—early adopters come fast, laggards come slow. If you're not hitting your target, dig into why: is the UX confusing? Do users not know it exists? Is it solving the wrong problem? Use in-app messaging or email to notify users, but don't rely on broadcast—that's a crutch for features people don't actually want. Look at adoption by user segment: does it matter to Enterprise customers but not SMBs? That tells you something about product-market fit.",
+    "commonMistakes": [
+      "Measuring adoption only for power users and ignoring that most users are inactive, so the denominator matters",
+      "Launching a feature and never checking adoption, so you have no signal",
+      "Confusing 'opened the dialog once' with 'adopted'—adoption should mean the user got value from the feature"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine predicts feature adoption before you build it. Analyze your user cohorts, existing feature usage, and support requests—it surfaces which ideas will actually drive adoption and which will sit unused."
+  },
+  "relatedTerms": ["product-analytics", "activation-rate", "onboarding"],
+  "synonyms": ["Feature Uptake", "Feature Usage"],
+  "seoTitle": "What is Feature Adoption? | IdeaFuel Glossary",
+  "seoDescription": "Feature adoption measures the percentage of users who actually use a feature you built. Low adoption signals a wasted build."
+}

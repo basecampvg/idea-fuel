@@ -1,0 +1,21 @@
+{
+  "slug": "lead-investor",
+  "title": "Lead Investor",
+  "category": "fundraising",
+  "shortDefinition": "The primary investor who negotiates terms and drives due diligence in a funding round.",
+  "content": {
+    "definition": "The lead investor is the largest check writer in a fundraising round and the one who structures the term sheet and leads negotiations. In a $10M Series A, the lead might be a VC firm writing $6M. They set valuation, liquidation preferences, board composition, and anti-dilution terms. Smaller investors (followers) typically accept the lead's terms without renegotiating. If there's no lead, the round can stall while multiple investors negotiate conflicting preferences.",
+    "whyItMatters": "The lead investor shapes your round and your company's future. A good lead is a domain expert, brings strategic advice, opens doors to customers or future investors, and puts their reputation on the line. A bad lead can be hands-off (silent capital), extractive (demands excessive control), or operationally intrusive. The lead also typically takes a board seat, so you're partnering with this person for the next 5-10 years. Securing a strong lead early signals competence to followers and accelerates the round. Without a credible lead, smaller investors hesitate to commit.",
+    "howToApply": "Start conversations with VCs who focus on your stage, market, and geography. Build relationships before you need money—attend their events, get intros through portfolio companies, demonstrate progress over time. Target lead investors with strong track records in your domain. When an investor expresses strong interest, work with them to structure a term sheet they'll lead. Negotiate valuation, board composition, and liquidation preference carefully—these terms matter more than the headline number. Once you have a lead, leverage that momentum: other investors follow because the lead has credibility. Ask your lead for introductions to follow-on investors.",
+    "commonMistakes": [
+      "Accepting a lead investor just because they write the biggest check—if they're not engaged or don't understand your market, you've made a 5-year mistake",
+      "Negotiating valuation before securing a lead—leads set terms; negotiate valuation with the lead, not with 5 different followers",
+      "Underestimating the importance of board dynamics—a lead investor who disagrees with your product direction becomes a constant tension point"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator demonstrates the vision and financial path that attracts lead investors, showing them the scale of opportunity and your grasp of unit economics that justify their conviction."
+  },
+  "relatedTerms": ["venture-capital", "board-seat", "pro-rata-rights"],
+  "synonyms": ["Series Leader", "Primary Investor", "Anchor Investor"],
+  "seoTitle": "What is a Lead Investor? How Do Lead Rounds Work? | IdeaFuel Glossary",
+  "seoDescription": "A lead investor writes the largest check and structures the round. Learn why they matter and how to attract one."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "convertible-note",
+  "title": "Convertible Note",
+  "category": "fundraising",
+  "shortDefinition": "Debt instrument that converts to equity upon a future funding event or maturity date.",
+  "content": {
+    "definition": "A convertible note is a hybrid between a loan and equity. You borrow money (principal) with an interest rate and maturity date (usually 2 years). When a Series A happens, the note converts into Series A stock at a discount (typically 20-30%) or at a valuation cap, whichever is better for the investor. If Series A never happens, the note technically comes due as a loan. Convertible notes are common at seed stage but less popular now because SAFEs offer a simpler alternative.",
+    "whyItMatters": "Convertible notes give seed investors some downside protection (interest accumulation, maturity date forcing a outcome) while deferring valuation. For founders, the main risk is that the interest rate and valuation cap create complexity, and having a maturity date hanging over your head adds pressure. If you don't raise Series A by maturity, you legally owe the principal back (which most seed-stage startups can't do), creating leverage against you. Notes are less founder-friendly than SAFEs but more investor-protective.",
+    "howToApply": "If you use convertible notes, establish clear terms upfront: principal amount, interest rate (typically 5-10% annual), maturity date (24 months), valuation cap, and discount. Valuation cap protects early investors—if you raise Series A at $10M post-money and early investors have a $3M cap, they convert as if the Series A valuation was capped at $3M, giving them a bigger discount. Interest accrues monthly but typically only adds to the conversion amount; you don't pay cash interest. Keep notes simple and consistent—use the SAFE or a standardized convertible note template to avoid custom legal chaos. Model the dilution impact during Series A (interest owed gets converted to equity, further diluting founders). Be mindful of the maturity date creeping up; if you're likely to miss it, negotiate an extension before it becomes a crisis.",
+    "commonMistakes": [
+      "Setting a valuation cap too low in an effort to attract investors, then facing massive dilution when Series A converts at below-market terms",
+      "Issuing too many convertible notes at different terms, creating complexity that slows Series A diligence and confuses your cap table",
+      "Ignoring the maturity date and approaching it unprepared; late-stage startups sometimes resort to messy extensions or amendments to avoid default"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator models convertible note scenarios and their dilution impact at Series A, helping you choose between Notes and SAFEs based on realistic fundraising timelines."
+  },
+  "relatedTerms": ["safe", "seed-round", "valuation"],
+  "synonyms": ["Convertible Debt"],
+  "seoTitle": "What is a Convertible Note? | IdeaFuel Glossary",
+  "seoDescription": "Learn about convertible notes: structure, terms, and how they affect your dilution and Series A conversion."
+}

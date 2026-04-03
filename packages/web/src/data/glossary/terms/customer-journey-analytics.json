@@ -1,0 +1,21 @@
+{
+  "slug": "customer-journey-analytics",
+  "title": "Customer Journey Analytics",
+  "category": "analytics",
+  "shortDefinition": "Analysis of how customers interact across touchpoints from awareness to purchase.",
+  "content": {
+    "definition": "Customer journey analytics maps and measures every interaction a user has with your business across multiple channels and time periods. It tracks the path from first awareness through conversion, revealing where value is created and where customers stall. This holistic view replaces siloed metrics with connected cause-and-effect insights.",
+    "whyItMatters": "Most businesses optimize in isolation: improving email click rates, landing page conversions, product onboarding. But customer journey analytics reveals the real bottleneck—maybe it's not your ads, it's the 5-day lag before your sales team responds to a lead. You can't fix problems you don't see across the entire arc.",
+    "howToApply": "Start by defining your customer journey stages: awareness (ad click), consideration (email open, product demo request), decision (demo attended, proposal sent), and purchase. Instrument tracking across all channels. Calculate conversion rate between stages and identify the costliest drop-offs. Then dig deeper: which customer segments have different journeys? Which channels feed the most high-value customers? IdeaFuel's Research Engine analyzes these patterns to reveal which touchpoints actually drive revenue growth and which are just expensive distractions.",
+    "commonMistakes": [
+      "Assuming all customers follow the same journey—ignoring that SMB buyers differ from enterprise",
+      "Measuring journey length without accounting for purchase complexity or deal size",
+      "Tracking touchpoints without linking them to actual financial outcomes"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine maps your complete customer journey and identifies which touchpoints drive revenue, helping you allocate budget toward the stages that actually move deals forward."
+  },
+  "relatedTerms": ["funnel-analysis", "cohort-analysis", "attribution-model"],
+  "synonyms": ["Customer Path Analysis", "User Flow Analysis", "Journey Mapping"],
+  "seoTitle": "What is Customer Journey Analytics? | IdeaFuel Glossary",
+  "seoDescription": "Customer journey analytics maps user interactions across channels. Learn how to track, analyze, and optimize the customer journey."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "pro-forma",
+  "title": "Pro Forma",
+  "category": "finance",
+  "shortDefinition": "Projected financial statements based on assumptions about future business performance.",
+  "content": {
+    "definition": "Pro forma financial statements are forward-looking projections of your company's financial position, assuming certain conditions and scenarios will occur. They're built on your best guesses about revenue, expenses, and growth, showing what your balance sheet, income statement, and cash flow will look like if things go as planned. Pro formas are fictional—they're not a guarantee, and they'll be wrong—but they're a map that tells stakeholders you've thought about the journey, not just the destination. The word 'pro forma' means 'as a matter of form' or 'in anticipation of.' You're saying: 'Here's what happens if these things come true.'",
+    "whyItMatters": "Investors, lenders, and board members don't care about your past—they care about your future. Pro formas let you prove you've thought through the math, not just the vision. They force you to make explicit assumptions about unit economics, pricing, and scaling, which surfaces flawed thinking early. Running the numbers prevents catastrophic mistakes and keeps you honest about what growth actually costs. Without pro formas, you're essentially asking people to believe in your ability to manifest profit through willpower, which doesn't scale. The act of building pro formas forces discipline: if you can't model why your unit economics work, you don't have a business—you have a hope.",
+    "howToApply": "Start with your historical data if you have it, then project 3-5 years forward (most investors want 5-year models). Build bottom-up, not top-down: estimate customer acquisition, average revenue per user, retention rate, and churn, then calculate total revenue. For a SaaS company, start with monthly new customers, multiply by average contract value, then apply churn to create your cohort model. Model your operating expenses separately by category (payroll, rent, infrastructure, marketing, legal), accounting for how each scales with growth. Payroll usually scales linearly with headcount; infrastructure scales with usage but often in step-functions (you need bigger servers at certain thresholds). Marketing spend is a lever you control. Stress-test your assumptions—what if churn doubles? What if CAC is 2x higher? What if customer acquisition takes twice as long? Use conservative estimates for anything you're unsure about. Update your pro formas quarterly as you learn what actually works in the market.",
+    "commonMistakes": [
+      "Overestimating revenue by ignoring realistic churn, CAC, or market size constraints—a 50% month-over-month churn rate destroys any growth story no matter how many customers you acquire",
+      "Building proformas top-down (total addressable market divided equally) instead of bottom-up from unit economics—'the market is $100B and we'll take 1%' is not a plan",
+      "Assuming costs stay flat as revenue scales—headcount, infrastructure, payment processing, and support all get more expensive as you grow; plan for it"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you build pro formas without the spreadsheet hell. Set your assumptions once (customer acquisition, churn, pricing, unit costs), adjust them with sliders, and see how changes cascade through your P&L, balance sheet, and cash flow in real time. Model multiple scenarios to stress-test your business and identify which assumptions matter most. Compare scenarios side-by-side to find the path to profitability and understand what growth requires."
+  },
+  "relatedTerms": ["financial-projections", "income-statement", "balance-sheet"],
+  "synonyms": ["Financial Projections", "Forward-Looking Statements"],
+  "seoTitle": "What is a Pro Forma? Financial Projections for Startups | IdeaFuel Glossary",
+  "seoDescription": "Pro forma financial statements project your company's future financials based on assumptions. Learn how to build them and why investors demand them."
+}

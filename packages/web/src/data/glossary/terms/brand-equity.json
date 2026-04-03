@@ -1,0 +1,21 @@
+{
+  "slug": "brand-equity",
+  "title": "Brand Equity",
+  "category": "marketing",
+  "shortDefinition": "The intangible value your brand adds above its commodity product value.",
+  "content": {
+    "definition": "Brand equity is the premium customers will pay because of your brand, not your product features alone. Apple's brand equity lets them charge 30% more for hardware. Strong brand equity means customers choose you over competitors with similar functionality, they stick with you longer, and they forgive occasional mistakes. It's what separates a commodity business from a defensible one. Brand equity is your competitive moat. It's what allows you to raise prices without losing demand.",
+    "whyItMatters": "High brand equity is a moat that protects profitability and defensibility. It reduces customer acquisition costs (people already want you), increases lifetime value (loyal customers), and lets you raise prices without losing demand. Brands like Stripe, Figma, and Notion have massive equity—they're trusted, aspirational, and mission-aligned with their users. Their customers evangelize for free. Brand equity is the difference between needing $1M in ad spend to reach 10k customers versus doing it organically because your reputation does the selling. It also makes hiring easier and partnerships more attractive. The better your brand, the better your optionality. Strong brand equity is how you build a company that compounds over decades.",
+    "howToApply": "Build equity through consistency, delivery, and values alignment. Stay true to a specific positioning—be the easiest, most powerful, most ethical, whatever your wedge is. Deliver obsessively on that promise. Invest in brand infrastructure: clear voice, visual identity, messaging system. Be visible and share what you learn: speak at conferences, publish ideas, engage with your community authentically. Build relationships with key opinion leaders who can amplify your message. Importantly, your best brand equity comes from word-of-mouth and earned media, not ads. People recommend what they love, not what they've seen in ads. Your customer service, onboarding, and product quality matter more for equity than marketing copy. If you promise speed and deliver slowness, brand equity dies fast.",
+    "commonMistakes": [
+      "Confusing brand awareness with brand equity. You can be famous and hated. Build equity by being trustworthy, reliable, and consistent. It's slow but powerful and compounds.",
+      "Positioning so broadly you stand for nothing. Strong brands have clear POVs. Pick a wedge—fastest, cheapest, most powerful, most ethical—and own it completely. Trying to appeal to everyone means you appeal to no one.",
+      "Ignoring lived experience in favor of marketing. Your customer service, onboarding, and product quality matter more for equity than marketing copy. Deliver consistently on what you promise or brand equity erodes quickly."
+    ],
+    "ideafuelConnection": "Use customer discovery to understand what values resonate with your audience. Apply business-plan strategy work to clarify your positioning and brand wedge."
+  },
+  "relatedTerms": ["brand-awareness", "positioning", "differentiation"],
+  "synonyms": ["Brand value", "Brand strength"],
+  "seoTitle": "What is Brand Equity? | IdeaFuel Glossary",
+  "seoDescription": "Brand equity explained: how to build premium pricing power and customer loyalty beyond product features."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "segmentation-analysis",
+  "title": "Segmentation Analysis",
+  "category": "analytics",
+  "shortDefinition": "Breaking your customer base into distinct groups to understand behavior patterns and target messaging more effectively.",
+  "content": {
+    "definition": "Segmentation analysis divides your customers into groups based on shared characteristics—geography, company size, behavior, acquisition channel, or usage patterns. Each segment gets analyzed separately because they often behave completely differently. What works to convert free users to paid might fail on trial users. What resonates with enterprise doesn't work for startups.",
+    "whyItMatters": "Average metrics hide the truth. Your overall conversion rate might be 5%, but SMBs convert at 2% while enterprises convert at 15%. If you optimize for the average, you're overfitting to your most common segment and missing huge opportunities with others. Segmentation exposes these gaps. It also prevents tragic mistakes: spending millions on customer support for a low-value segment because the aggregate metrics looked good. Knowing which segments are profitable and which aren't is foundational to unit economics.",
+    "howToApply": "Start by choosing 2-3 segmentation variables that divide your customer base meaningfully: company size, industry, acquisition channel, or usage frequency. Analyze each segment separately on key metrics—CAC, LTV, churn, feature adoption. Look for segments that behave so differently they might as well be different products (need different messaging, pricing, product). Build dashboards per segment so you see divergence in real time. Create playbooks: 'we upsell mid-market on ROI, enterprise on compliance, self-serve on ease-of-use.' Update your sales and marketing strategies to segment separately.",
+    "commonMistakes": [
+      "Creating too many segments (8+ segments gets unwieldy and statistically weak)",
+      "Segmenting on variables that don't actually change behavior (random demographic splits that show no pattern)",
+      "Analyzing segments but not acting on them—segment insights without strategy change drive no value"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine segments market audiences by company profile, industry, and buyer persona to guide product positioning and go-to-market strategy."
+  },
+  "relatedTerms": ["market-segmentation", "cohort-analysis", "customer-journey-analytics"],
+  "synonyms": ["Customer Segmentation", "Audience Segmentation"],
+  "seoTitle": "What is Segmentation Analysis? | IdeaFuel Glossary",
+  "seoDescription": "Learn how customer segmentation reveals distinct behaviors and enables targeted strategies for different audience groups."
+}

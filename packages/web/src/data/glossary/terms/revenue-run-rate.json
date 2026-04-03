@@ -1,0 +1,21 @@
+{
+  "slug": "revenue-run-rate",
+  "title": "Revenue Run Rate",
+  "category": "finance",
+  "shortDefinition": "Annualized revenue based on the current monthly or quarterly rate, assuming it continues unchanged.",
+  "content": {
+    "definition": "Revenue run rate takes your current revenue in a period (month, quarter) and extrapolates it forward for a full year. If you made $100K in the last month, your run rate is $1.2M annually ($100K × 12). It's a quick way to understand scale without waiting for a full year of data. Run rate assumes conditions stay constant—no growth, no decline, no seasonality changes, no customer churn. It's useful as a snapshot of current business scale and momentum but dangerous if you treat it as a forecast or ignore customer concentration.",
+    "whyItMatters": "Run rate is shorthand investors use to talk company size and valuation multiples. A $100M ARR company attracts Series B/C investors and strategic acquirers; a $10M ARR company attracts Series A. It's also the metric founders pitch because it sounds bigger than 'we did $8M in revenue this year in our second year of operation.' But run rate can be dangerously deceptive: hitting $1M ARR from one huge customer doesn't mean you have a scalable business if that customer churns next month or if you can't acquire similar customers profitably. Use run rate to track momentum quarter-over-quarter and communicate scale, but don't confuse it with actual forward revenue.",
+    "howToApply": "Calculate monthly run rate by taking your total revenue in the last month (or 30-day period if months are noisy) and multiplying by 12. Calculate quarterly run rate by taking last quarter revenue and multiplying by 4. For recurring revenue (subscriptions), run rate approximates ARR if churn is near zero. Track it monthly to see acceleration or deceleration: if run rate was $1M last month and $1.1M this month, you're accelerating. Compare quarter-over-quarter run rate growth: if Q1 run rate is $1M and Q2 run rate is $1.3M, you grew 30% QoQ, which is strong (this is the growth rate investors care about). Account for seasonality if it applies: a January run rate for a gift company, hospitality, or tax software is not representative of 'normal' months. For businesses with seasonality, use multi-quarter average or adjust for the seasonal component. Use actual ARR or MRR (monthly recurring revenue) if you have subscription models—these are more accurate than run rate.",
+    "commonMistakes": [
+      "Treating run rate as a forecast—especially dangerous in early stage when revenue is lumpy from large one-time deals or long sales cycles; investors will discount it heavily",
+      "Ignoring customer concentration—a run rate built on one customer who churns next month is worthless; disclose concentration",
+      "Confusing run rate with ARR for non-recurring revenue—a one-time $100K consulting project or service delivery shouldn't be annualized; it's not repeatable"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool tracks your projected revenue run rate month-by-month based on customer growth and retention assumptions. Compare actual run rate to projected run rate to validate your models and identify where assumptions are breaking down. Model different churn rates and CAC scenarios to see which affects run rate growth most."
+  },
+  "relatedTerms": ["annual-recurring-revenue", "monthly-recurring-revenue", "financial-projections"],
+  "synonyms": ["ARR", "Annualized Revenue", "Run Rate Projection"],
+  "seoTitle": "What is Revenue Run Rate? ARR Calculator | IdeaFuel Glossary",
+  "seoDescription": "Revenue run rate annualizes your current revenue. Learn to calculate it and why it matters for valuing your business."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "down-round",
+  "title": "Down Round",
+  "category": "fundraising",
+  "shortDefinition": "A funding round at a lower valuation than the previous round, signaling struggling growth.",
+  "content": {
+    "definition": "A down round is when you raise capital at a lower valuation than your previous round. If Series A closed at a $20M post-money and Series B closes at $15M post-money, that's a down round. Down rounds are brutal: early investors and employees watch their paper wealth decline, founders face questions about execution, and all investors' confidence takes a hit. Down rounds typically include significant structural pain: founder dilution, board composition changes, and new investor controls.",
+    "whyItMatters": "A down round is a public failure signal in the startup world. It often triggers employee departures, especially senior people with options underwater. It can mean the market changed, you executed poorly, growth plateaued, or competition ate your lunch. Down rounds aren't just financial events—they're emotional and operational crises. Founders lose confidence, investors doubt leadership, and the narrative flips from 'promising company' to 'struggling company.' Some companies recover from down rounds with new leadership or market shifts, but most struggle for years recovering reputation. Avoiding down rounds is a core measure of founder execution.",
+    "howToApply": "Prevent down rounds by matching growth to valuation expectations. If you raise at a $20M post-money Series A, that valuation implicitly promises significant growth: $10M+ ARR in 18-24 months is typical. If you're stalling at $2M ARR, you've disappointed investors. Before fundraising, be honest: what valuation does your actual growth trajectory deserve? Sometimes that's a flat round (same valuation, more capital) instead of up, which is still better than a down. If you're headed for a down round, make the decision early and own it. Find investors (often new VCs or growth equity firms) who see value where your original investors don't. Rebuild narrative around what you've learned and fixed.",
+    "commonMistakes": [
+      "Raising at an unrealistic valuation in Series A—overshooting Series A valuation almost guarantees a down round in Series B if growth doesn't match the hype",
+      "Waiting too long to address stalled growth—founders hope things will turn around; by the time you admit defeat, you're in crisis mode with weak bargaining power",
+      "Not structuring down rounds with clarity—leaving terms ambiguous creates ongoing resentment from early investors who feel duped by valuation euphoria"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool keeps your valuation expectations grounded in realistic growth modeling, helping you raise at a sustainable valuation that matches your actual trajectory and prevents down round disasters."
+  },
+  "relatedTerms": ["flat-round", "up-round", "anti-dilution"],
+  "synonyms": ["Downward Round", "Lower Valuation Round", "Recapitalization"],
+  "seoTitle": "What is a Down Round in Startup Fundraising? | IdeaFuel Glossary",
+  "seoDescription": "A down round is when you raise at a lower valuation than before. Learn why it happens and how to recover from one."
+}

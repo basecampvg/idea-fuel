@@ -1,0 +1,21 @@
+{
+  "slug": "lean-ux",
+  "title": "Lean UX",
+  "category": "product",
+  "shortDefinition": "Shipping fast to test hypotheses instead of perfecting designs before release.",
+  "content": {
+    "definition": "Lean UX applies lean startup principles to product design. Instead of spending months perfecting a design in isolation, you ship an incomplete version, measure real user behavior, learn what actually matters, and iterate. Speed of learning beats design perfection every time.",
+    "whyItMatters": "Beautiful design is worthless if it solves the wrong problem. Most design work is speculation—you think a button should be blue or that navigation should be at the top. Your customers won't know until they use it. Lean UX gets real feedback in weeks instead of months, cutting your path to product-market fit.",
+    "howToApply": "Write down your core hypothesis about how users will behave or what they value. Design the smallest possible version that tests that hypothesis. Ship it to real users. Measure what they actually do (clicks, time on task, conversions) not what they say. Compare reality to your hypothesis. If you're wrong, iterate. Don't add polish until the core hypothesis is validated. Every design decision should be grounded in user testing, not your taste.",
+    "commonMistakes": [
+      "Shipping unpolished work without a hypothesis—'let's see what happens' isn't lean, it's just unfinished",
+      "Measuring the wrong thing—counting pageviews instead of whether users completed the core task",
+      "Iterating endlessly on cosmetics instead of testing whether the core concept works"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation helps you structure lean UX by defining testable hypotheses, conducting rapid experiments, and capturing what you learn before your next iteration."
+  },
+  "relatedTerms": ["design-thinking", "agile", "minimum-viable-product"],
+  "synonyms": ["Lean Design", "Agile UX", "Hypothesis-Driven Design"],
+  "seoTitle": "What is Lean UX? | IdeaFuel Glossary",
+  "seoDescription": "Learn how lean UX prioritizes real user feedback over design perfection to find product-market fit faster."
+}

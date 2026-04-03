@@ -1,0 +1,21 @@
+{
+  "slug": "subscription-model",
+  "title": "Subscription Model",
+  "category": "strategy",
+  "shortDefinition": "Charge recurring fees (monthly or yearly) for ongoing access to a product or service.",
+  "content": {
+    "definition": "A subscription model charges customers a recurring fee at regular intervals (typically monthly or annually) for continuous access to a product or service. Revenue is predictable and recurring, unlike one-time purchases. Customers either renew or churn each period, making retention the core lever.",
+    "whyItMatters": "Subscriptions create predictable, recurring revenue (MRR/ARR), which is invaluable for raising capital and planning growth. Instead of selling one product once, you sell an annuity. But it's also unforgiving: churn compounds. A 5% monthly churn kills 50% of your customers in 12 months. You must obsess over retention, not just acquisition. Most SaaS companies die from poor unit economics, not low growth.",
+    "howToApply": "Start with unit economics: CAC (customer acquisition cost) should be recovered within 12 months. If CAC is $1,000 and ARPU is $50/month, your payback is 20 months—too long. Build a cohort retention curve and track MRR, NRR (net revenue retention—if you have upsells), and churn. The formula for sustainable growth: (New MRR - Churned MRR) / Previous MRR = MoM growth rate. If it's under 5%, you're not growing fast enough relative to churn. Price in tiers (Starter, Pro, Enterprise) to capture different customer segments; your ability to upsell pays for acquisition costs.",
+    "commonMistakes": [
+      "Chasing growth without fixing churn: a 200% growth rate with 40% annual churn is not a business—it's a leak. Fix churn before growth.",
+      "Setting price too low: if $19/month feels cheap to you, it's too cheap. 80% of customers would pay more than you're charging. Raise prices 10-20% and watch MRR; if NRR drops below 95%, you've raised too much.",
+      "Ignoring expansion revenue: upsells (upgrades within existing customers) are 5-10x cheaper than new customer acquisition. Spend half your energy building expansion motions (add-ons, usage-based upsells, seat expansion)."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator lets you model subscription economics: set pricing tiers, project churn rates, calculate payback periods, and forecast MRR growth. Test different price points and see how churn sensitivity affects profitability."
+  },
+  "relatedTerms": ["monthly-recurring-revenue", "churn-rate", "freemium-model"],
+  "synonyms": ["SaaS pricing", "Recurring revenue"],
+  "seoTitle": "What is Subscription Model? | IdeaFuel Glossary",
+  "seoDescription": "Learn subscription pricing for SaaS startups. MRR, churn, CAC payback, and unit economics fundamentals."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "barriers-to-entry",
+  "title": "Barriers to Entry",
+  "category": "strategy",
+  "shortDefinition": "Structural advantages that make it hard for competitors to enter and compete in your market.",
+  "content": {
+    "definition": "Barriers to entry are factors that prevent new competitors from easily entering a market and competing with incumbents. Examples include high capital requirements (airlines), network effects (Facebook), brand moats (Coca-Cola), proprietary technology, regulatory licenses, or switching costs. Strong barriers create defensibility; weak barriers invite competition.",
+    "whyItMatters": "A business without barriers is a commodity—easy to copy and hard to defend. If your only advantage is speed to market, the second company can copy faster and cheaper. If 10 startups could clone your idea with a $50K budget and a team of 3, you have no moat. Investors fund defensibility, not just growth. Spend as much time thinking about why competitors can't catch you as building your product.",
+    "howToApply": "Identify your barriers early: (1) Switching costs—how much friction exists for a customer to switch? High switching costs = strong barrier. (2) Network effects—does the product get better with scale? (3) Brand & trust—does your brand command a premium or customer loyalty? (4) Regulatory/legal—do licenses, patents, or regulations block competitors? (5) Proprietary data—do you own unique data they can't easily replicate? Most startups overestimate their barriers. Be brutally honest: if a well-funded competitor wanted to dominate your market in 18 months, could they? If yes, your barrier is weak. Prioritize building barriers into your product from day one. Switching costs should compound. Data advantage should grow with scale.",
+    "commonMistakes": [
+      "Confusing 'first mover' with 'moat': being first means nothing. Friendster was first in social networking. First movers die all the time. Build defensibility, not just speed.",
+      "Assuming technology is a barrier: if your advantage is 'we built it better,' competitors will catch up in 12-18 months. Technology is easily replicated. Defensibility comes from network effects, switching costs, or brand, not code.",
+      "Ignoring incumbents: existing players in your space have advantages: customer relationships, trust, integration. If your barrier is just 'cheaper or faster,' they'll copy you. Find defensibility that they can't easily steal (e.g., you have deep customer relationships they don't control)."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes competitive moats in your market: identifies what defensible advantages exist, where competitors can copy you, and what barriers you need to build. Test your moat assumptions before you optimize for growth."
+  },
+  "relatedTerms": ["competitive-moat", "switching-costs", "economies-of-scale"],
+  "synonyms": ["Moat", "Competitive advantage"],
+  "seoTitle": "What are Barriers to Entry? | IdeaFuel Glossary",
+  "seoDescription": "Understand business moats: switching costs, network effects, brand, and defensibility barriers for startups."
+}

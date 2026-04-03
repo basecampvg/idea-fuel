@@ -1,0 +1,21 @@
+{
+  "slug": "user-acquisition",
+  "title": "User Acquisition",
+  "category": "marketing",
+  "shortDefinition": "The process and cost of bringing new customers to your product.",
+  "content": {
+    "definition": "User acquisition (UA) is the sum of all tactics and channels you use to bring new customers into your product: paid ads, organic search, content marketing, partnerships, referrals, virality. It's measured by CAC (Customer Acquisition Cost), the average amount you spend to get one paying customer. UA is the engine that scales your business from 1k to 100k users. It's not optional—if you can't acquire customers affordably, you have no sustainable business. Early-stage, acquisition is the constraint.",
+    "whyItMatters": "You can't grow past your founding users without systematic acquisition. But here's the hard truth: not all acquisition is created equal. Cheap customers acquired through spam are worth less than customers acquired through trusted channels because they have higher churn and lower LTV. Your unit economics depend on acquiring customers cheaply enough that LTV > 3x CAC. Founders who nail acquisition early become category winners. Those who can't afford customer acquisition or acquire the wrong customers run out of cash. Acquisition is the most important constraint early-stage—fix it and everything else becomes possible. It's also the most measurable lever you have, which is why data-driven founders focus here first.",
+    "howToApply": "Start by identifying which channels can reach your persona at scale. For B2B SaaS founders, that might be LinkedIn, Twitter/X, Hacker News, and niche Slack communities. For B2C, it's paid social (Facebook, TikTok), SEO, and viral loops. Run small tests in 2-3 channels ($500-$1000 each). Measure CAC for each channel—calculate it as (spend) / (customers acquired). Identify the cheapest, best-quality channel. Pour resources there. Simultaneously, build inbound gravity: SEO content, community presence, brand awareness. Inbound channels have lower CAC long-term than paid. Track CAC by source weekly—paid search might be $150 while organic blog is $30. Calculate payback period: if CAC is $100 and customer pays $20/month, break-even is 5 months. Can your runway survive that? Understand your payback by channel before committing budget.",
+    "commonMistakes": [
+      "Chasing cheap CAC without measuring customer quality. Cheap customers from spam channels have 90% month-1 churn. Better to spend $200 on a customer with 80% retention than $50 on one with 10% retention. Cohort retention matters more than raw CAC.",
+      "Testing too many channels at once. Spread yourself thin and learn nothing. Pick one channel, give it a real shot (100+ customers minimum), then evaluate. Premature pivoting kills learning.",
+      "Not calculating the payback period. If CAC is $100 and customer pays $20/month, break-even is 5 months. Can your unit economics survive that? Some channels work great long-term but not short-term. Understand your payback by channel."
+    ],
+    "ideafuelConnection": "Use financial-modeling to calculate CAC targets that align with your unit economics and runway. Use research-engine to identify high-potential acquisition channels and test them with spark-validation before scaling."
+  },
+  "relatedTerms": ["customer-acquisition-cost", "paid-traffic", "organic-traffic"],
+  "synonyms": ["Customer acquisition", "Growth channels"],
+  "seoTitle": "What is User Acquisition? | IdeaFuel Glossary",
+  "seoDescription": "User acquisition strategy: channels, metrics, and tactics to cost-effectively scale your customer base."
+}

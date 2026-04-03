@@ -1,0 +1,21 @@
+{
+  "slug": "anti-dilution",
+  "title": "Anti-dilution",
+  "category": "fundraising",
+  "shortDefinition": "A provision protecting investors from ownership reduction if future funding occurs at lower valuations.",
+  "content": {
+    "definition": "Anti-dilution protection is a clause in investor contracts that adjusts the price at which an investor's preferred shares convert to common shares if the company raises a subsequent round at a lower valuation. Instead of seeing their ownership percentage shrink, investors get additional shares or a reduced conversion price to protect their stake.",
+    "whyItMatters": "This is a double-edged sword. For investors, it's insurance against down-rounds. For founders and employees, it can be devastating because it often means the anti-dilution adjustment benefits investors by creating new shares, diluting existing shareholders even more. A down-round becomes twice as punishing with aggressive anti-dilution language. This is why you need to fight for the weakest possible anti-dilution provisions.",
+    "howToApply": "Negotiate for weighted-average anti-dilution at worst; full-ratchet is death for founders. With weighted-average, the adjustment is calculated using both the old and new prices, softening the blow. Many founders accept full-ratchet without realizing they're giving up meaningful equity percentage. Model a realistic down-round scenario (say, 30% lower valuation) and calculate how many new shares the anti-dilution clause creates. If it dilutes you by 5%+ on its own, it's too aggressive and should be renegotiated.",
+    "commonMistakes": [
+      "Accepting full-ratchet anti-dilution without understanding the math of future down-round dilution",
+      "Not negotiating anti-dilution at all, assuming down-rounds won't happen (they will)",
+      "Focusing on current valuation without modeling how anti-dilution punishes down-rounds"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator models anti-dilution clauses in your cap table projections, showing the exact equity impact if valuations decline. See your real ownership percentage through multiple funding rounds before signing term sheets."
+  },
+  "relatedTerms": ["dilution", "liquidation-preference", "down-round"],
+  "synonyms": ["Anti-dilution Protection", "Adjustment Clause"],
+  "seoTitle": "What is Anti-dilution? | IdeaFuel Glossary",
+  "seoDescription": "Anti-dilution protects investors from ownership loss in down-rounds. Learn the types and how they affect founder equity."
+}

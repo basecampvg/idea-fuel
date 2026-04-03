@@ -1,0 +1,21 @@
+{
+  "slug": "drag-along-rights",
+  "title": "Drag Along Rights",
+  "category": "fundraising",
+  "shortDefinition": "Allows majority shareholders to force minority shareholders to sell in an acquisition or major transaction.",
+  "content": {
+    "definition": "Drag-along rights give majority shareholders (typically investors) the power to force minority shareholders (founders and employees) to participate in a sale of the company on the same terms, even if they don't want to sell. In a drag-along scenario, if investors representing a majority stake approve a transaction, everyone else is contractually obligated to sell their shares at the negotiated price and terms. This right is almost always included in preferred stock term sheets and is enforced through the company's articles of incorporation.",
+    "whyItMatters": "Drag-along rights fundamentally shift control from you as founder to your investors. If they want to exit via acquisition and you want to hold for a higher price or different buyer, they can force you to sell anyway. On the flip side, drag-along rights prevent a founder who owns 5% from blocking an acquisition that's beneficial for the 95% of shareholders who want out. Most importantly, drag-along rights ensure acquirers get 100% of the company without having to negotiate individually with every shareholder, which is why they're non-negotiable for most investors.",
+    "howToApply": "Accept that drag-along rights are standard in venture funding—investors won't invest without them. Instead, focus on negotiating the circumstances under which they can be exercised. Push for a requirement that the deal terms are 'fair' or require board approval from non-investor directors. During due diligence before an acquisition offer, understand exactly what your drag-along obligations are and what percentage of voting power it takes to trigger them (usually majority preferred shareholders). When you're negotiating an acquisition, your leverage isn't blocking the deal via drag-along refusal—it's ensuring your interests align with investors' by negotiating good terms for all shareholders. Use IdeaFuel's Business Plan Generator to model exit scenarios and understand how different acquisition prices affect your personal proceeds after preferences.",
+    "commonMistakes": [
+      "Believing you can block an acquisition you don't like—drag-along rights typically prevent this unless you own majority voting control",
+      "Not reading what percentage of preferred stock can trigger drag-along rights; sometimes it's 50%, sometimes higher, sometimes lower",
+      "Negotiating an acquisition deal without understanding your drag-along obligation means you'll be forced to accept terms you didn't agree to"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model acquisition scenarios and understand exactly how much of your proceeds are retained after investor liquidation preferences are paid. This shows the real impact of drag-along rights on your personal payout."
+  },
+  "relatedTerms": ["tag-along-rights", "right-of-first-refusal", "board-seat"],
+  "synonyms": ["Mandatory Sale Right"],
+  "seoTitle": "What are Drag Along Rights? | IdeaFuel Glossary",
+  "seoDescription": "Drag along rights definition: investor power to force founders and employees to sell shares in an acquisition. Equity term sheet clause explained."
+}

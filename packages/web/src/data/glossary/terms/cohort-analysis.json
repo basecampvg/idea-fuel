@@ -1,0 +1,24 @@
+{
+  "slug": "cohort-analysis",
+  "title": "Cohort Analysis",
+  "category": "growth",
+  "shortDefinition": "The process of segmenting users by signup or acquisition date and tracking their behavior and retention over time to identify trends.",
+  "content": {
+    "definition": "Cohort analysis groups users by acquisition date (e.g., 'all users who signed up in March 2024') and tracks how that entire group behaves over time. Instead of averaging behavior across all users, you see how a specific cohort retained, engaged, and monetized. A cohort analysis table might show: March 2024 cohort was 1,000 users. By April (month 1), 900 remained (90% retention). By May (month 2), 810 remained (81% retention). By June (month 3), 729 remained (73% retention). This reveals retention decay patterns for that specific cohort—useful for forecasting revenue and understanding whether your product is improving.",
+    "whyItMatters": "Cohort analysis separates signal from noise in your metrics. If you have 50,000 users and 45% are retained month-over-month, that sounds okay—until cohort analysis reveals that March cohort has 60% retention while August cohort has 20%. This tells you that either your product improved (newer cohorts retain better) or your user quality changed (older users were higher quality). This insight is critical: it drives product prioritization, acquisition strategy, and pricing decisions. Investors obsess over cohort retention trends because they predict lifetime value. If cohort retention is stable at 85% month-over-month but trending down (March was 85%, April was 82%, May was 80%), you've got a retention problem. If retention is trending up, you've got a improving product. Cohort analysis also reveals which acquisition channels drive higher-quality users: users from your founder's Twitter might have 70% retention while users from paid ads have 40%. That tells you to invest in organic over paid.",
+    "howToApply": "Build a cohort retention table: rows = cohorts (signup month), columns = months in product (month 0, month 1, month 2, etc.), cells = % of cohort retained. Plug in the data for at least 6 cohorts and 6+ months of observation. You'll start seeing patterns: do all cohorts follow the same retention curve or are some better? If recent cohorts retain better, your product is improving. If they retain worse, you're acquiring lower-quality users. Next, segment cohorts by channel: cohort analysis for organic vs. paid, for geo, for persona. A SaaS company might find Enterprise cohorts have 95% year 1 retention while SMB cohorts have 60%. That changes your go-to-market strategy. Also do cohort analysis on key engagement metrics: what % of month 2 cohort users activated (completed your aha moment)? If activation drops from 60% (March cohort) to 30% (August cohort), you've got an onboarding problem. Use cohort analysis to model revenue: if a March 2024 cohort of 1,000 users at $50 ARPU with 85% annual retention generates $50,000 revenue in year 1, forecast the same for future cohorts. Multiply by monthly cohorts and you can model annual revenue.",
+    "commonMistakes": [
+      "Not accounting for cohort size differences—if March cohort was 1,000 users and April was 5,000, comparing raw retention numbers will confuse you. Always use percentages.",
+      "Mixing acquisition and signup cohorts—cohort by signup date, not by first purchase date (unless you're doing revenue cohort analysis separately).",
+      "Using company-wide cohort analysis instead of segmenting—blending all users hides that your paid users have 50% month 1 retention and organic users have 80%. Segment ruthlessly.",
+      "Looking at too few cohorts—six months of data is minimum. Ideally, track 12+ months to understand mature cohort behavior.",
+      "Ignoring cohort size in analysis—if your March cohort was 100 users (noisy) and your August cohort was 5,000 (signal), weight them accordingly in conclusions.",
+      "Not acting on cohort insights—if you see onboarding is broken (new cohorts aren't activating), fix it immediately. Cohort analysis only matters if you iterate on findings."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine helps you benchmark cohort retention against your category and identify where you're losing users, while its analytics enable you to segment and visualize cohort behavior by acquisition channel, geography, and user type."
+  },
+  "relatedTerms": ["retention-rate", "churn-rate", "customer-lifetime"],
+  "synonyms": ["Cohort Retention", "Retention Cohort Table"],
+  "seoTitle": "Cohort Analysis: Track Retention & Predict LTV | IdeaFuel",
+  "seoDescription": "Master cohort analysis to track retention by signup month, identify user quality trends, and forecast revenue and lifetime value."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "cap-table",
+  "title": "Cap Table",
+  "category": "fundraising",
+  "shortDefinition": "Capitalization table showing ownership stakes and share distribution across investors and employees.",
+  "content": {
+    "definition": "A cap table (capitalization table) is a spreadsheet that shows every shareholder in your company, how many shares they own, what type (common, preferred, options), and at what price they bought in. It's the source of truth for who owns what percentage of the company and serves as the foundation for all financial modeling and future fundraising rounds.",
+    "whyItMatters": "Your cap table is the legal and financial backbone of your company. It determines who has voting rights, who gets paid in an exit, how much dilution each founder experiences, and whether your option pool is large enough for future hires. Errors or sloppy cap table management can lead to disputes, delayed fundraising, or failed exits. Investors always ask for a fully updated cap table early in diligence, and a messy one is a red flag that suggests poor financial hygiene.",
+    "howToApply": "Build your cap table from day one, even as a bootstrap. Start with founder shares and option pools (typically 10-20% set aside for employees). As you raise money, update it with each investment, showing the new shares issued, the new valuation implied, and resulting dilution percentages. Use a tool like a dedicated cap table app (Pulley, Carta, or even a good spreadsheet) to track everything. After each funding round, run the numbers to show each party (including founders and early employees) how their ownership percentage changed. Before any major fundraising, have your lawyer review the cap table to spot any issues. Keep it updated quarterly; don't let it drift. When raising Series A and beyond, you'll need a fully audited and clean cap table.",
+    "commonMistakes": [
+      "Not building a cap table early and then scrambling to reconstruct it during fundraising, losing track of who got options at what price",
+      "Issuing shares informally (handshake deals) without proper documentation, creating legal liability when you try to formalize later",
+      "Over-allocating the option pool upfront and having no room for future hires, or under-allocating and needing a dilutive option pool refresh"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you track cap table scenarios and dilution projections across funding rounds, showing you exactly how each investment impacts founder ownership and future option pool value."
+  },
+  "relatedTerms": ["dilution", "option-pool", "equity"],
+  "synonyms": ["Capitalization Table"],
+  "seoTitle": "What is a Cap Table? | IdeaFuel Glossary",
+  "seoDescription": "Complete guide to cap tables: structure, management, and why they matter for founders and investors."
+}

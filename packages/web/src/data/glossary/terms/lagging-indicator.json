@@ -1,0 +1,21 @@
+{
+  "slug": "lagging-indicator",
+  "title": "Lagging Indicator",
+  "category": "analytics",
+  "shortDefinition": "A metric that reflects past outcomes and cannot be changed retroactively.",
+  "content": {
+    "definition": "A lagging indicator measures the result of actions taken in the past. Monthly revenue (lagging) reflects sales closed 30-90 days ago. Quarterly churn (lagging) is the consequence of onboarding and product experience from the past three months. Annual profit (lagging) aggregates all the operational decisions of the year. Lagging indicators are outcomes, not steering inputs.",
+    "whyItMatters": "You cannot control lagging indicators directly—you can only control the leading indicators that predict them. Obsessing over this month's revenue tells you nothing about next month because it's already determined by last quarter's actions. Smart companies use lagging indicators to measure whether past strategy worked, then adjust leading indicators for future performance.",
+    "howToApply": "Use lagging indicators for three purposes: (1) Grading past performance—did Q3 achieve targets? (2) Validating strategy—does our growth rate match market opportunity? (3) Establishing accountability—did teams deliver expected outcomes? But don't use them for daily decision-making. Instead, identify which leading indicators predict each lagging metric. If CAC payback period (leading) predicts LTV (lagging), make decisions based on payback period, not lifetime value, then grade LTV quarterly to ensure the correlation still holds. IdeaFuel's Research Engine connects your lagging metrics to their leading indicators so you're always one step ahead.",
+    "commonMistakes": [
+      "Trying to fix lagging indicators directly instead of adjusting the leading indicators that predict them",
+      "Using annual lagging metrics to make quarterly decisions (too slow to course-correct)",
+      "Assuming a single lagging metric tells the whole story—quarterly revenue might be up but retention could be collapsing"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine helps you understand which lagging indicators matter most for your business and identifies the leading indicators that predict them, so you optimize current actions for future outcomes."
+  },
+  "relatedTerms": ["leading-indicator", "key-performance-indicator", "descriptive-analytics"],
+  "synonyms": ["Outcome Metric", "Results Indicator", "Historical Metric"],
+  "seoTitle": "What is a Lagging Indicator? | IdeaFuel Glossary",
+  "seoDescription": "Lagging indicators measure past outcomes. Learn the difference between lagging and leading indicators for better decision-making."
+}

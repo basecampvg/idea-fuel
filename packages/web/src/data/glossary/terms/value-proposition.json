@@ -1,0 +1,21 @@
+{
+  "slug": "value-proposition",
+  "title": "Value Proposition",
+  "category": "strategy",
+  "shortDefinition": "The specific benefit your product delivers and why a customer should choose you over alternatives.",
+  "content": {
+    "definition": "A value proposition is a clear, concise statement of the tangible results customers get from your product. It's not a list of features; it's the outcome. Instead of \"our software has a dashboard and API,\" it's \"reduce data analysis time from 40 hours to 4 hours.\" A strong value proposition tells a customer why they should pay attention and what problem you solve better than anyone else.",
+    "whyItMatters": "A fuzzy value proposition kills companies before they scale. If customers don't immediately understand what you do and why it matters, they won't buy. Investors use your value proposition to assess whether you have product-market fit or if you're still searching. A crisp, differentiated value proposition attracts customers faster, reduces sales cycles, and lets you charge higher prices. Conversely, a weak proposition forces you to compete on price and relationships alone.",
+    "howToApply": "Write your value proposition in one sentence: \"For [customer], [product] solves [problem] in a way [alternative/status quo] cannot.\" Test it with 5-10 customers: does it resonate immediately? Do they care? Then get specific about outcomes: What time/money/headache do you save? By how much? Can you quantify it? Example: \"For e-commerce managers: reduce inventory forecasting time by 80% and cut overstock by 30%\" beats \"powerful inventory management software.\" Lock this down before heavy sales, marketing, or product development. Update it as you learn which customer segments and use cases matter most.",
+    "commonMistakes": [
+      "Listing features instead of benefits. \"Mobile app, cloud storage, integrations\" tells nobody why they should buy. Benefits say: \"Work offline, never lose data, plug into your existing tools.\"",
+      "Being too generic. \"We make software for businesses\" applies to 50,000 companies. Get specific: \"For mid-market SaaS companies, reduce churn by 25%.\"",
+      "Changing your value proposition every quarter. Test and refine, but don't chase every customer feedback. Conviction and consistency matter; if you pivot constantly, you confuse the market."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you craft and validate a clear value proposition by testing it against market data, competitor positioning, and customer discovery insights."
+  },
+  "relatedTerms": ["positioning", "differentiation", "customer-discovery"],
+  "synonyms": ["Core Benefit", "Unique Value", "Customer Promise"],
+  "seoTitle": "What is a Value Proposition? | IdeaFuel Glossary",
+  "seoDescription": "Craft a powerful value proposition that differentiates your startup and converts customers by focusing on outcomes, not features."
+}

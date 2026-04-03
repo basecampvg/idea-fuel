@@ -1,0 +1,21 @@
+{
+  "slug": "k-factor",
+  "title": "K-Factor",
+  "category": "growth",
+  "shortDefinition": "The number of new users acquired by each existing user through viral mechanics.",
+  "content": {
+    "definition": "K-factor, also called the viral coefficient, measures how viral your product is by calculating the average number of new users each existing user acquires. If your k-factor is 1.5, each user brings in 1.5 new users on average. A k-factor above 1.0 means growth is self-sustaining and exponential; below 1.0 means growth eventually flatlines unless you add acquisition channels. It's the mathematical foundation of viral growth and one of the most important metrics for predicting long-term scaling potential.",
+    "whyItMatters": "Your k-factor determines your company's growth ceiling without paid acquisition. A k-factor of 1.2 compounds dramatically over time—mathematical modeling shows it can turn a thousand users into a million in roughly 18-24 months, depending on cycle time. A k-factor of 0.8 means you're always fighting to stay even; every month you lose customers and only partially replace them. This single metric separates companies that become inevitable from those that require escalating ad spend to survive. Investors obsess over k-factor because it predicts whether you'll own your market or be perpetually fundraising. Viral success isn't random luck; it's engineered through measurable mechanics and this formula quantifies whether those mechanics work.",
+    "howToApply": "Start by mapping your viral mechanisms—sharing, invites, integrations, user-generated content, community features. Track each user who performs a viral action and measure what percentage converts to new active users. Calculate: (viral actions per user × conversion rate to active). A typical k-factor for products without explicit referral programs is 0.1-0.5. With structured incentives and product integrations, you can push to 1.0+. Test variations methodically: Does offering rewards increase conversions? Does single-click sharing matter more than discoverability? Does timing matter—are referred users more likely to activate if they join quickly? Use cohort analysis to see if early users behave differently from later ones (they typically do). Your k-factor isn't fixed—it changes with product changes, feature additions, and incentive structure, so monitor it weekly across different cohorts and segments.",
+    "commonMistakes": [
+      "Confusing k-factor with conversion rate—k-factor measures viral multiplication, not just single conversions. A 10% conversion rate on invitations only matters if you're sending enough invitations to compound.",
+      "Measuring k-factor only at launch—it evolves as product-market fit improves and viral loops mature. Measure cohorts 30, 60, and 90 days after activation; k-factor often accelerates as engaged users emerge.",
+      "Assuming k-factor is the only growth metric—even with k=1.2, you need enough initial users to start the multiplication. A startup with k=1.5 and 100 starting users will beat one with k=1.1 and 10,000 starting users in 12 months."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your go-to-market strategy and identifies which viral mechanics competitors are using, helping you reverse-engineer and estimate realistic k-factors for your business model."
+  },
+  "relatedTerms": ["viral-coefficient", "referral-loop", "viral-marketing"],
+  "synonyms": ["Viral Coefficient", "Multiplication Factor"],
+  "seoTitle": "What is K-Factor? | IdeaFuel Glossary",
+  "seoDescription": "Master viral growth mechanics. K-factor measures how many new users each user acquires."
+}

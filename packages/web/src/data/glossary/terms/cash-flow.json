@@ -1,0 +1,23 @@
+{
+  "slug": "cash-flow",
+  "title": "Cash Flow",
+  "category": "finance",
+  "shortDefinition": "The actual movement of money in and out of your business. What matters more than profitability for survival.",
+  "content": {
+    "definition": "Cash Flow is the net amount of cash moving into and out of your business during a period. Operating cash flow is cash generated from actual business operations (sales minus operating expenses, adjusted for timing). Free cash flow is operating cash flow minus capital expenditures. A company can be profitable on paper (accrual accounting) but have negative cash flow if customers pay late, inventory piles up, or you make large capital investments.",
+    "whyItMatters": "Cash flow is the oxygen of business; profit is an opinion. A profitable company with slow-paying customers or high inventory can die from lack of cash. Conversely, an unprofitable company can survive for years if it raises enough capital and manages cash carefully. Investors obsess over cash runway because cash flow determines how long you can operate without external funding. The gap between profitability and positive cash flow is where most startups die—they hit product-market fit, grow like crazy, and run out of cash before profitability saves them.",
+    "howToApply": "Track three cash flow statements: operating (cash from customers and paid to employees), investing (capital purchases), and financing (loans, equity, dividends). Use cash flow forecasting monthly to model when you'll run out of money. If you have seasonal revenue, model it carefully—a company with $2M in Q4 revenue and $400K monthly operating costs faces a cash crunch in Q1. Improve operating cash flow by accelerating customer collections (invoice early, require upfront payment for annual plans), slowing payables (pay suppliers in 60 days, not 30), and managing inventory tightly. IdeaFuel's Financial Modeling tool projects cash flow under different growth and collection scenarios.",
+    "commonMistakes": [
+      "Confusing profit with cash flow—you can be profitable and still run out of cash if customers pay in 90 days.",
+      "Not modeling customer payment terms in cash projections—a $10K deal is worthless if the customer doesn't pay for 120 days.",
+      "Forgetting about VAT, payroll taxes, and quarterly tax obligations—these are real cash outflows that compress runway.",
+      "Ignoring customer concentration risk in cash flow—if 50% of revenue comes from one customer with net-90 terms, your cash is volatile.",
+      "Not planning for working capital needs—as you grow, you need more cash on hand to fund inventory and receivables before you get paid."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool projects cash flow under different growth and collection scenarios, helping you model working capital needs and runway accurately."
+  },
+  "relatedTerms": ["burn-rate", "working-capital", "cash-flow-statement"],
+  "synonyms": ["Cash Position", "Liquidity", "Cash Movement"],
+  "seoTitle": "Cash Flow: Forecast, Optimize & Manage Runway | Startup Guide",
+  "seoDescription": "Master cash flow forecasting, understand operating vs. free cash flow, and stay solvent. Why cash flow matters more than profitability for startups."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "customer-lifetime",
+  "title": "Customer Lifetime",
+  "category": "growth",
+  "shortDefinition": "The total length of time a customer remains active with your business.",
+  "content": {
+    "definition": "Customer Lifetime is the span between when a customer first engages with your product and when they completely stop. It's distinct from Customer Lifetime Value (which measures revenue), focusing instead on the duration and lifecycle stages. A customer lifetime tells you how long you have to drive value and extract revenue before churn inevitably claims them.",
+    "whyItMatters": "Duration directly impacts how much revenue you can generate from a customer. A SaaS customer who stays 3 years is worth multiples of one who stays 3 months, even at identical monthly fees. Understanding your typical customer lifetime lets you calculate break-even point on acquisition spending—if your CAC is $1000 and your customer lifetime is 1 year, you need LTV/CAC ratio above 3:1 or you're not sustainable. It also shapes your entire unit economics: the longer customers stay, the more you can spend acquiring them, and the more forgiving small retention dips become.",
+    "howToApply": "Start by analyzing your existing customer cohorts—pick customers who signed up 18 months ago and calculate how long they stayed. Group by acquisition channel, customer segment, and product tier. This shows you where long-term loyalty comes from. Then look at your current churn curve: at what point do customers exit? Build cohort retention tables that show what percentage of each cohort is still active at 30/90/365 days. Use this data to forecast lifetime. Model scenarios: if you improve month-2 retention by 5%, how much longer does customer lifetime extend? Use that to calculate ROI on retention investments versus acquisition.",
+    "commonMistakes": [
+      "Confusing lifetime with LTV—the time dimension doesn't tell you revenue, just duration",
+      "Assuming all customers have the same lifetime—segment by type, tier, and acquisition channel",
+      "Not accounting for seasonal churn patterns—some cohorts naturally last longer due to business cycle"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you build cohort analyses and project customer lifetime based on retention curves, ensuring your unit economics actually work before you scale."
+  },
+  "relatedTerms": ["lifetime-value", "churn-rate", "cohort-analysis"],
+  "synonyms": ["Customer Duration", "Active Lifetime"],
+  "seoTitle": "What is Customer Lifetime? | IdeaFuel Glossary",
+  "seoDescription": "The total time span between when a customer engages with your product until they churn, critical to unit economics."
+}

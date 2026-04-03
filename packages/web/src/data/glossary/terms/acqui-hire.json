@@ -1,0 +1,21 @@
+{
+  "slug": "acqui-hire",
+  "title": "Acqui-hire",
+  "category": "strategy",
+  "shortDefinition": "Acquisition primarily for the team, not the product or technology. Company buys a startup to hire talent cheaply.",
+  "content": {
+    "definition": "An acqui-hire happens when a larger company acquires a startup not for its product, revenue, or tech—but to hire its team cheaply. The acquirer shuts down the product and folds the team into their operation. It's a hiring mechanism. The startup gets acquired on modest terms ($5-20M typically), founders get partial payoff, employees get new jobs and usually some equity acceleration. This is common in competitive hiring markets where acquiring a team of 15 engineers is cheaper than hiring them individually.",
+    "whyItMatters": "For founders in an early-stage company that isn't traction-fitting but has built a strong team, acqui-hire is a real exit. It's not the dream outcome—you're not selling a thriving business—but it's better than shutdown. Acqui-hire also tells you something about market value: if your team is worth more than your product, you've either built the wrong product or the right team. For acquirers, it's a way to rapidly scale talent and avoid years of recruiting and training. Acqui-hires are especially common in hard technical talent markets (ML, infra, crypto).",
+    "howToApply": "If acqui-hire is your likely exit, focus on team composition and track record. Hire specialists in high-demand areas. Build a public presence—blog, talks, GitHub contributions. Acquirers are shopping for talent that's proven, cohesive, and specialized. When approached by acquirers, negotiate for team retention and equity acceleration. Make sure key people actually stay. An acqui-hire where half the team leaves post-close is a failed deal. Also, have an honest conversation with your team early: \"This might be an acqui-hire. Is that OK?\" Some founders and employees are motivated by IPO or growth. Others see acqui-hire as a solid exit. Alignment matters.",
+    "commonMistakes": [
+      "Not negotiating for team retention and equity acceleration. Founders get a check but junior engineers don't. They leave 6 months later when their options vest. The acquirer loses the talent they bought. Fix this before signing: accelerate everyone's vest, give retention bonuses, and lock in earnout clauses tied to employee retention.",
+      "Pursuing acqui-hire when you should be fixing product. If you're strong on team but weak on product market fit, maybe the right move is to hire a PM and fix the product, not exit. Acqui-hire is a last resort, not a strategy.",
+      "Assuming all acqui-hires are created equal. A $5M acqui-hire where you vest over 4 years is brutal. A $20M acqui-hire with 50% immediate cash and retention bonuses is solid. Negotiate hard on timing and vesting."
+    ],
+    "ideafuelConnection": "Use IdeaFuel's business-plan feature to assess whether product traction justifies continued growth or whether acqui-hire is the realistic outcome. Model team leverage and retention economics post-acquisition."
+  },
+  "relatedTerms": ["exit-strategy", "merger-and-acquisition", "talent-acquisition"],
+  "synonyms": ["Talent acquisition", "Team acquisition"],
+  "seoTitle": "What is an Acqui-hire? | IdeaFuel Glossary",
+  "seoDescription": "Exit through team acquisition. Learn how acqui-hires work, what drives valuations, and how to negotiate retention."
+}

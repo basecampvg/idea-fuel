@@ -1,0 +1,21 @@
+{
+  "slug": "hockey-stick-growth",
+  "title": "Hockey Stick Growth",
+  "category": "growth",
+  "shortDefinition": "A growth curve that stays flat then suddenly accelerates exponentially—shaped like a hockey stick.",
+  "content": {
+    "definition": "Hockey stick growth is a growth pattern where progress appears flat for an extended period (the blade) then suddenly turns upward at a sharp angle (the stick). Early on, you're acquiring users slowly and metrics barely move month-to-month. Then something shifts—product-market fit solidifies, a viral loop kicks in, influencers discover you—and growth becomes exponential. Slack was in the hockey stick's blade for two years (2011-2013) before exploding; the same for Airbnb (2009-2011) and Dropbox (2009-2011). The stick phase can emerge from a single inflection point or gradual acceleration.",
+    "whyItMatters": "Hockey stick growth separates patient founders from quitters. Most startups die in the blade phase, mistakenly believing their product doesn't work when they're actually one feature away from product-market fit. Investors understand this pattern and fund based on it—they're betting you'll turn the corner. The danger is that the blade can feel demoralizingly long; teams burn out and pivot too early. Understanding that hockey sticks are normal prevents premature abandonment. Many successful companies faced rejection, declining metrics, or near-death experiences during the blade before discovering the feature or market segment that turned the corner.",
+    "howToApply": "First, validate that you're in the blade intentionally, not stuck. Metrics that matter: retention curves (are power users returning repeatedly?), NPS (are users advocating?), feature usage (is there a cohort hooked on core features?). These early signals predict whether you'll eventually turn the corner. If they're absent, you need product changes, not more growth tactics. Once you have product-market fit signals, the stick phase emerges from compounding—referrals, network effects, and organic growth accelerating. Most founders in the blade phase optimize metrics that don't matter (vanity signups, clicks) instead of retention and engagement. Invert your thinking: if your 30-day retention is rising, if your unit economics are improving, or if NPS is consistently above 50, keep pushing. If they're flat or declining, you likely need product changes. The stick often emerges unexpectedly from one of three sources: a sudden feature adoption spike, an influx of inbound referrals, or organic search traction from content or SEO efforts.",
+    "commonMistakes": [
+      "Confusing volatility with the stick—one good month isn't the hockey stick moment; look for sustained acceleration over 3+ months. Viral loops often spike then drop; sustained 20%+ monthly growth is the real signal.",
+      "Pivoting out of the blade too early—most founders should have survived another 6-12 months before changing direction. Instagram looked like a failed photo-sharing app until they focused on network effects; the stick emerged at month 18.",
+      "Thinking the stick phase means you can ignore unit economics—even exponential growth kills you if CAC exceeds LTV. Fast growth with bad unit economics is a speed race toward bankruptcy, not toward a sustainable business."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your competitive position and market timing to forecast whether you're likely to experience hockey stick growth, and identifies which customer segments will drive the acceleration."
+  },
+  "relatedTerms": ["compounding-growth", "hypergrowth", "traction"],
+  "synonyms": ["Sudden Growth", "Inflection Point"],
+  "seoTitle": "What is Hockey Stick Growth? | IdeaFuel Glossary",
+  "seoDescription": "Understand the growth inflection point. Why startups see flat then explosive expansion."
+}

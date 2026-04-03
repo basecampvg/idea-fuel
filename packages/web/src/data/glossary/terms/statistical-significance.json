@@ -1,0 +1,21 @@
+{
+  "slug": "statistical-significance",
+  "title": "Statistical Significance",
+  "category": "analytics",
+  "shortDefinition": "A measurement showing a result is unlikely to be caused by random chance, typically at 95% confidence.",
+  "content": {
+    "definition": "Statistical significance tells you whether your test results are real or just random noise. A result is statistically significant when the probability that it happened by chance alone is low enough (usually under 5%) that you can confidently say the difference is real. It's the guardrail that stops you from acting on flukes.",
+    "whyItMatters": "Without significance testing, you optimize based on noise. You see conversion go up 2% in your A/B test, kill the old version, and wonder why next month it crashes back down. That 2% was probably random variance, not a real improvement. Significance testing saves you from 100 minor 'optimizations' that don't actually optimize anything. It also prevents the opposite mistake—stopping a test too early and missing a real winner because the sample was too small.",
+    "howToApply": "Set your confidence threshold upfront (95% is standard). Run your test for long enough to hit your minimum sample size—don't make this up, calculate it based on baseline conversion rate and the difference you want to detect. Use a statistical calculator or built-in tool (Google Optimize, Optimize, SplitBase) to check significance weekly as data accumulates. Once you hit significance, you can confidently move on. If you hit your deadline and it's not significant, the honest call is 'we didn't find a winner'—not 'let's run it longer.'",
+    "commonMistakes": [
+      "Stopping a test early because one variation looks good (peeking bias leads to false positives)",
+      "Running so many tests that eventually random chance produces 'significant' results (multiple comparisons problem)",
+      "Confusing statistical significance with practical significance (95% confidence in a 0.1% improvement might not matter)"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine includes significance calculators and test monitoring tools to ensure your market research and competitive analysis meet rigorous statistical standards."
+  },
+  "relatedTerms": ["a-b-testing", "confidence-interval", "sample-size"],
+  "synonyms": ["Statistical Validity", "P-Value Test"],
+  "seoTitle": "What is Statistical Significance? | IdeaFuel Glossary",
+  "seoDescription": "Understand how statistical significance determines if test results are real or random, and why it matters for decision-making."
+}

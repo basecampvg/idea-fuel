@@ -1,0 +1,21 @@
+{
+  "slug": "use-case",
+  "title": "Use Case",
+  "category": "product",
+  "shortDefinition": "A specific scenario describing how a user will interact with your product to accomplish a real goal.",
+  "content": {
+    "definition": "A use case is a concrete example of how a customer will use your product in their actual context. It's not abstract—it's a story with actors, steps, and an outcome. 'A marketing manager needs to segment an audience by behavior' is a use case. 'Audience segmentation' is a feature.",
+    "whyItMatters": "Building features in a vacuum produces bloated products no one wants. Use cases force you to think like a customer and stay grounded in reality. They also help your team align because everyone understands why a feature matters before you build it.",
+    "howToApply": "For each major feature you're planning, write down 2-3 concrete use cases. Be specific: who is the user, what are they trying to accomplish, what problem are they solving, and why does the current approach fail? Include the steps they'll take in your product. Then test the use case with real users—watch them try to accomplish the goal using your prototype. Do they naturally take the steps you predicted? If not, your use case is wrong or your product design doesn't match the reality.",
+    "commonMistakes": [
+      "Treating use cases as optional documentation instead of the foundation for design decisions",
+      "Writing abstract use cases instead of specific ones—'user wants to be more productive' is not a use case",
+      "Building features without use cases and wondering why they don't get adopted"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation feature helps you document use cases from customer interviews and validate them with prototypes before you commit development time."
+  },
+  "relatedTerms": ["user-story", "acceptance-criteria", "user-flow"],
+  "synonyms": ["User Scenario", "Usage Scenario", "Customer Scenario"],
+  "seoTitle": "What is a Use Case? | IdeaFuel Glossary",
+  "seoDescription": "Learn how specific use cases keep your product grounded in customer reality instead of speculation."
+}

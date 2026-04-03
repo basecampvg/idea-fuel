@@ -1,0 +1,21 @@
+{
+  "slug": "confidence-interval",
+  "title": "Confidence Interval",
+  "category": "analytics",
+  "shortDefinition": "A range of values that likely contains the true population metric with a specified level of certainty.",
+  "content": {
+    "definition": "A confidence interval is a range around your measured result that tells you how precise that measurement is. If your average customer lifetime value is $5,000 with a 95% confidence interval of $4,500-$5,500, you're saying there's a 95% chance the true value falls somewhere in that range. It's precision quantified.",
+    "whyItMatters": "Raw numbers without confidence intervals are misleading. A 40% conversion rate based on 10 visitors is barely information—the real rate could be anywhere from 10% to 70%. The same 40% based on 10,000 visitors is solid (probably 39-41%). Confidence intervals show the difference. They also prevent false certainty—a wide interval is honest about uncertainty, which is better than pretending you know more than you do.",
+    "howToApply": "Always report confidence intervals alongside your key metrics. For small samples or high-stakes decisions, calculate confidence intervals before acting. Wider intervals mean you need more data or more tests before drawing conclusions. Tighter intervals mean your estimate is solid. Use the interval to set realistic bounds—instead of 'our conversion rate is 5%,' say 'our conversion rate is between 4.8% and 5.2%' with 95% confidence. This prevents overconfidence and sets better expectations for stakeholders.",
+    "commonMistakes": [
+      "Ignoring confidence intervals and treating single point estimates as gospel truth",
+      "Calculating confidence intervals wrong (spreadsheet errors are common—use a statistical tool)",
+      "Comparing metrics without checking if their confidence intervals overlap (they might not be different at all)"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine automatically calculates confidence intervals on market size, growth rates, and competitive metrics to ensure your business planning is grounded in realistic ranges."
+  },
+  "relatedTerms": ["statistical-significance", "sample-size", "a-b-testing"],
+  "synonyms": ["Margin of Error", "Error Bounds"],
+  "seoTitle": "What is a Confidence Interval? | IdeaFuel Glossary",
+  "seoDescription": "Learn how confidence intervals measure precision and certainty in metrics, and why they matter for reliable decision-making."
+}

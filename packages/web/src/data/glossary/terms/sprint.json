@@ -1,0 +1,21 @@
+{
+  "slug": "sprint",
+  "title": "Sprint",
+  "category": "product",
+  "shortDefinition": "A fixed time period (typically 1-2 weeks) during which a team completes a defined set of work to deliver a potentially shippable product increment.",
+  "content": {
+    "definition": "A sprint is a repeating cycle in agile development where a team commits to finishing a specific set of work within a fixed timeframe—usually one or two weeks. At the start of a sprint, the team plans what they'll build. At the end, they demo completed work and reflect on what went well or poorly.",
+    "whyItMatters": "Sprints create predictability and momentum. Without them, development devolves into chaos—people are constantly switching tasks, nothing ships, and nobody knows when anything will be done. Sprints force you to break ambitious goals into biweekly milestones and expose whether your estimates are realistic. They also create natural pause points to course-correct based on user feedback or market changes, instead of committing to a plan for six months and shipping something nobody wants.",
+    "howToApply": "Start with a one-week sprint to establish rhythm before graduating to two weeks. On day one, the team reviews the product backlog and commits to stories they can realistically finish (velocity). During the sprint, daily standups—15 minutes, not hour-long meetings—surface blockers. If something is blocking a story, fix it immediately, don't schedule it for next sprint. At the end of the sprint, ship what's done. Demo it to stakeholders, even if it's rough. Then run a retrospective: what slowed us down? What should we do differently next sprint? Make one concrete change per sprint, not five. IdeaFuel's Spark Validation helps you validate that the work you're prioritizing for your sprints actually aligns with user needs.",
+    "commonMistakes": [
+      "Sprints without actual completion—stories drag across multiple sprints because they're too big",
+      "Sprints used as an excuse to ignore reality—committed to stories you can't finish, then add more mid-sprint",
+      "Ignoring retrospectives—running sprints forever without changing anything"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation helps you validate sprint priorities and ensure your team is building the features that will actually move key metrics."
+  },
+  "relatedTerms": ["agile", "product-backlog", "definition-of-done"],
+  "synonyms": ["Iteration", "Development Cycle"],
+  "seoTitle": "What is a Sprint? Agile Development Cycles Explained | IdeaFuel Glossary",
+  "seoDescription": "Sprints are 1-2 week cycles where teams complete committed work. Learn how to run effective sprints and ship product faster."
+}

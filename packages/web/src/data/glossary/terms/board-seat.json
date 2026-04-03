@@ -1,0 +1,21 @@
+{
+  "slug": "board-seat",
+  "title": "Board Seat",
+  "category": "fundraising",
+  "shortDefinition": "A position on the company's board of directors, typically granted to lead investors.",
+  "content": {
+    "definition": "A board seat is a directorship position on a company's board, which governs strategy, approves major decisions, and provides oversight. In startup funding, board seats are usually granted to lead investors (often called board seats or observer seats) as part of the investment terms, giving them formal governance authority.",
+    "whyItMatters": "Board seats determine who actually controls your company's direction. A board seat holder votes on hiring CEOs, approving budgets, major pivots, and acquisitions. If your lead investor takes a board seat and you're not executing well, they can push you out. Conversely, a strong board seat holder can unlock networks, advise on strategic decisions, and provide credibility that opens doors. This is one of the most underestimated aspects of venture funding—the governance implications matter as much as the capital.",
+    "howToApply": "When negotiating board seats, understand what it means operationally. How many board meetings per quarter? What decisions require board approval? Can the investor force you to hire a CEO or make strategic changes? As a founder, you typically want investor board seats but fought hard to maintain founder control. Ideal structure: founder as CEO with a board of 3-5 that includes you, the lead investor, and a neutral outside director. Avoid boards larger than 5; they become unwieldy and less decisive. Make sure your investor bring expertise, not just capital.",
+    "commonMistakes": [
+      "Giving board seats to investors without clarity on their involvement and decision-making authority",
+      "Creating boards larger than 5 people, which slows decision-making and dilutes accountability",
+      "Not realizing a board seat holder can effectively remove a founder who's underperforming"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator includes governance planning templates where you map out your ideal board composition, roles, and decision-making authority before you start fundraising."
+  },
+  "relatedTerms": ["lead-investor", "venture-capital", "drag-along-rights"],
+  "synonyms": ["Board Position", "Directorship"],
+  "seoTitle": "What is a Board Seat? | IdeaFuel Glossary",
+  "seoDescription": "Board seats grant investors governance control. Learn what they mean for founder authority and company direction."
+}

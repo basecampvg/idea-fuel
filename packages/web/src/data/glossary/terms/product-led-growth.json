@@ -1,0 +1,24 @@
+{
+  "slug": "product-led-growth",
+  "title": "Product-Led Growth",
+  "category": "growth",
+  "shortDefinition": "Growth strategy where the product itself drives user acquisition and expansion through self-service, virality, and word-of-mouth.",
+  "content": {
+    "definition": "Product-led growth (PLG) is a go-to-market strategy where your product is the primary growth driver. Instead of hiring a big sales team to convince users to buy, you build a product so good that users discover it, sign up themselves (self-serve), invite friends, and expand within the product with minimal sales interaction. PLG companies usually offer a free tier, freemium, or trial that lets users experience core value without friction. Figma, Slack, Dropbox, and Notion all employed PLG—users could try for free, fall in love, and expand with their teams without ever talking to sales.",
+    "whyItMatters": "PLG is the most capital-efficient and sustainable go-to-market model because it aligns incentives: product quality directly drives revenue. In traditional sales-led models, you can sell a mediocre product if you have good salespeople; with PLG, a mediocre product won't grow. This forces product excellence. PLG also compounds: every user is a potential champion who invites teammates or recommends to friends. The unit economics are superior—your CAC comes from virality and free tier expansion, not expensive sales and marketing. A $10M ARR PLG company often has 60-70% gross margins with a small sales team (for enterprise upsells). A $10M ARR sales-led company might have 50% margins and a 30-person sales team. PLG is why venture capitalists love B2B SaaS startups that have viral mechanics baked in.",
+    "howToApply": "Start with a free tier that lets users experience your core value in under 5 minutes. Slack's free tier lets you create a workspace and chat indefinitely (but limits history). Figma's free tier lets you design and collaborate. Notion's free tier lets you create unlimited pages. The free tier must feel complete enough that users say 'wow,' not 'okay, when do I have to pay?' Second, identify your expansion moment: when is the user most motivated to upgrade or invite teammates? For Slack, it's when they hit the message history limit and can't find old conversations. For Figma, it's when they need to share a design with 3+ collaborators. Third, reduce friction in that expansion moment—make it one click, not one negotiation with sales. Fourth, track activation rate obsessively: % of free users who experience core value in first week. If activation is < 20%, your product isn't compelling enough; fix product before scaling acquisition. Fifth, build feedback loops: ask churning users why they left, ask retained users why they stayed. Use that to improve product.",
+    "commonMistakes": [
+      "Freemium without a clear upgrade path—if users can get full value free, they won't pay. The free tier must have real limits that drive conversion.",
+      "Making the free tier too limited—if users can't experience core value free, they'll never upgrade. Free tier should show why the product is valuable.",
+      "Confusing PLG with no sales—PLG doesn't mean you ignore enterprise deals. It means you have self-serve SMB + free tier + small inside sales for $100K+ deals.",
+      "Optimizing free tier engagement instead of paid conversion—you want free users who eventually upgrade, not infinite free users. Track free-to-paid conversion rate.",
+      "Ignoring onboarding friction—if users sign up but don't experience core value in 10 minutes, they churn fast. Onboarding is PLG's secret weapon.",
+      "Charging too early—if you're making users pay after 2 weeks of free, you're sales-led with a trial, not PLG. PLG gives months of free access before upgrade."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model freemium unit economics and free-to-paid conversion rates, while its Research Engine identifies what activation and expansion moments work in your category."
+  },
+  "relatedTerms": ["growth-hacking", "activation-rate", "onboarding"],
+  "synonyms": ["Self-Serve Growth", "Freemium Model"],
+  "seoTitle": "Product-Led Growth (PLG): Strategy, Metrics & Playbook | IdeaFuel",
+  "seoDescription": "Master PLG strategy and freemium metrics. Learn activation rate, free-to-paid conversion, and how to build viral product mechanics for sustainable growth."
+}

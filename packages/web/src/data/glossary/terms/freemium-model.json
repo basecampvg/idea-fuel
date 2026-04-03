@@ -1,0 +1,21 @@
+{
+  "slug": "freemium-model",
+  "title": "Freemium Model",
+  "category": "strategy",
+  "shortDefinition": "Offer a free base product with paid premium features or limits.",
+  "content": {
+    "definition": "A freemium model gives users unlimited access to core features for free, then charges for advanced features, higher limits, or premium support. The free tier converts a portion of users to paid customers while building network effects and reducing friction to adoption.",
+    "whyItMatters": "Freemium solves the chicken-egg problem: users try your product risk-free, lowering acquisition cost. But it's ruthless math—you need 2-5% conversion rates to be profitable, and you must ruthlessly cut the free tier enough that paying feels necessary. Most freemium businesses fail because founders overestimate conversion or underestimate free user costs.",
+    "howToApply": "Start by defining what goes free vs. paid. Free should showcase your core value—if users never hit the paywall, they don't see the problem you solve. Make the paywall clear early (usage limits, feature gates, or time-based). Track CAC on free users vs. LTV of paid users. The formula: (Paid Users × ARPU) > (Total Users × Monthly Cost Per User). If your conversion drops below 1%, optimize your paywall position or reconsider the model entirely.",
+    "commonMistakes": [
+      "Making the free tier too generous: users get full value without paying. The paywall must sit at the 'aha moment' boundary.",
+      "Charging for features instead of usage: charging per API call irritates users more than charging for 'Pro'. Consider packaging, not pure metering.",
+      "Ignoring unit economics: free users cost money to serve. If hosting costs $0.10 per user/month but you convert 0.5% at $15/month ARPU, you lose money on 99.5% of users."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model freemium economics before launch. Define your free tier scope, set conversion targets, and calculate the customer acquisition payback period so you know upfront if your freemium strategy works."
+  },
+  "relatedTerms": ["subscription-model", "conversion-rate", "customer-acquisition-cost"],
+  "synonyms": ["Free + Premium", "Freemium pricing"],
+  "seoTitle": "What is Freemium Model? | IdeaFuel Glossary",
+  "seoDescription": "Learn freemium pricing strategy for startups. How to design free vs. paid tiers, conversion targets, and unit economics."
+}

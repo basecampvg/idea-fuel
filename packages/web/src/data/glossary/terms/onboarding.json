@@ -1,0 +1,21 @@
+{
+  "slug": "onboarding",
+  "title": "Onboarding",
+  "category": "growth",
+  "shortDefinition": "The process of getting new users to their first meaningful success moment with your product.",
+  "content": {
+    "definition": "Onboarding is the structured experience you design to guide new users from sign-up to their first valuable action. It includes everything from welcome emails, in-app tutorials, progress indicators, to direct customer outreach. Great onboarding is invisible—it clears friction, answers questions before they're asked, and celebrates early wins. Bad onboarding is a tutorial users skip or abandon because it doesn't match their workflow.",
+    "whyItMatters": "Onboarding is where most products fail. Users don't care about features; they care about solving their problem. If you dump them into a blank screen without context, they churn. Studies show 20-30% of new users churn within the first week, most before completing onboarding. But onboarding done right multiplies your activation rate—users who complete your onboarding convert to retained customers 3-5x more often. It's also the most scalable way to improve activation without spending more on marketing. Better onboarding = more of your acquisition budget turns into revenue. It compounds over time because retained users refer others, reducing your CAC.",
+    "howToApply": "Start by mapping your activation metric—what single action shows users have realized value? First message, first report, first sale? Then ruthlessly simplify the path to that action. Remove every step that doesn't directly lead to activation. Use progressive disclosure—show only what users need now, not everything at once. Test your onboarding by watching real users struggle; their confusion points are your design failures. Build contextual help (tooltips, popovers) that answer questions in the moment users ask them, not in a pre-recorded tutorial. Celebrate early wins with feedback and progress visuals. Send time-triggered emails that anticipate common questions. Measure onboarding by tracking activation rate by cohort—if it dips, something broke. Iterate weekly based on user behavior data.",
+    "commonMistakes": [
+      "Creating lengthy tutorials users skip—show, don't tell; let them do the thing",
+      "Making onboarding one-size-fits-all when different user types need different paths",
+      "Launching onboarding and forgetting about it—user needs change; iterate based on retention data"
+    ],
+    "ideafuelConnection": "IdeaFuel's Customer Interview feature lets you watch how real users navigate onboarding and identify friction points you'd miss in analytics alone."
+  },
+  "relatedTerms": ["activation-rate", "time-to-value", "product-led-growth"],
+  "synonyms": ["User Activation", "Getting Started Flow"],
+  "seoTitle": "What is Onboarding? | IdeaFuel Glossary",
+  "seoDescription": "The process of guiding new users to their first valuable action with your product, critical to activation rates."
+}

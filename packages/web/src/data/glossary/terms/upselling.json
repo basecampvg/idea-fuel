@@ -1,0 +1,21 @@
+{
+  "slug": "upselling",
+  "title": "Upselling",
+  "category": "growth",
+  "shortDefinition": "Selling a higher-tier or premium version of a product to an existing customer.",
+  "content": {
+    "definition": "Upselling is the sales practice of convincing a customer to purchase a more expensive or feature-rich version of what they currently have. If a customer is on the Starter plan, you upsell them to Professional. If they're using your basic video editor, you upsell the pro version with advanced effects. The key distinction is they're upgrading the same product, not buying something adjacent.",
+    "whyItMatters": "Upselling is the highest-margin revenue available. You've already spent money acquiring the customer, proven value, and built trust. The incremental cost to serve them more is near zero. That means every dollar of upsell revenue drops almost entirely to the bottom line. A 10% upsell rate improvement can add 30%+ to profitability. It also creates optionality in your pricing strategy—you can keep your base tier cheap to onboard everyone, then monetize based on value received. Customers also feel better about upgrading than they do about paying higher prices at entry, making it a superior conversion mechanism.",
+    "howToApply": "Design your pricing tiers intentionally with gaps. The Starter plan should feel limiting for growing customers—they should outgrow it naturally within 3-6 months of real usage. Then put the Professional tier within reach, with clear feature differentiators that matter to growing users (more users, higher limits, deeper integrations, better support). Build upsell moments into the product—when users hit a limit, show the upgrade path. Notify customers via email when they're approaching those limits. Track which features are most used by Starter customers, then gate the next-level features behind Professional. Time your outbound upsell pitches to coincide with product milestones, not arbitrary calendar dates. Measure upsell conversion by segment and double down on what works.",
+    "commonMistakes": [
+      "Pricing tiers too close together—if Pro is only 20% more expensive, customers stay on base tier",
+      "Not building upgrade triggers into the product—friction kills upsells",
+      "Upselling too early before customers realize enough value—premature pitches damage trust"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model tiered pricing structures and calculate optimal gaps between tiers to maximize upsell conversion rates."
+  },
+  "relatedTerms": ["cross-selling", "expansion-revenue", "customer-lifetime"],
+  "synonyms": ["Plan Upgrade", "Premium Tier Sales"],
+  "seoTitle": "What is Upselling? | IdeaFuel Glossary",
+  "seoDescription": "Selling higher-tier versions of your product to existing customers, the highest-margin growth lever available."
+}

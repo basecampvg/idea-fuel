@@ -1,0 +1,21 @@
+{
+  "slug": "lead-scoring",
+  "title": "Lead Scoring",
+  "category": "marketing",
+  "shortDefinition": "A system for ranking leads by their likelihood to buy based on behavior and firmographics.",
+  "content": {
+    "definition": "Lead scoring quantifies which prospects are actually ready to buy. You assign points based on actions (downloaded whitepaper, visited pricing page, opened email) and attributes (company size, industry, job title). High-scoring leads go to sales immediately; low-scoring leads get nurtured longer.",
+    "whyItMatters": "Without lead scoring, your sales team wastes time chasing leads that will never buy while missing hot prospects ready to close. Scoring prevents the death spiral where sales blames marketing for bad leads while marketing complains sales isn't following up. It creates alignment and efficiency.",
+    "howToApply": "Start simple. Create a basic scoring model: assign points for high-intent actions (pricing page visit = 10 points, email click = 5 points) and fit signals (company size match = 20 points, target industry = 15 points). Set a threshold—leads scoring 50+ get a sales call. Track which leads actually convert and adjust weights. Did leads who visited pricing consistently buy? Increase that score. Did company size not matter? Remove it. Iterate quarterly. IdeaFuel's Business Plan Generator helps you define clear MQL and SQL criteria that connect to your pricing and target market.",
+    "commonMistakes": [
+      "Overcomplicating scoring before you have data. Start with three signals, not thirty. You need conversion history to justify complex models.",
+      "Mixing behavioral and demographic signals without testing. A lead who visited your competitor might actually be a better prospect than someone from the right company size.",
+      "Never validating. Set a scoring system, run it for 90 days, then check: did high-scoring leads convert more? If not, your model is wrong."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you define lead scoring thresholds that align with your sales process and identify your ideal customer profile based on firmographic data."
+  },
+  "relatedTerms": ["lead-generation", "marketing-qualified-lead", "sales-qualified-lead"],
+  "synonyms": ["Lead Qualification", "Prospect Ranking"],
+  "seoTitle": "What is Lead Scoring? | IdeaFuel Glossary",
+  "seoDescription": "Use lead scoring to prioritize prospects by buying likelihood and improve sales team efficiency."
+}

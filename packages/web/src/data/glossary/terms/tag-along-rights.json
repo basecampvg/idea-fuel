@@ -1,0 +1,21 @@
+{
+  "slug": "tag-along-rights",
+  "title": "Tag Along Rights",
+  "category": "fundraising",
+  "shortDefinition": "Allows minority shareholders to sell their shares on the same terms when majority shareholders do.",
+  "content": {
+    "definition": "Tag-along rights give minority shareholders the right to participate in a sale transaction on the exact same terms and price negotiated by majority shareholders. If investors are selling their preferred stock to an acquirer at $50 per share, tag-along rights allow founders and employees to sell their common stock at an equivalent price (adjusted for preferences). Unlike drag-along rights which force participation, tag-along rights give minority shareholders the option to join the deal without being forced.",
+    "whyItMatters": "Tag-along rights protect your downside as a founder and employee equity holder. Without them, investors could negotiate a deal that pays them in cash while you're asked to stay on as an employee or roll your equity into the buyer's structure at unfavorable terms. Tag-along rights ensure that if the majority is cashing out, you have the option to cash out too at the same price per-share basis. This is a founder-friendly protection that's typically required by founders in their startup agreements, though less commonly guaranteed in investor term sheets.",
+    "howToApply": "Push hard for tag-along rights in your founding team agreements and, if possible, in your investor term sheet. Ensure the language covers all types of transactions (asset sales, stock sales, mergers) so you're not trapped by creative deal structures. When negotiating an acquisition, confirm that your tag-along rights are intact and that the price the acquirer is offering reflects your right to participate. Calculate your actual payout by applying your tag-along rights to the deal value, accounting for preferred stock liquidation preferences that get paid first. Use IdeaFuel's Business Plan Generator to model exit prices and understand how tag-along rights impact your proceeds versus scenarios where you don't have this protection.",
+    "commonMistakes": [
+      "Assuming tag-along rights exist when they're not actually documented in your equity agreements",
+      "Not understanding that tag-along rights only give you the option to sell—you could choose to roll your equity if the terms are favorable",
+      "Forgetting that tag-along rights apply to all shareholders, so you're selling at the same per-share price but different absolute amounts based on your holdings"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator models acquisition scenarios with tag-along provisions included, showing you the difference between exits where you have tag-along protection versus those where you don't. This clarifies why this right is non-negotiable for founders."
+  },
+  "relatedTerms": ["drag-along-rights", "right-of-first-refusal", "equity"],
+  "synonyms": ["Co-Sale Rights", "Piggyback Rights"],
+  "seoTitle": "What are Tag Along Rights? | IdeaFuel Glossary",
+  "seoDescription": "Tag along rights definition: founder protection allowing minority shareholders to sell alongside majority shareholders. Equity agreement clause."
+}

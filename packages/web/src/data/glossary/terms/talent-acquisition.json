@@ -1,0 +1,21 @@
+{
+  "slug": "talent-acquisition",
+  "title": "Talent Acquisition",
+  "category": "strategy",
+  "shortDefinition": "The process of recruiting, evaluating, and hiring skilled people to fill roles critical to your business.",
+  "content": {
+    "definition": "Talent acquisition is your systematic approach to finding, vetting, and bringing on the people who'll execute your vision. It spans everything from job descriptions and sourcing channels to offer negotiation and onboarding. Done right, it's a competitive advantage — the best early-stage companies win on talent, not just ideas. TA includes: defining roles based on actual needs (not wishful thinking), reaching candidates through networks and targeted outreach, running technical assessments to filter for capability, interviewing consistently to compare candidates fairly, and closing offers that balance founder cash preservation with meaningful equity upside. Unlike large companies with HR departments, early-stage founders must be hands-on with hiring — this is where you set the tone for culture and execution quality.",
+    "whyItMatters": "Your first 5–10 hires make or break your company. Great teams compound; mediocre teams slow you down with every hire. Early-stage founders often overlook TA because it feels slow, but a bad hire costs 10x what a good hire produces. You're not just filling headcount — you're building a culture, setting standards, and establishing momentum. Poor hiring decisions cascade: one average early engineer signals that average is acceptable, so you attract more average engineers. Conversely, one exceptional early hire raises the bar and attracts stronger candidates. Talent acquisition gets harder at scale, so doing it right early means you have fewer expensive misses later and a stronger foundation for growth.",
+    "howToApply": "Start by writing brutally honest role descriptions that repel people who don't want the job (if you're a startup with $500K runway, say that). Source from your network first — warm introductions convert higher than cold outreach. For remaining slots, use targeted outreach on LinkedIn, GitHub, Twitter, or niche communities. Use technical assessments or portfolio reviews before interviews to filter for signal and save everyone time. Structure interviews with consistent questions across candidates so you can compare fairly. Move fast but don't compromise on core values or technical bar — one bad early hire teaches others it's okay to be average. Plan your equity strategy (option pool size, vesting schedule, refresh grants) before you hire, not after. Equity should be meaningful: early employee #1 gets 0.5–1% typically; employee #10 gets 0.05–0.1%. Vest over 4 years with a 1-year cliff so you both commit.",
+    "commonMistakes": [
+      "Hiring for fit over capability. Early stage needs generalists who can execute, not people who are 'just nice culture adds.' Capability compounds; pleasantness doesn't.",
+      "Moving slowly because you're afraid of hiring wrong, then rushing to fill roles with the first adequate candidate — which is worse.",
+      "Offering the same equity terms to employee #5 as employee #1. Early employees take outsized risk and should be compensated accordingly with larger equity grants."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan feature helps you model headcount, compensation, and equity costs so you can plan your hiring roadmap against realistic runway and unit economics. Project cash burn by team size and see exactly when you can afford each hire."
+  },
+  "relatedTerms": ["acqui-hire", "vesting-schedule", "option-pool"],
+  "synonyms": ["Hiring", "Recruitment", "People Operations", "HR"],
+  "seoTitle": "What is Talent Acquisition? | IdeaFuel Glossary",
+  "seoDescription": "Talent acquisition is systematic hiring of skilled people. Learn how to source, vet, and hire great early-stage team members."
+}

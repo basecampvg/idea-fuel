@@ -1,0 +1,21 @@
+{
+  "slug": "safe",
+  "title": "SAFE",
+  "category": "fundraising",
+  "shortDefinition": "Simple Agreement for Future Equity—debt-like instrument converting to equity upon a future funding event.",
+  "content": {
+    "definition": "A SAFE (Simple Agreement for Future Equity) is a contract between you and an investor that promises to convert the investor's cash into equity when a triggering event occurs, usually a Series A raise or exit. It's not a loan (no interest, no maturity date) and not equity (investor doesn't vote or get information rights yet). SAFEs are popular for seed-stage raises because they're fast, cheap, and kick the valuation question down the road until you have more traction.",
+    "whyItMatters": "SAFEs are founder-friendly at seed stage because you avoid setting an early valuation that might constrain Series A. They close in days, not weeks, and cost $1K-$2K in legal fees compared to $5K-$10K for a priced round. SAFEs are also investor-friendly because they're simpler than convertible notes (no interest rate to negotiate, no maturity date risk). The downside: SAFEs create cap table complexity because you have many small investors who convert at different times, and their conversion terms (valuation cap, discount) vary. They also put pressure on your Series A raise—you'll have SAFE holders expecting conversion, which affects your new investor's terms.",
+    "howToApply": "Use YCombinator's open-source SAFE template (free online) and have a startup lawyer customize it. Key terms to negotiate: valuation cap (the maximum price at which the SAFE converts—protects investors from future over-valuation), discount (if Series A is at $2M post-money and your SAFE has a 20% discount, you convert at $1.6M effective price), and pro-rata rights (the right to participate in the Series A to maintain your ownership %). For founders, push for a high valuation cap and resist pro-rata rights for seed investors (they'll have plenty of power by Series A anyway). Raise SAFEs until you have enough momentum for a priced Series A. Once you have multiple SAFEs out, keep a clean list of all of them—your Series A investors will demand it.",
+    "commonMistakes": [
+      "Using SAFEs as an excuse to avoid thinking about valuation, then facing a Series A at a much lower valuation and massive dilution from SAFE conversions",
+      "Issuing SAFEs with different terms (one investor gets a 10% discount, another gets 20%) and creating confusion during Series A conversion",
+      "Over-issuing SAFEs because they're easy, then having so many SAFE holders and conversion terms that your Series A becomes a legal nightmare"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model different SAFE scenarios and Series A conversion outcomes, so you understand the dilution impact before signing multiple SAFEs."
+  },
+  "relatedTerms": ["convertible-note", "seed-round", "valuation"],
+  "synonyms": ["Simple Agreement for Future Equity"],
+  "seoTitle": "What is a SAFE? | IdeaFuel Glossary",
+  "seoDescription": "Understand SAFEs: how they work, when to use them, and implications for your cap table and future fundraising."
+}

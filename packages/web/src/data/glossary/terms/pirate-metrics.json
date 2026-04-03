@@ -1,0 +1,21 @@
+{
+  "slug": "pirate-metrics",
+  "title": "Pirate Metrics (AARRR)",
+  "category": "growth",
+  "shortDefinition": "The five essential metrics tracking user journey: Acquisition, Activation, Retention, Revenue, Referral.",
+  "content": {
+    "definition": "Pirate Metrics, or AARRR (humorously pronounced like a pirate), is a framework created by Dave McClure that breaks down the entire user lifecycle into five measurable stages. Each stage represents a critical checkpoint in converting strangers into loyal, revenue-generating customers who advocate for your product.",
+    "whyItMatters": "Most founders fixate on acquisition—how do we get more users?—but that's only one-fifth of the equation. You can pour budget into top-of-funnel and watch it leak out the bottom if your activation sucks. Pirate Metrics forces you to measure the entire funnel and identify where you're actually losing money. A startup with 100k acquired users but 2% activation and 5% retention is less healthy than one with 10k users and 60% activation and 40% retention. Investors use this framework to stress-test your business model.",
+    "howToApply": "Start by defining each stage clearly for your business. Acquisition = sign-ups or installs. Activation = first meaningful action (successful login, first post, first payment, first test). Retention = return users after day 1, 7, 30, 90. Revenue = paying users or ARPU. Referral = invited friends, organic growth, NPS. Then benchmark each against industry standards for your category. Optimize top to bottom—don't scale acquisition if 80% of users churn after day 1. Build dashboards that surface these metrics weekly and make decisions based on which stage is your bottleneck.",
+    "commonMistakes": [
+      "Obsessing over acquisition when activation is broken—solving the wrong problem first wastes money",
+      "Not defining what each stage means for your business—ambiguity makes the framework useless",
+      "Ignoring the feedback loops between stages—a referral metric means nothing if customers churn quickly"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine helps you benchmark your metrics against competitors and industry standards, so you know which stage actually needs optimization first."
+  },
+  "relatedTerms": ["activation-rate", "retention-rate", "referral-marketing"],
+  "synonyms": ["Startup Metrics Framework", "User Lifecycle Metrics"],
+  "seoTitle": "What are Pirate Metrics (AARRR)? | IdeaFuel Glossary",
+  "seoDescription": "The five-stage framework tracking Acquisition, Activation, Retention, Revenue, and Referral in your customer lifecycle."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "common-stock",
+  "title": "Common Stock",
+  "category": "fundraising",
+  "shortDefinition": "Basic equity ownership class held by founders and employees, subordinate to preferred stock.",
+  "content": {
+    "definition": "Common stock is the standard form of equity ownership in a company, typically held by founders, employees, and sometimes early angel investors. It represents voting rights and a claim on company profits and assets, but comes after preferred stock in the liquidation waterfall. Common stockholders have basic governance rights—voting on major decisions—but no special liquidation or dividend preferences.",
+    "whyItMatters": "As a founder, your common stock is where your wealth ultimately comes from, but only if you build something valuable and exit profitably. However, once you raise venture capital, your common stock becomes subordinate to preferred stock, meaning investors get paid before you in a liquidation event. Understanding this power dynamic is essential: venture investors own preferred, you own common, and this structure creates aligned and misaligned incentives. Your vesting schedule (how quickly you earn your shares) also tied to common stock, protecting both you and your company.",
+    "howToApply": "At incorporation, you'll issue yourself common stock—typically split equally among co-founders or weighted by contribution. Set up a vesting schedule (usually 4 years with a 1-year cliff) so you genuinely earn your shares over time. Use IdeaFuel's Business Plan Generator to model how preferred stock dilutes your common equity over multiple funding rounds, so you understand what percentage of the company you'll own at Series A, B, and beyond. Keep vesting schedules documented and communicate clearly with co-founders about cliff dates and acceleration clauses. When hiring early employees, grant them common stock options (not shares) so they earn equity as they contribute.",
+    "commonMistakes": [
+      "Not implementing a vesting schedule, so you're 100% vested on day one and at risk if a co-founder leaves early",
+      "Underestimating dilution from preferred stock rounds, leading to shock when you realize you own 5% after Series B",
+      "Granting common stock directly to employees instead of options, creating cash tax liability and acceleration cliff issues"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator models your cap table across fundraising rounds, showing exactly how your common stock percentage changes with each preferred stock investment. This helps you project your ultimate ownership stake and understand the real economics of venture funding."
+  },
+  "relatedTerms": ["preferred-stock", "equity", "vesting-schedule"],
+  "synonyms": ["Founder Stock", "Employee Equity"],
+  "seoTitle": "What is Common Stock? | IdeaFuel Glossary",
+  "seoDescription": "Common stock definition: founder and employee equity ownership class, subordinate to preferred stock in liquidation. How cap tables work."
+}

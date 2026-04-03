@@ -1,0 +1,21 @@
+{
+  "slug": "economies-of-scale",
+  "title": "Economies of Scale",
+  "category": "strategy",
+  "shortDefinition": "Unit costs decrease as production volume increases, giving larger companies a cost advantage.",
+  "content": {
+    "definition": "Economies of scale occur when the cost per unit produced decreases as total production increases. A software company that serves 1,000 customers spreads fixed engineering costs ($500K/year) across 1,000 users ($500/user). A company serving 100,000 customers spreads the same cost across 100,000 users ($5/user). The bigger company has a per-unit cost advantage, allowing it to undercut competitors.",
+    "whyItMatters": "True economies of scale are a business moat—competitors can't match your margins at scale. But software is tricky: there are some fixed costs (engineering, servers, support), but marginal costs per new customer are near-zero. This creates a different dynamic than manufacturing. Understanding your cost structure determines if scale is actually a defensible advantage or just cheaper growth. Most SaaS founders confuse sales velocity with true economies of scale.",
+    "howToApply": "Break your costs into three buckets: fixed (engineering, facilities, management—don't scale with users), variable (cloud infrastructure, customer support—scale with users), and semi-variable (sales team, marketing—scale with new customer count, not existing user count). Calculate COGS (cost of goods sold) as fixed costs / number of customers + variable cost per customer. As you scale, fixed costs amortize—COGS drops. True economies of scale happen when fixed costs are dominant. If your COGS is 80% variable, scale doesn't help margin. If it's 60% fixed, scale is a moat. Measure gross margin at each scale (10 customers, 1,000, 100,000) to see if it improves with scale.",
+    "commonMistakes": [
+      "Confusing revenue growth with margin improvement: you can grow 5x while margins stay flat or even decline. Scale doesn't guarantee profitability if your CAC doesn't drop or COGS doesn't improve.",
+      "Ignoring support costs: early customers require high-touch support; you can automate later. But some customers (Enterprise) always need high touch. If 10% of customers consume 50% of support costs, scale doesn't help margin until you segment pricing.",
+      "Assuming infrastructure costs scale linearly: cloud costs are nonlinear (volume discounts on compute, but more customers = more infrastructure cost complexity). Measure actual COGS growth—it often shocks founders."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you calculate fixed vs. variable costs, project COGS at different scales, and model margin expansion. See if your business has true economies of scale before you chase scale at any cost."
+  },
+  "relatedTerms": ["barriers-to-entry", "gross-margin", "vertical-integration"],
+  "synonyms": ["Scale advantage", "Increasing returns"],
+  "seoTitle": "What are Economies of Scale? | IdeaFuel Glossary",
+  "seoDescription": "Understand economies of scale for startups: fixed vs. variable costs, COGS modeling, and margin expansion at scale."
+}

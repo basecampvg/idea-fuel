@@ -1,0 +1,21 @@
+{
+  "slug": "benchmarking",
+  "title": "Benchmarking",
+  "category": "analytics",
+  "shortDefinition": "Comparing your metrics against competitors or industry standards to gauge performance.",
+  "content": {
+    "definition": "Benchmarking is the process of measuring your business metrics against competitors, industry standards, or historical performance to understand where you stand. It's the foundation of knowing if your metrics are actually good or just look good in isolation.",
+    "whyItMatters": "Without benchmarks, you're flying blind. A 5% conversion rate sounds impressive until you realize your industry average is 8%. Benchmarking forces the hard conversations about whether you're outperforming or lagging, and it reveals where you should be investing effort. It's how you spot competitive advantages and weaknesses before your competitors do.",
+    "howToApply": "Start by identifying the metrics that matter most for your business—revenue per customer, CAC, churn rate, whatever drives profitability. Find comparable companies in your space and get their public metrics (earnings calls, SEC filings, industry reports). Create a simple spreadsheet comparing your numbers to theirs. Focus on 3-5 critical metrics, not everything. Review quarterly and adjust your strategy based on whether you're ahead or behind. Track the delta over time—improvement matters more than absolute position.",
+    "commonMistakes": [
+      "Benchmarking against companies that aren't actually comparable (comparing a B2B SaaS to a B2C marketplace)",
+      "Using outdated benchmarks from years past instead of current competitive data",
+      "Setting benchmarks too low just to hit them, rather than aspiring to beat the best in your category"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes competitor metrics and industry benchmarks, pulling together the data you need to benchmark your business without spending weeks on manual research."
+  },
+  "relatedTerms": ["key-performance-indicator", "okr", "competitive-moat"],
+  "synonyms": ["Performance Comparison", "Competitive Analysis"],
+  "seoTitle": "What is Benchmarking? | IdeaFuel Glossary",
+  "seoDescription": "Learn how to compare your metrics against competitors and industry standards to gauge performance and identify opportunities."
+}

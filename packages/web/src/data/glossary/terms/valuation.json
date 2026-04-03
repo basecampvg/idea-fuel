@@ -1,0 +1,21 @@
+{
+  "slug": "valuation",
+  "title": "Valuation",
+  "category": "fundraising",
+  "shortDefinition": "Estimated total value of your company used to determine investor ownership and dilution.",
+  "content": {
+    "definition": "Valuation is what investors and founders agree the company is worth before they agree on how much equity to sell. If you're raising $1M and investors say your company is worth $5M pre-money (before their money), they get 16.7% of the post-money valuation ($6M). Valuation is inherently subjective at early stage—it's based on market comparables, growth potential, team quality, and negotiating leverage rather than hard financial metrics.",
+    "whyItMatters": "Valuation directly affects how much equity you give away. Raise at a $10M pre-money for the same $1M and you give away only 9% (not 16.7%). Early-stage valuation compounds across rounds—if you're over-valued at seed, you'll struggle to raise Series A at a higher valuation, and investors will ask hard questions about why growth didn't match the seed assumptions. Under-valuing yourself means you give away more equity than you need to. Getting valuation right is also a signal of founder credibility; founders who have done diligent research on comparable companies and comparable rounds come across as serious.",
+    "howToApply": "Research comparable valuations by talking to other founders, reviewing AngelList and Pitchbook data (if accessible), and analyzing comparable companies in your space. For seed stage, consider the Berkus Method (target market, team, product, traction) or Dave Berkus's framework (each factor worth ~$250K). For Series A, use comparable company revenue multiples (SaaS often trades at 7-10x revenue) and work backwards. Know your walk-away price—the minimum valuation where you're comfortable with dilution. When negotiating with investors, get them to lead with a number first (anchoring principle); if they won't, anchor yourself at a defensible number backed by research. Be prepared to justify your valuation with a clear thesis on market size, growth path, and competitive moats. Don't get attached to a number; be flexible if your traction doesn't support it.",
+    "commonMistakes": [
+      "Anchoring your valuation on a previous investor's offer without considering what Series A will demand, setting yourself up for down rounds",
+      "Using arbitrary multiples of revenue (e.g., '3x our annual revenue') without market context, sometimes leading to valuations that seem insane to institutional investors",
+      "Valuing yourself so high that Series A investors balk, then settling for a down round that demoralizes the team and triggers anti-dilution disputes"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you model different valuations and their dilution impact, plus compare your asking price against comparable companies and market benchmarks."
+  },
+  "relatedTerms": ["pre-money-valuation", "post-money-valuation", "term-sheet"],
+  "synonyms": ["Company Valuation"],
+  "seoTitle": "What is Valuation in Fundraising? | IdeaFuel Glossary",
+  "seoDescription": "Complete guide to startup valuation: how it's calculated, why it matters, and how to negotiate it."
+}

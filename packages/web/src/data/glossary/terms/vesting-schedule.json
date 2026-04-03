@@ -1,0 +1,21 @@
+{
+  "slug": "vesting-schedule",
+  "title": "Vesting Schedule",
+  "category": "fundraising",
+  "shortDefinition": "A timeline determining when employees earn ownership of their granted equity.",
+  "content": {
+    "definition": "A vesting schedule specifies the timeline over which an employee or founder earns the right to keep their granted equity. If you grant 1% equity with a 4-year vesting schedule, the employee typically earns 0.25% per year (or 1/48th per month). If they leave before the schedule completes, they forfeit unvested shares.",
+    "whyItMatters": "Vesting schedules are essentially golden handcuffs. They ensure that only people who stick around long-term actually get their equity. This matters because equity is expensive capital that's easy to waste on employees who leave in month two. Vesting also aligns incentives: if the company sells in year 3, employees who've only vested 75% understand why the founder still owns meaningful equity. It's a fairness mechanism disguised as incentive alignment.",
+    "howToApply": "Standard market vesting is a 4-year schedule with a 1-year cliff. The cliff means an employee vests nothing for the first year; if they leave month 11, they get zero equity. After year one, they've vested 25%, then they vest monthly over the remaining 3 years. For founders granting equity to early employees, use the same schedule—this is what's expected. Be aware that the cliff creates risk for new hires; some will leave anyway and feel cheated. Offer cliff acceleration for exceptional hires if you want to reduce that risk.",
+    "commonMistakes": [
+      "Vesting equity too quickly (2-year schedules) and diluting founder control with unproven employees",
+      "Not having a cliff, which means employees can leave month 2 with 16% vested",
+      "Offering different vesting schedules to different early employees, creating equity drama later"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator models vesting schedules for your equity grants, showing the cash-flow implications of employee option exercises and tax obligations as equity vests."
+  },
+  "relatedTerms": ["cliff", "option-pool", "equity"],
+  "synonyms": ["Equity Vesting", "Equity Vest Period"],
+  "seoTitle": "What is a Vesting Schedule? | IdeaFuel Glossary",
+  "seoDescription": "Vesting schedules determine when employees earn equity. Understand cliffs and standard market terms."
+}

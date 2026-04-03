@@ -1,0 +1,21 @@
+{
+  "slug": "strategic-partnership",
+  "title": "Strategic Partnership",
+  "category": "strategy",
+  "shortDefinition": "Collaborating with complementary businesses to expand reach, capabilities, or market access without full acquisition.",
+  "content": {
+    "definition": "A strategic partnership is a formal agreement between two companies to achieve mutual goals—usually market expansion, capability sharing, or distribution acceleration. Unlike mergers, partnerships preserve independence while creating leverage. You keep your brand, your team, your strategy; you just borrow access to their customers, technology, or expertise. It's the fastest way to scale reach without burning cash on integration.",
+    "whyItMatters": "Partnerships are underrated by founders obsessed with product. But they move the dial faster than any feature release. A single distribution partnership can 10x your reach in 90 days. They're also lower-friction than M&A—no legal battles, no culture clash, no team layoffs. For early-stage founders, a strategic partnership often means the difference between death and survival. You get access to customers you couldn't otherwise reach, and you share both risk and benefit.",
+    "howToApply": "Identify companies with aligned but non-overlapping customers. If you're B2B SaaS, partner with agencies that serve your target market. If you're consumer, partner with distribution partners who already own audience. Be crystal clear on how both sides win—vague partnerships dissolve. Define metrics: what does success look like in 6 months? How are leads qualified? Who owns customer success? Lock this in writing before you invest engineering time. Start conversations early (Series A) but seal deals when you've proven traction.",
+    "commonMistakes": [
+      "Pursuing partnerships with larger companies without leverage. You're the minnow; they're the whale. They'll take your deal, extract IP, and move on. Only partner with equals or those who need you as badly as you need them.",
+      "Setting loose terms on customer data and IP. Partnerships require clear boundaries on who owns what. If a partner can poach your customers or claim equity in your IP, you've lost before you started.",
+      "Assuming partnerships substitute for sales execution. A partnership isn't a shortcut to PMF. It's a channel to reach customers—you still need to convert, support, and retain them."
+    ],
+    "ideafuelConnection": "Use IdeaFuel's business-plan and go-to-market features to map potential strategic partners, model revenue impact, and calculate customer acquisition cost (CAC) lift from partnership channels."
+  },
+  "relatedTerms": ["go-to-market-strategy", "distribution-channel", "merger-and-acquisition"],
+  "synonyms": ["Joint venture", "Co-marketing agreement", "Channel partnership"],
+  "seoTitle": "What is a Strategic Partnership? | IdeaFuel Glossary",
+  "seoDescription": "Scale fast with strategic partnerships. Learn how to structure deals that expand reach without full acquisition or dilution."
+}

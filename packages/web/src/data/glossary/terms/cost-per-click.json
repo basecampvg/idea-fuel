@@ -1,0 +1,21 @@
+{
+  "slug": "cost-per-click",
+  "title": "Cost Per Click",
+  "category": "marketing",
+  "shortDefinition": "The average amount you pay each time someone clicks your ad, calculated as total ad spend divided by total clicks.",
+  "content": {
+    "definition": "CPC is what you pay per click in paid advertising: (total ad spend / total clicks). If you spent $500 and got 100 clicks, your CPC is $5. CPC varies by platform (search ads are higher than social), keyword competitiveness, quality score, and audience.",
+    "whyItMatters": "Your CPC directly impacts your CAC. Higher CPC means you need more clicks to acquire each customer, which increases your customer acquisition cost. Understanding your CPC by channel, campaign, and keyword helps you allocate budget to efficient channels and cut losing ones. But focus on profitability, not just CPC—a $10 CPC is fine if it generates a $100 customer.",
+    "howToApply": "Benchmark your CPC against industry standards: B2B search averages $5-15 per click; B2C social averages $0.50-2. If your CPC is significantly higher, audit quality score (keyword relevance, landing page), targeting (too broad?), and bid strategy. Lower CPC doesn't always mean better results—raising your bid might reach more qualified prospects. Model your unit economics: if your CAC is $200 and LTV is $1,000, you can afford a high CPC if it converts well. IdeaFuel's Financial Modeling tool helps you calculate target CPC based on your LTV and acceptable CAC ratio.",
+    "commonMistakes": [
+      "Obsessing over lowering CPC without measuring conversion. A $10 click that converts at 10% costs the same CAC as a $1 click that converts at 1%. Quality matters more than price.",
+      "Not accounting for platform differences. Search CPC and social CPC are fundamentally different markets. Don't use social benchmarks to judge search performance.",
+      "Setting bids too low to get cheap traffic. You might get volume, but if it's the wrong audience, your overall CAC stays high."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you set CPC targets and budgets based on your LTV, acceptable CAC, and conversion rate projections."
+  },
+  "relatedTerms": ["click-through-rate", "return-on-ad-spend", "search-engine-marketing"],
+  "synonyms": ["CPC", "Pay-Per-Click Cost"],
+  "seoTitle": "What is Cost Per Click? | IdeaFuel Glossary",
+  "seoDescription": "Calculate and optimize cost per click to improve paid advertising ROI and reduce customer acquisition costs."
+}

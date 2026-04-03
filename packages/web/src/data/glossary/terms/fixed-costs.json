@@ -1,0 +1,23 @@
+{
+  "slug": "fixed-costs",
+  "title": "Fixed Costs",
+  "category": "finance",
+  "shortDefinition": "Business expenses that remain constant regardless of sales or production volume, like rent and salaries.",
+  "content": {
+    "definition": "Fixed costs are business expenses that don't change based on how much you sell or produce. Your rent, insurance, core team salaries, and annual SaaS subscriptions are fixed—you pay them whether you have 10 customers or 10,000. Fixed costs exist independently of revenue; they're the baseline burn you must cover just to keep the lights on.",
+    "whyItMatters": "Fixed costs are the enemy of early-stage startups and the reason unit economics matter obsessively. If your fixed costs are $50K/month and you only need to cover that burn, you can raise smaller rounds and keep ownership. But if they're $200K/month, you need much more capital and a faster path to profitability. Founders who understand fixed costs understand why 'revenue first' beats 'growth first'—if you can cover fixed costs with organic traction, you win. VCs want to see founders obsessed with fixed cost ratios: the lower your fixed costs relative to potential revenue, the faster you can reach profitability and the less dilution you take.",
+    "howToApply": "List every recurring expense and categorize ruthlessly. Your monthly fixed costs include: office rent (or co-working stipend), salaries for core team, health insurance, software subscriptions (AWS, payment processors, tools), accounting, legal retainer, and insurance. Calculate your monthly burn—this is what you must raise or generate in revenue to survive. Then ask: which fixed costs are non-negotiable vs. which are nice-to-have? Early stage, you should be able to articulate every fixed cost and defend why it exists. As you scale, you'll increase fixed costs strategically (hiring senior talent, building infrastructure), but every increase should be tied to a revenue assumption. Use this formula: Break-even point = Fixed costs ÷ contribution margin per unit. This shows exactly how many sales you need.",
+    "commonMistakes": [
+      "Treating fixed costs as negotiable when they're not—once you sign a lease or hire someone, it's locked. Build fixed costs conservatively.",
+      "Forgetting about non-salary fixed costs—people focus on payroll but forget insurance, software, rent, and professional services. Add them all up.",
+      "Scaling fixed costs before proving you need them—hiring VP of Sales before you have product-market fit is burning runway for no reason.",
+      "Not distinguishing fixed costs from variable costs—variable costs scale with sales (payment processing fees, hosting for more users). Keep them separate.",
+      "Ignoring opportunity cost of fixed costs—if you're spending $30K/month on a tool that generates $50K in revenue, it's profitable. If it generates $10K, you've got a problem."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you model fixed costs against different growth scenarios, showing exactly when you'll reach profitability and how much runway you need to get there."
+  },
+  "relatedTerms": ["break-even-point", "operating-expenses", "contribution-margin"],
+  "synonyms": ["Overhead", "Baseline Burn"],
+  "seoTitle": "Fixed Costs: Calculate & Reduce Your Startup Burn Rate | IdeaFuel",
+  "seoDescription": "Understand fixed costs and burn rate. Learn to calculate break-even point, differentiate from variable costs, and model profitability. SaaS founder's guide."
+}

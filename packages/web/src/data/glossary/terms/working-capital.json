@@ -1,0 +1,21 @@
+{
+  "slug": "working-capital",
+  "title": "Working Capital",
+  "category": "finance",
+  "shortDefinition": "Cash available to fund daily operations after covering short-term obligations.",
+  "content": {
+    "definition": "Working capital is your current assets minus current liabilities—essentially the cash buffer available to pay employees, suppliers, and rent without tapping reserves or external funding. It measures your ability to fund operations for the next 30-90 days. Positive working capital means you can operate; negative working capital means you're borrowing against the future.",
+    "whyItMatters": "Working capital is where most startups die. You can be profitable on paper and still run out of cash if customers pay in 60 days but you owe suppliers in 30. Many founders ignore it until they're three weeks from insolvency. Strong working capital discipline is often the difference between a company that survives downturns and one that doesn't. It's not sexy, but it keeps you alive.",
+    "howToApply": "Calculate working capital monthly and target a minimum of 60 days of operating expenses. Reduce the cash conversion cycle: collect faster (AR management), hold less inventory, and negotiate longer payment terms with vendors. Build a 13-week rolling cash forecast to spot working capital crunches two months out, giving you time to act. If you're tight, consider small vendor financing or early payment discounts to manage timing. For fast-growing companies, working capital often becomes the hidden constraint on growth—factor it into your expansion plans.",
+    "commonMistakes": [
+      "Growing revenue 100% year-over-year while watching working capital collapse",
+      "Assuming profitability means you're not in danger—cash flow and profit are different",
+      "Underestimating inventory or payables to make balance sheet look better than reality"
+    ],
+    "ideafuelConnection": "IdeaFuel's financial-modeling engine models working capital dynamics across revenue scenarios, calculates optimal cash conversion cycles, and flags when growth will outpace your cash runway."
+  },
+  "relatedTerms": ["cash-flow", "accounts-receivable", "operating-expenses"],
+  "synonyms": ["Operating Capital", "Net Working Capital"],
+  "seoTitle": "What is Working Capital? | IdeaFuel Glossary",
+  "seoDescription": "Understand working capital and how to calculate and manage it to ensure your startup has enough cash to operate."
+}

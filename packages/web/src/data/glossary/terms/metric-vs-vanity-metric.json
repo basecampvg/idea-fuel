@@ -1,0 +1,21 @@
+{
+  "slug": "metric-vs-vanity-metric",
+  "title": "Metric vs Vanity Metric",
+  "category": "analytics",
+  "shortDefinition": "True metrics drive decisions; vanity metrics feel good but don't correlate to business outcomes.",
+  "content": {
+    "definition": "A true metric changes how you behave because it reveals something actionable about your business. A vanity metric is impressive to mention but doesn't correlate to revenue, retention, or competitive advantage. Total sign-ups (vanity) versus percentage of sign-ups converting to paid (metric). Monthly active users (vanity) versus revenue per user (metric). The difference is consequence: metrics have teeth.",
+    "whyItMatters": "Organizations optimizing for vanity metrics are companies in freefall masquerading as growth stories. A fitness app can claim millions of downloads while hemorrhaging 85% of users within 7 days. A marketplace can hit $1M in GMV while losing money on every transaction. Vanity metrics are how you lie to yourself. Real metrics expose reality.",
+    "howToApply": "For each metric, ask three questions: (1) Does it drive a decision? (2) Does it correlate to revenue or strategic goals? (3) Can we influence it? If the answer to any is no, it's vanity. Track both—vanity metrics provide motivation and external credibility, while true metrics determine strategy. Example: total signups (vanity, motivating) + activation rate (metric, drives onboarding investment) + LTV/CAC ratio (metric, determines pricing and market). IdeaFuel's Research Engine helps you distinguish metrics that matter from noise by connecting them to actual revenue impact.",
+    "commonMistakes": [
+      "Celebrating metrics that move in the wrong direction—more sign-ups don't matter if conversion drops",
+      "Confusing correlation with causation—newsletter subscribers grew when you redesigned the website, but maybe it was PR",
+      "Using metrics as scorecards instead of question prompts—why did this metric move? Is it sustainable?"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your metrics to reveal which ones actually predict revenue and which are distracting vanity measures, ensuring your team optimizes for real business outcomes."
+  },
+  "relatedTerms": ["key-performance-indicator", "north-star-metric", "data-driven-decision-making"],
+  "synonyms": ["Actionable Metric vs Vanity Metric", "True Metric vs False Metric"],
+  "seoTitle": "What's the Difference: Metric vs Vanity Metric? | IdeaFuel Glossary",
+  "seoDescription": "True metrics drive decisions; vanity metrics feel good but don't correlate to outcomes. Learn to identify metrics that matter."
+}

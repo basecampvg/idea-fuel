@@ -1,0 +1,21 @@
+{
+  "slug": "page-views",
+  "title": "Page Views",
+  "category": "analytics",
+  "shortDefinition": "The total number of times your product pages are loaded by users.",
+  "content": {
+    "definition": "A page view is counted every time a user loads a page in your product—whether it's their first visit or their 100th. If a user reloads the same page, that's two page views. Page views are the most basic traffic metric. Total page views across all users is a vanity metric (easy to inflate, doesn't prove value). Page views per user or page views per session tells you something useful about engagement.",
+    "whyItMatters": "Page views alone are useless as a success metric. A site can have high page views but zero retention or revenue. But page views per user is meaningful—users exploring multiple pages are more likely to convert and retain. The comparison matters: 'we got 1 million page views' is noise; 'page views per user increased from 4 to 7' is signal. Page views also reveal navigation patterns: if 90% of page views are on the landing page and only 5% on the features page, users aren't exploring.",
+    "howToApply": "Don't optimize for total page views—it's a vanity metric that dies if you ever shrink traffic. Instead, track: average page views per session, page views per user by cohort, and the distribution of which pages get views. Watch for skew: if 80% of your page views are on one page, you're not giving users a reason to explore. Analyze your page views by behavior: are onboarding users viewing more pages than inactive users? (If not, your onboarding is failing.) Use page view patterns to understand user flow: create a sankey diagram of which pages flow to which. Then use that to optimize navigation. If users land on page A and 70% leave immediately, maybe A isn't a good entry point.",
+    "commonMistakes": [
+      "Using total page views as a success metric—it's too easy to inflate and says nothing about value",
+      "Not distinguishing between meaningful pages (signup, product features) and navigation cruft (modals, error pages)",
+      "Comparing page views across products with different navigation structures—a 5-page app will always have fewer page views than a 20-page app"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes page view patterns to understand where users spend time and where they get stuck. It identifies navigation friction and suggests feature or UX changes that increase productive page views."
+  },
+  "relatedTerms": ["unique-visitors", "session-duration", "organic-traffic"],
+  "synonyms": ["Impressions", "Page Loads"],
+  "seoTitle": "What is Page Views? | IdeaFuel Glossary",
+  "seoDescription": "Page views count total page loads in your product. Useful only when tracked per user or session, not as a vanity metric."
+}

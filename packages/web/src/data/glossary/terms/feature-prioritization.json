@@ -1,0 +1,21 @@
+{
+  "slug": "feature-prioritization",
+  "title": "Feature Prioritization",
+  "category": "product",
+  "shortDefinition": "The process of deciding which features to build next based on impact, effort, and strategic alignment.",
+  "content": {
+    "definition": "Feature prioritization is the discipline of saying no to 90% of ideas and saying yes to the 10% that matter most. It involves evaluating features against explicit criteria—user demand, business impact, implementation effort, and strategic alignment—then building a roadmap that focuses your team's limited capacity on the highest-leverage work.",
+    "whyItMatters": "Most teams don't prioritize; they just build what's loud or what they like. This leads to bloated products that do 50 things okay instead of 5 things exceptionally. Disciplined prioritization is the difference between building a product customers love and a product customers tolerate. It also forces you to make tradeoffs explicit: if we build feature A, we can't build feature B. This clarity prevents the delusion that you can do everything.",
+    "howToApply": "Start by identifying the metrics that actually matter to your business: user growth, retention, revenue, engagement, whatever moves your needle. Then, for every feature idea, estimate two things: how much will this move the metric? How much effort will it require? Plot these on a simple 2x2: high impact/low effort (do first), high impact/high effort (plan for later), low impact/low effort (nice to haves), low impact/high effort (kill). Test your assumptions with user research or interviews before committing. Use features as experiments—build the minimum version, measure the impact, then decide whether to invest more. IdeaFuel's Spark Validation helps you validate that the features you're prioritizing will actually move your key metrics.",
+    "commonMistakes": [
+      "Prioritizing based on developer interest instead of user impact—engineers build what's fun, not what matters",
+      "Adding features without measuring whether they had any effect—you can't learn from experiments you don't run",
+      "Spreading effort across too many features—releasing 5 mediocre features instead of 1 exceptional feature"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation helps you validate feature ideas against real user problems and market demand, ensuring your prioritization is based on reality, not assumptions."
+  },
+  "relatedTerms": ["product-backlog", "roadmap", "jobs-to-be-done"],
+  "synonyms": ["Feature Selection", "Roadmap Planning"],
+  "seoTitle": "What is Feature Prioritization? Framework & Best Practices | IdeaFuel Glossary",
+  "seoDescription": "Feature prioritization is systematically deciding which features to build based on impact and effort. Learn how to focus your team on high-leverage work."
+}

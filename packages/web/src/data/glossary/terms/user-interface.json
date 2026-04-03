@@ -1,0 +1,21 @@
+{
+  "slug": "user-interface",
+  "title": "User Interface",
+  "category": "product",
+  "shortDefinition": "The visual and interactive elements through which users interact with your product.",
+  "content": {
+    "definition": "A user interface (UI) is the collection of screens, buttons, menus, forms, and visual elements that enable users to interact with your product. It's the bridge between what your product does and what users actually experience. Every pixel, color choice, and interaction pattern directly impacts whether users succeed or fail with your product.",
+    "whyItMatters": "A poorly designed UI creates friction that kills adoption. Users won't stick around to figure out how your product works—they'll switch to a competitor. Conversely, an intuitive UI becomes invisible; users don't think about it, they just accomplish their goals. This directly impacts retention, support costs, and word-of-mouth.",
+    "howToApply": "Start by mapping the core user journey—what does your user need to accomplish first? Ruthlessly eliminate non-essential elements that create visual noise. Test your UI with actual users, watching where they get stuck or confused. Iterate based on real friction, not assumptions. Use consistent patterns for common actions so users build mental models. Remember: simplicity is a feature, not a limitation.",
+    "commonMistakes": [
+      "Cramming too many features into one screen because you built them—users don't care about features, they care about outcomes",
+      "Designing based on internal knowledge rather than user mental models—what seems obvious to you after months of work is confusing to new users",
+      "Treating UI design as decoration instead of the core product—ugly doesn't matter if it works, but broken is broken"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation gives you instant feedback on whether your UI is intuitive before you waste months building the wrong thing. Upload a wireframe or prototype and get real user reactions to your interface design."
+  },
+  "relatedTerms": ["user-experience", "wireframe", "prototype"],
+  "synonyms": ["UI"],
+  "seoTitle": "What is User Interface (UI)? | IdeaFuel Glossary",
+  "seoDescription": "Learn what makes a great user interface and why UI design directly impacts product adoption and user retention."
+}

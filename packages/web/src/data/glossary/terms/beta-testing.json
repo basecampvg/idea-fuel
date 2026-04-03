@@ -1,0 +1,21 @@
+{
+  "slug": "beta-testing",
+  "title": "Beta Testing",
+  "category": "product",
+  "shortDefinition": "Releasing a nearly-complete product to a limited group of users to find bugs and collect feedback before full launch.",
+  "content": {
+    "definition": "Beta testing is the phase where you release your product to a controlled group of external users before the official launch. These users aren't friends or colleagues—they're real people from your target market who use your product under real conditions. They find bugs your team missed, expose edge cases, and reveal whether the product actually solves their problem at scale.",
+    "whyItMatters": "Your team's perspective is poisoned. You know how it's supposed to work, so you unconsciously avoid triggering bugs. You assume features are obvious when they're confusing. External users see what you can't see. A solid beta testing phase catches 80% of problems that would tank your launch. It also builds your first cohort of advocates—early adopters who feel invested because you listened to their feedback.",
+    "howToApply": "Recruit 50-200 beta testers from your target market, stratified by use case if possible. Give them specific tasks or goals, not just 'play around.' Ask them to report bugs, confusing moments, and missing features. Set a clear timeline—beta usually runs 2-4 weeks. Create a feedback channel where they can report issues directly. Prioritize feedback by frequency and severity. Most importantly, actually fix things based on what you hear. Ignoring beta feedback signals that you don't care about user input.",
+    "commonMistakes": [
+      "Recruiting your friends and colleagues as beta testers—they'll be nice to you and their feedback won't match real users",
+      "Treating beta as a soft launch instead of a testing phase—if you can't handle criticism, you're not ready",
+      "Ignoring 'minor' complaints that multiple testers mention—'minor' means 'will annoy everyone'"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation helps you evaluate beta feedback systematically. Collect tester responses and get instant analysis of top issues and patterns before prioritizing fixes."
+  },
+  "relatedTerms": ["dogfooding", "usability-testing", "customer-feedback-loop"],
+  "synonyms": ["Beta release", "Limited launch"],
+  "seoTitle": "What is Beta Testing? | IdeaFuel Glossary",
+  "seoDescription": "Beta testing helps you find problems and validate your product before full launch with real users."
+}

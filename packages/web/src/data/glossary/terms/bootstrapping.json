@@ -1,0 +1,21 @@
+{
+  "slug": "bootstrapping",
+  "title": "Bootstrapping",
+  "category": "finance",
+  "shortDefinition": "Building and growing a company using only your own capital and revenue, without external investors.",
+  "content": {
+    "definition": "Bootstrapping means funding your startup entirely from your own pocket, early customer revenue, or credit (credit cards, business loans, vendor terms, family loans). You don't raise venture capital, angel investment, or outside equity. Every dollar spent comes from money you actually have, earned from customers, or borrowed on your personal guarantee (you're personally liable). This creates extreme capital discipline: you can't afford waste, and you have to find product-market fit or die trying because there's no investor cushion to fund you through a pivot. Bootstrap companies sink or swim on their own merits.",
+    "whyItMatters": "Bootstrapping forces clarity and ruthless prioritization. You can't blame external investors for strategy or throw marketing budget at broken products. You move fast because every decision is your money or personal debt leaving your pocket. You stay focused on revenue and unit economics from day one because that's your only lifeline—no seed round to give you a year of burn. Companies that bootstrap early often have stronger fundamentals than VC-funded companies: lower CAC (you can't waste on bad channels), better margins (you're obsessed with cost), and genuine product-market fit (because nothing else pays the bills). The downside: slower growth, potential runway limits, and no capital for aggressive market capture or team building. You lose the signaling value of investor backing, which can hinder fundraising later.",
+    "howToApply": "Start with brutal honesty about founder capital runway. How many months can you sustain zero revenue? Price your product to cover costs quickly—avoid the free-trial trap or freemium model that destroys unit economics. Target early customers willing to pay: they validate demand and fund the next phase. Get to your first $10K in monthly revenue before hiring anyone else. Track cash balance and burn rate daily, not monthly. Calculate cash runway obsessively: cash on hand divided by monthly burn = months of runway. Reinvest revenue into growth only if unit economics work (LTV > 3x CAC). Negotiate hard with vendors: many offer net-30, net-60, or even net-90 terms to cash-strapped startups. Consider founder loans, family money (structured as loans, not equity, to avoid disputes), or small business lines of credit to extend runway, but know the payback obligations and interest costs.",
+    "commonMistakes": [
+      "Underpricing product because you think you need to compete on price—bootstrapped startups should target customers who value quality and solutions, not price; this preserves margins and runway",
+      "Hiring too aggressively—fixed payroll (salary, benefits, taxes) kills bootstrap companies faster than almost anything; stay lean",
+      "Refusing outside capital out of principle when it's actually smart—sometimes outside investment lets you move faster, hire talent, and win market; be pragmatic, not ideological"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps bootstrapped founders model the exact runway and path to profitability. Adjust pricing, customer acquisition, and burn rate to find the sustainable path forward without external capital. See how different pricing strategies affect your cash runway."
+  },
+  "relatedTerms": ["runway", "burn-rate", "revenue-based-financing"],
+  "synonyms": ["Self-Funded", "Organic Growth", "Guerrilla Financing"],
+  "seoTitle": "What is Bootstrapping? Guide for Self-Funded Startups | IdeaFuel",
+  "seoDescription": "Bootstrapping is building without outside investors. Learn pros, cons, and strategies for self-funded startup success."
+}

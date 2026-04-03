@@ -1,0 +1,21 @@
+{
+  "slug": "venture-debt",
+  "title": "Venture Debt",
+  "category": "fundraising",
+  "shortDefinition": "Short-term debt financing designed for venture-backed companies to extend runway between equity rounds.",
+  "content": {
+    "definition": "Venture debt is a form of debt financing from specialized lenders (like Silicon Valley Bank, Mercury, or Lighter Capital) designed for venture-backed startups. Unlike traditional bank loans that require collateral and profitability, venture debt is structured for high-growth companies and often includes warrants (the ability to buy stock at a discount) alongside interest. Terms typically run 24-36 months with a low default assumption because venture debt is meant to bridge the gap between equity funding rounds—if you fail, the debt disappears in the next equity round or acquisition.",
+    "whyItMatters": "Venture debt is valuable because it extends your runway without diluting equity. If you have 12 months of runway but expect a Series B in 18 months, venture debt gives you the extra 6 months you need at much lower cost than raising a down round. The warrant component (typically 10-15% of debt raised) is the tradeoff—you're essentially giving lenders equity upside if you succeed. For most venture-backed founders, venture debt is a sensible bridge round after Series A when you have predictable burn and clear metrics showing a Series B is forthcoming.",
+    "howToApply": "Approach venture debt lenders after you've raised Series A and established clear metrics—they want to see product-market fit signals, growing revenue or usage, and a clear path to the next funding round. Be prepared to commit a percentage of future investment to debt repayment (typically 5-10% of Series B if you raise on schedule). Use IdeaFuel's Financial Modeling tool to run scenarios: if you raise venture debt now, how much of your Series B will go to repayment versus growth? Understand that venture debt accelerates your burn slightly due to interest payments, so only pursue it if you're confident in a near-term Series B. Negotiate warrant coverage carefully—10% is standard but sometimes negotiable to 5-8%.",
+    "commonMistakes": [
+      "Raising venture debt when you should focus on raising equity—if you're pre-PMF or have low confidence in a Series B, debt creates unnecessary risk",
+      "Underestimating the dilution impact of warrants—a 10% warrant is like giving investors a small equity stake at a discounted price, which can accumulate",
+      "Not fully accounting for interest payments in your burn rate projections, which can add 5-10% to your monthly costs"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool projects cash flow across venture debt and equity scenarios, showing exactly how debt payments affect your runway and what percentage of future funding goes to repaying debt versus reinvesting in growth."
+  },
+  "relatedTerms": ["bridge-round", "debt-to-equity-ratio", "runway"],
+  "synonyms": ["Bridge Loan", "Growth Loan"],
+  "seoTitle": "What is Venture Debt? | IdeaFuel Glossary",
+  "seoDescription": "Venture debt explained: bridge financing for venture-backed startups. Interest, warrants, and runway extension strategies."
+}

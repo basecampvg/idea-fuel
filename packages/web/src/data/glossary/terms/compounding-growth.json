@@ -1,0 +1,21 @@
+{
+  "slug": "compounding-growth",
+  "title": "Compounding Growth",
+  "category": "growth",
+  "shortDefinition": "Exponential expansion where growth accelerates as your user base and network effects increase.",
+  "content": {
+    "definition": "Compounding growth is exponential expansion where each period's growth becomes the foundation for the next period's acceleration. In month 1 you might add 100 users; in month 2, those 100 users refer others and compound your base to 250; in month 3, the larger base generates more referrals and you hit 500. The power comes from existing customers generating new ones at an increasing rate. This is the difference between linear (100+100+100) and exponential (100, 200, 400, 800) growth. Small changes in the monthly growth rate have massive compounding effects over time.",
+    "whyItMatters": "Compounding growth separates inevitable billion-dollar companies from sustainable-but-slow ones. A company growing 10% monthly might be stagnating; one growing 10% per day is compounding. Facebook, Instagram, and TikTok proved that once product-market fit is achieved, compounding growth can create trillions in value. Even modest compound rates (15-20% monthly) turn small teams into category leaders in 3-4 years. The earlier you establish compounding, the longer your window to dominate before competitors catch on. The math is relentless: 20% monthly growth turns 1,000 users into 1 million in roughly 24 months. This is why investors obsess over monthly growth rates and retention curves.",
+    "howToApply": "Compounding requires two things: retention and viral mechanics. Users must stick around long enough to generate referrals, and the product must have built-in mechanisms that make it contagious. Calculate your monthly retention rate (30-day or cohort retention) and k-factor. If retention is 60% and each user invites 1.5 others, your compounding rate is genuinely strong. If retention is 40%, focus there first before scaling acquisition—retention improvements have 5-10x more impact on long-term compounding than acquisition improvements. Model multiple scenarios: what happens if you improve retention by 5%? What if you boost k-factor by 0.2? Small improvements in retention and virality have outsized impacts on long-term trajectory. Track cohort curves obsessively over 6-12 months; they show you whether compounding is real or fragile. Compare recent cohorts to earlier cohorts—if newer cohorts have better retention or higher virality, you're on the right path.",
+    "commonMistakes": [
+      "Assuming early growth rates compound indefinitely—most markets have saturation points; adjust models for TAM. A product with 20% monthly growth won't 100x in 3 years because the addressable market is finite.",
+      "Focusing on acquisition before retention—you can't compound growth from a leaky bucket. If you're acquiring 1,000 users and losing 500 to churn, you're back to 500 net new; compounding doesn't exist.",
+      "Ignoring network effects—true compounding requires users to benefit from each other, not just from acquisition incentives. Network-effect products (Slack, Figma, Discord) compound; product-feature bundles don't."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool projects long-term compounding scenarios using your retention rates and viral coefficients, helping you set realistic growth targets and funding requirements for exponential expansion."
+  },
+  "relatedTerms": ["hockey-stick-growth", "growth-loop", "network-effects"],
+  "synonyms": ["Exponential Growth", "Acceleration", "Viral Expansion"],
+  "seoTitle": "What is Compounding Growth? | IdeaFuel Glossary",
+  "seoDescription": "Achieve exponential expansion. How retention and virality compound to create category leaders."
+}

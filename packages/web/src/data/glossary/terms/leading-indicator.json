@@ -1,0 +1,21 @@
+{
+  "slug": "leading-indicator",
+  "title": "Leading Indicator",
+  "category": "analytics",
+  "shortDefinition": "A metric that predicts future outcomes and can be influenced by current actions.",
+  "content": {
+    "definition": "A leading indicator is something you can observe and influence today that predicts results in the future. Customer adoption of a new feature (leading) predicts increased LTV in Q2 (lagging). Sales pipeline value (leading) predicts quarterly revenue (lagging). Engaged users who have completed onboarding (leading) predicts lower churn (lagging). Leading indicators are actionable—you control them now.",
+    "whyItMatters": "Waiting for lagging indicators to arrive is like flying an airplane using only the rearview mirror. You see that you crashed last month but can't prevent today's crash. Leading indicators give you steering control. Losing login frequency by 10% this week? That predicts 30% churn in 90 days—now you have time to intervene. A competitor's price drop? That predicts your deal close rate will drop—now you can adjust positioning.",
+    "howToApply": "Map your critical leading-to-lagging relationships. For a SaaS company: daily active users (leading) → monthly churn rate (lagging). Feature adoption (leading) → NRR (lagging). Time to first value in onboarding (leading) → activation rate (lagging). Once you've validated these correlations with 6+ months of data, start making decisions based on leading indicators instead of waiting 60-90 days for results. Set targets on leading indicators and hold teams accountable. IdeaFuel's Research Engine identifies which leading indicators in your business are the strongest predictors of revenue, eliminating the guessing game.",
+    "commonMistakes": [
+      "Assuming correlation equals causation—correlation always lags causation, not the reverse",
+      "Optimizing the leading indicator without verifying it still predicts the lagging outcome",
+      "Ignoring external factors that break historical relationships (market shift, competitor move)"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine identifies your strongest leading indicators and helps you set targets that maximize the probability of hitting lagging metrics like revenue and retention."
+  },
+  "relatedTerms": ["lagging-indicator", "key-performance-indicator", "predictive-analytics"],
+  "synonyms": ["Predictive Indicator", "Early Signal", "Forecast Metric"],
+  "seoTitle": "What is a Leading Indicator? | IdeaFuel Glossary",
+  "seoDescription": "Leading indicators predict future outcomes and can be influenced today. Learn to identify and optimize your predictive metrics."
+}

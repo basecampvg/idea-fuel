@@ -1,0 +1,21 @@
+{
+  "slug": "distribution-channel",
+  "title": "Distribution Channel",
+  "category": "strategy",
+  "shortDefinition": "Path by which your product reaches customers: direct sales, marketplace, partnerships, retail, self-serve, etc.",
+  "content": {
+    "definition": "A distribution channel is how your product gets to customers. Direct sales (founder sells to enterprise buyer). Marketplace (Shopify, App Store, AWS Marketplace). Partnerships (reseller sells your product to their customers). Retail (shelves, kiosks). Self-serve (customers find you online and buy). Each channel has different unit economics, time-to-revenue, and scalability. Most startups default to one channel (usually self-serve if B2C, direct sales if B2B) and assume it will work. The reality is that distribution is often the harder problem than the product. You can have the best product and die because you're using the wrong channel.",
+    "whyItMatters": "Distribution determines if you actually reach customers. Great product + wrong channel = death. Mediocre product + right channel = growth. This isn't cynical—it's economic reality. Sales-driven businesses (enterprise SaaS) require sales teams and take years to build. Marketplace businesses (consumer apps) need network effects or luck. Strategic partnerships can accelerate growth 10x in 90 days if structured right. Picking the wrong channel costs 2-3 years of your startup runway before you realize the mistake. Picking the right channel compounds growth from day one.",
+    "howToApply": "Map your customer and work backward to distribution. If you're selling to CTOs at enterprise companies, direct sales is required—you need a sales team and long cycle. If you're selling to price-sensitive SMBs, self-serve or marketplace might work but unit economics have to be tight. If you're consumer, partnerships often matter more than the product (TikTok won because it nailed the algorithm but also because it dominated in Asia first, then international, then US). Choose 1-2 channels to prove out, not 5. Too many channels means mediocre execution everywhere. Nail one, then expand. Also validate that your unit economics work in that channel. If CAC exceeds LTV, you're in the wrong channel or the unit economics are broken.",
+    "commonMistakes": [
+      "Assuming self-serve works for everyone. Self-serve is actually hard. Requires brand awareness, word-of-mouth, or SEO to drive visitors. If you're bootstrapping unknown startup with no brand, self-serve is brutal. Partner or direct sales might be faster to revenue.",
+      "Picking a channel that scales but doesn't fit your unit economics. Enterprise SaaS companies sometimes try to go self-serve too early when direct sales is more efficient. You can shift channels but it takes time.",
+      "Not owning your distribution. Marketplace businesses are exposed—Shopify could throttle your growth, Apple App Store could ban you. Own your distribution (direct relationship with customer) as much as possible. Use marketplaces to supplement, not as your only channel."
+    ],
+    "ideafuelConnection": "Use IdeaFuel's business-plan and go-to-market features to model unit economics across distribution channels, validate CAC vs LTV, and optimize your path to efficient growth."
+  },
+  "relatedTerms": ["go-to-market-strategy", "strategic-partnership", "inbound-marketing"],
+  "synonyms": ["Go-to-market channel", "Sales channel", "Customer acquisition path"],
+  "seoTitle": "What is a Distribution Channel? | IdeaFuel Glossary",
+  "seoDescription": "Choose the right path to customers. Learn how distribution channels impact growth, CAC, and founder survival."
+}

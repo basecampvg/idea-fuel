@@ -1,0 +1,21 @@
+{
+  "slug": "stickiness",
+  "title": "Stickiness",
+  "category": "growth",
+  "shortDefinition": "How frequently users return to your product, measured as DAU/MAU ratio.",
+  "content": {
+    "definition": "Stickiness is the percentage of your monthly active users (MAU) who return on any given day (DAU). If you have 100,000 MAU and 20,000 log in daily, your stickiness is 20% (DAU/MAU ratio). It's a simple metric that captures habit formation. High stickiness means your product is embedded in users' daily workflows. Low stickiness means users think of your product occasionally and forget about it between visits.",
+    "whyItMatters": "Stickiness determines unit economics and defensibility. A messaging app with 50% DAU/MAU can support higher CAC and premium pricing because users are dependent on it. A productivity app with 5% DAU/MAU is fragile—users can easily switch to competitors because they're not habituated. Stickiness also enables network effects and viral loops: sticky users invite others; dormant users don't. It's the difference between a moat and a feature. Investors look at stickiness before other metrics. A company with 2M MAU and 10% stickiness is less valuable than 500k MAU at 40% stickiness, because the second company has actual habit and retention power.",
+    "howToApply": "Calculate your DAU/MAU ratio monthly and segment by acquisition channel, user type, and feature usage. Benchmark against your competition. If you're building a daily-use product (messaging, social), you should target 40%+. If it's weekly (project management), 30% is strong. Monthly (accounting), 10-15% is expected. Then identify what separates your sticky users from dormant ones—what are they doing differently? Build more of that. Create engagement loops: notifications that draw users back, new content that rewards daily visits, streaks and achievements that incentivize habit. But don't use dark patterns—authentic stickiness comes from delivering real value repeatedly. Test changes by measuring impact on DAU/MAU, not just DAU (total growth can mask retention loss).",
+    "commonMistakes": [
+      "Chasing DAU growth without improving stickiness—you can have high DAU and low retention if new users churn fast",
+      "Using push notifications as a crutch instead of making the product inherently sticky—users disable notifications",
+      "Ignoring that different products have different natural stickiness—email might be weekly, a game should be daily"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine helps you benchmark your stickiness against competitors and identify which engagement patterns drive daily return behavior."
+  },
+  "relatedTerms": ["dau-mau-ratio", "engagement-loop", "retention-rate"],
+  "synonyms": ["Engagement Ratio", "Daily Active User Ratio"],
+  "seoTitle": "What is Stickiness? | IdeaFuel Glossary",
+  "seoDescription": "The DAU/MAU ratio measuring how frequently users return, indicating habit formation and product defensibility."
+}

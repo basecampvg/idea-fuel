@@ -1,0 +1,21 @@
+{
+  "slug": "serviceable-addressable-market",
+  "title": "Serviceable Addressable Market",
+  "category": "strategy",
+  "shortDefinition": "The portion of TAM your business could realistically capture with your product and distribution.",
+  "content": {
+    "definition": "Serviceable Addressable Market (SAM) is the slice of your Total Addressable Market that you can actually reach and serve given your product features, pricing, and go-to-market channels. It's TAM filtered by geography, customer segment, and your operational constraints. SAM is what you compete for immediately.",
+    "whyItMatters": "TAM is inspiring but useless—nobody builds a business by attacking a $100B market from day one. SAM is your real battleground. Investors care about SAM because it shows you understand your actual competitive landscape and have a realistic path to dominance in a defined segment. A $50M SAM with a clear capture strategy beats claiming a $10B TAM you can't reach.",
+    "howToApply": "Start by defining TAM (total market size for your category). Then apply hard filters: geography (U.S. only? Europe?), customer type (SMBs vs. enterprise?), use case (do they need your specific solution?), and distribution (can you reach them?). Model SAM as percentage of TAM—typically 5-15% depending on focus. Calculate it as: SAM = TAM × (% of serviceable segment) × (realistic capture within 3-5 years). Update SAM annually as you expand geographic footprint or add customer segments.",
+    "commonMistakes": [
+      "Confusing SAM with TAM and claiming a huge market without narrowing it down—investors immediately dismiss this as false bravado.",
+      "Setting SAM based on wishful thinking instead of distribution reality. You can't serve a market you can't reach or afford to acquire customers in.",
+      "Treating SAM as static. Your SAM grows as you expand product features, enter new geographies, or add distribution channels—revisit it each quarter."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your market and competitors to help you define SAM vs. TAM, showing you which customer segments are most valuable and where you have the strongest competitive position."
+  },
+  "relatedTerms": ["total-addressable-market", "serviceable-obtainable-market", "beachhead-market"],
+  "synonyms": ["Serviceable Market", "Available Market"],
+  "seoTitle": "What is Serviceable Addressable Market (SAM)? | IdeaFuel Glossary",
+  "seoDescription": "Learn how to calculate and apply Serviceable Addressable Market to find your realistic market opportunity and competitive advantage."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "email-marketing",
+  "title": "Email Marketing",
+  "category": "marketing",
+  "shortDefinition": "Sending targeted messages to a list of subscribers to build relationships, nurture leads, and drive conversions.",
+  "content": {
+    "definition": "Email marketing is direct communication with your audience without intermediaries or algorithms deciding what they see. You own the relationship. A subscriber list is an asset: if you had 10,000 email subscribers and your business disappeared today, you could start something new and reach all 10,000 with one message. Email includes: newsletters (regular updates), drip campaigns (automated sequences triggered by user behavior like signup or purchase), promotional emails (sales, product launches, special offers), and transactional emails (confirmations, receipts, password resets). Email remains one of the highest-ROI marketing channels: the average company earns $42 in return for every $1 spent on email marketing. That's a 4,200% ROI — far better than most other channels.",
+    "whyItMatters": "Email reaches people who have actively raised their hands to hear from you, so the audience is warm and engaged. Unlike social media, you're not competing for attention in a feed where an algorithm shows your post to 2% of your followers. Unlike ads, you control the entire message, narrative, and timing. Email builds retention: engaged subscribers come back repeatedly, reducing dependence on constant new customer acquisition. For SaaS and ecommerce, email is often the first channel that becomes profitable at scale — acquisition channels are expensive, but email's marginal cost is near-zero. A subscriber is worth 3–5x more than a follower because they've given you permission to reach them.",
+    "howToApply": "Grow your list relentlessly by offering something valuable in exchange for an email: a guide, tool, discount, exclusive content, or early access. Drive list growth through multiple channels: your website (pop-ups, forms), content (CTAs in blog posts), partnerships (co-marketing), and paid ads. Segment your list from day one: don't send the same email to a new subscriber and a customer of 2 years. Use automation: welcome series (first 5 emails to new subscribers), re-engagement series (win-back campaigns for inactive subscribers), and behavioral sequences (triggered by actions like downloading a resource or signing up for a webinar). Measure open rates (target 20–30% for most industries), click-through rates (target 2–5%), and conversions (revenue or leads per email). Test subject lines, send times, and copy systematically to improve performance. Segment by behavior: offer different content to free users than to paying customers.",
+    "commonMistakes": [
+      "Buying email lists. Your open rates will tank, spam complaints spike, and email providers will shut you down. Only email people who explicitly opted in.",
+      "Sending too infrequently or inconsistently. People forget they subscribed if you disappear for months. Send at least weekly or bi-weekly depending on your content availability.",
+      "Selling on every email and ignoring value. Build trust first, ask for the sale occasionally. Generic rule: 80% educational/valuable content, 20% selling."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan helps you forecast email-driven revenue and customer lifetime value so you can calculate the actual ROI of your email program and optimize list growth investments. Financial Modeling can project how email revenue scales with subscriber growth."
+  },
+  "relatedTerms": ["drip-campaign", "lead-nurturing", "click-through-rate"],
+  "synonyms": ["Email Campaigns", "Newsletter", "Email Automation"],
+  "seoTitle": "What is Email Marketing? | IdeaFuel Glossary",
+  "seoDescription": "Email marketing sends targeted messages to subscribers. Learn list building, segmentation, and automation for high ROI."
+}

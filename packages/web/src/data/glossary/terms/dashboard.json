@@ -1,0 +1,21 @@
+{
+  "slug": "dashboard",
+  "title": "Dashboard",
+  "category": "analytics",
+  "shortDefinition": "A visual interface displaying key metrics and data in real-time for quick decision-making.",
+  "content": {
+    "definition": "A dashboard is a centralized view of your most important metrics and KPIs, typically updated in real-time or near real-time. It's the single source of truth that lets you understand business health at a glance without digging through spreadsheets or reports.",
+    "whyItMatters": "Information that takes 10 minutes to find is information that never gets used. A good dashboard surfaces what matters and hides the noise. It's the difference between making decisions monthly (when you finally run reports) and making decisions daily. Dashboards democratize data—your entire team can see the same metrics and make informed choices without waiting for analytics to prepare reports.",
+    "howToApply": "Start by identifying your actual decision-makers and what they need to see. A CEO's dashboard looks different from an ops manager's dashboard. Include 4-8 core metrics maximum—more than that and it becomes clutter. Use color intentionally (red for bad, green for good) but avoid rainbow overload. Build with automation so it updates without manual intervention. Make it accessible—shared docs or tools your team already uses. Review metrics monthly and cut the ones that never drive decisions.",
+    "commonMistakes": [
+      "Building dashboards with vanity metrics instead of metrics that actually drive decisions",
+      "Creating custom dashboards so complex they require a manual to read",
+      "Setting it up once and never updating it as your business priorities shift"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine integrates with your data sources to build dashboards that surface competitive and market insights alongside your internal metrics."
+  },
+  "relatedTerms": ["key-performance-indicator", "descriptive-analytics", "data-driven-decision-making"],
+  "synonyms": ["Control Panel", "Metrics Hub", "Analytics View"],
+  "seoTitle": "What is a Dashboard? | IdeaFuel Glossary",
+  "seoDescription": "Discover how business dashboards display key metrics in real-time to enable faster, data-driven decision-making."
+}

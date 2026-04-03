@@ -1,0 +1,21 @@
+{
+  "slug": "customer-feedback-loop",
+  "title": "Customer Feedback Loop",
+  "category": "product",
+  "shortDefinition": "A system where you gather feedback, implement changes, and measure impact on customers.",
+  "content": {
+    "definition": "A customer feedback loop is a closed-loop system where you listen to customers, make decisions based on what you hear, ship changes, and then listen again to see if the change worked. Without closure, you're just collecting complaints—with it, you're building an engine that compounds your product fit.",
+    "whyItMatters": "Most startups gather feedback once, build for months, and ship hoping it lands. Companies that win do it weekly or monthly. Slack didn't dominate because it had the best chat product; it dominated because teams could give feedback and see changes within weeks. That cycle of trust—where customers see you're listening—is hard to replicate.",
+    "howToApply": "Schedule regular customer conversations (weekly minimum for early stage). Document what you hear systematically—spreadsheet or tool, doesn't matter. Share findings with your team. Pick one insight from the conversation and commit to testing it. Ship it. Then follow up with the same customers a week later to ask if that change mattered. Keep only what moved the needle. Discard the rest. Repeat. Create a public channel where customers see what's coming—transparency builds loyalty.",
+    "commonMistakes": [
+      "Collecting feedback but not acting on it—customers remember promises you don't keep",
+      "Implementing random requests instead of looking for consensus patterns across 5+ customers",
+      "Shipping changes without telling customers why, missing the chance to rebuild trust"
+    ],
+    "ideafuelConnection": "IdeaFuel's Customer Interview feature builds structured feedback loops by helping you track conversations, identify patterns across multiple interviews, and document what you're shipping in response. Close the loop with one tool."
+  },
+  "relatedTerms": ["user-research", "dogfooding", "build-measure-learn"],
+  "synonyms": ["Feedback Loop", "Customer Development Cycle", "Listening Cycle"],
+  "seoTitle": "What is a Customer Feedback Loop? | IdeaFuel Glossary",
+  "seoDescription": "Discover how a structured feedback loop lets you build products customers actually want, week after week."
+}

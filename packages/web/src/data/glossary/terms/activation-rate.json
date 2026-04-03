@@ -1,0 +1,24 @@
+{
+  "slug": "activation-rate",
+  "title": "Activation Rate",
+  "category": "growth",
+  "shortDefinition": "The percentage of new users who complete a key action that indicates they've experienced core product value.",
+  "content": {
+    "definition": "Activation rate is the percentage of users who complete a specific, high-value action—your 'aha moment'—that signals they've experienced why your product matters. For Slack, it's posting the first message in a channel. For Figma, it's creating and sharing a design. For Notion, it's creating a first database and customizing it. Activation isn't signing up; thousands of users sign up every day and abandon after 30 seconds. Activation is the moment they realize 'oh, I see how this saves me time' or 'this is how I'll collaborate with my team.' If you have 1,000 signups and 250 complete the activation action, your activation rate is 25%.",
+    "whyItMatters": "Activation rate is the most predictive metric for retention and lifetime value because it filters signal from noise. A signup means almost nothing; an activated user might convert to paying customer. Investors look at activation rate before any other metric because it shows product-market fit signals early. A 50% activation rate with 40% conversion to paid is venture-scale; a 5% activation rate means most users don't understand the value, and no amount of marketing will fix that. Activation rate is also directionally inversely correlated with churn. High activation (80%+) correlates to 85%+ retention. Low activation (10%) correlates to 60%+ churn. This is why PLG companies obsess over onboarding: if you can get new users to activate within their first 5 minutes, they're statistically more likely to stay and pay.",
+    "howToApply": "Define your activation action ruthlessly. What's the minimum viable thing a user must do to experience core value? For a note-taking app, it's creating a note with at least 50 characters. For collaboration software, it's inviting 1+ team member. For an analytics tool, it's installing a tracking snippet and seeing the first data point. Keep it simple—one action, maximum. Track activation by day 1, day 7, day 30. Most signups activate within 24 hours or never; the 24-48 hour window is critical. Measure activation rate by cohort, by channel (organic vs. paid, web vs. mobile), and by user segment (SMB vs. enterprise). You'll likely find that organic users have 40% activation while paid ads have 15%—that tells you paid ads are attracting the wrong users. Use activation rate to set hiring and roadmap priorities. If activation is 5%, hire product/design to fix onboarding before hiring sales. If activation is 80% but retention is 40%, you've got a product feature problem, not an onboarding problem.",
+    "commonMistakes": [
+      "Defining activation too broadly—if 'visiting the homepage' counts as activation, your metric is meaningless. Activation must be valuable action, not just presence.",
+      "Measuring activation only at day 1—many users activate after a few days when they have time to explore. Track cumulative activation over time.",
+      "Ignoring onboarding's role in activation—if your onboarding tells users exactly where to find the activation action, activation rates spike. Onboarding is your secret weapon.",
+      "Conflating activation with retention—a user can activate (create a note) and never return (abandon forever). Activation and retention are different.",
+      "Using activation metrics from other companies—Figma's 'open a design file' is not your product's aha moment. Define it for your specific product.",
+      "Not acting on low activation rates—if activation is 10%, don't hire customer success to nurture those users. Fix the product first."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes activation metrics in your market category and identifies what actions signal core value for similar products, while its analytics help you track activation rates by cohort and channel to optimize onboarding."
+  },
+  "relatedTerms": ["onboarding", "time-to-value", "pirate-metrics"],
+  "synonyms": ["Aha Moment Rate", "User Engagement Conversion"],
+  "seoTitle": "Activation Rate: Calculate, Optimize & Track | IdeaFuel",
+  "seoDescription": "Master activation metrics and aha moments. Learn how to increase activation rate, improve onboarding, and predict retention and revenue."
+}

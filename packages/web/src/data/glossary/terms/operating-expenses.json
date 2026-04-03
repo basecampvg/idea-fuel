@@ -1,0 +1,21 @@
+{
+  "slug": "operating-expenses",
+  "title": "Operating Expenses",
+  "category": "finance",
+  "shortDefinition": "Costs required to run daily business operations excluding cost of goods sold.",
+  "content": {
+    "definition": "Operating expenses (OpEx) are the costs to keep your business running day-to-day: salaries, rent, utilities, marketing, software subscriptions, insurance, and professional services. They exclude the direct costs of producing goods or services (COGS). OpEx appears on your income statement and is subtracted from gross profit to calculate operating income.",
+    "whyItMatters": "Your OpEx is your burn rate in a way COGS isn't—it's the non-negotiable cost of existing. For startups, OpEx grows predictably but revenue often doesn't, creating a dangerous math. A 20-person early-stage company might spend 150K/month on salaries plus 50K on overhead but only generate 80K in revenue. That gap is your runway problem. Controlling OpEx is often your only lever when growth stalls.",
+    "howToApply": "Build a detailed OpEx budget by category and track actual spending weekly, not monthly. Set clear limits per department and review them quarterly. Challenge assumptions: do you need that office, or can you shift to distributed? Can contractors replace full-time hires for certain roles? Automate what you can to reduce operational drag. For SaaS companies, aim to grow revenue 3x faster than OpEx growth—if both grow at the same rate, you'll never reach profitability. Use OpEx as a forcing function: if you can't afford 50 people, don't hire them hoping to grow into it.",
+    "commonMistakes": [
+      "Letting OpEx creep up with each hire without revisiting the unit economics",
+      "Treating all OpEx as fixed when some is discretionary (travel, events, tools)",
+      "Growing OpEx to support a revenue forecast that doesn't materialize"
+    ],
+    "ideafuelConnection": "IdeaFuel helps you model OpEx by category, project burn rate under different growth scenarios, and identify which expense reductions have the highest impact on runway extension."
+  },
+  "relatedTerms": ["capital-expenditure", "ebitda", "burn-rate"],
+  "synonyms": ["Operating Costs", "SG&A"],
+  "seoTitle": "What are Operating Expenses? | IdeaFuel Glossary",
+  "seoDescription": "Define operating expenses and learn how to control them to improve startup profitability and extend runway."
+}

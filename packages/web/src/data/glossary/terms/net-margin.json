@@ -1,0 +1,23 @@
+{
+  "slug": "net-margin",
+  "title": "Net Margin",
+  "category": "finance",
+  "shortDefinition": "Percentage of revenue remaining after all expenses, including operating costs and taxes.",
+  "content": {
+    "definition": "Net Margin is the percentage of revenue that becomes actual profit after subtracting all expenses: cost of goods sold, operating expenses, interest, taxes, and other costs. It's calculated as (Net Income / Revenue) × 100. For a $10M revenue company with $2M in profit, net margin is 20%. It's the true bottom line—what actually goes into your bank account (or investor pockets).",
+    "whyItMatters": "Net margin tells you if you have a sustainable business or a money-losing operation. Early-stage startups often run 80-90% negative net margins because they're reinvesting all revenue into growth. Mature SaaS companies typically run 20-40% net margins. The path from negative to positive net margin is your path to independence—staying profitable on your own terms instead of needing constant external funding. VCs care about gross margins; customers care about net margins (lower prices often improve net margins through volume).",
+    "howToApply": "Start calculating monthly net margin as soon as you have real revenue. Divide net income (or net loss) by total revenue. Watch for inflection points where net margin improves significantly—this signals that unit economics are working and scale is helping. Plot net margin improvement over time; it should gradually trend positive as you scale. Don't obsess over positive net margin pre-product-market fit, but do track it relentlessly post-PMF. Use this to communicate with your board: 'We're at negative 40% net margin but improving 5% per quarter, hitting profitability in 18 months.' IdeaFuel's Financial Modeling tool projects your net margin trajectory based on growth and spending assumptions.",
+    "commonMistakes": [
+      "Confusing net margin with EBITDA—EBITDA excludes depreciation, interest, and taxes. Net margin is true profit after everything.",
+      "Comparing net margins across companies in different industries—a 5% margin is great for retail, terrible for software.",
+      "Ignoring one-time expenses—stock options vest, equipment depreciates, litigation settles. Include these in net income.",
+      "Using pro forma net margin instead of actual—'we'll hit 25% when we scale to $50M' is fantasy if you're currently losing money at $5M.",
+      "Not separating operating profit from net margin—you need to know both to understand where money is actually lost."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool projects your net margin trajectory based on growth and spending assumptions, showing your path to profitability."
+  },
+  "relatedTerms": ["gross-margin", "operating-expenses", "ebitda"],
+  "synonyms": ["Profit Margin", "Net Profit Margin", "Bottom Line"],
+  "seoTitle": "Net Margin: Calculate Profitability & Path to Sustainability | IdeaFuel",
+  "seoDescription": "Understand net margin, track profitability metrics, and plan your path from loss to profit. Essential metric for sustainable startup business models."
+}

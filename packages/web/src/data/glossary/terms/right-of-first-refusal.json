@@ -1,0 +1,21 @@
+{
+  "slug": "right-of-first-refusal",
+  "title": "Right of First Refusal",
+  "category": "fundraising",
+  "shortDefinition": "Gives existing shareholders the right to purchase new shares before external parties can buy them.",
+  "content": {
+    "definition": "Right of first refusal (ROFR) is a contractual right that allows existing shareholders—typically investors and sometimes founders—to purchase newly issued shares before the company can offer them to external parties. If a company decides to raise capital at a certain valuation, ROFR holders get the opportunity to invest at that same price first. If they decline, the company can then offer shares to external investors. This prevents existing shareholders from being diluted by new investors unless they choose not to participate.",
+    "whyItMatters": "ROFR is a founder-friendly protection against unwanted dilution and maintains your influence in capital raises. If you negotiated ROFR into your shareholder agreement or employee option grants, you can participate in future rounds at the same price as lead investors, preserving your percentage ownership. For investors, ROFR is essential because it prevents founders from issuing shares to external parties at terms that disadvantage existing shareholders. The real power of ROFR emerges in down rounds—if you raise at a lower valuation in Series B, ROFR holders can double down to maintain their stake or decline and get diluted.",
+    "howToApply": "Include ROFR in your founding shareholder agreements with other co-founders, and push for it in your employee option plan so early hires can participate in future rounds. When raising capital, inform all ROFR holders of the terms being offered (valuation, amount, liquidation preferences) and give them a defined period to commit (usually 10-15 days). If raising at an up round, ROFR holders will likely exercise to maintain percentage ownership. In down rounds, many will decline because doubling down makes less financial sense. Use IdeaFuel's Business Plan Generator to model how ROFR affects your ability to raise future rounds and how it impacts percentage ownership across multiple funding rounds.",
+    "commonMistakes": [
+      "Granting ROFR too broadly to employees or advisors, which slows fundraising because you need approval from dozens of people",
+      "Not including ROFR in your founding agreements, leaving you vulnerable to dilution if co-founders invest new capital at different terms",
+      "Assuming ROFR gives you veto power over future raises—it doesn't, it just gives you the option to buy before outsiders can"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator shows how ROFR participation in future rounds affects your cap table and ownership percentage, helping you model whether you can realistically exercise ROFR when capital raises happen."
+  },
+  "relatedTerms": ["drag-along-rights", "tag-along-rights", "lead-investor"],
+  "synonyms": ["Pro Rata Rights"],
+  "seoTitle": "What is Right of First Refusal? | IdeaFuel Glossary",
+  "seoDescription": "Right of first refusal (ROFR) explained: shareholder right to purchase new shares before external investors. Equity protection clause."
+}

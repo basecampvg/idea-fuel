@@ -1,0 +1,21 @@
+{
+  "slug": "cross-selling",
+  "title": "Cross-selling",
+  "category": "growth",
+  "shortDefinition": "Selling complementary or adjacent products to existing customers.",
+  "content": {
+    "definition": "Cross-selling is the practice of offering related but distinct products to customers who've already bought from you. If you sell project management software and a customer loves it, you cross-sell them time tracking or invoicing. If they're using your CRM, you cross-sell email automation or analytics. The product is different, but it solves a related problem in the same workflow or domain.",
+    "whyItMatters": "Cross-selling increases wallet share from existing customers and deepens lock-in. A customer using three tools from you is more sticky than a customer using one. It's also easier to sell across a product suite than to sign new customers. You don't need to re-prove your company credibility or product value. Existing customers already trust you and understand how you work. Cross-sell is cheaper than acquisition, faster than expansion (no implementation barrier), and turns customers into ecosystem users. Microsoft's Office suite works because customers can buy Excel, then add Word, PowerPoint, and Teams. Each sale increases the switching cost and deepens dependency.",
+    "howToApply": "Audit your customer workflows to find adjacent problems you could solve. Talk to your best customers—where else are they struggling? Map these problems to potential products or partnerships. Then identify which customers are most likely to buy the adjacent product based on usage patterns or firmographic data. Build in-app education about your other solutions into the main product. When a customer reaches a natural friction point (email list growing too fast to manage manually, templates getting complex), recommend the complementary solution. Price the bundle slightly below the sum of parts to incentivize adoption. Measure cross-sell rates by product line and expand your suite based on what sells.",
+    "commonMistakes": [
+      "Cross-selling products that don't integrate or work together—customers see it as opportunistic",
+      "Recommending adjacent products too early before the core product shows value",
+      "Launching cross-sell products that don't actually solve real customer problems you've validated"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model cross-sell revenue and product roadmaps that create complementary solutions within your ecosystem."
+  },
+  "relatedTerms": ["upselling", "expansion-revenue", "customer-lifetime"],
+  "synonyms": ["Adjacent Sale", "Ecosystem Expansion"],
+  "seoTitle": "What is Cross-selling? | IdeaFuel Glossary",
+  "seoDescription": "Selling complementary products to existing customers, deepening wallet share and ecosystem lock-in."
+}

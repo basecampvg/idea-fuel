@@ -1,0 +1,21 @@
+{
+  "slug": "flat-round",
+  "title": "Flat Round",
+  "category": "fundraising",
+  "shortDefinition": "A funding round at the same valuation as the previous round, indicating stalled growth.",
+  "content": {
+    "definition": "A flat round is a funding round where the company raises capital at the same valuation as the previous round. Rather than increasing in value (an up-round) or decreasing (a down-round), the company's valuation remains static between funding events.",
+    "whyItMatters": "Flat rounds are warning signals to investors and employees alike. They suggest the company hasn't achieved meaningful milestones or grown its market position since the last raise, potentially indicating slower-than-expected traction. This creates psychological momentum issues and can complicate fundraising for future rounds.",
+    "howToApply": "If you're facing a flat round scenario, focus relentlessly on unit economics and retention metrics rather than raw growth numbers. Investors will scrutinize whether your burn rate justifies continued funding at the same valuation. Use this as pressure to hit concrete milestones before the next fundraise: new partnerships, product launches, or customer growth. Be transparent about the business reality—founders who acknowledge flat rounds and explain the path forward gain more credibility than those who hide it.",
+    "commonMistakes": [
+      "Accepting a flat round without renegotiating terms or pushing for milestone-based increases",
+      "Failing to demonstrate why growth slowed and what changed to justify future fundraising",
+      "Treating a flat round as a loss rather than a tactical reset to refocus on execution"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps founders model scenarios where valuation stalls, showing the impact on dilution and runway. Use it to stress-test different fundraising outcomes and determine which metrics matter most before approaching investors."
+  },
+  "relatedTerms": ["down-round", "up-round", "valuation"],
+  "synonyms": ["Static Valuation Round"],
+  "seoTitle": "What is a Flat Round? | IdeaFuel Glossary",
+  "seoDescription": "Flat rounds occur when companies raise at the same valuation as previous rounds. Learn why they matter and how to navigate them."
+}

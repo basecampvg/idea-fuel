@@ -1,0 +1,21 @@
+{
+  "slug": "growth-loop",
+  "title": "Growth Loop",
+  "category": "growth",
+  "shortDefinition": "A self-reinforcing cycle where product usage directly generates more users and engagement.",
+  "content": {
+    "definition": "A growth loop is a product mechanism where user action naturally drives additional user acquisition and engagement without explicit incentives. Unlike referral loops that require rewards or incentive structures, growth loops are built into the core product experience and feel organic to the user. Slack's channels create growth loops—when someone joins a workspace, they see channels, invite colleagues to relevant ones, and those colleagues activate faster because the loop is already running. Gmail's growth loop was forwarding and email—every email sent to a non-Gmail user was an invitation.",
+    "whyItMatters": "Growth loops are the highest-ROI acquisition strategy because they require no separate budget and improve product experience simultaneously. Each user action compounds the growth engine. Products with strong growth loops can achieve unicorn status with minimal external capital because user acquisition is free and automatic. Dropbox, Slack, Figma, and Notion all scaled to billions largely through refined growth loops. The best part is that improving the growth loop typically makes the product better for existing users, creating a virtuous cycle where you invest in product improvements that simultaneously drive acquisition.",
+    "howToApply": "Map the actions users take when they first experience value from your product. Identify which of those actions naturally exposes the product to others—sharing, inviting, collaborating, publishing, or integrating. Engineer the product so these high-value actions happen faster and with less friction. The loop closes when someone exposed to the product activates, repeats the cycle, and exposes more users. PayPal's growth loop was payment—each transaction exposed the product to a new user who could receive future payments or send money themselves. Figma's loop is collaboration—inviting a teammate creates a user account and activates them faster than traditional signup flows. Design for multiple loops; the strongest products compound several mechanisms simultaneously. Map the speed of each loop (how quickly does a new user get exposed after a user takes action?), and prioritize loops with the fastest cycles.",
+    "commonMistakes": [
+      "Confusing growth loops with growth hacks—hacks are short-term tricks; loops are permanent infrastructure. A growth hack might work for two weeks; a growth loop compounds for years.",
+      "Building loops that require friction—if inviting teammates creates bureaucratic overhead, the loop breaks. Figma's success is partly because inviting collaborators is a single-click operation, not a permissions dialog.",
+      "Measuring activation instead of the loop—track users acquired through loop mechanisms separately to see if they're self-sustaining. If loop-acquired users have lower retention or virality than directly-acquired ones, your loop is broken."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you identify and model growth loops in your product, showing you how to prioritize features that strengthen viral mechanics and reduce dependency on paid acquisition."
+  },
+  "relatedTerms": ["referral-loop", "product-led-growth", "viral-coefficient"],
+  "synonyms": ["Viral Loop", "Product Loop"],
+  "seoTitle": "What is a Growth Loop? | IdeaFuel Glossary",
+  "seoDescription": "Build self-sustaining growth. Product mechanisms that acquire users automatically."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "lock-in",
+  "title": "Lock-in",
+  "category": "strategy",
+  "shortDefinition": "Structural design that makes it expensive or difficult for customers to leave your product.",
+  "content": {
+    "definition": "Lock-in refers to customer retention mechanisms that make switching products expensive or operationally difficult, even if a better alternative exists. Lock-in can be contractual (2-year agreements, early termination penalties), technical (proprietary formats, deep integrations), or behavioral (customer data, switching costs, trained employees). It's distinct from customer satisfaction—a locked-in customer might be unhappy but stuck.",
+    "whyItMatters": "Lock-in is the dirty secret of B2B software. High-growth SaaS companies often overestimate product quality and underestimate their lock-in. Salesforce and Microsoft have exploded not because their products are the best, but because they're deeply integrated into thousand-person organizations. Once Oracle is running your entire back-office, the switching cost is measured in millions. Lock-in enables pricing power: locked-in customers tolerate price increases. But lock-in is also fragile—it only works if customers feel they're treated fairly. Over-exploit lock-in (raise prices aggressively, slow innovation) and a competitor will undermine you by making switching cheap.",
+    "howToApply": "Design lock-in deliberately: (1) Make your data format proprietary so exports are painful. (2) Build deep integrations that other tools depend on—if they use your API in 100 places, moving is expensive. (3) Use switching costs: integrations, training, workflow customization, historical data. (4) Create behavioral lock-in by building features customers depend on for their identity or team culture. Slack's lock-in comes from millions of message threads teams can't easily migrate. But don't let lock-in substitute for product quality. Customers will tolerate lock-in if they also see innovation and care. Exploit lock-in without delivering value, and you're vulnerable.",
+    "commonMistakes": [
+      "Building lock-in before product-market fit: if your product isn't valuable, lock-in backfires. Customers become resentful and churn the moment switching costs drop. Build a great product first, then add lock-in.",
+      "Making lock-in too visible: if customers feel trapped, they become antagonistic. Hide lock-in inside features and integrations. Slack's lock-in is barely visible—users just love the product and the switching cost is a side effect.",
+      "Assuming switching costs are permanent: technology changes. APIs evolve. Data formats become obsolete. Ten years ago, switching from SAP was impossible. Today, companies do it routinely. Don't assume your lock-in is forever. Keep innovating or someone will make switching cheap."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine identifies lock-in mechanisms in competitive markets and helps you design ethical lock-in into your model. Build switching costs into your product architecture from day one, not as an afterthought."
+  },
+  "relatedTerms": ["switching-costs", "razor-and-blades-model", "competitive-moat"],
+  "synonyms": ["Customer lock-in", "Vendor lock-in"],
+  "seoTitle": "What is Lock-in? | IdeaFuel Glossary",
+  "seoDescription": "Understand customer lock-in: contractual, technical, and behavioral mechanisms for B2B software defensibility."
+}

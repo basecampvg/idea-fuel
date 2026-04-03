@@ -1,0 +1,21 @@
+{
+  "slug": "liquidation-preference",
+  "title": "Liquidation Preference",
+  "category": "fundraising",
+  "shortDefinition": "The order and amount preferred shareholders receive before common shareholders in a sale or liquidation.",
+  "content": {
+    "definition": "Liquidation preference is a term in investor contracts that specifies how proceeds from a company sale or liquidation are distributed. Preferred shareholders (investors) get paid before common shareholders (founders and employees) according to a predetermined formula, creating a waterfall of payments based on the type of preference.",
+    "whyItMatters": "This is critical because it determines whether you as a founder actually benefit from an acquisition. A 1x non-participating preference means investors get their money back first, then everyone else splits what's left. A 2x non-participating means they get double their investment first. Without understanding this, you could sell your company and walk away with nothing even though the company was profitable. It's the difference between being a founder and being a liquidated shareholder.",
+    "howToApply": "When negotiating investor terms, push for the lowest liquidation preference possible—ideally 1x non-participating. Non-participating is critical: it means once investors get their preference, they're done and the rest of the proceeds go to common shareholders. If forced to accept participating preferences, negotiate a cap (e.g., 1x non-participating with a 2x cap). Model the impact on your own equity value in different exit scenarios to see the real number you'd walk away with. Never sign a term sheet without running these numbers.",
+    "commonMistakes": [
+      "Not understanding the difference between participating and non-participating preferences",
+      "Accepting 2x or 3x preferences without negotiating caps, which can wipe out founder returns in modest exits",
+      "Failing to model exit scenarios and understand what you actually get from a sale"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator includes cap table modeling where you can input liquidation preferences and see the actual founder payout in different acquisition scenarios. This transforms abstract term sheet language into real money numbers."
+  },
+  "relatedTerms": ["preferred-stock", "anti-dilution", "term-sheet"],
+  "synonyms": ["Distribution Waterfall", "Preference Stack"],
+  "seoTitle": "What is Liquidation Preference? | IdeaFuel Glossary",
+  "seoDescription": "Liquidation preference determines who gets paid first in an acquisition. Learn how it impacts your exit as a founder."
+}

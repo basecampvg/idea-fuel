@@ -1,0 +1,21 @@
+{
+  "slug": "business-model-canvas",
+  "title": "Business Model Canvas",
+  "category": "strategy",
+  "shortDefinition": "A one-page visual framework that maps all key components of your business model and how they fit together.",
+  "content": {
+    "definition": "The Business Model Canvas is a strategic management template that captures your entire business model on one page: value proposition, customer segments, key partnerships, revenue streams, cost structure, and distribution channels. It forces you to articulate how you create, deliver, and capture value. Created by Alexander Osterwalder, it's the best alternative to a 40-page business plan for early-stage founders.",
+    "whyItMatters": "Founders who skip the canvas waste months building the wrong thing. Filling it out forces clarity: Who are we really selling to? What channels reach them? How do we make money? What's our cost structure? What partnerships do we need? A complete canvas reveals gaps. You realize you have a value prop but no cost-effective distribution, or you've built for customers who don't exist. This clarity comes before you code, spend money, or scale.",
+    "howToApply": "Fill out the canvas in this order: (1) Value Proposition—what problem do you solve? (2) Customer Segments—who has this problem? List 2-3 personas, not industries. (3) Channels—how do they discover and buy from you? Be specific: word-of-mouth, LinkedIn, direct sales, marketplace. (4) Customer Relationships—how do you keep them? Email, support, community. (5) Key Resources—what assets do you need? (Engineers, data, brand, IP.) (6) Key Activities—what do you do daily? (Product, sales, marketing.) (7) Key Partnerships—who do you depend on? (API providers, distribution partners, suppliers.) (8) Revenue Streams—how do you make money? (Subscriptions, one-time fees, commissions, marketplace fees.) (9) Cost Structure—what are your biggest costs? (Headcount, infrastructure, CAC, COGS.) Print it out. Show it to 10 customers and 5 advisors. Their pushback tells you what's broken. Iterate the canvas quarterly.",
+    "commonMistakes": [
+      "Filling it out alone in your head. You need to talk to customers and iterate with co-founders to catch blind spots.",
+      "Treating it as a waterfall document. The canvas is iterative—fill it, test it with customers, learn, and fill it again.",
+      "Ignoring the cost structure and revenue streams. A beautiful value prop doesn't matter if your unit economics are broken. Use the canvas to model your financial viability."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you build and visualize your Business Model Canvas, test each component against market data, and calculate whether your revenue model and cost structure align."
+  },
+  "relatedTerms": ["value-proposition", "revenue-model", "go-to-market-strategy"],
+  "synonyms": ["Business Model", "Lean Canvas", "One-Page Business Plan"],
+  "seoTitle": "What is a Business Model Canvas? | IdeaFuel Glossary",
+  "seoDescription": "Learn how to use the Business Model Canvas to clarify your business strategy, identify gaps, and test your assumptions before scaling."
+}

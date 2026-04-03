@@ -1,0 +1,21 @@
+{
+  "slug": "data-driven-decision-making",
+  "title": "Data-Driven Decision Making",
+  "category": "analytics",
+  "shortDefinition": "Making strategic decisions based on quantified facts and metrics rather than intuition or opinions.",
+  "content": {
+    "definition": "Data-driven decision making means basing your business choices on actual metrics and evidence rather than gut feel, politics, or tradition. Every major decision—hiring, product changes, pricing, marketing spend—gets backed by numbers before execution.",
+    "whyItMatters": "Gut feel fails at scale. Intuition got you from zero to one, but it falls apart when multiple people are making decisions, or when the problem is too complex for any single person to hold in their head. Data-driven decisions also reduce blame and defensiveness because the facts do the talking. When something fails, you can diagnose why by looking at the data instead of fighting about whose idea was better.",
+    "howToApply": "Start small: pick one recurring decision you make (hire or don't hire, build feature or don't, increase price or don't). Define what data would actually matter for that decision before making it. Gather the data. Make the decision. Document the outcome. Review quarterly. Gradually expand to other decisions. Use dashboards and regular reviews to keep data front and center. When someone suggests a change without data, ask 'what would we need to measure to know if this is working?' That simple question shifts the culture.",
+    "commonMistakes": [
+      "Picking metrics after the fact to justify a decision already made (data laundering)",
+      "Using incomplete or outdated data because it supports what you want to do anyway",
+      "Analyzing data to death and never actually deciding or moving—'we need one more test' is often fear disguised as rigor"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine surfaces market data, competitor metrics, and customer insights automatically, removing the friction that makes data-driven decisions hard."
+  },
+  "relatedTerms": ["dashboard", "key-performance-indicator", "descriptive-analytics"],
+  "synonyms": ["Evidence-Based Decision Making", "Metrics-Based Strategy"],
+  "seoTitle": "What is Data-Driven Decision Making? | IdeaFuel Glossary",
+  "seoDescription": "Learn how to base business decisions on data and metrics instead of intuition, and build a data culture."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "product-backlog",
+  "title": "Product Backlog",
+  "category": "product",
+  "shortDefinition": "A prioritized list of all features, improvements, and fixes your product needs.",
+  "content": {
+    "definition": "A product backlog is your organized list of everything that needs to be built. It includes new features, bug fixes, technical debt paydown, performance improvements, and infrastructure work. Unlike a random to-do list, a backlog is prioritized—the items at the top are what your team works on first. The backlog evolves constantly as you learn what users actually need.",
+    "whyItMatters": "Without a backlog, work is chaotic. Engineers build what they think is important. Stakeholders demand different things. Nothing ships because nobody agrees on priorities. A good backlog creates clarity: it's the source of truth for what you're building and why. It prevents thrashing. It helps new team members understand the product vision. It forces prioritization conversations upfront instead of in the middle of development.",
+    "howToApply": "Start simple: use a spreadsheet or tool like Jira with columns for description, priority, effort, status. Write user stories that focus on user outcomes, not technical implementation. Prioritize based on impact and urgency—what's most important to your users and your business? Update the backlog weekly. Remove items that are no longer relevant. Reorder based on new information. Some teams use 'relative estimation' (story points) instead of hours—it's faster and more predictable. Make the backlog visible to the entire team so there are no surprises about what's coming next.",
+    "commonMistakes": [
+      "Creating a massive backlog of hundreds of ideas and never prioritizing—a backlog is only useful if it's ordered",
+      "Treating the backlog as set in stone—it should evolve as you learn",
+      "Prioritizing based on vocal opinions instead of data—the nosiest stakeholder isn't always right"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation helps you prioritize your backlog ruthlessly. Test upcoming items with users and validate which are worth building."
+  },
+  "relatedTerms": ["sprint", "user-story", "feature-prioritization"],
+  "synonyms": ["Work queue", "Feature list"],
+  "seoTitle": "What is a Product Backlog? | IdeaFuel Glossary",
+  "seoDescription": "A product backlog prioritizes your work and prevents chaos. Learn how to manage it effectively."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "design-thinking",
+  "title": "Design Thinking",
+  "category": "product",
+  "shortDefinition": "A problem-solving methodology that prioritizes understanding user problems before proposing solutions.",
+  "content": {
+    "definition": "Design thinking is a framework for solving problems by starting with empathy for the user, defining the real problem (not the surface complaint), ideating multiple solutions, prototyping rapidly, and testing with users. It's the opposite of guessing what customers want and building for six months in darkness.",
+    "whyItMatters": "Most products fail because founders solve the wrong problem. They see a complaint and build a solution without understanding the root cause. Design thinking forces you to slow down, understand deeply, and only then move fast. Products built this way have better product-market fit because they're designed around actual needs, not assumptions.",
+    "howToApply": "Start by spending time with customers and observing them. What's frustrating? What workarounds are they using? Define the problem in one sentence—not your hypothesis, the problem they're experiencing. Brainstorm five different ways to solve it, even bad ones. Build the simplest prototype of the most promising solution. Show it to customers and watch their reaction. They'll tell you what's wrong without saying a word. Iterate based on what you learn. Repeat the cycle every week.",
+    "commonMistakes": [
+      "Skipping the empathy phase and jumping straight to solutions because you think you already understand the problem",
+      "Prototyping without testing—a prototype is worthless if real users never see it",
+      "Testing with the wrong people—colleagues aren't your customers, and they'll be too polite to tell you if something sucks"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation feature guides you through design thinking iterations by helping you structure customer insights, test hypotheses, and validate assumptions before you ship anything."
+  },
+  "relatedTerms": ["lean-ux", "user-research", "prototype"],
+  "synonyms": ["User-Centered Design", "Human-Centered Design", "Empathy-Driven Design"],
+  "seoTitle": "What is Design Thinking? | IdeaFuel Glossary",
+  "seoDescription": "Understand how design thinking puts user empathy first, so you solve the right problem instead of building blind."
+}

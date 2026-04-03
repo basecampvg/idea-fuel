@@ -1,0 +1,21 @@
+{
+  "slug": "referral-loop",
+  "title": "Referral Loop",
+  "category": "growth",
+  "shortDefinition": "A mechanism where existing users acquire new users through incentivized recommendations.",
+  "content": {
+    "definition": "A referral loop is a growth mechanism that turns your existing users into acquisition channels. It works by incentivizing users to invite others—typically through rewards, discounts, or status benefits. Dropbox weaponized this ruthlessly: 500MB free storage for each successful referral drove exponential early growth and became their primary acquisition channel in early years. The loop closes when referred users become active and can themselves refer others, creating compounding growth that feels inevitable rather than paid for.",
+    "whyItMatters": "Referral loops are among the highest-ROI acquisition channels because they leverage trust. Friends trust friends more than they trust ads. This means referral-driven users have higher conversion rates, lower churn, and better lifetime value than paid or organic users. The referred cohort often has 20-30% higher retention than similar paid cohorts because the social bond creates switching costs. Virality becomes self-sustaining—you pay once for the mechanism, then it runs on network effects. This is how Slack, Airbnb, and Uber scaled from thousands to millions of users with relatively lean marketing teams. The best referral programs reduce customer acquisition cost by 25-75% compared to paid channels while simultaneously improving unit economics.",
+    "howToApply": "Design your offer so it benefits both referrer and referee—the best loops create genuine win-wins where both parties feel they got the better end of the deal. Asymmetric incentives (higher reward for referrer) often outperform symmetric ones because self-interest is a stronger motivator than fairness. Make the share mechanism frictionless; one-click sharing is non-negotiable, and integration with existing social platforms (email, messaging, social media) reduces friction further. Test different incentive types: currency (free credits or discounts), status (badges, leaderboards, public recognition), or access (early features, priority support, exclusive content). Measure your k-factor—how many new users each user generates. If it's below 1.0, your loop isn't self-sustaining and you need to either improve incentives or product virality. Start with your most engaged users and expand from there—they're most likely to refer and to attract quality referrals. Track viral coefficient separately from k-factor; they're related but not identical.",
+    "commonMistakes": [
+      "Making the incentive one-sided—users won't refer if only they benefit; the invitee needs equal value. Dropbox succeeded because both referrer and referee got storage; neither sacrificed for the other.",
+      "Hiding the share button—it should be obvious and accessible in moments of peak delight. Most products bury referral mechanics in settings; they should appear after first success or high-engagement moments.",
+      "Ignoring user quality—referral loops are viral but can bring low-quality users if not designed carefully. A referred user from an engaged super-user is worth 3-5x more than a referred user from a casual user."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model referral loop dynamics, calculate payback periods, and determine if your unit economics support a referral-driven growth strategy."
+  },
+  "relatedTerms": ["viral-coefficient", "k-factor", "engagement-loop"],
+  "synonyms": ["Viral Referral", "Invite Loop"],
+  "seoTitle": "What is a Referral Loop? | IdeaFuel Glossary",
+  "seoDescription": "Understand referral loops and how Dropbox, Slack, and Uber used them for exponential growth."
+}

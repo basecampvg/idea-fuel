@@ -1,0 +1,21 @@
+{
+  "slug": "pivot-vs-persevere",
+  "title": "Pivot vs Persevere",
+  "category": "strategy",
+  "shortDefinition": "Decision framework: continue with current strategy (persevere) or fundamentally change direction (pivot) based on market feedback.",
+  "content": {
+    "definition": "Pivot vs persevere is the critical binary choice every founder faces: Do we keep pushing our current strategy or do we change direction? A pivot abandons core assumptions—market, product, customer, GTM—and tries something new based on real market signals. Perseverance means doubling down despite setbacks. Both are valid. The skill is knowing which one applies right now. Too many pivots look like panic. Too much perseverance looks like stubbornness. The difference is data.",
+    "whyItMatters": "This decision literally determines survival. Instagram pivoted from Burbn (location check-in) to pure photos. Slack pivoted from a failed game (that was internal tool) to messaging. Twitch pivoted from general livestream platform (Justin.tv) to gaming. All survived. Others persevere through early failure and nail it: Airbnb had flat growth for 18 months, then exploded. Uber, Lyft, DoorDash all had rough starts. The difference between genius and delusion is often whether you pivot or persevere. You need a framework to decide.",
+    "howToApply": "Use this rubric to decide: Persevere if: (1) You have clear PMF signals (retention 30%+ monthly, NPS 50+, customers love you). (2) Growth is happening but slow—typical early-stage path. (3) Your core insight is right; execution is the issue. Pivot if: (1) Retention is flat or declining—customers don't love what you built. (2) You've talked to 100+ customers and heard consistent feedback that your approach is wrong. (3) You've spent 6-12 months executing on current strategy and metrics haven't moved meaningfully. (4) Your team doesn't believe in the current path anymore. Document your assumptions and test them rigorously. If they break, pivot. If they hold, persevere.",
+    "commonMistakes": [
+      "Pivoting based on one customer's feedback or a slow month. Market signals need to be consistent and data-backed. Don't pivot because growth was flat for 60 days. Pivot when you've hit a ceiling and confirmed you're in a dead-end.",
+      "Persevering on a sinking ship because you're emotionally attached. If retention is 5% and you've tried everything, it's time to pivot. Stubbornness is not a virtue if the data says you're wrong. Be ruthlessly honest.",
+      "Pivoting so many times you lose momentum and focus. Every pivot kills startup. You lose customers, team motivation, and investor confidence. Only pivot when the data is truly conclusive. Otherwise, you'll be in perpetual chaos."
+    ],
+    "ideafuelConnection": "Use IdeaFuel's spark-validation feature to test core assumptions before pivoting. Run rapid experiments to validate retention, PMF, and customer feedback—the data that should drive your pivot decision."
+  },
+  "relatedTerms": ["pivot", "lean-startup", "product-market-fit"],
+  "synonyms": ["Direction change", "Strategic reset"],
+  "seoTitle": "Pivot vs Persevere: How to Decide | IdeaFuel Glossary",
+  "seoDescription": "Know when to change direction and when to double down. Decision framework for founders facing the pivot dilemma."
+}

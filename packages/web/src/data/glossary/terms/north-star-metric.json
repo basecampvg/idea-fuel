@@ -1,0 +1,21 @@
+{
+  "slug": "north-star-metric",
+  "title": "North Star Metric",
+  "category": "growth",
+  "shortDefinition": "The single metric that best represents the long-term success of your business.",
+  "content": {
+    "definition": "A North Star Metric is the one quantifiable measure that directly reflects the core value your product delivers to customers. It's the north star that guides all strategic and tactical decisions across your organization. Unlike vanity metrics, it has a clear causal relationship to revenue and customer satisfaction.",
+    "whyItMatters": "Without a north star, teams optimize for different things—sales pushes signups, product teams chase engagement spikes, and support prioritizes ticket reduction. A North Star aligns everyone toward a single outcome. Investors look for it because it proves you understand what actually drives your business. It's the difference between growth theater and sustainable scaling.",
+    "howToApply": "First, identify what outcome your product solves for customers—not what activity indicates interest, but what result matters. For Slack, it's messages sent. For Netflix, it's hours watched. For Uber, it's rides completed. Then track it obsessively and correlate it with revenue. Build roadmaps, hiring plans, and experiment prioritization around moving this metric. Review it quarterly and only change it when your business model fundamentally shifts, not when growth slows. Every feature pitch should articulate how it moves your North Star.",
+    "commonMistakes": [
+      "Choosing a metric that's not correlated with revenue—engagement doesn't equal growth if you can't monetize it",
+      "Treating it as a vanity metric that only trends up—a good North Star should sometimes move down when you're making hard decisions",
+      "Changing it too frequently to chase growth—this kills alignment and makes it worthless as a decision-making tool"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes market and user data to help you identify which metrics actually move the needle for your specific business model. Use it to validate your North Star before betting your roadmap on it."
+  },
+  "relatedTerms": ["key-performance-indicator", "okr", "pirate-metrics"],
+  "synonyms": ["Primary Metric", "Core Metric"],
+  "seoTitle": "What is a North Star Metric? | IdeaFuel Glossary",
+  "seoDescription": "The single quantifiable measure that reflects your business's long-term success and guides all strategic decisions."
+}

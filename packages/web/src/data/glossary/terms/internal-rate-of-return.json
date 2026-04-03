@@ -1,0 +1,21 @@
+{
+  "slug": "internal-rate-of-return",
+  "title": "Internal Rate of Return",
+  "category": "finance",
+  "shortDefinition": "The annual growth rate of an investment assuming all cash flows are reinvested at that rate.",
+  "content": {
+    "definition": "Internal rate of return (IRR) is the discount rate that makes the net present value of all cash flows equal zero. In plain English: it's the annual percentage return you'd earn on an investment if you held it forever and reinvested all profits at that same rate. IRR accounts for timing—money earned sooner is worth more than money earned later. Unlike simple ROI, which doesn't care about timing, IRR answers: what annual percentage return am I actually getting when I factor in how fast cash comes in and goes out?",
+    "whyItMatters": "IRR is the language investors speak. Venture funds target 30% IRR (doubling invested capital every ~2.5 years); private equity firms need 20%+ IRR to justify the work; a bank loan has a contractual IRR built into the interest rate. IRR matters because it accounts for the timing of returns—if you invest $100K today and get $110K back in year 10, that's a terrible return (only 0.95% IRR) even though the absolute profit ($10K) looks okay. IRR reveals the speed of return and lets you compare investments with completely different cash flow patterns (an early exit with moderate returns versus a slow burn to massive exit, for example). For founders, understanding investor IRR expectations is critical: a $1M seed round at a $10M valuation needs to hit 30%+ IRR for the seed investor, which means your Series A exit needs to be at a much higher valuation or the investor loses money.",
+    "howToApply": "Model your company's cash flows: starting investment (negative), then annual profit (positive) or cash outflows (negative), for 5-10 years. Include exit value as a big positive cash flow in the final year (if you plan to sell the company). Use a financial calculator or spreadsheet (Excel's IRR function or Google Sheets' equivalent) to compute IRR. A 25% IRR means you're doubling money every 2.8 years—exceptional. 15% is solid. Below 10% usually doesn't justify startup risk or opportunity cost. For investors evaluating your company, they're asking: what's my IRR if I invest $X at $Y valuation and we exit in 5-7 years at $Z valuation? You need to show a path to that IRR through growth projections, profitability timeline, and realistic exit multiples. Compare IRR across your fundraising options: is a seed round at 2x dilution better than a higher-dilution round at better terms?",
+    "commonMistakes": [
+      "Confusing IRR with simple payback period—a 2-year payback sounds good but reveals nothing about the actual annual return rate (payback could be 5% IRR or 50% IRR, very different)",
+      "Assuming constant cash flows when modeling—real businesses have lumpy, irregular returns, especially startups with long cash burn before profitability",
+      "Ignoring exit value—if you plan to sell the company, that sale price is often 80%+ of total investor returns and dramatically affects IRR"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool calculates IRR automatically from your projected cash flows and exit scenarios. Model different exit scenarios (acquisition price, timeline, exit multiple) and see how each affects your investors' IRR. Test sensitivity: if you achieve 10% more revenue growth, how much does IRR improve?"
+  },
+  "relatedTerms": ["net-present-value", "return-on-investment", "financial-projections"],
+  "synonyms": ["IRR", "Annualized Return"],
+  "seoTitle": "What is Internal Rate of Return (IRR)? Formula & Examples | IdeaFuel",
+  "seoDescription": "IRR measures annual investment returns accounting for timing. Learn why investors care about IRR and how to calculate it for your startup."
+}

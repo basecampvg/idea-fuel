@@ -1,0 +1,21 @@
+{
+  "slug": "landing-page",
+  "title": "Landing Page",
+  "category": "marketing",
+  "shortDefinition": "A standalone webpage designed to drive a specific action, typically capturing leads or validating demand.",
+  "content": {
+    "definition": "A landing page is a focused page optimized for a single purpose: getting visitors to take a specific action (sign up, download, buy). Unlike your homepage or product pages, it removes distractions—navigation, multiple CTAs, tangential links—and channels all attention toward one conversion goal.",
+    "whyItMatters": "A landing page is your fastest way to test if an idea resonates before you build. Launch a landing page, drive traffic, measure conversion rate. If 10% of visitors sign up, you have signal. If 0.5% sign up, you don't. Landing pages are also essential for paid campaigns—sending ad traffic to your homepage is wasteful. A focused landing page converts 2-5x better than a generic page.",
+    "howToApply": "Build a landing page for each distinct value prop or customer segment. Include: compelling headline that states the benefit, clear subheading, 3-5 bullet points addressing core pain points, a single prominent CTA, and social proof if you have it. Test different headlines and value props against each other. Measure conversion rate obsessively. IdeaFuel's Spark Validation feature lets you test landing pages and measure demand signals before you build, validating your positioning and target market.",
+    "commonMistakes": [
+      "Trying to do too much. \"Learn about us, see our pricing, try a demo, download a guide\"—pick one. Each additional CTA cuts conversion by 5-15%.",
+      "Writing about yourself instead of the customer's problem. \"We're innovative\" converts nobody. \"Save 5 hours per week\" converts customers.",
+      "Not A/B testing. Your first headline guess is usually wrong. Run headlines against each other for a week, let data pick the winner."
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation gives you a structured process to build and test landing pages, measuring visitor interest and demand signals before full product launch."
+  },
+  "relatedTerms": ["conversion-rate-optimization", "a-b-testing", "click-through-rate"],
+  "synonyms": ["Sales Page", "Squeeze Page"],
+  "seoTitle": "What is a Landing Page? | IdeaFuel Glossary",
+  "seoDescription": "Design high-converting landing pages to test demand, capture leads, and validate your business idea."
+}

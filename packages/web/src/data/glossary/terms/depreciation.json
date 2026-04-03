@@ -1,0 +1,21 @@
+{
+  "slug": "depreciation",
+  "title": "Depreciation",
+  "category": "finance",
+  "shortDefinition": "Accounting allocation of a capital asset's cost across its useful life.",
+  "content": {
+    "definition": "Depreciation is the systematic reduction in the recorded value of a tangible asset over time. When you buy equipment for 100K with a 5-year useful life, you record 20K in depreciation expense each year rather than 100K immediately. This matches the asset's benefit to the periods it generates value. Depreciation is a non-cash expense—you don't pay it in cash; it's an accounting adjustment.",
+    "whyItMatters": "Depreciation creates a critical gap between profit and cash flow. A growing company might show operating losses due to high depreciation, but actually generate strong cash flow because depreciation isn't a cash drain. Conversely, a profitable company might be critically low on cash if it took on massive CapEx. Depreciation also affects taxes: it's a deduction, so higher depreciation lowers taxable income. Understanding this gap is essential for managing actual cash position vs. accounting profitability.",
+    "howToApply": "Choose depreciation methods wisely—straight-line (equal expense each year) is simplest but accelerated methods (double-declining balance) front-load the expense, reducing near-term taxes. Track accumulated depreciation to understand the real age and remaining value of assets. When modeling profitability, add depreciation back to operating income to calculate cash flow, since it's not a real cash outlay. Understand your tax depreciation rules; many jurisdictions allow bonus depreciation or Section 179 expensing to accelerate deductions. For financial planning, assume longer asset lives than tax lives to be conservative.",
+    "commonMistakes": [
+      "Confusing depreciation expense with actual cash spent—they're not the same",
+      "Using incorrect useful life estimates, either too aggressive or too conservative",
+      "Not distinguishing between book depreciation and tax depreciation, missing tax planning opportunities"
+    ],
+    "ideafuelConnection": "IdeaFuel's financial models calculate proper depreciation schedules, show the gap between EBITDA and net income, and integrate tax impacts into cash flow projections."
+  },
+  "relatedTerms": ["amortization", "capital-expenditure", "ebitda"],
+  "synonyms": ["Asset Wear", "Book Value Reduction"],
+  "seoTitle": "What is Depreciation? | IdeaFuel Glossary",
+  "seoDescription": "Understand depreciation accounting and how it affects both profitability and cash flow in your financial projections."
+}

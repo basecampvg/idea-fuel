@@ -1,0 +1,21 @@
+{
+  "slug": "traction",
+  "title": "Traction",
+  "category": "growth",
+  "shortDefinition": "Measurable evidence that your product meets market demand through growing user adoption.",
+  "content": {
+    "definition": "Traction is the empirical proof that your product resonates with customers. It's measured through concrete metrics: monthly active users, revenue, retention curves, growth rate, and engagement. Traction isn't about vanity metrics like total signups; it's about evidence that real people use your product repeatedly and derive value. A startup with 1,000 engaged users and 90% 30-day retention has more traction than one with 100,000 signups and 20% retention. Traction is the bridge between theory and reality.",
+    "whyItMatters": "Traction is the currency of startup credibility. It converts skeptical customers, attracts talented employees, and justifies investor capital. Investors skip the pitch deck entirely and ask one question: show me your traction. A company with strong traction can raise at higher valuations, recruit better teams, and negotiate better partnerships because demand is proven. Traction also signals product-market fit more reliably than founder intuition—if users aren't coming back and bringing friends, no amount of spin changes that. In early stages, traction is often more important than the business plan because it proves assumptions are wrong or right.",
+    "howToApply": "Focus on metrics that measure real value creation: 30-day retention (are users coming back?), daily/monthly active users (how many use it regularly?), engagement per user (do they use it deeply?), referral rates (are they telling friends?), and net revenue retention (are customers expanding?). Don't optimize for top-line growth if underlying cohort quality is poor; one great cohort is worth 10 mediocre ones. A milestone like 10,000 engaged users is more meaningful than 100,000 signups. Track traction cohort-by-cohort to see if your go-to-market is improving—are users from month 3 better than users from month 1? Is retention improving? These trends matter more than absolute numbers. Communicate traction honestly in pitch contexts—investors respect transparent, modest growth more than exaggerated claims. Show unit economics alongside growth; unprofitable growth is a liability, not an asset. Share the rate of change: 50% monthly growth is less compelling than 'retention improved from 30% to 60% in 3 months.'",
+    "commonMistakes": [
+      "Conflating signups with traction—vanity metrics hide low engagement and poor retention curves. A product that acquired 100,000 users last month but lost 80,000 to churn has -80% traction, not +100%.",
+      "Focusing on top-line growth while ignoring unit economics—viral growth with negative LTV is a death trap. If you're spending $100 to acquire a customer worth $50, celebrating growth is celebrating bankruptcy in slow motion.",
+      "Chasing metrics instead of product improvement—traction compounds from genuine value, not from optimized dashboards. Improving DAU by 5% through retention wins is worth 50x more than acquiring 5% more users."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine helps you benchmark your traction metrics against industry standards and competitor performance, showing you where you stand relative to other startups in your category and what growth velocity is necessary to reach critical milestones."
+  },
+  "relatedTerms": ["north-star-metric", "hockey-stick-growth", "product-market-fit"],
+  "synonyms": ["Proof of Demand", "Product Adoption"],
+  "seoTitle": "What is Traction? | IdeaFuel Glossary",
+  "seoDescription": "Measure product-market fit. How real user adoption and engagement prove business viability."
+}

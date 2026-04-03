@@ -1,0 +1,23 @@
+{
+  "slug": "gross-margin",
+  "title": "Gross Margin",
+  "category": "finance",
+  "shortDefinition": "Revenue remaining after subtracting cost of goods sold, expressed as a percentage.",
+  "content": {
+    "definition": "Gross Margin is the percentage of revenue left after you pay the direct costs of producing your product or service (cost of goods sold). It's calculated as (Revenue - COGS) / Revenue × 100. For a SaaS company with $1M revenue and $200K in hosting and payment processing costs, gross margin is 80%. It shows how much of each dollar you keep before operating expenses.",
+    "whyItMatters": "Gross margin determines your breathing room for operating expenses and profitability. Software companies typically have 70-90% gross margins because they don't have inventory or manufacturing costs. Marketplaces have 30-50% margins because they pay out transaction fees. A healthy gross margin gives you flexibility to spend on sales and marketing; a weak one forces you to choose between growth and profitability. This metric also determines fundraisability—investors want to see margins above 60% for software, 40% for services.",
+    "howToApply": "Separate your costs into two buckets: direct costs (hosting, payment processing, support contractors, credit card fees) and operating expenses (salaries, rent, legal). COGS should only include costs that scale directly with customer count. Don't put engineering salaries in COGS; they're operating expenses. Calculate gross margin monthly and watch for degradation—if it's dropping as you scale, you have a cost problem. Target gross margins: 75%+ for SaaS, 50%+ for marketplace, 40%+ for professional services. Use this metric to justify why you're not profitable yet ('we're investing in growth') and to set hiring guardrails. IdeaFuel's Financial Modeling tool helps you model gross margin under different pricing and cost scenarios.",
+    "commonMistakes": [
+      "Including fixed overhead in COGS—your office rent and CEO salary aren't direct product costs. Keep COGS limited to variable costs.",
+      "Forgetting indirect COGS items—payment processing fees, hosting costs, and support contractor labor add up fast and compress margins.",
+      "Calculating gross margin on revenue before refunds—use net revenue after refunds, chargebacks, and disputes.",
+      "Mixing gross margin with contribution margin—contribution margin includes some operating expenses. Gross margin is pure direct costs only.",
+      "Not tracking COGS by customer cohort—your older customers might have better margins than new ones. This insight drives pricing strategy."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you model gross margin under different pricing and cost scenarios so you understand profitability drivers."
+  },
+  "relatedTerms": ["net-margin", "cost-of-goods-sold", "contribution-margin"],
+  "synonyms": ["Gross Profit Margin", "GM"],
+  "seoTitle": "Gross Margin: Calculate, Improve & Benchmark | SaaS Founder's Guide",
+  "seoDescription": "Learn to calculate gross margin, separate COGS from operating costs, and benchmark against industry. Essential profitability metric for startup founders."
+}

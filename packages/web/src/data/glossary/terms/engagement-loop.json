@@ -1,0 +1,21 @@
+{
+  "slug": "engagement-loop",
+  "title": "Engagement Loop",
+  "category": "growth",
+  "shortDefinition": "A repeating cycle that incentivizes users to return and take actions that create value and trigger rewards.",
+  "content": {
+    "definition": "An Engagement Loop is a self-reinforcing cycle that keeps users coming back. The basic structure is: user performs action → system delivers reward/value → user is motivated to repeat. Duolingo's loop: complete a lesson → earn streaks and points → feel compelled to maintain the streak → return daily. Instagram's loop: post content → get likes and comments → feel validated → post again. Every engagement loop has a trigger, an action, and a reward that reinforces the behavior.",
+    "whyItMatters": "Engagement loops are the core mechanic of habit-forming products. Without them, you're relying on users to remember you exist between sessions. With them, users come back because the product itself creates the incentive. This is what separates products people use daily from products people forget. It's also what enables exponential growth through referrals—engaged users invite friends; dormant users don't. Loops are harder to copy than features, making them a genuine competitive advantage. A company with strong engagement loops can survive intense competition because users stay despite price increases or feature parity.",
+    "howToApply": "Start by mapping your core action—what should users do repeatedly for value to compound? For a fitness app, it's logging workouts. For a marketplace, it's posting listings. Then design the reward system around that action. Make the reward immediate and visible—points, badges, social validation, status progression. Remove friction from the loop; if logging a workout takes 10 taps, most users won't repeat it. Build social accountability: streaks, leaderboards, and friend challenges leverage social pressure. Use notifications to remind users when they break the loop. Segment users by loop engagement and invest in converting non-loop users into loop users. The users who've completed the loop five times are your most valuable—they're habituated. Measure loop health by tracking how many users repeat the action within 7 days.",
+    "commonMistakes": [
+      "Creating loops that reward arbitrary actions unrelated to product value—steak and eggs shouldn't equal a good fitness app",
+      "Making rewards too scarce or too delayed—users need near-immediate feedback to build habit",
+      "Overlapping loops that confuse users about what action matters most—clarity wins"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation lets you test engagement loop mechanics with real users before building, so you validate the behavior before investing in full implementation."
+  },
+  "relatedTerms": ["habit-loop", "stickiness", "referral-loop"],
+  "synonyms": ["Product Loop", "Feedback Loop", "Habit Loop"],
+  "seoTitle": "What is an Engagement Loop? | IdeaFuel Glossary",
+  "seoDescription": "A repeating cycle of user action, reward, and return that creates habit formation and sustainable engagement."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "influencer-marketing",
+  "title": "Influencer Marketing",
+  "category": "marketing",
+  "shortDefinition": "Partnering with established personalities in your niche to reach their audience and benefit from their credibility and reach.",
+  "content": {
+    "definition": "Influencer marketing is leveraging someone else's audience and credibility to promote your product or idea. An influencer is anyone with a meaningful audience in your niche: a micro-influencer with 10K followers, a YouTuber with 1M subscribers, a LinkedIn thought leader with 100K connections, a Reddit moderator with community authority. You don't always pay them upfront — often a free product, affiliate commission, or partial payment works. You compensate based on reach, engagement, and niche relevance: micro-influencers might charge $500–$5K per post; macro-influencers charge $10K–$100K+. The best influencers are genuinely interested in your product, not just paid mouthpieces.",
+    "whyItMatters": "Building your own audience takes years; leveraging someone else's audience accelerates growth significantly. An influencer's recommendation carries more weight than your own marketing claim because it comes from a trusted third party with social proof already built. Their audience is already engaged and in the right mindset to receive a recommendation. Influencer marketing also provides credibility at scale — if a respected person in your industry uses and recommends you, skeptics become believers faster than any sales pitch could achieve. For consumer brands and B2B, influencer marketing can be the fastest path to adoption and new customer acquisition. One well-matched influencer can drive more qualified traffic than months of ad spend.",
+    "howToApply": "Identify 10–50 influencers in your niche by searching relevant keywords and hashtags on your platform, checking who's being mentioned in your space, and looking at who your competitors are working with. Start with micro-influencers (10K–100K followers) — they have higher engagement rates (often 3–10% vs. 0.5–2% for macro-influencers), higher trust with their audience, and often negotiate better terms than celebrities. Reach out personally: 'I love your recent post on X. We built Y, and I think your audience would genuinely find it valuable. Interested in trying it?' Don't lead with a partnership ask; lead with genuine admiration and a genuine offer. Offer them something useful: free lifetime access to your product, affiliate commission (typically 10–30% per referral), or a flat fee ($500–$2K for a micro-influencer post). Track results carefully: use unique discount codes or UTM links for each influencer so you can measure who drives actual conversions, revenue, and CAC. Negotiate exclusivity if appropriate — some influencers will promote competitors if you don't lock them in, but be realistic about what you can afford. Start with 3–5 influencers and measure before scaling.",
+    "commonMistakes": [
+      "Partnering with influencers in the wrong niche just because they have a big audience. 1M irrelevant followers won't buy and won't convert. Prioritize audience fit and engagement over raw audience size.",
+      "Expecting one post to drive massive sales. Influencer marketing compounds with repeated mentions across multiple relevant influencers over time, not single viral posts.",
+      "Not tracking ROI or attribution. You should know the exact cost per customer and LTV from each influencer partnership. If it doesn't pencil, don't do it. Use affiliate programs to align incentives."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine maps influencer networks in your market, identifies your target audience's trusted voices and communities, and helps you craft positioning that resonates with specific influencer audiences and niches."
+  },
+  "relatedTerms": ["social-media-marketing", "brand-awareness", "user-acquisition"],
+  "synonyms": ["Creator Marketing", "Ambassador Programs", "Partnership Marketing"],
+  "seoTitle": "What is Influencer Marketing? | IdeaFuel Glossary",
+  "seoDescription": "Influencer marketing leverages trusted voices to reach new audiences. Learn selection, negotiation, and ROI measurement."
+}

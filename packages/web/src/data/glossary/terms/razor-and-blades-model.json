@@ -1,0 +1,21 @@
+{
+  "slug": "razor-and-blades-model",
+  "title": "Razor and Blades Model",
+  "category": "strategy",
+  "shortDefinition": "Sell a low-cost or free base product, then profit from selling consumables or upgrades.",
+  "content": {
+    "definition": "The razor-and-blades model (also called the 'bait-and-hook' model) involves selling a durable good at low margin or below cost, then capturing profit from high-margin replacements or complementary products. The classic example is selling cheap razors but expensive blades; modern examples include printer hardware + ink, or game consoles + games.",
+    "whyItMatters": "This model creates predictable recurring revenue and deep customer lock-in. Once a user buys your hardware or platform, they're trapped—switching costs are high because they've already invested. For founders, it means you tolerate short-term losses on the base product to build a moat. But execution is brutal: you must nail the ratio—if blade margins aren't 60%+, you're just a cheap hardware company with negative unit economics.",
+    "howToApply": "Calculate the lifetime cost of consumables vs. the hardware margin. If a customer buys your product for $100 at 10% margin ($10), they need to generate $100+ in blade revenue to break even. Build the dependency into your product—make it hard to use third-party blades (proprietary connectors, DRM, proprietary formats). Track adoption rate of high-margin consumables religiously; if it's below 30% of base product sales, your model is broken. Plan for 18-36 month payback on hardware before consumable revenue turns positive.",
+    "commonMistakes": [
+      "Underestimating switching friction: if customers can easily use third-party blades (refurbished, generic), your moat crumbles. Build in lock-in from day one.",
+      "Selling hardware too cheaply: margins matter. If you lose $50 on each razor, you're financing customers, not capturing value.",
+      "Assuming users will adopt consumables: users hate recurring fees. Free users don't automatically become paying subscribers. You must make the base product partially dysfunctional without consumables."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator lets you model the razor-and-blades economics: project hardware CAC, consumable adoption rates, and the break-even timeline. Stress-test your assumptions on pricing, margin, and substitutability before building."
+  },
+  "relatedTerms": ["lock-in", "switching-costs", "subscription-model"],
+  "synonyms": ["Bait-and-hook", "Platform model"],
+  "seoTitle": "What is Razor and Blades Model? | IdeaFuel Glossary",
+  "seoDescription": "Understand razor-and-blades pricing strategy: sell hardware cheap, profit from consumables. Lock-in tactics and unit economics."
+}

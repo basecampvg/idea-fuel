@@ -1,0 +1,21 @@
+{
+  "slug": "cost-of-goods-sold",
+  "title": "Cost of Goods Sold",
+  "category": "finance",
+  "shortDefinition": "Direct costs to produce goods or deliver services sold by your business.",
+  "content": {
+    "definition": "Cost of Goods Sold (COGS) includes all direct costs to produce or acquire products sold: raw materials, manufacturing labor, packaging, and freight to customers. It excludes indirect costs like marketing, salaries, or rent. COGS is subtracted from revenue to calculate gross profit. For services, COGS is typically the direct labor to deliver the service; for SaaS, it's infrastructure costs (servers, hosting). The key: if you don't incur it, you don't make the sale.",
+    "whyItMatters": "COGS determines your gross margin—the fundamental lever of unit economics. If you sell a product for 100 and COGS is 60, you have 40 of contribution to cover operating expenses and generate profit. If COGS is 80, you're drowning. Most businesses fail because they optimize the wrong thing: they think market size matters more than unit economics. It doesn't. A startup with 40% gross margins can grow profitably; one with 10% margins will burn out. COGS is where you make money—operationally.",
+    "howToApply": "Track COGS obsessively by product, not just company-wide. Some products are margin killers masquerading as revenue. Analyze COGS per unit and per dollar of revenue; look for trends. As volume grows, negotiate better supplier rates and reduce waste—this is where operations teams earn their keep. Separate fixed COGS (must-have infrastructure) from variable COGS (cost per unit). If 70% of COGS is variable, you have flexibility; if 70% is fixed, you need scale. Calculate contribution margin per unit (price minus variable COGS) to understand profitability at the transaction level, not just the company level.",
+    "commonMistakes": [
+      "Misclassifying costs as COGS when they're operating expenses, inflating gross margins",
+      "Not accounting for waste, returns, or shrinkage in COGS calculations",
+      "Ignoring product-level COGS, resulting in over-investment in unprofitable SKUs"
+    ],
+    "ideafuelConnection": "IdeaFuel's financial-modeling engine breaks down COGS by product and channel, identifies margin trends, and models COGS impact on profitability as you scale."
+  },
+  "relatedTerms": ["gross-margin", "contribution-margin", "unit-economics"],
+  "synonyms": ["Product Costs", "Direct Costs"],
+  "seoTitle": "What is Cost of Goods Sold? | IdeaFuel Glossary",
+  "seoDescription": "Understand COGS and how to optimize it to improve gross margins and build a profitable unit economy."
+}

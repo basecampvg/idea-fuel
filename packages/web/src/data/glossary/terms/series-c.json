@@ -1,0 +1,21 @@
+{
+  "slug": "series-c",
+  "title": "Series C",
+  "category": "fundraising",
+  "shortDefinition": "Late-stage growth capital for mature startups building toward exit or IPO.",
+  "content": {
+    "definition": "Series C is $30M-$100M+ and comes 2-4 years after Series B, for companies that have proved they're on a clear path to scale to $100M+ in revenue. Series C capital is often strategic: growth equity firms, late-stage VCs, and sometimes corporate investors. At this stage, you're not fundraising to prove a concept; you're raising to accelerate the inevitable.",
+    "whyItMatters": "Series C changes the game from scaling startup to growth company. The capital lets you fund aggressive market expansion, build infrastructure for a public company, acquire competitors or complementary businesses, and extend your runway to either profitability or exit. Series C also marks the point where you start thinking operationally like a mature company—you need robust financial controls, compliance, and the foundation of long-term retention and profitability.",
+    "howToApply": "By Series C, metrics are table stakes. You need to show $10M+ ARR with predictable growth, clear paths to profitability or at least breakeven within 18-24 months, defensible moats (network effects, switching costs, data advantages), and a seasoned leadership team that includes financial and operational operators, not just product people. Series C investors want to see that you've built a real business, not just a growth machine. Prepare for deep competitive and market analysis conversations. Have a clear thesis on why your company should be worth $500M+ or $1B+. Be ready to discuss international expansion, M&A strategy, or a path to IPO within 3-5 years.",
+    "commonMistakes": [
+      "Assuming Series C validates the company's immortality—many successful Series C companies fail because they lose focus during growth or miss a market shift",
+      "Over-hiring and building bloat, then having to do painful restructuring when growth slows or market conditions change",
+      "Pursuing vanity metrics (DAU, MAU) without focus on unit economics and path to profitability, which Series C investors now demand"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model the mature financial picture Series C investors want: detailed profit-and-loss projections, cash flow scenarios under different growth rates, and clear assumptions showing you've stress-tested your path to profitability or exit."
+  },
+  "relatedTerms": ["series-b", "ipo", "venture-capital"],
+  "synonyms": ["Series C Funding"],
+  "seoTitle": "What is Series C Funding? | IdeaFuel Glossary",
+  "seoDescription": "Navigate Series C fundraising for late-stage startups: from metrics to exit strategy and everything in between."
+}

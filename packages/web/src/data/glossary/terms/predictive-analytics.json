@@ -1,0 +1,21 @@
+{
+  "slug": "predictive-analytics",
+  "title": "Predictive Analytics",
+  "category": "analytics",
+  "shortDefinition": "Statistical models that forecast future outcomes based on historical data patterns.",
+  "content": {
+    "definition": "Predictive analytics uses historical data and machine learning models to estimate future outcomes with quantifiable probability. Instead of analyzing what happened, it answers what will happen—whether a customer will churn, which leads will convert, or when revenue will plateau. It requires sufficient historical data and relies on the assumption that past patterns continue.",
+    "whyItMatters": "Predictive analytics transforms reactive management into proactive strategy. Instead of losing a customer and analyzing why, you can identify churn risk and intervene. Instead of running experiments and waiting months for results, you can model outcomes before investing engineering effort. This asymmetry compounds: early warning buys you time to prevent problems.",
+    "howToApply": "Identify your highest-impact predictions: customer churn probability, deal close rate, feature adoption curves, or revenue forecasts. Gather 12-24 months of historical data tagged with outcomes. Use regression or classification models (logistic regression, random forests, neural networks) to find patterns. Start simple: a churn model based on login frequency, feature usage, and support tickets can often beat complex approaches. Validate predictions in holdout test sets before deployment. IdeaFuel's Research Engine helps you prioritize which predictions matter most for your business and ensure your models actually improve decision-making, not just optimize for vanity metrics.",
+    "commonMistakes": [
+      "Building models based on correlation that breaks when market conditions shift",
+      "Deploying predictions without understanding model confidence intervals and failure modes",
+      "Ignoring data quality—garbage input produces confident garbage output"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine surfaces high-confidence predictive signals from your data to help you forecast customer behavior, revenue trends, and market movements before they become obvious to competitors."
+  },
+  "relatedTerms": ["regression-analysis", "leading-indicator", "financial-projections"],
+  "synonyms": ["Forecasting Model", "Predictive Modeling", "Predictive Intelligence"],
+  "seoTitle": "What is Predictive Analytics? | IdeaFuel Glossary",
+  "seoDescription": "Predictive analytics forecasts future outcomes using historical data. Learn how to build models and predict customer behavior."
+}

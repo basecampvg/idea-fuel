@@ -1,0 +1,21 @@
+{
+  "slug": "scope-creep",
+  "title": "Scope Creep",
+  "category": "product",
+  "shortDefinition": "When a project expands beyond its original goals, causing delays and increasing costs.",
+  "content": {
+    "definition": "Scope creep happens when a project gradually absorbs more features, requirements, and goals than it started with. Someone suggests a small addition. Then another. Then stakeholders realize they want something slightly different. Before you know it, a two-week project has become two months. Scope creep kills timelines and demoralizes teams—everyone works harder and ships later than planned.",
+    "whyItMatters": "Shipping delayed products to nobody is the startup graveyard. Scope creep is the primary reason products miss deadlines and teams burn out. It also dilutes focus—every added feature makes it harder to execute the core idea well. The best products do one thing exceptionally well. The products killed by scope creep tried to do everything adequately. As a founder, your job is defending scope, not expanding it.",
+    "howToApply": "Define scope explicitly at the start. Write down what you're building and what you're explicitly NOT building. When new ideas surface—and they will—add them to a backlog for 'v2', not the current release. Be ruthless: if it's not in the original scope and it's not a critical bug, it doesn't go in. Use a decision framework: Does this support our core hypothesis? Does this move toward our north star metric? If the answer is no, it's out. Push back on feature requests from stakeholders, colleagues, and yourself. Shipping is a feature. Missing your deadline is a bug.",
+    "commonMistakes": [
+      "Being too accommodating to requests because you want to please stakeholders—the best gift you can give is a finished product",
+      "Believing 'we can squeeze it in'—you can't, and you know you can't",
+      "Not having explicit scope boundaries—vague projects expand infinitely"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation helps you evaluate whether new feature requests belong in your scope. Test ideas before adding them to your roadmap and waste less time on out-of-scope work."
+  },
+  "relatedTerms": ["technical-debt", "roadmap", "feature-prioritization"],
+  "synonyms": ["Feature creep", "Project expansion"],
+  "seoTitle": "What is Scope Creep? | IdeaFuel Glossary",
+  "seoDescription": "Scope creep kills shipping timelines. Learn how to defend scope and ship products on schedule."
+}

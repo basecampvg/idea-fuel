@@ -1,0 +1,21 @@
+{
+  "slug": "bounce-rate",
+  "title": "Bounce Rate",
+  "category": "analytics",
+  "shortDefinition": "The percentage of sessions where a user leaves your product after visiting only one page.",
+  "content": {
+    "definition": "Bounce rate measures the percentage of users who enter your product and leave without taking any meaningful action—usually defined as either viewing only one page/section or leaving within 30 seconds of arrival. A 50% bounce rate means half your users don't stick around long enough to get value. A 5% bounce rate means almost everyone finds something worth exploring.",
+    "whyItMatters": "A high bounce rate is your early warning system. It signals that first-time users aren't finding what they expect. They land on your onboarding, see confusion, and leave. High bounce rates directly kill retention and reduce viral coefficient. Every bounced user is wasted growth spending. More importantly, bounce rate by source (organic vs paid, email vs social) shows you who you're attracting. If your paid ads bounce 70% but organic bounces 20%, your ad targeting is broken. Bounce rate forces you to optimize the first 30 seconds of product experience.",
+    "howToApply": "Set a bounce rate target based on your product type: SaaS free trials typically 30-50%, landing pages 40-60%, content sites 70-80%. Track it weekly and alert on trends. When bounce rate increases 10%, investigate your recent changes—you probably broke something in onboarding or navigation. Break down bounce rate by source, device, and user segment. Fix the highest-bounce sources first. If 60% of users from Instagram bounce but only 20% from Product Hunt, you're acquiring the wrong users on Instagram. Run experiments: test faster onboarding, clearer value prop, or better first-time user guidance. Even a 5% reduction in bounce rate has huge downstream effects on retention.",
+    "commonMistakes": [
+      "Measuring bounce rate only for new users—you need to track it per source to identify ad targeting issues",
+      "Ignoring that some bounces are intentional (user found what they wanted, left satisfied) vs unintentional (confused, frustrated)",
+      "Not breaking down bounce by device—mobile might be 60% while desktop is 30%, signaling UX problems on mobile"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your bounce rate patterns across user segments and features. It surfaces which onboarding flows, messaging, or feature gaps are driving bounces, helping you prioritize fixes that reduce bounce rate fastest."
+  },
+  "relatedTerms": ["session-duration", "landing-page", "conversion-rate"],
+  "synonyms": ["Exit Rate", "One-Page Visits"],
+  "seoTitle": "What is Bounce Rate? | IdeaFuel Glossary",
+  "seoDescription": "Bounce rate measures the percentage of sessions where users leave after visiting only one page. A key engagement indicator."
+}

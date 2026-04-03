@@ -1,0 +1,21 @@
+{
+  "slug": "attribution-model",
+  "title": "Attribution Model",
+  "category": "marketing",
+  "shortDefinition": "The method you use to credit which touchpoints are responsible for a conversion.",
+  "content": {
+    "definition": "An attribution model determines how you assign credit for a conversion across the customer journey. Someone might see your ad on day 1, visit your site on day 3, read a blog post on day 5, get retargeted on day 7, then finally sign up on day 10. Did the ad deserve credit? The blog? The retargeting? Different models answer this differently. First-touch credits the initial awareness moment. Last-touch credits the final click. Multi-touch distributes credit across all touchpoints. Linear credits equally. Time-decay weights recent interactions more heavily.",
+    "whyItMatters": "Your attribution model directly impacts which marketing channels you fund and which you starve. If you use last-touch attribution exclusively, you might overfund retargeting and underfund content (which creates awareness that enables retargeting). Pick the wrong model and you'll optimize for the wrong channels, burning budget on inefficiency. The right model helps you understand which channels actually drive value, not just the final click. Different models tell different stories about your customer journey. Understanding those stories prevents expensive mistakes. Wrong attribution leads to wrong priorities and channel misallocation.",
+    "howToApply": "Start simple: last-touch attribution. It's conservative but understandable. Track that for 1-2 months. Then layer in first-touch to see which channels create initial awareness. Compare conclusions. For B2B, linear attribution (equal credit to all touchpoints) often works better because deals take longer and involve multiple stakeholders. For B2C, last-touch is closer to reality because decisions are faster. Set up UTM parameters on all campaigns so you can track source → medium → campaign → content. Use Google Analytics 4 or a data warehouse to track customer journeys end-to-end. Report on multiple models simultaneously—see if conclusions change. Spoiler: they often do. Then make decisions based on the model closest to your business reality.",
+    "commonMistakes": [
+      "Trusting last-touch entirely. It credits the final click but ignores everything that led to it. A brand awareness campaign might create 0 direct conversions but enable all your other channels. Measure contribution, not just conversion.",
+      "Using different attribution models across teams. Sales uses first-touch, marketing uses last-touch, finance uses linear. Different conclusions kill decision-making and create conflict. Standardize across your company or explicitly document the differences.",
+      "Not accounting for offline conversions. Your prospects might see your ad, then call sales or book a demo. If you're only tracking web conversions, you miss the full picture. Sync CRM data with marketing platforms and data warehouse."
+    ],
+    "ideafuelConnection": "Use research-engine to identify high-impact touchpoints in your customer journey. Use financial-modeling to calculate channel ROI under different attribution models and inform budget allocation."
+  },
+  "relatedTerms": ["retargeting", "affiliate-marketing", "funnel-analysis"],
+  "synonyms": ["Conversion attribution", "Touch credit model"],
+  "seoTitle": "What is an Attribution Model? | IdeaFuel Glossary",
+  "seoDescription": "Attribution model explanation: how to credit marketing touchpoints and optimize channel spend correctly."
+}

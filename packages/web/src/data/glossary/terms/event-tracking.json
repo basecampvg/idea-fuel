@@ -1,0 +1,21 @@
+{
+  "slug": "event-tracking",
+  "title": "Event Tracking",
+  "category": "analytics",
+  "shortDefinition": "Recording specific user actions in your product so you can analyze behavior patterns.",
+  "content": {
+    "definition": "Event tracking is the plumbing that powers all analytics. Every time a user clicks, submits, views, or completes something, you fire an event that records: what they did, when, which user, and optional context (e.g., feature name, value). These events flow into analytics platforms where they become dashboards, funnels, and cohort analyses. Without event tracking, you're blind.",
+    "whyItMatters": "You can't improve what you don't measure. If you don't track 'feature_used' or 'payment_processed', you have no way to know if your product is working. Event tracking is the foundation of all product decisions. It's the difference between shipping in the dark and shipping with visibility. A well-instrumented product gives you instant feedback: 'users tried our new search but 90% quit after 5 seconds'—signal you can act on immediately.",
+    "howToApply": "Plan your events before you code. List the key user journeys: onboarding path, feature discovery, conversion path, support escalation. Instrument each step with a semantic event name: 'user_signed_up', 'feature_used', 'payment_completed'. Add properties that let you slice data: 'feature_name', 'source', 'plan_tier'. Keep event names consistent—'signup' and 'sign_up' are two different events and will fragment your data. Use a tool like Mixpanel, Amplitude, or Segment. Test your event tracking: fire a test event and verify it appears in your dashboard within 30 seconds. Review your event schema quarterly—add new events before new features ship, don't retrofit tracking after launch.",
+    "commonMistakes": [
+      "Firing too many events and creating noise that makes signal hard to find",
+      "Inconsistent event naming ('user_signup' vs 'signup' vs 'new_account') that fragments data",
+      "Tracking without properties—'button_clicked' is useless without knowing which button"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine ingests your event stream to build a complete picture of user behavior. It surfaces which events correlate with retention, which features drive engagement, and which user cohorts are most profitable."
+  },
+  "relatedTerms": ["product-analytics", "session-duration", "funnel-analysis"],
+  "synonyms": ["User Tracking", "Behavioral Event"],
+  "seoTitle": "What is Event Tracking? | IdeaFuel Glossary",
+  "seoDescription": "Event tracking records specific user actions in your product to power analytics dashboards, funnels, and conversion analysis."
+}

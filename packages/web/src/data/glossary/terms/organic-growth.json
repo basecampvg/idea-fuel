@@ -1,0 +1,21 @@
+{
+  "slug": "organic-growth",
+  "title": "Organic Growth",
+  "category": "growth",
+  "shortDefinition": "User acquisition driven by word-of-mouth, SEO, and viral mechanics without paid advertising.",
+  "content": {
+    "definition": "Organic growth is the rate at which your product expands through natural channels—search engines, word-of-mouth, content distribution, community building, and viral mechanics. Unlike paid growth, you're not paying per acquisition; instead, you earn users through product quality, SEO rankings, and network effects. Organic growth is slower to start but compounds relentlessly if your unit economics work. It's often underestimated because early numbers look underwhelming compared to paid; a successful organic strategy builds invisible momentum that explodes over 12-24 months.",
+    "whyItMatters": "Organic growth is the most scalable and profitable form of expansion. Once you establish SEO rankings or a strong community, those users arrive free at near-zero marginal cost. Companies like Wikipedia, Linux, and GitHub proved that organic growth can scale to billions without significant ad spend. The unit economics are dramatically better—a customer acquired through organic search costs essentially zero, while paid search customers might cost 10-100x more depending on competition. Investors favor organic growth because it signals genuine product-market fit and reduces dependency on marketing budgets. If your growth stops the moment you stop spending, you haven't built a durable business and face significant risk. Organic channels are also resilient to platform changes and economic cycles in ways paid channels aren't.",
+    "howToApply": "Start with the lowest-hanging fruit: SEO optimization for high-volume, low-competition keywords in your niche. Create content that answers questions your target users are already searching for—this compounds over months as your content ages and accumulates backlinks. Second, build-in shareability: make it easy for users to demonstrate your product's value to peers through content creation, community sharing, or one-click referrals. Third, foster community around your product—communities are self-reinforcing growth mechanisms where users generate content, answer each other's questions, and recruit peers. Finally, exploit network effects; each user should add value for others, creating retention incentives and natural referral behavior. Track organic acquisition separately from paid to understand true unit economics. If organic channels underperform, it usually signals a product-market fit problem, not a marketing problem—users don't naturally refer products they don't love.",
+    "commonMistakes": [
+      "Ignoring SEO in favor of paid ads—organic search is often the largest untapped channel for B2B and SaaS. Most founders optimize paid search while competitors own organic search and capture 70% of long-tail volume.",
+      "Building for acquisition instead of retention—organic growth requires that users stick around and refer; churn kills virality. A viral loop with 50% monthly churn is a treadmill—you're constantly acquiring to replace losses.",
+      "Treating organic as a side project—it requires systematic infrastructure (content calendar, community management, analytics). Assign a single person to own organic growth or accept that it will stay neglected."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator models organic growth potential against your competitive landscape and helps you identify which organic channels align with your target customer's behavior."
+  },
+  "relatedTerms": ["paid-growth", "search-engine-optimization", "viral-coefficient"],
+  "synonyms": ["Earned Growth", "Natural Growth"],
+  "seoTitle": "What is Organic Growth? | IdeaFuel Glossary",
+  "seoDescription": "Build sustainable growth without paid ads. Explore SEO, content, and network effects."
+}

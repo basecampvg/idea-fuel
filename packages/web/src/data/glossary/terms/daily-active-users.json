@@ -1,0 +1,24 @@
+{
+  "slug": "daily-active-users",
+  "title": "Daily Active Users",
+  "category": "growth",
+  "shortDefinition": "The number of unique users who actively engage with your product on a given day, measured as a daily count or rolling average.",
+  "content": {
+    "definition": "Daily Active Users (DAU) counts the number of unique users who interact with your product at least once per day. A user is counted once per day regardless of how many times they log in or how much they use the product. If 1,000 users log into Slack on Monday, your Monday DAU is 1,000 (even if one of them sends 200 messages and another sends 1). DAU is a raw engagement metric, not a retention rate. A high DAU with a low monthly active users (MAU) means users are super engaged when they show up but don't show up often. A high DAU relative to MAU means you have habitual users.",
+    "whyItMatters": "DAU is the metric for habit-forming products and engagement-driven businesses. A social media or communication platform lives or dies by DAU because daily habit is the core value. Slack's DAU and DAU/MAU ratio (daily/monthly users) is the metric investors watch obsessively—if 70% of your monthly users are daily users, you've got a habitual product. DAU matters less for infrequently-used products: accounting software or document management tools have low DAU because users don't use them daily, but they might have high monthly retention. DAU also helps you understand seasonality and engagement trends better than MAU. If DAU drops 30% but MAU stays flat, you've got a re-engagement problem (users are there, but not using daily). If DAU drops and MAU drops proportionally, you've got a churn problem.",
+    "howToApply": "Define active engagement clearly: for a communication app, it's sending or receiving a message. For productivity software, it's creating or editing content. For a marketplace, it's browsing, bidding, or transacting. Keep it simple so the metric is meaningful. Track rolling 7-day DAU and 30-day DAU alongside single-day DAU because single-day numbers are noisy (weekends vs. weekdays, holidays). Calculate DAU/MAU ratio: if you have 10,000 MAU and 3,000 DAU, your ratio is 30%—meaning 30% of monthly users are daily users. Ratios above 50% signal a habitual product; below 20% signals an infrequently-used product. This ratio stays relatively stable if nothing changes; big shifts indicate a problem or opportunity. If DAU/MAU drops from 40% to 25%, investigate: are users losing the habit? Is the product less compelling? Is engagement friction creeping in? Segment DAU by cohort: do new users have different daily engagement patterns than long-term users? You'll often find new users DAU is lower because they're still learning. Track DAU by geography, device (mobile vs. desktop), and feature. Knowing which features drive daily engagement helps you prioritize product work.",
+    "commonMistakes": [
+      "Confusing DAU with active sessions—a user who logs in 5 times is still 1 DAU, not 5. Count unique users, not sessions.",
+      "Ignoring DAU/MAU ratio—high DAU number with low ratio means users are engaged sometimes but not habitually. That's different from high DAU with high ratio.",
+      "Comparing DAU across apps without context—Slack's DAU is 30% of MAU; TikTok is 65%+. The baseline depends on use case. Know your category's typical DAU/MAU.",
+      "Measuring DAU without segmentation—DAU includes power users and barely-active users equally. Segment to understand engagement distribution.",
+      "Treating DAU as a vanity metric without conversion context—high DAU doesn't matter if those users aren't retained or monetized. Connect DAU to cohort retention.",
+      "Over-optimizing for DAU at the expense of value—you can artificially boost DAU by sending push notifications constantly, but that's hollow engagement."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes DAU benchmarks and DAU/MAU ratios in your market category, helping you understand what daily engagement looks like for successful competitors and what you should target."
+  },
+  "relatedTerms": ["monthly-active-users", "dau-mau-ratio", "stickiness"],
+  "synonyms": ["Daily Users", "DAU Count"],
+  "seoTitle": "Daily Active Users (DAU): Calculate & Optimize Engagement | IdeaFuel",
+  "seoDescription": "Track DAU metrics and daily engagement. Learn DAU/MAU ratio, segment by cohort, and build habitual product engagement for habit-forming products."
+}

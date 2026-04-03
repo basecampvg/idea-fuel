@@ -1,0 +1,21 @@
+{
+  "slug": "click-through-rate",
+  "title": "Click-Through Rate",
+  "category": "marketing",
+  "shortDefinition": "The percentage of people who clicked your ad or link divided by total impressions shown.",
+  "content": {
+    "definition": "CTR measures how many people saw your message and acted on it. It's calculated as (clicks / impressions) × 100. A 2% CTR means 2 out of every 100 people who saw your ad clicked it. CTR varies wildly by placement, audience, and creative quality.",
+    "whyItMatters": "CTR is your first filter on ad effectiveness. A high CTR means your message resonates—people want to click. A low CTR means your audience isn't interested or your creative is weak. But CTR alone is incomplete: someone clicking doesn't mean they'll buy. Focus on CTR as a diagnostic tool, not a success metric. Better to optimize for conversion rate or cost per customer acquired.",
+    "howToApply": "Track CTR by ad placement, audience segment, and creative variation. Google Search ads average 2-3% CTR; display ads average 0.5%. If your CTR is below category average, test new ad copy or targeting. A/B test headlines, images, and CTAs to identify what drives clicks. But remember: optimize for the metric that actually matters—cost per lead or cost per customer. IdeaFuel's Research Engine helps you analyze competitor CTR benchmarks and identify where your messaging is underperforming.",
+    "commonMistakes": [
+      "Optimizing purely for CTR. High clicks + low conversions = expensive wasted traffic. You need to measure through-line: impression to click to lead to customer.",
+      "Comparing CTR across different placements. A 1% CTR on display might be excellent; the same rate on search is terrible. Compare within context.",
+      "Ignoring ad fatigue. Your CTR will drop over time as the same audience sees the same ad. Refresh creative every 2-4 weeks."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine helps you analyze your CTR performance against competitors and industry benchmarks, surfacing messaging gaps to improve click-through and conversion."
+  },
+  "relatedTerms": ["cost-per-click", "impression", "landing-page"],
+  "synonyms": ["CTR", "Ad Click Rate"],
+  "seoTitle": "What is Click-Through Rate? | IdeaFuel Glossary",
+  "seoDescription": "Understand click-through rate as a diagnostic metric to improve ad messaging, targeting, and campaign performance."
+}

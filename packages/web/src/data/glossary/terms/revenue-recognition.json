@@ -1,0 +1,23 @@
+{
+  "slug": "revenue-recognition",
+  "title": "Revenue Recognition",
+  "category": "finance",
+  "shortDefinition": "The accounting method that determines when revenue is recorded, not when cash is received.",
+  "content": {
+    "definition": "Revenue Recognition is the timing of when you record revenue in your financial statements. Under accrual accounting (standard for real businesses), revenue is recognized when earned, not when cash arrives. For a $1,200 annual subscription billed upfront, you recognize $100/month as revenue for 12 months, even though you received cash on day one. This matches revenue to the period when you actually delivered value.",
+    "whyItMatters": "Revenue recognition determines whether your financial statements are accurate or misleading. Wrong timing makes your profit and loss statement useless for decision-making. It also affects how investors evaluate your business—a company that books all annual contracts upfront looks like it's growing 10x faster than one that recognizes revenue monthly, even if they're identical businesses. For loan covenants and investment agreements, revenue recognition rules are explicit and auditable. Getting this wrong creates legal problems.",
+    "howToApply": "For subscriptions, recognize revenue monthly over the subscription period, even if paid annually. For professional services, recognize revenue as services are delivered (use hours completed, milestones, or time period). For one-time products, recognize revenue on delivery (product delivered and risk transferred to customer). For performance obligations not yet met (prepayment), record as deferred revenue until conditions are satisfied. Track deferred revenue as a liability on your balance sheet. Consult with an accountant or bookkeeper on complex deals—a $500K integration deal with phased delivery needs careful revenue recognition. For investor reporting, clearly disclose your revenue recognition method and watch for changes—investors hate surprises here. IdeaFuel's Financial Modeling tool tracks deferred revenue separately so you can model the impact on actual vs. recognized revenue.",
+    "commonMistakes": [
+      "Recognizing all revenue upfront for annual prepayments—this violates accrual accounting and inflates growth metrics. Recognize over the service period.",
+      "Including refunds in original revenue instead of reducing recognized revenue—refunds are a reduction to revenue, not a cost. Track net revenue after refunds.",
+      "Not distinguishing between cash received and revenue recognized—you can have negative cash flow with positive revenue (customer paid slowly) or positive cash with negative revenue (customer refund).",
+      "Recognizing revenue for contingent deals—if you're entitled to revenue only if the customer meets certain conditions, don't recognize until conditions are satisfied.",
+      "Mixing subscription revenue with one-time revenue without clearly separate recognition methods—the timing should be clear for each revenue stream."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool tracks deferred revenue separately so you can model the impact on actual vs. recognized revenue and understand the gap."
+  },
+  "relatedTerms": ["deferred-revenue", "annual-recurring-revenue", "accounts-receivable"],
+  "synonyms": ["Accrual Revenue", "GAAP Revenue Recognition"],
+  "seoTitle": "Revenue Recognition: Accrual vs. Cash | Accounting Guide for Startups",
+  "seoDescription": "Understand revenue recognition timing, accrual accounting, and deferred revenue. Get financial statements right and avoid investor surprises."
+}

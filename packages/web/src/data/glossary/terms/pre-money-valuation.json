@@ -1,0 +1,21 @@
+{
+  "slug": "pre-money-valuation",
+  "title": "Pre-money Valuation",
+  "category": "fundraising",
+  "shortDefinition": "What your company is worth before new investors put money in.",
+  "content": {
+    "definition": "Pre-money valuation is the dollar value assigned to your company before an investment round closes. If you raise $2M at a $8M pre-money valuation, you're selling investors a stake in what you valued at $8M. It's purely a negotiation—there's no objective formula. What matters is what both sides agree to.",
+    "whyItMatters": "Pre-money valuation determines ownership dilution. A lower pre-money means investors get a bigger equity slice for their cash. This dilutes existing shareholders (founders, employees) more heavily. A higher pre-money keeps more equity in founder hands but might be unrealistic or scare investors away. It also anchors future funding rounds—VCs expect reasonable progression between rounds. Get this wrong and you either leave money on the table or price yourself into a corner.",
+    "howToApply": "Start by researching comps: what did similar companies raise at similar stages in your market? Look at your traction—revenue, user growth, engagement metrics—and compare to benchmark ranges for your stage. Be honest about what you've achieved. If you're pre-revenue with a prototype, you're in a different universe than a company with $500K ARR. Use online tools to model different pre-money scenarios and see how they affect founder dilution over multiple rounds. Present your pre-money as justified, not arbitrary. Show investors you've thought about market conditions, your specific advantages, and realistic paths to the next milestone.",
+    "commonMistakes": [
+      "Anchoring too high because you believe in your vision—investors price on evidence and risk, not faith",
+      "Ignoring dilution math—founders don't understand how much equity they'll own after 3-4 rounds at aggressive pre-money valuations",
+      "Not accounting for employee option pool—if you reserve 20% for future hires, that dilution hits your pre-money valuation, not the investor's"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool lets you model pre-money scenarios and see how different valuations affect your ownership structure through multiple funding rounds. Understand founder dilution before you negotiate with investors."
+  },
+  "relatedTerms": ["post-money-valuation", "valuation", "dilution"],
+  "synonyms": ["Pre-revenue Valuation", "Equity Valuation"],
+  "seoTitle": "What is Pre-money Valuation? Founder's Guide | IdeaFuel Glossary",
+  "seoDescription": "Pre-money valuation determines how much equity investors get. Learn how it's calculated and why it matters for founder ownership."
+}

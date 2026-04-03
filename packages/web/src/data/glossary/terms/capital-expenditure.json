@@ -1,0 +1,21 @@
+{
+  "slug": "capital-expenditure",
+  "title": "Capital Expenditure",
+  "category": "finance",
+  "shortDefinition": "Money spent on acquiring or upgrading physical assets with multi-year useful life.",
+  "content": {
+    "definition": "Capital expenditure (CapEx) is spending on assets that benefit your business for years: equipment, machinery, buildings, vehicles, and major software platforms. Unlike operating expenses paid in the current period, CapEx is capitalized on the balance sheet and expensed over the asset's useful life through depreciation or amortization. It requires cash outlay upfront but spreads the expense recognition across future periods.",
+    "whyItMatters": "CapEx kills startups that don't understand it. You can spend 500K on manufacturing equipment and show zero immediate expense, but you've burned half a million in cash. That's dangerous when runway is measured in months. Many hardware and manufacturing startups fail not from bad unit economics but from underestimating CapEx requirements. CapEx also locks you into commitments: that equipment depreciates whether you use it or not. For SaaS and service businesses, CapEx is usually minimal, but many founders overlook 'invisible' CapEx like building custom infrastructure.",
+    "howToApply": "For hardware or capital-intensive businesses, model CapEx separately from operating expenses—it's a distinct cash drain. Calculate the payback period for each capital investment: how long until the asset generates enough profit to justify its cost? Lease vs. buy analysis is critical: sometimes leasing is cheaper and more flexible than owning. Track CapEx intensity (CapEx as % of revenue) to benchmark against competitors. If CapEx is substantial, include it in unit economics calculations; a product might look profitable at gross margin but unprofitable when you factor in the equipment cost to produce it.",
+    "commonMistakes": [
+      "Assuming low operating expenses means you're efficient when you've just hidden massive CapEx on the balance sheet",
+      "Overinvesting in equipment for hypothetical volume that never materializes",
+      "Leasing assets when buying would be cheaper, or vice versa, due to poor financial modeling"
+    ],
+    "ideafuelConnection": "IdeaFuel's financial-modeling tools calculate CapEx payback periods, compare lease-vs-buy scenarios, and integrate CapEx into overall cash flow and profitability projections."
+  },
+  "relatedTerms": ["operating-expenses", "depreciation", "cash-flow"],
+  "synonyms": ["Fixed Asset Investment", "Plant & Equipment"],
+  "seoTitle": "What is Capital Expenditure? | IdeaFuel Glossary",
+  "seoDescription": "Learn what capital expenditure is and how it affects startup cash flow and long-term financial planning."
+}

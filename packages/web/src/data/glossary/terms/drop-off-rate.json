@@ -1,0 +1,21 @@
+{
+  "slug": "drop-off-rate",
+  "title": "Drop-off Rate",
+  "category": "analytics",
+  "shortDefinition": "Percentage of users who abandon a process at a specific stage.",
+  "content": {
+    "definition": "Drop-off rate measures the percentage of users who exit a funnel at each stage without completing the intended action. It's calculated by dividing the number of users who leave at a particular step by the total number who entered that step. This metric is critical for identifying friction points in your user journey.",
+    "whyItMatters": "Drop-off rate reveals exactly where users lose interest or encounter obstacles. A 30% drop between signup and first action is a red flag that demands investigation. Unlike overall conversion rates, drop-off pinpoints the specific moments that kill momentum and require optimization.",
+    "howToApply": "Start by mapping your critical funnels: signup to verification, feature discovery to first use, free trial to paid conversion. Calculate drop-off at each step, then prioritize the stages with the highest abandonment. Test micro-improvements—faster form submission, clearer instructions, reduced friction—and measure the impact. IdeaFuel's Research Engine analyzes user behavior patterns to identify which drop-off points have the highest financial impact on your business. Focus your engineering effort where it matters most.",
+    "commonMistakes": [
+      "Treating all drop-off equally instead of prioritizing high-value funnel stages",
+      "Ignoring seasonal or cohort-specific drop-off patterns that reveal hidden segments",
+      "Optimizing for drop-off reduction without considering whether those users were ever qualified"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes user journey data to identify which drop-off points represent the biggest revenue leaks, helping you focus optimization efforts on the highest-impact friction points."
+  },
+  "relatedTerms": ["funnel-analysis", "bounce-rate", "onboarding"],
+  "synonyms": ["Abandonment Rate", "Churn Point", "Exit Rate"],
+  "seoTitle": "What is Drop-off Rate? | IdeaFuel Glossary",
+  "seoDescription": "Understand drop-off rate: the percentage of users who abandon your funnel at each stage. Identify friction points."
+}

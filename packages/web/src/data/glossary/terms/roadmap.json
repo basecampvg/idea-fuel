@@ -1,0 +1,21 @@
+{
+  "slug": "roadmap",
+  "title": "Roadmap",
+  "category": "product",
+  "shortDefinition": "A time-bound plan that communicates what you'll build over the next quarter or year and why each item matters.",
+  "content": {
+    "definition": "A product roadmap is a structured plan that outlines what features or capabilities you're building, when you'll build them, and why they matter to your business. It's not a detailed technical specification—it's a strategic communication tool for your team, investors, and sometimes customers.",
+    "whyItMatters": "A roadmap creates alignment and accountability. Without one, engineers build what they think matters, product makes promises to customers about timelines that don't exist, and the company careens between priorities week to week. A clear roadmap also helps you say no: when your sales team wants feature X and engineering wants to refactor, you can point to the roadmap and say 'that's not on it this quarter, and here's why.' Investors also want to know you have a strategic plan, not just ideas.",
+    "howToApply": "Start with your business metrics—what needs to move to hit your growth targets? Then work backward: what features would move those metrics? Group them into quarters or major releases. For each major initiative, be clear about the outcome you're optimizing for (not just the feature description). Share the roadmap openly with your team and solicit feedback—if engineers see problems with the plan, better to know now. Be ruthless about saying no: it's easier to add things to a roadmap than to remove them. Update the roadmap quarterly or when major new information emerges (user research, competitive threats, etc.). Keep it flexible enough to adapt, but rigid enough to actually drive decisions. IdeaFuel's Business Plan Generator helps you map your feature roadmap to key business metrics and validate that each feature will move the needle.",
+    "commonMistakes": [
+      "Roadmaps written in a vacuum by the founder—without input from the team that has to build it",
+      "Roadmaps that are basically a wishlist—features that sound nice but don't actually move business metrics",
+      "Committing to timelines you can't meet—roadmaps become useless when they're consistently wrong"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you build a roadmap that connects every initiative to your business metrics, ensuring you're building strategically, not randomly."
+  },
+  "relatedTerms": ["feature-prioritization", "product-requirements-document", "sprint"],
+  "synonyms": ["Product Plan", "Development Plan"],
+  "seoTitle": "What is a Product Roadmap? How to Create One | IdeaFuel Glossary",
+  "seoDescription": "A product roadmap is a strategic plan of what to build and why. Learn how to create one that drives alignment and moves your business metrics."
+}

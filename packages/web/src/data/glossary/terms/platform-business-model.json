@@ -1,0 +1,21 @@
+{
+  "slug": "platform-business-model",
+  "title": "Platform Business Model",
+  "category": "strategy",
+  "shortDefinition": "A business where value is created by connecting multiple user groups (producers and consumers) on a single network.",
+  "content": {
+    "definition": "A platform business model creates value by facilitating interactions between different user groups (supply and demand). Examples: Uber (drivers and passengers), Airbnb (hosts and guests), App Store (developers and users), Stripe (merchants and payment processors). The platform doesn't own the assets or create the product; it enables the transaction between producer and consumer. Platforms scale through network effects: each new participant makes the platform more valuable for everyone else.",
+    "whyItMatters": "Platform businesses can scale faster and achieve higher valuations than traditional businesses because they benefit from network effects. Uber's 10th city is easier to launch than its 2nd because the brand is known and drivers understand the model. Network effects create defensibility: competitors struggle to gain traction when the incumbent already has critical mass. Platforms also have superior unit economics—you're not manufacturing or delivering anything, just facilitating transactions. That said, platforms are harder to bootstrap because you need critical mass on both sides of the marketplace to get started, making initial growth slower than traditional businesses.",
+    "howToApply": "Building a platform requires solving the 'chicken-and-egg' problem: you need supply and demand simultaneously. Start by identifying the primary pain point on one side of the marketplace (usually the side with more friction). For Uber, it was passengers wanting reliable transportation; for Airbnb, hosts wanting to monetize spare rooms. Onboard one side aggressively, then use that supply to attract the other side. Alternatively, you can 'seed' one side yourself (Uber ran some drivers initially to show reliable service). Focus on unit economics: what's the take rate per transaction? At what marketplace penetration do you break even? Your path to profitability depends on network effects kicking in before your subsidy runs out. Use IdeaFuel's Business Plan Generator to model marketplace unit economics and network effect assumptions.",
+    "commonMistakes": [
+      "Assuming network effects will work automatically—they don't. You must actively manage both sides and ensure the platform is genuinely valuable to each before network effects take hold.",
+      "Picking the wrong side to subsidize—if you subsidize the wrong side, you'll never reach profitability. Usually you subsidize the side with more elastic demand (e.g., passengers, not drivers).",
+      "Ignoring the 'cold start' problem—your first 100 transactions are miserable. Plan for significant marketing spend to reach critical mass."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model platform unit economics, network effects assumptions, and go-to-market strategy for two-sided marketplaces. Stress-test your marketplace model before launch."
+  },
+  "relatedTerms": ["marketplace-model", "network-effects", "two-sided-market"],
+  "synonyms": ["Two-Sided Marketplace", "Network Business"],
+  "seoTitle": "What is a Platform Business Model? | IdeaFuel Glossary",
+  "seoDescription": "Build valuable platforms with network effects. Master two-sided marketplace strategy and scaling for startup success."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "net-present-value",
+  "title": "Net Present Value",
+  "category": "finance",
+  "shortDefinition": "The current value of all future cash flows from an investment, discounted to account for time and risk.",
+  "content": {
+    "definition": "Net present value (NPV) answers: what are the cash flows I'll receive in the future worth in today's dollars? It takes every future cash inflow, discounts them backward in time based on a discount rate (your cost of capital), and subtracts the initial investment. A positive NPV means the investment creates value and should be done; negative NPV means it destroys value and should be rejected. NPV is the gold standard for evaluating whether an investment creates shareholder value. The math: NPV = Σ(Cash Flow in Year N / (1 + Discount Rate)^N) - Initial Investment.",
+    "whyItMatters": "Money today is worth more than money tomorrow because you could invest it and earn a return. A dollar earned in 5 years has less purchasing power due to inflation and less opportunity value. NPV accounts for that time value of money using discounting. It also bakes in risk through the discount rate—riskier investments use higher discount rates (e.g., 25% for early-stage startups), lowering their NPV, while safer investments use lower rates (e.g., 5% for treasury bonds). This forces comparison across completely different investments on an apples-to-apples basis: different time horizons, different risk profiles, different cash flow patterns. If Project A has NPV of $500K at 15% discount rate and Project B has NPV of $300K, Project A creates more value and you should pick it, assuming same risk.",
+    "howToApply": "Calculate annual cash flows for the investment: revenues, minus operating expenses, minus taxes, plus depreciation (non-cash), minus capital expenditures. Project 5-10 years (beyond that, uncertainty is too high). Choose a discount rate—this is your weighted average cost of capital (WACC), usually 10-20% for startups, reflecting the risk and opportunity cost. If you can get a risk-free return elsewhere (e.g., government bonds at 4%), your startup must exceed that by a risk premium. Discount each year's cash flow by that rate: Year 1 cash flow / (1 + discount rate)^1, Year 2 / (1 + discount rate)^2, etc. Sum all discounted cash flows and subtract the upfront investment. Positive NPV means do it; negative means don't. Sensitivity test: calculate NPV at different discount rates (10%, 15%, 20%) to see how risk assumptions change the decision.",
+    "commonMistakes": [
+      "Using a discount rate that's too low—underestimates risk and inflates NPV of speculative projects, leading to bad decisions",
+      "Assuming cash flows beyond a reasonable horizon—forecasting 10+ years out introduces massive uncertainty and is often ignored by sophisticated investors",
+      "Including sunk costs in cash flows—only count future costs and benefits, not what you've already spent (sunk costs should not affect new decisions)"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool calculates NPV for your business across different discount rate scenarios. Adjust your discount rate to reflect actual risk (cautious estimate: 20%+ for early startups; optimistic: 10% if near cash flow positive). See how it changes the valuation of your company and proposed investments. Use NPV to decide: should we hire this person, buy this equipment, launch this product?"
+  },
+  "relatedTerms": ["internal-rate-of-return", "return-on-investment", "financial-projections"],
+  "synonyms": ["NPV"],
+  "seoTitle": "What is Net Present Value (NPV)? Formula & Decision Making | IdeaFuel",
+  "seoDescription": "NPV is the value of future cash flows in today's dollars. Learn how to calculate it and use it to make better investment decisions."
+}

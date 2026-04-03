@@ -1,0 +1,21 @@
+{
+  "slug": "pre-seed",
+  "title": "Pre-seed",
+  "category": "fundraising",
+  "shortDefinition": "The earliest funding stage where founders raise capital to build prototypes and validate product-market fit ideas.",
+  "content": {
+    "definition": "Pre-seed is the capital raised before you have product-market fit, before you have paying customers, and before a traditional seed investor would touch you. It's the 'prove concept' round. Amounts vary wildly ($25K from a friend to $500K from an angel group), but the goal is the same: build enough to show investors there's a real problem and your solution works. It's the riskiest round because you're betting on founders and thesis, not traction.",
+    "whyItMatters": "Pre-seed funding changes what you can build in year one. Bootstrapped, you build one feature at a time and burn through savings. With pre-seed capital, you hire a small team, iterate faster, and reach product-market fit in 12-18 months instead of 3+ years. The downside: dilution and the pressure that comes with investor expectations. Pre-seed sets the trajectory—companies that raise pre-seed at reasonable valuations build momentum, while those that raise too much at inflated valuations face brutal Series A dynamics.",
+    "howToApply": "Build a prototype first (pre-pre-seed self-funding stage). Show founders you're serious and can execute. Then pitch your problem, your unfair advantage, and your founding team to angel investors in your network. Most pre-seed rounds come from angels and micro-VCs who know you or know someone who knows you. Use documents: problem/solution slides, early user interviews, financial projections. Be honest about what you don't know. Aim for $100-300K if you have a technical co-founder and can move fast. Negotiate equity and terms carefully—pre-seed valuations have limited anchoring data, so anchor to the value you bring and the market opportunity, not arbitrary metrics.",
+    "commonMistakes": [
+      "Raising pre-seed before you've talked to 20+ potential customers (burn it on ideas no one wants)",
+      "Accepting pre-seed capital before proving founders can ship (great ideas fail without execution chops)",
+      "Raising too much pre-seed at too high a valuation (kills your Series A optionality)"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you structure the problem/solution narrative and financial model needed to convince pre-seed investors you've thought through your business."
+  },
+  "relatedTerms": ["seed-round", "bootstrapping", "angel-investor"],
+  "synonyms": ["Pre-seed Round", "Friends and Family Round"],
+  "seoTitle": "What is Pre-seed Funding? | IdeaFuel Glossary",
+  "seoDescription": "Learn about pre-seed funding, the earliest round of capital for validating ideas and reaching product-market fit before Series A."
+}

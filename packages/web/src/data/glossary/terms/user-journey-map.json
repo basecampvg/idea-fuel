@@ -1,0 +1,21 @@
+{
+  "slug": "user-journey-map",
+  "title": "User Journey Map",
+  "category": "product",
+  "shortDefinition": "Visual representation of how customers interact with your product across touchpoints and stages.",
+  "content": {
+    "definition": "A user journey map is a visual diagram that illustrates how customers interact with your product or service from initial awareness through post-purchase. It maps out the customer's steps, emotions, pain points, opportunities, and interactions across different channels and stages. Journey maps typically include stages (awareness, consideration, purchase, onboarding, adoption, advocacy), the customer's actions at each stage, emotional highs and lows, and the company touchpoints where you influence the experience.",
+    "whyItMatters": "User journey maps force you to think from the customer's perspective rather than from your product roadmap perspective. They reveal gaps and pain points you wouldn't notice by just looking at feature requests or usage data. By understanding the entire journey, you prioritize fixes on the critical path where customers actually drop off or struggle. Journey maps also align your team—product, marketing, sales, and support all see the same customer experience and can collaborate on improvements. Most importantly, they prevent you from optimizing for metrics that don't matter (like onboarding speed) while ignoring the real problem (activation understanding).",
+    "howToApply": "Start by interviewing 10-15 customers across different segments and use IdeaFuel's Customer Interview feature to capture their complete experience—how they found you, why they bought, what they struggled with, and how they use you now. Document their emotional journey, not just their actions. Identify moments of truth where customers decide to stay or leave, success metrics at each stage, and where your assumptions don't match reality. Create a visual map showing stages, customer actions, emotions, touchpoints, and pain points. Share this with your entire team and use it to prioritize product work. Update the journey map quarterly as you learn more from customers and implement changes.",
+    "commonMistakes": [
+      "Creating journey maps based on assumptions instead of actual customer interviews—your hypothesis about the journey is often wrong",
+      "Only focusing on the post-purchase journey while ignoring awareness and consideration, where many potential customers drop off",
+      "Not updating journey maps after changes—they become stale documents instead of living strategic tools"
+    ],
+    "ideafuelConnection": "IdeaFuel's Customer Interview feature lets you capture detailed customer experience data, which you then synthesize into journey maps. This structured interview approach ensures you're gathering the right information to build accurate, actionable journey maps."
+  },
+  "relatedTerms": ["customer-journey-analytics", "user-flow", "pain-point"],
+  "synonyms": ["Customer Journey Map", "Experience Map"],
+  "seoTitle": "What is a User Journey Map? | IdeaFuel Glossary",
+  "seoDescription": "User journey map definition: visual customer experience across touchpoints. How to identify pain points and improve product adoption."
+}

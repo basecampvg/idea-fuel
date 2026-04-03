@@ -1,0 +1,21 @@
+{
+  "slug": "scale",
+  "title": "Scale",
+  "category": "growth",
+  "shortDefinition": "Growing your business to handle exponentially more customers while keeping unit economics intact.",
+  "content": {
+    "definition": "Scale is the ability to grow your business to serve significantly more customers without proportionally increasing your costs. It means your unit economics stay healthy or improve as you grow revenue, typically achieved through automation, systems, and leverage.",
+    "whyItMatters": "Every founder dreams of scaling, but most businesses never do. Without deliberate scaling, adding more customers means adding proportionally more overhead—you're on a treadmill, not a rocket ship. Companies that scale successfully capture enormous market share and become defensible because their cost structure lets them price aggressively.",
+    "howToApply": "Start by identifying your unit economics: what does it actually cost to serve one more customer? Document your operational bottlenecks—where are humans your limiting factor? Build systems and automation around those bottlenecks. Use data to prove what actually scales before building it. Test with 10x your current volume to find failure points. IdeaFuel's Business Plan Generator helps you model your scaling assumptions and identify which operational changes will unlock the next 10x without blowing up your margins.",
+    "commonMistakes": [
+      "Scaling revenue without scaling profitability—growing faster than your margins can sustain",
+      "Building scalable systems before proving product-market fit—optimizing prematurely",
+      "Assuming your current processes will work at 10x volume without testing them first"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model your scaling assumptions, project when you'll hit operational bottlenecks, and identify which automation investments will unlock sustainable growth without eroding margins."
+  },
+  "relatedTerms": ["hypergrowth", "economies-of-scale", "compounding-growth"],
+  "synonyms": ["Growth", "Expansion"],
+  "seoTitle": "What is Scale? Business Growth at Profitable Unit Economics | IdeaFuel Glossary",
+  "seoDescription": "Scale means growing revenue while keeping unit economics healthy. Learn how to build systems that handle 10x more customers without 10x more overhead."
+}

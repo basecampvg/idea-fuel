@@ -1,0 +1,21 @@
+{
+  "slug": "dau-mau-ratio",
+  "title": "DAU/MAU Ratio",
+  "category": "growth",
+  "shortDefinition": "Ratio of daily active users to monthly active users; measures how sticky and engaging your product is.",
+  "content": {
+    "definition": "DAU/MAU (Daily Active Users divided by Monthly Active Users) shows what percentage of your monthly user base returns to your product daily. A ratio of 0.5 means 50% of monthly users return every day. It's the most direct measurement of user engagement and product stickiness—how much users actually value your product.",
+    "whyItMatters": "This single metric cuts through the noise of vanity metrics. You can have a million monthly users and a DAU/MAU of 0.05 (only 50k daily), meaning 95% of users are churning hard. Conversely, a small user base with a 0.7 ratio tells you you've built something people genuinely need. VCs obsess over this ratio because it predicts lifetime value and virality potential better than any growth numbers.",
+    "howToApply": "First, calculate your current ratio by dividing your daily active users by monthly active users for the last 30 days. If it's below 0.2, your product has a severe stickiness problem—either it doesn't solve a recurring problem, or the user experience is broken. Focus on why users aren't returning, not on acquiring more users. Test feature changes that increase daily utility: increase frequency of use cases, reduce friction to returning, add habit-forming loops. Track this weekly, not monthly. Use cohort analysis to see which user segments have better ratios—those behaviors tell you what's working.",
+    "commonMistakes": [
+      "Chasing DAU growth while ignoring DAU/MAU ratio—you can grow DAU with bad retention",
+      "Comparing your ratio to companies in different categories—a news app and a productivity tool have different baseline ratios",
+      "Ignoring seasonal swings—holiday periods naturally depress DAU/MAU for many products"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes user engagement patterns and helps you benchmark your DAU/MAU ratio against competitors, identifying where your product has stickiness gaps."
+  },
+  "relatedTerms": ["daily-active-users", "monthly-active-users", "stickiness"],
+  "synonyms": ["Engagement Ratio", "Retention Ratio"],
+  "seoTitle": "What is DAU/MAU Ratio? Measure Product Stickiness | IdeaFuel Glossary",
+  "seoDescription": "DAU/MAU ratio shows what percentage of monthly users return daily. Higher ratios indicate stronger product-market fit and better user retention."
+}

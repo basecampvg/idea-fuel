@@ -1,0 +1,21 @@
+{
+  "slug": "cash-flow-statement",
+  "title": "Cash Flow Statement",
+  "category": "finance",
+  "shortDefinition": "A record of actual cash in and out of your company, showing where every dollar came from and went.",
+  "content": {
+    "definition": "A cash flow statement tracks the actual movement of cash through three buckets: operating activities (money from running the business), investing activities (buying/selling assets, making loans), and financing activities (borrowing or investor capital, debt repayment). Unlike the income statement, it only counts real cash—not accruals, depreciation, or non-cash losses. The sum shows whether you actually have more cash at the end of the period than you started with, down to the dollar.",
+    "whyItMatters": "Cash is survival. Period. You can be profitable on paper and still go bankrupt—if customers don't pay you for 90 days but you pay your team weekly, you run out of cash and die. The cash flow statement reveals timing mismatches and working capital traps that aren't visible on the income statement. It shows where cash is getting stuck (accounts receivable taking months to collect, inventory tying up working capital) and what drains it hard (capital expenditures on new equipment, debt principal payments, taxes, dividends). For startups, operating cash burn rate—how fast you're spending down your runway—is the only metric that matters until you hit cash flow positive. Your bank balance on the 15th is more important than your net income on the 30th.",
+    "howToApply": "Build a monthly cash flow forecast using your P&L as a starting point, then adjust for the actual timing of payments. Add back non-cash expenses like depreciation and amortization (they reduced net income but didn't use cash) and stock-based compensation. Subtract capital expenditures and prepaid expenses that use cash but won't show on the current P&L. Track customer payment terms carefully: if you invoice net-30 but pay employees immediately, that 30-day gap is cash you have to finance out of pocket. Same with vendor payment terms—if vendors want net-15 but customers pay net-60, you're funding the 45-day gap with your cash. Keep a cash flow projection out 12 months minimum; 24 months is better for planning hires and runway. Build a working capital section: know your cash conversion cycle: days to produce (if applicable) + days to collect from customers minus days you can delay payment to vendors. That gap is your working capital need, the cash you have to carry on the balance sheet. For a software company with 30-day collection and 60-day vendor terms, you actually have positive working capital and don't need much cash; for a manufacturing company with 90-day customer terms and net-30 supplier terms, the gap is 60 days and requires significant cash reserves.",
+    "commonMistakes": [
+      "Treating depreciation, amortization, and stock-based comp as real cash expenses—they're not; add them back when modeling cash flow",
+      "Not modeling payment delays—assuming you collect revenue immediately when customers actually pay net-30, net-60, or in some cases net-90; this is often where startups blow through cash",
+      "Forgetting about upcoming tax payments, debt principal payments, and year-end bonuses that spike cash outflows; plan for these specifically"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool automatically generates cash flow statements from your revenue and expense projections, adjusting for payment terms, working capital needs, and capital expenditures. See your cash position month-by-month with visibility into where cash gets stuck. Calculate exactly how long your runway is at current burn and stress-test against slower collections or faster spending."
+  },
+  "relatedTerms": ["cash-flow", "balance-sheet", "income-statement"],
+  "synonyms": ["Statement of Cash Flows"],
+  "seoTitle": "What is a Cash Flow Statement? Startup Guide | IdeaFuel Glossary",
+  "seoDescription": "Cash flow statements track actual cash movement. Learn why it matters more than profits and how to forecast your runway."
+}

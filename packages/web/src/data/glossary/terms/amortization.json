@@ -1,0 +1,21 @@
+{
+  "slug": "amortization",
+  "title": "Amortization",
+  "category": "finance",
+  "shortDefinition": "Allocation of intangible asset costs or loan principal over time.",
+  "content": {
+    "definition": "Amortization is the accounting process of expensing intangible assets (patents, software, trademarks) over their useful life, similar to depreciation for tangible assets. It's also used for loan repayment: an amortization schedule shows how each payment splits between principal and interest. Both types reduce asset value or loan balance systematically over time. Like depreciation, amortization is usually a non-cash expense for accounting purposes.",
+    "whyItMatters": "Acquired startups often generate significant amortization. If you buy a SaaS company for 10M and allocate 7M to goodwill and intangible assets, you'll record 700K+ annually in amortization expense, dragging down reported profitability despite no cash outlay. Lenders also care about amortization because loan payments are real cash drain—understanding your debt amortization schedule is critical for cash forecasting. Amortization can mask true operational performance, so investors look at EBITDA (earnings before interest, taxes, depreciation, amortization) to see underlying business health.",
+    "howToApply": "For intangible assets, determine useful life conservatively—patents expire, software becomes obsolete, trademarks fade. Typical lives: software 3-5 years, patents 10-15 years, customer lists 5-7 years. For loan amortization, use a simple spreadsheet or calculator to project principal and interest for each period; front-loaded interest in early years means early payoff saves substantial interest. Always calculate EBITDA alongside net income to see if amortization is masking profitability problems. When acquiring companies, negotiate for longer asset lives if possible—it spreads amortization and improves reported earnings.",
+    "commonMistakes": [
+      "Treating amortization as a 'fake' expense and ignoring it—it still affects taxes and reported earnings",
+      "Underestimating useful lives, leading to aggressive expense recognition and depressed near-term profitability",
+      "Not modeling loan amortization schedules, causing cash flow surprises"
+    ],
+    "ideafuelConnection": "IdeaFuel's financial-modeling tools generate amortization schedules for intangible assets and loans, calculate EBITDA properly, and show the true cash impact separate from accounting impact."
+  },
+  "relatedTerms": ["depreciation", "capital-expenditure", "convertible-note"],
+  "synonyms": ["Goodwill Expense", "Intangible Asset Expense"],
+  "seoTitle": "What is Amortization? | IdeaFuel Glossary",
+  "seoDescription": "Learn how amortization affects startup profitability and cash flow, especially for acquisitions and debt repayment."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "cost-per-acquisition",
+  "title": "Cost Per Acquisition",
+  "category": "marketing",
+  "shortDefinition": "The total amount spent to acquire one paying customer, including all marketing and sales expenses.",
+  "content": {
+    "definition": "CPA (or CAC) is the fundamental metric of business profitability. It's your total marketing and sales spend divided by number of customers acquired in that period. If you spent $10,000 on marketing and acquired 50 customers, your CPA is $200. It's the cost of growth.",
+    "whyItMatters": "Your CPA determines whether your business model works. If your CPA is $500 and your customer LTV is $1,500, you have a healthy 3:1 ratio. If your CPA is $500 and LTV is $600, you're barely surviving on thin margins. CPA is the most important number for evaluating growth efficiency. It's how you know if scaling is profitable or just burning cash.",
+    "howToApply": "Calculate your current CPA across all channels combined, then break it down by channel. Where is customer acquisition cheapest and most profitable? Double down there. Where is it expensive with high churn? Cut it. Your CPA will vary by customer segment—enterprise customers might have $2,000+ CPA (long sales cycle, expensive reps) while SMB customers might be $300. Model your CPA against LTV for each segment to identify which are truly profitable to scale. IdeaFuel's Financial Modeling tool helps you forecast CPA across channels and validate that your unit economics support profitability at scale.",
+    "commonMistakes": [
+      "Including only direct ad spend in CPA. You need to include sales salaries, marketing team costs, tools, everything. True CPA is always higher than marketers admit.",
+      "Using paid-only CPA when you have organic channels. Your overall business CPA is important, not just paid acquisition costs.",
+      "Ignoring cohort differences. Your CPA for enterprise customers might be 10x your SMB CPA. Blending them creates false confidence."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you calculate realistic CPA across all channels and validate that your customer acquisition economics support sustainable growth and profitability."
+  },
+  "relatedTerms": ["customer-acquisition-cost", "return-on-ad-spend", "affiliate-marketing"],
+  "synonyms": ["CAC", "Customer Acquisition Cost"],
+  "seoTitle": "What is Cost Per Acquisition? | IdeaFuel Glossary",
+  "seoDescription": "Master cost per acquisition to evaluate growth efficiency and determine if your business unit economics are sustainable."
+}

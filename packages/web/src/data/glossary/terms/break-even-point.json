@@ -1,0 +1,23 @@
+{
+  "slug": "break-even-point",
+  "title": "Break-Even Point",
+  "category": "finance",
+  "shortDefinition": "The revenue level at which total revenue equals total costs, resulting in zero profit or loss.",
+  "content": {
+    "definition": "Break-Even Point is the sales volume or revenue amount at which your total costs exactly equal your total revenue, resulting in neither profit nor loss. For a product with $50 unit price, $30 cost of goods sold, and $100K fixed monthly costs, break-even is 5,000 units ($250K revenue). Break-even can be calculated in units sold, revenue dollars, or customers—depending on your business model.",
+    "whyItMatters": "Break-even is your profitability threshold. It answers 'when do we stop losing money?' For VC-backed startups, hitting break-even is often when the business becomes 'real'—you can operate independently, negotiate from strength, and focus on profitability instead of survival. For bootstrapped founders, break-even is the finish line of the early game. Understanding break-even helps you set realistic pricing (if you need to sell 10,000 units to break even but your market only has 1,000 customers, you have a problem).",
+    "howToApply": "Calculate break-even by dividing fixed costs by contribution margin per unit. If your fixed costs are $100K/month and each customer generates $200/month in gross profit, break-even is 500 customers. Then ask: how many months to acquire 500 customers at your current customer acquisition cost (CAC)? If your CAC is $1,000 and LTV is $5,000, you need to acquire 500 customers = $500K in sales spend. This is your runway requirement to break-even. Use break-even to set pricing and growth targets: 'We need 30% monthly growth to break-even in 12 months.' Model different scenarios (higher price, lower CAC, less burn) to find paths to break-even that are achievable. IdeaFuel's Financial Modeling tool helps you calculate break-even under different pricing and cost assumptions.",
+    "commonMistakes": [
+      "Calculating break-even only in units without considering customer acquisition costs—even if unit margins work, you may not afford to acquire enough customers.",
+      "Using average revenue per user instead of gross margin per user—break-even depends on gross profit after COGS, not raw revenue.",
+      "Not accounting for variable costs that scale with revenue—payment processing fees, customer support labor, and refunds all compress break-even economics.",
+      "Setting break-even targets without understanding market size—a business that breaks even at $50M ARR is worthless if total addressable market is $10M.",
+      "Treating break-even as the end goal instead of a waypoint—break-even is necessary but not sufficient. Unit economics must support growth beyond break-even."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you calculate break-even under different pricing and cost assumptions, and model paths to profitability."
+  },
+  "relatedTerms": ["contribution-margin", "fixed-costs", "unit-economics"],
+  "synonyms": ["BEP", "Break-Even Revenue", "Profitability Threshold"],
+  "seoTitle": "Break-Even Point: Calculate & Hit Profitability | Startup Founder's Guide",
+  "seoDescription": "Learn to calculate break-even point, set break-even targets, and model paths to profitability. Essential for pricing strategy and financial planning."
+}

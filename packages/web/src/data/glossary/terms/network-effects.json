@@ -1,0 +1,21 @@
+{
+  "slug": "network-effects",
+  "title": "Network Effects",
+  "category": "strategy",
+  "shortDefinition": "A product becomes more valuable as more people use it, creating exponential growth.",
+  "content": {
+    "definition": "Network effects occur when the value of a product or service increases as more users join. A phone is worthless alone but exponentially valuable with millions of other phones. Network effects create virtuous cycles: more users attract more users, widening moats that competitors can't bridge.",
+    "whyItMatters": "If you have real network effects, you're building one of the most valuable business models in existence. Competitors with better technology or lower price can't win—you're entrenched. But be honest: most founders confess to network effects that aren't real. True network effects mean your 10,000th user is materially more valuable to users 1-9,999 than your 100th user was. This is rare. Chat apps have it. B2B software mostly doesn't. Confusing 'more useful with more data' (e.g., Google Search gets better as the web grows) with true network effects is the most common founder mistake.",
+    "howToApply": "Quantify your network effect: measure the correlation between user count and engagement (e.g., DAU, message volume, transaction volume). If doubling users increases engagement by 3x, you have network effects. If it doesn't, you have a feature problem, not a network effect. Build tightly around the network: Slack's value comes from communication, so they optimized for threading, integrations, and notifications. WeChat added payments later, leveraging its network. Start with a small, tight network (single company, single geographic market) to maximize density and hit critical mass faster. A 1,000-person network that's 100% engaged beats 100,000 people with 1% engagement.",
+    "commonMistakes": [
+      "Confusing size with network effects: Snapchat grew explosively, but Snap doesn't have true network effects—the app is valuable because of features (disappearing photos), not because more users exist. Growth can come from viral loops or great product, not network effects.",
+      "Waiting for network effects before monetizing: don't assume scale automatically creates moat. Monetize early to prove willingness-to-pay. If users won't pay before 1M scale, they won't pay after.",
+      "Building for density, not reach: Discord succeeded in gaming communities by obsessing over small group experience, not overall user count. Some of the most defensible networks are small, dense communities, not massive user bases."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes competitors and markets to help you identify if true network effects exist in your space. Measure viral coefficient, engagement curves, and defensibility—proving you have a real moat before you bet the company on it."
+  },
+  "relatedTerms": ["viral-coefficient", "platform-business-model", "competitive-moat"],
+  "synonyms": ["Network externalities", "Viral growth"],
+  "seoTitle": "What are Network Effects? | IdeaFuel Glossary",
+  "seoDescription": "Learn network effects in startups: define real vs. fake network effects, measure viral growth, build defensible moats."
+}

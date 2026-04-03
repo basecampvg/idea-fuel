@@ -1,0 +1,21 @@
+{
+  "slug": "marketing-mix",
+  "title": "Marketing Mix",
+  "category": "marketing",
+  "shortDefinition": "The combination of tactics (product, price, place, promotion) you use to reach and convert customers.",
+  "content": {
+    "definition": "The marketing mix represents the core levers you control to influence market demand: product features, pricing strategy, distribution channels, and promotional activities. Often called the \"4 Ps,\" it's your tactical playbook for turning market demand into actual sales.",
+    "whyItMatters": "Most founders tinker with everything at once, which prevents them from knowing what actually works. A thoughtful marketing mix forces you to make deliberate choices about which channels, price points, and product angles align with your customer profile. Getting your mix right means you're not wasting money on tactics that don't convert your specific audience.",
+    "howToApply": "Start by auditing your current mix: What channels are you using? At what price point? What's your product positioning? Next, stress-test each component against your customer research. Run experiments—change one variable at a time—to measure which combinations actually drive revenue. Your mix will evolve as you learn what resonates, but document it explicitly so you can scale what works. IdeaFuel's Business Plan Generator helps you systematize your marketing mix decisions and track their financial impact across all four elements.",
+    "commonMistakes": [
+      "Assuming one magical channel will solve everything. Most sustainable businesses need a diverse mix—relying solely on paid ads or referrals leaves you vulnerable.",
+      "Neglecting pricing as a strategic lever. Price communicates value and affects your margin dramatically. Founders often underprice from insecurity rather than strategy.",
+      "Building a mix without understanding your unit economics. If your CAC is higher than your LTV, a great mix doesn't fix a broken business model."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you build and test your marketing mix systematically, tracking how each component affects your financial projections and go-to-market strategy."
+  },
+  "relatedTerms": ["go-to-market-strategy", "positioning", "brand-equity"],
+  "synonyms": ["4 Ps", "Marketing Tactics Framework"],
+  "seoTitle": "What is Marketing Mix? | IdeaFuel Glossary",
+  "seoDescription": "Learn how to strategically combine product, price, place, and promotion to drive customer acquisition and revenue."
+}

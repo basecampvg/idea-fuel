@@ -1,0 +1,21 @@
+{
+  "slug": "outbound-marketing",
+  "title": "Outbound Marketing",
+  "category": "marketing",
+  "shortDefinition": "Directly reaching potential customers through paid ads, cold calls, email outreach, or direct sales.",
+  "content": {
+    "definition": "Outbound marketing is interruption-based: you identify a target audience and push your message to them. This includes paid search ads, cold email campaigns, sales calls, and direct mail. It's the opposite of waiting for customers to find you—you're actively reaching out to people who haven't expressed interest yet.",
+    "whyItMatters": "Outbound accelerates early customer acquisition when you can't wait for organic growth to kick in. If you have a clear ideal customer profile and your CAC math works, outbound can scale reliably. It's also predictable—you know roughly how much you'll spend and can forecast results. But it only works if you've nailed your positioning and targeting; wasting money on unqualified prospects kills your unit economics fast.",
+    "howToApply": "Start with your clearest, most defensible customer segment. Define them precisely: company size, role, industry, pain point. Test a small outbound campaign with tight targeting before scaling budget. For cold email, craft a non-salesy hook that demonstrates you understand their problem. For paid ads, test multiple creatives to find what resonates. Measure everything: cost per lead, cost per sales conversation, conversion to customer. Only scale channels where your CAC is sustainable relative to your LTV. IdeaFuel's Business Plan Generator models your outbound spend and projects customer acquisition across different channels.",
+    "commonMistakes": [
+      "Targeting too broadly and burning budget on unqualified leads. \"Everyone could use this\" is not a targeting strategy. Pick your best wedge and dominate it.",
+      "Obsessing over open rates or click-throughs without measuring actual sales. A 50% open rate that converts 0% customers is worthless.",
+      "Running outbound without clear product-market fit. If your inbound leads aren't converting, outbound won't fix it—you'll just waste money at scale."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model outbound spend across paid search, email, and direct sales channels, with realistic conversion rates and CAC targets."
+  },
+  "relatedTerms": ["search-engine-marketing", "lead-generation", "sales-qualified-lead"],
+  "synonyms": ["Push Marketing", "Paid Acquisition"],
+  "seoTitle": "What is Outbound Marketing? | IdeaFuel Glossary",
+  "seoDescription": "Learn outbound marketing strategies to directly reach customers through paid ads, cold email, and sales outreach."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "definition-of-done",
+  "title": "Definition of Done",
+  "category": "product",
+  "shortDefinition": "The explicit checklist that marks when a feature or task is truly complete.",
+  "content": {
+    "definition": "Definition of Done (DoD) is a precise agreement on what 'complete' means for your product work. It's not just 'the code compiles'—it's the specific checklist that every task must pass before you ship it. Without a clear DoD, teams ship broken features, skip critical tests, and debate forever about whether something's ready.",
+    "whyItMatters": "A vague DoD kills shipping velocity. Your team wastes time arguing about readiness, bugs leak to production, and you end up with technical debt that compounds. A hard DoD prevents 80% of post-launch fires and makes shipping predictable. You know exactly what 'done' looks like, so you stop relying on individual judgment calls.",
+    "howToApply": "Write your DoD as a concrete checklist: code reviewed, unit tests written, acceptance criteria met, edge cases tested, documentation updated, no console errors, performance benchmarked. Make it boring and mechanical—the goal is to eliminate ambiguity, not create art. Put it in your project management tool so every team member sees the same standard. When someone tries to ship something incomplete, point to the checklist, not personal opinion. Update your DoD every sprint if needed—it evolves as you learn what actually prevents bugs.",
+    "commonMistakes": [
+      "Making DoD too vague ('it works') so it's useless as a gate",
+      "Adding so many items that nothing ever gets shipped",
+      "Letting exceptions slip—once you break the rule for one item, everyone expects special treatment"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation gives you a DoD for your idea validation itself—specific criteria before you move to development. Skip the validation step, and you ship features nobody wants. Use both the concept and IdeaFuel's validation framework to ship faster with less waste."
+  },
+  "relatedTerms": ["acceptance-criteria", "sprint", "technical-debt"],
+  "synonyms": ["Done Criteria", "Acceptance Threshold"],
+  "seoTitle": "What is Definition of Done? | IdeaFuel Glossary",
+  "seoDescription": "Definition of Done is the checklist that marks when work is truly complete. Prevents shipping broken features and reduces technical debt."
+}

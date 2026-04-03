@@ -1,0 +1,21 @@
+{
+  "slug": "lean-startup",
+  "title": "Lean Startup",
+  "category": "strategy",
+  "shortDefinition": "A methodology that emphasizes rapid iteration, validated learning, and build-measure-learn cycles over big upfront planning.",
+  "content": {
+    "definition": "The Lean Startup methodology, popularized by Eric Ries, is a framework for building products and businesses by testing assumptions in rapid cycles rather than betting everything on a detailed plan. You build a minimum viable product (MVP), measure customer response, learn from data, and iterate or pivot accordingly. The core idea: most assumptions are wrong, so validate them quickly and cheaply before scaling.",
+    "whyItMatters": "The traditional approach—spend 6 months planning, raise $2M, build for a year, then launch—kills companies. You're betting millions on assumptions nobody tested. Lean startup flips this: test assumptions for $10K, learn what works, then scale. It dramatically reduces failure risk and capital burn. Companies using lean methods raise less money, ship faster, and survive longer. Investors expect founders to be lean—constantly testing, learning, and iterating, not defensive of their original plan.",
+    "howToApply": "The build-measure-learn cycle is the engine: (1) Identify your riskiest assumption. (Is there demand? Is the customer willing to pay? Will they use our solution?). (2) Design the smallest experiment to test it. Not a full product—a landing page, prototype, or manual service. (3) Build and measure. Launch the experiment, track metrics: signups, conversion, engagement, retention. (4) Learn. Did the assumption hold? If yes, amplify it. If no, adjust and test again. Typical cycles are 1-2 weeks early on. Metrics matter: not vanity metrics (total signups) but actionable metrics (conversion, retention, cohort behavior). Run 2-3 experiments in parallel. Celebrate learning as much as traction. After 8-12 cycles, you'll have validation or clear evidence to pivot.",
+    "commonMistakes": [
+      "Building a full product before testing. You spent 6 months and $500K before realizing customers don't want it. Test demand before building at scale.",
+      "Ignoring qualitative feedback. Metrics matter, but why did they churn? Do a user interviews. Don't hide behind data.",
+      "Confusing lean with cheap. Being lean means efficient, not cutting corners. A sloppy MVP that crashes damages your brand. Build it well, but build less of it."
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation lets you run rapid customer interviews and A/B tests to validate your riskiest assumptions, then measure results to inform your build-measure-learn cycle without wasting time on unvalidated ideas."
+  },
+  "relatedTerms": ["minimum-viable-product", "pivot", "build-measure-learn"],
+  "synonyms": ["Agile Startup", "Iterative Development", "Validated Learning"],
+  "seoTitle": "What is Lean Startup Methodology? | IdeaFuel Glossary",
+  "seoDescription": "Learn how to apply the lean startup methodology to test assumptions rapidly, reduce risk, and build products customers actually want."
+}

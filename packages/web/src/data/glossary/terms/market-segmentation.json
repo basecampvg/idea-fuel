@@ -1,0 +1,21 @@
+{
+  "slug": "market-segmentation",
+  "title": "Market Segmentation",
+  "category": "strategy",
+  "shortDefinition": "Dividing your total addressable market into distinct groups with different needs and behaviors.",
+  "content": {
+    "definition": "Market segmentation is the process of breaking your market into smaller, more homogeneous subgroups. Each segment has distinct characteristics: demographics (age, industry, company size), psychographics (values, pain points), behaviors (how they buy, usage patterns), or geographics (region, country). Segmentation helps you understand that 'SMBs' isn't one market—it's multiple markets with different needs. A 5-person freelance agency has different buying criteria than a 100-person professional services firm.",
+    "whyItMatters": "Markets are not monolithic. Trying to serve everyone equally results in mediocre products that satisfy nobody. Segmentation forces you to acknowledge that different customer groups have different problems, willingness to pay, and decision-making processes. By choosing one or two segments to dominate, you can tailor your product, pricing, sales approach, and customer support to exactly what that segment needs. This drives higher conversion rates, lower churn, and stronger product-market fit. Investors also prefer founders who think in segments rather than 'everyone.'",
+    "howToApply": "Start by listing every potential customer type you could serve (e.g., freelancers, small agencies, mid-market firms, enterprises). For each segment, research: What's their primary pain point? How much would solving it be worth to them? How do they currently buy software in this category? Where do they hang out? Then rank segments by three criteria: (1) How acute is their pain? (2) How easy is it for you to reach them? (3) How much can they afford to pay? Choose your top two segments—your beachhead and your initial expansion target. Use IdeaFuel's Research Engine to analyze each segment's competitive landscape and validate your segment thesis.",
+    "commonMistakes": [
+      "Creating too many segments—if you have more than 5-6 meaningful segments, you're not segmenting, just listing customer types. Combine overlapping groups.",
+      "Choosing segments based on company size only—'SMBs' is too broad. Segment by industry, use case, buying process, or pain intensity instead.",
+      "Forgetting that segments evolve—your segment definition for year one might not apply in year three as you scale and competitors enter."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your market and identifies high-potential segments. Use it to map segment size, growth, and competitive intensity across your addressable market."
+  },
+  "relatedTerms": ["target-market", "niche-market", "customer-persona"],
+  "synonyms": ["Customer Segmentation", "Market Subdivision"],
+  "seoTitle": "What is Market Segmentation? | IdeaFuel Glossary",
+  "seoDescription": "Segment your market for focused growth. Identify high-value customer groups and tailor your go-to-market strategy."
+}

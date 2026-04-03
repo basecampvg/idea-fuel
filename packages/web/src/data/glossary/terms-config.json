@@ -68,5 +68,1685 @@
     "category": "strategy",
     "relatedTerms": ["product-market-fit", "minimum-viable-product", "value-proposition"],
     "ideafuelFeature": "interviews"
+  },
+  {
+    "slug": "serviceable-addressable-market",
+    "title": "Serviceable Addressable Market",
+    "category": "strategy",
+    "relatedTerms": ["total-addressable-market", "serviceable-obtainable-market", "beachhead-market"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "serviceable-obtainable-market",
+    "title": "Serviceable Obtainable Market",
+    "category": "strategy",
+    "relatedTerms": ["serviceable-addressable-market", "total-addressable-market", "go-to-market-strategy"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "competitive-moat",
+    "title": "Competitive Moat",
+    "category": "strategy",
+    "relatedTerms": ["barriers-to-entry", "network-effects", "switching-costs"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "value-proposition",
+    "title": "Value Proposition",
+    "category": "strategy",
+    "relatedTerms": ["positioning", "differentiation", "customer-discovery"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "pivot",
+    "title": "Pivot",
+    "category": "strategy",
+    "relatedTerms": ["lean-startup", "product-market-fit", "pivot-vs-persevere"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "business-model-canvas",
+    "title": "Business Model Canvas",
+    "category": "strategy",
+    "relatedTerms": ["value-proposition", "revenue-model", "go-to-market-strategy"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "swot-analysis",
+    "title": "SWOT Analysis",
+    "category": "strategy",
+    "relatedTerms": ["competitive-moat", "porters-five-forces", "differentiation"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "porters-five-forces",
+    "title": "Porter's Five Forces",
+    "category": "strategy",
+    "relatedTerms": ["swot-analysis", "barriers-to-entry", "competitive-moat"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "first-mover-advantage",
+    "title": "First-Mover Advantage",
+    "category": "strategy",
+    "relatedTerms": ["competitive-moat", "barriers-to-entry", "network-effects"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "lean-startup",
+    "title": "Lean Startup",
+    "category": "strategy",
+    "relatedTerms": ["minimum-viable-product", "pivot", "build-measure-learn"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "disruption",
+    "title": "Disruption",
+    "category": "strategy",
+    "relatedTerms": ["blue-ocean-strategy", "first-mover-advantage", "differentiation"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "beachhead-market",
+    "title": "Beachhead Market",
+    "category": "strategy",
+    "relatedTerms": ["serviceable-addressable-market", "niche-market", "go-to-market-strategy"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "go-to-market-strategy",
+    "title": "Go-to-Market Strategy",
+    "category": "strategy",
+    "relatedTerms": ["beachhead-market", "positioning", "target-market"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "positioning",
+    "title": "Positioning",
+    "category": "strategy",
+    "relatedTerms": ["value-proposition", "differentiation", "brand-equity"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "differentiation",
+    "title": "Differentiation",
+    "category": "strategy",
+    "relatedTerms": ["positioning", "competitive-moat", "value-proposition"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "market-segmentation",
+    "title": "Market Segmentation",
+    "category": "strategy",
+    "relatedTerms": ["target-market", "niche-market", "customer-persona"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "target-market",
+    "title": "Target Market",
+    "category": "strategy",
+    "relatedTerms": ["market-segmentation", "niche-market", "customer-persona"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "niche-market",
+    "title": "Niche Market",
+    "category": "strategy",
+    "relatedTerms": ["target-market", "beachhead-market", "market-segmentation"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "platform-business-model",
+    "title": "Platform Business Model",
+    "category": "strategy",
+    "relatedTerms": ["marketplace-model", "network-effects", "two-sided-market"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "marketplace-model",
+    "title": "Marketplace Model",
+    "category": "strategy",
+    "relatedTerms": ["platform-business-model", "two-sided-market", "network-effects"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "freemium-model",
+    "title": "Freemium Model",
+    "category": "strategy",
+    "relatedTerms": ["subscription-model", "conversion-rate", "customer-acquisition-cost"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "razor-and-blades-model",
+    "title": "Razor and Blades Model",
+    "category": "strategy",
+    "relatedTerms": ["lock-in", "switching-costs", "subscription-model"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "subscription-model",
+    "title": "Subscription Model",
+    "category": "strategy",
+    "relatedTerms": ["monthly-recurring-revenue", "churn-rate", "freemium-model"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "two-sided-market",
+    "title": "Two-Sided Market",
+    "category": "strategy",
+    "relatedTerms": ["platform-business-model", "network-effects", "marketplace-model"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "network-effects",
+    "title": "Network Effects",
+    "category": "strategy",
+    "relatedTerms": ["viral-coefficient", "platform-business-model", "competitive-moat"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "economies-of-scale",
+    "title": "Economies of Scale",
+    "category": "strategy",
+    "relatedTerms": ["barriers-to-entry", "gross-margin", "vertical-integration"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "barriers-to-entry",
+    "title": "Barriers to Entry",
+    "category": "strategy",
+    "relatedTerms": ["competitive-moat", "switching-costs", "economies-of-scale"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "switching-costs",
+    "title": "Switching Costs",
+    "category": "strategy",
+    "relatedTerms": ["lock-in", "competitive-moat", "barriers-to-entry"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "lock-in",
+    "title": "Lock-in",
+    "category": "strategy",
+    "relatedTerms": ["switching-costs", "razor-and-blades-model", "competitive-moat"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "vertical-integration",
+    "title": "Vertical Integration",
+    "category": "strategy",
+    "relatedTerms": ["horizontal-integration", "economies-of-scale", "barriers-to-entry"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "horizontal-integration",
+    "title": "Horizontal Integration",
+    "category": "strategy",
+    "relatedTerms": ["vertical-integration", "merger-and-acquisition", "economies-of-scale"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "strategic-partnership",
+    "title": "Strategic Partnership",
+    "category": "strategy",
+    "relatedTerms": ["go-to-market-strategy", "distribution-channel", "merger-and-acquisition"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "merger-and-acquisition",
+    "title": "Merger and Acquisition",
+    "category": "strategy",
+    "relatedTerms": ["exit-strategy", "acqui-hire", "horizontal-integration"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "exit-strategy",
+    "title": "Exit Strategy",
+    "category": "strategy",
+    "relatedTerms": ["ipo", "merger-and-acquisition", "acqui-hire"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "ipo",
+    "title": "IPO",
+    "category": "strategy",
+    "relatedTerms": ["exit-strategy", "valuation", "series-c"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "acqui-hire",
+    "title": "Acqui-hire",
+    "category": "strategy",
+    "relatedTerms": ["exit-strategy", "merger-and-acquisition", "talent-acquisition"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "pivot-vs-persevere",
+    "title": "Pivot vs Persevere",
+    "category": "strategy",
+    "relatedTerms": ["pivot", "lean-startup", "product-market-fit"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "blue-ocean-strategy",
+    "title": "Blue Ocean Strategy",
+    "category": "strategy",
+    "relatedTerms": ["disruption", "differentiation", "competitive-moat"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "build-measure-learn",
+    "title": "Build-Measure-Learn",
+    "category": "strategy",
+    "relatedTerms": ["lean-startup", "minimum-viable-product", "pivot"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "distribution-channel",
+    "title": "Distribution Channel",
+    "category": "strategy",
+    "relatedTerms": ["go-to-market-strategy", "strategic-partnership", "inbound-marketing"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "talent-acquisition",
+    "title": "Talent Acquisition",
+    "category": "strategy",
+    "relatedTerms": ["acqui-hire", "vesting-schedule", "option-pool"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "search-engine-optimization",
+    "title": "Search Engine Optimization",
+    "category": "marketing",
+    "relatedTerms": ["organic-traffic", "content-marketing", "search-engine-marketing"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "search-engine-marketing",
+    "title": "Search Engine Marketing",
+    "category": "marketing",
+    "relatedTerms": ["paid-traffic", "cost-per-click", "return-on-ad-spend"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "content-marketing",
+    "title": "Content Marketing",
+    "category": "marketing",
+    "relatedTerms": ["search-engine-optimization", "inbound-marketing", "brand-awareness"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "conversion-rate-optimization",
+    "title": "Conversion Rate Optimization",
+    "category": "marketing",
+    "relatedTerms": ["a-b-testing", "landing-page", "funnel"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "funnel",
+    "title": "Funnel",
+    "category": "marketing",
+    "relatedTerms": ["conversion-rate", "lead-generation", "funnel-analysis"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "a-b-testing",
+    "title": "A/B Testing",
+    "category": "marketing",
+    "relatedTerms": ["conversion-rate-optimization", "statistical-significance", "multivariate-testing"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "email-marketing",
+    "title": "Email Marketing",
+    "category": "marketing",
+    "relatedTerms": ["drip-campaign", "lead-nurturing", "click-through-rate"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "social-media-marketing",
+    "title": "Social Media Marketing",
+    "category": "marketing",
+    "relatedTerms": ["brand-awareness", "engagement-rate", "influencer-marketing"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "influencer-marketing",
+    "title": "Influencer Marketing",
+    "category": "marketing",
+    "relatedTerms": ["social-media-marketing", "brand-awareness", "user-acquisition"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "affiliate-marketing",
+    "title": "Affiliate Marketing",
+    "category": "marketing",
+    "relatedTerms": ["referral-marketing", "cost-per-acquisition", "attribution-model"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "referral-marketing",
+    "title": "Referral Marketing",
+    "category": "marketing",
+    "relatedTerms": ["viral-marketing", "k-factor", "affiliate-marketing"],
+    "ideafuelFeature": "growth"
+  },
+  {
+    "slug": "viral-marketing",
+    "title": "Viral Marketing",
+    "category": "marketing",
+    "relatedTerms": ["viral-coefficient", "referral-marketing", "k-factor"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "growth-marketing",
+    "title": "Growth Marketing",
+    "category": "marketing",
+    "relatedTerms": ["growth-hacking", "user-acquisition", "product-led-growth"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "brand-awareness",
+    "title": "Brand Awareness",
+    "category": "marketing",
+    "relatedTerms": ["brand-equity", "reach", "impression"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "brand-equity",
+    "title": "Brand Equity",
+    "category": "marketing",
+    "relatedTerms": ["brand-awareness", "positioning", "differentiation"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "customer-persona",
+    "title": "Customer Persona",
+    "category": "marketing",
+    "relatedTerms": ["target-market", "jobs-to-be-done", "user-research"],
+    "ideafuelFeature": "interviews"
+  },
+  {
+    "slug": "user-acquisition",
+    "title": "User Acquisition",
+    "category": "marketing",
+    "relatedTerms": ["customer-acquisition-cost", "paid-traffic", "organic-traffic"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "retargeting",
+    "title": "Retargeting",
+    "category": "marketing",
+    "relatedTerms": ["paid-traffic", "attribution-model", "cost-per-click"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "attribution-model",
+    "title": "Attribution Model",
+    "category": "marketing",
+    "relatedTerms": ["retargeting", "affiliate-marketing", "funnel-analysis"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "marketing-mix",
+    "title": "Marketing Mix",
+    "category": "marketing",
+    "relatedTerms": ["go-to-market-strategy", "positioning", "brand-equity"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "inbound-marketing",
+    "title": "Inbound Marketing",
+    "category": "marketing",
+    "relatedTerms": ["content-marketing", "search-engine-optimization", "lead-generation"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "outbound-marketing",
+    "title": "Outbound Marketing",
+    "category": "marketing",
+    "relatedTerms": ["search-engine-marketing", "lead-generation", "sales-qualified-lead"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "lead-generation",
+    "title": "Lead Generation",
+    "category": "marketing",
+    "relatedTerms": ["lead-scoring", "funnel", "marketing-qualified-lead"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "lead-scoring",
+    "title": "Lead Scoring",
+    "category": "marketing",
+    "relatedTerms": ["lead-generation", "marketing-qualified-lead", "sales-qualified-lead"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "landing-page",
+    "title": "Landing Page",
+    "category": "marketing",
+    "relatedTerms": ["conversion-rate-optimization", "a-b-testing", "click-through-rate"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "click-through-rate",
+    "title": "Click-Through Rate",
+    "category": "marketing",
+    "relatedTerms": ["cost-per-click", "impression", "landing-page"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "cost-per-click",
+    "title": "Cost Per Click",
+    "category": "marketing",
+    "relatedTerms": ["click-through-rate", "return-on-ad-spend", "search-engine-marketing"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "cost-per-acquisition",
+    "title": "Cost Per Acquisition",
+    "category": "marketing",
+    "relatedTerms": ["customer-acquisition-cost", "return-on-ad-spend", "affiliate-marketing"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "impression",
+    "title": "Impression",
+    "category": "marketing",
+    "relatedTerms": ["reach", "click-through-rate", "brand-awareness"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "reach",
+    "title": "Reach",
+    "category": "marketing",
+    "relatedTerms": ["impression", "engagement-rate", "brand-awareness"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "engagement-rate",
+    "title": "Engagement Rate",
+    "category": "marketing",
+    "relatedTerms": ["reach", "social-media-marketing", "daily-active-users"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "organic-traffic",
+    "title": "Organic Traffic",
+    "category": "marketing",
+    "relatedTerms": ["search-engine-optimization", "paid-traffic", "content-marketing"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "paid-traffic",
+    "title": "Paid Traffic",
+    "category": "marketing",
+    "relatedTerms": ["search-engine-marketing", "cost-per-click", "organic-traffic"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "return-on-ad-spend",
+    "title": "Return on Ad Spend",
+    "category": "marketing",
+    "relatedTerms": ["cost-per-click", "cost-per-acquisition", "return-on-investment"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "marketing-qualified-lead",
+    "title": "Marketing Qualified Lead",
+    "category": "marketing",
+    "relatedTerms": ["sales-qualified-lead", "lead-scoring", "lead-generation"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "sales-qualified-lead",
+    "title": "Sales Qualified Lead",
+    "category": "marketing",
+    "relatedTerms": ["marketing-qualified-lead", "lead-scoring", "conversion-rate"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "drip-campaign",
+    "title": "Drip Campaign",
+    "category": "marketing",
+    "relatedTerms": ["email-marketing", "lead-nurturing", "onboarding"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "lead-nurturing",
+    "title": "Lead Nurturing",
+    "category": "marketing",
+    "relatedTerms": ["drip-campaign", "email-marketing", "marketing-qualified-lead"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "unit-economics",
+    "title": "Unit Economics",
+    "category": "finance",
+    "relatedTerms": ["contribution-margin", "customer-acquisition-cost", "lifetime-value"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "runway",
+    "title": "Runway",
+    "category": "finance",
+    "relatedTerms": ["burn-rate", "bootstrapping", "bridge-round"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "revenue-model",
+    "title": "Revenue Model",
+    "category": "finance",
+    "relatedTerms": ["subscription-model", "freemium-model", "business-model-canvas"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "annual-recurring-revenue",
+    "title": "Annual Recurring Revenue",
+    "category": "finance",
+    "relatedTerms": ["monthly-recurring-revenue", "net-revenue-retention", "churn-rate"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "gross-margin",
+    "title": "Gross Margin",
+    "category": "finance",
+    "relatedTerms": ["net-margin", "cost-of-goods-sold", "contribution-margin"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "net-margin",
+    "title": "Net Margin",
+    "category": "finance",
+    "relatedTerms": ["gross-margin", "operating-expenses", "ebitda"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "ebitda",
+    "title": "EBITDA",
+    "category": "finance",
+    "relatedTerms": ["net-margin", "depreciation", "operating-expenses"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "cash-flow",
+    "title": "Cash Flow",
+    "category": "finance",
+    "relatedTerms": ["burn-rate", "working-capital", "cash-flow-statement"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "break-even-point",
+    "title": "Break-Even Point",
+    "category": "finance",
+    "relatedTerms": ["contribution-margin", "fixed-costs", "unit-economics"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "revenue-recognition",
+    "title": "Revenue Recognition",
+    "category": "finance",
+    "relatedTerms": ["deferred-revenue", "annual-recurring-revenue", "accounts-receivable"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "deferred-revenue",
+    "title": "Deferred Revenue",
+    "category": "finance",
+    "relatedTerms": ["revenue-recognition", "subscription-model", "cash-flow"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "accounts-receivable",
+    "title": "Accounts Receivable",
+    "category": "finance",
+    "relatedTerms": ["working-capital", "cash-flow", "revenue-recognition"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "working-capital",
+    "title": "Working Capital",
+    "category": "finance",
+    "relatedTerms": ["cash-flow", "accounts-receivable", "operating-expenses"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "operating-expenses",
+    "title": "Operating Expenses",
+    "category": "finance",
+    "relatedTerms": ["capital-expenditure", "ebitda", "burn-rate"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "capital-expenditure",
+    "title": "Capital Expenditure",
+    "category": "finance",
+    "relatedTerms": ["operating-expenses", "depreciation", "cash-flow"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "depreciation",
+    "title": "Depreciation",
+    "category": "finance",
+    "relatedTerms": ["amortization", "capital-expenditure", "ebitda"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "amortization",
+    "title": "Amortization",
+    "category": "finance",
+    "relatedTerms": ["depreciation", "capital-expenditure", "convertible-note"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "cost-of-goods-sold",
+    "title": "Cost of Goods Sold",
+    "category": "finance",
+    "relatedTerms": ["gross-margin", "contribution-margin", "unit-economics"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "contribution-margin",
+    "title": "Contribution Margin",
+    "category": "finance",
+    "relatedTerms": ["gross-margin", "break-even-point", "unit-economics"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "profit-margin",
+    "title": "Profit Margin",
+    "category": "finance",
+    "relatedTerms": ["gross-margin", "net-margin", "ebitda"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "financial-projections",
+    "title": "Financial Projections",
+    "category": "finance",
+    "relatedTerms": ["pro-forma", "revenue-model", "cash-flow-statement"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "pro-forma",
+    "title": "Pro Forma",
+    "category": "finance",
+    "relatedTerms": ["financial-projections", "income-statement", "balance-sheet"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "balance-sheet",
+    "title": "Balance Sheet",
+    "category": "finance",
+    "relatedTerms": ["income-statement", "cash-flow-statement", "working-capital"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "income-statement",
+    "title": "Income Statement",
+    "category": "finance",
+    "relatedTerms": ["balance-sheet", "ebitda", "revenue-recognition"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "cash-flow-statement",
+    "title": "Cash Flow Statement",
+    "category": "finance",
+    "relatedTerms": ["cash-flow", "balance-sheet", "income-statement"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "debt-to-equity-ratio",
+    "title": "Debt-to-Equity Ratio",
+    "category": "finance",
+    "relatedTerms": ["balance-sheet", "venture-debt", "bootstrapping"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "return-on-investment",
+    "title": "Return on Investment",
+    "category": "finance",
+    "relatedTerms": ["internal-rate-of-return", "net-present-value", "return-on-ad-spend"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "internal-rate-of-return",
+    "title": "Internal Rate of Return",
+    "category": "finance",
+    "relatedTerms": ["net-present-value", "return-on-investment", "financial-projections"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "net-present-value",
+    "title": "Net Present Value",
+    "category": "finance",
+    "relatedTerms": ["internal-rate-of-return", "return-on-investment", "financial-projections"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "bootstrapping",
+    "title": "Bootstrapping",
+    "category": "finance",
+    "relatedTerms": ["runway", "burn-rate", "revenue-based-financing"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "revenue-run-rate",
+    "title": "Revenue Run Rate",
+    "category": "finance",
+    "relatedTerms": ["annual-recurring-revenue", "monthly-recurring-revenue", "financial-projections"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "fixed-costs",
+    "title": "Fixed Costs",
+    "category": "finance",
+    "relatedTerms": ["break-even-point", "operating-expenses", "contribution-margin"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "viral-coefficient",
+    "title": "Viral Coefficient",
+    "category": "growth",
+    "relatedTerms": ["k-factor", "referral-marketing", "network-effects"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "retention-rate",
+    "title": "Retention Rate",
+    "category": "growth",
+    "relatedTerms": ["churn-rate", "net-revenue-retention", "cohort-analysis"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "net-revenue-retention",
+    "title": "Net Revenue Retention",
+    "category": "growth",
+    "relatedTerms": ["retention-rate", "expansion-revenue", "churn-rate"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "growth-hacking",
+    "title": "Growth Hacking",
+    "category": "growth",
+    "relatedTerms": ["growth-marketing", "product-led-growth", "viral-coefficient"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "product-led-growth",
+    "title": "Product-Led Growth",
+    "category": "growth",
+    "relatedTerms": ["growth-hacking", "activation-rate", "onboarding"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "activation-rate",
+    "title": "Activation Rate",
+    "category": "growth",
+    "relatedTerms": ["onboarding", "time-to-value", "pirate-metrics"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "daily-active-users",
+    "title": "Daily Active Users",
+    "category": "growth",
+    "relatedTerms": ["monthly-active-users", "dau-mau-ratio", "stickiness"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "monthly-active-users",
+    "title": "Monthly Active Users",
+    "category": "growth",
+    "relatedTerms": ["daily-active-users", "dau-mau-ratio", "retention-rate"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "cohort-analysis",
+    "title": "Cohort Analysis",
+    "category": "growth",
+    "relatedTerms": ["retention-rate", "churn-rate", "customer-lifetime"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "north-star-metric",
+    "title": "North Star Metric",
+    "category": "growth",
+    "relatedTerms": ["key-performance-indicator", "okr", "pirate-metrics"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "pirate-metrics",
+    "title": "Pirate Metrics (AARRR)",
+    "category": "growth",
+    "relatedTerms": ["activation-rate", "retention-rate", "referral-marketing"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "customer-lifetime",
+    "title": "Customer Lifetime",
+    "category": "growth",
+    "relatedTerms": ["lifetime-value", "churn-rate", "cohort-analysis"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "expansion-revenue",
+    "title": "Expansion Revenue",
+    "category": "growth",
+    "relatedTerms": ["net-revenue-retention", "upselling", "cross-selling"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "upselling",
+    "title": "Upselling",
+    "category": "growth",
+    "relatedTerms": ["cross-selling", "expansion-revenue", "customer-lifetime"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "cross-selling",
+    "title": "Cross-selling",
+    "category": "growth",
+    "relatedTerms": ["upselling", "expansion-revenue", "customer-lifetime"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "onboarding",
+    "title": "Onboarding",
+    "category": "growth",
+    "relatedTerms": ["activation-rate", "time-to-value", "product-led-growth"],
+    "ideafuelFeature": "interviews"
+  },
+  {
+    "slug": "time-to-value",
+    "title": "Time to Value",
+    "category": "growth",
+    "relatedTerms": ["onboarding", "activation-rate", "user-experience"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "stickiness",
+    "title": "Stickiness",
+    "category": "growth",
+    "relatedTerms": ["dau-mau-ratio", "engagement-loop", "retention-rate"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "engagement-loop",
+    "title": "Engagement Loop",
+    "category": "growth",
+    "relatedTerms": ["habit-loop", "stickiness", "referral-loop"],
+    "ideafuelFeature": "product"
+  },
+  {
+    "slug": "habit-loop",
+    "title": "Habit Loop",
+    "category": "growth",
+    "relatedTerms": ["engagement-loop", "stickiness", "daily-active-users"],
+    "ideafuelFeature": "product"
+  },
+  {
+    "slug": "referral-loop",
+    "title": "Referral Loop",
+    "category": "growth",
+    "relatedTerms": ["viral-coefficient", "k-factor", "engagement-loop"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "k-factor",
+    "title": "K-Factor",
+    "category": "growth",
+    "relatedTerms": ["viral-coefficient", "referral-loop", "viral-marketing"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "organic-growth",
+    "title": "Organic Growth",
+    "category": "growth",
+    "relatedTerms": ["paid-growth", "search-engine-optimization", "viral-coefficient"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "paid-growth",
+    "title": "Paid Growth",
+    "category": "growth",
+    "relatedTerms": ["organic-growth", "customer-acquisition-cost", "search-engine-marketing"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "growth-loop",
+    "title": "Growth Loop",
+    "category": "growth",
+    "relatedTerms": ["referral-loop", "product-led-growth", "viral-coefficient"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "compounding-growth",
+    "title": "Compounding Growth",
+    "category": "growth",
+    "relatedTerms": ["hockey-stick-growth", "growth-loop", "network-effects"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "hockey-stick-growth",
+    "title": "Hockey Stick Growth",
+    "category": "growth",
+    "relatedTerms": ["compounding-growth", "hypergrowth", "traction"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "j-curve",
+    "title": "J-Curve",
+    "category": "growth",
+    "relatedTerms": ["hockey-stick-growth", "compounding-growth", "burn-rate"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "traction",
+    "title": "Traction",
+    "category": "growth",
+    "relatedTerms": ["north-star-metric", "hockey-stick-growth", "product-market-fit"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "scale",
+    "title": "Scale",
+    "category": "growth",
+    "relatedTerms": ["hypergrowth", "economies-of-scale", "compounding-growth"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "hypergrowth",
+    "title": "Hypergrowth",
+    "category": "growth",
+    "relatedTerms": ["hockey-stick-growth", "scale", "traction"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "dau-mau-ratio",
+    "title": "DAU/MAU Ratio",
+    "category": "growth",
+    "relatedTerms": ["daily-active-users", "monthly-active-users", "stickiness"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "user-story",
+    "title": "User Story",
+    "category": "product",
+    "relatedTerms": ["acceptance-criteria", "product-backlog", "use-case"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "sprint",
+    "title": "Sprint",
+    "category": "product",
+    "relatedTerms": ["agile", "product-backlog", "definition-of-done"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "agile",
+    "title": "Agile",
+    "category": "product",
+    "relatedTerms": ["sprint", "lean-ux", "technical-debt"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "feature-prioritization",
+    "title": "Feature Prioritization",
+    "category": "product",
+    "relatedTerms": ["product-backlog", "roadmap", "jobs-to-be-done"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "roadmap",
+    "title": "Roadmap",
+    "category": "product",
+    "relatedTerms": ["feature-prioritization", "product-requirements-document", "sprint"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "product-requirements-document",
+    "title": "Product Requirements Document",
+    "category": "product",
+    "relatedTerms": ["roadmap", "user-story", "acceptance-criteria"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "user-experience",
+    "title": "User Experience",
+    "category": "product",
+    "relatedTerms": ["user-interface", "usability-testing", "information-architecture"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "user-interface",
+    "title": "User Interface",
+    "category": "product",
+    "relatedTerms": ["user-experience", "wireframe", "prototype"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "wireframe",
+    "title": "Wireframe",
+    "category": "product",
+    "relatedTerms": ["prototype", "user-interface", "information-architecture"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "prototype",
+    "title": "Prototype",
+    "category": "product",
+    "relatedTerms": ["wireframe", "minimum-viable-product", "usability-testing"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "beta-testing",
+    "title": "Beta Testing",
+    "category": "product",
+    "relatedTerms": ["dogfooding", "usability-testing", "customer-feedback-loop"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "dogfooding",
+    "title": "Dogfooding",
+    "category": "product",
+    "relatedTerms": ["beta-testing", "customer-feedback-loop", "product-analytics"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "feature-flag",
+    "title": "Feature Flag",
+    "category": "product",
+    "relatedTerms": ["a-b-testing", "beta-testing", "scope-creep"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "technical-debt",
+    "title": "Technical Debt",
+    "category": "product",
+    "relatedTerms": ["scope-creep", "agile", "definition-of-done"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "scope-creep",
+    "title": "Scope Creep",
+    "category": "product",
+    "relatedTerms": ["technical-debt", "roadmap", "feature-prioritization"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "product-backlog",
+    "title": "Product Backlog",
+    "category": "product",
+    "relatedTerms": ["sprint", "user-story", "feature-prioritization"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "user-research",
+    "title": "User Research",
+    "category": "product",
+    "relatedTerms": ["customer-persona", "usability-testing", "jobs-to-be-done"],
+    "ideafuelFeature": "interviews"
+  },
+  {
+    "slug": "usability-testing",
+    "title": "Usability Testing",
+    "category": "product",
+    "relatedTerms": ["user-research", "beta-testing", "user-experience"],
+    "ideafuelFeature": "interviews"
+  },
+  {
+    "slug": "customer-feedback-loop",
+    "title": "Customer Feedback Loop",
+    "category": "product",
+    "relatedTerms": ["user-research", "dogfooding", "build-measure-learn"],
+    "ideafuelFeature": "interviews"
+  },
+  {
+    "slug": "jobs-to-be-done",
+    "title": "Jobs to Be Done",
+    "category": "product",
+    "relatedTerms": ["customer-persona", "pain-point", "user-research"],
+    "ideafuelFeature": "interviews"
+  },
+  {
+    "slug": "design-thinking",
+    "title": "Design Thinking",
+    "category": "product",
+    "relatedTerms": ["lean-ux", "user-research", "prototype"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "lean-ux",
+    "title": "Lean UX",
+    "category": "product",
+    "relatedTerms": ["design-thinking", "agile", "minimum-viable-product"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "information-architecture",
+    "title": "Information Architecture",
+    "category": "product",
+    "relatedTerms": ["user-flow", "user-experience", "wireframe"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "user-flow",
+    "title": "User Flow",
+    "category": "product",
+    "relatedTerms": ["information-architecture", "user-experience", "onboarding"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "pain-point",
+    "title": "Pain Point",
+    "category": "product",
+    "relatedTerms": ["jobs-to-be-done", "customer-discovery", "value-proposition"],
+    "ideafuelFeature": "interviews"
+  },
+  {
+    "slug": "use-case",
+    "title": "Use Case",
+    "category": "product",
+    "relatedTerms": ["user-story", "acceptance-criteria", "user-flow"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "acceptance-criteria",
+    "title": "Acceptance Criteria",
+    "category": "product",
+    "relatedTerms": ["definition-of-done", "user-story", "product-requirements-document"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "definition-of-done",
+    "title": "Definition of Done",
+    "category": "product",
+    "relatedTerms": ["acceptance-criteria", "sprint", "technical-debt"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "product-analytics",
+    "title": "Product Analytics",
+    "category": "product",
+    "relatedTerms": ["feature-adoption", "event-tracking", "north-star-metric"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "feature-adoption",
+    "title": "Feature Adoption",
+    "category": "product",
+    "relatedTerms": ["product-analytics", "activation-rate", "onboarding"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "product-market-fit-score",
+    "title": "Product-Market Fit Score",
+    "category": "product",
+    "relatedTerms": ["product-market-fit", "retention-rate", "north-star-metric"],
+    "ideafuelFeature": "spark-validation"
+  },
+  {
+    "slug": "funnel-analysis",
+    "title": "Funnel Analysis",
+    "category": "analytics",
+    "relatedTerms": ["conversion-rate", "drop-off-rate", "funnel"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "event-tracking",
+    "title": "Event Tracking",
+    "category": "analytics",
+    "relatedTerms": ["product-analytics", "session-duration", "funnel-analysis"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "session-duration",
+    "title": "Session Duration",
+    "category": "analytics",
+    "relatedTerms": ["bounce-rate", "page-views", "engagement-rate"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "bounce-rate",
+    "title": "Bounce Rate",
+    "category": "analytics",
+    "relatedTerms": ["session-duration", "landing-page", "conversion-rate"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "page-views",
+    "title": "Page Views",
+    "category": "analytics",
+    "relatedTerms": ["unique-visitors", "session-duration", "organic-traffic"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "unique-visitors",
+    "title": "Unique Visitors",
+    "category": "analytics",
+    "relatedTerms": ["page-views", "reach", "monthly-active-users"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "drop-off-rate",
+    "title": "Drop-off Rate",
+    "category": "analytics",
+    "relatedTerms": ["funnel-analysis", "bounce-rate", "onboarding"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "heat-map",
+    "title": "Heat Map",
+    "category": "analytics",
+    "relatedTerms": ["usability-testing", "conversion-rate-optimization", "user-experience"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "customer-journey-analytics",
+    "title": "Customer Journey Analytics",
+    "category": "analytics",
+    "relatedTerms": ["funnel-analysis", "cohort-analysis", "attribution-model"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "predictive-analytics",
+    "title": "Predictive Analytics",
+    "category": "analytics",
+    "relatedTerms": ["regression-analysis", "leading-indicator", "financial-projections"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "descriptive-analytics",
+    "title": "Descriptive Analytics",
+    "category": "analytics",
+    "relatedTerms": ["dashboard", "key-performance-indicator", "data-driven-decision-making"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "key-performance-indicator",
+    "title": "Key Performance Indicator",
+    "category": "analytics",
+    "relatedTerms": ["okr", "north-star-metric", "metric-vs-vanity-metric"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "okr",
+    "title": "OKR",
+    "category": "analytics",
+    "relatedTerms": ["key-performance-indicator", "north-star-metric", "benchmarking"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "metric-vs-vanity-metric",
+    "title": "Metric vs Vanity Metric",
+    "category": "analytics",
+    "relatedTerms": ["key-performance-indicator", "north-star-metric", "data-driven-decision-making"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "leading-indicator",
+    "title": "Leading Indicator",
+    "category": "analytics",
+    "relatedTerms": ["lagging-indicator", "key-performance-indicator", "predictive-analytics"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "lagging-indicator",
+    "title": "Lagging Indicator",
+    "category": "analytics",
+    "relatedTerms": ["leading-indicator", "key-performance-indicator", "descriptive-analytics"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "benchmarking",
+    "title": "Benchmarking",
+    "category": "analytics",
+    "relatedTerms": ["key-performance-indicator", "okr", "competitive-moat"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "dashboard",
+    "title": "Dashboard",
+    "category": "analytics",
+    "relatedTerms": ["key-performance-indicator", "descriptive-analytics", "data-driven-decision-making"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "data-driven-decision-making",
+    "title": "Data-Driven Decision Making",
+    "category": "analytics",
+    "relatedTerms": ["dashboard", "key-performance-indicator", "descriptive-analytics"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "statistical-significance",
+    "title": "Statistical Significance",
+    "category": "analytics",
+    "relatedTerms": ["a-b-testing", "confidence-interval", "sample-size"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "confidence-interval",
+    "title": "Confidence Interval",
+    "category": "analytics",
+    "relatedTerms": ["statistical-significance", "sample-size", "a-b-testing"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "sample-size",
+    "title": "Sample Size",
+    "category": "analytics",
+    "relatedTerms": ["statistical-significance", "confidence-interval", "multivariate-testing"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "multivariate-testing",
+    "title": "Multivariate Testing",
+    "category": "analytics",
+    "relatedTerms": ["a-b-testing", "sample-size", "conversion-rate-optimization"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "segmentation-analysis",
+    "title": "Segmentation Analysis",
+    "category": "analytics",
+    "relatedTerms": ["market-segmentation", "cohort-analysis", "customer-journey-analytics"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "regression-analysis",
+    "title": "Regression Analysis",
+    "category": "analytics",
+    "relatedTerms": ["predictive-analytics", "statistical-significance", "leading-indicator"],
+    "ideafuelFeature": "research-engine"
+  },
+  {
+    "slug": "pre-seed",
+    "title": "Pre-seed",
+    "category": "fundraising",
+    "relatedTerms": ["seed-round", "bootstrapping", "angel-investor"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "seed-round",
+    "title": "Seed Round",
+    "category": "fundraising",
+    "relatedTerms": ["pre-seed", "series-a", "convertible-note"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "series-a",
+    "title": "Series A",
+    "category": "fundraising",
+    "relatedTerms": ["seed-round", "series-b", "term-sheet"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "series-b",
+    "title": "Series B",
+    "category": "fundraising",
+    "relatedTerms": ["series-a", "series-c", "lead-investor"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "series-c",
+    "title": "Series C",
+    "category": "fundraising",
+    "relatedTerms": ["series-b", "ipo", "venture-capital"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "term-sheet",
+    "title": "Term Sheet",
+    "category": "fundraising",
+    "relatedTerms": ["cap-table", "valuation", "liquidation-preference"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "cap-table",
+    "title": "Cap Table",
+    "category": "fundraising",
+    "relatedTerms": ["dilution", "option-pool", "equity"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "dilution",
+    "title": "Dilution",
+    "category": "fundraising",
+    "relatedTerms": ["cap-table", "anti-dilution", "pro-rata-rights"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "safe",
+    "title": "SAFE",
+    "category": "fundraising",
+    "relatedTerms": ["convertible-note", "seed-round", "valuation"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "convertible-note",
+    "title": "Convertible Note",
+    "category": "fundraising",
+    "relatedTerms": ["safe", "seed-round", "valuation"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "valuation",
+    "title": "Valuation",
+    "category": "fundraising",
+    "relatedTerms": ["pre-money-valuation", "post-money-valuation", "term-sheet"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "pre-money-valuation",
+    "title": "Pre-money Valuation",
+    "category": "fundraising",
+    "relatedTerms": ["post-money-valuation", "valuation", "dilution"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "post-money-valuation",
+    "title": "Post-money Valuation",
+    "category": "fundraising",
+    "relatedTerms": ["pre-money-valuation", "valuation", "cap-table"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "venture-capital",
+    "title": "Venture Capital",
+    "category": "fundraising",
+    "relatedTerms": ["angel-investor", "series-a", "term-sheet"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "angel-investor",
+    "title": "Angel Investor",
+    "category": "fundraising",
+    "relatedTerms": ["venture-capital", "pre-seed", "convertible-note"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "pitch-deck",
+    "title": "Pitch Deck",
+    "category": "fundraising",
+    "relatedTerms": ["due-diligence", "term-sheet", "go-to-market-strategy"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "due-diligence",
+    "title": "Due Diligence",
+    "category": "fundraising",
+    "relatedTerms": ["pitch-deck", "term-sheet", "cap-table"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "lead-investor",
+    "title": "Lead Investor",
+    "category": "fundraising",
+    "relatedTerms": ["venture-capital", "board-seat", "pro-rata-rights"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "follow-on-investment",
+    "title": "Follow-on Investment",
+    "category": "fundraising",
+    "relatedTerms": ["pro-rata-rights", "lead-investor", "bridge-round"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "bridge-round",
+    "title": "Bridge Round",
+    "category": "fundraising",
+    "relatedTerms": ["runway", "convertible-note", "down-round"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "down-round",
+    "title": "Down Round",
+    "category": "fundraising",
+    "relatedTerms": ["flat-round", "up-round", "anti-dilution"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "flat-round",
+    "title": "Flat Round",
+    "category": "fundraising",
+    "relatedTerms": ["down-round", "up-round", "valuation"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "up-round",
+    "title": "Up Round",
+    "category": "fundraising",
+    "relatedTerms": ["flat-round", "down-round", "valuation"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "liquidation-preference",
+    "title": "Liquidation Preference",
+    "category": "fundraising",
+    "relatedTerms": ["preferred-stock", "anti-dilution", "term-sheet"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "anti-dilution",
+    "title": "Anti-dilution",
+    "category": "fundraising",
+    "relatedTerms": ["dilution", "liquidation-preference", "down-round"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "pro-rata-rights",
+    "title": "Pro Rata Rights",
+    "category": "fundraising",
+    "relatedTerms": ["follow-on-investment", "lead-investor", "dilution"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "board-seat",
+    "title": "Board Seat",
+    "category": "fundraising",
+    "relatedTerms": ["lead-investor", "venture-capital", "drag-along-rights"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "vesting-schedule",
+    "title": "Vesting Schedule",
+    "category": "fundraising",
+    "relatedTerms": ["cliff", "option-pool", "equity"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "cliff",
+    "title": "Cliff",
+    "category": "fundraising",
+    "relatedTerms": ["vesting-schedule", "option-pool", "equity"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "option-pool",
+    "title": "Option Pool",
+    "category": "fundraising",
+    "relatedTerms": ["cap-table", "vesting-schedule", "dilution"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "equity",
+    "title": "Equity",
+    "category": "fundraising",
+    "relatedTerms": ["preferred-stock", "common-stock", "cap-table"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "preferred-stock",
+    "title": "Preferred Stock",
+    "category": "fundraising",
+    "relatedTerms": ["common-stock", "liquidation-preference", "equity"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "common-stock",
+    "title": "Common Stock",
+    "category": "fundraising",
+    "relatedTerms": ["preferred-stock", "equity", "vesting-schedule"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "drag-along-rights",
+    "title": "Drag Along Rights",
+    "category": "fundraising",
+    "relatedTerms": ["tag-along-rights", "right-of-first-refusal", "board-seat"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "tag-along-rights",
+    "title": "Tag Along Rights",
+    "category": "fundraising",
+    "relatedTerms": ["drag-along-rights", "right-of-first-refusal", "equity"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "right-of-first-refusal",
+    "title": "Right of First Refusal",
+    "category": "fundraising",
+    "relatedTerms": ["drag-along-rights", "tag-along-rights", "lead-investor"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "crowdfunding",
+    "title": "Crowdfunding",
+    "category": "fundraising",
+    "relatedTerms": ["pre-seed", "revenue-based-financing", "angel-investor"],
+    "ideafuelFeature": "business-plan"
+  },
+  {
+    "slug": "revenue-based-financing",
+    "title": "Revenue-Based Financing",
+    "category": "fundraising",
+    "relatedTerms": ["bootstrapping", "crowdfunding", "monthly-recurring-revenue"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "venture-debt",
+    "title": "Venture Debt",
+    "category": "fundraising",
+    "relatedTerms": ["bridge-round", "debt-to-equity-ratio", "runway"],
+    "ideafuelFeature": "financial-modeling"
+  },
+  {
+    "slug": "user-journey-map",
+    "title": "User Journey Map",
+    "category": "product",
+    "relatedTerms": ["customer-journey-analytics", "user-flow", "pain-point"],
+    "ideafuelFeature": "interviews"
+  },
+  {
+    "slug": "product-led-sales",
+    "title": "Product-Led Sales",
+    "category": "analytics",
+    "relatedTerms": ["product-led-growth", "sales-qualified-lead", "activation-rate"],
+    "ideafuelFeature": "business-plan"
   }
 ]

@@ -1,0 +1,21 @@
+{
+  "slug": "lead-generation",
+  "title": "Lead Generation",
+  "category": "marketing",
+  "shortDefinition": "The process of identifying and attracting potential customers interested in your product or service.",
+  "content": {
+    "definition": "Lead generation is how you build your pipeline of prospects. A lead is someone who's shown enough interest—filled out a form, clicked an email, downloaded a guide, replied to a sales message—that they deserve a sales conversation. Without leads, you have no funnel.",
+    "whyItMatters": "Your growth rate is directly limited by your lead generation velocity and quality. You can have the best product in the world, but if you're generating ten unqualified leads a month, you'll never build a real business. Most founders neglect lead gen in favor of product improvements, then panic when they realize they have no one to sell to. A repeatable lead generation engine is as important as your product.",
+    "howToApply": "Audit where your best current customers came from. That's your signal. Double down on those channels. If organic search is your strongest channel, invest in content and SEO. If sales conversations work, hire salespeople and build a prospecting system. Mix multiple channels so you're not dependent on one: content marketing, paid ads, partnerships, referrals, direct outreach. Track the cost and quality of each lead source. Prioritize channels where leads convert to customers profitably. IdeaFuel's Business Plan Generator maps your lead generation mix and projects pipeline volume across all channels.",
+    "commonMistakes": [
+      "Vanity metrics over conversion. 1,000 form submissions means nothing if none convert to customers. Focus on qualified leads that have buying potential.",
+      "Neglecting lead quality. A huge volume of cold, uninterested leads kills your sales team's morale and wastes time. Better 10 hot leads than 100 cold ones.",
+      "Setting and forgetting. Lead generation requires constant optimization. What worked three months ago might not work today—market conditions change, audiences shift."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model lead generation across inbound and outbound channels, projecting qualified leads and sales pipeline based on realistic conversion rates."
+  },
+  "relatedTerms": ["lead-scoring", "funnel", "marketing-qualified-lead"],
+  "synonyms": ["Pipeline Building", "Prospect Development"],
+  "seoTitle": "What is Lead Generation? | IdeaFuel Glossary",
+  "seoDescription": "Master lead generation to build a consistent pipeline of qualified prospects ready for sales conversations."
+}

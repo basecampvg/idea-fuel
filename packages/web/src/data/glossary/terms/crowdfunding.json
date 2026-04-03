@@ -1,0 +1,21 @@
+{
+  "slug": "crowdfunding",
+  "title": "Crowdfunding",
+  "category": "fundraising",
+  "shortDefinition": "Raising capital from a large number of small investors, usually through online platforms.",
+  "content": {
+    "definition": "Crowdfunding is a capital-raising method where you solicit small investments from a large number of individuals (the crowd) rather than approaching a handful of institutional investors. Equity crowdfunding allows non-accredited investors to buy ownership stakes via regulated platforms like SeedInvest or Wefunder. Other crowdfunding models include reward-based (Kickstarter, where backers get products), donation-based (GoFundMe), and debt-based (Lending Club). Equity crowdfunding specifically allows startups to raise capital from the public while maintaining regulatory compliance.",
+    "whyItMatters": "Crowdfunding offers several advantages: it bypasses traditional venture capital gatekeepers, validates market demand by proving paying customers believe in your vision, and generates press and user traction alongside capital. However, it also has real tradeoffs—you'll have hundreds or thousands of shareholders to manage instead of a few institutional investors, dilution happens across a broader base potentially making future institutional funding more complex, and the capital raised is often smaller per investor but larger in aggregate. For many non-tech founders, crowdfunding is the primary fundraising channel because venture capital remains concentrated in software and biotech.",
+    "howToApply": "If pursuing equity crowdfunding, use a platform like Wefunder or SeedInvest that handles legal documentation and investor accreditation verification. Prepare a compelling pitch video, business plan, and cap table that attracts both retail and accredited investors. Crowdfunding requires more marketing effort than institutional fundraising—you'll need to drive traffic to your page, engage social media, and tell a compelling story that resonates with the crowd. Use IdeaFuel's Business Plan Generator to create a clear, investor-ready business plan that works for crowdfunding audiences. Understand that crowdfunding investors often have lower sophistication and may require more investor relations work post-funding compared to institutional investors.",
+    "commonMistakes": [
+      "Using equity crowdfunding when you should pursue venture capital—VC provides cheaper capital, strategic guidance, and investor networks that crowdfunding can't match",
+      "Not understanding that crowdfunding investors have less sophistication and may expect consulting or guidance you're not equipped to provide",
+      "Underestimating the marketing work required—crowdfunding campaigns fail not because the business is bad, but because not enough people see the campaign"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator creates the clear, compelling pitch and financial projections that crowdfunding platforms demand. It helps you structure your raise documentation so crowdfunding investors understand your path to profitability and eventual exit."
+  },
+  "relatedTerms": ["pre-seed", "revenue-based-financing", "angel-investor"],
+  "synonyms": ["Equity Crowdfunding", "Reg A+"],
+  "seoTitle": "What is Crowdfunding? | IdeaFuel Glossary",
+  "seoDescription": "Crowdfunding definition: raising capital from many small investors online. Equity, reward, and donation-based models explained."
+}

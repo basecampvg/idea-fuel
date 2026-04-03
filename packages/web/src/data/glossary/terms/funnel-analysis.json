@@ -1,0 +1,21 @@
+{
+  "slug": "funnel-analysis",
+  "title": "Funnel Analysis",
+  "category": "analytics",
+  "shortDefinition": "Breaking down a multi-step process to see where users drop off.",
+  "content": {
+    "definition": "Funnel analysis visualizes a sequence of steps users take (signup > email verify > add payment > complete trial) and shows the percentage of users who complete each step. It's a top-down view of conversion: 100 users enter the top, 70 move to step 2, 40 to step 3, 20 finish. The gaps—where users drop off—are your optimization targets. Every funnel has leaks; funnel analysis finds them.",
+    "whyItMatters": "Without funnel analysis, you optimize blindly. You might spend weeks improving checkout design when 80% of your drop-off happens at email verification. Funnel analysis shows you exactly where users get stuck. A 2% drop-off at one stage is normal; a 40% drop-off is a blocker. Most companies waste engineering time optimizing the wrong stage because they don't look at their funnel data. When you fix the right bottleneck, conversion jumps visibly.",
+    "howToApply": "Start with your core conversion funnel: new user signup, email verification, onboarding complete, first feature used, subscription purchased. Measure it weekly. The moment you see an unusual drop-off, investigate: is the step unclear? Is there a bug? Are the users you're attracting not actually interested? Use UTM parameters to compare funnels across traffic sources—paid traffic might convert at 40% but organic at 60%, signaling a targeting problem. Break funnels down by device, geography, and user segment. Mobile might have a 20% drop-off at email verification due to UX friction. Analyze funnels weekly in your metrics review—don't let a 10% decline slip by unchecked.",
+    "commonMistakes": [
+      "Measuring 'users who started step X' instead of 'users who completed step X', which hides real drop-off",
+      "Not breaking down funnels by user segment—your SMB funnel might be inverted vs. Enterprise",
+      "Watching your overall funnel instead of cohort funnels—newer users always perform differently"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your conversion funnel against market benchmarks. It identifies which leaks are abnormal and suggests ideas that address your biggest bottlenecks, prioritized by impact."
+  },
+  "relatedTerms": ["conversion-rate", "drop-off-rate", "funnel"],
+  "synonyms": ["Conversion Funnel", "Step Analysis"],
+  "seoTitle": "What is Funnel Analysis? | IdeaFuel Glossary",
+  "seoDescription": "Funnel analysis tracks where users drop off in multi-step conversion processes. Shows which stages need optimization."
+}

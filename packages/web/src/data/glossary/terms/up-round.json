@@ -1,0 +1,21 @@
+{
+  "slug": "up-round",
+  "title": "Up Round",
+  "category": "fundraising",
+  "shortDefinition": "A funding round at a higher valuation than the previous round, rewarding growth.",
+  "content": {
+    "definition": "An up-round is a funding round where the company raises capital at a higher valuation than the previous funding event. This positive signal means investors believe the company has grown in value and market opportunity based on achieving milestones like revenue, user growth, or product-market fit.",
+    "whyItMatters": "Up-rounds are the founder's dream—they reward progress and create positive momentum. They mean existing employees aren't diluted as harshly, your cap table improves, and future fundraising becomes easier when you can show consistent valuation growth. Conversely, failure to achieve an up-round sends a signal that something in execution or market conditions shifted.",
+    "howToApply": "To land an up-round, you need to obsess over the metrics that matter: retention, revenue growth, CAC payback, or engagement—depending on your business model. Start documenting progress early and often so when you enter fundraising conversations, the trajectory is undeniable. Time your raise around a product launch, partnership, or customer win that justifies the higher ask. Don't raise just because capital is available; wait until you've earned the higher valuation.",
+    "commonMistakes": [
+      "Raising too early before hitting the milestones that justify the higher valuation",
+      "Asking for an up-round without a clear narrative of what changed since the last round",
+      "Overestimating market conditions and asking for unreasonable valuations that limit future fundraising"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator lets you forecast the metrics that drive up-round potential: revenue projections, user growth, and unit economics. Model different scenarios to identify which metrics are most investable and plan execution accordingly."
+  },
+  "relatedTerms": ["flat-round", "down-round", "valuation"],
+  "synonyms": ["Positive Round", "Growth Round"],
+  "seoTitle": "What is an Up Round? | IdeaFuel Glossary",
+  "seoDescription": "Up rounds occur when companies raise at higher valuations. Learn how to position for one and why they matter for momentum."
+}

@@ -1,0 +1,24 @@
+{
+  "slug": "monthly-active-users",
+  "title": "Monthly Active Users",
+  "category": "growth",
+  "shortDefinition": "The total count of unique users who engage with your product at least once within a calendar month.",
+  "content": {
+    "definition": "Monthly Active Users (MAU) counts the number of unique users who perform at least one meaningful action in your product during a given calendar month (or rolling 30-day period). A user is counted once per month, regardless of engagement frequency. If 10,000 unique users logged in during February, your February MAU is 10,000. MAU is a broader engagement metric than DAU because it includes occasional users. A user who logs in once and never returns is counted in MAU; a user who logs in daily is also counted once in MAU. This makes MAU a measure of reach, not frequency.",
+    "whyItMatters": "MAU is the primary metric VCs use to evaluate marketplace, content, and social platforms because it measures total addressable user base within a time window. A SaaS product with 10,000 MAU doesn't directly tell you revenue (that depends on conversion rate), but it tells you how much of your addressable market you've captured. MAU growth rate matters: if you grow from 50,000 MAU to 55,000 MAU (10% growth), that's significant at scale. MAU also provides a ceiling for understanding business potential: you can't have revenue from users who don't exist. A company with 100,000 MAU at 30% conversion to paid and $50 ARPU has a $1.5M MRR ceiling. MAU also reveals acquisition efficiency over time: are you acquiring users sustainably, or are you dependent on one viral moment? A company with MAU growing 5% MoM is on a different trajectory than one growing 30% MoM.",
+    "howToApply": "Define active engagement for your product: is it a login, a transaction, a view, a message? Keep it consistent monthly. Measure MAU using a rolling 30-day window rather than calendar month to smooth seasonality. If you have 50,000 MAU, calculate: (1) MAU growth month-over-month—subtract previous month's MAU from current and divide by previous month. (2) DAU/MAU ratio to understand engagement intensity (covered in DAU glossary term). (3) MAU by segment: by geography, by user type (free vs. paid), by acquisition channel. Segment MAU to understand which cohorts are growing and which are stagnating. If paid MAU is growing 2% and free MAU is growing 15%, you've got a conversion problem, not an acquisition problem. Track MAU alongside retention cohorts: a new user cohort that becomes 20% of MAU after 6 months indicates healthy acquisition retention. Use MAU to set product priorities: if 80% of MAU is inactive after day 30, your retention onboarding is broken. If 60% of MAU is on mobile and 40% is on web, mobile should be your development priority.",
+    "commonMistakes": [
+      "Confusing MAU with revenue or paying customers—high MAU with 5% free-to-paid conversion is a great SMB business. Same MAU with 1% conversion is a challenge. Don't confuse reach with monetization.",
+      "Measuring calendar month instead of rolling 30-day—if you have a seasonal business (e.g., tax software), calendar month MAU will spike in March and drop in April. Rolling 30-day is smoother.",
+      "Ignoring MAU churn—if MAU grows 20% one month but you acquired 40% new users, you lost 20% of last month's base. Track MAU + new users separately to understand retention.",
+      "Using MAU as a vanity metric without context—'5 million MAU' sounds impressive until you learn 80% are inactive. MAU quality matters.",
+      "Not segmenting MAU—your total MAU might be 100,000 but hidden in that is one geo growing 50% YoY and another geo shrinking. Always segment.",
+      "Comparing MAU across different definitions—some companies count MAU as 'logged in at least once,' others as 'performed a transaction.' Know the definition."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes MAU metrics and growth benchmarks for your category, while its analytics tools help you segment MAU by geography, user type, and cohort to understand where growth is and where you're losing users."
+  },
+  "relatedTerms": ["daily-active-users", "dau-mau-ratio", "retention-rate"],
+  "synonyms": ["Monthly Users", "Monthly Active Count"],
+  "seoTitle": "Monthly Active Users (MAU): Calculate & Track Growth | IdeaFuel",
+  "seoDescription": "Master MAU metrics and growth tracking. Learn MAU benchmarks by category, calculate DAU/MAU ratio, and understand user reach vs. engagement."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "user-flow",
+  "title": "User Flow",
+  "category": "product",
+  "shortDefinition": "A step-by-step path showing how a user moves through your product to complete a task.",
+  "content": {
+    "definition": "A user flow is a visual or narrative map of the path a user takes through your product to accomplish a goal. It shows entry points, decision points where users choose different paths, and endpoints. It answers the question: 'What screens will a user see and in what order when they try to do X?'",
+    "whyItMatters": "Confusing flows kill products. If onboarding has too many steps, users drop. If checkout forces them through unnecessary pages, they abandon carts. A clear user flow forces you to think through the user's journey before you build it. It catches unnecessary friction early when fixing it costs nothing.",
+    "howToApply": "Start with one critical task—your onboarding, sign up, or core feature. Write down every screen or decision point the user encounters. For each screen, note what action the user can take. Draw the path they take to complete the task. Then draw the wrong paths they might take and what happens. Test this flow with 3-5 real users. Where do they diverge from your expected path? Where do they hesitate? Simplify. Remove every non-essential step. The best user flows have the fewest steps to success.",
+    "commonMistakes": [
+      "Designing flows in your head instead of mapping them out—assumptions hide complexity",
+      "Forcing all users through the same flow even though different user types have different needs",
+      "Measuring success by completion instead of speed—the fastest flow is usually the best flow"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation helps you map and validate user flows with real customers before you build, catching friction early."
+  },
+  "relatedTerms": ["information-architecture", "user-experience", "onboarding"],
+  "synonyms": ["User Journey", "Task Flow", "Navigation Flow"],
+  "seoTitle": "What is a User Flow? | IdeaFuel Glossary",
+  "seoDescription": "Learn how mapping user flows helps you cut friction and guide customers to the outcome they came for."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "switching-costs",
+  "title": "Switching Costs",
+  "category": "strategy",
+  "shortDefinition": "The financial or operational burden a customer faces when moving to a competitor.",
+  "content": {
+    "definition": "Switching costs are the economic or operational burdens customers face when moving from one product or service to a competitor. Examples: data migration complexity (Excel sheets to new software), integration costs (retraining employees), account limitations (early termination fees), or emotional/psychological costs (losing history or familiarity). High switching costs make customers 'sticky,' forcing them to tolerate higher prices or slower innovation.",
+    "whyItMatters": "Switching costs are one of the most powerful, yet least understood moats. A customer with zero switching cost will leave for a marginally cheaper product or feature. A customer with high switching costs will tolerate mediocre service. Enterprise software thrives on switching costs: once an organization integrates your tool into 50 workflows, moving costs $500K+ and 6 months. Thus, SaaS can charge high prices and maintain high churn-resistant retention. But be careful: high switching costs create complacency. If you abuse your customers because they're trapped, new entrants with lower switching costs can poach them.",
+    "howToApply": "Calculate your switching cost by asking: 'What would it cost a customer to leave?' Measure switching costs across three dimensions: (1) Financial—out-of-pocket costs to migrate, training, new implementation. (2) Operational—time cost, disruption, risk of things breaking during migration. (3) Psychological—familiarity, emotional investment, fear of change. Try to build switching costs into your product architecture: proprietary data formats, deep integrations, custom workflows customers have built on your platform. Slack's switching cost is high because teams have invested in hundreds of integrations and 10,000+ message threads. But avoid the trap of so much lock-in that customers resent you. Make them love you enough to not want to leave, not just lock them in.",
+    "commonMistakes": [
+      "Confusing switching costs with customer satisfaction: a customer who stays only because switching is hard will leave the moment a viable alternative appears. Focus on both switching costs AND delight.",
+      "Building invisible switching costs: if customers don't perceive the switching cost (they think they can easily leave), the cost doesn't protect you. Make the value of your integrations visible and demonstrate the cost of migrating away.",
+      "Abusing customers because they're locked in: Twitter's blue check experiment annoyed users but they couldn't easily leave (switching costs). This works until a competitor (Threads, Bluesky) offers the same switching costs at a better price. Lock-in alone is not sustainable."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine evaluates competitor switching costs and market defensibility. Understand the switching costs in your space, then design your product to increase switching costs ethically while building customer love."
+  },
+  "relatedTerms": ["lock-in", "competitive-moat", "barriers-to-entry"],
+  "synonyms": ["Customer stickiness", "Exit costs"],
+  "seoTitle": "What are Switching Costs? | IdeaFuel Glossary",
+  "seoDescription": "Understand switching costs: customer stickiness, lock-in, and defensible moats for B2B software companies."
+}

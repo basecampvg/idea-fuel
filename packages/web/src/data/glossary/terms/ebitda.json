@@ -1,0 +1,23 @@
+{
+  "slug": "ebitda",
+  "title": "EBITDA",
+  "category": "finance",
+  "shortDefinition": "Operating profit excluding interest, taxes, depreciation, and amortization. Shows true operational performance.",
+  "content": {
+    "definition": "EBITDA (Earnings Before Interest, Taxes, Depreciation, and Amortization) is a measure of operating profitability that excludes financing decisions, tax situations, and non-cash charges. It's calculated as Net Income + Interest + Taxes + Depreciation + Amortization. EBITDA shows whether your core business operations make money, regardless of how you've financed the company or structured it for taxes. For a company with $5M revenue, $2M operating costs, and $1M in interest and depreciation, EBITDA is $2M.",
+    "whyItMatters": "EBITDA isolates operational performance from financial structure, making it useful for comparing companies with different debt loads or tax situations. It's the metric most private equity investors use because it shows the cash-generating ability of operations. For startups, EBITDA matters less than gross margin and unit economics early on, but it becomes critical when you approach profitability or acquisition. It's also useful internally to see how much actual cash your operations generate before financing costs.",
+    "howToApply": "Calculate EBITDA when you're profitable or near-profitable; it's not meaningful when you're deeply negative on net income. Start with net income and add back interest, taxes, depreciation, and amortization. Track EBITDA margin (EBITDA / Revenue) alongside net margin to see if non-cash charges or financing decisions are distorting your true operational profit. Use EBITDA to communicate with acquirers or private equity investors; they'll model multiples based on this number (typical software acquisition multiples are 5-8x EBITDA). IdeaFuel's Financial Modeling tool helps you project EBITDA improvements as you scale and optimize operations.",
+    "commonMistakes": [
+      "Treating EBITDA as cash—depreciation and amortization are non-cash charges, but equipment still needs to be replaced eventually.",
+      "Calculating EBITDA before achieving profitability—it's misleading noise if you're losing money on operations. Wait until you're close to break-even.",
+      "Ignoring stock option dilution in EBITDA—you're not paying cash for options upfront, but they compress shareholder value. This is a separate consideration.",
+      "Comparing EBITDA margins across industries—a 25% EBITDA margin is great for SaaS, impossible for retail. Context matters.",
+      "Using EBITDA to justify continued losses—'we have positive EBITDA' doesn't mean you're sustainable if cash burn is still negative. Track actual cash separately."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you project EBITDA improvements as you scale and optimize operations, showing your path to operational profitability."
+  },
+  "relatedTerms": ["net-margin", "depreciation", "operating-expenses"],
+  "synonyms": ["Operating Profit", "EBIT + DA"],
+  "seoTitle": "EBITDA: Calculate & Use for Valuation | Startup Founder's Guide",
+  "seoDescription": "Understand EBITDA calculation, EBITDA margins, and how acquirers use it. Learn when EBITDA matters for startup valuation and operations."
+}

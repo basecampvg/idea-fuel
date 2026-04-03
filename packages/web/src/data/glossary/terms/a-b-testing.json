@@ -1,0 +1,21 @@
+{
+  "slug": "a-b-testing",
+  "title": "A/B Testing",
+  "category": "marketing",
+  "shortDefinition": "Comparing two versions of a webpage, email, or other element to determine which performs better by showing each to a random sample of users.",
+  "content": {
+    "definition": "A/B testing (also called split testing) is controlled experimentation for growth. You take a page or element, create two versions (control 'A' and variation 'B'), show each to similar groups of users, and measure which drives better results. Results are only valid if you reach statistical significance — roughly 100+ conversions per variation, or about 2–4 weeks of traffic for most early-stage companies. A/B testing replaces guesswork with data: instead of arguing about whether the button should be red or blue, you test it and let users decide. It's the antidote to opinion-driven product decisions.",
+    "whyItMatters": "Small improvements compound into significant results. A 1% improvement in each of five conversion steps is a 5% improvement in bottom-line revenue. That 5% might sound small until you realize it's often worth more than doubling your marketing spend with zero additional expense. A/B testing also removes ego from product decisions — it doesn't matter what you believe will work; what matters is what your users do. It builds conviction in changes. When you've tested a hypothesis, measured it, and won, you can confidently scale that change or use it as a foundation for the next test. Over 12 months, running 12 high-impact A/B tests that each improve conversion by 5% compounds to 80% better revenue from the same traffic.",
+    "howToApply": "Start with your biggest leak or highest-leverage hypothesis. If your email click-through rate is 3% and you believe clearer CTAs will help, test that. Run one variable at a time — test headline changes alone, CTA changes alone, form length alone. If you test three variables simultaneously, you can't determine which one caused the result. Use an A/B testing platform (Google Optimize, Optimizely, VWO, even custom code in Segment) to randomly assign users to control and variation and track results. Let the test run for at least one full business cycle (one week for high-traffic sites, one month for most SaaS companies) and until you have 100+ conversions per variation — this is critical. Calculate statistical significance (95% confidence is standard) before declaring a winner — avoid stopping early because you're impatient. Implement the winner immediately, document the learning (why did it win?), and start the next test from the winning baseline. Build a testing culture: prioritize impact (will this move revenue?), favor action (run 4 tests per quarter instead of debating one for 6 months), and avoid endless debates over opinions.",
+    "commonMistakes": [
+      "Stopping a test early when results 'look good.' You'll optimize for noise instead of signal and implement changes that don't actually work. Let it run to statistical significance.",
+      "Testing things that don't matter. Test high-leverage elements (copy that affects conversion, pricing, features) before tweaking micro-copy or colors.",
+      "Only testing the thing you hope works. Test the thing you believe might not work too — sometimes the opposite hypothesis wins and teaches you something about your users."
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation feature runs rapid assumption tests including messaging and positioning A/B tests so you can validate hypotheses quickly before investing in full campaigns. Financial Modeling calculates the ROI of each testing improvement."
+  },
+  "relatedTerms": ["conversion-rate-optimization", "statistical-significance", "multivariate-testing"],
+  "synonyms": ["Split Testing", "Controlled Experiment", "A/B Test"],
+  "seoTitle": "What is A/B Testing? | IdeaFuel Glossary",
+  "seoDescription": "A/B testing compares page or element variations to determine which performs better. Learn methodology, statistical significance, and execution."
+}

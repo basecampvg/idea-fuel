@@ -1,0 +1,21 @@
+{
+  "slug": "pain-point",
+  "title": "Pain Point",
+  "category": "product",
+  "shortDefinition": "A specific problem customers face that causes frustration, waste, or prevents them from their goal.",
+  "content": {
+    "definition": "A pain point is the gap between the customer's current state and their desired state. It's the frustration they feel every day that makes them willing to switch tools or try something new. Not every complaint is a pain point—a real pain point is serious enough that customers would pay to make it disappear.",
+    "whyItMatters": "Products that tackle real pain points sell themselves. Customers aren't looking for 'cool features'—they're running from a problem. Find a pain point that's urgent enough and deep enough, and you've found your market. Companies that can't articulate the pain point they solve usually fail because they're building for the wrong reason.",
+    "howToApply": "Talk to 10-15 potential customers. Ask them about their workflow. Where do they get stuck? What takes longer than it should? What do they dislike about existing tools? Listen for emotion—the places where they sound frustrated or tired. That's where pain lives. Write down the pain points you hear. Do at least 5 people mention the same problem? That's a market signal. The most valuable pain points are ones that cost customers money or time, not just inconvenience them.",
+    "commonMistakes": [
+      "Mistaking a nice-to-have for a pain point—'I wish this were faster' is not the same as 'this breaks my workflow'",
+      "Building for one customer's unique pain instead of finding the pain shared by 10+",
+      "Ignoring pain points that don't sound 'technical enough'—sometimes the pain is organizational, not functional"
+    ],
+    "ideafuelConnection": "IdeaFuel's Customer Interview feature helps you systematically identify and track pain points across conversations, so you can spot patterns and validate whether they're worth solving."
+  },
+  "relatedTerms": ["jobs-to-be-done", "customer-discovery", "value-proposition"],
+  "synonyms": ["Customer Problem", "Problem Statement", "Frustration Point"],
+  "seoTitle": "What is a Pain Point? | IdeaFuel Glossary",
+  "seoDescription": "Understand how identifying real pain points guides you toward problems worth solving."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "j-curve",
+  "title": "J-Curve",
+  "category": "growth",
+  "shortDefinition": "A financial curve showing losses followed by profitable growth, shaped like the letter J.",
+  "content": {
+    "definition": "The J-curve is a startup's financial trajectory where you start with cash, burn it acquiring users and building product (descending), then reach inflection where revenue grows faster than costs and the curve turns upward. It's called a J because it dips before rising. The depth of the dip (how long and how much you burn) depends on your go-to-market model, unit economics, and market conditions. The upward slope depends on how quickly you achieve product-market fit and compounding growth. Most startups have J-curves; the timing and shape determine whether they reach profitability or run out of capital.",
+    "whyItMatters": "The J-curve visualizes the fundamental tension in startup growth: you must burn capital to reach profitability, but burn too much or too long and you run out of capital before reaching the curve's inflection. Venture capital exists to fund the J—investors bet that your business will reach the upslope before you exhaust runway. Understanding your J-curve shapes your fundraising strategy, burn rate targets, and team scaling decisions. Companies with shallow J-curves (fast to profitability) need less capital and have more forgiving margins for error; those with deep J-curves need more and face higher risk of shutdown if growth stalls. The difference between a successful venture and a failed one is often whether the J-curve inflection happens before or after the cash runs out.",
+    "howToApply": "Model your J-curve by projecting revenue, costs, and cumulative cash flow over 24-36 months. Revenue depends on your unit economics (CAC, LTV, payback period). Costs scale with team size, marketing spend, and infrastructure—most startups scale these linearly or faster. The inflection point happens when revenue growth rate exceeds expense growth rate—typically when product-market fit is confirmed and compounding begins. Build multiple J-curve scenarios: base case (most likely), bull case (early product-market fit), bear case (extended blade phase with slower growth). Use these to set burn-rate targets and fundraising rounds. Calculate your runway—months until cash runs out—and ensure each round funds you past the next inflection milestone. Ideal runway is 18-24 months of expenses; anything less is risky. Share your J-curve with investors; it shows you understand your unit economics and aren't burning recklessly.",
+    "commonMistakes": [
+      "Assuming a linear J-curve—most curves are either shallower or deeper than expected because product-market fit is unpredictable. Plan for the curve to be 50% deeper than your best estimate.",
+      "Trying to raise based on the bull case—investors fund the bear case; plan for longer burn and less traction than you expect. If your pitch assumes 3 months to product-market fit, budget for 9 months.",
+      "Scaling costs before revenue inflects—team hiring should track revenue, not expectations; hire for what you've proven, not what you hope. Many startups fail not from lack of product but from hiring teams they couldn't afford when growth stalled."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you project multi-scenario J-curves, calculate your runway under different growth assumptions, and determine the minimum ARR needed to reach profitability at your burn rate."
+  },
+  "relatedTerms": ["hockey-stick-growth", "compounding-growth", "burn-rate"],
+  "synonyms": ["Burn-and-Growth Curve", "Cash Trajectory"],
+  "seoTitle": "What is a J-Curve? | IdeaFuel Glossary",
+  "seoDescription": "Understand startup finances. How losses become profits through the J-curve inflection."
+}

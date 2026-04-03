@@ -1,0 +1,21 @@
+{
+  "slug": "hypergrowth",
+  "title": "Hypergrowth",
+  "category": "growth",
+  "shortDefinition": "Explosive revenue growth of 100%+ annually, typically driven by product-market fit and strong unit economics.",
+  "content": {
+    "definition": "Hypergrowth is when a company's revenue (or user base) doubles or more within a year, often accompanied by the need to rapidly hire, build systems, and adapt operations. It's the period where an early-stage startup transitions from scrappy to scale, from survival mode to strategic mode.",
+    "whyItMatters": "Hypergrowth is the dream and the nightmare. It's proof you've found product-market fit—customers actually want what you're building. But hypergrowth also reveals every crack in your foundation: your infrastructure breaks under load, your culture dilutes with new hires, and your processes become chaotic. Companies that navigate hypergrowth successfully capture the market; those that don't implode from the stress.",
+    "howToApply": "First, prove hypergrowth is actually possible for your business by validating product-market fit metrics—strong retention, low churn, organic growth. Then, systematically eliminate bottlenecks: hire fast in revenue-blocking roles, build repeatable processes, delegate relentlessly. Focus your energy on the one or two levers that will unlock the next 100% growth. Don't optimize for perfection—optimize for speed and learning. IdeaFuel's Research Engine analyzes competitive dynamics and market size to help you identify whether your market can actually sustain hypergrowth, and what acquisition strategy will be most efficient.",
+    "commonMistakes": [
+      "Pursuing growth before achieving product-market fit—burning cash on acquisition without retention",
+      "Building perfect systems too early—optimizing for scale before you know you'll scale",
+      "Scaling in all directions—hiring broadly instead of focusing on the highest-leverage bottleneck"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your market, competitive positioning, and acquisition unit economics to identify the realistic path to hypergrowth and the key metrics you need to hit."
+  },
+  "relatedTerms": ["hockey-stick-growth", "scale", "traction"],
+  "synonyms": ["Explosive Growth", "Rapid Expansion"],
+  "seoTitle": "What is Hypergrowth? Scaling Beyond 100% Annual Growth | IdeaFuel Glossary",
+  "seoDescription": "Hypergrowth means 100%+ revenue growth annually. Learn how to achieve it, manage it, and avoid the chaos that kills growing startups."
+}

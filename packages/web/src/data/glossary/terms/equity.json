@@ -1,0 +1,21 @@
+{
+  "slug": "equity",
+  "title": "Equity",
+  "category": "fundraising",
+  "shortDefinition": "Ownership stake in a company, typically represented by shares or stock options.",
+  "content": {
+    "definition": "Equity is ownership in a company, represented as shares or fractional ownership percentages. When a founder or investor owns equity, they own a slice of the company's assets, profits, and future value. Equity can be granted as common stock (basic ownership) or preferred stock (investor ownership with special rights), or as options (the right to purchase shares at a specific price).",
+    "whyItMatters": "Equity is the primary wealth-creation mechanism for founders and early employees. Money is compensation; equity is the bet on future growth. In successful exits, equity holders see 10-100x returns. In failures, equity is worthless. This asymmetry makes equity allocation one of the most important decisions you'll make. It also aligns incentives: if everyone owns equity, everyone benefits from the company's success equally. Poorly allocated equity creates resentment and brain drain.",
+    "howToApply": "Think of equity as both an incentive and a ownership control mechanism. As a founder, retain enough equity to maintain control while being generous enough to attract great people. Standard equity grants for early employees (first 5-10) range from 0.5-2% depending on role and seniority. Investors will push for clarity on cap table: who owns what, vesting, liquidation preferences. Keep the cap table simple at first; every new investor complicates it. Track all equity grants meticulously because this becomes your entire fundraising story.",
+    "commonMistakes": [
+      "Giving away 50% of the company in the first year to friends and co-founders without a vesting schedule",
+      "Not understanding the difference between options and shares, leading to tax surprises",
+      "Failing to reserve enough equity for future hires and investors, causing massive dilution later"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator models your cap table from day one, showing ownership percentages, dilution through multiple fundraising rounds, and the impact of employee equity grants. Visualize who owns what before signing any agreements."
+  },
+  "relatedTerms": ["preferred-stock", "common-stock", "cap-table"],
+  "synonyms": ["Ownership", "Stock", "Shares"],
+  "seoTitle": "What is Equity? | IdeaFuel Glossary",
+  "seoDescription": "Equity represents ownership in a company. Learn how to allocate, dilute, and manage equity strategically."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "acceptance-criteria",
+  "title": "Acceptance Criteria",
+  "category": "product",
+  "shortDefinition": "Specific, testable conditions that must be met for a feature to be considered complete.",
+  "content": {
+    "definition": "Acceptance criteria are the definition of done for a feature. They're the list of 'if this happens, then the feature works' statements that let you and your team agree on what 'complete' means before building starts. Without them, you ship features that half-solve the problem.",
+    "whyItMatters": "Vague requirements create endless scope creep. Your designer thinks the feature is done, but your engineer is still adding edge cases. Your customer sees the launch and says 'but I thought it would also do X'. Acceptance criteria prevent this by forcing explicit agreement on what the feature must do.",
+    "howToApply": "For each feature, write acceptance criteria in the format 'Given X, when the user does Y, then Z should happen.' Be specific and testable—not 'the button should look good' but 'the button should be 48px tall, blue, and trigger a POST request when clicked.' Include edge cases. What happens if the user fills in invalid data? What if the network fails? Test the feature against each criterion before calling it done. If the feature fails even one acceptance criterion, it's not shipped.",
+    "commonMistakes": [
+      "Writing acceptance criteria that are too vague to measure—'the feature should be user-friendly' doesn't tell engineers what to build",
+      "Ignoring edge cases because you're focused on the happy path",
+      "Changing acceptance criteria mid-sprint instead of committing to the original scope"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation guides you in defining clear acceptance criteria from customer insights, ensuring your team ships features that actually solve the problem."
+  },
+  "relatedTerms": ["definition-of-done", "user-story", "product-requirements-document"],
+  "synonyms": ["Done Criteria", "Success Criteria", "Definition of Done"],
+  "seoTitle": "What are Acceptance Criteria? | IdeaFuel Glossary",
+  "seoDescription": "Understand how clear acceptance criteria prevent scope creep and ensure features solve real problems."
+}

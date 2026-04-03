@@ -1,0 +1,21 @@
+{
+  "slug": "go-to-market-strategy",
+  "title": "Go-to-Market Strategy",
+  "category": "strategy",
+  "shortDefinition": "The plan for how you'll reach customers, position your product, and acquire your first users.",
+  "content": {
+    "definition": "A go-to-market (GTM) strategy is your roadmap for launching and scaling a product to customers. It includes your target segment, value proposition, distribution channels, pricing model, sales approach, and messaging. GTM isn't just marketing—it's the operational blueprint for how your entire company will acquire, onboard, and retain customers. A strong GTM aligns product, sales, marketing, and customer success around a single thesis.",
+    "whyItMatters": "Most startups fail not because their product is bad, but because they can't get customers to use it. A clear GTM prevents you from wasting resources on channels that don't work, messaging that doesn't resonate, or pricing that leaves money on the table. It forces you to choose a specific customer segment (not everyone), a specific problem (not all problems), and a specific channel (not all channels). Investors bet on GTM clarity—founders who can articulate exactly who will buy, why, and how are vastly more fundable.",
+    "howToApply": "Build your GTM in three layers: (1) Beachhead definition—who is your first paying customer, and what problem are you solving for them? (2) Distribution choice—will you sell direct, through partners, freemium, or community? (3) Messaging and positioning—what's your one-line value prop and how does it land with your buyer? Then identify the three biggest assumptions (often: customers will pay, distribution channel works, we can reach them affordably) and design rapid tests to validate or kill them. Use IdeaFuel's Business Plan Generator to structure your GTM and model unit economics across different channels.",
+    "commonMistakes": [
+      "Trying to appeal to everyone—vague positioning and broad targeting mean you appeal to no one. Be specific about who you're not serving.",
+      "Choosing the wrong distribution channel—if your customers don't hang out on Product Hunt, a Product Hunt launch won't work. Match channel to customer behavior.",
+      "Setting strategy without validating assumptions—write down what must be true for your GTM to work, then test ruthlessly before spending big on customer acquisition."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you map your entire go-to-market strategy, from beachhead selection through expansion. Use it to model unit economics, revenue forecasts, and channel performance."
+  },
+  "relatedTerms": ["beachhead-market", "positioning", "target-market"],
+  "synonyms": ["Launch Strategy", "Customer Acquisition Plan"],
+  "seoTitle": "What is a Go-to-Market Strategy? | IdeaFuel Glossary",
+  "seoDescription": "Build a winning go-to-market strategy. Define customer, channels, and positioning for successful product launch."
+}

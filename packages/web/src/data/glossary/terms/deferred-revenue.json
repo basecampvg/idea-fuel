@@ -1,0 +1,23 @@
+{
+  "slug": "deferred-revenue",
+  "title": "Deferred Revenue",
+  "category": "finance",
+  "shortDefinition": "Cash received from customers for services or products not yet delivered. A liability until performance obligations are met.",
+  "content": {
+    "definition": "Deferred Revenue (also called unearned revenue or advance payments) is cash received from customers before you've delivered the product or service. It's recorded as a liability on your balance sheet because you owe the customer either the product, service, or a refund. For a $1,200 annual software subscription paid upfront, $1,200 is initially deferred revenue, then $100 is recognized as revenue each month as you provide the service. Once you've delivered fully, deferred revenue converts to recognized revenue.",
+    "whyItMatters": "Deferred revenue is a hidden cash advantage for subscription businesses—you get cash before you deliver value. A company with $5M in annual revenue might have $2M in deferred revenue (cash already collected for future service). This cash improves runway and funds operations without customer acquisition costs. However, deferred revenue creates a growth treadmill: you must constantly acquire new customers to keep revenue recognized. Also, high deferred revenue with high churn is a ticking time bomb—customers could refund and you lose cash you already counted.",
+    "howToApply": "Record all upfront payments as deferred revenue first, then recognize it monthly/quarterly/annually as you fulfill the obligation. For annual subscriptions paid monthly, recognize 1/12 each month. For project-based work, recognize based on completion milestones. Track deferred revenue by revenue recognition schedule—know how much revenue you're 'owed' in 30, 60, 90+ days. Use this to understand true cash position: cash on hand minus refund liability gives you real cash available. Monitor deferred revenue growth as a leading indicator—if deferred revenue is growing faster than subscription revenue, it signals strong retention and expansion. If it's flat, you have a churn or booking problem. IdeaFuel's Financial Modeling tool projects deferred revenue schedules so you can model cash flow impact.",
+    "commonMistakes": [
+      "Recording deferred revenue as immediate revenue—this inflates top-line growth and creates accounting nightmares when you reconcile later.",
+      "Not tracking deferred revenue by due date—if you have $2M deferred and $1.5M is due in 90 days, you need to model that cash crunch.",
+      "Forgetting refund liability in deferred revenue calculations—if customers can request refunds, you need a refund reserve separate from deferred revenue.",
+      "Using deferred revenue as proof of growth without understanding what it means—growing deferred revenue is good, but it's not the same as growing recognized revenue.",
+      "Not separating current vs. non-current deferred revenue—short-term (12 months or less) should be on current liabilities; beyond 12 months on non-current."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool projects deferred revenue schedules so you can model cash flow impact and understand your true runway."
+  },
+  "relatedTerms": ["revenue-recognition", "subscription-model", "cash-flow"],
+  "synonyms": ["Unearned Revenue", "Advance Payments", "Advance Customer Payments"],
+  "seoTitle": "Deferred Revenue: Track, Forecast & Manage Cash Impact | Startup Guide",
+  "seoDescription": "Understand deferred revenue accounting, impact on cash flow, and how it signals business health. Essential metric for subscription business profitability."
+}

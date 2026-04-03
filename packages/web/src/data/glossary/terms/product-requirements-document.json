@@ -1,0 +1,21 @@
+{
+  "slug": "product-requirements-document",
+  "title": "Product Requirements Document",
+  "category": "product",
+  "shortDefinition": "A detailed specification that describes the features, functionality, and constraints of a product or feature.",
+  "content": {
+    "definition": "A Product Requirements Document (PRD) is a detailed blueprint for building a specific feature or product. It includes what you're building, why you're building it, who it's for, how it should work, and what success looks like. It's the bridge between strategy (the roadmap) and execution (the code).",
+    "whyItMatters": "Without a PRD, engineers start building and realize halfway through that they misunderstood what you wanted. Or product has a different idea than design about what the feature should do. A good PRD prevents that waste. It forces you to think through edge cases and constraints before coding. It also creates documentation of why decisions were made, which matters when someone asks six months later 'why does this work this way?'",
+    "howToApply": "Start with the user story: who is this for and what problem does it solve? Then detail the user flows: exactly how will a user interact with this feature? Include wireframes or mockups. Specify the acceptance criteria: the exact conditions that define success. Document constraints: performance requirements, browser support, security considerations, etc. Include analytics and measurement: how will you know this feature works? Call out assumptions you're making and risks if they're wrong. Write clearly for your audience—engineers need technical precision, not poetry. Keep it concise; a good PRD is 5-10 pages, not 50. Review it with design and engineering before you start building. IdeaFuel's Business Plan Generator helps you connect your PRDs to business outcomes and ensure you're building features that move key metrics.",
+    "commonMistakes": [
+      "PRDs that are too vague—'make search better' without specifying what better means or how you'll measure it",
+      "PRDs written in a silo by product without feedback from engineering or design—unrealistic timelines or approaches",
+      "PRDs that focus on technical implementation instead of user outcomes—what buttons to click instead of what problem it solves"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you structure PRDs that connect product requirements to business metrics, ensuring every feature you build moves the needle."
+  },
+  "relatedTerms": ["roadmap", "user-story", "acceptance-criteria"],
+  "synonyms": ["Product Spec", "Feature Brief"],
+  "seoTitle": "What is a Product Requirements Document (PRD)? Template | IdeaFuel Glossary",
+  "seoDescription": "A PRD is a detailed specification for building features. Learn how to write clear PRDs that prevent misunderstanding and accelerate development."
+}

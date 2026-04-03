@@ -1,0 +1,21 @@
+{
+  "slug": "debt-to-equity-ratio",
+  "title": "Debt-to-Equity Ratio",
+  "category": "finance",
+  "shortDefinition": "A measure of financial leverage showing how much of your company is financed by debt versus owner equity.",
+  "content": {
+    "definition": "The debt-to-equity ratio divides your total liabilities by your total equity. A ratio of 1.0 means debt and equity contributions are equal; 2.0 means you have twice as much debt as equity; 0.5 means you're mostly equity-financed. It measures how leveraged your business is—how dependent on borrowed money versus owner capital. Higher ratios mean more financial risk because debt comes with mandatory payments regardless of profitability; lower ratios mean more financial cushion but potentially missed opportunities to use leverage.",
+    "whyItMatters": "This ratio reveals your financial structure and risk. Heavily debt-financed companies are vulnerable to interest rate spikes and economic downturns—obligations don't flex when revenue drops, and lenders can call debt if covenants are breached. Equity-heavy companies have more freedom and runway but might be leaving leverage on the table (cheap debt can fund growth faster than bootstrapping). Investors and lenders use this to assess whether you're responsibly capitalized and what margins of safety exist. Some industries naturally run high ratios (real estate at 3-4x is normal; utilities at 2-3x is expected) while others stay lean (pure software at 1.0x or less). The wrong ratio for your business type can torpedo you—too much debt and you can't survive a downturn; too little and you're leaving money on the table.",
+    "howToApply": "Calculate it at least annually, preferably quarterly. Take your total liabilities (short-term and long-term debt, accounts payable, accrued expenses, deferred revenue) and divide by total equity (founder contributions, retained earnings, preferred stock, accumulated losses). Compare your ratio to industry benchmarks—a SaaS company with a D/E of 3.0 is overleveraged and in trouble; a real estate business with a 3.0 ratio is conservative; a manufacturing firm might target 1.5-2.0. If raising debt, model how new borrowing changes your ratio and stress-test your ability to service it under slow-growth scenarios. Calculate interest coverage ratio: operating income divided by interest expense—can you cover interest payments 3-5x over? If not, debt is dangerous. Understand debt covenants: what triggers do lenders have to accelerate repayment? Missing EBITDA targets, dropping below a minimum current ratio, or exceeding maximum debt-to-EBITDA can be catastrophic. Factor in all forms of leverage: bank debt, vendor financing, equipment leases, convertible notes—they all count.",
+    "commonMistakes": [
+      "Ignoring off-balance-sheet liabilities like operating leases, future earn-out obligations in acquisitions, or contingent liabilities—they're real obligations even if not on the balance sheet and they affect your true leverage",
+      "Borrowing too much because you can, not because you've modeled monthly cash flow to service it safely—you can have a great revenue forecast and still miss debt payments if working capital gets stuck",
+      "Using only bank debt in the ratio and ignoring convertible notes, lines of credit, vendor financing, equipment leases, or other obligations—these all count as obligations"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool projects your balance sheet forward and automatically calculates your debt-to-equity ratio across scenarios. Model the impact of raising debt at different terms (interest rates, repayment schedules, covenants) on your ratio and cash runway. See how different growth trajectories affect your debt service capacity."
+  },
+  "relatedTerms": ["balance-sheet", "venture-debt", "bootstrapping"],
+  "synonyms": ["D/E Ratio", "Leverage Ratio"],
+  "seoTitle": "What is Debt-to-Equity Ratio? Financial Leverage for Startups | IdeaFuel",
+  "seoDescription": "Debt-to-equity ratio measures financial leverage. Learn what ratio works for your startup and how it affects risk and investor returns."
+}

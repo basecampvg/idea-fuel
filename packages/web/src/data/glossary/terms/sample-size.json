@@ -1,0 +1,21 @@
+{
+  "slug": "sample-size",
+  "title": "Sample Size",
+  "category": "analytics",
+  "shortDefinition": "The number of observations or users needed to make statistically valid conclusions from a test or analysis.",
+  "content": {
+    "definition": "Sample size is how many data points you need to collect before your results are reliable. If you run an experiment on 10 users and see a 50% improvement, that's noise. On 1,000 users with the same 50% improvement, that's real. Sample size is the bridge between data and decisions.",
+    "whyItMatters": "Too small a sample and you make decisions on random variance—you optimize your product based on luck. Too large a sample and you waste resources running tests longer than necessary. Getting sample size right is the difference between shipping confident improvements and chasing ghosts. It's also about efficiency: knowing you need 500 users per variation means you allocate traffic correctly instead of running tests that'll never reach significance.",
+    "howToApply": "Before any test, calculate the minimum sample size you need. Use a sample size calculator (Optimizely, VWO, or online stats tools). You'll need: your baseline metric (current conversion rate), the minimum improvement you care about (2% lift minimum?), and your confidence level (typically 95%). Input these and get your required sample size. Then—this is critical—check how long it'll take to reach that sample size with your current traffic. If it takes three months, that's valuable info. Don't run tests shorter than needed and don't run them longer just to look thorough.",
+    "commonMistakes": [
+      "Making up a sample size instead of calculating it ('we'll run it for 2 weeks')",
+      "Calculating sample size for the wrong metric (calculating for a low-traffic metric that'll never hit significance)",
+      "Treating sample size as optional for 'small' changes when random variance is biggest for small effects"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine calculates required sample sizes for market research, customer surveys, and competitive analysis to ensure your business planning has statistical rigor."
+  },
+  "relatedTerms": ["statistical-significance", "confidence-interval", "multivariate-testing"],
+  "synonyms": ["Minimum Sample Size", "Required Observations"],
+  "seoTitle": "What is Sample Size? | IdeaFuel Glossary",
+  "seoDescription": "Understand how to calculate sample sizes needed for statistically valid tests and reliable business decisions."
+}

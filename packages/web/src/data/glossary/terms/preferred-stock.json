@@ -1,0 +1,21 @@
+{
+  "slug": "preferred-stock",
+  "title": "Preferred Stock",
+  "category": "fundraising",
+  "shortDefinition": "Ownership class with priority claims on assets and dividends, typically held by investors.",
+  "content": {
+    "definition": "Preferred stock is a class of equity that gives investors priority over common stockholders in receiving dividends and assets during liquidation. It's the primary instrument used in venture capital funding rounds, often with features like liquidation preferences, anti-dilution protection, and conversion rights. Unlike common stock, preferred shares can have specific terms negotiated per investment round.",
+    "whyItMatters": "As a founder, understanding preferred stock is critical because it determines how much of your company is actually yours versus how much control and upside investors retain. The terms embedded in preferred stock (like 1x or 2x liquidation preferences) directly impact whether you can raise a future round or sell your company profitably. Most venture-backed startups are capitalized primarily through preferred stock, making it the foundation of your cap table.",
+    "howToApply": "When raising capital, you'll negotiate preferred stock terms before accepting investment. Focus on four key areas: liquidation preference (how many times their investment they get back before you see proceeds), conversion rights (whether they can convert to common stock), anti-dilution protection (how your equity is protected if you raise at a lower valuation), and board seat rights (governance control). Use IdeaFuel's Business Plan Generator to model different funding scenarios and understand how preferred stock issuance affects your cap table and dilution across rounds. Document all terms in your articles of incorporation and keep them in sync with each new investment.",
+    "commonMistakes": [
+      "Accepting unfavorable liquidation preferences (like 2x or 3x) without understanding they eat into your exit proceeds first",
+      "Ignoring participation rights, which can allow investors to get paid their preference AND share in remaining proceeds, capping your upside",
+      "Not negotiating anti-dilution protection, which becomes critical if you raise future rounds at lower valuations"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model preferred stock scenarios before you pitch, showing you exactly how different investor terms affect your stake at various exit prices. You can test liquidation preferences, conversion rights, and participation features to find the right balance between capital raised and founder equity retention."
+  },
+  "relatedTerms": ["common-stock", "liquidation-preference", "equity"],
+  "synonyms": ["Series A Stock", "Investor Stock"],
+  "seoTitle": "What is Preferred Stock? | IdeaFuel Glossary",
+  "seoDescription": "Preferred stock explained: investor equity class with priority claims on assets, liquidation preferences, and special rights. Critical for venture fundraising."
+}

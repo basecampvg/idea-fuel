@@ -1,0 +1,21 @@
+{
+  "slug": "usability-testing",
+  "title": "Usability Testing",
+  "category": "product",
+  "shortDefinition": "Observing actual users interact with your product to identify friction and design gaps.",
+  "content": {
+    "definition": "Usability testing is a research method where real users attempt to complete specific tasks while you observe how they navigate your interface, where they struggle, and what confuses them. It's the fastest way to expose the gap between what you think your product does and what users actually perceive.",
+    "whyItMatters": "Most founders build what they think users need, not what users actually need. Usability testing catches this disconnect early, before you waste months polishing the wrong solution. Every user that gets stuck on your first onboarding screen is telling you something—if you listen.",
+    "howToApply": "Start with 5-8 real users from your target market, not friends or team members. Give them one core task without hints. Watch where they pause, scroll back, or read instructions twice—those are your friction points. Ask why they hesitated, not why they did what they did. Record sessions for your team to watch. After three users, you'll see the same patterns repeating. Don't redesign based on one person's feedback; look for consensus across multiple testers.",
+    "commonMistakes": [
+      "Testing with the wrong audience—friends don't behave like real customers facing your product for the first time",
+      "Leading users toward your preferred path instead of letting them discover naturally",
+      "Iterating on cosmetic feedback instead of core task failures that block real users"
+    ],
+    "ideafuelConnection": "IdeaFuel's Customer Interview feature lets you recruit, schedule, and manage usability test sessions with real customers directly from your workspace. Record and share insights with your team in one place."
+  },
+  "relatedTerms": ["user-research", "beta-testing", "user-experience"],
+  "synonyms": ["User Testing", "User Research Testing", "Formative Testing"],
+  "seoTitle": "What is Usability Testing? | IdeaFuel Glossary",
+  "seoDescription": "Learn how usability testing reveals what users actually think about your product, not what you assume they think."
+}

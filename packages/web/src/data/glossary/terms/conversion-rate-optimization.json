@@ -1,0 +1,21 @@
+{
+  "slug": "conversion-rate-optimization",
+  "title": "Conversion Rate Optimization",
+  "category": "marketing",
+  "shortDefinition": "Systematically improving the percentage of visitors who complete a desired action, increasing revenue from existing traffic.",
+  "content": {
+    "definition": "CRO is the practice of making it easier for visitors to do what you want them to do. It's about taking the traffic you already have and improving how much of it converts into leads, trials, or paying customers. CRO touches everything: messaging clarity, form fields, page layout, social proof, pricing presentation, and onboarding flow. You're not getting more visitors — you're getting more value from the visitors you have. CRO is data-driven optimization: you form hypotheses, test them rigorously, measure winners with statistical significance, and implement.",
+    "whyItMatters": "Doubling your conversion rate is mathematically equivalent to doubling your marketing budget. Both approaches drive 2x revenue, but CRO costs far less and takes weeks instead of months. If you're spending $10K/month on ads and converting 2% of visitors, improving to 4% conversion (still below industry average for many categories) yields the same revenue as spending $20K/month. CRO compounds across the entire customer lifecycle: a 10% improvement in trial-to-paid conversion or onboarding completion directly reduces churn and CAC. For early-stage companies with limited budgets, CRO should come before scaling acquisition. Every percentage point of improvement on your highest-volume conversion step compounds into meaningful revenue.",
+    "howToApply": "Map each step of your customer journey from first touchpoint to paying customer. Measure conversion rates at each step and identify your biggest drop-off points. Prioritize fixing the steps where you lose the most volume — if 50,000 people visit your pricing page and 25,000 drop off, fix that before optimizing a page that gets 100 visitors monthly. Form hypotheses about why people aren't converting: 'Users don't understand our value prop,' 'Pricing seems expensive,' 'Signup form is too long,' 'Mobile experience is broken,' 'Social proof is missing.' Design one test per hypothesis, run it for statistical significance (typically 2–4 weeks for B2B depending on traffic volume), and measure. Use both quantitative data (heatmaps, session recordings, scroll depth, analytics, form abandonment) and qualitative feedback (exit surveys, user interviews, customer support tickets) to understand the why behind low conversion. Don't test for vanity — test for impact on the metric that matters most: revenue or customer acquisition cost. Prioritize tests that affect high-volume, high-value steps. Build a testing backlog and run tests continuously.",
+    "commonMistakes": [
+      "Testing variables that don't matter (button color, font size) while ignoring fundamental problems (unclear value prop, bad product-market fit). Big leverage changes first.",
+      "Running tests in sequence forever without ever implementing a winner. Decision velocity beats perfection. Implement winners and keep moving.",
+      "Ignoring context — improving email click-through rate by 2% might hurt overall revenue if those clicks attract lower-quality leads who never convert to paid customers."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine reveals how competitors position themselves and what messaging resonates with your target market, informing your CRO hypotheses. Spark Validation tests messaging and positioning hypotheses at speed before you invest in full conversion optimization campaigns."
+  },
+  "relatedTerms": ["a-b-testing", "landing-page", "funnel"],
+  "synonyms": ["CRO", "Optimization", "Funnel Optimization"],
+  "seoTitle": "What is Conversion Rate Optimization? | IdeaFuel Glossary",
+  "seoDescription": "CRO improves the percentage of visitors who convert to customers. Learn testing methodology and prioritization for maximum impact."
+}

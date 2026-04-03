@@ -1,0 +1,21 @@
+{
+  "slug": "jobs-to-be-done",
+  "title": "Jobs to Be Done",
+  "category": "product",
+  "shortDefinition": "Understanding the underlying need a customer is trying to fulfill, not the surface-level task.",
+  "content": {
+    "definition": "Jobs to Be Done (JTBD) is a framework that replaces demographic customer segmentation with motivation-based segmentation. Instead of asking 'Who is my customer?', you ask 'What job is the customer trying to accomplish, and why does existing competition fail at it?' The \"job\" is the goal—drilling a hole in a wall—not the tool you're selling.",
+    "whyItMatters": "Lots of founders build products for the wrong reason because they never clarified the job. You build a project management tool thinking the job is 'organizing tasks' when the real job is 'proving to your manager that you're productive.' Miss that gap and you'll lose every competitor who figured it out. JTBD is how you find the insight that kills.",
+    "howToApply": "Interview customers about the moment they looked for a solution. Ask what was frustrating, why existing tools failed, and what they'd pay to make it disappear. Listen for the emotion and the circumstance—that's where the job lives. Don't ask what features they want; instead ask what they stopped doing because the problem was too big. Map 10-20 customer interviews this way. You'll spot 2-3 core jobs that recur. Build the smallest thing that solves the primary job beautifully. Ignore everything else.",
+    "commonMistakes": [
+      "Conflating the job with the solution—'I need a CRM' is not a job, it's a tool someone told them to buy",
+      "Asking customers what they want instead of uncovering the problem they're actually solving for",
+      "Building features for edge-case jobs instead of focusing on the one job that 80% of customers have"
+    ],
+    "ideafuelConnection": "IdeaFuel's Customer Interview feature helps you structure JTBD conversations, document patterns across interviews, and identify the core jobs your product should solve before you ship."
+  },
+  "relatedTerms": ["customer-persona", "pain-point", "user-research"],
+  "synonyms": ["Job to Be Done", "Customer Job", "Motivation-Based Segmentation"],
+  "seoTitle": "What is Jobs to Be Done (JTBD)? | IdeaFuel Glossary",
+  "seoDescription": "Learn how focusing on customer jobs instead of features unlocks product insight that beats competitors."
+}

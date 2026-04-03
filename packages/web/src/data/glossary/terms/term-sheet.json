@@ -1,0 +1,21 @@
+{
+  "slug": "term-sheet",
+  "title": "Term Sheet",
+  "category": "fundraising",
+  "shortDefinition": "Non-binding document outlining the key terms and conditions of a venture investment.",
+  "content": {
+    "definition": "A term sheet is a summary of the main conditions a VC offers for funding your company. It covers valuation, investment amount, investor rights (board seat, information rights, liquidation preferences), anti-dilution provisions, and governance terms. It's typically non-binding except for confidentiality and exclusivity clauses, but it sets the template for your final legal documents.",
+    "whyItMatters": "The term sheet is where deal economics get real. A seemingly small change in liquidation preference or anti-dilution terms can be worth millions to you or your investors down the line. It's also the most efficient way to negotiate major terms before lawyering up costs you $10K-$30K on both sides. Getting a favorable term sheet at the outset protects you from unfair dilution in future rounds and ensures your team has proper incentives.",
+    "howToApply": "Once you have a lead investor ready to invest, they'll provide a term sheet. Read it carefully—or, better, have a startup lawyer review it ($5K-$10K well spent). Focus on the major terms: post-money valuation, liquidation preference (participating vs. non-participating), anti-dilution (weighted average vs. full ratchet), and board composition. Negotiate hard on valuation—that's your leverage point. Don't sweat minor terms that just set the template; save your capital for things that matter to your future. Ask for and compare term sheets from multiple investors if you can—competitive tension helps. Once signed, you move into legal diligence and documentation, which typically takes 4-8 weeks.",
+    "commonMistakes": [
+      "Accepting a full ratchet anti-dilution clause, which can wipe out common shareholders in a down round without understanding the implications",
+      "Giving away a board seat too early to an investor who isn't deeply helpful, then regretting it when they veto future decisions",
+      "Not negotiating on valuation because you're excited to get the deal done—a 20% valuation swing compounds across future rounds"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model different valuation scenarios and understand the long-term dilution impact of term sheet choices, so you negotiate from a position of financial clarity rather than gut feel."
+  },
+  "relatedTerms": ["cap-table", "valuation", "liquidation-preference"],
+  "synonyms": ["Investment Term Sheet"],
+  "seoTitle": "What is a Term Sheet? | IdeaFuel Glossary",
+  "seoDescription": "Understand term sheets: what they are, how to negotiate them, and why they matter for your fundraising."
+}

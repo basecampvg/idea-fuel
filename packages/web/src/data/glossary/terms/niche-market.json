@@ -1,0 +1,21 @@
+{
+  "slug": "niche-market",
+  "title": "Niche Market",
+  "category": "strategy",
+  "shortDefinition": "A small, specialized market segment focused on a specific need or customer type.",
+  "content": {
+    "definition": "A niche market is a narrow, well-defined customer segment within a larger market. Niches are typically underserved by mainstream competitors because the segment is too small or specialized to interest large players. Examples: lawyers focused on entertainment law, software for CrossFit coaches, financial planning specifically for nurses. A niche is smaller and more specialized than a 'target market'—it's almost a sub-segment of your target market. Serving a niche well means dominating it completely.",
+    "whyItMatters": "Niches are startup kryptonite to large competitors. A large company can't profitably serve a market with only 5,000 potential customers; a startup can. This gives you a window to build, gain dominance, and create network effects before larger competitors even notice. Niches also lead to stronger product-market fit because the customer pain is acute and specific. When you niche down, you can charge premium pricing (customers are willing to pay for solutions built exactly for them), reduce marketing costs (they're concentrated in one place), and build defensible brand loyalty. Many billion-dollar companies started in niches: Slack started in gaming teams, Twitch started with live streaming, Square started with street vendors.",
+    "howToApply": "Identify a niche by looking for a specific customer type with three characteristics: (1) they have a distinct, intense pain that general solutions don't address, (2) they're willing to pay premium pricing for a tailored solution, and (3) they're easy to reach and validate with. For example, instead of 'small businesses,' niche into 'boutique event planning agencies in the US Northeast.' Then validate aggressively by interviewing 15-20 people in this specific niche. Ask: How important is solving this problem to you? Would you pay $X per month? What's currently broken? After validation, build and market to dominate this niche completely, then systematically expand into adjacent niches. Expanding from event agencies to wedding planners to conference organizers follows the same customer profile and tools.",
+    "commonMistakes": [
+      "Choosing a niche that's too small to build a sustainable business—make sure there are at least 1,000-2,000 potential customers, ideally more.",
+      "Serving a niche you don't understand—niches are about deep expertise and authenticity. You'll lose credibility if customers sense you're not one of them.",
+      "Thinking your niche is permanent—niches are a launch strategy, not a destiny. Plan expansion from day one."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine helps you identify and validate niche markets within your broader market opportunity. Use it to map adjacent niches for your expansion strategy."
+  },
+  "relatedTerms": ["target-market", "beachhead-market", "market-segmentation"],
+  "synonyms": ["Specialized Market", "Micro-Segment"],
+  "seoTitle": "What is a Niche Market? | IdeaFuel Glossary",
+  "seoDescription": "Master niche marketing for startup success. Find underserved segments, build dominance, and expand strategically."
+}

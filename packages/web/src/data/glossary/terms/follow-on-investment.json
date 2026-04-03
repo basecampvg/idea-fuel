@@ -1,0 +1,21 @@
+{
+  "slug": "follow-on-investment",
+  "title": "Follow-on Investment",
+  "category": "fundraising",
+  "shortDefinition": "An additional investment that a previous investor makes in a later funding round.",
+  "content": {
+    "definition": "Follow-on investment is when an investor who already owns equity in your company buys more shares in a future round. If an angel invested $50K in your seed round, and writes another $100K check in your Series A, that $100K is a follow-on investment. Follow-on investors typically use pro-rata rights to maintain their percentage ownership. Follow-on rounds are a signal of confidence: existing investors doubling down means they've done their homework and still believe.",
+    "whyItMatters": "Follow-on investment is how companies stay funded without constantly hunting for new capital. If Series A investors are writing follow-on checks in Series B and C, you've proven your path and keep your cap table stable. Lack of follow-on investment is a warning sign: if nobody from your Series A wants to invest again, something has disappointed them. Follow-on investors also tend to move faster (they already know you) and negotiate lighter terms (they don't want to dilute themselves excessively either). A strong base of follow-on investors creates momentum for downstream rounds.",
+    "howToApply": "After each funding round, map which investors are most likely to double down. This is usually the lead investor and your best supporters—investors who added value, stayed engaged, and watched your progress. Keep them informed quarterly about progress against milestones. When you're ready to fundraise again, approach existing investors first. They already know you, trust you, and can move fast. Use existing investor momentum to recruit new lead investors for the next round. A Series A investor with 3% ownership willing to write pro-rata shares is a huge advantage when courting new Series B leads.",
+    "commonMistakes": [
+      "Assuming all Series A investors will follow on—some write one check and become silent; focus energy on investors who are actually engaged",
+      "Failing to communicate progress between rounds—investors who hear nothing for 18 months won't instinctively follow on; quarterly updates keep momentum alive",
+      "Taking follow-on capital at a flat or down valuation without understanding the message it sends—a flat round signals stalled growth; make sure you've earned it"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator shows milestones and growth targets that justify follow-on investment, proving to existing investors that you've executed on your plan and earned the right to raise more capital."
+  },
+  "relatedTerms": ["pro-rata-rights", "lead-investor", "bridge-round"],
+  "synonyms": ["Continuation Investment", "Additional Round", "Investor Reserve"],
+  "seoTitle": "What is Follow-on Investment? How Do Investors Double Down? | IdeaFuel Glossary",
+  "seoDescription": "Follow-on investment is when early investors buy more equity in later rounds. Learn why it matters and how to secure it."
+}

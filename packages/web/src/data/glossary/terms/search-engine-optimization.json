@@ -1,0 +1,21 @@
+{
+  "slug": "search-engine-optimization",
+  "title": "Search Engine Optimization",
+  "category": "marketing",
+  "shortDefinition": "The practice of optimizing your website and content to rank higher in organic search results.",
+  "content": {
+    "definition": "SEO is the art and science of getting your pages to show up in Google's organic results (not paid ads) for terms people actually search. It combines technical factors (site speed, mobile responsiveness, crawlability, structured data), content factors (keyword relevance, expertise, freshness, comprehensiveness), and authority signals (backlinks from other sites, citations, user engagement metrics). SEO is not about gaming Google — it's about making it easy for Google to understand what you do and proving you do it better than alternatives. The winners in SEO take 12–24 months of consistent effort building authority, content, and links before seeing meaningful traffic and ROI. SEO is slow but defensible: once you own a keyword ranking, competitors must outwork you to take it.",
+    "whyItMatters": "Organic traffic is free after the initial investment, and it compounds over time. A blog post that ranks for a 1,000-search-per-month keyword can drive qualified leads for years with zero marginal cost. Unlike paid advertising, you don't stop generating value when you stop spending. For founders, SEO offers a practical moat if you can get there first — competitors can copy your product, but they can't steal your search rankings without doing equivalent work. The payoff is slower than paid ads, but the unit economics are unbeatable at scale. One customer acquired through organic search might be worth $0.10 in CAC, while the same customer through ads costs $30. That's a 300x difference in unit economics.",
+    "howToApply": "Start by understanding what keywords your target customer searches. Use free tools like Google Keyword Planner or Ubersuggest to find searches with decent volume (500+/month), low competition, and clear commercial intent. Rank for 'long-tail' keywords first — specific, less competitive searches where you can actually win. Create comprehensive, original content that directly answers those searches better than current top results. Don't write for Google algorithms; write for the person behind the search — clear headings, actionable advice, real examples. Build technical fundamentals: ensure your site loads fast (under 3 seconds), is mobile-responsive (50%+ of traffic is mobile), has clear navigation, and uses schema markup so Google understands your content structure. Earn backlinks by creating linkable assets (original research, tools, frameworks, case studies) and reaching out to relevant sites. Track rankings in Google Search Console and search volume trends to see what's working. Aim for 'topic clusters' — one pillar page covering a broad topic with 10–20 related pages linking back.",
+    "commonMistakes": [
+      "Writing 2,000-word blog posts for keywords with 100 monthly searches. Big content only wins if the prize is big. Prioritize volume and intent.",
+      "Focusing on ranking for high-volume, high-competition keywords before you have domain authority. Rank for long-tail searches first, then move upmarket as your authority grows.",
+      "Changing your on-page SEO constantly based on algorithm rumors or SEO blog posts. Google rewards consistency, freshness, and relevance — not chasing the latest 'trick.'"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes what your target market searches for, competitive keyword landscapes, and content gaps so you can prioritize high-leverage SEO opportunities aligned with customer demand. Identify which keywords your competitors rank for but you don't."
+  },
+  "relatedTerms": ["organic-traffic", "content-marketing", "search-engine-marketing"],
+  "synonyms": ["Organic Search", "Natural Search", "SEO Strategy"],
+  "seoTitle": "What is Search Engine Optimization? | IdeaFuel Glossary",
+  "seoDescription": "SEO optimizes your site to rank higher in organic search. Learn technical, content, and authority strategies for sustainable traffic."
+}

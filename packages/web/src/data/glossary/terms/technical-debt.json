@@ -1,0 +1,21 @@
+{
+  "slug": "technical-debt",
+  "title": "Technical Debt",
+  "category": "product",
+  "shortDefinition": "Code shortcuts and architectural compromises that speed up shipping but create future maintenance costs.",
+  "content": {
+    "definition": "Technical debt is the accumulated cost of taking shortcuts in your codebase. You copy-paste code instead of building reusable components. You skip tests. You use hacky workarounds instead of fixing root causes. You do this to ship faster today. But each shortcut compounds—the next developer has to navigate the hack, refactor it, or build around it. Like financial debt, you're borrowing speed from the future.",
+    "whyItMatters": "Early-stage startups take on technical debt intentionally because shipping fast beats perfect code. But unmanaged debt kills velocity. Your team spends 60% of time maintaining broken code instead of building features. New hires can't understand the system. Simple changes take 10x longer because you're navigating around previous shortcuts. At some point, the debt becomes so expensive that you need a full rewrite. The companies that manage debt strategically—paying it down gradually—stay fast. Companies that ignore it grind to a halt.",
+    "howToApply": "Accept that you'll take on technical debt early. Track it explicitly—write it down, prioritize it, estimate it. Set a 'debt budget' for each sprint; if you're 20% in debt, you should be 20% paying it down. Don't let it exceed 40% or you'll stall. Refactor constantly. When you touch code, leave it better than you found it. Write tests for critical paths. Replace hacky patterns as you discover them. Schedule 'debt reduction' sprints where you improve architecture without adding features. Most importantly, stop pretending 'we'll refactor later'—later never comes.",
+    "commonMistakes": [
+      "Ignoring debt until it's catastrophic and requires a complete rewrite—managing it continuously is cheaper",
+      "Taking on debt without tracking it—you lose sight of how much you've accumulated",
+      "Refusing all debt because you want 'perfect' code—you'll never ship if perfection is the goal"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation helps you prioritize debt paydown. Articulate your architectural concerns and get instant assessment of which debts are blocking progress."
+  },
+  "relatedTerms": ["scope-creep", "agile", "definition-of-done"],
+  "synonyms": ["Architectural debt", "Code debt"],
+  "seoTitle": "What is Technical Debt? | IdeaFuel Glossary",
+  "seoDescription": "Technical debt slows teams down. Learn how to manage it without sacrificing shipping speed."
+}

@@ -1,0 +1,23 @@
+{
+  "slug": "runway",
+  "title": "Runway",
+  "category": "finance",
+  "shortDefinition": "Months of operations your company can sustain with current cash before needing additional funding.",
+  "content": {
+    "definition": "Runway is the number of months your company can continue operating at its current burn rate using existing cash reserves before requiring additional capital. It's calculated by dividing your total cash on hand by your monthly burn rate (expenses minus revenue). This metric determines your timeline to profitability or the next funding round.",
+    "whyItMatters": "Runway is your survival metric. It forces you to confront hard truths about spending and growth speed simultaneously. Underestimating runway causes founders to raise at bad valuations out of desperation; overestimating it leads to careless spending and missed fundraising windows. It's the real deadline hanging over every decision you make.",
+    "howToApply": "Calculate it weekly during early stages, monthly once you're more stable. Start with actual cash balance—don't include promised checks. Track burn rate separately from revenue to see the real burn number. When runway drops below 9 months, start serious fundraising conversations. If runway is over 18 months, focus on building instead of fundraising. Use this metric to have honest conversations with co-founders about spending priorities and growth targets. IdeaFuel's Financial Modeling tool helps you project runway under different growth and spending scenarios so you can model the impact of changes before they happen.",
+    "commonMistakes": [
+      "Counting committed funding as cash—it's not in the bank until it clears. Only count actual cash on hand.",
+      "Using average burn rate instead of current burn rate—your spending likely changes monthly, so use recent actual numbers and adjust for planned changes.",
+      "Ignoring growth in revenue calculations—if you're growing revenue, your true burn rate is lower than expenses alone suggest. Model both.",
+      "Forgetting to include payroll taxes, insurance, and one-time costs—these surprise founders and collapse runway estimates.",
+      "Not accounting for seasonal changes—holiday hiring, tax bills, and quarterly expenses distort monthly averages."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you project runway under different growth and spending scenarios so you can model the impact of changes before they happen. Test 'what-ifs' without guessing."
+  },
+  "relatedTerms": ["burn-rate", "bootstrapping", "bridge-round"],
+  "synonyms": ["Cash Runway", "Time to Depletion"],
+  "seoTitle": "What is Runway in Startups? Calculate & Extend Your Cash Runway | IdeaFuel",
+  "seoDescription": "Learn how to calculate runway, extend your cash timeline, and avoid funding disasters. Founder's guide to managing burn rate and survival metrics."
+}

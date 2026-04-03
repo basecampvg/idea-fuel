@@ -1,0 +1,21 @@
+{
+  "slug": "cliff",
+  "title": "Cliff",
+  "category": "fundraising",
+  "shortDefinition": "A period in a vesting schedule where no equity vests; typically 1 year before monthly vesting begins.",
+  "content": {
+    "definition": "A cliff is a period at the beginning of a vesting schedule during which zero equity vests. With a standard 4-year schedule and 1-year cliff, an employee vests nothing during their first year. If they leave before the cliff ends (day 365), they forfeit all equity. After the cliff, vesting accelerates to monthly increments.",
+    "whyItMatters": "Cliffs protect founders from equity waste. Without a cliff, an employee could stay 6 months and walk with 12.5% of their grant already vested. With a 1-year cliff, they get nothing unless they prove they're committed. This is particularly important in early stages where hiring mistakes are expensive and founders' equity is precious. Cliffs also create psychological alignment: employees understand they're not fully vested until they've survived the cliff.",
+    "howToApply": "The standard market cliff is 1 year on a 4-year vesting schedule—this is what investors and employees expect. Don't try to get clever with 6-month cliffs (too generous to employees) or 2-year cliffs (too harsh and makes hiring harder). The 1-year cliff is the sweet spot. Understand that some exceptional hires will negotiate cliff acceleration (like 6 months instead of 12) in exchange for lower salary or to take founder-level risk. That's fine—just be consistent in how you apply it.",
+    "commonMistakes": [
+      "Having no cliff at all and watching early employees cash in equity for minimal contribution",
+      "Making cliffs too long (2+ years) and scaring away good candidates",
+      "Offering different cliff lengths to different employees without a business justification"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator calculates the equity impact of different cliff structures, showing you the cumulative effect across your option pool and how it affects founder dilution."
+  },
+  "relatedTerms": ["vesting-schedule", "option-pool", "equity"],
+  "synonyms": ["Vesting Cliff", "Cliff Period"],
+  "seoTitle": "What is a Cliff in Vesting? | IdeaFuel Glossary",
+  "seoDescription": "Cliffs are periods where employees don't vest equity. Learn why 1-year cliffs are standard market practice."
+}

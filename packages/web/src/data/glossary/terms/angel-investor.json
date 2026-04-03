@@ -1,0 +1,21 @@
+{
+  "slug": "angel-investor",
+  "title": "Angel Investor",
+  "category": "fundraising",
+  "shortDefinition": "A wealthy individual who invests their own money in early-stage startups for equity.",
+  "content": {
+    "definition": "An angel investor is a high-net-worth individual who writes personal checks to invest in early-stage companies. Angels typically invest $10K-$250K per deal and take equity or convertible notes. Unlike VCs, they're not managing institutional money or accountable to limited partners—they're betting based on their gut, the founder, and the market. Angel rounds usually precede Series A by 1-3 years.",
+    "whyItMatters": "Angels are how most founders survive the pre-product stage. They fund before VCs will touch you, when you have no revenue and just an idea. Angels also tend to be more flexible than VCs about terms and more patient about timelines. A good angel becomes an advisor, connector, and reference for future fundraising. Bad angels demand excessive board control or become adversarial when growth slows. The angel check can be the difference between shipping a MVP and running out of cash before you can prove anything.",
+    "howToApply": "Start by mapping your network: who do you know with money and interest in startups? Who sold a company, works in tech, or invests for fun? Ask them directly or ask for warm intros to their network. Be specific about what you're using the money for (18 months of runway, product development, initial marketing). Most angels want a simple SAFE or convertible note, not a Series A-style term sheet. Show investors a working prototype or MVP if possible. Create a credible story about why this market needs solving and why you're the right team. Be transparent about risks—angel investors know startup odds, but they'll lose trust if you oversell.",
+    "commonMistakes": [
+      "Taking angel money with unclear terms—a verbal 'we'll figure it out later' turns ugly when investors want equity percentages; always use a SAFE or convertible note",
+      "Overcommitting to angel demands for board seats or operational control—dilutes founder control before Series A when VCs will demand structure anyway",
+      "Treating angel rounds like a sprint instead of sustained fundraising—good founders are always nurturing relationships with potential angels, not just asking when they run out of cash"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator shows you the financial runway and milestones to present to angel investors, proving you'll spend their capital wisely and hit meaningful targets within 18 months."
+  },
+  "relatedTerms": ["venture-capital", "pre-seed", "convertible-note"],
+  "synonyms": ["Angel Funder", "Accredited Investor", "Early-Stage Investor"],
+  "seoTitle": "What is an Angel Investor? How to Raise Angel Money | IdeaFuel Glossary",
+  "seoDescription": "Angel investors fund early-stage startups with personal money. Learn what they want and how to approach them."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "exit-strategy",
+  "title": "Exit Strategy",
+  "category": "strategy",
+  "shortDefinition": "A founder's or investor's plan to eventually cash out or transfer ownership stake. Usually acquisition or IPO.",
+  "content": {
+    "definition": "An exit strategy is your plan to eventually liquidate your equity—turn it into cash or ownership transfer. The two main paths are acquisition (sell to another company) or IPO (go public). Secondary sales, employee stock sales, and dividends are softer exits. For founders, exit strategy shapes every decision: if acquisition is your exit, you build for acquirer fit. If IPO is your target, you build for scale and public markets. There's no neutral; your strategy drives your strategy.",
+    "whyItMatters": "Exit strategy matters because it determines where you focus. A founder building for acquisition focuses on profitability and acquirer pain points. A founder building for IPO focuses on scale and market dominance, often accepting losses. Investors care deeply—VCs invest assuming a 10x exit; acquisitions are often 3-5x. Knowing your exit moves first helps you raise the right capital, hire the right team, and avoid misalignment. It's also your north star when things get hard. You're not just building a business—you're building something with a defined end state.",
+    "howToApply": "First, be honest about which exit is realistic. IPO requires $100M+ revenue and public market demand. Most founders will exit through acquisition. Given that, build accordingly: prove unit economics, focus on retention and defensibility, and map potential acquirers. Who would benefit from your business? Why? What are they willing to pay? Start conversations with acquirers when you have leverage—growth, retention, team, and traction. Don't pitch failing metrics hoping they'll improve post-acquisition. Build the metrics first, then facilitate the conversation. If IPO is realistic, focus on scale, profitability trajectory, and market dominance. The path is very different.",
+    "commonMistakes": [
+      "Having no exit strategy and being surprised when your board asks. Investors assume exit by Year 7. If you haven't thought about it, your cap table and governance probably aren't positioned well. Define this early.",
+      "Building for the wrong exit. If you build for IPO but should have aimed for acquisition, you've optimized for the wrong metrics. Know your realistic exit early and build accordingly.",
+      "Timing exit wrong. If you exit too early, you leave money on the table. If too late, the market changes, your team gets tired, or acquirers lose interest. Timing requires both data and intuition. Track comps in your market and exit when valuations peak."
+    ],
+    "ideafuelConnection": "Use IdeaFuel's business-plan feature to model both acquisition and IPO scenarios, track metrics that drive valuation (growth, retention, CAGR), and stress-test your path to exit readiness."
+  },
+  "relatedTerms": ["ipo", "merger-and-acquisition", "acqui-hire"],
+  "synonyms": ["Liquidation plan", "Exit event"],
+  "seoTitle": "What is an Exit Strategy? | IdeaFuel Glossary",
+  "seoDescription": "Define your path to liquidity. Learn how exit strategies shape company building, from acquisition to IPO timing."
+}

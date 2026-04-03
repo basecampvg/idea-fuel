@@ -1,0 +1,21 @@
+{
+  "slug": "balance-sheet",
+  "title": "Balance Sheet",
+  "category": "finance",
+  "shortDefinition": "A snapshot of what your company owns, owes, and the owner's stake at a specific moment.",
+  "content": {
+    "definition": "A balance sheet is a financial statement that shows your company's assets (what you own), liabilities (what you owe), and equity (what's left for owners). The fundamental equation is Assets = Liabilities + Equity. It's always in balance because every dollar either came from debt (liability), contributed by owners (equity), or was earned through operations (equity via retained earnings). The balance sheet is a snapshot in time—a freeze-frame of your financial position on a specific date (e.g., December 31st)—different from the income statement (which covers a period like a year) or cash flow statement (which shows cash movement).",
+    "whyItMatters": "Your balance sheet tells the real story about your financial health—not profitability, but solvency. It shows whether you can actually pay your bills, how dependent you are on debt, and what cushion you have if something goes wrong. A profitable company with no cash is bankrupt. An unprofitable company with substantial cash can survive years. Investors use the balance sheet to assess risk and financial stability; lenders use it to decide whether to give you money and at what terms. An unhealthy balance sheet (too much debt, not enough cash, illiquid assets) kills companies even when they're technically profitable on the P&L. The balance sheet reveals working capital efficiency—how quickly you convert spending into customer payments—and whether you have enough liquidity to survive unexpected downturns or surprises.",
+    "howToApply": "Track every asset category with precision: cash and equivalents (the most important), accounts receivable (money customers owe you), inventory (for product companies), prepaid expenses, equipment/property, intangible assets, and capitalized software. List liabilities separately by maturity: current liabilities (due within 12 months—payables, current debt portion) and long-term debt. Equity includes all founder contributions, preferred stock from investors, and retained earnings (cumulative profit). Create a balance sheet monthly, not just at year-end—it's your early warning system. Pay obsessive attention to cash, accounts receivable aging, and accounts payable terms. Know your cash conversion cycle: how long does money stay tied up in inventory and receivables before you collect from customers? This determines how much cash you need to fund growth.",
+    "commonMistakes": [
+      "Overvaluing illiquid assets like inventory or custom equipment as if they're cash—they're not, and in a crunch they won't convert to cash at book value",
+      "Ignoring accounts receivable aging—invoices outstanding 60+ days indicate collection problems or hidden customer issues",
+      "Confusing balance sheet strength with profitability; you can be profitable on paper but bankrupt in cash; these are different things"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool builds your projected balance sheets automatically from your assumptions about growth, working capital, and capital expenditures. Adjust headcount and see how that flows to payables and retained earnings. Model different inventory policies and see their impact on cash and current liabilities. See how hiring decisions, vendor payment terms, and debt levels affect your balance sheet health over time."
+  },
+  "relatedTerms": ["income-statement", "cash-flow-statement", "working-capital"],
+  "synonyms": ["Statement of Financial Position", "Statement of Assets and Liabilities"],
+  "seoTitle": "What is a Balance Sheet? Definition & Example for Startups | IdeaFuel",
+  "seoDescription": "A balance sheet shows what your company owns and owes. Learn the formula, why it matters, and how to build one that impresses investors."
+}

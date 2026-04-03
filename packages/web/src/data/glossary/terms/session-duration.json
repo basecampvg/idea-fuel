@@ -1,0 +1,21 @@
+{
+  "slug": "session-duration",
+  "title": "Session Duration",
+  "category": "analytics",
+  "shortDefinition": "How long a user spends in your product during a single visit.",
+  "content": {
+    "definition": "Session duration measures the total time from when a user opens your product to when they leave—usually tracked from first event to last event within a 30-minute window. It's a simple metric with nuance: a 5-minute session could mean deep engagement (power user completing a task) or shallow engagement (user got stuck and left). Context matters, but longer is usually better than shorter.",
+    "whyItMatters": "Session duration is a leading indicator of engagement. Users who spend 30 minutes in your product are finding value. Users who spend 2 minutes are either power users (quick task) or frustrated users (left fast). Average session duration of 2 minutes with 40% bounce rate means your onboarding is broken. Average session duration of 15 minutes with 5% bounce rate means you're onto something. Tracking session duration prevents you from missing obvious engagement problems. A 30% drop in average session duration is a red flag you should investigate immediately—something broke.",
+    "howToApply": "Track session duration automatically through your analytics tool. Watch weekly for trends: does session duration increase as users progress through onboarding? Are sessions longer on weekdays or weekends? Break it down by feature: users on your new dashboard might have 20-minute sessions while users on reports have 5 minutes—data about what's engaging. Compare session duration across cohorts: are new users spending less time than day-30 users? If yes, your retention will hurt. Set a target for day-7 session duration (e.g., 'users should spend 10+ minutes in first week'), then design your onboarding to hit it. When session duration drops, it's usually a product change—audit your recent releases for friction.",
+    "commonMistakes": [
+      "Counting idle time as engagement—a 30-minute session is worthless if 20 minutes were tab-inactive",
+      "Not breaking down session duration by user type—power users and new users will never have parity",
+      "Ignoring seasonal patterns—weekend users might naturally have longer sessions for non-work products"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine correlates session duration with feature adoption and retention. It identifies which features drive users to spend more time in your product, helping you prioritize development against high-engagement opportunities."
+  },
+  "relatedTerms": ["bounce-rate", "page-views", "engagement-rate"],
+  "synonyms": ["Time on Site", "Engagement Duration"],
+  "seoTitle": "What is Session Duration? | IdeaFuel Glossary",
+  "seoDescription": "Session duration measures how long users spend in your product during a single visit. A leading engagement indicator."
+}

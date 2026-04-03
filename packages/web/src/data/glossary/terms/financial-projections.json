@@ -1,0 +1,21 @@
+{
+  "slug": "financial-projections",
+  "title": "Financial Projections",
+  "category": "finance",
+  "shortDefinition": "Forecasted financial statements showing expected revenue, expenses, and profit.",
+  "content": {
+    "definition": "Financial projections are forward-looking models of your business: projected income statements, balance sheets, and cash flow statements for 3-5 years (sometimes 10+). They estimate future revenue based on assumptions (growth rate, market penetration), forecast expected expenses, and show the path to profitability or cash flow breakeven. Projections are never 'accurate'—they're frameworks for thinking through scenarios and dependencies.",
+    "whyItMatters": "Financial projections force clarity. Building a 5-year model requires you to articulate assumptions: how many customers will you acquire, at what cost, with what churn? What will unit economics look like? When do you need to hire? This process surfaces inconsistencies—'we're growing 50% annually but only spending 2% of revenue on marketing' signals a flaw. Investors expect projections because they tell you whether the business can generate returns. Bad projections (wildly optimistic or missing key costs) are worse than no projections because they hide problems.",
+    "howToApply": "Start with a simple model: 3 years of monthly cash flow, 2 years ahead. Build bottom-up when possible (number of customers x average revenue per user) rather than top-down ('we'll capture 10% of a 100B market'). Include three scenarios: conservative (base case that's achievable), moderate (slightly optimistic), and upside (best case). Stress test against downside: what if customer acquisition costs double, or churn increases 2%? Sensitivity analysis matters more than precision. Review and update projections quarterly as reality diverges from assumptions—a stale projection is worse than none. Use projections to flag when you'll run out of runway, need capital, or are off pace.",
+    "commonMistakes": [
+      "Building projections in a spreadsheet vacuum, disconnected from operational reality",
+      "Assuming static margins when they improve with scale—build explicit leverage assumptions",
+      "Not updating projections when actual results diverge, rendering them irrelevant"
+    ],
+    "ideafuelConnection": "IdeaFuel's financial-modeling tools build dynamic projections from operational assumptions, run scenario analysis automatically, and alert you when actual results diverge from projections."
+  },
+  "relatedTerms": ["pro-forma", "revenue-model", "cash-flow-statement"],
+  "synonyms": ["Financial Forecast", "Pro Forma Statements"],
+  "seoTitle": "What are Financial Projections? | IdeaFuel Glossary",
+  "seoDescription": "Learn how to build realistic financial projections and use them to guide startup strategy and fundraising."
+}

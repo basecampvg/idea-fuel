@@ -1,0 +1,21 @@
+{
+  "slug": "pivot",
+  "title": "Pivot",
+  "category": "strategy",
+  "shortDefinition": "A structured change to your product, market, or business model based on learning from the market.",
+  "content": {
+    "definition": "A pivot is a deliberate, data-driven shift in your business strategy when the original path isn't working. It's not panic or failure—it's adaptation. Pivots include changing your target customer (B2B to B2C), your product (removing features, adding new ones), your pricing model (subscription to marketplace), or your distribution channel. Instagram started as a location check-in app (Burbn); they pivoted to photo-sharing and became a $1B acquisition. Pivots are normal; founders who execute them well win.",
+    "whyItMatters": "Sticking to a dead strategy is founder arrogance. Pivoting is wisdom. The market tells you what works if you listen. Early traction tells you which customer segment, use case, or feature matters most—a pivot amplifies that signal. VCs expect early-stage founders to pivot once or twice. They don't expect founders to nail product-market fit on day one. What they hate is founders who ignore data and keep scaling a failing model.",
+    "howToApply": "Pivot when: (1) You've tried for 6-12 months to get traction and still have 5-10% conversion rates or churn above 10%/month. (2) Customer research shows a different use case or segment is 3x more valuable than your original target. (3) You have strong qualitative feedback that your product solves a different problem really well. Don't pivot on a whim—collect evidence first. Identify exactly what's not working (product, market, or go-to-market?). Test the pivot with 10-20 customers before committing. Then pivot decisively: change messaging, product roadmap, and sales focus. Communicate the pivot clearly internally and externally—don't sneak it.",
+    "commonMistakes": [
+      "Pivoting too early. You ran ads for 2 weeks and got 2 customers, so you panic and pivot. Give each strategy 6+ months of focused execution before pivoting.",
+      "Pivoting too late. You've been grinding on a signal-less idea for 2 years because you're stubborn. If you're not seeing clear leading indicators (word-of-mouth, organic traction, high engagement), pivot sooner.",
+      "Pivoting to chase every market signal. One customer says they'd use your product for a different use case, so you rebuild everything. Test first; don't rebuild on anecdotes."
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation gives you instant feedback on your assumptions and helps you run quick customer interviews to validate whether a pivot is worth pursuing before you commit resources."
+  },
+  "relatedTerms": ["lean-startup", "product-market-fit", "pivot-vs-persevere"],
+  "synonyms": ["Strategic Shift", "Business Model Change", "Course Correction"],
+  "seoTitle": "What is a Pivot? | IdeaFuel Glossary",
+  "seoDescription": "Learn how to recognize when to pivot, execute pivots effectively, and use customer data to drive strategic shifts in your startup."
+}

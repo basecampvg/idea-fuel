@@ -1,0 +1,21 @@
+{
+  "slug": "user-research",
+  "title": "User Research",
+  "category": "product",
+  "shortDefinition": "Systematic investigation of who your users are, what they need, and how they behave.",
+  "content": {
+    "definition": "User research is the process of learning about your users through interviews, surveys, observations, and behavioral data. It answers foundational questions: Who actually uses your product? What problems are they trying to solve? What's their current workflow? What do they care about? User research ranges from informal 30-minute interviews to comprehensive studies with hundreds of participants. The specificity depends on your urgency and available resources.",
+    "whyItMatters": "Most products fail because founders built something they think users want instead of what users actually need. User research stops you from being wrong. It reveals unmet needs, unexpected behaviors, and misconceptions you've had all along. It also builds empathy—when you hear from real users, you stop debating hypotheticals and start listening. Companies that do user research consistently make better products. It's not optional; it's the difference between products that work and products that fail.",
+    "howToApply": "Start with qualitative research—talk to 10-20 people from your target market. Ask open-ended questions about their current workflow, pain points, and goals. Don't pitch, don't defend, just listen. Record interviews (with permission) and look for patterns in what people say. Once you've identified themes, validate them with quantitative research—surveys to 100+ people. Conduct regular 'user testing' sessions where users interact with your product and think aloud. Analyze behavioral data from your product (if you have users). Make research a continuous habit, not a one-time project.",
+    "commonMistakes": [
+      "Researching only your friends and colleagues who don't represent your actual market—interview strangers who match your target user",
+      "Confirming what you already believe instead of challenging assumptions—good research makes you wrong sometimes",
+      "Collecting research but not acting on it—if you're not changing based on what you learn, you're wasting time"
+    ],
+    "ideafuelConnection": "IdeaFuel's Customer Interview feature lets you conduct structured user research with real users in minutes. Ask targeted questions about user needs, validate your assumptions, and collect feedback at scale."
+  },
+  "relatedTerms": ["customer-persona", "usability-testing", "jobs-to-be-done"],
+  "synonyms": ["User testing", "Customer research"],
+  "seoTitle": "What is User Research? | IdeaFuel Glossary",
+  "seoDescription": "User research reveals what customers actually need. Learn why it matters and how to do it effectively."
+}

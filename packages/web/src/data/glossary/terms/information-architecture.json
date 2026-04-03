@@ -1,0 +1,21 @@
+{
+  "slug": "information-architecture",
+  "title": "Information Architecture",
+  "category": "product",
+  "shortDefinition": "How you organize and label content so users can find what they need intuitively.",
+  "content": {
+    "definition": "Information architecture (IA) is the art of organizing information in a way that matches how users think. It's the structure that decides whether your navigation is intuitive or whether users get lost. Bad IA means users can't find features that exist. Good IA means users discover what they need without thinking.",
+    "whyItMatters": "Users spend seconds deciding if your product is worth their time. If they can't find what they're looking for within those seconds, they leave. Complex products need intentional structure—every page, every menu, every label should follow a logical pattern. This is especially critical for SaaS where onboarding confusion kills retention.",
+    "howToApply": "Start with a card sort exercise: give target users cards with your key features and ask them to group them however makes sense. Don't guide them—let their mental models emerge. Most users will group things differently than you predicted. Use their patterns to structure your navigation. Test with 5-10 users at this stage before you design a single pixel. Label everything using user language, not internal jargon. Audit regularly by watching how users move through your product. Where do they get stuck? Where do they look but not click?",
+    "commonMistakes": [
+      "Organizing around your backend database structure instead of how users think about the problem",
+      "Using internal jargon or company speak instead of words users naturally use",
+      "Over-complicating the taxonomy to handle edge cases that affect 2% of users"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation feature helps you run card sorting studies and analyze user mental models before committing to an information architecture."
+  },
+  "relatedTerms": ["user-flow", "user-experience", "wireframe"],
+  "synonyms": ["IA", "Site Architecture", "Content Structure"],
+  "seoTitle": "What is Information Architecture? | IdeaFuel Glossary",
+  "seoDescription": "Discover how proper information architecture prevents user confusion and keeps visitors engaged."
+}

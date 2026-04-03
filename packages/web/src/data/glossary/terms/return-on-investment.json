@@ -1,0 +1,21 @@
+{
+  "slug": "return-on-investment",
+  "title": "Return on Investment",
+  "category": "finance",
+  "shortDefinition": "The profit or loss generated relative to the amount of capital invested, expressed as a percentage.",
+  "content": {
+    "definition": "Return on investment (ROI) calculates how much profit you made for every dollar of capital you put in. The formula is (Profit / Investment) × 100. If you invest $100,000 and generate $150,000 in profit over a period, your ROI is 50%. It normalizes returns across different investment sizes, making comparisons meaningful. Companies use ROI to compare which investments create the most value per dollar deployed. ROI tells you the percentage return; if you want absolute dollars, multiply ROI percentage by investment amount.",
+    "whyItMatters": "ROI forces accountability for capital allocation. Capital is finite—every dollar you spend (hiring, marketing, equipment, R&D) needs to generate returns or you're destroying shareholder value and burning runway. If hiring a salesperson costs $100K fully loaded and generates $200K in incremental profit in the first year, that's a 2x ROI, a home run. If marketing spend generates no customers, that's -100% ROI, pure waste. Investors obsess over ROI because it directly predicts company longevity and value. A business generating 5x ROI per dollar is compounding fast; one generating 0.5x ROI is destroying value. In early-stage companies, ROI on hiring is critical—if a new salesperson doesn't generate 3-4x their cost in revenue within 12 months, you hired wrong.",
+    "howToApply": "Calculate ROI on discrete investments: hiring decisions, marketing campaigns, product development, equipment purchases, and internal tools. Define the time window clearly—are you measuring 1-year ROI, 3-year ROI, or lifetime ROI? The shorter the window, the harder it is to show positive ROI. For marketing, track customer acquisition cost and lifetime value, then calculate ROI (LTV minus CAC, divided by CAC times 100). For hiring, estimate the incremental profit the new person creates after accounting for their fully loaded cost (salary, benefits, equipment, training, management time). Compare ROI across options with the same time horizon: if a $50K marketing campaign generates $200K in gross profit over a year (4x ROI) and a $50K equipment purchase generates $100K profit over a year (2x ROI), the marketing is the better investment. Disaggregate investments: marketing ROI might differ dramatically by channel (paid search might be 3x while social is 0.5x), and hiring ROI differs by role (a salesperson might be 2x while an engineer working on 'nice-to-have' features might be 0.5x). Use ROI as a tiebreaker when comparing similar investments.",
+    "commonMistakes": [
+      "Ignoring time value of money—a 2x ROI in year 5 is worth less than 2x in year 1, and inflation erodes the value further",
+      "Miscalculating fully loaded costs—hiring includes salary, benefits, equipment, training, management overhead, and tools; the all-in cost is 1.3-1.5x salary",
+      "Using different time windows for different investments, making comparison impossible—measure everything on the same horizon (e.g., 12-month ROI)"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you calculate ROI on key investments by plugging in the upfront cost and the profit stream it generates over time, then automatically computing total ROI and payback period. Model scenarios to test which investments deliver the highest returns and which should be deprioritized."
+  },
+  "relatedTerms": ["internal-rate-of-return", "net-present-value", "return-on-ad-spend"],
+  "synonyms": ["ROI", "Return on Capital Invested"],
+  "seoTitle": "What is Return on Investment (ROI)? Calculator & Formula | IdeaFuel",
+  "seoDescription": "ROI measures profit per dollar invested. Learn how to calculate it and use it to allocate capital wisely in your startup."
+}

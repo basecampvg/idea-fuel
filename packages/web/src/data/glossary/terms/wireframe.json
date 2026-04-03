@@ -1,0 +1,21 @@
+{
+  "slug": "wireframe",
+  "title": "Wireframe",
+  "category": "product",
+  "shortDefinition": "A low-fidelity sketch of your product's layout and structure without visual design.",
+  "content": {
+    "definition": "A wireframe is a bare-bones mockup showing the structure and layout of your product's screens. It typically uses rectangles, lines, and basic labels to represent content areas, buttons, and navigation—without any actual design, color, or branding. Wireframes are usually created in grayscale and focus purely on information hierarchy and user flow.",
+    "whyItMatters": "Wireframes let you solve structural problems before investing in design. They expose whether your information architecture makes sense, whether users can complete core tasks, and whether you're cramming too many ideas into one screen. At this stage, feedback is cheap and fast. A 30-minute wireframing session with users beats a week of pixel-perfect design work on the wrong layout.",
+    "howToApply": "Start with pen and paper or a simple tool like Balsamiq or Wireframing. Sketch the main user flows—onboarding, core feature, payment. Label each element and show how users navigate between screens. Don't make it pretty; focus on clarity and logic. Share wireframes with 5-10 potential users and watch where they get confused. Iterate fast. Only move to visual design once you're confident the structure actually works.",
+    "commonMistakes": [
+      "Skipping wireframes and jumping straight to design because you're impatient—this wastes more time than it saves",
+      "Making wireframes too high-fidelity and spending days perfecting them—wireframes should take hours, not weeks",
+      "Using wireframes to convince stakeholders instead of validate with users—a wireframe isn't data until real users react to it"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation lets you test your wireframe with real users in minutes, not weeks. Upload your wireframe and get instant feedback on whether the layout makes sense before you invest in visual design."
+  },
+  "relatedTerms": ["prototype", "user-interface", "information-architecture"],
+  "synonyms": ["Low-fidelity mockup", "Layout sketch"],
+  "seoTitle": "What is a Wireframe? | IdeaFuel Glossary",
+  "seoDescription": "Understand wireframing and why sketching your product's structure before design saves time and money."
+}

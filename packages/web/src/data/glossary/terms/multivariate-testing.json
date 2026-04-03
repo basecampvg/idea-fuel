@@ -1,0 +1,21 @@
+{
+  "slug": "multivariate-testing",
+  "title": "Multivariate Testing",
+  "category": "analytics",
+  "shortDefinition": "Testing multiple variables at once to find the best combination of changes, not just one change at a time.",
+  "content": {
+    "definition": "Multivariate testing lets you test multiple elements simultaneously—headline A vs B vs C combined with button color red vs blue vs green. Instead of running five separate A/B tests (slow), you run one multivariate test that tests all combinations. It's the fast way to find what actually moves the needle when multiple elements interact.",
+    "whyItMatters": "A/B testing one variable at a time is thorough but glacial. If you have two headlines and three button colors, that's six separate tests. Multivariate testing runs them all at once and tells you which combination wins. This matters because elements interact—red button works better with headline A but worse with headline B. You only learn this by testing combinations. It also compresses timelines: what takes six months of sequential tests happens in one month.",
+    "howToApply": "Only run multivariate tests if you have enough traffic to hit sample sizes for all variations. The math is brutal: 2 headlines × 3 buttons × 2 images = 12 variations. Each needs statistical sample size, so you need traffic for all 12 simultaneously. Start with 2-3 elements maximum. Use a tool that calculates traffic requirements upfront (Optimizely, VWO). Focus on elements you believe interact. Once you have a winner, you can run follow-up tests on refinements. In low-traffic situations, stick to A/B testing—multivariate just spreads your sample too thin.",
+    "commonMistakes": [
+      "Running multivariate tests with insufficient traffic (creates 'winners' that are just noise)",
+      "Testing too many variations at once (each one gets statistically weak)",
+      "Forgetting that multivariate tests require larger overall sample sizes to maintain power"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine supports multivariate analysis when testing market messages, positioning combinations, and customer segment interactions."
+  },
+  "relatedTerms": ["a-b-testing", "sample-size", "conversion-rate-optimization"],
+  "synonyms": ["Factorial Testing", "Combination Testing"],
+  "seoTitle": "What is Multivariate Testing? | IdeaFuel Glossary",
+  "seoDescription": "Learn how multivariate testing identifies the best combination of changes to drive conversions and growth."
+}

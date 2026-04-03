@@ -1,0 +1,21 @@
+{
+  "slug": "series-b",
+  "title": "Series B",
+  "category": "fundraising",
+  "shortDefinition": "Second major funding round for scaling companies with validated business models.",
+  "content": {
+    "definition": "Series B is typically $10M-$50M and comes 18-36 months after Series A, once you've proved the Series A thesis—that your business model scales and you can execute against it. Series B investors are growth-focused; they're betting you'll dominate a market segment and expand into adjacent ones. The funding ladder gets steeper: investors expect clearer profitability timelines and stronger founding teams.",
+    "whyItMatters": "Series B is where startups transition to real companies. It funds the team you need for scale: VP Product, VP Marketing, CFO, maybe geographic expansion. It also signals that your market opportunity is real and defensible. Customers and partners take you more seriously. Critically, Series B helps you cement category leadership before competitors do—it's often winner-takes-most at this stage. Miss the Series B and you risk being the also-ran.",
+    "howToApply": "Series B requires your Series A metrics on steroids. You need to show 30%+ ARR growth YoY, clear unit economics (CAC payback <12 months, LTV:CAC ratio >3:1), predictable revenue curves, and proof that your market is large enough to sustain a billion-dollar company. Your pitch shifts again: from 'we have product-market fit' to 'we are building a market category.' Expect Series B investors to dig deep into competitive positioning, market expansion strategy, and your bench of operators. Have a talented COO or CMO already in place; VCs at this stage invest heavily in team pedigree. Be ready for a major governance shift—Series B brings multiple board seats, more formal financial reviews, and serious discipline.",
+    "commonMistakes": [
+      "Growing revenue without controlling burn, then facing a Series B crunch when growth slows and you've hired beyond your means",
+      "Over-expanding geographically or into new products before dominating your core market, diluting focus and confusing Series B investors",
+      "Neglecting profitability metrics and assuming growth at any cost is acceptable—Series B VCs increasingly demand margin clarity"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model Series B scenarios with detailed revenue projections, overhead scaling, and retention curves that show you've thought through unit economics at scale, not just growth vanity metrics."
+  },
+  "relatedTerms": ["series-a", "series-c", "lead-investor"],
+  "synonyms": ["Series B Funding"],
+  "seoTitle": "What is Series B Funding? | IdeaFuel Glossary",
+  "seoDescription": "Deep dive into Series B fundraising for scaling startups: metrics, strategies, and what investors want to see."
+}

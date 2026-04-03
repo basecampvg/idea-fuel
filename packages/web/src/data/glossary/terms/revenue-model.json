@@ -1,0 +1,23 @@
+{
+  "slug": "revenue-model",
+  "title": "Revenue Model",
+  "category": "finance",
+  "shortDefinition": "The mechanism by which a company generates income from its products or services.",
+  "content": {
+    "definition": "A revenue model is the fundamental approach your company takes to make money. It specifies who pays, what they pay for, when they pay, and how much. Common models include subscription (recurring recurring), freemium (free tier with paid upgrades), marketplace (commission on transactions), licensing (per-seat or volume-based), and usage-based (pay-as-you-go). Your revenue model determines unit economics, cash flow predictability, and fundraising potential.",
+    "whyItMatters": "Your revenue model is not an afterthought—it's foundational architecture. It determines whether you're building a sustainable business or a leaky bucket. Subscription models attract venture capital but require strong retention. Usage-based models align incentives with customer value but create unpredictable cash flow. Freemium models acquire users fast but have notoriously poor conversion rates. Picking the wrong model forces a painful pivot later; picking right compounds growth naturally.",
+    "howToApply": "Start with your unit economics: how much does it cost you to serve one customer, and how much will they pay? For subscription models, calculate lifetime value (LTV) and compare it to customer acquisition cost (CAC)—LTV should be 3x CAC minimum. For freemium, test conversion funnels early; if less than 2% convert to paid, the model may not work. For usage-based, ensure measurement infrastructure exists before launch or you'll have chaos. Test your model's assumptions with real customers before building; a survey doesn't count. IdeaFuel's Business Plan Generator helps you stress-test different revenue models and see their financial implications.",
+    "commonMistakes": [
+      "Changing your revenue model mid-flight based on one customer's request—this signals weakness to the market and fragments your go-to-market strategy.",
+      "Underpricing because you're afraid to charge—this attracts wrong customers and kills unit economics before you even start.",
+      "Hybrid models with no clear priority—trying to do subscription AND marketplace AND usage-based at once confuses customers and kills your focus.",
+      "Assuming your ideal revenue model without testing—the best model for your market might not be what you predicted. Talk to users first.",
+      "Ignoring payment infrastructure costs—processing fees, failed payments, refund administration add up quickly and compress margins."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you stress-test different revenue models and see their financial implications before you commit development resources."
+  },
+  "relatedTerms": ["subscription-model", "freemium-model", "business-model-canvas"],
+  "synonyms": ["Business Model", "Pricing Model", "Monetization Strategy"],
+  "seoTitle": "Revenue Model: Types, Examples & How to Choose | IdeaFuel Glossary",
+  "seoDescription": "Understand subscription, freemium, marketplace, and usage-based revenue models. Pick the right model for unit economics and sustainable growth."
+}

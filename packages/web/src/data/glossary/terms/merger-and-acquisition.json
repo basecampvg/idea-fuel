@@ -1,0 +1,21 @@
+{
+  "slug": "merger-and-acquisition",
+  "title": "Merger and Acquisition",
+  "category": "strategy",
+  "shortDefinition": "Combining two companies through merger (equal partnership) or acquisition (one buys another) to create value or eliminate competition.",
+  "content": {
+    "definition": "A merger combines two companies as equals (or perceived equals) into a single entity. An acquisition is one company buying another outright. In practice, most \"mergers\" are acquisitions in disguise—the \"acquirer\" absorbs the \"target.\" Both accelerate growth, reduce competition, gain talent, or acquire technology. For founders, M&A is the primary exit path alongside IPO. You build a business, prove its value, and sell to a larger player who can scale it faster or extract synergies.",
+    "whyItMatters": "M&A is the endgame for most startups. Statistically, 90% of exits are acquisitions, not IPOs. Understanding M&A dynamics shapes how you build from day one. You're building either to be acquired (in which case you're optimizing for acquirer pain points) or to be the acquirer (consolidating competitors). The acquisition price depends on: revenue multiples, growth rate, team retention, and strategic fit. A $10M revenue company at 2x revenue = $20M exit. The same company at 5x = $50M. The difference is growth velocity and defensibility—what you actually build.",
+    "howToApply": "If acquisition is your exit, build the features and metrics that acquirers care about. Don't optimize for venture returns—optimize for proven unit economics, retention, and repeatable sales. Acquirers don't overpay for potential; they pay for demonstrated traction. Map potential acquirers early. Who's buying companies in your space? What does their product strategy need? Build toward that. If you're the acquirer, develop a repeatable playbook for post-acquisition integration. How do you fold teams? Consolidate tech? Extract value? A failed integration destroys the deal's ROI.",
+    "commonMistakes": [
+      "Confusing acquisition with success. An acquisition at low valuation (or lower than expected) can tank your returns and your team's morale. Know the market comps; don't take the first offer because you're tired of fundraising.",
+      "Losing key talent in acquisition. Founders often get rich but early employees don't because their equity vests. Acquirers walk into a team they've just demotivated. Plan retention bonuses and equity acceleration before the deal closes.",
+      "Merging without cultural alignment. Two companies with different values and work styles collide. Culture isn't soft—it determines if the combined entity actually executes. Vet cultural fit as seriously as financial fit."
+    ],
+    "ideafuelConnection": "Use IdeaFuel's business-plan feature to model M&A scenarios, validate acquisition readiness, and stress-test post-deal economics. Map potential acquirers and their strategic priorities to ensure your business plan builds defensible value."
+  },
+  "relatedTerms": ["exit-strategy", "acqui-hire", "horizontal-integration"],
+  "synonyms": ["Buyout", "Deal", "Take-under"],
+  "seoTitle": "What is Merger and Acquisition? | IdeaFuel Glossary",
+  "seoDescription": "90% of exits are acquisitions. Learn how M&A works, what drives valuation, and how to position for a strong exit."
+}

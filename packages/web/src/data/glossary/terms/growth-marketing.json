@@ -1,0 +1,21 @@
+{
+  "slug": "growth-marketing",
+  "title": "Growth Marketing",
+  "category": "marketing",
+  "shortDefinition": "Systematic testing and optimization of all levers that drive customer acquisition and retention.",
+  "content": {
+    "definition": "Growth marketing is the practice of running rapid experiments across all acquisition and retention channels—paid ads, SEO, email, referrals, partnerships—to find what actually moves the needle. A growth marketer is obsessed with metrics: CAC, LTV, churn, conversion rates, k-factor, payback period. Every decision is data-backed, and every campaign is a test. It's the intersection of marketing, data science, and product strategy. Growth marketers think like engineers: hypothesize, test, measure, iterate.",
+    "whyItMatters": "Growth marketing separates effective spending from burning money. Early-stage, you're constrained by budget—you need to find the channel that acquires customers cheapest while maintaining quality. Growth marketing forces you to measure everything, iterate fast, and double down on what works. It's the difference between haphazard marketing and engineering-grade growth. Founders who become great growth marketers compound advantages: they know exactly which channels work, what messaging resonates, what retention looks like, how long payback takes, and how to forecast runway. They raise capital on metrics and evidence, not hope and pitch decks.",
+    "howToApply": "Start by mapping all your customer touchpoints: awareness, consideration, decision, onboarding, retention, advocacy. Identify the one metric that matters most—if CAC drops 20%, what happens to your path to profitability? Model it. Run small experiments: A/B test email subject lines, landing page copy, pricing tiers, onboarding flows. Track results in a spreadsheet or analytics dashboard. Set clear success criteria before running tests (not after analyzing results). Run tests long enough to account for day-of-week variation and seasonal patterns—at least 100 data points, ideally 500+. Compound learnings: each win unlocks the next lever to pull. Growth marketing is a game of 1% improvements everywhere that add up to 10x results. Document what works and why so institutional knowledge survives turnover.",
+    "commonMistakes": [
+      "Running tests without a clear baseline or hypothesis. You can't optimize what you don't measure. Always track your starting metrics before testing and define success before launching. A/B testing is data, not gut feel.",
+      "Declaring a winner too early. Run tests long enough to account for day-of-week variation and seasonal patterns. Premature calls based on small sample sizes kill learning and lead to false optimizations.",
+      "Optimizing the wrong metric. If you're maximizing clicks but not conversions, you're just getting cheap traffic that doesn't convert. Align tests with revenue impact and LTV, not vanity metrics like impressions."
+    ],
+    "ideafuelConnection": "Use research-engine to identify high-potential channels and audiences. Apply financial-modeling to calculate CAC targets that hit your unit economics. Use quick-validation to test hypotheses before scaling to full campaigns."
+  },
+  "relatedTerms": ["growth-hacking", "user-acquisition", "product-led-growth"],
+  "synonyms": ["Performance marketing", "Data-driven growth"],
+  "seoTitle": "What is Growth Marketing? | IdeaFuel Glossary",
+  "seoDescription": "Growth marketing explained: data-driven strategies and experiments for rapid customer acquisition and retention."
+}

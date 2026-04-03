@@ -1,0 +1,21 @@
+{
+  "slug": "competitive-moat",
+  "title": "Competitive Moat",
+  "category": "strategy",
+  "shortDefinition": "A structural advantage that makes it hard for competitors to copy or erode your market position.",
+  "content": {
+    "definition": "A competitive moat is a durable, defensible advantage that protects your business from competition. It can be technology (patents, proprietary algorithms), network effects (more users = more value), brand power (people choose you by default), scale economics (you're cheaper because you're bigger), or switching costs (customers can't easily leave). Real moats compound over time and become harder to breach the stronger they get.",
+    "whyItMatters": "Without a moat, your startup is just a copy waiting to be outexecuted by a better-funded competitor. Investors bet on moats because they determine whether you'll dominate your market or get disrupted. A weak moat means you need to raise more money, cut prices constantly, and fight for survival. Strong moats let you take margin, defend territory, and build lasting value. Warren Buffett built his entire investment philosophy on identifying moats.",
+    "howToApply": "Start by asking: why can't a well-funded competitor with 2x our engineers copy us in 12 months? If the answer is weak, you don't have a moat yet. Build moats deliberately: (1) Network effects—make your product more valuable as more people use it (e.g., marketplaces, communication tools). (2) Switching costs—lock in customers through integrations, data, or habit (e.g., Slack, Salesforce). (3) Brand—build recognition and trust (takes 3+ years). (4) Scale—invest in unit economics and cost structure that competitors can't match. (5) Proprietary data or tech—own unique assets competitors can't acquire. Start with one moat; don't spread yourself thin building five. Test your moat by asking engaged customers: would you switch to a free competitor?",
+    "commonMistakes": [
+      "Confusing temporary traction with a real moat. You gained 10% market share because you're a better sales person, not because you built something defensible. That's not a moat; it's a story that ends badly.",
+      "Relying on patents as your only moat. Patents are slow to file, expensive to defend, and often narrowly scoped. Stronger moats are network effects, switching costs, and brand.",
+      "Assuming first-mover advantage is a moat. Being first means nothing if someone else builds a stronger moat or executes better. Speed of execution matters more than timing."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your competitive landscape to identify which moats your competitors have and which gaps exist in your strategy, helping you build defensible advantages that last."
+  },
+  "relatedTerms": ["barriers-to-entry", "network-effects", "switching-costs"],
+  "synonyms": ["Defensible Advantage", "Sustainable Competitive Advantage", "Moat"],
+  "seoTitle": "What is a Competitive Moat? | IdeaFuel Glossary",
+  "seoDescription": "Learn how to build defensible moats—patents, network effects, switching costs, and brand power—to protect your startup from competition."
+}

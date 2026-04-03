@@ -1,0 +1,21 @@
+{
+  "slug": "content-marketing",
+  "title": "Content Marketing",
+  "category": "marketing",
+  "shortDefinition": "Creating and distributing valuable content to attract and retain a clearly defined audience and drive profitable customer action.",
+  "content": {
+    "definition": "Content marketing is showing up consistently with useful information for your target audience before they're ready to buy. It includes blog posts, guides, videos, case studies, podcasts, webinars, and research reports. The core idea: become a trusted resource for your market, and when customers need what you sell, they think of you first. Content marketing builds credibility, establishes authority, and generates inbound leads without directly asking for a sale. Content is an investment: you're not expecting immediate returns, but you're building an asset (backlinks, search rankings, email subscribers, audience, trust) that generates returns for years. Most content compounds in value — a great blog post ranked in Google search results generates traffic for 2+ years with zero ongoing cost.",
+    "whyItMatters": "Your target customer will research 3–5 solutions before choosing one. Content marketing puts you in that research phase with educational material, comparisons, and frameworks that help them make better decisions. It also scales your expertise — you write something once and it works for thousands of prospects. Unlike sales calls (which don't scale), a comprehensive guide to choosing between X and Y reaches everyone simultaneously. Content compounds: each new piece can attract traffic from organic search for years and get referenced by other sites, earning you authority and backlinks. For startups with small sales teams, content marketing is one of the few scalable way to generate qualified inbound leads.",
+    "howToApply": "Map the problems your customers face before, during, and after they consider buying your solution. Create content for each stage: early-stage audiences need educational content ('How does X work?'), mid-stage audiences need comparison and evaluation content ('Comparing X vs Y'), and late-stage audiences need technical deep dives and case studies. Start with one pillar content piece (2,000–3,000 words) covering a core problem in your market, then expand with smaller satellite pieces linking back. Distribute through owned channels first (your blog, email list, social media) and syndicate to third-party platforms where your audience hangs out (Medium, dev.to for technical founders, LinkedIn for B2B, Reddit communities). Repurpose each content piece — turn a guide into a webinar, a webinar into a podcast, a blog post into a video script, a video into social clips. Track which content drives traffic, leads, and customers so you understand your most leveraged topics.",
+    "commonMistakes": [
+      "Publishing random blog posts without a strategy tied to customer problems or keywords. Content without purpose is just noise that doesn't compound.",
+      "Creating content on a sporadic schedule. Consistency matters more than perfection — one good post per month for a year beats four genius posts then radio silence.",
+      "Writing for yourself instead of your audience. Your content should answer their questions and solve their problems, not showcase your cleverness or product features."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan helps you identify customer pain points and market gaps, which inform your content strategy and ensure your content addresses real customer needs. Your Financial Modeling can calculate the ROI of your content program based on traffic and conversion rates."
+  },
+  "relatedTerms": ["search-engine-optimization", "inbound-marketing", "brand-awareness"],
+  "synonyms": ["Inbound Marketing", "Educational Marketing", "Thought Leadership"],
+  "seoTitle": "What is Content Marketing? | IdeaFuel Glossary",
+  "seoDescription": "Content marketing builds trust and drives leads by creating valuable information for your audience. Learn strategy, distribution, and measurement."
+}

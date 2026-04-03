@@ -1,0 +1,21 @@
+{
+  "slug": "pitch-deck",
+  "title": "Pitch Deck",
+  "category": "fundraising",
+  "shortDefinition": "A 10-15 slide presentation that tells your company story and asks for money.",
+  "content": {
+    "definition": "A pitch deck is a slide presentation—typically PDF or Google Slides—designed to pitch your company to investors. It tells your story in 10-20 minutes and answers core questions: What's the problem? Why does it matter? How big is the market? What's your solution? Who are you? What's your traction? How much money do you need and what will you do with it? A pitch deck is a tool to get a meeting or advance a conversation, not a full business plan.",
+    "whyItMatters": "Investors see hundreds of pitches. A clear, compelling deck filters through noise and forces you to articulate your thesis. It's your narrative before you meet an investor and your reference during follow-ups. A weak deck kills momentum before you get 15 minutes of airtime. A strong deck creates curiosity and urgency—investors want to meet you because the deck raised questions or painted a big vision. Your pitch deck is also how you'll discuss your idea with advisors, employees, and customers before you pitch investors.",
+    "howToApply": "Structure your deck: Problem (why you care, market pain), Solution (what you built, why it's better), Market (who's it for, total addressable market), Business Model (how you make money), Traction (users, revenue, growth rate), Competitors (what exists, why you're different), Team (why you'll win), Use of Funds (what you'll buy), and Ask (funding amount, valuation range). Keep copy minimal—slides should be visual, not text walls. Investors will ask questions, don't answer them all on slides. Tailor deck to your audience: a seed investor cares about team and problem validation; a Series A investor cares about traction and growth rate. Practice your delivery relentlessly before any investor meeting.",
+    "commonMistakes": [
+      "Overstuffing slides with detail—investors want clarity and intrigue, not a data dump; let your voice fill the gaps",
+      "Claiming a massive TAM without anchoring to early customer segments—'enterprise collaboration' is $100B but meaningless; start with 'CTO productivity tools for 5-person teams', then expand",
+      "Hiding unflattering metrics or not addressing them head-on—if churn is 10%, mention it and explain why it will improve with your roadmap; investors respect honesty more than fake perfection"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator creates a business plan that becomes the backbone for your pitch deck, ensuring your deck's financial claims and strategic narrative are grounded in coherent modeling."
+  },
+  "relatedTerms": ["due-diligence", "term-sheet", "go-to-market-strategy"],
+  "synonyms": ["Investor Pitch", "Presentation Deck", "Funding Pitch"],
+  "seoTitle": "How to Create a Winning Pitch Deck for Investors | IdeaFuel Glossary",
+  "seoDescription": "A pitch deck tells your startup story to investors in 10-20 slides. Learn the structure, key slides, and what VCs want to see."
+}

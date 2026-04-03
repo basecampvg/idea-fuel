@@ -1,0 +1,21 @@
+{
+  "slug": "regression-analysis",
+  "title": "Regression Analysis",
+  "category": "analytics",
+  "shortDefinition": "A statistical technique to identify which factors influence an outcome and how strong each influence is.",
+  "content": {
+    "definition": "Regression analysis identifies which factors drive an outcome and quantifies their influence. You observe that conversions vary, then ask: is it the traffic source, landing page version, pricing, or all of them? Regression untangles which factors matter and how much. It's 'find the lever that moves the needle' in statistical form.",
+    "whyItMatters": "You have 10 theories about what drives conversions. Gut feel says feature X is critical. Revenue data says pricing Y is the driver. Regression answers: which is it? Or is it 30% feature X and 70% pricing Y? Without regression, you invest in the wrong optimizations. You also miss interactions—maybe pricing only matters for a specific customer segment. Regression surfaces these relationships so you allocate effort to the highest-leverage changes first.",
+    "howToApply": "Collect historical data on your outcome (conversions, churn, revenue) and potential drivers (traffic source, session length, feature usage, user tenure, company size). Use a regression tool or platform (Tableau, R, Python, built-in Excel). Run the analysis and identify which variables are statistically significant. Prioritize changes to the drivers with the largest coefficients. Test the model's predictions on new data to validate it actually predicts behavior. Update your understanding quarterly as your business changes—what drove growth six months ago might differ now.",
+    "commonMistakes": [
+      "Including too many variables (overfitting fits noise instead of signal)",
+      "Confusing correlation with causation (both could be driven by a third factor you're not measuring)",
+      "Treating regression coefficients as predictive without validating predictions on fresh data"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine uses regression analysis to identify which market factors, competitive pressures, and customer attributes most influence demand and pricing."
+  },
+  "relatedTerms": ["predictive-analytics", "statistical-significance", "leading-indicator"],
+  "synonyms": ["Correlation Analysis", "Causal Modeling"],
+  "seoTitle": "What is Regression Analysis? | IdeaFuel Glossary",
+  "seoDescription": "Discover how regression analysis identifies which factors drive outcomes and quantifies their influence on your business."
+}

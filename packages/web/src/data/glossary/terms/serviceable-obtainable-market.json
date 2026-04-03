@@ -1,0 +1,21 @@
+{
+  "slug": "serviceable-obtainable-market",
+  "title": "Serviceable Obtainable Market",
+  "category": "strategy",
+  "shortDefinition": "The realistic revenue you can capture from your SAM within the next 3-5 years given your execution capacity.",
+  "content": {
+    "definition": "Serviceable Obtainable Market (SOM) is the subset of your SAM that you can actually win given your team, funding, and operational capacity. It's the market share you can plausibly capture in the medium term (3-5 years) without additional funding or pivots. SOM is your growth ceiling before you need a different strategy.",
+    "whyItMatters": "SAM tells you what's possible; SOM tells you what you can actually achieve. Investors use SOM to assess whether your path to profitability and scale is realistic or fantasy. A $50M SAM with a $5M SOM means you need 5-10 years of focused execution and efficient growth. A SOM that requires $500M in customer acquisition spend is worthless if you've only raised $5M. SOM forces you to be honest about your constraints.",
+    "howToApply": "Start with your SAM and apply compression factors: (1) Sales capacity—how many enterprise deals can your team close per year or how many SMBs can your marketing funnel convert? (2) Market penetration rate—what's a realistic share of available customers you can win in 3-5 years? (3) Revenue per customer. Calculate SOM as: SAM × realistic market share (5-25% is typical) × revenue per customer × timeline. For a 5-year horizon, a 15% penetration of a $50M SAM yields a $7.5M SOM. Model this with your CAC, churn, and payback period to validate feasibility.",
+    "commonMistakes": [
+      "Overestimating market penetration. Most founders assume 20-30% market share in year 5; reality is typically 5-10% for winners in competitive markets.",
+      "Ignoring operational constraints. You can't go from 10 customers to 1,000 in a year without hiring, raising money, or changing your model—SOM must reflect your actual hiring and funding plan.",
+      "Treating SOM as TAM. Your SOM is not inspirational for investors; it's a grounded prediction. If it sounds unrealistic, it probably is."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your market and competitors to help you calculate realistic SOM, showing how market share compression, customer acquisition dynamics, and competitive intensity affect your obtainable market."
+  },
+  "relatedTerms": ["serviceable-addressable-market", "total-addressable-market", "go-to-market-strategy"],
+  "synonyms": ["Obtainable Market", "Target Market Share"],
+  "seoTitle": "What is Serviceable Obtainable Market (SOM)? | IdeaFuel Glossary",
+  "seoDescription": "Discover how to calculate SOM to forecast realistic revenue growth and validate your startup's path to profitability and scale."
+}

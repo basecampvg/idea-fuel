@@ -1,0 +1,21 @@
+{
+  "slug": "swot-analysis",
+  "title": "SWOT Analysis",
+  "category": "strategy",
+  "shortDefinition": "A framework that maps your internal Strengths and Weaknesses against external Opportunities and Threats.",
+  "content": {
+    "definition": "SWOT is an acronym for Strengths, Weaknesses, Opportunities, and Threats. Strengths and weaknesses are internal (your team, tech, brand, capital). Opportunities and threats are external (market trends, competitors, regulations, macro trends). A SWOT analysis forces you to inventory what you control, what you don't, and where your advantages and vulnerabilities lie. It's especially useful for competitive positioning and spotting blind spots.",
+    "whyItMatters": "Most founders see only opportunities (optimism bias) and discount threats (denial). A forced SWOT exercise is humbling. It surfaces uncomfortable truths: your team lacks sales experience, your customer acquisition cost is 50% higher than competitors, a 800-pound gorilla could copy you tomorrow. Understanding your vulnerabilities isn't defeatist—it's strategy. You can mitigate threats, shore up weaknesses, and build on strengths. Investors want founders who can articulate all four quadrants honestly.",
+    "howToApply": "Schedule a 90-minute session with your co-founders and top 2-3 advisors. Create four boxes on a whiteboard. For each quadrant, be ruthlessly honest: Strengths—what do we do better? (Domain expertise, relationships, capital, tech, team.) Weaknesses—what are we bad at? (No sales team, expensive to serve, weak brand, slow to build.) Opportunities—what market trends help us? (Category growth, regulation changes, adjacent markets, distribution partnerships.) Threats—what could kill us? (Well-funded competitors, churn trends, CAC inflation, substitutes.) Prioritize each quadrant. The 2-3 biggest items in each deserve a mitigation or growth strategy. Revisit quarterly—threats become opportunities (or vice versa) as you learn.",
+    "commonMistakes": [
+      "Treating SWOT as busywork. Fill it out, look at it once, then ignore it. Use it to drive decisions: which threat should we attack first? Which strength should we build on?",
+      "Listing too many items. 20 strengths dilutes focus. Pick your top 3-5 in each quadrant. The biggest ones get action plans.",
+      "Confusing strengths with arrogance. \"Our team is amazing\" is not a strength until you define it: \"Our co-founder closed $10M in sales at the last company and has 500 warm introductions in this market.\""
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your competitive landscape and market dynamics to help you build a data-driven SWOT, identifying threats competitors pose, market opportunities you might miss, and your hidden advantages."
+  },
+  "relatedTerms": ["competitive-moat", "porters-five-forces", "differentiation"],
+  "synonyms": ["Strategic Assessment", "Competitive Analysis"],
+  "seoTitle": "What is a SWOT Analysis? | IdeaFuel Glossary",
+  "seoDescription": "Use SWOT analysis to identify your competitive advantages, weaknesses, market opportunities, and threats to guide your startup strategy."
+}

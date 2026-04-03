@@ -1,0 +1,21 @@
+{
+  "slug": "funnel",
+  "title": "Funnel",
+  "category": "marketing",
+  "shortDefinition": "The series of steps a potential customer goes through from first awareness to paying customer, often visualized as progressively narrowing stages.",
+  "content": {
+    "definition": "A funnel represents your customer journey as a series of stages, each with decreasing numbers of people. At the top: all potential customers (thousands or millions). At the bottom: those who buy (dozens or hundreds). Between are intermediate stages: awareness, interest, consideration, decision. Each stage has its own conversion rate — how many people move from one stage to the next. Your funnel isn't one number; it's a sequence of metrics, and each is an opportunity to improve. Funnels are specific to your business model: a B2B SaaS funnel looks different from an ecommerce funnel, which looks different from a marketplace funnel.",
+    "whyItMatters": "Your funnel is the skeleton of your entire business. Revenue = top of funnel × average conversion rate × average deal size. If you understand your funnel, you can identify exactly where money is escaping and fix it. Most founders optimize acquisition (top of funnel) without noticing that half their users drop off during onboarding (middle of funnel) or that trial-to-paid conversion is broken. Funnel clarity prevents misdirected effort. If your trial-to-paid conversion is 2% when industry standard is 15%, you have a product problem, not a marketing problem. Spend $100K on marketing and you'll waste it. Fix the product first. Understanding your funnel lets you model growth: if you improve trial-to-paid by 5%, what happens to revenue? What's that worth? That calculation determines where to invest next.",
+    "howToApply": "Define your stages: for SaaS, it might be Visitor > Signup > Free Trial > Trial Active > Paid. For a marketplace, Visitor > Signup > Profile Created > First Transaction. For content, Reader > Newsletter Subscriber > Webinar Attendee > Sales-Qualified Lead. Track absolute numbers (how many people are in each stage this month) and conversion rates (what percentage move forward each month). Monitor funnel health weekly and investigate sudden drops — a 10% drop in signups this week vs. last week is a signal something broke. Segment your funnel by acquisition source, customer segment, geography, or cohort to see if some sources yield higher-quality users. Use funnel analysis to prioritize: a 50% drop-off with 10,000 people entering that stage is worth fixing; a 90% drop-off with 10 people entering is not.",
+    "commonMistakes": [
+      "Creating a funnel that's too detailed and hard to track. Start simple — top, middle, bottom — then add complexity only if it reveals actionable patterns and you can measure it reliably.",
+      "Assuming your funnel is static. As your product and market evolve, funnel stage definitions and drop-off points change. Revisit it every quarter.",
+      "Measuring the funnel quarterly instead of weekly or daily. By then, problems are months old. Use real-time dashboards for core funnel metrics and investigate anomalies immediately."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine helps you map competitor funnels and industry benchmarks so you understand where your funnel performance is weak relative to market. Financial Modeling projects revenue based on funnel metrics and identifies which stage improvements yield the highest return on effort."
+  },
+  "relatedTerms": ["conversion-rate", "lead-generation", "funnel-analysis"],
+  "synonyms": ["Customer Journey", "Acquisition Funnel", "Sales Funnel"],
+  "seoTitle": "What is a Funnel? | IdeaFuel Glossary",
+  "seoDescription": "A funnel maps customer progression from awareness to purchase. Learn how to measure, analyze, and optimize each stage."
+}

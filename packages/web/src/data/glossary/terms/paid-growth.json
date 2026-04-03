@@ -1,0 +1,21 @@
+{
+  "slug": "paid-growth",
+  "title": "Paid Growth",
+  "category": "growth",
+  "shortDefinition": "User acquisition through paid advertising channels like PPC, social ads, and sponsorships.",
+  "content": {
+    "definition": "Paid growth is the practice of spending money directly to acquire users—through search ads, social media ads, display networks, influencer partnerships, or other paid channels. Unlike organic growth, you control the volume and pace, but every user acquired has a known cost (CAC). Paid growth is predictable and scalable but only works if customer lifetime value exceeds acquisition cost by a healthy multiple. It's the most direct path to rapid scaling but also the most capital-intensive.",
+    "whyItMatters": "Paid growth lets you scale fast and test product-market fit at speed. You can acquire 100,000 users in months instead of years, compress feedback loops, and prove unit economics before competitors catch on. Companies like Airbnb and Uber used paid growth to establish network effects at massive scale—they spent billions to capture market position before organic and viral mechanics took over. The danger is that paid-dependent businesses are fragile—rising ad costs, platform algorithm changes, and shrinking margins can kill you overnight. Ad costs typically rise as markets mature and competition intensifies; what costs $2 per user today might cost $10 per user in 18 months. This is why the best companies use paid growth to accelerate an already-healthy organic core, not sustain.",
+    "howToApply": "Start with math: establish your target CAC based on customer LTV (usually CAC should be 1/3 of LTV or lower for healthy unit economics). Calculate your payback period—how long it takes for a customer to generate enough revenue to cover acquisition cost. This varies by business model; SaaS targets 6-12 months, marketplaces might target 3-6 months. Use early users to build cohort curves, measuring retention and spending by cohort, then extrapolate forward. Test multiple channels in small batches before scaling—a winning channel at $5 CAC might break at $10 when scaled because you're reaching less-qualified audiences. Monitor unit economics obsessively—create dashboards showing CAC by channel, cohort LTV, retention curves, and blended CAC across all channels. Expect that your best-performing channel will plateau as you exhaust available inventory, so always test new channels in parallel.",
+    "commonMistakes": [
+      "Scaling before proving the unit economics—doubling spend before proving profitability doubles losses. Many founders spend $100K to acquire 1,000 users, then realize LTV is negative or payback is 36 months.",
+      "Confusing top-of-funnel metrics with actual LTV—low CAC means nothing if customers churn in month two. A $5 CAC that results in $50 LTV is breakeven; one that results in $20 LTV is a loss.",
+      "Treating paid as a substitute for product improvements—if organic/viral isn't working, ads won't save you. Paid growth amplifies product-market fit; it doesn't create it. Scaling a leaky bucket with poor retention just scales losses faster."
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool helps you calculate payback periods, model unit economics across multiple acquisition channels, and determine the maximum CAC your business model can sustainably support."
+  },
+  "relatedTerms": ["organic-growth", "customer-acquisition-cost", "search-engine-marketing"],
+  "synonyms": ["Paid Acquisition", "Advertising-Driven Growth"],
+  "seoTitle": "What is Paid Growth? | IdeaFuel Glossary",
+  "seoDescription": "Scale fast with paid ads. Master CAC, payback periods, and channel economics."
+}

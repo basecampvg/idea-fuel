@@ -1,0 +1,21 @@
+{
+  "slug": "positioning",
+  "title": "Positioning",
+  "category": "strategy",
+  "shortDefinition": "How you define your product's unique place in the market relative to competitors.",
+  "content": {
+    "definition": "Positioning is the mental real estate your brand occupies in a customer's mind. It answers three questions: Who is this for? What does it do differently? Why should I care? Your positioning statement is typically a single, memorable phrase or sentence that distinguishes you from competitors. Apple positions as 'insanely great design'; Volvo positions as safety; Dollar Shave Club positioned as 'our blades are f***ing great.' Positioning shapes everything from your messaging to your product roadmap.",
+    "whyItMatters": "Without clear positioning, you're invisible in a crowded market. Customers have limited mental bandwidth—they'll file you into an existing category unless you explicitly claim a different one. Strong positioning creates inertia: customers remember you, refer you, and develop brand loyalty. It also protects against price competition, because differentiated positioning commands premium pricing. If you're 'just another CRM,' you compete on price; if you're 'the easiest CRM for sales teams,' you own a different space.",
+    "howToApply": "Start with competitor mapping: draw a 2x2 grid with two meaningful axes for your market (e.g., ease of use vs. power, cost vs. features). Plot incumbents and identify white space where no competitor owns a claim. Next, interview customers: why did they choose competitor X over Y? What do they wish existed? Your positioning should claim the white space that matches customer desires and your strengths. Then embed your positioning everywhere: product naming, website copy, sales pitch, customer support tone. Test by showing your positioning to 10 potential customers—if they can't instantly say 'I get it and why I should care,' iterate.",
+    "commonMistakes": [
+      "Feature-focused positioning ('we have X, Y, Z features') instead of outcome-focused ('we save you 10 hours per week')—customers care about what they get, not what's in the box.",
+      "Claiming too many positions at once—if you're both 'enterprise-grade' and 'indie-friendly,' you own neither. Pick one and own it completely.",
+      "Failing to position against something—the strongest positioning defines what you are not. Slack positioned against email and chat rooms; that negative positioning was as important as its positive claims."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you craft and validate your positioning. Use it to map your competitive landscape and test your positioning thesis with market research."
+  },
+  "relatedTerms": ["value-proposition", "differentiation", "brand-equity"],
+  "synonyms": ["Market Position", "Brand Positioning"],
+  "seoTitle": "What is Positioning? | IdeaFuel Glossary",
+  "seoDescription": "Define how your product stands out from competitors. Build positioning that drives customer choice and loyalty."
+}

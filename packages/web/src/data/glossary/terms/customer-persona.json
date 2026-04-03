@@ -1,0 +1,21 @@
+{
+  "slug": "customer-persona",
+  "title": "Customer Persona",
+  "category": "marketing",
+  "shortDefinition": "Semi-fictional profile representing your ideal customer based on real research data.",
+  "content": {
+    "definition": "A customer persona is a detailed, archetype-based description of your ideal customer. It includes their demographics (age, income, company size), job title, goals, pain points, objections, budget constraints, and buying process. Personas are built from research—interviews, surveys, analytics, CRM data—not guesses or wishful thinking. A good persona is specific enough to guide product decisions, marketing messaging, and sales strategy. It has a name, context, and voice. Sarah, the sales manager, is more useful than 'B2B SaaS buyer.'",
+    "whyItMatters": "Personas keep teams aligned on who you're solving for. Without clear personas, you end up building features for everyone (and delighting no one). They eliminate circular arguments: instead of 'I think customers want X,' you say 'Sarah wants X because of Y.' Personas help you communicate value. If you know your persona's exact pain point and what keeps them up at night, you can craft messaging that resonates. They're also force multipliers for limited marketing budgets—spend goes to the audience most likely to convert. With clear personas, you make faster, better decisions about positioning, pricing, and product roadmap. Investors also like clear personas because they signal market understanding and strategic thinking.",
+    "howToApply": "Build personas by interviewing 10-15 actual customers or warm prospects. Don't ask what they want; ask about their workflow, tools they use, problems they face, decision-making process, and who influences their purchasing. Record patterns: Do they all come from the same role? Same company size? Same industry? Same pain point? Create 2-3 primary personas for early-stage—more than three gets hard to execute. Name them something memorable: 'Sales Manager Sarah' is more powerful than 'Persona A.' Include specific details: Sarah manages a team of 5, handles 200 leads monthly, uses Salesforce, loses deals to competitors, needs to prove ROI to her CFO. Use these as decision filters: 'Does this feature help Sarah?' If no, deprioritize. Revisit and refine personas every 6-12 months as your market evolves.",
+    "commonMistakes": [
+      "Creating personas from internal assumptions instead of customer interviews. You will get it wrong. Your intuition is biased. Talk to real customers. Data beats intuition every single time.",
+      "Creating too many personas. Three is the max for execution. Pick the ones with the highest total addressable market and highest willingness to pay. More personas paralyze decision-making.",
+      "Updating personas once and ignoring them. Personas become stale. Revisit every 6-12 months. Markets shift, customer needs evolve, new personas emerge. Keep them fresh or they become useless reference documents."
+    ],
+    "ideafuelConnection": "Use interviews to build deep personas grounded in real customer data. Map persona pain points to your product roadmap using spark-validation to prioritize features that drive maximum persona satisfaction."
+  },
+  "relatedTerms": ["target-market", "jobs-to-be-done", "user-research"],
+  "synonyms": ["Buyer persona", "User archetype"],
+  "seoTitle": "What is a Customer Persona? | IdeaFuel Glossary",
+  "seoDescription": "Customer persona definition: how to research and build detailed profiles to guide product and marketing strategy."
+}

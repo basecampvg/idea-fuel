@@ -1,0 +1,21 @@
+{
+  "slug": "dogfooding",
+  "title": "Dogfooding",
+  "category": "product",
+  "shortDefinition": "Using your own product to identify problems and validate that it actually works as intended.",
+  "content": {
+    "definition": "Dogfooding (from 'eating your own dog food') means your team regularly uses the product you're building. It's not testing in a lab environment—it's forcing yourself to live with the rough edges, the confusing flows, and the bugs daily. If your product is painful to use, dogfooding exposes that immediately. If the onboarding is broken, your team will experience it firsthand.",
+    "whyItMatters": "You can hide from user feedback, but you can't hide from your own product breaking in your face. Dogfooding forces accountability. Teams that dogfood ship better products because they fix the most annoying problems before users even see them. It also builds credibility—when you tell customers your product is great, they know you actually use it. Conversely, if you skip dogfooding, customers notice and trust you less.",
+    "howToApply": "Make dogfooding a requirement. Every week, team members spend time using your product to accomplish real goals, not test cases. Document the pain points. What took longer than expected? What felt unintuitive? What broke? Prioritize these issues before new feature work. Consider rotating team members through different user personas so you experience the product from multiple angles. The more painful your dogfooding experience, the better your product will become.",
+    "commonMistakes": [
+      "Dogfooding only the happy path—deliberately use your product wrong, skip steps, test edge cases",
+      "Letting developers test only the backend—designers need to feel the UI, support teams need to understand the user experience",
+      "Ignoring dogfooding feedback because you're busy building new features—that's exactly how products get worse"
+    ],
+    "ideafuelConnection": "IdeaFuel's Spark Validation helps your team track which dogfooding issues matter most. Submit pain points from internal usage and get instant assessment of priority."
+  },
+  "relatedTerms": ["beta-testing", "customer-feedback-loop", "product-analytics"],
+  "synonyms": ["Internal testing", "Eating your own dog food"],
+  "seoTitle": "What is Dogfooding? | IdeaFuel Glossary",
+  "seoDescription": "Dogfooding means using your own product daily to catch problems before customers do."
+}

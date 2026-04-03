@@ -1,0 +1,21 @@
+{
+  "slug": "inbound-marketing",
+  "title": "Inbound Marketing",
+  "category": "marketing",
+  "shortDefinition": "Attracting customers through valuable content and earned visibility rather than interruptive ads.",
+  "content": {
+    "definition": "Inbound marketing flips the traditional advertising model. Instead of pushing messages to strangers, you create content that pulls people toward you—through search, blogs, videos, or thought leadership. Customers find you because you've answered their problems before they even knew your product existed.",
+    "whyItMatters": "Inbound works because it aligns with how buyers actually behave. By the time someone is ready to talk to sales, they've already consumed 5-10 pieces of content and decided you understand their problem. This builds trust at scale without burning money on ads to cold audiences. For B2B especially, inbound produces leads with higher intent and lower CAC than cold outreach.",
+    "howToApply": "Map your customer's research journey: What questions are they asking before they're ready to buy? Build content around those questions. Start with high-traffic keywords your audience is actually searching for—target \"how to\" and \"why should I\" questions, not product comparison keywords. Distribute systematically: blog posts for SEO, guides for lead capture, videos for complex concepts. Track which content drives qualified leads and double down. IdeaFuel's Business Plan Generator maps your inbound strategy and projects the revenue impact based on realistic conversion rates.",
+    "commonMistakes": [
+      "Creating content about your product instead of your customer's problems. \"10 features of our tool\" ranks nowhere. \"How to evaluate SaaS pricing\" ranks everywhere.",
+      "Publishing inconsistently. Inbound compounds over months and years. Three blog posts then silence kills momentum.",
+      "Treating content as a long-term play while running paid ads for quick wins. You need both, but separate them strategically."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you build a realistic inbound strategy timeline and forecast the leads and revenue it will generate based on industry benchmarks."
+  },
+  "relatedTerms": ["content-marketing", "search-engine-optimization", "lead-generation"],
+  "synonyms": ["Content Marketing Strategy", "Pull Marketing"],
+  "seoTitle": "What is Inbound Marketing? | IdeaFuel Glossary",
+  "seoDescription": "Master inbound marketing to attract qualified leads through valuable content and earned visibility instead of paid ads."
+}

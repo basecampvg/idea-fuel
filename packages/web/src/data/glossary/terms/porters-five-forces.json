@@ -1,0 +1,21 @@
+{
+  "slug": "porters-five-forces",
+  "title": "Porter's Five Forces",
+  "category": "strategy",
+  "shortDefinition": "A framework that analyzes competitive intensity by examining suppliers, customers, competitors, substitutes, and entrants.",
+  "content": {
+    "definition": "Porter's Five Forces, developed by Michael Porter, is a model for analyzing industry structure and competitive intensity. The five forces are: (1) Rivalry among existing competitors—how fierce is competition? (2) Threat of new entrants—how easy is it to enter this market? (3) Bargaining power of suppliers—can suppliers squeeze your margins? (4) Bargaining power of buyers—can customers dictate terms? (5) Threat of substitutes—can a different solution replace yours? Understanding these forces reveals whether your industry is attractive and where your defensibility lies.",
+    "whyItMatters": "A seemingly large market can be worthless if the five forces create a race to the bottom. High competitive rivalry + high supplier/customer bargaining power = awful industry. Conversely, high barriers to entry + weak substitutes = gold mine. Understanding these forces guides product strategy, positioning, and pricing. It also helps you spot risks: Is your market about to be disrupted? Are suppliers consolidating? Is there a substitute you're ignoring?",
+    "howToApply": "Score each force on a scale of weak to strong. (1) Competitive Rivalry—count competitors, analyze growth, check price sensitivity. High competition = strong force. (2) Threat of Entrants—look at capital requirements, switching costs, regulatory barriers, and incumbent response. Easy entry (low capital, no network effects) = strong threat. (3) Supplier Power—how many suppliers exist? Can you switch suppliers? How important are they to you? Single supplier or specialized input = strong power. (4) Buyer Power—how many customers do you have? Can they switch? How concentrated are they? One customer = strong power. (5) Substitute Threat—what else solves this problem? In-house solutions, manual processes, competitor products all count. Document your findings and identify which forces pose the biggest risk. Build defensibility against the strongest forces.",
+    "commonMistakes": [
+      "Ignoring substitutes. You focus on competing with direct rivals, but a different solution (in-house tool, freelancer, competitor's adjacent product) wins. Always inventory non-obvious substitutes.",
+      "Assuming high entry barriers last forever. Regulation changes, capital gets cheaper, open-source emerges. Re-assess barriers annually.",
+      "Treating buyer or supplier power as fixed. A supplier's power grew because you became too dependent on them. Diversify. A buyer's power grew because you have no switching costs. Add them."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your industry structure using Porter's Five Forces framework, helping you understand competitive intensity, identify the strongest threats, and discover which forces you can turn to your advantage."
+  },
+  "relatedTerms": ["swot-analysis", "barriers-to-entry", "competitive-moat"],
+  "synonyms": ["Five Forces Model", "Competitive Forces Analysis"],
+  "seoTitle": "What is Porter's Five Forces? | IdeaFuel Glossary",
+  "seoDescription": "Learn how to use Porter's Five Forces to analyze industry structure, assess competitive intensity, and identify defensibility gaps in your market."
+}

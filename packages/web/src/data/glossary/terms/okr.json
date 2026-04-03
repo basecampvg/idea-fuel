@@ -1,0 +1,21 @@
+{
+  "slug": "okr",
+  "title": "OKR",
+  "category": "analytics",
+  "shortDefinition": "Objectives and Key Results: a goal-setting framework linking ambitious outcomes to measurable results.",
+  "content": {
+    "definition": "OKRs (Objectives and Key Results) separate aspirational goals from measurable outcomes. An Objective is the qualitative direction you're moving (e.g., 'Dominate the SMB segment'), while Key Results are the 3-4 quantitative achievements that prove success (e.g., 'Achieve 40% SMB revenue mix, reduce SMB churn to 3% monthly'). OKRs are typically set quarterly and cascade from company level to teams to individuals.",
+    "whyItMatters": "OKRs eliminate the ambiguity that kills execution. 'Improve the product' is inspiring but useless. 'Increase feature adoption from 40% to 65%' is concrete and testable. OKRs force trade-off decisions—if you're pursuing 10 Objectives, you're pursuing none. They create alignment: teams know why they're doing the work and how it connects to company strategy.",
+    "howToApply": "Set company-level OKRs (usually 3-5) aligned to your stage and strategy. For a Series A SaaS company: 'Achieve $2M ARR' with key results like 'Close 8 enterprise deals >$25K ACV' and 'Improve NRR to 130%'. Cascade these to product, engineering, and marketing OKRs. Each team identifies which of their work contributes to company OKRs and sets their own supporting goals. Grade OKRs at the end of the period (0.0-1.0 score): 0.7 is considered successful, anything lower suggests misalignment or over-ambition. IdeaFuel's Business Plan Generator helps you translate market insights into aggressive but achievable OKRs that drive growth.",
+    "commonMistakes": [
+      "Treating OKRs like task lists—they should be ambitious, expecting 70% achievement",
+      "Setting OKRs in isolation without considering dependencies and resource constraints",
+      "Failing to connect OKRs to actual decisions—they become wall posters instead of decision tools"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you set data-driven OKRs by analyzing market opportunity, competitive position, and your unit economics to ensure goals are ambitious but achievable."
+  },
+  "relatedTerms": ["key-performance-indicator", "north-star-metric", "benchmarking"],
+  "synonyms": ["Goal Setting Framework", "Strategic Objectives"],
+  "seoTitle": "What is an OKR (Objectives and Key Results)? | IdeaFuel Glossary",
+  "seoDescription": "OKRs link ambitious goals to measurable outcomes. Learn to set effective quarterly OKRs that drive team alignment and execution."
+}

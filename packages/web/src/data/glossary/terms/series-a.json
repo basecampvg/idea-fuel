@@ -1,0 +1,21 @@
+{
+  "slug": "series-a",
+  "title": "Series A",
+  "category": "fundraising",
+  "shortDefinition": "Major funding round for proven startups ready to scale after seed validation.",
+  "content": {
+    "definition": "Series A is the first big institutional round, typically $2M-$15M, from established venture capital firms. It comes after you've proven product-market fit with paying customers, demonstrated user retention, and shown a clear path to scaled revenue. Series A investors are betting that your business model works and that you can build a category-defining company.",
+    "whyItMatters": "Series A is where you shift from survival to scaling. The capital lets you hire aggressively, build your go-to-market machine, expand into new markets, and outrun competitors. It's also a narrative inflection point—a Series A validates your thesis to customers, partners, and talent, making subsequent hiring and sales easier. Without it, you're at risk of being outflanked by better-funded competitors.",
+    "howToApply": "By Series A, you need concrete proof: MRR growth rate (month-over-month), customer retention metrics, unit economics showing a clear path to profitability, and a demonstrated ability to acquire customers repeatably. Your deck should focus less on the idea and more on the traction and the ambition—what does $10B in revenue look like for this category? Series A investors expect a seasoned team; if key members are missing, they'll ask hard questions. Prepare detailed financial models showing how you'll use the capital (hiring plan, marketing spend, R&D roadmap) and what milestones you'll hit by Series B. Have a lead investor conversation; that VC will shape the terms and set the pace.",
+    "commonMistakes": [
+      "Pitching Series A too early before hitting critical product-market fit metrics (usually 10%+ MoM growth and strong retention)",
+      "Raising at a bloated valuation without leverage, then struggling to hit growth expectations in the post-Series A market correction",
+      "Underestimating the time to close Series A—expect 6-12 months from first pitch to check in bank"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model the growth trajectory Series A investors expect, with cohort-based unit economics, customer acquisition cost projections, and detailed use-of-funds breakdowns that show strategic discipline."
+  },
+  "relatedTerms": ["seed-round", "series-b", "term-sheet"],
+  "synonyms": ["Series A Funding"],
+  "seoTitle": "What is Series A Funding? | IdeaFuel Glossary",
+  "seoDescription": "Understand Series A fundraising: requirements, timelines, and how to prepare your startup for institutional investment."
+}

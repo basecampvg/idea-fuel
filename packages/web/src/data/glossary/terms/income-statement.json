@@ -1,0 +1,21 @@
+{
+  "slug": "income-statement",
+  "title": "Income Statement",
+  "category": "finance",
+  "shortDefinition": "A record of your revenue, expenses, and profit over a specific period.",
+  "content": {
+    "definition": "An income statement (also called a P&L or profit and loss statement) shows how much money came in, how much went out, and what's left over during a defined period (month, quarter, year). The formula is simple: Revenue - Expenses = Net Income. It's organized by expense category so you can see where money actually goes and which areas are most expensive relative to revenue. The income statement is a flow statement covering a period (e.g., 'January through December 2024'), not a snapshot like the balance sheet.",
+    "whyItMatters": "Your income statement is the report card of your business operations. It reveals whether your core business model works—can you make more money than you spend? It shows your gross margin (revenue minus cost of goods sold), which tells you if your product is fundamentally profitable at unit level. Gross margin determines your financial destiny: a 75% gross margin company can be generous with operating expenses; a 30% gross margin company can't. The income statement exposes cash drains like bloated payroll, inefficient customer acquisition, or unsustainable unit economics. Investors obsess over this number because it answers the only question that matters: is this sustainable? A growing company with expanding margins is a masterpiece; a growing company with contracting margins is a ticking time bomb.",
+    "howToApply": "Start with revenue—use your actual bookkeeping, not estimates. Break it down by stream if you have multiple (subscriptions, professional services, one-time sales). Break expenses into clear categories: cost of goods sold (directly tied to revenue—server costs, payment processing, support labor), operating expenses (payroll, rent, utilities, equipment), sales and marketing (separate this out so you can track efficiency), research and development, and general and administrative. Calculate gross margin first: (Revenue - COGS) / Revenue. This shows if the core product works. Then subtract operating expenses to get operating income (EBITDA before depreciation). Track burn rate monthly: how fast are you spending cash relative to revenue? For startups, obsess over unit economics: what does each customer cost you to acquire (CAC), what do they bring in over their lifetime (LTV), and is LTV > 3x CAC? The P&L answers 'were we profitable this month?' but doesn't tell you about cash timing or working capital.",
+    "commonMistakes": [
+      "Mixing one-time expenses with recurring ones—makes it mathematically impossible to project sustainable profitability; separate them always",
+      "Underestimating customer acquisition cost by not fully allocating marketing salaries, tools, and overhead to the true CAC bucket",
+      "Ignoring revenue recognition—booking a full annual contract in month one inflates short-term margins and gives false confidence in sustainability"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool projects your P&L across multiple scenarios based on growth assumptions and cost structures. Adjust pricing, headcount, or marketing spend and watch the cascade through to net income and margins. Compare gross margin, operating margin, and net margin across different customer segments or product lines to see what actually drives profitability."
+  },
+  "relatedTerms": ["balance-sheet", "ebitda", "revenue-recognition"],
+  "synonyms": ["Profit and Loss Statement", "P&L", "Statement of Operations"],
+  "seoTitle": "What is an Income Statement? P&L for Startups Explained | IdeaFuel",
+  "seoDescription": "Income statements show revenue, expenses, and profit. Understand the P&L structure that investors and accountants use to evaluate your business."
+}

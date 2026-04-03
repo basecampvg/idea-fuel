@@ -1,0 +1,21 @@
+{
+  "slug": "revenue-based-financing",
+  "title": "Revenue-Based Financing",
+  "category": "fundraising",
+  "shortDefinition": "Non-dilutive capital repaid as a percentage of monthly revenue until a cap is reached.",
+  "content": {
+    "definition": "Revenue-based financing (RBF) is a funding mechanism where investors provide capital in exchange for a percentage of future monthly revenue until they've received a predetermined multiple of their investment (typically 1.3x to 2x). Unlike equity investment, RBF doesn't dilute founder ownership or create new shareholders. Repayment scales with business success—strong revenue months mean larger payments, slow months mean smaller payments. This structure is particularly popular among bootstrapped B2B SaaS companies with predictable monthly recurring revenue.",
+    "whyItMatters": "RBF is founder-friendly because it preserves equity and control while providing necessary capital. You don't give up board seats, investor governance rights, or have to manage shareholder expectations the way venture capital demands. The repayment obligation is directly tied to revenue success—if your business slows, so do payments—which aligns investor and founder incentives naturally. However, RBF is only viable if you have recurring revenue or predictable cash flow; it doesn't work for pre-revenue companies. The cost of RBF can be higher than venture capital (a 1.5x multiple on $500k is effectively 50% financing cost), so it's best suited for bootstrapped companies that want to avoid dilution more than they want growth capital.",
+    "howToApply": "Pursue RBF after you've achieved product-market fit and have minimum viable recurring revenue (usually $5-10k MRR). Platforms like Clearco, Stripe Capital, and Founders Factory offer RBF products. Prepare financial projections showing monthly recurring revenue projections and cash flow forecasts—lenders will evaluate your ability to repay based on revenue trajectory. Use IdeaFuel's Financial Modeling tool to stress-test different revenue scenarios and understand what percentage of monthly revenue you can sustainably commit to RBF repayment without constraining growth reinvestment. Structure your terms to maximize what you'll actually repay—a 1.5x multiple over 24 months is much better than 2x over 12 months.",
+    "commonMistakes": [
+      "Pursuing RBF too early when you should be bootstrapping or raising venture capital for product development",
+      "Underestimating how much monthly revenue you'll need to commit—if 8-10% of revenue goes to RBF, it can constrain growth investment",
+      "Choosing RBF over venture capital when you actually need growth capital and strategic guidance from investors"
+    ],
+    "ideafuelConnection": "IdeaFuel's Financial Modeling tool projects monthly recurring revenue and cash flow scenarios, helping you determine if RBF is viable for your business and how much revenue-based financing you can sustainably handle without constraining growth."
+  },
+  "relatedTerms": ["bootstrapping", "crowdfunding", "monthly-recurring-revenue"],
+  "synonyms": ["Merchant Cash Advance", "Royalty-Based Financing"],
+  "seoTitle": "What is Revenue-Based Financing? | IdeaFuel Glossary",
+  "seoDescription": "Revenue-based financing explained: non-dilutive capital repaid as revenue percentage. Alternative to equity funding for B2B SaaS."
+}

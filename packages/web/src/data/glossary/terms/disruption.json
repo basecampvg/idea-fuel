@@ -1,0 +1,21 @@
+{
+  "slug": "disruption",
+  "title": "Disruption",
+  "category": "strategy",
+  "shortDefinition": "Innovation that fundamentally displaces existing market leaders and business models.",
+  "content": {
+    "definition": "Disruption occurs when a new entrant uses a different business model, technology, or approach to compete against established players, often starting in an underserved market segment. Over time, the disruptor improves and moves upmarket, eventually displacing incumbents who fail to adapt. True disruption doesn't just improve existing solutions—it changes how a market fundamentally operates.",
+    "whyItMatters": "Understanding disruption helps you identify vulnerable market positions and opportunity gaps. If your startup can disrupt an existing market, you'll face less head-to-head competition initially and can build faster. Conversely, recognizing disruption threats to your business model forces early strategy shifts. Clayton Christensen's framework shows that market leaders often lose to disruptors because they're trapped optimizing for their existing customers.",
+    "howToApply": "First, map your industry's value chain and identify what customers actually value versus what incumbents emphasize. Look for segments willing to trade performance for convenience or affordability—that's often where disruption starts. Build a hypothesis about a different business model: could you serve customers differently, through different channels, or at a different price point? Test this with IdeaFuel's Spark Validation to gauge market receptivity. Finally, document your disruption thesis as part of your business plan, including how you'll defend against incumbent counter-moves as you scale.",
+    "commonMistakes": [
+      "Confusing innovation with disruption—improving an existing product isn't disruptive unless it fundamentally changes how the market works or who can participate.",
+      "Assuming incumbents won't respond—large players often eventually copy or acquire disruptors, so plan for competition intensifying as you scale.",
+      "Targeting the wrong initial segment—disruption typically starts in segments incumbents ignore or dismiss, not where they're strongest."
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine analyzes your market and competitors to help you identify disruption vectors and vulnerable incumbents. Use it to map competitive moats and spot where incumbents might be blind to emerging threats."
+  },
+  "relatedTerms": ["blue-ocean-strategy", "first-mover-advantage", "differentiation"],
+  "synonyms": ["Creative Destruction"],
+  "seoTitle": "What is Disruption? | IdeaFuel Glossary",
+  "seoDescription": "Learn how disruptive business models displace market leaders. Identify disruption opportunities for your startup."
+}

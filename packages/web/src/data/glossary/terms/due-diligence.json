@@ -1,0 +1,21 @@
+{
+  "slug": "due-diligence",
+  "title": "Due Diligence",
+  "category": "fundraising",
+  "shortDefinition": "The investor's deep investigation into your company before writing a check.",
+  "content": {
+    "definition": "Due diligence is the investor's process of verifying claims and evaluating risk before committing capital. VCs examine your financials, product roadmap, customer contracts, cap table, legal structure, team backgrounds, and market size assumptions. They talk to customers, check references, verify intellectual property, and stress-test your unit economics. Due diligence typically takes 4-8 weeks for Series A+ rounds and is far lighter for angel/seed rounds.",
+    "whyItMatters": "VCs invest in companies, not pitches. Due diligence is their mechanism to separate signal from noise. A founder who claims 40% month-over-month growth but has three customers is a red flag. A founder with 10 enterprise customers paying $50K annually with net revenue retention above 120% is a different profile entirely. Due diligence also protects you: if an investor is prepared to fund you, their thorough investigation de-risks your business significantly. An investor who hasn't done due diligence is more likely to panic and pull the plug if metrics dip post-funding.",
+    "howToApply": "Prepare a data room: organize every document an investor might request before they ask. Include cap table, financial model, customer contracts (redacted for NDA), product roadmap, references from customers and advisors, IP assignments, incorporation docs, and audit trails for claims you've made. Be proactive: if you know something might raise questions (customer churn, competitive threat, founder visa status), address it early in conversations. Don't oversell metrics or hide problems—investors will find inconsistencies. Practice articulating your business model, growth drivers, and key risks in technical detail. Assign someone on your team to shepherd due diligence and respond quickly to requests.",
+    "commonMistakes": [
+      "Obfuscating negative facts during due diligence—investors respect founders who acknowledge issues and have plans; they distrust founders who hide and get caught",
+      "Not understanding your own financials deeply enough to defend assumptions—if your CAC model doesn't hold up under scrutiny, that kills a round",
+      "Slow-walking document requests—investors see this as either disorganization or evasion; responsive founders get funded faster"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator creates the financial models and assumptions you'll need to defend during due diligence, ensuring your claims about growth, unit economics, and market sizing are coherent and defensible."
+  },
+  "relatedTerms": ["pitch-deck", "term-sheet", "cap-table"],
+  "synonyms": ["Investor Investigation", "Background Check", "Verification Process"],
+  "seoTitle": "What is Due Diligence in Startup Fundraising? What VCs Look For | IdeaFuel Glossary",
+  "seoDescription": "Due diligence is how investors verify your startup's claims before funding. Learn what VCs check and how to prepare."
+}

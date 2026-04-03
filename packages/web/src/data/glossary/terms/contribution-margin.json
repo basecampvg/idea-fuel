@@ -1,0 +1,21 @@
+{
+  "slug": "contribution-margin",
+  "title": "Contribution Margin",
+  "category": "finance",
+  "shortDefinition": "Revenue minus variable costs; the profit available to cover fixed expenses.",
+  "content": {
+    "definition": "Contribution margin is the portion of revenue remaining after variable costs are paid. If you sell a product for 100 with variable COGS of 40, contribution margin is 60. This 60 goes toward covering fixed operating expenses (rent, salaries) and generating profit. Contribution margin ratio is contribution margin divided by revenue (60/100 = 60%), showing what percentage of each dollar sold is available to cover fixed costs.",
+    "whyItMatters": "Contribution margin is the metric that determines if your business model works. If your contribution margin is negative, you lose money on every sale no matter how much you grow. If it's positive but thin (10%), you need massive scale to be profitable. Contribution margin is the economic foundation—without it, growth just accelerates losses. Many founders obsess over revenue growth while ignoring contribution margin, which is backwards. A business growing 200% with 5% contribution margin is in worse shape than one growing 20% with 60% contribution margin.",
+    "howToApply": "Calculate contribution margin for each product, customer segment, and channel. Identify which are profitable at the unit level and which are subsidized by others. For unprofitable units, either raise prices, cut variable costs, or kill them. Use contribution margin to make go/no-go decisions on new initiatives: if a new product has negative contribution margin, it's a drain. Break-even analysis is built on contribution margin: divide fixed costs by contribution margin ratio to find the revenue needed to break even. For strategic decisions (which features to build, which customers to pursue), always route through contribution margin thinking.",
+    "commonMistakes": [
+      "Calculating gross margin and confusing it with contribution margin—they're different",
+      "Including fixed costs in 'variable costs,' deflating contribution margin artificially",
+      "Pursuing high-revenue but low-margin business, mistaking growth for profitability"
+    ],
+    "ideafuelConnection": "IdeaFuel calculates contribution margins by product, customer, and channel, flags units with negative margins, and uses contribution margin to project break-even point and profitability."
+  },
+  "relatedTerms": ["gross-margin", "break-even-point", "unit-economics"],
+  "synonyms": ["Unit Contribution", "Variable Profit"],
+  "seoTitle": "What is Contribution Margin? | IdeaFuel Glossary",
+  "seoDescription": "Learn to calculate and analyze contribution margins to understand which products and channels are truly profitable."
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "beachhead-market",
+  "title": "Beachhead Market",
+  "category": "strategy",
+  "shortDefinition": "A specific, narrow market segment chosen as your entry point before expanding to adjacent markets.",
+  "content": {
+    "definition": "A beachhead market is a small, well-defined customer segment where you can establish strong product-market fit and gain defensible market share with limited resources. You choose this market because it's underserved by incumbents, has clear pain points your solution solves, and provides a foothold from which you can expand to adjacent segments. Think of D-Day: you're landing on one beach before fanning out across the continent.",
+    "whyItMatters": "Startups fail when they try to serve too many customer segments at once—you stretch resources thin, dilute your messaging, and fail to dominate anywhere. A beachhead forces focus. By owning a narrow segment completely, you build brand loyalty, network effects, and case studies that make adjacent markets easier to enter. Investors also prefer founders who think beachhead-first, because it shows strategic thinking rather than unfocused ambition. Many successful companies (Slack started in gaming teams, Zoom in corporate video calls) used this pattern.",
+    "howToApply": "Define your beachhead using three criteria: (1) your solution solves a burning pain specific to this segment, (2) the segment is small enough for you to dominate with your current resources, and (3) winning here gives you credibility and leverage to expand. Validate with customer interviews—are they actively looking for solutions? Then build your entire go-to-market (positioning, pricing, sales channel) around this one segment. Resist the urge to serve adjacent markets until you're the clear leader in your beachhead. Use IdeaFuel's Business Plan Generator to map your beachhead expansion strategy.",
+    "commonMistakes": [
+      "Choosing a beachhead that's too broad or too competitive—you need a segment you can realistically own within 12-18 months.",
+      "Picking a beachhead with no expansion path—make sure adjacent markets exist and would benefit from your solution.",
+      "Trying to serve the beachhead and adjacent markets simultaneously—this waters down your focus and slows dominance."
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you identify and validate your beachhead market, map your expansion trajectory, and allocate resources to dominate first before you scale."
+  },
+  "relatedTerms": ["serviceable-addressable-market", "niche-market", "go-to-market-strategy"],
+  "synonyms": ["Entry Market", "Wedge Market"],
+  "seoTitle": "What is a Beachhead Market? | IdeaFuel Glossary",
+  "seoDescription": "Master beachhead market strategy to dominate a niche before expanding. Framework for startup go-to-market success."
+}

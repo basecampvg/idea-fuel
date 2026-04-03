@@ -1,0 +1,21 @@
+{
+  "slug": "referral-marketing",
+  "title": "Referral Marketing",
+  "category": "marketing",
+  "shortDefinition": "Existing customers bring new customers in exchange for rewards.",
+  "content": {
+    "definition": "Referral marketing activates your existing customer base to recruit new customers. You give customers an incentive (discount, credit, cash, feature access) when someone they refer signs up or purchases. It's the most efficient growth loop because you're leveraging trust that's already been built—your customers are your best salespeople and they don't require hiring. They have skin in the game because they already use and understand your product.",
+    "whyItMatters": "Word-of-mouth converts 4x better than cold outreach because recommendations carry inherent credibility that ads never will. A referral from someone's friend hits with trust you can't buy with ads. Plus, referred customers have higher lifetime value, lower churn rates, and require less sales effort because they come in with realistic expectations based on firsthand recommendations. Your customers becoming your best sales channel means scalable growth without proportional marketing spend increases. Referral programs also create a positive feedback loop: happy customers drive more customers, which drives more happiness. For SaaS, referred customers are often the highest quality because they're pre-sold by someone they trust.",
+    "howToApply": "Make the referral flow frictionless: generate a unique link for each customer, enable sharing via email/SMS/social, and track conversions automatically via your app. Offer dual-sided incentives—reward the referrer AND give the new customer something (lower first month, bonus credits, exclusive features). Start with smaller incentives and scale if needed, measuring response. Create in-app referral widgets visible in dashboard, onboarding, and settings so customers see the benefit clearly without searching. Track the k-factor (virality coefficient) obsessively—it tells you how many new customers each customer brings. If k < 1.0, your loop isn't self-sustaining and you're losing velocity. Run experiments: try referral bonuses of $10, $25, $50 and measure which drives most conversions per dollar spent. Celebrate referral wins: send customers updates on how many people they've brought in.",
+    "commonMistakes": [
+      "Making rewards too small. People won't evangelize for $5 off. If your unit economics allow it, make the incentive material enough that customers feel motivated to actually refer—usually $25-50 range for B2B SaaS.",
+      "Burying the referral button. Put it in the onboarding flow, settings menu, dashboard, email signatures, and bottom of emails. Make it impossible to miss. Most programs fail due to discovery, not lack of interest.",
+      "Not rewarding both sides. One-sided referral programs don't drive action. New customers need incentive to click the link and sign up. Two-sided rewards create urgency and mutual benefit that single-sided can't match."
+    ],
+    "ideafuelConnection": "Model your referral incentive structure using financial-modeling to ensure profitability at scale. Use spark-validation to A/B test different reward amounts with a small user cohort before company-wide rollout."
+  },
+  "relatedTerms": ["viral-marketing", "k-factor", "affiliate-marketing"],
+  "synonyms": ["Word-of-mouth marketing", "Viral loop"],
+  "seoTitle": "What is Referral Marketing? | IdeaFuel Glossary",
+  "seoDescription": "Referral marketing explained: how to turn customers into growth engines through incentivized recommendations."
+}

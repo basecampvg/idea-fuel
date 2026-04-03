@@ -1,0 +1,21 @@
+{
+  "slug": "unique-visitors",
+  "title": "Unique Visitors",
+  "category": "analytics",
+  "shortDefinition": "The count of distinct individuals who visited your product within a time period.",
+  "content": {
+    "definition": "Unique visitors count the number of distinct users who accessed your product in a given timeframe, usually daily, weekly, or monthly. If the same user visits 10 times, they count as 1 unique visitor, not 10. For logged-in products, this is straightforward—count authenticated users. For anonymous traffic (websites, landing pages), tracking is approximate—you use cookies or IP + user-agent heuristics to guess uniqueness.",
+    "whyItMatters": "Unique visitors is how you measure audience size and growth velocity. Growing from 1,000 to 10,000 monthly unique visitors is signal. But it's incomplete without retention context: 10,000 unique visitors who never return is just churn. Unique visitor growth masks retention problems. Many startups grow monthly uniques but lose 95% of users after day 1—they look like they're winning until retention data tells the real story. Unique visitors is necessary but not sufficient. Pair it with retention metrics.",
+    "howToApply": "Track daily, weekly, and monthly unique visitors separately. Monthly uniques grow slower but are more meaningful for business models with low-frequency usage (e.g., tax software, HR tools). Daily uniques spike and valley but show engagement volatility. Watch growth rate: is it 10% week-over-week or 1%? Compare unique visitor growth to user acquisition spend—if you're spending 2x more and uniques are flat, your acquisition channels are tired. Break down uniques by source: which channels deliver the highest-quality visitors? Measure this with 'uniques-to-retained-users' ratio—paid ads might deliver 1,000 uniques with 50 retained users (5% retention) while organic delivers 100 uniques with 40 retained users (40% retention).",
+    "commonMistakes": [
+      "Confusing unique visitors with total page views or impressions—one visitor can generate 100 page views",
+      "Not separating new unique visitors from returning visitors—your growth might be all acquisition with zero retention",
+      "Using IP-based uniqueness for anonymous traffic when you should use cookies—false negatives from shared networks like offices"
+    ],
+    "ideafuelConnection": "IdeaFuel's Research Engine segments your unique visitors into cohorts and analyzes which ones retain, convert, and generate revenue. It identifies your highest-value visitor sources and recommends ideas to increase acquisition of similar users."
+  },
+  "relatedTerms": ["page-views", "reach", "monthly-active-users"],
+  "synonyms": ["Unique Users", "New Visitors"],
+  "seoTitle": "What is Unique Visitors? | IdeaFuel Glossary",
+  "seoDescription": "Unique visitors count distinct individuals who accessed your product in a time period. Necessary but insufficient metric for success."
+}

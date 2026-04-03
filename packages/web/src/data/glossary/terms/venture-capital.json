@@ -1,0 +1,21 @@
+{
+  "slug": "venture-capital",
+  "title": "Venture Capital",
+  "category": "fundraising",
+  "shortDefinition": "Professional investors betting large sums on high-growth companies in exchange for equity.",
+  "content": {
+    "definition": "Venture capital (VC) is money from specialized investment firms that buy equity stakes in startups. VCs manage funds—typically $50M to $500M+—and deploy capital across a portfolio of 20-50 companies. They're betting that a few will return 10x or 100x their investment, making up for the 70-80% that fail or return 1x. Unlike angel investors betting their personal savings, VCs are professional investors answerable to limited partners (LPs) who fund the VC firm itself.",
+    "whyItMatters": "VC is how capital-intensive, high-growth businesses scale. You need VC if you're building enterprise software, biotech, hardware, or anything with a large market that requires $10M-$100M+ to dominate. VCs bring more than cash: network, operational expertise, recruiter connections, customer introductions. But VC comes with strings: board seats, liquidation preferences, anti-dilution rights, and pressure to chase extreme growth. VC is not for businesses that should be profitable and sustainable—it's for bets on winner-take-most markets.",
+    "howToApply": "Understand what stage you're fundraising for and which VCs focus there. Seed/early-stage VCs ($500K-$5M checks) lead first institutional rounds. Series A VCs ($5M-$20M) need 30%+ month-over-month growth and product-market fit signals. Series B+ VCs care about revenue and clear paths to $10M+. Research VC theses: what founders do they back, what industries, what geographies? Use warm intros from founders, operators, or angel investors who've already backed you. Expect a 3-6 month fundraising process for Series A+. Know your metrics cold before any conversation: CAC, LTV, MoM growth, cohort retention, unit economics.",
+    "commonMistakes": [
+      "Raising VC when you should bootstrap—if you're building a solid SaaS business that should generate $2M ARR as a solo founder, VC capital and pressure for 10x growth will destroy the business",
+      "Chasing celebrity investors without checking their actual track record with companies like yours—a famous partner at Tier-1 VC doesn't mean they'll help your B2B marketplace",
+      "Not understanding liquidation preferences—1x non-participating preferred stock means investors get paid before you in an acquisition, which can mean founders get nothing even in 'successful' exits"
+    ],
+    "ideafuelConnection": "IdeaFuel's Business Plan Generator helps you model the financial case for VC: growth rates, unit economics, and funding needs that justify venture capital. Show investors a coherent narrative from traction to exit."
+  },
+  "relatedTerms": ["angel-investor", "series-a", "term-sheet"],
+  "synonyms": ["VC", "Venture Funding", "Institutional Equity"],
+  "seoTitle": "What is Venture Capital? How It Works for Startups | IdeaFuel Glossary",
+  "seoDescription": "Venture capital is professional equity investment in high-growth startups. Learn how VCs work, what they want, and if you need it."
+}
