@@ -24,6 +24,7 @@
     "@ai-sdk/anthropic": "^3.0.44",
     "@anthropic-ai/sdk": "^0.74.0",
     "@forge/shared": "workspace:*",
+    "@google/generative-ai": "^0.24.1",
     "@perplexity-ai/perplexity_ai": "^0.26.0",
     "@react-pdf/renderer": "^4.3.2",
     "@supabase/supabase-js": "^2.100.1",
