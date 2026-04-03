@@ -3,7 +3,7 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { BottomSheet } from './ui/BottomSheet';
 import { colors, fonts } from '../lib/theme';
 
-type AiActionResult =
+export type AiActionResult =
   | { type: 'summary'; data: { summary: string } }
   | { type: 'todos'; data: { todos: string[] } }
   | { type: 'gaps'; data: { gaps: string[] } }
@@ -11,7 +11,7 @@ type AiActionResult =
   | { type: 'contradictions'; data: { contradictions: string[] } }
   | { type: 'promoted'; data: { projectId: string } };
 
-const TITLES: Record<AiActionResult['type'], string> = {
+export const TITLES: Record<AiActionResult['type'], string> = {
   summary: 'Summary',
   todos: 'Action Items',
   gaps: 'Gaps Identified',

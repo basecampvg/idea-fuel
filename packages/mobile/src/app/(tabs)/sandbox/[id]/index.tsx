@@ -25,7 +25,7 @@ import {
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { triggerHaptic } from '../../../../components/ui/Button';
 import { Badge } from '../../../../components/ui/Badge';
-import { AiActionSheet } from '../../../../components/AiActionSheet';
+import { AiActionSheet, type AiActionResult } from '../../../../components/AiActionSheet';
 import { trpc } from '../../../../lib/trpc';
 import { colors, fonts } from '../../../../lib/theme';
 
@@ -61,14 +61,6 @@ function deriveTitle(note: any): string {
   }
   return 'Untitled Note';
 }
-
-type AiActionResult =
-  | { type: 'summary'; data: { summary: string } }
-  | { type: 'todos'; data: { todos: string[] } }
-  | { type: 'gaps'; data: { gaps: string[] } }
-  | { type: 'brief'; data: { brief: string } }
-  | { type: 'contradictions'; data: { contradictions: string[] } }
-  | { type: 'promoted'; data: { projectId: string } };
 
 export default function SandboxDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -114,7 +106,7 @@ export default function SandboxDetailScreen() {
       triggerHaptic('success');
       utils.sandbox.get.invalidate({ id });
       utils.note.list.invalidate();
-      router.push(`/(tabs)/notes/${newNote.id}` as any);
+      router.push(`/(tabs)/notes/${newNote.id}?fromSandbox=${id}` as any);
     },
     onError: () => {
       triggerHaptic('error');
@@ -183,7 +175,7 @@ export default function SandboxDetailScreen() {
       <Animated.View entering={FadeInUp.delay(index * 60).springify()}>
         <TouchableOpacity
           activeOpacity={0.75}
-          onPress={() => router.push(`/(tabs)/notes/${item.id}` as any)}
+          onPress={() => router.push(`/(tabs)/notes/${item.id}?fromSandbox=${id}` as any)}
         >
           <LinearGradient
             colors={[colors.glassBorderStart, colors.glassBorderEnd]}
