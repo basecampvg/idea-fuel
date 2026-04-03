@@ -3,6 +3,7 @@
 // Re-export subscription constants
 export * from './subscription';
 export * from './revenuecat';
+export * from './sketch';
 
 export const APP_NAME = 'ideationLab';
 export const APP_VERSION = '0.1.0';
