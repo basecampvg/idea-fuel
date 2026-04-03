@@ -1,16 +1,16 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, Linking, StyleSheet } from 'react-native';
-import { Tabs, Redirect } from 'expo-router';
-import { Mic, Vault, NotebookPen, Settings, ArrowUpRight, X, FlaskConical } from 'lucide-react-native';
+import { Tabs, Redirect, useRouter } from 'expo-router';
+import { Mic, Vault, NotebookPen, ArrowUpRight, X, FlaskConical, Pencil } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingScreen } from '../../components/ui';
 import { colors, fonts } from '../../lib/theme';
 
 function CustomTabBar({ state, descriptors, navigation, insets }: any) {
   return (
-    <View>
-      {/* Standard tab bar */}
+    <BlurView intensity={40} tint="dark" style={tabStyles.blurWrap}>
       <View style={[
         tabStyles.bar,
         { paddingBottom: insets.bottom + 4 },
@@ -26,9 +26,9 @@ function CustomTabBar({ state, descriptors, navigation, insets }: any) {
             ? <Vault size={22} color={color} />
             : route.name === 'notes'
             ? <NotebookPen size={22} color={color} />
-            : route.name === 'sandbox'
-            ? <FlaskConical size={22} color={color} />
-            : <Settings size={22} color={color} />;
+            : route.name === 'sketch'
+            ? <Pencil size={22} color={color} />
+            : <FlaskConical size={22} color={color} />;
 
           return (
             <TouchableOpacity
@@ -61,7 +61,7 @@ function CustomTabBar({ state, descriptors, navigation, insets }: any) {
           );
         })}
       </View>
-    </View>
+    </BlurView>
   );
 }
 
@@ -71,6 +71,22 @@ const headerTitle = () => (
     <Text style={headerStyles.wordmarkFuel}>FUEL</Text>
   </View>
 );
+
+function AvatarButton() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const initial = (user?.name ?? user?.email ?? '?')[0].toUpperCase();
+
+  return (
+    <TouchableOpacity
+      onPress={() => router.push('/settings')}
+      style={headerStyles.avatar}
+      activeOpacity={0.7}
+    >
+      <Text style={headerStyles.avatarText}>{initial}</Text>
+    </TouchableOpacity>
+  );
+}
 
 function Banner({ onDismiss }: { onDismiss: () => void }) {
   return (
@@ -122,20 +138,14 @@ export default function TabsLayout() {
         },
         headerShadowVisible: false,
         headerTitle,
+        headerRight: () => <AvatarButton />,
+        headerRightContainerStyle: { paddingRight: 16 },
         // @ts-expect-error headerBottom works at runtime but isn't in BottomTabNavigationOptions type
         headerBottom: bannerDismissed
           ? undefined
           : () => <Banner onDismiss={dismissBanner} />,
       }}
     >
-      <Tabs.Screen
-        name="capture"
-        options={{ title: 'Capture' }}
-      />
-      <Tabs.Screen
-        name="vault"
-        options={{ title: 'Vault' }}
-      />
       <Tabs.Screen
         name="notes"
         options={{ title: 'Notes' }}
@@ -145,8 +155,23 @@ export default function TabsLayout() {
         options={{ title: 'Sandbox' }}
       />
       <Tabs.Screen
-        name="settings"
-        options={{ title: 'Settings' }}
+        name="capture"
+        options={{
+          title: 'Capture',
+          headerTransparent: true,
+          headerStyle: { backgroundColor: 'transparent' },
+          headerBackground: () => (
+            <BlurView intensity={40} tint="dark" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(10,10,10,0.92)' }]} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="sketch"
+        options={{ title: 'Sketch' }}
+      />
+      <Tabs.Screen
+        name="vault"
+        options={{ title: 'Vault' }}
       />
     </Tabs>
   );
@@ -195,14 +220,28 @@ const headerStyles = StyleSheet.create({
     letterSpacing: 3,
     color: colors.brand,
   },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.brand,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  avatarText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700' as const,
+  },
 });
 
 const tabStyles = StyleSheet.create({
+  blurWrap: {
+    overflow: 'hidden',
+  },
   bar: {
     flexDirection: 'row',
-    backgroundColor: colors.card,
-    borderTopColor: colors.border,
-    borderTopWidth: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
     paddingTop: 4,
   },
   tab: {
