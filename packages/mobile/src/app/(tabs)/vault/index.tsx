@@ -31,6 +31,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { triggerHaptic } from '../../../components/ui/Button';
 import { BottomSheet } from '../../../components/ui/BottomSheet';
+import { useShowHelpIcons } from '../../../hooks/useShowHelpIcons';
 import { trpc } from '../../../lib/trpc';
 import { colors, fonts } from '../../../lib/theme';
 
@@ -121,6 +122,8 @@ function getMarketSignalLabel(signal: string) {
 export default function VaultScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showHelpIcons] = useShowHelpIcons();
+  const [guideVisible, setGuideVisible] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'validated' | 'draft'>('all');
   const [filterVerdict, setFilterVerdict] = useState<'all' | 'proceed' | 'watchlist' | 'drop'>('all');
@@ -378,7 +381,17 @@ export default function VaultScreen() {
     <View style={styles.safeArea}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Vault</Text>
+        <View style={styles.headerTitleRow}>
+          <Text style={styles.headerTitle}>Vault</Text>
+          {showHelpIcons && (
+            <TouchableOpacity
+              onPress={() => { triggerHaptic('light'); setGuideVisible(true); }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <HelpCircle size={18} color={colors.mutedDim} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {/* Search + Filter */}
@@ -426,6 +439,36 @@ export default function VaultScreen() {
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
       />
+
+      {/* Guide Overlay */}
+      <BottomSheet
+        visible={guideVisible}
+        onClose={() => setGuideVisible(false)}
+        title="About Vault"
+      >
+        <View style={{ gap: 16 }}>
+          <Text style={{ fontSize: 15, color: colors.foreground, ...fonts.outfit.semiBold }}>
+            Your validated idea library. Store and track the ideas that survived the Sandbox.
+          </Text>
+
+          <View style={{ gap: 8 }}>
+            <Text style={{ fontSize: 14, color: colors.muted, ...fonts.outfit.semiBold }}>Best practices</Text>
+            <Text style={{ fontSize: 14, color: colors.foreground, lineHeight: 20 }}>
+              {'\u2022'} Review your strongest ideas regularly{'\n'}
+              {'\u2022'} Track progress on ideas you're pursuing{'\n'}
+              {'\u2022'} Use filters and search to find what you need
+            </Text>
+          </View>
+
+          <View style={{ gap: 8 }}>
+            <Text style={{ fontSize: 14, color: colors.muted, ...fonts.outfit.semiBold }}>How it connects</Text>
+            <Text style={{ fontSize: 14, color: colors.foreground, lineHeight: 20 }}>
+              {'\u2022'} Ideas arrive here from Sandbox after validation{'\n'}
+              {'\u2022'} Revisit Notes for fresh inspiration when you need new directions
+            </Text>
+          </View>
+        </View>
+      </BottomSheet>
 
       {/* Filter Overlay */}
       <BottomSheet
@@ -500,6 +543,11 @@ const styles = StyleSheet.create({
     ...fonts.outfit.bold,
     color: colors.foreground,
     letterSpacing: -0.5,
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   searchRow: {
     flexDirection: 'row',
