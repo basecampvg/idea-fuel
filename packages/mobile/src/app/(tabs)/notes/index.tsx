@@ -18,13 +18,15 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
-import { NotebookPen, CheckCircle, Plus, Trash2, ChevronRight, Sparkles } from 'lucide-react-native';
+import { NotebookPen, CheckCircle, Plus, Trash2, ChevronRight, Sparkles, HelpCircle } from 'lucide-react-native';
 import { useRouter, useNavigation } from 'expo-router';
 import { triggerHaptic } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { NoteTypePopover } from '../../../components/NoteTypePopover';
 import { trpc } from '../../../lib/trpc';
 import { colors, fonts } from '../../../lib/theme';
+import { BottomSheet } from '../../../components/ui/BottomSheet';
+import { useShowHelpIcons } from '../../../hooks/useShowHelpIcons';
 
 function formatRelativeTime(date: Date): string {
   const now = new Date();
@@ -197,6 +199,7 @@ function SwipeableNoteCard({
                   ) : null}
                 </View>
               </View>
+              <View style={styles.cardDivider} />
               <View style={styles.cardFooter}>
                 <Text style={styles.cardTime}>
                   {formatRelativeTime(new Date(note.updatedAt))}
@@ -228,6 +231,8 @@ export default function NotesListScreen() {
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
   const [showTypePopover, setShowTypePopover] = useState(false);
   const [filter, setFilter] = useState<NoteFilter>('all');
+  const [showHelpIcons] = useShowHelpIcons();
+  const [guideVisible, setGuideVisible] = useState(false);
 
   const filteredNotes = React.useMemo(() => {
     if (!notes) return [];
@@ -347,7 +352,17 @@ export default function NotesListScreen() {
     <View style={styles.safeArea}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Notes</Text>
+        <View style={styles.headerTitleRow}>
+          <Text style={styles.headerTitle}>Notes</Text>
+          {showHelpIcons && (
+            <TouchableOpacity
+              onPress={() => { triggerHaptic('light'); setGuideVisible(true); }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <HelpCircle size={18} color={colors.mutedDim} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {/* Segmented filter */}
@@ -395,6 +410,45 @@ export default function NotesListScreen() {
         </TouchableOpacity>
       )}
 
+      <BottomSheet
+        visible={guideVisible}
+        onClose={() => setGuideVisible(false)}
+        title="About Notes"
+      >
+        <View style={{ gap: 16 }}>
+          <Text style={{ fontSize: 15, color: colors.foreground, ...fonts.outfit.semiBold }}>
+            Your idea scratchpad. Capture raw thoughts, observations, and hunches before they disappear.
+          </Text>
+
+          <View style={{ gap: 8 }}>
+            <Text style={{ fontSize: 14, color: colors.muted, ...fonts.outfit.semiBold }}>Two types of notes</Text>
+            <Text style={{ fontSize: 14, color: colors.foreground, lineHeight: 20 }}>
+              {'\u2022'} Quick Note — a plain brain dump. Just get the idea out of your head, no AI involved.
+            </Text>
+            <Text style={{ fontSize: 14, color: colors.foreground, lineHeight: 20 }}>
+              {'\u2022'} AI Note — writes itself up as you go. The AI auto-refines your raw thought into a structured idea.
+            </Text>
+          </View>
+
+          <View style={{ gap: 8 }}>
+            <Text style={{ fontSize: 14, color: colors.muted, ...fonts.outfit.semiBold }}>Best practices</Text>
+            <Text style={{ fontSize: 14, color: colors.foreground, lineHeight: 20 }}>
+              {'\u2022'} Jot notes as they come — don't overthink it{'\n'}
+              {'\u2022'} Pin the ones that keep nagging you{'\n'}
+              {'\u2022'} Revisit regularly to spot patterns
+            </Text>
+          </View>
+
+          <View style={{ gap: 8 }}>
+            <Text style={{ fontSize: 14, color: colors.muted, ...fonts.outfit.semiBold }}>How it connects</Text>
+            <Text style={{ fontSize: 14, color: colors.foreground, lineHeight: 20 }}>
+              {'\u2022'} When an idea feels worth exploring, move it to Sandbox for validation{'\n'}
+              {'\u2022'} Validated winners end up in your Vault
+            </Text>
+          </View>
+        </View>
+      </BottomSheet>
+
       <NoteTypePopover
         visible={showTypePopover}
         onClose={() => setShowTypePopover(false)}
@@ -415,6 +469,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 12,
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   headerTitle: {
     fontSize: 28,
@@ -440,7 +499,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     padding: 16,
-    paddingBottom: 12,
+    paddingBottom: 14,
     gap: 14,
   },
   cardIcon: {
@@ -467,12 +526,19 @@ const styles = StyleSheet.create({
     color: colors.muted,
     lineHeight: 18,
   },
+  cardDivider: {
+    height: 1,
+    backgroundColor: colors.glassBorderStart,
+    marginHorizontal: 16,
+    opacity: 0.5,
+  },
   cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingTop: 10,
+    paddingBottom: 14,
   },
   cardTime: {
     fontSize: 12,
