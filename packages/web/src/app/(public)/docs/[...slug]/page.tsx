@@ -43,9 +43,104 @@ function flattenNav(items: NavItem[]): NavItem[] {
   return flat;
 }
 
-function buildDocJsonLd(doc: { frontmatter: import('@/lib/docs').DocFrontmatter; slug: string[] }) {
+/**
+ * Extract FAQ Q&A pairs from markdown content.
+ * Matches ### headings (questions) followed by body text (answers).
+ */
+function extractFaqFromMarkdown(content: string): Array<{ question: string; answer: string }> {
+  const faqItems: Array<{ question: string; answer: string }> = [];
+  const lines = content.split('\n');
+  let currentQuestion: string | null = null;
+  let currentAnswer: string[] = [];
+
+  const stripMd = (text: string) =>
+    text
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/>\s*/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  const flush = () => {
+    if (currentQuestion && currentAnswer.length > 0) {
+      faqItems.push({ question: currentQuestion, answer: stripMd(currentAnswer.join(' ')) });
+    }
+    currentQuestion = null;
+    currentAnswer = [];
+  };
+
+  for (const line of lines) {
+    const h3Match = line.match(/^###\s+(.+)/);
+    if (h3Match) {
+      flush();
+      currentQuestion = stripMd(h3Match[1]);
+    } else if (currentQuestion) {
+      if (line.match(/^#{1,2}\s/) || line.match(/^---\s*$/)) {
+        flush();
+      } else {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.match(/^\|[-\s|]+\|$/)) {
+          currentAnswer.push(trimmed.replace(/^[-*]\s+/, ''));
+        }
+      }
+    }
+  }
+  flush();
+  return faqItems;
+}
+
+/**
+ * Extract HowTo steps from markdown ## headings.
+ */
+function extractHowToSteps(content: string): Array<{ name: string; text: string }> {
+  const steps: Array<{ name: string; text: string }> = [];
+  const lines = content.split('\n');
+  let currentStep: string | null = null;
+  let currentText: string[] = [];
+
+  const stripMd = (text: string) =>
+    text
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/>\s*/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  const flush = () => {
+    if (currentStep && currentText.length > 0) {
+      steps.push({ name: currentStep, text: stripMd(currentText.join(' ')).slice(0, 500) });
+    }
+    currentStep = null;
+    currentText = [];
+  };
+
+  for (const line of lines) {
+    const h2Match = line.match(/^##\s+(.+)/);
+    if (h2Match) {
+      flush();
+      currentStep = stripMd(h2Match[1]);
+    } else if (currentStep) {
+      if (line.match(/^---\s*$/)) continue;
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith('###') && !trimmed.match(/^\|[-\s|]+\|$/)) {
+        currentText.push(trimmed.replace(/^[-*]\s+/, '').replace(/^\d+\.\s+/, ''));
+      }
+    }
+  }
+  flush();
+  return steps;
+}
+
+function buildDocJsonLd(doc: {
+  frontmatter: import('@/lib/docs').DocFrontmatter;
+  content: string;
+  slug: string[];
+}) {
   const url = `https://ideafuel.ai/docs/${doc.slug.join('/')}`;
-  const schemaType = doc.frontmatter.structured_data?.type || 'Article';
+  const sd = doc.frontmatter.structured_data;
+  const schemaType = typeof sd === 'string' ? sd : sd?.type || 'Article';
 
   const base: Record<string, unknown> = {
     '@context': 'https://schema.org',
@@ -59,6 +154,29 @@ function buildDocJsonLd(doc: { frontmatter: import('@/lib/docs').DocFrontmatter;
 
   if (doc.frontmatter.keywords) {
     base.keywords = doc.frontmatter.keywords;
+  }
+
+  if (schemaType === 'FAQPage') {
+    const explicitFaq = typeof sd === 'object' && sd?.faq?.length ? sd.faq : null;
+    const faqItems = explicitFaq || extractFaqFromMarkdown(doc.content);
+    if (faqItems.length > 0) {
+      base.mainEntity = faqItems.map((item) => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: { '@type': 'Answer', text: item.answer },
+      }));
+    }
+  }
+
+  if (schemaType === 'HowTo') {
+    const steps = extractHowToSteps(doc.content);
+    if (steps.length > 0) {
+      base.step = steps.map((s) => ({
+        '@type': 'HowToStep',
+        name: s.name,
+        text: s.text,
+      }));
+    }
   }
 
   return base;
@@ -79,7 +197,7 @@ export default async function DocPage({ params }: PageProps) {
   const prev = currentIndex > 0 ? flatNav[currentIndex - 1] : null;
   const next = currentIndex < flatNav.length - 1 ? flatNav[currentIndex + 1] : null;
 
-  const jsonLd = buildDocJsonLd(doc);
+  const jsonLd = buildDocJsonLd({ ...doc, content: doc.content });
 
   return (
     <div className="flex gap-10 px-6 py-12 lg:px-10">

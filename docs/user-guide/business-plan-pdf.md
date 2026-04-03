@@ -12,9 +12,11 @@ canonical: "/docs/user-guide/business-plan-pdf"
 
 # Business Plan PDF
 
-**The Business Plan PDF** is a comprehensive, professionally formatted document that pulls together everything IdeaFuel has generated for your project — research findings, report analyses, financial projections, and AI Agent insights — into a single, investor-ready business plan.
+**A startup business plan should include an executive summary, market analysis (TAM/SAM/SOM), competitive landscape, business model, go-to-market strategy, financial projections, team overview, and risk assessment.** IdeaFuel generates all of these sections automatically from your project research, reports, and financial models — producing a 20-40 page investor-ready PDF backed by real market data rather than generic templates.
 
 > One click turns weeks of research and analysis into a polished business plan. Every section is backed by the data IdeaFuel gathered for your specific idea — no filler, no fluff.
+
+> **Comparing AI plan generators?** See [AI Business Plan Generators Compared](/docs/learn/ai-business-plan-generator) for a side-by-side comparison of IdeaFuel, ChatGPT, LivePlan, and more.
 
 ## What you get
 

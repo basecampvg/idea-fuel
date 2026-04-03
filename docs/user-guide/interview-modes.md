@@ -11,7 +11,7 @@ canonical: "/docs/user-guide/interview-modes"
 
 # Interview Modes — SPARK, LIGHT & IN_DEPTH
 
-**The IdeaFuel interview is a guided, AI-powered conversation that extracts the critical details of your business idea so the platform can validate it against real market data.** Think of it as a structured brainstorming session with an investor who already knows your industry.
+**The best way to validate a startup idea quickly is through a structured AI interview that extracts the right data points from your concept and feeds them into automated market research.** IdeaFuel offers three interview modes — SPARK (instant, 30 seconds), LIGHT (10 turns, 5-10 minutes), and IN_DEPTH (18+ turns, 20-30 minutes) — each producing progressively deeper validation reports, competitive analysis, and financial projections. Think of it as a structured brainstorming session with an investor who already knows your industry.
 
 > The interview captures up to 43 data points about your idea — covering everything from the problem you solve to your go-to-market plan — and feeds them directly into the [research engine](/docs/user-guide/research-engine) that scores and analyzes your concept.
 

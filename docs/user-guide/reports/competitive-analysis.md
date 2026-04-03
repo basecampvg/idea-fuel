@@ -12,9 +12,11 @@ canonical: "/docs/user-guide/reports/competitive-analysis"
 
 # Competitive Analysis Report
 
-**The Competitive Analysis Report gives you a structured, research-backed view of who you are competing against, where they are vulnerable, and where the market has room for you.**
+**A competitive analysis report is a structured document that evaluates the businesses competing for your target customers — their strengths, weaknesses, pricing, positioning, and vulnerabilities.** IdeaFuel generates this report automatically from your interview responses, identifying real competitors and mapping market gaps so you can make strategic decisions about where to compete and how to differentiate.
 
 > "In a nutshell" -- This report profiles your top competitors across pricing, funding, strengths, and weaknesses. It highlights exploitable gaps and helps you build defensible moats. Use it to make strategic decisions about where to compete and where to differentiate.
+
+> **Looking for a general guide?** See [What Is a Competitive Analysis?](/docs/learn/competitive-analysis-how-to) for frameworks, templates, and a step-by-step process.
 
 ## What This Report Tells You
 

@@ -14,7 +14,12 @@ export interface DocFrontmatter {
   category?: string;
   'og:title'?: string;
   'og:description'?: string;
-  structured_data?: { type: string };
+  structured_data?:
+    | string
+    | {
+        type: string;
+        faq?: Array<{ question: string; answer: string }>;
+      };
   canonical?: string;
 }
 

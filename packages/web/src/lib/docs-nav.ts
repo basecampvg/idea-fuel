@@ -82,4 +82,16 @@ export const NAV_ITEMS: NavItem[] = [
     slug: ['faq'],
     href: '/docs/faq',
   },
+  {
+    title: 'Learn',
+    slug: ['learn'],
+    href: '/docs/learn',
+    children: [
+      { title: 'Validate a Business Idea', slug: ['learn', 'validate-business-idea'], href: '/docs/learn/validate-business-idea' },
+      { title: 'Is My Idea Good?', slug: ['learn', 'is-my-business-idea-good'], href: '/docs/learn/is-my-business-idea-good' },
+      { title: 'AI Business Plan Generators', slug: ['learn', 'ai-business-plan-generator'], href: '/docs/learn/ai-business-plan-generator' },
+      { title: 'Market Research Cost', slug: ['learn', 'market-research-cost'], href: '/docs/learn/market-research-cost' },
+      { title: 'Competitive Analysis', slug: ['learn', 'competitive-analysis-how-to'], href: '/docs/learn/competitive-analysis-how-to' },
+    ],
+  },
 ];
