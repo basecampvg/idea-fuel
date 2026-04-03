@@ -20,9 +20,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
-import { FlaskConical, Plus, Trash2, ChevronRight } from 'lucide-react-native';
+import { FlaskConical, Plus, Trash2, ChevronRight, HelpCircle } from 'lucide-react-native';
 import { useRouter, useNavigation } from 'expo-router';
 import { triggerHaptic } from '../../../components/ui/Button';
+import { BottomSheet } from '../../../components/ui/BottomSheet';
+import { useShowHelpIcons } from '../../../hooks/useShowHelpIcons';
 import { trpc } from '../../../lib/trpc';
 import { colors, fonts } from '../../../lib/theme';
 
@@ -272,6 +274,8 @@ export default function SandboxListScreen() {
   const { data: sandboxes, isLoading, refetch } = trpc.sandbox.list.useQuery();
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showHelpIcons] = useShowHelpIcons();
+  const [guideVisible, setGuideVisible] = useState(false);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -371,7 +375,17 @@ export default function SandboxListScreen() {
     <View style={styles.safeArea}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Sandbox</Text>
+        <View style={styles.headerTitleRow}>
+          <Text style={styles.headerTitle}>Sandbox</Text>
+          {showHelpIcons && (
+            <TouchableOpacity
+              onPress={() => { triggerHaptic('light'); setGuideVisible(true); }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <HelpCircle size={18} color={colors.mutedDim} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {/* List */}
@@ -410,6 +424,35 @@ export default function SandboxListScreen() {
         onCreate={handleCreate}
         isLoading={createMutation.isPending}
       />
+
+      <BottomSheet
+        visible={guideVisible}
+        onClose={() => setGuideVisible(false)}
+        title="About Sandbox"
+      >
+        <View style={{ gap: 16 }}>
+          <Text style={{ fontSize: 15, color: colors.foreground, ...fonts.outfit.semiBold }}>
+            Your testing ground. Take promising ideas and stress-test them with AI-powered validation.
+          </Text>
+
+          <View style={{ gap: 8 }}>
+            <Text style={{ fontSize: 14, color: colors.muted, ...fonts.outfit.semiBold }}>Best practices</Text>
+            <Text style={{ fontSize: 14, color: colors.foreground, lineHeight: 20 }}>
+              {'\u2022'} Bring ideas from Notes that feel worth pursuing{'\n'}
+              {'\u2022'} Run validation analyses to pressure-test assumptions{'\n'}
+              {'\u2022'} Compare results across ideas to find the strongest ones
+            </Text>
+          </View>
+
+          <View style={{ gap: 8 }}>
+            <Text style={{ fontSize: 14, color: colors.muted, ...fonts.outfit.semiBold }}>How it connects</Text>
+            <Text style={{ fontSize: 14, color: colors.foreground, lineHeight: 20 }}>
+              {'\u2022'} Pull raw ideas from Notes to explore further{'\n'}
+              {'\u2022'} Move winners to Vault for long-term tracking
+            </Text>
+          </View>
+        </View>
+      </BottomSheet>
     </View>
   );
 }
@@ -423,6 +466,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 12,
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   headerTitle: {
     fontSize: 28,
