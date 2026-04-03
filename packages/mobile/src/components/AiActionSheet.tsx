@@ -1,7 +1,10 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { BottomSheet } from './ui/BottomSheet';
 import { colors, fonts } from '../lib/theme';
+import { Share2 } from 'lucide-react-native';
+import { triggerHaptic } from './ui/Button';
+import { shareAiResult } from '../lib/share-ai-result';
 
 export type AiActionResult =
   | { type: 'summary'; data: { summary: string } }
@@ -24,14 +27,22 @@ export function AiActionSheet({
   visible,
   onClose,
   result,
+  sandboxName,
 }: {
   visible: boolean;
   onClose: () => void;
   result: AiActionResult | null;
+  sandboxName: string;
 }) {
   if (!result) return null;
 
   const title = TITLES[result.type];
+
+  const handleShare = async () => {
+    if (!result || result.type === 'promoted') return;
+    triggerHaptic('medium');
+    await shareAiResult(result, sandboxName);
+  };
 
   const renderContent = () => {
     switch (result.type) {
@@ -82,7 +93,22 @@ export function AiActionSheet({
   };
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} title={title}>
+    <BottomSheet
+      visible={visible}
+      onClose={onClose}
+      title={title}
+      headerRight={
+        result.type !== 'promoted' ? (
+          <TouchableOpacity
+            onPress={handleShare}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={{ padding: 4 }}
+          >
+            <Share2 size={20} color={colors.muted} />
+          </TouchableOpacity>
+        ) : undefined
+      }
+    >
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         {renderContent()}
       </ScrollView>
