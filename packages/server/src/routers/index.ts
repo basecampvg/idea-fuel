@@ -19,6 +19,7 @@ import { noteRouter } from './note';
 import { attachmentRouter } from './attachment';
 import { customerInterviewRouter } from './customerInterview';
 import { sandboxRouter } from './sandbox';
+import { sketchRouter } from './sketch';
 
 /**
  * Main application router
@@ -45,6 +46,7 @@ export const appRouter = router({
   attachment: attachmentRouter,
   customerInterview: customerInterviewRouter,
   sandbox: sandboxRouter,
+  sketch: sketchRouter,
 });
 
 // Export type definition for client usage

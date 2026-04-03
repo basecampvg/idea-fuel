@@ -1,4 +1,4 @@
-import type { SketchTemplateType } from '@forge/shared/constants/sketch';
+import type { SketchTemplateType } from '@forge/shared/constants';
 
 /**
  * Base prompt segments per template type.
