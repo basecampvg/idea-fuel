@@ -3,15 +3,11 @@ import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { SKETCH_TEMPLATE_TYPES } from '@forge/shared/constants';
-import type { SketchTemplateType } from '@forge/shared/constants';
 import { getGeminiClient } from '../lib/gemini';
 import { buildSketchPrompt } from '../lib/sketch-prompts';
 import { supabase, ATTACHMENT_BUCKET } from '../lib/supabase';
 import { notes, noteAttachments, projectAttachments, projects, sandboxes } from '../db/schema';
 import type { Part } from '@google/generative-ai';
-
-// Suppress unused import lint warning — SketchTemplateType is used via the schema enum
-type _SketchTemplateType = SketchTemplateType;
 
 const generateSchema = z.object({
   templateType: z.enum(SKETCH_TEMPLATE_TYPES),
@@ -214,6 +210,7 @@ export const sketchRouter = router({
           type: 'AI',
           sandboxId: input.targetId,
           content: '',
+          updatedAt: new Date(),
         })
         .returning();
 
