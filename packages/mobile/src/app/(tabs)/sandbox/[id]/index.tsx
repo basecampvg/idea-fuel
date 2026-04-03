@@ -357,6 +357,7 @@ export default function SandboxDetailScreen() {
           setAiResult(null);
         }}
         result={aiResult}
+        sandboxName={sandbox?.name ?? 'Sandbox'}
       />
     </View>
   );
