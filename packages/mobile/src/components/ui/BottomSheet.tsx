@@ -31,6 +31,7 @@ interface BottomSheetProps {
   title?: string;
   children: React.ReactNode;
   showCloseButton?: boolean;
+  headerRight?: React.ReactNode;
 }
 
 export function BottomSheet({
@@ -39,6 +40,7 @@ export function BottomSheet({
   title,
   children,
   showCloseButton = true,
+  headerRight,
 }: BottomSheetProps) {
   const translateY = useSharedValue(SCREEN_HEIGHT);
   const backdropOpacity = useSharedValue(0);
@@ -131,18 +133,21 @@ export function BottomSheet({
                   <View style={styles.handle} />
                 </View>
 
-                {(title || showCloseButton) && (
+                {(title || showCloseButton || headerRight) && (
                   <View style={styles.header}>
                     {title && <Text style={styles.title}>{title}</Text>}
-                    {showCloseButton && (
-                      <TouchableOpacity
-                        onPress={dismiss}
-                        style={styles.closeButton}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      >
-                        <X size={20} color={colors.muted} />
-                      </TouchableOpacity>
-                    )}
+                    <View style={styles.headerActions}>
+                      {headerRight}
+                      {showCloseButton && (
+                        <TouchableOpacity
+                          onPress={dismiss}
+                          style={styles.closeButton}
+                          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
+                          <X size={20} color={colors.muted} />
+                        </TouchableOpacity>
+                      )}
+                    </View>
                   </View>
                 )}
 
@@ -208,6 +213,11 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: 4,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   content: {
     paddingHorizontal: 20,
