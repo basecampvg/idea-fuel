@@ -7,7 +7,6 @@ import { getGeminiClient } from '../lib/gemini';
 import { buildSketchPrompt } from '../lib/sketch-prompts';
 import { supabase, ATTACHMENT_BUCKET } from '../lib/supabase';
 import { notes, noteAttachments, projectAttachments, projects, sandboxes } from '../db/schema';
-import type { Part } from '@google/generative-ai';
 
 const generateSchema = z.object({
   templateType: z.enum(SKETCH_TEMPLATE_TYPES),
@@ -33,6 +32,8 @@ export const sketchRouter = router({
   generate: protectedProcedure
     .input(generateSchema)
     .mutation(async ({ ctx, input }) => {
+      console.log('[SketchRouter] generate called', { templateType: input.templateType, description: input.description, features: input.features });
+
       if (!supabase) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -40,24 +41,22 @@ export const sketchRouter = router({
         });
       }
 
+      const gemini = getGeminiClient();
+
       // Enrich the user's description + features into a detailed subject prompt
       let enrichedDescription = input.description;
       if (input.features.length > 0) {
         try {
-          const gemini = getGeminiClient();
-          const textModel = gemini.getGenerativeModel({ model: 'gemini-2.0-flash' });
-          const enrichResult = await textModel.generateContent({
-            contents: [{
-              role: 'user',
-              parts: [{ text: `You are a prompt engineer for an AI image generator. Given a product/concept description and a list of features, rewrite them into a single vivid, detailed description paragraph that an image generation model can use to create an accurate concept sketch. Focus on visual details — shape, materials, proportions, placement of features. Keep it under 200 words. Do NOT include any preamble or explanation — just output the description.
+          const enrichResult = await gemini.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `You are a prompt engineer for an AI image generator. Given a product/concept description and a list of features, rewrite them into a single vivid, detailed description paragraph that an image generation model can use to create an accurate concept sketch. Focus on visual details — shape, materials, proportions, placement of features. Keep it under 200 words. Do NOT include any preamble or explanation — just output the description.
 
 Description: ${input.description}
 
 Features:
-${input.features.map((f, i) => `${i + 1}. ${f}`).join('\n')}` }],
-            }],
+${input.features.map((f, i) => `${i + 1}. ${f}`).join('\n')}`,
           });
-          const enriched = enrichResult.response.text()?.trim();
+          const enriched = enrichResult.text?.trim();
           if (enriched) {
             enrichedDescription = enriched;
           }
@@ -74,8 +73,10 @@ ${input.features.map((f, i) => `${i + 1}. ${f}`).join('\n')}` }],
         annotations: input.annotations,
       });
 
-      // Build content parts — start with the text prompt
-      const parts: Part[] = [{ text: prompt }];
+      // Build content parts for image generation
+      const contents: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [
+        { text: prompt },
+      ];
 
       // If a reference image was provided, download it and include as inline data
       if (input.referenceImageKey) {
@@ -93,7 +94,7 @@ ${input.features.map((f, i) => `${i + 1}. ${f}`).join('\n')}` }],
         const arrayBuffer = await fileData.arrayBuffer();
         const base64 = Buffer.from(arrayBuffer).toString('base64');
 
-        parts.push({
+        contents.push({
           inlineData: {
             mimeType: 'image/jpeg',
             data: base64,
@@ -101,35 +102,25 @@ ${input.features.map((f, i) => `${i + 1}. ${f}`).join('\n')}` }],
         });
       }
 
-      // Call Gemini image generation
-      // Note: responseModalities is a newer field not yet in the v0.24.1 type definitions
-      // but is supported at runtime for gemini-2.0-flash-exp and similar models.
+      // Call Gemini image generation (Nano Banana 2)
       let imageBase64: string;
       try {
-        const gemini = getGeminiClient();
-        const model = gemini.getGenerativeModel({
-          model: 'gemini-2.0-flash-exp',
-          generationConfig: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            responseModalities: ['image', 'text'],
-          } as any,
+        const response = await gemini.models.generateContent({
+          model: 'gemini-3.1-flash-image-preview',
+          contents,
+          config: {
+            responseModalities: ['TEXT', 'IMAGE'],
+          },
         });
 
-        const result = await model.generateContent({ contents: [{ role: 'user', parts }] });
-        const response = result.response;
-        const candidates = response.candidates ?? [];
-
-        // Find the inlineData part in the response that contains the generated image
+        // Find the image part in the response
         let foundImage: string | null = null;
-        for (const candidate of candidates) {
-          for (const part of candidate.content.parts) {
-            const p = part as Part & { inlineData?: { mimeType: string; data: string } };
-            if (p.inlineData?.data) {
-              foundImage = p.inlineData.data;
-              break;
-            }
+        const parts = response.candidates?.[0]?.content?.parts ?? [];
+        for (const part of parts) {
+          if (part.inlineData?.data) {
+            foundImage = part.inlineData.data;
+            break;
           }
-          if (foundImage) break;
         }
 
         if (!foundImage) {
