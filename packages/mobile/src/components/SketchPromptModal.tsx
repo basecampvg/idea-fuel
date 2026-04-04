@@ -10,6 +10,8 @@ import {
   Image,
   Switch,
   Platform,
+  ActionSheetIOS,
+  Alert,
 } from 'react-native';
 import { Smartphone, Globe, Box, Trees, X, ImagePlus, Plus } from 'lucide-react-native';
 import { colors, fonts } from '../lib/theme';
@@ -138,28 +140,49 @@ export function SketchPromptModal({ visible, onClose, onGenerate, isLoading, ini
     });
   }, [templateType, description, annotations, referenceImageUri, referenceImageMimeType, isLoading, onGenerate]);
 
-  const handlePickImage = useCallback(async () => {
-    if (!ImagePicker) return;
-
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return;
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: 'images',
-      allowsEditing: false,
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets.length > 0) {
-      const asset = result.assets[0];
-      setReferenceImageUri(asset.uri);
-      // Derive MIME type from extension, default to image/jpeg
-      const ext = asset.uri.split('.').pop()?.toLowerCase();
-      const mime =
-        ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
-      setReferenceImageMimeType(mime);
-    }
+  const processPickerResult = useCallback((result: { canceled: boolean; assets?: Array<{ uri: string; mimeType?: string | null }> | null }) => {
+    if (result.canceled || !result.assets?.length) return;
+    const asset = result.assets[0];
+    setReferenceImageUri(asset.uri);
+    const ext = asset.uri.split('.').pop()?.toLowerCase();
+    const mime = asset.mimeType || (ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg');
+    setReferenceImageMimeType(mime);
   }, []);
+
+  const launchLibrary = useCallback(async () => {
+    if (!ImagePicker) return;
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') return;
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: 'images', quality: 0.8 });
+    processPickerResult(result);
+  }, [processPickerResult]);
+
+  const launchCamera = useCallback(async () => {
+    if (!ImagePicker) return;
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') return;
+    const result = await ImagePicker.launchCameraAsync({ mediaTypes: 'images', quality: 0.8 });
+    processPickerResult(result);
+  }, [processPickerResult]);
+
+  const handlePickImage = useCallback(() => {
+    if (!ImagePicker) return;
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options: ['Cancel', 'Take Photo', 'Choose from Library'], cancelButtonIndex: 0 },
+        (index) => {
+          if (index === 1) launchCamera();
+          if (index === 2) launchLibrary();
+        },
+      );
+    } else {
+      Alert.alert('Add Reference Image', undefined, [
+        { text: 'Take Photo', onPress: launchCamera },
+        { text: 'Choose from Library', onPress: launchLibrary },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    }
+  }, [launchCamera, launchLibrary]);
 
   const handleRemoveImage = useCallback(() => {
     setReferenceImageUri(null);
