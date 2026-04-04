@@ -113,25 +113,28 @@ export default function SketchbookScreen() {
       };
 
       setCurrentSketch(sketch);
-
-      // Save to local library
-      await saveSketch(
-        {
-          id: generated.sketchId,
-          localImagePath: '',
-          remoteImageUrl: generated.imageUrl,
-          storagePath: generated.storagePath,
-          templateType: result.templateType,
-          description: result.description,
-          features: result.features,
-          annotations: result.annotations,
-          pinnedTo: null,
-          createdAt: new Date().toISOString(),
-        },
-        generated.imageUrl,
-      );
-
       triggerHaptic('success');
+
+      // Save to local library (best-effort — don't show error if this fails)
+      try {
+        await saveSketch(
+          {
+            id: generated.sketchId,
+            localImagePath: '',
+            remoteImageUrl: generated.imageUrl,
+            storagePath: generated.storagePath,
+            templateType: result.templateType,
+            description: result.description,
+            features: result.features,
+            annotations: result.annotations,
+            pinnedTo: null,
+            createdAt: new Date().toISOString(),
+          },
+          generated.imageUrl,
+        );
+      } catch {
+        // Local cache failure is non-critical
+      }
     } catch {
       showToast({ message: 'Sketch generation failed. Please try again.', type: 'error' });
       triggerHaptic('error');

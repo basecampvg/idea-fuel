@@ -84,7 +84,7 @@ const APP_PAGE_BASE = `## Medium & Tools
 - Orange/amber used as the **accent color** for primary actions, selected states, active UI elements, and key interactive components
 - **No gradients to white on colored surfaces** — the lightest areas are achieved by leaving marker strokes slightly translucent or using paper white strategically
 - Occasional **red accents** used extremely sparingly for alerts or destructive actions
-- The background is **pure white paper** — completely clean, no environmental rendering, no atmospheric effects, no gradients
+- The background is **pure flat white (#FFFFFF)** — completely clean, no paper texture, no grain, no environmental rendering, no atmospheric effects, no gradients
 
 ## Line Work
 - **Bold, confident outer contour lines** in black for the device frame and major UI containers — thicker weight (approximately 0.5-0.8mm equivalent), slightly varying in pressure giving a hand-drawn energy
@@ -154,7 +154,7 @@ const WEB_LAYOUT_BASE = `## Medium & Tools
 - Orange/amber used as the **accent color** for primary CTAs, navigation highlights, hero section accents, and key interactive components
 - **No gradients to white on colored surfaces** — the lightest areas are achieved by leaving marker strokes slightly translucent or using paper white strategically
 - Occasional **red accents** used extremely sparingly for alerts or destructive actions
-- The background is **pure white paper** — completely clean, no environmental rendering, no atmospheric effects, no gradients
+- The background is **pure flat white (#FFFFFF)** — completely clean, no paper texture, no grain, no environmental rendering, no atmospheric effects, no gradients
 
 ## Line Work
 - **Bold, confident outer contour lines** in black for the browser frame and major page sections — thicker weight (approximately 0.5-0.8mm equivalent), slightly varying in pressure giving a hand-drawn energy
@@ -227,7 +227,7 @@ const SCENE_BASE = `## Medium & Tools
 - Orange/amber used as the **accent color** for focal elements, key features, highlighted zones, material callouts, or areas of interest within the scene
 - **No gradients to white on colored surfaces** — the lightest areas are achieved by leaving marker strokes slightly translucent or using paper white strategically
 - Occasional **red accents** used extremely sparingly for small detail features or danger/attention zones
-- The background transitions from **rendered scene elements to pure white paper** — the scene fades out at the edges rather than filling the entire page, leaving white space around the composition
+- The background transitions from **rendered scene elements to pure flat white (#FFFFFF)** — the scene fades out at the edges rather than filling the entire page, no paper texture, no grain, leaving clean white space around the composition
 
 ## Line Work
 - **Bold, confident outer contour lines** in black for primary structural elements and foreground features — thicker weight (approximately 0.5-0.8mm equivalent), slightly varying in pressure giving a hand-drawn energy
