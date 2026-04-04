@@ -26,7 +26,7 @@ const PHYSICAL_OBJECT_BASE = `## Medium & Tools
 ## Perspective & Composition
 - Objects rendered in **three-quarter isometric/perspective view** — typically a slightly elevated viewpoint showing top, front, and one side
 - **Single hero object** dominates the composition at a **large scale**, often filling 70-80% of the page
-- The object is **rotated at a dynamic diagonal angle** on the page (roughly 30-45 degrees from horizontal), not sitting flat or aligned to page edges
+- The object is rendered at a **dynamic angle that communicates its form clearly** — tilted to show multiple faces where appropriate, but maintaining a natural, stable orientation for objects with a flat base
 - Composition is deliberately **cropped** — parts of the object may extend to or slightly beyond the page edges, creating a sense of scale and presence
 
 ## Surface Rendering Technique
