@@ -13,7 +13,7 @@ const PHYSICAL_OBJECT_BASE = `## Medium & Tools
 - Orange tones similarly use **2-3 values** — a mid-tone orange, a deeper burnt orange for shadow, and lighter amber for highlight transitions
 - **No gradients to white on colored surfaces** — the lightest areas are achieved by leaving marker strokes slightly translucent or using paper white strategically
 - Occasional **red accents** used extremely sparingly for small detail features (seen as deep red circular elements)
-- The background is **pure white paper** — completely clean, no environmental rendering, no atmospheric effects, no gradients, no contextual backgrounds
+- The background is **pure flat white (#FFFFFF)** — completely clean, no paper texture, no grain, no environmental rendering, no atmospheric effects, no gradients, no contextual backgrounds
 
 ## Line Work
 - **Bold, confident outer contour lines** in black — thicker weight (approximately 0.5-0.8mm equivalent), slightly varying in pressure giving a hand-drawn energy
