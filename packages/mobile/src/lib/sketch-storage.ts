@@ -35,9 +35,19 @@ export async function getAllSketches(): Promise<LocalSketch[]> {
 export async function saveSketch(sketch: LocalSketch, imageUrl: string): Promise<LocalSketch> {
   await ensureDir();
 
-  // Download image to local file system
-  const localPath = `${SKETCH_DIR}${sketch.id}.png`;
-  await FileSystem.downloadAsync(imageUrl, localPath);
+  // Try to download image to local file system
+  let localPath = '';
+  try {
+    localPath = `${SKETCH_DIR}${sketch.id}.png`;
+    const downloadResult = await FileSystem.downloadAsync(imageUrl, localPath);
+    if (downloadResult.status !== 200) {
+      console.warn('[sketch-storage] Download returned status', downloadResult.status);
+      localPath = ''; // Fall back to remote URL
+    }
+  } catch (err) {
+    console.warn('[sketch-storage] Failed to download image locally:', err);
+    localPath = ''; // Fall back to remote URL
+  }
 
   const entry: LocalSketch = {
     ...sketch,

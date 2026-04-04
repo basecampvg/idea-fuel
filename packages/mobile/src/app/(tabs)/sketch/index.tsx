@@ -6,9 +6,12 @@ import {
   Image,
   ActivityIndicator,
   StyleSheet,
+  Share,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Plus, RefreshCw, Pencil, Pin, Grid3x3 } from 'lucide-react-native';
+import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
+import { Plus, RefreshCw, Pencil, Pin, Grid3x3, Download, Share2 } from 'lucide-react-native';
 import { colors, fonts } from '../../../lib/theme';
 import { trpc } from '../../../lib/trpc';
 import { triggerHaptic } from '../../../components/ui/Button';
@@ -207,6 +210,41 @@ export default function SketchbookScreen() {
     [currentSketch, pinSketch, showToast],
   );
 
+  // ── Save to camera roll ─────────────────────────────────────────────────────
+
+  const handleSave = useCallback(async () => {
+    if (!currentSketch) return;
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        showToast({ message: 'Photo library permission required', type: 'error' });
+        return;
+      }
+      // Download to a temp file first, then save to camera roll
+      const localUri = `${FileSystem.cacheDirectory}sketch-${currentSketch.sketchId}.png`;
+      const download = await FileSystem.downloadAsync(currentSketch.imageUrl, localUri);
+      await MediaLibrary.saveToLibraryAsync(download.uri);
+      triggerHaptic('success');
+      showToast({ message: 'Saved to Photos', type: 'success' });
+    } catch {
+      triggerHaptic('error');
+      showToast({ message: 'Failed to save image', type: 'error' });
+    }
+  }, [currentSketch, showToast]);
+
+  // ── Share ──────────────────────────────────────────────────────────────────
+
+  const handleShare = useCallback(async () => {
+    if (!currentSketch) return;
+    try {
+      const localUri = `${FileSystem.cacheDirectory}sketch-share-${currentSketch.sketchId}.png`;
+      await FileSystem.downloadAsync(currentSketch.imageUrl, localUri);
+      await Share.share({ url: localUri });
+    } catch {
+      // User cancelled or share failed — no toast needed
+    }
+  }, [currentSketch]);
+
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
@@ -231,11 +269,22 @@ export default function SketchbookScreen() {
             <Text style={styles.loadingText}>Sketching...</Text>
           </View>
         ) : currentSketch ? (
-          <Image
-            source={{ uri: currentSketch.imageUrl }}
-            style={styles.sketchImage}
-            resizeMode="contain"
-          />
+          <>
+            <Image
+              source={{ uri: currentSketch.imageUrl }}
+              style={styles.sketchImage}
+              resizeMode="contain"
+            />
+            {/* Quick save/share overlay */}
+            <View style={styles.imageActions}>
+              <TouchableOpacity style={styles.imageActionBtn} onPress={handleSave} activeOpacity={0.7}>
+                <Download size={18} color={colors.foreground} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.imageActionBtn} onPress={handleShare} activeOpacity={0.7}>
+                <Share2 size={18} color={colors.foreground} />
+              </TouchableOpacity>
+            </View>
+          </>
         ) : (
           <View style={styles.emptyContainer}>
             <Pencil size={56} color={colors.border} />
@@ -364,6 +413,21 @@ const styles = StyleSheet.create({
   sketchImage: {
     width: '100%',
     height: '100%',
+  },
+  imageActions: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  imageActionBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actionBar: {
     flexDirection: 'row',
