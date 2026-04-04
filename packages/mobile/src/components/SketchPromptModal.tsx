@@ -17,7 +17,6 @@ import {
   SKETCH_TEMPLATE_LABELS,
   SKETCH_MAX_DESCRIPTION_LENGTH,
   SKETCH_ASPECT_RATIOS,
-  SKETCH_ASPECT_RATIO_LABELS,
 } from '@forge/shared/constants';
 import type { SketchTemplateType, SketchAspectRatio } from '@forge/shared/constants';
 
@@ -293,26 +292,43 @@ export function SketchPromptModal({ visible, onClose, onGenerate, isLoading, ini
               {/* Aspect Ratio */}
               <Text style={styles.fieldLabel}>Aspect Ratio</Text>
               <View style={styles.ratioRow}>
-                {SKETCH_ASPECT_RATIOS.map((ratio) => (
-                  <TouchableOpacity
-                    key={ratio}
-                    style={[
-                      styles.ratioChip,
-                      aspectRatio === ratio && styles.ratioChipSelected,
-                    ]}
-                    onPress={() => setAspectRatio(ratio)}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.ratioChipText,
-                        aspectRatio === ratio && styles.ratioChipTextSelected,
-                      ]}
+                {SKETCH_ASPECT_RATIOS.map((ratio) => {
+                  const selected = aspectRatio === ratio;
+                  const [w, h] = ratio.split(':').map(Number);
+                  // Scale preview boxes to fit nicely — base size 28px on the longest side
+                  const maxDim = 28;
+                  const scale = maxDim / Math.max(w, h);
+                  const previewW = Math.round(w * scale);
+                  const previewH = Math.round(h * scale);
+                  return (
+                    <TouchableOpacity
+                      key={ratio}
+                      style={styles.ratioItem}
+                      onPress={() => setAspectRatio(ratio)}
+                      activeOpacity={0.7}
                     >
-                      {SKETCH_ASPECT_RATIO_LABELS[ratio]}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                      <View
+                        style={[
+                          styles.ratioPreview,
+                          {
+                            width: previewW,
+                            height: previewH,
+                            borderColor: selected ? colors.brand : colors.mutedDim,
+                            borderStyle: selected ? 'solid' : 'dashed',
+                          },
+                        ]}
+                      />
+                      <Text
+                        style={[
+                          styles.ratioLabel,
+                          selected && styles.ratioLabelSelected,
+                        ]}
+                      >
+                        {ratio}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
 
               {/* Reference Image */}
@@ -503,27 +519,26 @@ const styles = StyleSheet.create({
   },
   ratioRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    justifyContent: 'space-between',
+    gap: 6,
   },
-  ratioChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
+  ratioItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 10,
   },
-  ratioChipSelected: {
-    backgroundColor: colors.brandMuted,
-    borderColor: colors.brand,
+  ratioPreview: {
+    borderWidth: 2,
+    borderRadius: 3,
+    backgroundColor: 'transparent',
   },
-  ratioChipText: {
-    fontSize: 13,
+  ratioLabel: {
+    fontSize: 11,
     ...fonts.outfit.medium,
-    color: colors.muted,
+    color: colors.mutedDim,
   },
-  ratioChipTextSelected: {
+  ratioLabelSelected: {
     color: colors.brand,
   },
   featureChip: {

@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Plus, RefreshCw, Pencil, Pin, Grid3x3 } from 'lucide-react-native';
 import { colors, fonts } from '../../../lib/theme';
@@ -40,7 +39,6 @@ interface CurrentSketch {
 
 export default function SketchbookScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { showToast } = useToast();
   const { checkConsent, ConsentGate } = useAIConsentGate();
 
@@ -209,7 +207,7 @@ export default function SketchbookScreen() {
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <View style={[styles.safeArea, { paddingTop: insets.top }]}>
+    <View style={styles.safeArea}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Sketchbook</Text>
