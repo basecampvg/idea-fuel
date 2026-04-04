@@ -11,7 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
-import { Plus, RefreshCw, Pencil, Pin, Grid3x3, Download, Share2 } from 'lucide-react-native';
+import { Plus, RefreshCw, Pencil, Pin, Grid3x3, Download, Share2, Trash2 } from 'lucide-react-native';
 import { colors, fonts } from '../../../lib/theme';
 import { trpc } from '../../../lib/trpc';
 import { triggerHaptic } from '../../../components/ui/Button';
@@ -275,13 +275,20 @@ export default function SketchbookScreen() {
               style={styles.sketchImage}
               resizeMode="contain"
             />
-            {/* Quick save/share overlay */}
+            {/* Quick save/share/delete overlay */}
             <View style={styles.imageActions}>
               <TouchableOpacity style={styles.imageActionBtn} onPress={handleSave} activeOpacity={0.7}>
                 <Download size={18} color={colors.foreground} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.imageActionBtn} onPress={handleShare} activeOpacity={0.7}>
                 <Share2 size={18} color={colors.foreground} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.imageActionBtn, styles.imageActionBtnDelete]}
+                onPress={() => setCurrentSketch(null)}
+                activeOpacity={0.7}
+              >
+                <Trash2 size={18} color={colors.white} />
               </TouchableOpacity>
             </View>
           </>
@@ -428,6 +435,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  imageActionBtnDelete: {
+    backgroundColor: colors.destructive,
   },
   actionBar: {
     flexDirection: 'row',
