@@ -324,12 +324,14 @@ const PROMPTS: Record<SketchTemplateType, {
 export function buildSketchPrompt(opts: {
   templateType: SketchTemplateType;
   description: string;
+  aspectRatio: string;
   annotations: boolean;
 }): string {
   const template = PROMPTS[opts.templateType];
 
   let prompt = template.base;
   prompt += `\n\nSubject: ${opts.description}`;
+  prompt += `\n\n## Image Format\n- Generate the image with a **${opts.aspectRatio} aspect ratio**\n- The background must be **pure white (#FFFFFF)** with no texture, grain, or off-white tones`;
   prompt += `\n\n${opts.annotations ? template.annotations : template.noAnnotations}`;
 
   return prompt;

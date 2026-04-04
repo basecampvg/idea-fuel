@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Plus, RefreshCw, Pencil, Pin, Grid3x3 } from 'lucide-react-native';
 import { colors, fonts } from '../../../lib/theme';
@@ -30,6 +30,7 @@ interface CurrentSketch {
   templateType: SketchTemplateType;
   description: string;
   features: string[];
+  aspectRatio: string;
   annotations: boolean;
   referenceImageUri: string | null;
   referenceImageMimeType: string | null;
@@ -39,6 +40,7 @@ interface CurrentSketch {
 
 export default function SketchbookScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { showToast } = useToast();
   const { checkConsent, ConsentGate } = useAIConsentGate();
 
@@ -94,6 +96,7 @@ export default function SketchbookScreen() {
         templateType: result.templateType,
         description: result.description,
         features: result.features,
+        aspectRatio: result.aspectRatio,
         annotations: result.annotations,
         referenceImageKey,
       });
@@ -105,6 +108,7 @@ export default function SketchbookScreen() {
         templateType: result.templateType,
         description: result.description,
         features: result.features,
+        aspectRatio: result.aspectRatio,
         annotations: result.annotations,
         referenceImageUri: result.referenceImageUri,
         referenceImageMimeType: result.referenceImageMimeType,
@@ -156,6 +160,7 @@ export default function SketchbookScreen() {
       templateType: currentSketch.templateType,
       description: currentSketch.description,
       features: currentSketch.features,
+      aspectRatio: currentSketch.aspectRatio as any,
       annotations: currentSketch.annotations,
       referenceImageUri: currentSketch.referenceImageUri,
       referenceImageMimeType: currentSketch.referenceImageMimeType,
@@ -204,7 +209,7 @@ export default function SketchbookScreen() {
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={[styles.safeArea, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Sketchbook</Text>
@@ -289,6 +294,7 @@ export default function SketchbookScreen() {
                 templateType: currentSketch.templateType,
                 description: currentSketch.description,
                 features: currentSketch.features,
+                aspectRatio: currentSketch.aspectRatio as any,
                 annotations: currentSketch.annotations,
                 referenceImageUri: currentSketch.referenceImageUri,
                 referenceImageMimeType: currentSketch.referenceImageMimeType,
@@ -305,7 +311,7 @@ export default function SketchbookScreen() {
 
       {/* AI consent gate (renders as a bottom sheet when triggered) */}
       {ConsentGate}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -321,7 +327,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingTop: 8,
+    paddingBottom: 12,
   },
   headerTitle: {
     fontSize: 28,
@@ -330,9 +337,11 @@ const styles = StyleSheet.create({
   },
   canvas: {
     flex: 1,
-    margin: 12,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 12,
     borderRadius: 16,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',

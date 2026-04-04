@@ -12,6 +12,7 @@ const generateSchema = z.object({
   templateType: z.enum(SKETCH_TEMPLATE_TYPES),
   description: z.string().min(1).max(500),
   features: z.array(z.string().max(120)).max(10).default([]),
+  aspectRatio: z.enum(['1:1', '16:9', '9:16', '4:3', '3:4']).default('1:1'),
   referenceImageKey: z.string().optional(),
   annotations: z.boolean(),
 });
@@ -70,6 +71,7 @@ ${input.features.map((f, i) => `${i + 1}. ${f}`).join('\n')}`,
       const prompt = buildSketchPrompt({
         templateType: input.templateType,
         description: enrichedDescription,
+        aspectRatio: input.aspectRatio,
         annotations: input.annotations,
       });
 

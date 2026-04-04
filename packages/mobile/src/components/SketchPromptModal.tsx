@@ -16,8 +16,10 @@ import { colors, fonts } from '../lib/theme';
 import {
   SKETCH_TEMPLATE_LABELS,
   SKETCH_MAX_DESCRIPTION_LENGTH,
+  SKETCH_ASPECT_RATIOS,
+  SKETCH_ASPECT_RATIO_LABELS,
 } from '@forge/shared/constants';
-import type { SketchTemplateType } from '@forge/shared/constants';
+import type { SketchTemplateType, SketchAspectRatio } from '@forge/shared/constants';
 
 // expo-image-picker has native code — defer loading to avoid crash if native
 // module isn't in the current dev client build.
@@ -34,6 +36,7 @@ export interface PromptResult {
   templateType: SketchTemplateType;
   description: string;
   features: string[];
+  aspectRatio: SketchAspectRatio;
   annotations: boolean;
   referenceImageUri: string | null;
   referenceImageMimeType: string | null;
@@ -71,6 +74,7 @@ export function SketchPromptModal({ visible, onClose, onGenerate, isLoading, ini
   const [description, setDescription] = useState(initialValues?.description ?? '');
   const [features, setFeatures] = useState<string[]>(initialValues?.features ?? []);
   const [featureInput, setFeatureInput] = useState('');
+  const [aspectRatio, setAspectRatio] = useState<SketchAspectRatio>(initialValues?.aspectRatio ?? '1:1');
   const [annotations, setAnnotations] = useState(initialValues?.annotations ?? true);
   const [referenceImageUri, setReferenceImageUri] = useState<string | null>(
     initialValues?.referenceImageUri ?? null,
@@ -87,6 +91,7 @@ export function SketchPromptModal({ visible, onClose, onGenerate, isLoading, ini
       setDescription(initialValues?.description ?? '');
       setFeatures(initialValues?.features ?? []);
       setFeatureInput('');
+      setAspectRatio(initialValues?.aspectRatio ?? '1:1');
       setAnnotations(initialValues?.annotations ?? true);
       setReferenceImageUri(initialValues?.referenceImageUri ?? null);
       setReferenceImageMimeType(initialValues?.referenceImageMimeType ?? null);
@@ -99,6 +104,7 @@ export function SketchPromptModal({ visible, onClose, onGenerate, isLoading, ini
     setDescription('');
     setFeatures([]);
     setFeatureInput('');
+    setAspectRatio('1:1');
     setAnnotations(true);
     setReferenceImageUri(null);
     setReferenceImageMimeType(null);
@@ -126,6 +132,7 @@ export function SketchPromptModal({ visible, onClose, onGenerate, isLoading, ini
       templateType,
       description: description.trim(),
       features: features.filter((f) => f.trim().length > 0),
+      aspectRatio,
       annotations,
       referenceImageUri,
       referenceImageMimeType,
@@ -281,6 +288,31 @@ export function SketchPromptModal({ visible, onClose, onGenerate, isLoading, ini
                 >
                   <Plus size={18} color={colors.white} />
                 </TouchableOpacity>
+              </View>
+
+              {/* Aspect Ratio */}
+              <Text style={styles.fieldLabel}>Aspect Ratio</Text>
+              <View style={styles.ratioRow}>
+                {SKETCH_ASPECT_RATIOS.map((ratio) => (
+                  <TouchableOpacity
+                    key={ratio}
+                    style={[
+                      styles.ratioChip,
+                      aspectRatio === ratio && styles.ratioChipSelected,
+                    ]}
+                    onPress={() => setAspectRatio(ratio)}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.ratioChipText,
+                        aspectRatio === ratio && styles.ratioChipTextSelected,
+                      ]}
+                    >
+                      {SKETCH_ASPECT_RATIO_LABELS[ratio]}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
 
               {/* Reference Image */}
@@ -468,6 +500,31 @@ const styles = StyleSheet.create({
     color: colors.mutedDim,
     textAlign: 'right',
     marginTop: 4,
+  },
+  ratioRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  ratioChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  ratioChipSelected: {
+    backgroundColor: colors.brandMuted,
+    borderColor: colors.brand,
+  },
+  ratioChipText: {
+    fontSize: 13,
+    ...fonts.outfit.medium,
+    color: colors.muted,
+  },
+  ratioChipTextSelected: {
+    color: colors.brand,
   },
   featureChip: {
     flexDirection: 'row',
