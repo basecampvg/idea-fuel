@@ -10,7 +10,13 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
-import * as MediaLibrary from 'expo-media-library';
+// Deferred load — native module may not be available in all builds
+let MediaLibrary: typeof import('expo-media-library') | null = null;
+try {
+  MediaLibrary = require('expo-media-library');
+} catch {
+  // Native module not available
+}
 import { Plus, RefreshCw, Pencil, Pin, Grid3x3, Download, Share2, Trash2 } from 'lucide-react-native';
 import { colors, fonts } from '../../../lib/theme';
 import { trpc } from '../../../lib/trpc';
@@ -213,7 +219,7 @@ export default function SketchbookScreen() {
   // ── Save to camera roll ─────────────────────────────────────────────────────
 
   const handleSave = useCallback(async () => {
-    if (!currentSketch) return;
+    if (!currentSketch || !MediaLibrary) return;
     try {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== 'granted') {

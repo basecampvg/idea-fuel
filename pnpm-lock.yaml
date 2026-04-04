@@ -120,6 +120,9 @@ importers:
       expo-linking:
         specifier: ~55.0.9
         version: 55.0.9(expo@55.0.9)(react-native@0.83.2(patch_hash=ag67twtw3vq2atxvgwk6xwdany)(@babel/core@7.28.6)(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
+      expo-media-library:
+        specifier: ^55.0.12
+        version: 55.0.12(expo@55.0.9)(react-native@0.83.2(patch_hash=ag67twtw3vq2atxvgwk6xwdany)(@babel/core@7.28.6)(@types/react@19.2.0)(react@19.2.0))
       expo-router:
         specifier: ~55.0.8
         version: 55.0.8(vwqahuqxrxv43dwvu4uboprzrm)
@@ -6408,6 +6411,12 @@ packages:
     resolution: {integrity: sha512-3+pFun4C9F/eFMVpwZgOBrBWq5sfu7rS1uxTrcg9G7jUFatNe5W6hr+M7z7aQPDf0J1afaSudUZPawx1LLf15w==}
     peerDependencies:
       expo: '*'
+
+  expo-media-library@55.0.12:
+    resolution: {integrity: sha512-W98uF5zaWmM9PCkOxf+CeTcd296aFZ82tyRTuRzA8P1xd4GvgA5UvlBciK/OkVNsuWU7rOxub764OstUaLtCIA==}
+    peerDependencies:
+      expo: '*'
+      react-native: '*'
 
   expo-modules-autolinking@55.0.12:
     resolution: {integrity: sha512-nZOPjpl4v5YInNftJpX10bYxDNNq2HM+hWTfr3FPE1/i0lES/cnvaB8v4XKpDTuAUdBwkGYadTfNwNG9k/Ftgw==}
@@ -17568,6 +17577,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
       - typescript
+
+  expo-media-library@55.0.12(expo@55.0.9)(react-native@0.83.2(patch_hash=ag67twtw3vq2atxvgwk6xwdany)(@babel/core@7.28.6)(@types/react@19.2.0)(react@19.2.0)):
+    dependencies:
+      expo: 55.0.9(@babel/core@7.28.6)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@55.0.7)(expo-router@55.0.8)(react-dom@19.2.0(react@19.2.0))(react-native-webview@13.16.0(react-native@0.83.2(patch_hash=ag67twtw3vq2atxvgwk6xwdany)(@babel/core@7.28.6)(@types/react@19.2.0)(react@19.2.0))(react@19.2.0))(react-native@0.83.2(patch_hash=ag67twtw3vq2atxvgwk6xwdany)(@babel/core@7.28.6)(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
+      react-native: 0.83.2(patch_hash=ag67twtw3vq2atxvgwk6xwdany)(@babel/core@7.28.6)(@types/react@19.2.0)(react@19.2.0)
 
   expo-modules-autolinking@55.0.12(typescript@5.9.3):
     dependencies:
