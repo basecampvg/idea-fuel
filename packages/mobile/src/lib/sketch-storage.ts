@@ -10,6 +10,7 @@ export interface LocalSketch {
   storagePath: string;
   templateType: 'app_page' | 'web_layout' | 'physical_object' | 'scene';
   description: string;
+  features: string[];
   annotations: boolean;
   pinnedTo: { type: 'sandbox' | 'vault'; id: string; name: string } | null;
   createdAt: string;

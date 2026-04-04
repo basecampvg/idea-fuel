@@ -29,6 +29,7 @@ interface CurrentSketch {
   storagePath: string;
   templateType: SketchTemplateType;
   description: string;
+  features: string[];
   annotations: boolean;
   referenceImageUri: string | null;
   referenceImageMimeType: string | null;
@@ -92,6 +93,7 @@ export default function SketchbookScreen() {
       const generated = await generateSketch.mutateAsync({
         templateType: result.templateType,
         description: result.description,
+        features: result.features,
         annotations: result.annotations,
         referenceImageKey,
       });
@@ -102,6 +104,7 @@ export default function SketchbookScreen() {
         storagePath: generated.storagePath,
         templateType: result.templateType,
         description: result.description,
+        features: result.features,
         annotations: result.annotations,
         referenceImageUri: result.referenceImageUri,
         referenceImageMimeType: result.referenceImageMimeType,
@@ -118,6 +121,7 @@ export default function SketchbookScreen() {
           storagePath: generated.storagePath,
           templateType: result.templateType,
           description: result.description,
+          features: result.features,
           annotations: result.annotations,
           pinnedTo: null,
           createdAt: new Date().toISOString(),
@@ -151,6 +155,7 @@ export default function SketchbookScreen() {
     await handleGenerate({
       templateType: currentSketch.templateType,
       description: currentSketch.description,
+      features: currentSketch.features,
       annotations: currentSketch.annotations,
       referenceImageUri: currentSketch.referenceImageUri,
       referenceImageMimeType: currentSketch.referenceImageMimeType,
@@ -283,6 +288,7 @@ export default function SketchbookScreen() {
             ? {
                 templateType: currentSketch.templateType,
                 description: currentSketch.description,
+                features: currentSketch.features,
                 annotations: currentSketch.annotations,
                 referenceImageUri: currentSketch.referenceImageUri,
                 referenceImageMimeType: currentSketch.referenceImageMimeType,

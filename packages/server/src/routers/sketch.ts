@@ -12,6 +12,7 @@ import type { Part } from '@google/generative-ai';
 const generateSchema = z.object({
   templateType: z.enum(SKETCH_TEMPLATE_TYPES),
   description: z.string().min(1).max(500),
+  features: z.array(z.string().max(120)).max(10).default([]),
   referenceImageKey: z.string().optional(),
   annotations: z.boolean(),
 });
@@ -39,9 +40,37 @@ export const sketchRouter = router({
         });
       }
 
+      // Enrich the user's description + features into a detailed subject prompt
+      let enrichedDescription = input.description;
+      if (input.features.length > 0) {
+        try {
+          const gemini = getGeminiClient();
+          const textModel = gemini.getGenerativeModel({ model: 'gemini-2.0-flash' });
+          const enrichResult = await textModel.generateContent({
+            contents: [{
+              role: 'user',
+              parts: [{ text: `You are a prompt engineer for an AI image generator. Given a product/concept description and a list of features, rewrite them into a single vivid, detailed description paragraph that an image generation model can use to create an accurate concept sketch. Focus on visual details — shape, materials, proportions, placement of features. Keep it under 200 words. Do NOT include any preamble or explanation — just output the description.
+
+Description: ${input.description}
+
+Features:
+${input.features.map((f, i) => `${i + 1}. ${f}`).join('\n')}` }],
+            }],
+          });
+          const enriched = enrichResult.response.text()?.trim();
+          if (enriched) {
+            enrichedDescription = enriched;
+          }
+        } catch (err) {
+          // Enrichment is best-effort — fall back to raw description + features
+          console.warn('[SketchRouter] Enrichment failed, using raw input:', err instanceof Error ? err.message : err);
+          enrichedDescription = `${input.description}. Features: ${input.features.join('; ')}`;
+        }
+      }
+
       const prompt = buildSketchPrompt({
         templateType: input.templateType,
-        description: input.description,
+        description: enrichedDescription,
         annotations: input.annotations,
       });
 

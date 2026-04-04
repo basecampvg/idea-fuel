@@ -11,7 +11,7 @@ import {
   Switch,
   Platform,
 } from 'react-native';
-import { Smartphone, Globe, Box, Trees, X, ImagePlus } from 'lucide-react-native';
+import { Smartphone, Globe, Box, Trees, X, ImagePlus, Plus } from 'lucide-react-native';
 import { colors, fonts } from '../lib/theme';
 import {
   SKETCH_TEMPLATE_LABELS,
@@ -33,6 +33,7 @@ try {
 export interface PromptResult {
   templateType: SketchTemplateType;
   description: string;
+  features: string[];
   annotations: boolean;
   referenceImageUri: string | null;
   referenceImageMimeType: string | null;
@@ -68,6 +69,8 @@ export function SketchPromptModal({ visible, onClose, onGenerate, isLoading, ini
     initialValues?.templateType ?? 'app_page',
   );
   const [description, setDescription] = useState(initialValues?.description ?? '');
+  const [features, setFeatures] = useState<string[]>(initialValues?.features ?? []);
+  const [featureInput, setFeatureInput] = useState('');
   const [annotations, setAnnotations] = useState(initialValues?.annotations ?? true);
   const [referenceImageUri, setReferenceImageUri] = useState<string | null>(
     initialValues?.referenceImageUri ?? null,
@@ -82,6 +85,8 @@ export function SketchPromptModal({ visible, onClose, onGenerate, isLoading, ini
       setStep(2);
       setTemplateType(initialValues?.templateType ?? 'app_page');
       setDescription(initialValues?.description ?? '');
+      setFeatures(initialValues?.features ?? []);
+      setFeatureInput('');
       setAnnotations(initialValues?.annotations ?? true);
       setReferenceImageUri(initialValues?.referenceImageUri ?? null);
       setReferenceImageMimeType(initialValues?.referenceImageMimeType ?? null);
@@ -92,6 +97,8 @@ export function SketchPromptModal({ visible, onClose, onGenerate, isLoading, ini
     setStep(1);
     setTemplateType('app_page');
     setDescription('');
+    setFeatures([]);
+    setFeatureInput('');
     setAnnotations(true);
     setReferenceImageUri(null);
     setReferenceImageMimeType(null);
@@ -118,6 +125,7 @@ export function SketchPromptModal({ visible, onClose, onGenerate, isLoading, ini
     onGenerate({
       templateType,
       description: description.trim(),
+      features: features.filter((f) => f.trim().length > 0),
       annotations,
       referenceImageUri,
       referenceImageMimeType,
@@ -225,6 +233,55 @@ export function SketchPromptModal({ visible, onClose, onGenerate, isLoading, ini
               <Text style={styles.charCount}>
                 {description.length}/{SKETCH_MAX_DESCRIPTION_LENGTH}
               </Text>
+
+              {/* Features */}
+              <Text style={styles.fieldLabel}>Features (optional)</Text>
+              {features.map((feature, idx) => (
+                <View key={idx} style={styles.featureChip}>
+                  <Text style={styles.featureChipText} numberOfLines={1}>{feature}</Text>
+                  <TouchableOpacity
+                    onPress={() => setFeatures((prev) => prev.filter((_, i) => i !== idx))}
+                    hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                  >
+                    <X size={14} color={colors.muted} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+              <View style={styles.featureInputRow}>
+                <TextInput
+                  style={styles.featureInput}
+                  placeholder="e.g. ergonomic grip for easy shaking"
+                  placeholderTextColor={colors.mutedDim}
+                  value={featureInput}
+                  onChangeText={setFeatureInput}
+                  maxLength={120}
+                  returnKeyType="done"
+                  onSubmitEditing={() => {
+                    const trimmed = featureInput.trim();
+                    if (trimmed && features.length < 10) {
+                      setFeatures((prev) => [...prev, trimmed]);
+                      setFeatureInput('');
+                    }
+                  }}
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.featureAddBtn,
+                    (!featureInput.trim() || features.length >= 10) && styles.featureAddBtnDisabled,
+                  ]}
+                  onPress={() => {
+                    const trimmed = featureInput.trim();
+                    if (trimmed && features.length < 10) {
+                      setFeatures((prev) => [...prev, trimmed]);
+                      setFeatureInput('');
+                    }
+                  }}
+                  disabled={!featureInput.trim() || features.length >= 10}
+                  activeOpacity={0.7}
+                >
+                  <Plus size={18} color={colors.white} />
+                </TouchableOpacity>
+              </View>
 
               {/* Reference Image */}
               <Text style={styles.fieldLabel}>Reference Image (optional)</Text>
@@ -411,6 +468,53 @@ const styles = StyleSheet.create({
     color: colors.mutedDim,
     textAlign: 'right',
     marginTop: 4,
+  },
+  featureChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surface,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 6,
+  },
+  featureChipText: {
+    flex: 1,
+    fontSize: 14,
+    ...fonts.outfit.regular,
+    color: colors.foreground,
+    marginRight: 8,
+  },
+  featureInputRow: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  featureInput: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    ...fonts.outfit.regular,
+    color: colors.foreground,
+  },
+  featureAddBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.brand,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  featureAddBtnDisabled: {
+    opacity: 0.4,
   },
   addImageBtn: {
     flexDirection: 'row',
