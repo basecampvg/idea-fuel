@@ -296,7 +296,7 @@ export function SketchPromptModal({ visible, onClose, onGenerate, isLoading, ini
                   const selected = aspectRatio === ratio;
                   const [w, h] = ratio.split(':').map(Number);
                   // Scale preview boxes to fit nicely — base size 28px on the longest side
-                  const maxDim = 28;
+                  const maxDim = 36;
                   const scale = maxDim / Math.max(w, h);
                   const previewW = Math.round(w * scale);
                   const previewH = Math.round(h * scale);
@@ -307,17 +307,19 @@ export function SketchPromptModal({ visible, onClose, onGenerate, isLoading, ini
                       onPress={() => setAspectRatio(ratio)}
                       activeOpacity={0.7}
                     >
-                      <View
-                        style={[
-                          styles.ratioPreview,
-                          {
-                            width: previewW,
-                            height: previewH,
-                            borderColor: selected ? colors.brand : colors.mutedDim,
-                            borderStyle: selected ? 'solid' : 'dashed',
-                          },
-                        ]}
-                      />
+                      <View style={styles.ratioPreviewContainer}>
+                        <View
+                          style={[
+                            styles.ratioPreview,
+                            {
+                              width: previewW,
+                              height: previewH,
+                              borderColor: selected ? colors.brand : colors.mutedDim,
+                              borderStyle: selected ? 'solid' : 'dashed',
+                            },
+                          ]}
+                        />
+                      </View>
                       <Text
                         style={[
                           styles.ratioLabel,
@@ -527,6 +529,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     paddingVertical: 10,
+  },
+  ratioPreviewContainer: {
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   ratioPreview: {
     borderWidth: 2,
