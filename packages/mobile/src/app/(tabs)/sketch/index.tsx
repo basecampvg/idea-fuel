@@ -275,35 +275,36 @@ export default function SketchbookScreen() {
             <Text style={styles.loadingText}>Sketching...</Text>
           </View>
         ) : currentSketch ? (
-          <>
-            <Image
-              source={{ uri: currentSketch.imageUrl }}
-              style={styles.sketchImage}
-              resizeMode="contain"
-            />
-            {/* Quick save/share/delete overlay */}
-            <View style={styles.imageActions}>
-              <TouchableOpacity style={styles.imageActionBtn} onPress={handleSave} activeOpacity={0.7}>
-                <Download size={18} color={colors.foreground} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.imageActionBtn} onPress={handleShare} activeOpacity={0.7}>
-                <Share2 size={18} color={colors.foreground} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.imageActionBtn, styles.imageActionBtnDelete]}
-                onPress={() => setCurrentSketch(null)}
-                activeOpacity={0.7}
-              >
-                <Trash2 size={18} color={colors.white} />
-              </TouchableOpacity>
-            </View>
-          </>
+          <Image
+            source={{ uri: currentSketch.imageUrl }}
+            style={styles.sketchImage}
+            resizeMode="contain"
+          />
         ) : (
           <View style={styles.emptyContainer}>
             <Pencil size={56} color={colors.border} />
           </View>
         )}
       </View>
+
+      {/* Quick save/share/delete overlay — outside canvas to avoid touch issues */}
+      {currentSketch && !isGenerating && (
+        <View style={styles.imageActions}>
+          <TouchableOpacity style={styles.imageActionBtn} onPress={handleSave} activeOpacity={0.7}>
+            <Download size={18} color={colors.foreground} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.imageActionBtn} onPress={handleShare} activeOpacity={0.7}>
+            <Share2 size={18} color={colors.foreground} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.imageActionBtn, styles.imageActionBtnDelete]}
+            onPress={() => setCurrentSketch(null)}
+            activeOpacity={0.7}
+          >
+            <Trash2 size={18} color={colors.white} />
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Action bar — only when sketch is loaded */}
       {currentSketch && !isGenerating && (
@@ -428,11 +429,10 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   imageActions: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
     flexDirection: 'row',
-    gap: 8,
+    justifyContent: 'center',
+    gap: 12,
+    paddingVertical: 8,
   },
   imageActionBtn: {
     width: 36,
