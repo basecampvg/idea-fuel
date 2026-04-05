@@ -46,6 +46,7 @@ export default function SketchStackLayout() {
         name="library"
         options={{
           title: 'Library',
+          headerBackVisible: false,
         }}
       />
     </Stack>
