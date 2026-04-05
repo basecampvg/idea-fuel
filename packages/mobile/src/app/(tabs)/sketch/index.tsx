@@ -258,13 +258,39 @@ export default function SketchbookScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Sketchbook</Text>
-        <TouchableOpacity
-          onPress={() => router.push('/(tabs)/sketch/library')}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          activeOpacity={0.7}
-        >
-          <Grid3x3 size={22} color={colors.foreground} />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            onPress={handleSave}
+            disabled={!currentSketch}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Download size={20} color={currentSketch ? colors.foreground : colors.mutedDim} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleShare}
+            disabled={!currentSketch}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Share2 size={20} color={currentSketch ? colors.foreground : colors.mutedDim} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setCurrentSketch(null)}
+            disabled={!currentSketch}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Trash2 size={20} color={currentSketch ? colors.destructive : colors.mutedDim} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push('/(tabs)/sketch/library')}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Grid3x3 size={20} color={colors.foreground} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Canvas */}
@@ -286,25 +312,6 @@ export default function SketchbookScreen() {
           </View>
         )}
       </View>
-
-      {/* Quick save/share/delete overlay — outside canvas to avoid touch issues */}
-      {currentSketch && !isGenerating && (
-        <View style={styles.imageActions}>
-          <TouchableOpacity style={styles.imageActionBtn} onPress={handleSave} activeOpacity={0.7}>
-            <Download size={18} color={colors.foreground} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.imageActionBtn} onPress={handleShare} activeOpacity={0.7}>
-            <Share2 size={18} color={colors.foreground} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.imageActionBtn, styles.imageActionBtnDelete]}
-            onPress={() => setCurrentSketch(null)}
-            activeOpacity={0.7}
-          >
-            <Trash2 size={18} color={colors.white} />
-          </TouchableOpacity>
-        </View>
-      )}
 
       {/* Action bar — only when sketch is loaded */}
       {currentSketch && !isGenerating && (
@@ -399,6 +406,11 @@ const styles = StyleSheet.create({
     ...fonts.outfit.bold,
     color: colors.foreground,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
   canvas: {
     flex: 1,
     marginHorizontal: 16,
@@ -427,23 +439,6 @@ const styles = StyleSheet.create({
   sketchImage: {
     width: '100%',
     height: '100%',
-  },
-  imageActions: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
-    paddingVertical: 8,
-  },
-  imageActionBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  imageActionBtnDelete: {
-    backgroundColor: colors.destructive,
   },
   actionBar: {
     flexDirection: 'row',
