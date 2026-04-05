@@ -11,7 +11,7 @@
  * - promote: Read note refinement, create project + update note atomically, return projectId
  */
 
-import { eq, and, desc, isNull } from 'drizzle-orm';
+import { eq, and, desc, isNull, count } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
@@ -24,11 +24,14 @@ import {
   extractIdeasSchema,
   pinToSandboxSchema,
   unpinFromSandboxSchema,
+  addNoteAttachmentsSchema,
+  removeNoteAttachmentSchema,
   NOTE_REFINE_MIN_CHARS,
   NOTE_EXTRACT_MIN_CHARS,
 } from '@forge/shared';
-import { notes, projects, users, sandboxes } from '../db/schema';
+import { notes, projects, users, sandboxes, noteAttachments, projectAttachments } from '../db/schema';
 import { refineNote, extractIdeasFromNote } from '../services/note-ai';
+import { supabase, ATTACHMENT_BUCKET } from '../lib/supabase';
 
 export const noteRouter = router({
   /**
@@ -52,6 +55,7 @@ export const noteRouter = router({
     .query(async ({ ctx, input }) => {
       const note = await ctx.db.query.notes.findFirst({
         where: and(eq(notes.id, input.id), eq(notes.userId, ctx.userId)),
+        with: { attachments: true },
       });
 
       if (!note) {
@@ -61,7 +65,17 @@ export const noteRouter = router({
         });
       }
 
-      return note;
+      // Map attachments to include public URLs for the mobile client
+      const SUPABASE_URL = process.env.SUPABASE_URL;
+      return {
+        ...note,
+        attachments: (note.attachments ?? []).map((a) => ({
+          ...a,
+          publicUrl: SUPABASE_URL
+            ? `${SUPABASE_URL}/storage/v1/object/public/${ATTACHMENT_BUCKET}/${a.storagePath}`
+            : null,
+        })),
+      };
     }),
 
   /**
@@ -89,6 +103,7 @@ export const noteRouter = router({
         .values({
           userId: ctx.userId,
           type: input.type ?? 'AI',
+          content: input.content ?? '',
           sandboxId: input.sandboxId ?? null,
         })
         .returning();
@@ -147,6 +162,22 @@ export const noteRouter = router({
         });
       }
 
+      // Clean up storage files before deleting the note (cascade handles DB rows)
+      const attachments = await ctx.db
+        .select({ storagePath: noteAttachments.storagePath })
+        .from(noteAttachments)
+        .where(eq(noteAttachments.noteId, input.id));
+
+      if (attachments.length > 0 && supabase) {
+        try {
+          await supabase.storage
+            .from(ATTACHMENT_BUCKET)
+            .remove(attachments.map((a) => a.storagePath));
+        } catch (err) {
+          console.warn('[NoteRouter] Failed to delete storage files for note', input.id, err);
+        }
+      }
+
       await ctx.db.delete(notes).where(eq(notes.id, input.id));
 
       return { success: true };
@@ -195,9 +226,20 @@ export const noteRouter = router({
         });
       }
 
+      // Fetch image attachments for this note and construct public URLs
+      const attachments = await ctx.db
+        .select({ storagePath: noteAttachments.storagePath })
+        .from(noteAttachments)
+        .where(eq(noteAttachments.noteId, input.id));
+
+      const SUPABASE_URL = process.env.SUPABASE_URL;
+      const imageUrls = attachments.length > 0 && SUPABASE_URL
+        ? attachments.map((a) => `${SUPABASE_URL}/storage/v1/object/public/${ATTACHMENT_BUCKET}/${a.storagePath}`)
+        : undefined;
+
       let refinement;
       try {
-        refinement = await refineNote(note.content);
+        refinement = await refineNote(note.content, imageUrls);
       } catch (error) {
         console.error('[NoteRouter] Refinement failed:', error instanceof Error ? error.message : error);
         throw new TRPCError({
@@ -279,6 +321,28 @@ export const noteRouter = router({
             code: 'INTERNAL_SERVER_ERROR',
             message: 'Failed to create project',
           });
+        }
+
+        // Copy up to the first 5 note attachments as project attachments (re-use storagePaths)
+        const noteAtts = await tx
+          .select()
+          .from(noteAttachments)
+          .where(eq(noteAttachments.noteId, input.id))
+          .orderBy(noteAttachments.order)
+          .limit(5);
+
+        if (noteAtts.length > 0) {
+          await tx.insert(projectAttachments).values(
+            noteAtts.map((att, idx) => ({
+              projectId: project.id,
+              userId: ctx.userId,
+              storagePath: att.storagePath,
+              fileName: att.fileName,
+              mimeType: att.mimeType,
+              sizeBytes: att.sizeBytes,
+              order: idx,
+            }))
+          );
         }
 
         // Mark note as promoted so it's filtered from the list
@@ -423,6 +487,94 @@ export const noteRouter = router({
         .update(notes)
         .set({ sandboxId: null })
         .where(eq(notes.id, input.noteId));
+
+      return { success: true };
+    }),
+
+  /**
+   * Add image attachments to a note.
+   * Validates ownership and enforces a max of 10 attachments per note.
+   */
+  addAttachments: protectedProcedure
+    .input(addNoteAttachmentsSchema)
+    .mutation(async ({ ctx, input }) => {
+      const note = await ctx.db.query.notes.findFirst({
+        where: and(eq(notes.id, input.noteId), eq(notes.userId, ctx.userId)),
+        columns: { id: true },
+      });
+
+      if (!note) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'NOTE_NOT_FOUND',
+        });
+      }
+
+      // Count existing attachments to enforce the 10-attachment limit
+      const [existing] = await ctx.db
+        .select({ total: count() })
+        .from(noteAttachments)
+        .where(eq(noteAttachments.noteId, input.noteId));
+
+      const existingCount = existing?.total ?? 0;
+      if (existingCount + input.attachments.length > 10) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Cannot exceed 10 attachments per note (currently ${existingCount})`,
+        });
+      }
+
+      await ctx.db.insert(noteAttachments).values(
+        input.attachments.map((att) => ({
+          noteId: input.noteId,
+          userId: ctx.userId,
+          storagePath: att.storagePath,
+          fileName: att.fileName,
+          mimeType: att.mimeType,
+          sizeBytes: att.sizeBytes,
+          order: att.order,
+        }))
+      );
+
+      return { success: true };
+    }),
+
+  /**
+   * Remove a single attachment from a note.
+   * Deletes the file from Supabase Storage and removes the DB row.
+   */
+  removeAttachment: protectedProcedure
+    .input(removeNoteAttachmentSchema)
+    .mutation(async ({ ctx, input }) => {
+      const attachment = await ctx.db.query.noteAttachments.findFirst({
+        where: and(
+          eq(noteAttachments.id, input.attachmentId),
+          eq(noteAttachments.userId, ctx.userId),
+        ),
+      });
+
+      if (!attachment) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'ATTACHMENT_NOT_FOUND',
+        });
+      }
+
+      // Delete from Supabase Storage
+      if (supabase) {
+        const { error } = await supabase.storage
+          .from(ATTACHMENT_BUCKET)
+          .remove([attachment.storagePath]);
+
+        if (error) {
+          console.warn('[NoteRouter] Failed to delete storage file', attachment.storagePath, error);
+        }
+      }
+
+      // Delete the DB row
+      await ctx.db
+        .delete(noteAttachments)
+        .where(eq(noteAttachments.id, input.attachmentId));
 
       return { success: true };
     }),

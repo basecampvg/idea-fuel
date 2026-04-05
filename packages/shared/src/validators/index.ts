@@ -374,6 +374,7 @@ export type NoteType = z.infer<typeof noteTypeSchema>;
 
 export const createNoteSchema = z.object({
   type: noteTypeSchema.optional().default('AI'),
+  content: z.string().max(NOTE_CONTENT_MAX).optional(),
 });
 export type CreateNoteInput = z.infer<typeof createNoteSchema>;
 
@@ -404,6 +405,27 @@ export const noteRefinementSchema = z.object({
   tags: z.array(z.string().min(1).max(NOTE_TAG_MAX)).min(1).max(NOTE_TAGS_MAX),
 });
 export type NoteRefinementInput = z.infer<typeof noteRefinementSchema>;
+
+// Note attachment validators
+export const noteAttachmentMetadataSchema = z.object({
+  storagePath: z.string().min(1),
+  fileName: z.string().min(1),
+  mimeType: z.enum(['image/jpeg', 'image/png', 'image/heic']),
+  sizeBytes: z.number().int().min(0).max(5 * 1024 * 1024), // 5MB max; 0 allowed (fileSize can be null from picker)
+  order: z.number().int().min(0).max(9), // up to 10 images (0-9)
+});
+export type NoteAttachmentMetadata = z.infer<typeof noteAttachmentMetadataSchema>;
+
+export const addNoteAttachmentsSchema = z.object({
+  noteId: entityId,
+  attachments: z.array(noteAttachmentMetadataSchema).min(1).max(10),
+});
+export type AddNoteAttachmentsInput = z.infer<typeof addNoteAttachmentsSchema>;
+
+export const removeNoteAttachmentSchema = z.object({
+  attachmentId: entityId,
+});
+export type RemoveNoteAttachmentInput = z.infer<typeof removeNoteAttachmentSchema>;
 
 export const NOTE_EXTRACT_MIN_CHARS = 50;
 

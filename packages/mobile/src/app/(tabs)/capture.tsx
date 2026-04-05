@@ -15,6 +15,7 @@ import {
   InteractionManager,
   Switch,
 } from 'react-native';
+import Reanimated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 // expo-image-picker has native code — defer loading to avoid crash if native
 // module isn't in the current dev client build. Same pattern as expo-speech-recognition.
@@ -25,7 +26,9 @@ try {
   // Native module not available in this build
 }
 import { Mic, Square, ArrowUp, Paperclip } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { AttachmentPopover } from '../../components/AttachmentPopover';
+import { CaptureActionMenu } from '../../components/CaptureActionMenu';
 import { ThumbnailStrip, type LocalAttachment } from '../../components/ThumbnailStrip';
 import { triggerHaptic } from '../../components/ui/Button';
 import { trpc } from '../../lib/trpc';
@@ -34,6 +37,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { IdeaFuelLogo } from '../../components/IdeaFuelLogo';
 import { SloganSVG } from '../../components/SloganSVG';
 import { OrbAnimation, type OrbState } from '../../components/OrbAnimation';
+import { NeuralBackground } from '../../components/NeuralBackground';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts } from '../../lib/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WelcomeSheet } from '../../components/ui/WelcomeSheet';
@@ -70,6 +75,8 @@ function extractTitleAndDescription(text: string): { title: string; description:
 }
 
 export default function CaptureScreen() {
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { user } = useAuth();
   const { showToast } = useToast();
   const [ideaText, setIdeaText] = useState('');
@@ -77,6 +84,7 @@ export default function CaptureScreen() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
+  const [showActionMenu, setShowActionMenu] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
@@ -314,6 +322,41 @@ export default function CaptureScreen() {
 
   const getUploadUrl = trpc.attachment.getUploadUrl.useMutation();
 
+  const createNote = trpc.note.create.useMutation({
+    onSuccess: (newNote) => {
+      triggerHaptic('success');
+      utils.note.list.invalidate();
+      router.push(`/(tabs)/notes/${newNote.id}` as any);
+      setIdeaText('');
+      finalizedText.current = '';
+      setAttachments([]);
+      setAiConsent(false);
+    },
+    onError: () => {
+      triggerHaptic('error');
+      showToast({ message: 'Failed to create note', type: 'error' });
+    },
+  });
+
+  const handleNoteCapture = useCallback((type: 'QUICK' | 'AI') => {
+    const trimmed = ideaText.trim();
+    if (!trimmed) return;
+
+    if (isListening) {
+      SpeechModule?.stop();
+      setIsListening(false);
+      setIsSpeaking(false);
+    }
+
+    Keyboard.dismiss();
+    setShowActionMenu(false);
+    createNote.mutate({ type, content: trimmed });
+  }, [ideaText, isListening, createNote]);
+
+  const handleShowActionMenu = useCallback(() => {
+    setShowActionMenu(true);
+  }, []);
+
   const handleCapture = useCallback(async () => {
     const trimmed = ideaText.trim();
     if (!trimmed || isSubmitting) return;
@@ -395,6 +438,7 @@ export default function CaptureScreen() {
 
   return (
     <View style={styles.safeArea}>
+      <NeuralBackground />
       {speechReady && (
         <SpeechListeners
           finalizedText={finalizedText}
@@ -406,9 +450,9 @@ export default function CaptureScreen() {
       )}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
-          style={styles.container}
+          style={[styles.container, { paddingTop: insets.top + 44 }]}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+          keyboardVerticalOffset={0}
         >
           {/* ── Center: Logo + Slogan / Orb when listening ── */}
           <View style={styles.centerSection}>
@@ -420,12 +464,16 @@ export default function CaptureScreen() {
             )}
 
             {showLogo && (
-              <View style={styles.logoArea}>
+              <Reanimated.View
+                entering={FadeIn.duration(300)}
+                exiting={FadeOut.duration(300)}
+                style={styles.logoArea}
+              >
                 <IdeaFuelLogo size={120} />
                 <View style={{ marginTop: 24 }}>
                   <SloganSVG width={260} />
                 </View>
-              </View>
+              </Reanimated.View>
             )}
 
           </View>
@@ -496,7 +544,7 @@ export default function CaptureScreen() {
                   {canCapture && (
                     <TouchableOpacity
                       style={styles.sendButton}
-                      onPress={handleCapture}
+                      onPress={handleShowActionMenu}
                       activeOpacity={0.7}
                     >
                       {isSubmitting ? (
@@ -535,6 +583,17 @@ export default function CaptureScreen() {
           </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
+      <CaptureActionMenu
+        visible={showActionMenu}
+        onClose={() => setShowActionMenu(false)}
+        onQuickNote={() => handleNoteCapture('QUICK')}
+        onAINote={() => handleNoteCapture('AI')}
+        onIdea={() => {
+          setShowActionMenu(false);
+          handleCapture();
+        }}
+        anchorY={popoverAnchorY}
+      />
       <AttachmentPopover
         visible={showPopover}
         onClose={() => setShowPopover(false)}
@@ -615,7 +674,7 @@ function SpeechListeners({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: 'transparent',
   },
   container: {
     flex: 1,
@@ -630,6 +689,7 @@ const styles = StyleSheet.create({
   logoArea: {
     position: 'absolute',
     alignItems: 'center',
+    marginTop: -80,
   },
   orbContainer: {
     position: 'absolute',
@@ -640,7 +700,7 @@ const styles = StyleSheet.create({
   // ── Bottom: Input bar ──
   inputBarWrapper: {
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingBottom: 10,
   },
   inputBar: {
     flexDirection: 'column',
