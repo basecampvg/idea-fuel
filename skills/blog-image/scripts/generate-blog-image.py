@@ -185,22 +185,27 @@ def generate_blog_image(
     Returns:
         Any text response from the model, or None
     """
-    api_key = os.environ.get("GEMINI_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_AI_API_KEY")
     if not api_key:
-        raise EnvironmentError("GEMINI_API_KEY environment variable not set")
+        raise EnvironmentError("GEMINI_API_KEY or GOOGLE_AI_API_KEY environment variable not set")
 
     colors = color_override or select_colors(description)
     prompt = build_prompt(description, aspect_ratio, colors)
 
     client = genai.Client(api_key=api_key)
 
-    config = types.GenerateContentConfig(
-        response_modalities=["TEXT", "IMAGE"],
-        image_config=types.ImageConfig(
-            aspect_ratio=aspect_ratio,
-            image_size=image_size,
-        ),
-    )
+    image_config_kwargs = {"aspect_ratio": aspect_ratio}
+    # image_size is only supported in newer SDK versions
+    try:
+        config = types.GenerateContentConfig(
+            response_modalities=["TEXT", "IMAGE"],
+            image_config=types.ImageConfig(aspect_ratio=aspect_ratio, image_size=image_size),
+        )
+    except Exception:
+        config = types.GenerateContentConfig(
+            response_modalities=["TEXT", "IMAGE"],
+            image_config=types.ImageConfig(aspect_ratio=aspect_ratio),
+        )
 
     response = client.models.generate_content(
         model=model,
