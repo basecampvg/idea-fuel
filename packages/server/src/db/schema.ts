@@ -317,6 +317,40 @@ export const notes = pgTable('Note', {
 ]);
 
 // =============================================================================
+// NOTE ATTACHMENTS (Images attached to notes)
+// =============================================================================
+
+export const noteAttachments = pgTable('NoteAttachment', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  storagePath: text('storage_path').notNull(),
+  fileName: text('file_name').notNull(),
+  mimeType: text('mime_type').notNull(),
+  sizeBytes: integer('size_bytes').notNull(),
+  order: integer().default(0).notNull(),
+  noteId: text('note_id').notNull(),
+  userId: text('user_id').notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('NoteAttachment_noteId_idx').using('btree', table.noteId.asc().nullsLast()),
+  index('NoteAttachment_userId_idx').using('btree', table.userId.asc().nullsLast()),
+  foreignKey({
+    columns: [table.noteId],
+    foreignColumns: [notes.id],
+    name: 'NoteAttachment_noteId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+  foreignKey({
+    columns: [table.userId],
+    foreignColumns: [users.id],
+    name: 'NoteAttachment_userId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+export const noteAttachmentsRelations = relations(noteAttachments, ({ one }) => ({
+  note: one(notes, { fields: [noteAttachments.noteId], references: [notes.id] }),
+  user: one(users, { fields: [noteAttachments.userId], references: [users.id] }),
+}));
+
+// =============================================================================
 // INTERVIEW
 // =============================================================================
 
@@ -1179,10 +1213,11 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   customerInterviews: many(customerInterviews),
 }));
 
-export const notesRelations = relations(notes, ({ one }) => ({
+export const notesRelations = relations(notes, ({ one, many }) => ({
   user: one(users, { fields: [notes.userId], references: [users.id] }),
   promotedProject: one(projects, { fields: [notes.promotedProjectId], references: [projects.id] }),
   sandbox: one(sandboxes, { fields: [notes.sandboxId], references: [sandboxes.id] }),
+  attachments: many(noteAttachments),
 }));
 
 export const sandboxesRelations = relations(sandboxes, ({ one, many }) => ({
