@@ -1,5 +1,4 @@
-# https://ideafuel.ai/robots.txt
-
+# *
 User-agent: *
 Allow: /
 Disallow: /api/
@@ -13,7 +12,10 @@ Disallow: /daily-pick/
 Disallow: /admin/
 Disallow: /_next/
 
-# Sitemap
+# Host
+Host: https://ideafuel.ai
+
+# Sitemaps
 Sitemap: https://ideafuel.ai/sitemap.xml
 
 # AI/Agent discovery
