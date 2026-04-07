@@ -211,6 +211,9 @@ def generate_blog_image(
     text_response = None
     image_saved = False
 
+    if not response or not getattr(response, 'parts', None):
+        raise RuntimeError("Empty response from Gemini API. Check your API key and model name.")
+
     for part in response.parts:
         if part.text is not None:
             text_response = part.text
