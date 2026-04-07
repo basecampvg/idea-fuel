@@ -11,7 +11,7 @@ import { getAnthropicClient } from '../lib/anthropic';
 
 const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
 
-const REFINEMENT_SYSTEM_PROMPT = `You are an AI assistant that helps entrepreneurs refine raw notes into structured business ideas. Given a user's brain dump, extract a clear business idea.
+const REFINEMENT_SYSTEM_PROMPT = `You are an AI assistant that helps entrepreneurs refine raw notes into structured business ideas. Given a user's brain dump, extract a clear business idea. You may also receive images (screenshots, whiteboards, sketches). Incorporate visual context into your analysis.
 
 Return ONLY valid JSON matching this exact schema — no markdown, no code fences, no commentary:
 
@@ -30,10 +30,36 @@ Rules:
 
 /**
  * Calls Haiku to refine raw note content into a structured NoteRefinement.
+ * When imageUrls are provided, sends them as vision content blocks for multimodal analysis.
  * Throws on API failure or invalid response.
  */
-export async function refineNote(content: string): Promise<NoteRefinement> {
+export async function refineNote(content: string, imageUrls?: string[]): Promise<NoteRefinement> {
   const client = getAnthropicClient();
+
+  // Build user message: multimodal content blocks when images are present, plain string otherwise
+  let userContent: string | Array<{ type: 'text'; text: string } | { type: 'image'; source: { type: 'url'; url: string } }>;
+
+  if (imageUrls && imageUrls.length > 0) {
+    const contentBlocks: Array<{ type: 'text'; text: string } | { type: 'image'; source: { type: 'url'; url: string } }> = [];
+
+    // Add images first so the model sees them before the text prompt
+    for (const url of imageUrls) {
+      contentBlocks.push({
+        type: 'image',
+        source: { type: 'url', url },
+      });
+    }
+
+    // Add text content
+    contentBlocks.push({
+      type: 'text',
+      text: `Refine these raw notes into a structured business idea:\n\n---\n\n${content}`,
+    });
+
+    userContent = contentBlocks;
+  } else {
+    userContent = `Refine these raw notes into a structured business idea:\n\n---\n\n${content}`;
+  }
 
   const response = await client.messages.create({
     model: HAIKU_MODEL,
@@ -43,7 +69,7 @@ export async function refineNote(content: string): Promise<NoteRefinement> {
     messages: [
       {
         role: 'user',
-        content: `Refine these raw notes into a structured business idea:\n\n---\n\n${content}`,
+        content: userContent,
       },
     ],
   });
