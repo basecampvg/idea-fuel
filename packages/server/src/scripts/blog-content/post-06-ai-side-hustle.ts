@@ -1,4 +1,4 @@
-import { doc, h2, h3, p, emptyP, bold, italic, text, link, boldLink, internalLink, bulletList, bulletListRich, orderedList, blockquote, hr, ctaBlock, faqSection } from './tiptap';
+import { doc, h2, h3, p, emptyP, bold, italic, text, link, boldLink, internalLink, bulletList, bulletListRich, orderedList, blockquote, hr, ctaBlock, faqSection, image } from './tiptap';
 
 export function getPost06() {
   return {
@@ -7,6 +7,7 @@ export function getPost06() {
     description:
       '15 AI side hustle ideas that can actually make money — and how to figure out which ones will work for you before you waste 6 months.',
     tags: ['Side Hustles', 'Business Ideas'],
+    coverImage: 'https://wvacfynzguprqlzyukzx.supabase.co/storage/v1/object/public/project-attachments/blog/ai-side-hustle-ideas/hero.jpg',
     content: doc(
       // --- Intro ---
       p(
@@ -29,6 +30,7 @@ export function getPost06() {
 
       // --- Section: High-Earning AI Side Hustles ---
       h2('High-Earning AI Side Hustles ($2K-10K+/Month)'),
+      image('https://wvacfynzguprqlzyukzx.supabase.co/storage/v1/object/public/project-attachments/blog/ai-side-hustle-ideas/inline-01-earning-tiers.jpg', 'Three ascending tiers representing side hustle earning levels from beginner to high-earning'),
       p(
         text('These require skills, time investment, or both. But the earning potential is real and documented.')
       ),
@@ -291,6 +293,7 @@ export function getPost06() {
 
       // --- The Validation Problem ---
       h2('Why Most AI Side Hustles Fail (And How to Avoid It)'),
+      image('https://wvacfynzguprqlzyukzx.supabase.co/storage/v1/object/public/project-attachments/blog/ai-side-hustle-ideas/inline-02-validation-funnel.jpg', 'Validation funnel showing ideas narrowing from raw concept through spark check to committed execution'),
       p(
         text('Here is the uncomfortable truth about side hustles in general, AI or otherwise: '),
         bold('the failure rate is not about the idea. It is about the timing of commitment.')
@@ -303,6 +306,7 @@ export function getPost06() {
       p(
         text('The fix is stupid simple: validate before you commit.')
       ),
+      image('https://wvacfynzguprqlzyukzx.supabase.co/storage/v1/object/public/project-attachments/blog/ai-side-hustle-ideas/inline-03-guess-vs-validate.jpg', 'Split comparison of chaotic guessing versus organized validation pathway leading to a target'),
       emptyP(),
       p(
         text('For every idea on this list, there is a way to test demand in less than a week. Some you can test in an afternoon. I gave you specific validation steps for each one above. But here is the meta-strategy:')
@@ -323,6 +327,7 @@ export function getPost06() {
 
       // --- Tools to Run Your Side Hustle ---
       h2('Essential AI Tools for Running Your Side Hustle'),
+      image('https://wvacfynzguprqlzyukzx.supabase.co/storage/v1/object/public/project-attachments/blog/ai-side-hustle-ideas/inline-04-ai-toolkit.jpg', 'AI tools laid out including smartphone, chat bubbles, gears, calendar, and payment terminal'),
       p(
         text('Regardless of which idea you pick, here are the tools that make side hustles viable with limited time:')
       ),

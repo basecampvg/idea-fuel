@@ -109,6 +109,7 @@ async function seedPosts(authorId: string) {
       title: postData.title,
       description: postData.description,
       content: postData.content,
+      coverImage: (postData as Record<string, unknown>).coverImage as string | undefined,
       status: 'PUBLISHED',
       publishedAt,
       readingTime,

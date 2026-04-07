@@ -13,8 +13,10 @@ type ContentNode =
   | { type: 'orderedList'; content: ListItemNode[] }
   | { type: 'blockquote'; content: ContentNode[] }
   | { type: 'horizontalRule' }
-  | { type: 'hardBreak' };
+  | { type: 'hardBreak' }
+  | ImageNode;
 
+type ImageNode = { type: 'image'; attrs: { src: string; alt: string; title: string | null } };
 type InlineNode = TextNode;
 type ListItemNode = { type: 'listItem'; content: ContentNode[] };
 type Doc = { type: 'doc'; content: ContentNode[] };
@@ -85,6 +87,10 @@ export function blockquote(...nodes: ContentNode[]): ContentNode {
 
 export function hr(): ContentNode {
   return { type: 'horizontalRule' };
+}
+
+export function image(src: string, alt: string): ImageNode {
+  return { type: 'image', attrs: { src, alt, title: null } };
 }
 
 // --- List helpers ---
