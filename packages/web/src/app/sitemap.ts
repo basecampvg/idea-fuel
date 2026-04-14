@@ -1,14 +1,16 @@
 import type { MetadataRoute } from 'next';
 import { db, schema } from '@forge/server';
 import { eq } from 'drizzle-orm';
+import { getAllTerms } from '@/lib/glossary';
+import { getAllDocSlugs } from '@/lib/docs';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 3600; // revalidate every hour
+// Generated at build time on Vercel (DB + filesystem both available),
+// then revalidated every hour via ISR to pick up new blog posts.
+export const revalidate = 3600;
 
 const BASE_URL = 'https://ideafuel.ai';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Static pages
   const entries: MetadataRoute.Sitemap = [
     { url: BASE_URL, changeFrequency: 'weekly', priority: 1.0 },
     { url: `${BASE_URL}/demo-report`, changeFrequency: 'monthly', priority: 0.8 },
@@ -17,7 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/glossary`, changeFrequency: 'weekly', priority: 0.8 },
   ];
 
-  // Blog posts from DB
+  // Blog posts from DB (try/catch for local builds without DB)
   try {
     const posts = await db.query.blogPosts.findMany({
       where: eq(schema.blogPosts.status, 'PUBLISHED'),
@@ -31,38 +33,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.7,
       });
     }
-  } catch (e) {
-    console.error('[sitemap] Failed to fetch blog posts:', e);
+  } catch {
+    // DB unavailable (local build) — blog posts omitted
   }
 
-  // Docs from filesystem (may not be available in serverless env)
+  // Docs from filesystem
   try {
-    const { getAllDocSlugs } = await import('@/lib/docs');
-    const docSlugs = getAllDocSlugs();
-    for (const slugParts of docSlugs) {
+    for (const slugParts of getAllDocSlugs()) {
       entries.push({
         url: `${BASE_URL}/docs/${slugParts.join('/')}`,
         changeFrequency: 'monthly',
         priority: 0.7,
       });
     }
-  } catch (e) {
-    console.error('[sitemap] Failed to read docs:', e);
+  } catch {
+    // docs directory not found — omitted
   }
 
   // Glossary terms from filesystem
   try {
-    const { getAllTerms } = await import('@/lib/glossary');
-    const terms = getAllTerms();
-    for (const term of terms) {
+    for (const term of getAllTerms()) {
       entries.push({
         url: `${BASE_URL}/glossary/${term.slug}`,
         changeFrequency: 'monthly',
         priority: 0.6,
       });
     }
-  } catch (e) {
-    console.error('[sitemap] Failed to read glossary:', e);
+  } catch {
+    // glossary data not found — omitted
   }
 
   return entries;
