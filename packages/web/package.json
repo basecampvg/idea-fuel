@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "dotenv -e ../../.env -- next dev -p 3006",
     "build": "next build",
-    "postbuild": "next-sitemap",
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit"
