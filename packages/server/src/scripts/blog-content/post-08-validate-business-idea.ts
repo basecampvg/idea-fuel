@@ -10,37 +10,30 @@ export function getPost08() {
     content: doc(
       // --- Intro ---
       p(
-        bold('90% of startups fail.'),
         text(
-          ' You have heard this stat a thousand times. What you have not heard is that the majority of those failures come down to a single, avoidable mistake: building something nobody wants.',
+          'The number one cause of startup failure is not running out of money. It is not bad timing, not getting outcompeted, and not co-founder drama. According to CB Insights post-mortem data, year after year, the top killer is ',
+        ),
+        bold('building something nobody wants.'),
+      ),
+      emptyP(),
+      p(
+        text(
+          'Think about what that means. The majority of failed startups did not lose a fair fight. They spent months or years building, hiring, and fundraising for a product the market never asked for. The entire effort was doomed before the first line of code.',
         ),
       ),
       emptyP(),
       p(
         text(
-          'Not running out of cash. Not getting outcompeted. Not bad timing. The core problem, according to CB Insights post-mortem data year after year, is ',
-        ),
-        bold('no market need.'),
-      ),
-      emptyP(),
-      p(
-        text(
-          'This is a validation problem. And until recently, real validation was expensive. You had to hire market researchers, run surveys, build MVPs, and spend months gathering data before you had any confidence in your idea.',
+          'Validation fixes this. But until recently, real validation was expensive — hire researchers, run surveys, build MVPs, gather data for months before you had any signal. That constraint is gone. AI has compressed the validation process from months to minutes, which means "I could not afford to validate" is no longer a viable excuse. The only reason to skip validation now is choosing not to do it.',
         ),
       ),
       emptyP(),
       p(
         text(
-          'That era is over. AI has compressed the validation process from months to minutes. The question is no longer "can I afford to validate?" It is "why am I still guessing?"',
-        ),
-      ),
-      emptyP(),
-      p(
-        text(
-          'This guide gives you a 5-step framework for validating any business idea using AI. I will walk you through each step, show you exactly what to look for, and demonstrate how ',
+          'This guide gives you a 5-step framework for validating any business idea using AI. I will walk through each step, show you what to look for, and demonstrate how ',
         ),
         internalLink('IdeaFuel', '/blog/best-ai-tools-for-business'),
-        text(' automates the entire process end to end.'),
+        text(' automates the process end to end.'),
       ),
 
       // --- Section 1 ---

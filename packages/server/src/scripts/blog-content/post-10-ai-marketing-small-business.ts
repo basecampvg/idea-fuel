@@ -27,22 +27,22 @@ export function getPost10() {
       "The AI marketing tools small businesses actually need — and the one step to take before spending a dollar on any of them.",
     tags: ['Marketing', 'Small Business'],
     content: doc(
-      // Intro — contrarian opener
+      // Intro
       p(
         text(
-          'Every small business owner I talk to wants to know the same thing: "What AI marketing tools should I use?" It\'s the wrong question.'
+          'A bakery owner I know spent $1,200 last year on AI marketing tools. She had an SEO optimizer, a social media scheduler, an AI copywriter, and an email automation platform. Four tools, four subscriptions, four dashboards. Her revenue from all that digital marketing effort: roughly zero.'
         )
       ),
       emptyP(),
       p(
         text(
-          'The right question is: "Do I actually understand who I\'m marketing to?" Because the fastest way to waste money on marketing — AI-powered or otherwise — is to aim it at the wrong people. And most small businesses do exactly that. They buy the tools, launch the campaigns, and wonder why nothing converts. The tools were never the problem.'
+          'The tools worked fine. The copy was decent. The posts went out on schedule. The problem was upstream — she was marketing sourdough bread to a neighborhood that wanted cupcakes. No amount of AI-optimized content fixes targeting the wrong customer.'
         )
       ),
       emptyP(),
       p(
         text(
-          'So here\'s the deal. This guide covers the best AI marketing tools for small business across every category that matters: SEO, social media, email, content creation, and analytics. But we\'re starting with Step Zero — the one nobody talks about — because it determines whether any of these tools actually work for you.'
+          'This guide covers the best AI marketing tools for small business across every category that matters: SEO, social media, email, content creation, and analytics. But we are starting with Step Zero — figuring out who you are actually selling to — because that single decision determines whether any of these tools generate revenue or just generate invoices.'
         )
       ),
       emptyP(),

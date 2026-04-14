@@ -13,19 +13,19 @@ export function getPost02() {
     content: doc(
       // --- Intro ---
       p(
-        text('Every "'),
-        bold('best ai tools for business'),
-        text('" list you have read this year is the same article. Fifty tools, no organization, no opinion. Just a wall of logos and affiliate links. Half the tools do the same thing. The other half are solutions looking for a problem.'),
+        text('Here is exactly what this article does: it organizes the '),
+        bold('best AI tools for business'),
+        text(' into five categories based on '),
+        italic('what you actually need to get done'),
+        text(' — research, plan, market, operate, and manage money. Each category has 3-5 tools that are genuinely good at that specific job.'),
       ),
       emptyP(),
       p(
-        text('This is different. I organized this list by '),
-        italic('what you actually need to do'),
-        text(' — research, plan, market, operate, and manage money. Each category has 3-5 tools that are genuinely good at that specific job. I cut everything that is just ChatGPT with a wrapper and a subscription page.'),
+        text('That is it. No wall of fifty logos. No affiliate-link roulette. No tools that are just ChatGPT with a subscription page and a custom color scheme.'),
       ),
       emptyP(),
       p(
-        text('If a tool is not here, it is either because it does not do anything you cannot already do with a general-purpose LLM, or because a tool on this list does it better.'),
+        text('If a tool is not on this list, it is either because a general-purpose LLM already does what it does, or because something here does it better. I have opinions, and you will hear them. Take what is useful, ignore what is not.'),
       ),
 
       // --- Category 1: Research & Validation ---

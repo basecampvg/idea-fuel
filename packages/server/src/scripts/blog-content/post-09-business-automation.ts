@@ -30,24 +30,24 @@ export function getPost09() {
       // Intro
       p(
         text(
-          'Most "AI automation" tools don\'t automate anything. They give you a new interface to do the same work you were already doing, except now there\'s a chatbot in the corner you\'ll never use and a monthly bill you\'ll forget to cancel.'
+          'Let me define what I mean by automation, because the word has been diluted to meaninglessness. Automation means a process that used to require your attention now runs without it. You set a trigger, the work happens, and you find out about it only if something goes wrong. That is the bar.'
         )
       ),
       emptyP(),
       p(
         text(
-          'Real automation eliminates steps. It takes a process that required five decisions and three tools and turns it into one trigger and zero babysitting. That\'s the standard we\'re using here.'
+          'A chatbot that helps you write emails faster is not automation. A tool that drafts, sends, and follows up on emails based on rules you set once — that is automation. The difference is whether the tool eliminates steps or just makes existing steps slightly less annoying.'
         )
       ),
       emptyP(),
       p(
         text(
-          'This guide covers the AI tools for business automation that actually reclaim hours from your week — not the ones with the best landing pages. We\'ll go category by category: email, scheduling, data entry, reporting, research, customer service, and financial modeling. For each, you\'ll get the tool that works, the workflow it replaces, and an honest take on the limitations.'
+          'This guide covers AI tools for business automation that actually clear that bar, category by category: email, scheduling, data entry, reporting, research, customer service, and financial modeling. For each one, you will get the tool that works, the specific workflow it replaces, and an honest assessment of where it breaks down.'
         )
       ),
       emptyP(),
       p(
-        text('If you\'re also evaluating '),
+        text('If you are also evaluating '),
         internalLink('AI tools for running a business more broadly', '/blog/best-ai-tools-for-business'),
         text(', start there for the full landscape. This post goes deep on automation specifically.')
       ),

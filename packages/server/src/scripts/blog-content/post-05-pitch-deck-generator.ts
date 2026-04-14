@@ -10,21 +10,21 @@ export function getPost05() {
     content: doc(
       // --- Intro ---
       p(
-        text('Every founder thinks the pitch deck is the hard part. It is not. The hard part is having something worth putting in the deck.')
+        text('The pitch deck is the least important part of raising money. I know that sounds wrong — it is literally the artifact you hand to investors — but hear me out.')
       ),
       emptyP(),
       p(
-        text('I have watched founders spend weeks polishing slides with AI-generated graphics, cinematic transitions, and perfectly typeset TAM circles, only to get destroyed in the Q&A because they could not answer basic questions about their market. The investor did not care about the design. They cared that the founder had not validated anything.')
+        text('Investors do not fund slides. They fund conviction. Specifically, they fund founders who understand their market so deeply that every number on every slide has a story behind it. The deck is just the delivery mechanism. A great deck with shallow understanding gets destroyed in the Q&A. A mediocre deck backed by validated data and clear thinking gets meetings, follow-ups, and term sheets.')
       ),
       emptyP(),
       p(
-        text('An '),
+        text('This matters because an '),
         bold('AI pitch deck generator'),
-        text(' can save you 20+ hours of design and layout work. That is real value. But if the data behind your slides is made up, the best design in the world will not save you. Investors have seen thousands of decks. They can smell unvalidated assumptions from slide one.')
+        text(' can save you 20+ hours of design and layout work. That is genuinely valuable time you can redirect toward the thing that actually closes deals: knowing your market cold. But if you hand these tools garbage inputs, you will get a beautifully designed deck full of assumptions that fall apart the moment someone asks "where did this number come from?"')
       ),
       emptyP(),
       p(
-        text('This guide compares the best AI pitch deck generators available in 2026, then explains the step you should take '),
+        text('This guide compares the best AI pitch deck generators in 2026, then covers the step you should take '),
         italic('before'),
         text(' you open any of them.')
       ),

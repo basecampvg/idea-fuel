@@ -13,25 +13,21 @@ export function getPost01() {
     content: doc(
       // --- Intro ---
       p(
-        text('Most AI business plan generators have a dirty secret: they make stuff up. You type a one-line prompt, press generate, and get a 20-page document full of confident-sounding projections based on '),
-        italic('absolutely nothing'),
-        text('. No market data. No competitive analysis. No validation that the idea is worth pursuing in the first place.'),
+        text('Last month, a friend sent me a business plan he generated with an AI tool. Twenty pages, beautifully formatted, complete with five-year revenue projections, a competitive matrix, and a TAM analysis that pegged his market at $4.2 billion. Looked like something a McKinsey team spent three weeks on.'),
       ),
       emptyP(),
       p(
-        text('That is not a business plan. That is expensive fan fiction.'),
+        text('One problem: the revenue projections were based on customer acquisition costs he never researched. The competitive matrix was missing his three biggest competitors. And the $4.2 billion TAM number? Pulled from a 2019 report about a tangentially related industry.'),
       ),
       emptyP(),
       p(
-        text('A real business plan starts with a real understanding of the market. The problem is that most tools skip the hard part — research and validation — and jump straight to formatting. They optimize for '),
-        italic('looking professional'),
-        text(' instead of '),
-        italic('being useful'),
-        text('.'),
+        text('This is the core tension with AI business plan generators. The '),
+        italic('formatting'),
+        text(' problem is solved — any tool can produce a professional-looking document. The hard problem is whether the substance behind that formatting reflects reality. The best tools start with research and validation, then build the plan on top of real data. The worst ones skip straight to the template and let you fill in fantasies.'),
       ),
       emptyP(),
       p(
-        text('I tested 7 AI business plan generators in 2026 to see which ones actually help you build something real and which ones are just templating engines with a chatbot stapled on. Here is what I found.'),
+        text('I tested 7 AI business plan generators in 2026 to find out which ones actually do the hard part. Here is what separates the useful from the decorative.'),
       ),
 
       // --- What to look for ---

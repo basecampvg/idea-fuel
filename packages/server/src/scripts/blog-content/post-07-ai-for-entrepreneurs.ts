@@ -10,25 +10,29 @@ export function getPost07() {
     content: doc(
       // --- Intro ---
       p(
-        text('Here is a dirty truth about AI tools for entrepreneurs: '),
-        bold('most of them solve one problem while creating three new ones.'),
-      ),
-      emptyP(),
-      p(
         text(
-          'You use ChatGPT to brainstorm ideas. Then you jump to a market research tool. Then a financial modeling spreadsheet. Then a business plan generator. Then a pitch deck builder. Each tool has a different interface, different data format, and zero awareness of what you did in the last one.',
+          'Picture your Tuesday morning. You brainstormed three business ideas in ChatGPT. Ran one through a market research tool. Pulled the output into a spreadsheet for financial modeling. Copied those numbers into a business plan generator. Now you are reformatting everything for a pitch deck builder that does not talk to any of the other tools you just used.',
         ),
       ),
       emptyP(),
       p(
         text(
-          'You are not building a business. You are managing a Frankenstein stack of disconnected AI products.',
+          'It is 2 PM. You have been "productive" all day. You have created zero new knowledge. You have just been a human copy-paste layer between six tabs.',
         ),
       ),
       emptyP(),
       p(
         text(
-          'This guide breaks down the entrepreneur journey into five stages and maps the best AI tools for each. More importantly, it shows you where you are hemorrhaging time by context-switching between tools that should be talking to each other.',
+          'This is the actual state of '),
+        bold('AI tools for entrepreneurs'),
+        text(
+          ' in 2026. Individually, many of them are impressive. Together, they are a Frankenstein stack that eats your time through context-switching and reformatting instead of saving it.',
+        ),
+      ),
+      emptyP(),
+      p(
+        text(
+          'This guide breaks the entrepreneur journey into five stages and maps the best AI tools to each one. More importantly, it shows you where consolidation matters — where using fewer, better-connected tools beats having the "best" option in every category.',
         ),
       ),
 

@@ -13,21 +13,21 @@ export function getPost03() {
     content: doc(
       // --- Intro ---
       p(
-        text('Traditional market research takes weeks and costs thousands. You hire a firm, they send surveys, they compile reports, and by the time you get the results, the market has already moved. Or you do it yourself and spend 40 hours in spreadsheets synthesizing data from a dozen sources.'),
+        text('The average cost of a market research report from a traditional firm is $15,000 to $35,000. Turnaround time: four to eight weeks. For a startup trying to figure out if their idea has legs, that is not a speed bump — that is a wall. So most founders skip research entirely and go straight to building. You can guess how that usually ends.'),
       ),
       emptyP(),
       p(
-        text('AI market research compresses that entire process into minutes. Not days. Not hours. Minutes.'),
+        text('Here is what has changed: AI can now pull data from multiple sources, estimate market sizes, map competitors, identify trends, and synthesize findings into structured reports in minutes. Not days. Not hours. Minutes. The output is not perfect — no research ever is — but it is good enough to make real decisions on, and you can always go deeper on the areas that matter most.'),
       ),
       emptyP(),
       p(
-        text('That sounds like hype, so let me be specific about what I mean. AI can now pull data from multiple sources, estimate market sizes, map competitors, identify trends, and synthesize findings into structured reports faster than any human researcher. The output is not perfect — no research is — but it is good enough to make decisions on, and you can always go deeper on the areas that matter most.'),
+        text('The shift is not just about speed. It is about access. '),
+        bold('AI market research'),
+        text(' used to be something only funded companies could afford to do properly. Now anyone with a laptop can get 80% of the way there before breakfast.'),
       ),
       emptyP(),
       p(
-        text('This guide walks through exactly how to do '),
-        bold('ai market research'),
-        text(' step by step. I will cover the methodology, the tools, and the places where AI is genuinely useful versus where you still need human judgment.'),
+        text('This guide walks through exactly how to do AI market research step by step — the methodology, the tools, and the places where AI is genuinely useful versus where you still need human judgment.'),
       ),
 
       // --- Why traditional market research is broken ---

@@ -10,19 +10,19 @@ export function getPost04() {
     content: doc(
       // --- Intro ---
       p(
-        text('Most "best AI tools for small business" lists are written by people who have never run a small business. They recommend enterprise software with enterprise pricing, then slap a "great for small teams!" label on it. That is not helpful.')
+        text('Before I started building software, I ran a small service business. My "tech stack" was a phone, a paper calendar, and a spreadsheet I updated at midnight after the kids went to sleep. I did not need a dashboard. I needed something that could answer a customer question while I was standing in a parking lot between jobs.')
       ),
       emptyP(),
       p(
-        text('Here is the reality: small business owners do not sit at desks all day researching software. You are driving between job sites, answering customer calls at lunch, and doing payroll at 11 PM. The '),
+        text('That experience shaped how I think about AI tools for small business. The '),
         bold('best AI tools for small business'),
-        text(' are the ones that work on your phone, cost less than your monthly coffee habit, and give you answers instead of dashboards.')
+        text(' are not the most powerful or the most feature-rich. They are the ones that work on your phone, cost less than your monthly coffee habit, and give you answers instead of requiring you to learn a new interface.')
       ),
       emptyP(),
       p(
         text('I built '),
         boldLink('IdeaFuel', 'https://ideafuel.ai'),
-        text(' for exactly this kind of person. But this is not a product pitch. This is a breakdown of the AI tools that actually matter across six categories, with honest takes on pricing, what is worth paying for, and what you can skip.')
+        text(' with exactly this kind of person in mind. But this is not a product pitch — this is a breakdown of AI tools that actually matter across six categories, with honest takes on pricing, what is worth paying for, and what you can skip. If a tool requires a tutorial video to understand, it did not make the list.')
       ),
 
       // --- Section 1: Idea Validation ---

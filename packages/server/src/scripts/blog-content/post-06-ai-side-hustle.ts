@@ -11,21 +11,21 @@ export function getPost06() {
     content: doc(
       // --- Intro ---
       p(
-        text('Every "AI side hustle ideas" article follows the same script: list 20 vague ideas, sprinkle in some affiliate links, and end with "the possibilities are endless!" None of them mention that most AI side hustles fail for the same reason most side hustles fail: the person never validated whether anyone would pay for it.')
-      ),
-      emptyP(),
-      p(
-        text('I am going to do something different here. I will give you 15 legitimate '),
+        text('What if the hardest part of starting an '),
         bold('AI side hustle'),
-        text(' ideas with real earning potential. But for each one, I am also going to tell you how to figure out if it will work '),
-        italic('before'),
-        text(' you invest six months and your weekends into it. Because the idea is the easy part. Knowing which idea to pursue is the entire game.')
+        text(' is not finding the idea — but figuring out which idea is actually worth your nights and weekends?')
       ),
       emptyP(),
       p(
-        text('Quick validation method for all of these: open '),
+        text('Because ideas are everywhere. You can generate fifty AI side hustle concepts in ten minutes with any chatbot. The problem is that forty-nine of them will either be saturated, impractical, or solving a problem nobody will pay to fix. The person who succeeds is not the one with the most creative idea. It is the one who validates fastest and commits to the right one.')
+      ),
+      emptyP(),
+      p(
+        text('That is the lens for this guide. I am giving you 15 legitimate AI side hustle ideas with real earning potential. But for each one, I am also telling you how to pressure-test it '),
+        italic('before'),
+        text(' you invest six months of weekends. Open '),
         boldLink('IdeaFuel', 'https://ideafuel.ai'),
-        text(' on your phone, speak the idea, and get a Proceed/Watchlist/Drop verdict in 2 minutes. Seriously. That is the fastest way to separate fantasies from opportunities.')
+        text(' on your phone, speak the idea, and get a Proceed/Watchlist/Drop verdict in two minutes. That is the fastest way to separate the real opportunities from the appealing fantasies.')
       ),
 
       // --- Section: High-Earning AI Side Hustles ---
