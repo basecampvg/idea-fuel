@@ -24,7 +24,7 @@
  * - linkThought:       Create a manual user_linked connection
  */
 
-import { eq, and, desc, isNull, count, max, lt, sql, or } from 'drizzle-orm';
+import { eq, and, desc, isNull, count, max, lt, sql, or, inArray } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
@@ -1171,7 +1171,7 @@ export const thoughtRouter = router({
         cnt: count(),
       })
       .from(thoughtConnections)
-      .where(sql`${thoughtConnections.thoughtAId} = ANY(ARRAY[${sql.join(thoughtIds.map((id) => sql`${id}::uuid`), sql`, `)}])`)
+      .where(inArray(thoughtConnections.thoughtAId, thoughtIds))
       .groupBy(thoughtConnections.thoughtAId);
 
     const connectionCountsB = await ctx.db
@@ -1180,7 +1180,7 @@ export const thoughtRouter = router({
         cnt: count(),
       })
       .from(thoughtConnections)
-      .where(sql`${thoughtConnections.thoughtBId} = ANY(ARRAY[${sql.join(thoughtIds.map((id) => sql`${id}::uuid`), sql`, `)}])`)
+      .where(inArray(thoughtConnections.thoughtBId, thoughtIds))
       .groupBy(thoughtConnections.thoughtBId);
 
     // Merge connection counts
@@ -1210,7 +1210,7 @@ export const thoughtRouter = router({
       })
       .from(thoughtConnections)
       .innerJoin(thoughts, eq(thoughts.id, thoughtConnections.thoughtBId))
-      .where(sql`${thoughtConnections.thoughtAId} = ANY(ARRAY[${sql.join(thoughtIds.map((id) => sql`${id}::uuid`), sql`, `)}])`);
+      .where(inArray(thoughtConnections.thoughtAId, thoughtIds));
 
     const connectedTypesB = await ctx.db
       .select({
@@ -1219,7 +1219,7 @@ export const thoughtRouter = router({
       })
       .from(thoughtConnections)
       .innerJoin(thoughts, eq(thoughts.id, thoughtConnections.thoughtAId))
-      .where(sql`${thoughtConnections.thoughtBId} = ANY(ARRAY[${sql.join(thoughtIds.map((id) => sql`${id}::uuid`), sql`, `)}])`);
+      .where(inArray(thoughtConnections.thoughtBId, thoughtIds));
 
     // Build diversity map: thoughtId -> { hasDifferentType, hasSameType }
     const diversityMap = new Map<string, { hasDifferentType: boolean; hasSameType: boolean }>();
