@@ -267,7 +267,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
 
     const editor = useEditorBridge({
       autofocus: false,
-      avoidIosKeyboard: true,
+      avoidIosKeyboard: false,
       initialContent: initialHtml,
       theme: ideaFuelEditorTheme,
       bridgeExtensions: [
@@ -296,7 +296,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
     return (
       <View style={styles.container}>
         <View style={styles.editorWrapper}>
-          <RichText editor={editor} />
+          <RichText editor={editor} scrollEnabled={false} />
         </View>
       </View>
     );
