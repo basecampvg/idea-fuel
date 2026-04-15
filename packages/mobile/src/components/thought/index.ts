@@ -7,3 +7,5 @@ export { AIRefinementSection } from './AIRefinementSection';
 export { ConnectionsSection } from './ConnectionsSection';
 export { ReactionsRow } from './ReactionsRow';
 export { ActivityLog } from './ActivityLog';
+export { CommentThread } from './CommentThread';
+export { OverflowMenu } from './OverflowMenu';
