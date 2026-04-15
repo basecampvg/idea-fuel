@@ -498,23 +498,14 @@ export default function NoteEditorScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Thought ID */}
-          <Text style={styles.thoughtId}>T-{note.thoughtNumber}</Text>
-
-          {/* Raw Content Editor */}
-          <View style={styles.editorContainer}>
-            {initialLoaded && (
-              <MarkdownEditor
-                ref={editorRef}
-                initialContent={note.content ?? ''}
-                placeholder="Dump your thoughts here..."
-                onChange={handleEditorChange}
-              />
-            )}
+          {/* Thought ID + timestamp row */}
+          <View style={styles.idRow}>
+            <Text style={styles.thoughtId}>T-{note.thoughtNumber}</Text>
+            <SourceLabel captureMethod={note.captureMethod} createdAt={note.createdAt} />
           </View>
 
           {/* Property Chip Bar */}
-          <View style={styles.section}>
+          <View style={styles.chipSection}>
             <PropertyChipBar
               maturityLevel={note.maturityLevel as any}
               thoughtType={note.thoughtType as any}
@@ -531,8 +522,30 @@ export default function NoteEditorScreen() {
             />
           </View>
 
-          {/* Source Label */}
-          <SourceLabel captureMethod={note.captureMethod} createdAt={note.createdAt} />
+          {/* AI Refinement CTA / section */}
+          <View style={styles.chipSection}>
+            <AIRefinementSection
+              refinedTitle={note.refinedTitle}
+              refinedDescription={note.refinedDescription}
+              refinedTags={note.refinedTags}
+              lastRefinedAt={note.lastRefinedAt}
+              isRefining={refineMutation.isPending}
+              onRefine={() => refineMutation.mutate({ id: id! })}
+            />
+          </View>
+
+          {/* Raw Content Editor — full height, pushes everything below */}
+          <View style={styles.divider} />
+          {initialLoaded && (
+            <View style={styles.editorContainer}>
+              <MarkdownEditor
+                ref={editorRef}
+                initialContent={note.content ?? ''}
+                placeholder="Dump your thoughts here..."
+                onChange={handleEditorChange}
+              />
+            </View>
+          )}
 
           {/* Attachments */}
           {combinedAttachments.length > 0 && (
@@ -547,19 +560,6 @@ export default function NoteEditorScreen() {
               )}
             </View>
           )}
-
-          {/* AI Refinement */}
-          <View style={styles.divider} />
-          <View style={styles.section}>
-            <AIRefinementSection
-              refinedTitle={note.refinedTitle}
-              refinedDescription={note.refinedDescription}
-              refinedTags={note.refinedTags}
-              lastRefinedAt={note.lastRefinedAt}
-              isRefining={refineMutation.isPending}
-              onRefine={() => refineMutation.mutate({ id: id! })}
-            />
-          </View>
 
           {/* Connections */}
           <View style={styles.divider} />
@@ -726,16 +726,24 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 60,
   },
+  idRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
   thoughtId: {
     fontSize: 13,
     color: colors.mutedDim,
     ...fonts.geist.regular,
+  },
+  chipSection: {
     paddingHorizontal: 20,
-    marginBottom: 8,
+    paddingVertical: 6,
   },
   editorContainer: {
-    minHeight: 120,
-    paddingBottom: 8,
+    paddingVertical: 8,
   },
   section: {
     paddingHorizontal: 20,
