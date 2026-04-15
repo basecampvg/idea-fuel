@@ -627,16 +627,30 @@ export default function ThoughtsScreen() {
   }, [clusterDeleteMutation]);
 
   // ── Revisit action handlers ──
+  const removeCandidateFromCache = useCallback(async (thoughtId: string) => {
+    try {
+      const cached = await AsyncStorage.getItem('resurfaceCandidates');
+      if (cached) {
+        const updated = JSON.parse(cached).filter((c: any) => c.id !== thoughtId);
+        await AsyncStorage.setItem('resurfaceCandidates', JSON.stringify(updated));
+      }
+    } catch {
+      // Non-critical
+    }
+  }, []);
+
   const handleRevisitDismiss = useCallback((thoughtId: string) => {
     setResurfaceCandidates((prev) => prev.filter((c) => c.id !== thoughtId));
+    removeCandidateFromCache(thoughtId);
     recordSurfaceAction.mutate({ thoughtId, action: 'dismiss' });
-  }, [recordSurfaceAction]);
+  }, [recordSurfaceAction, removeCandidateFromCache]);
 
   const handleRevisitEngage = useCallback((thoughtId: string) => {
     setResurfaceCandidates((prev) => prev.filter((c) => c.id !== thoughtId));
+    removeCandidateFromCache(thoughtId);
     recordSurfaceAction.mutate({ thoughtId, action: 'engage' });
     router.push({ pathname: '/(tabs)/capture', params: { linkedThoughtId: thoughtId } } as any);
-  }, [recordSurfaceAction, router]);
+  }, [recordSurfaceAction, removeCandidateFromCache, router]);
 
   const handleRevisitCluster = useCallback((thoughtId: string) => {
     setRevisitClusterTarget(thoughtId);
@@ -902,12 +916,14 @@ export default function ThoughtsScreen() {
         onClose={() => setRevisitClusterTarget(null)}
         onSelect={(clusterId: string) => {
           if (!revisitClusterTarget) return;
-          setResurfaceCandidates((prev) => prev.filter((c) => c.id !== revisitClusterTarget));
+          const targetId = revisitClusterTarget;
+          setResurfaceCandidates((prev) => prev.filter((c) => c.id !== targetId));
+          removeCandidateFromCache(targetId);
           utils.client.thought.addToCluster.mutate({
-            thoughtId: revisitClusterTarget,
+            thoughtId: targetId,
             clusterId,
           }).catch(() => {});
-          recordSurfaceAction.mutate({ thoughtId: revisitClusterTarget, action: 'cluster' });
+          recordSurfaceAction.mutate({ thoughtId: targetId, action: 'cluster' });
           setRevisitClusterTarget(null);
         }}
       />
