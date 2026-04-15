@@ -17,6 +17,10 @@ function CustomTabBar({ state, descriptors, navigation, insets }: any) {
       ]}>
         {state.routes.map((route: any, index: number) => {
           const { options } = descriptors[route.key];
+
+          // Skip hidden tabs (old Notes/Sandbox replaced by Thoughts)
+          if (route.name === 'notes' || route.name === 'sandbox') return null;
+
           const isFocused = state.index === index;
           const color = isFocused ? colors.brand : colors.white;
 
