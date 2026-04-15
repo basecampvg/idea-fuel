@@ -60,6 +60,7 @@ function MaturityDot({ level }: { level: string }) {
 
 function RevisitCard({
   candidate,
+  onPress,
   onDismiss,
   onEngage,
   onCluster,
