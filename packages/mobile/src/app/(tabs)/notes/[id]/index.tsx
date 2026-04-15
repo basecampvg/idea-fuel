@@ -19,16 +19,31 @@ import {
   Rocket,
   Pin,
   PinOff,
+  ImagePlus,
+  Camera,
+  Image as ImageIcon,
 } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { Button, triggerHaptic } from '../../../../components/ui/Button';
 import { IdeaCard } from '../../../../components/ui/IdeaCard';
 import { BottomSheet } from '../../../../components/ui/BottomSheet';
 import { MarkdownEditor, type MarkdownEditorRef } from '../../../../components/editor/MarkdownEditor';
+import { ThumbnailStrip, type LocalAttachment } from '../../../../components/ThumbnailStrip';
 import { useNoteAutoSave, type SaveStatus } from '../../../../hooks/useNoteAutoSave';
 import { trpc } from '../../../../lib/trpc';
+import { useToast } from '../../../../contexts/ToastContext';
 import { colors, fonts } from '../../../../lib/theme';
 import { SandboxPicker } from '../../../../components/SandboxPicker';
+
+// Lazy-load expo-image-picker — has native code that may not be in every build
+let ImagePicker: typeof import('expo-image-picker') | null = null;
+try {
+  ImagePicker = require('expo-image-picker');
+} catch {
+  // Native module not available in this build
+}
+
+const MAX_NOTE_ATTACHMENTS = 10;
 
 function SaveIndicator({ status }: { status: SaveStatus }) {
   if (status === 'idle') return null;
@@ -50,9 +65,10 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
 }
 
 export default function NoteEditorScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, fromSandbox } = useLocalSearchParams<{ id: string; fromSandbox?: string }>();
   const router = useRouter();
   const navigation = useNavigation();
+  const { showToast } = useToast();
   const editorRef = useRef<MarkdownEditorRef>(null);
   const [initialLoaded, setInitialLoaded] = useState(false);
   const [cardCollapsed, setCardCollapsed] = useState(false);
@@ -61,6 +77,11 @@ export default function NoteEditorScreen() {
   const autoRefineTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contentLengthRef = useRef(0);
   const noteTypeRef = useRef<string | undefined>(undefined);
+
+  // Attachment state
+  const [localAttachments, setLocalAttachments] = useState<LocalAttachment[]>([]);
+  const [showPopover, setShowPopover] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Auto-collapse IdeaCard when keyboard appears so editor has room
   useEffect(() => {
@@ -80,7 +101,12 @@ export default function NoteEditorScreen() {
     onSuccess: () => {
       triggerHaptic('success');
       utils.note.list.invalidate();
-      router.back();
+      if (fromSandbox) {
+        utils.sandbox.get.invalidate({ id: fromSandbox });
+        router.navigate(`/(tabs)/sandbox/${fromSandbox}` as any);
+      } else {
+        router.back();
+      }
     },
     onError: () => {
       triggerHaptic('error');
@@ -146,6 +172,29 @@ export default function NoteEditorScreen() {
     onError: () => {
       triggerHaptic('error');
       Alert.alert('Error', 'Failed to unpin note.');
+    },
+  });
+
+  const getUploadUrl = trpc.attachment.getUploadUrl.useMutation();
+  const addAttachments = trpc.note.addAttachments.useMutation({
+    onSuccess: () => {
+      setLocalAttachments([]);
+      utils.note.get.invalidate({ id: id! });
+    },
+    onError: () => {
+      triggerHaptic('error');
+      showToast({ message: 'Failed to save attachments', type: 'error' });
+    },
+  });
+
+  const removeAttachment = trpc.note.removeAttachment.useMutation({
+    onSuccess: () => {
+      triggerHaptic('success');
+      utils.note.get.invalidate({ id: id! });
+    },
+    onError: () => {
+      triggerHaptic('error');
+      showToast({ message: 'Failed to remove attachment', type: 'error' });
     },
   });
 
@@ -237,6 +286,163 @@ export default function NoteEditorScreen() {
     promoteMutation.mutate({ id: id! });
   }, [id, promoteMutation]);
 
+  // ── Attachment helpers ──
+
+  const savedAttachments = note?.attachments ?? [];
+  const totalAttachments = savedAttachments.length + localAttachments.length;
+  const attachmentsAtMax = totalAttachments >= MAX_NOTE_ATTACHMENTS;
+
+  // Combined display array for ThumbnailStrip
+  const combinedAttachments: LocalAttachment[] = [
+    ...savedAttachments.map((a) => ({
+      uri: a.publicUrl ?? '',
+      fileName: a.fileName,
+      mimeType: a.mimeType,
+      sizeBytes: a.sizeBytes,
+    })),
+    ...localAttachments,
+  ];
+
+  const handleOpenPopover = useCallback(() => {
+    if (attachmentsAtMax) return;
+    setShowPopover(true);
+  }, [attachmentsAtMax]);
+
+  const processPickerResult = useCallback((result: { canceled: boolean; assets?: Array<{ uri: string; fileName?: string | null; mimeType?: string | null; fileSize?: number | null }> | null }) => {
+    if (result.canceled || !result.assets) return;
+
+    const remaining = MAX_NOTE_ATTACHMENTS - totalAttachments;
+    const newImages = result.assets.slice(0, remaining).map((asset) => ({
+      uri: asset.uri,
+      fileName: asset.fileName || `image-${Date.now()}.jpg`,
+      mimeType: (asset.mimeType || 'image/jpeg') as string,
+      sizeBytes: asset.fileSize || 0,
+    }));
+
+    if (newImages.length === 0) return;
+
+    // Add to local state immediately for instant thumbnail display
+    setLocalAttachments((prev) => [...prev, ...newImages]);
+
+    // Upload and persist
+    uploadAndPersist(newImages);
+  }, [totalAttachments]);
+
+  const handleCamera = useCallback(async () => {
+    setShowPopover(false);
+    if (!ImagePicker) {
+      showToast({ message: 'Image picker not available — rebuild required', type: 'error' });
+      return;
+    }
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      showToast({ message: 'Camera permission required', type: 'error' });
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
+    });
+    processPickerResult(result);
+  }, [showToast, processPickerResult]);
+
+  const handlePhotos = useCallback(async () => {
+    setShowPopover(false);
+    if (!ImagePicker) {
+      showToast({ message: 'Image picker not available — rebuild required', type: 'error' });
+      return;
+    }
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      showToast({ message: 'Photo library permission required', type: 'error' });
+      return;
+    }
+    const remaining = MAX_NOTE_ATTACHMENTS - totalAttachments;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      selectionLimit: remaining,
+      quality: 0.8,
+    });
+    processPickerResult(result);
+  }, [showToast, totalAttachments, processPickerResult]);
+
+  const uploadAndPersist = useCallback(async (images: LocalAttachment[]) => {
+    setIsUploading(true);
+    try {
+      const attachmentMetadata: Array<{
+        storagePath: string;
+        fileName: string;
+        mimeType: 'image/jpeg' | 'image/png' | 'image/heic';
+        sizeBytes: number;
+        order: number;
+      }> = [];
+
+      const startOrder = savedAttachments.length;
+
+      for (let i = 0; i < images.length; i++) {
+        const att = images[i];
+        const { uploadUrl, storagePath } = await getUploadUrl.mutateAsync({
+          fileName: att.fileName,
+          mimeType: att.mimeType as 'image/jpeg' | 'image/png' | 'image/heic',
+        });
+
+        // Upload directly to Supabase Storage
+        const response = await fetch(att.uri);
+        const blob = await response.blob();
+
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': att.mimeType },
+          body: blob,
+        });
+
+        if (!uploadResponse.ok) {
+          showToast({ message: `Failed to upload image ${i + 1}`, type: 'error' });
+          continue;
+        }
+
+        attachmentMetadata.push({
+          storagePath,
+          fileName: att.fileName,
+          mimeType: att.mimeType as 'image/jpeg' | 'image/png' | 'image/heic',
+          sizeBytes: att.sizeBytes,
+          order: startOrder + i,
+        });
+      }
+
+      if (attachmentMetadata.length > 0) {
+        await addAttachments.mutateAsync({
+          noteId: id!,
+          attachments: attachmentMetadata,
+        });
+      } else {
+        // All uploads failed — clear local state
+        setLocalAttachments([]);
+      }
+    } catch (err) {
+      triggerHaptic('error');
+      console.error('[NoteEditor] Upload failed:', err);
+      showToast({ message: 'Failed to upload images', type: 'error' });
+      setLocalAttachments([]);
+    } finally {
+      setIsUploading(false);
+    }
+  }, [id, savedAttachments.length, getUploadUrl, addAttachments, showToast]);
+
+  const handleRemoveThumbnail = useCallback((index: number) => {
+    const savedCount = savedAttachments.length;
+    if (index < savedCount) {
+      // It's a saved attachment — remove from server
+      const attachment = savedAttachments[index];
+      removeAttachment.mutate({ attachmentId: attachment.id });
+    } else {
+      // It's a local (pending) attachment — just remove from state
+      const localIndex = index - savedCount;
+      setLocalAttachments((prev) => prev.filter((_, i) => i !== localIndex));
+    }
+  }, [savedAttachments, removeAttachment]);
+
   // Determine if refinement is stale
   const isStale = !!(
     note?.lastRefinedAt &&
@@ -282,7 +488,11 @@ export default function NoteEditorScreen() {
           <TouchableOpacity
             onPress={() => {
               flush();
-              router.back();
+              if (fromSandbox) {
+                router.navigate(`/(tabs)/sandbox/${fromSandbox}` as any);
+              } else {
+                router.back();
+              }
             }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
@@ -307,6 +517,14 @@ export default function NoteEditorScreen() {
             )}
             <View style={styles.pillDivider} />
             <TouchableOpacity
+              style={[styles.pillButton, attachmentsAtMax && { opacity: 0.4 }]}
+              onPress={handleOpenPopover}
+              disabled={attachmentsAtMax}
+            >
+              <ImagePlus size={18} color={colors.foreground} />
+            </TouchableOpacity>
+            <View style={styles.pillDivider} />
+            <TouchableOpacity
               style={styles.pillButton}
               onPress={handleDelete}
             >
@@ -314,6 +532,20 @@ export default function NoteEditorScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Thumbnail strip (saved + local attachments) */}
+        {combinedAttachments.length > 0 && (
+          <View style={styles.thumbnailStripContainer}>
+            <ThumbnailStrip
+              attachments={combinedAttachments}
+              onRemove={handleRemoveThumbnail}
+              maxAttachments={MAX_NOTE_ATTACHMENTS}
+            />
+            {isUploading && (
+              <ActivityIndicator size="small" color={colors.brand} style={styles.uploadingIndicator} />
+            )}
+          </View>
+        )}
 
         {/* IdeaCard at top when refinement exists — only for AI notes */}
         {note.type !== 'QUICK' && note.refinedTitle && (
@@ -406,6 +638,31 @@ export default function NoteEditorScreen() {
         onClose={() => setShowSandboxPicker(false)}
         onSelect={(sandboxId) => pinMutation.mutate({ noteId: id!, sandboxId })}
       />
+
+      {/* Image picker dropdown — anchored top-right below header pill */}
+      {showPopover && (
+        <>
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => setShowPopover(false)}
+          />
+          <View style={styles.imageDropdown}>
+            <TouchableOpacity style={styles.dropdownRow} onPress={handleCamera} activeOpacity={0.7}>
+              <View style={styles.dropdownIcon}>
+                <Camera size={20} color={colors.foreground} />
+              </View>
+              <Text style={styles.dropdownLabel}>Camera</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.dropdownRow} onPress={handlePhotos} activeOpacity={0.7}>
+              <View style={styles.dropdownIcon}>
+                <ImageIcon size={20} color={colors.foreground} />
+              </View>
+              <Text style={styles.dropdownLabel}>Photos</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
     </View>
   );
 }
@@ -457,6 +714,44 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
+  imageDropdown: {
+    position: 'absolute',
+    top: 52,
+    right: 16,
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 6,
+    width: 180,
+    zIndex: 50,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  dropdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  dropdownIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dropdownLabel: {
+    fontSize: 15,
+    color: colors.foreground,
+    ...fonts.geist.regular,
+  },
   saveIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -465,6 +760,14 @@ const styles = StyleSheet.create({
   saveText: {
     fontSize: 13,
     ...fonts.outfit.medium,
+  },
+  thumbnailStripContainer: {
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  uploadingIndicator: {
+    marginLeft: 4,
   },
   ideaCardContainer: {
     paddingHorizontal: 20,

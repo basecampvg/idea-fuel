@@ -1,14 +1,36 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono, Outfit } from 'next/font/google';
+import { Geist_Mono } from 'next/font/google';
+import localFont from 'next/font/local';
 import { SessionProvider } from 'next-auth/react';
 import { TRPCProvider } from '@/lib/trpc/provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import './globals.css';
 
-const geist = Geist({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
+const sfPro = localFont({
+  src: [
+    { path: '../../public/fonts/SF-Pro-Text-Light.otf', weight: '300', style: 'normal' },
+    { path: '../../public/fonts/SF-Pro-Text-Regular.otf', weight: '400', style: 'normal' },
+    { path: '../../public/fonts/SF-Pro-Text-Medium.otf', weight: '500', style: 'normal' },
+    { path: '../../public/fonts/SF-Pro-Text-Semibold.otf', weight: '600', style: 'normal' },
+    { path: '../../public/fonts/SF-Pro-Text-Bold.otf', weight: '700', style: 'normal' },
+    { path: '../../public/fonts/SF-Pro-Display-Regular.otf', weight: '400', style: 'normal' },
+    { path: '../../public/fonts/SF-Pro-Display-Medium.otf', weight: '500', style: 'normal' },
+    { path: '../../public/fonts/SF-Pro-Display-Semibold.otf', weight: '600', style: 'normal' },
+    { path: '../../public/fonts/SF-Pro-Display-Bold.otf', weight: '700', style: 'normal' },
+    { path: '../../public/fonts/SF-Pro-Display-Heavy.otf', weight: '800', style: 'normal' },
+    { path: '../../public/fonts/SF-Pro-Display-Black.otf', weight: '900', style: 'normal' },
+  ],
   variable: '--font-sans',
+  display: 'swap',
+});
+
+const sfProDisplay = localFont({
+  src: [
+    { path: '../../public/fonts/SF-Pro-Display-Bold.otf', weight: '700', style: 'normal' },
+    { path: '../../public/fonts/SF-Pro-Display-Heavy.otf', weight: '800', style: 'normal' },
+    { path: '../../public/fonts/SF-Pro-Display-Black.otf', weight: '900', style: 'normal' },
+  ],
+  variable: '--font-display',
   display: 'swap',
 });
 
@@ -16,13 +38,6 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
   variable: '--font-mono',
-  display: 'swap',
-});
-
-const outfit = Outfit({
-  subsets: ['latin'],
-  weight: ['800', '900'],
-  variable: '--font-display',
   display: 'swap',
 });
 
@@ -63,7 +78,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${geist.variable} ${geistMono.variable} ${outfit.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${sfPro.variable} ${sfProDisplay.variable} ${geistMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: `
 !function(f,b,e,v,n,t,s)
@@ -91,6 +106,8 @@ function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', 'G-P91R7RYB92');
         `}} />
+        {/* Figma capture script — temporary */}
+        <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
       </head>
       <body className="antialiased" suppressHydrationWarning>
         <script

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { getAllTerms, getTermBySlug } from '@/lib/glossary';
 import { GlossaryRelatedChips } from '@/components/glossary/glossary-related-chips';
 import { GlossaryCta } from '@/components/glossary/glossary-cta';
+import { GlossaryCopyLink } from '@/components/glossary/glossary-copy-link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PageProps {
@@ -97,6 +98,7 @@ export default async function GlossaryTermPage({ params }: PageProps) {
             <h1 className="font-display text-4xl font-extrabold tracking-tight text-white md:text-5xl">
               {term.title}
             </h1>
+            <GlossaryCopyLink />
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full border border-[#333] px-2.5 py-0.5 text-[11px] font-medium text-[#928e87]">

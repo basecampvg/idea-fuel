@@ -293,6 +293,8 @@ PODS:
     - RNScreens
   - ExpoSecureStore (55.0.9):
     - ExpoModulesCore
+  - ExpoSensors (55.0.11):
+    - ExpoModulesCore
   - ExpoSpeechRecognition (3.1.1):
     - ExpoModulesCore
   - ExpoSymbols (55.0.5):
@@ -3349,6 +3351,7 @@ DEPENDENCIES:
   - "ExpoModulesJSI (from `../../../node_modules/.pnpm/expo-modules-core@55.0.18_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdany_@babel+co_r2b3ds5kw5bgklzadndajhsejq/node_modules/expo-modules-core`)"
   - "ExpoRouter (from `../../../node_modules/.pnpm/expo-router@55.0.8_vwqahuqxrxv43dwvu4uboprzrm/node_modules/expo-router/ios`)"
   - "ExpoSecureStore (from `../../../node_modules/.pnpm/expo-secure-store@55.0.9_expo@55.0.9/node_modules/expo-secure-store/ios`)"
+  - "ExpoSensors (from `../../../node_modules/.pnpm/expo-sensors@55.0.11_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdany_@b_dqq5pcbfqs7hermghqftpuwjp4/node_modules/expo-sensors/ios`)"
   - "ExpoSpeechRecognition (from `../../../node_modules/.pnpm/expo-speech-recognition@3.1.1_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6_vlc5an3g63s2uyffcx2akxoopa/node_modules/expo-speech-recognition/ios`)"
   - "ExpoSymbols (from `../../../node_modules/.pnpm/expo-symbols@55.0.5_expo-font@55.0.4_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2a_rhycwgnjlqxhnyjuwsvey23udq/node_modules/expo-symbols/ios`)"
   - "ExpoWebBrowser (from `../../../node_modules/.pnpm/expo-web-browser@55.0.10_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdan_fobvbzi4c4h6pnkur6nrzmabuq/node_modules/expo-web-browser/ios`)"
@@ -3518,6 +3521,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/.pnpm/expo-router@55.0.8_vwqahuqxrxv43dwvu4uboprzrm/node_modules/expo-router/ios"
   ExpoSecureStore:
     :path: "../../../node_modules/.pnpm/expo-secure-store@55.0.9_expo@55.0.9/node_modules/expo-secure-store/ios"
+  ExpoSensors:
+    :path: "../../../node_modules/.pnpm/expo-sensors@55.0.11_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdany_@b_dqq5pcbfqs7hermghqftpuwjp4/node_modules/expo-sensors/ios"
   ExpoSpeechRecognition:
     :path: "../../../node_modules/.pnpm/expo-speech-recognition@3.1.1_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6_vlc5an3g63s2uyffcx2akxoopa/node_modules/expo-speech-recognition/ios"
   ExpoSymbols:
@@ -3733,6 +3738,7 @@ SPEC CHECKSUMS:
   ExpoModulesJSI: 92db390c19eb21af69005d94f430793c7ca7aec7
   ExpoRouter: 3e3ecbfd6baf14fc1a5c17fe840645b2db7559c5
   ExpoSecureStore: 83d31183fecaae7a084e88e29d14d5a02d90882a
+  ExpoSensors: 719687d4967621402846e79ee92494a7ab58ca9e
   ExpoSpeechRecognition: 46c21b61638bcf3478066886b52579b2f9f56ab5
   ExpoSymbols: 3d67a96643245a5d933ce7fbf535f95eb541f617
   ExpoWebBrowser: 04fdc3b0619d6708f931a9d0f8850903cc38d896
@@ -3836,6 +3842,6 @@ SPEC CHECKSUMS:
   tentap: f11bd82f1afb77eb418639248230868d7484c867
   Yoga: 3d56e80930898685da43cbf53b5843932df8e765
 
-PODFILE CHECKSUM: 7b35a6737a99592c430a776032c7bb5afb0540df
+PODFILE CHECKSUM: 5a9ea5348ce091bedd1b716c301acc1e230c9ff7
 
 COCOAPODS: 1.16.2

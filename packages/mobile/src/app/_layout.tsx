@@ -36,6 +36,14 @@ export default function RootLayout() {
                   <Stack.Screen name="index" />
                   <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                   <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="settings"
+                    options={{
+                      presentation: 'modal',
+                      headerShown: false,
+                      animation: 'slide_from_bottom',
+                    }}
+                  />
                 </Stack>
                 <StatusBar style="light" />
               </ToastProvider>

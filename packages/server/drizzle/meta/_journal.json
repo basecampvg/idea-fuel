@@ -120,6 +120,13 @@
       "when": 1775159041617,
       "tag": "0016_luxuriant_stature",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1775231816481,
+      "tag": "0017_slippery_satana",
+      "breakpoints": true
     }
   ]
 }

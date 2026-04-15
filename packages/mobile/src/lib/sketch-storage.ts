@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as FileSystem from 'expo-file-system';
+import { File, Directory, Paths } from 'expo-file-system';
 
 const STORAGE_KEY = 'ideafuel_sketch_library';
 
@@ -16,12 +16,11 @@ export interface LocalSketch {
   createdAt: string;
 }
 
-const SKETCH_DIR = `${FileSystem.documentDirectory}sketches/`;
+const sketchDir = new Directory(Paths.document, 'sketches');
 
-async function ensureDir() {
-  const info = await FileSystem.getInfoAsync(SKETCH_DIR);
-  if (!info.exists) {
-    await FileSystem.makeDirectoryAsync(SKETCH_DIR, { intermediates: true });
+function ensureDir() {
+  if (!sketchDir.exists) {
+    sketchDir.create();
   }
 }
 
@@ -33,17 +32,14 @@ export async function getAllSketches(): Promise<LocalSketch[]> {
 }
 
 export async function saveSketch(sketch: LocalSketch, imageUrl: string): Promise<LocalSketch> {
-  await ensureDir();
+  ensureDir();
 
   // Try to download image to local file system
   let localPath = '';
   try {
-    localPath = `${SKETCH_DIR}${sketch.id}.png`;
-    const downloadResult = await FileSystem.downloadAsync(imageUrl, localPath);
-    if (downloadResult.status !== 200) {
-      console.warn('[sketch-storage] Download returned status', downloadResult.status);
-      localPath = ''; // Fall back to remote URL
-    }
+    const destination = new File(sketchDir, `${sketch.id}.png`);
+    const downloaded = await File.downloadFileAsync(imageUrl, destination);
+    localPath = downloaded.uri;
   } catch (err) {
     console.warn('[sketch-storage] Failed to download image locally:', err);
     localPath = ''; // Fall back to remote URL
@@ -77,7 +73,10 @@ export async function deleteSketch(sketchId: string): Promise<void> {
   const sketch = sketches.find((s) => s.id === sketchId);
   if (sketch?.localImagePath) {
     try {
-      await FileSystem.deleteAsync(sketch.localImagePath, { idempotent: true });
+      const file = new File(sketch.localImagePath);
+      if (file.exists) {
+        file.delete();
+      }
     } catch {
       // File may already be deleted
     }

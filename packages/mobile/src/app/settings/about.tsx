@@ -15,10 +15,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Search, ExternalLink, X, Trash2, Activity, Send, AlertTriangle } from 'lucide-react-native';
 import Constants from 'expo-constants';
 import { useQueryClient } from '@tanstack/react-query';
-import { colors, fonts } from '../../../lib/theme';
-import { API_URL } from '../../../lib/constants';
-import { logger } from '../../../lib/logger';
-import licensesData from '../../../data/licenses.json';
+import { colors, fonts } from '../../lib/theme';
+import { API_URL } from '../../lib/constants';
+import { logger } from '../../lib/logger';
+import licensesData from '../../data/licenses.json';
 
 interface LicenseEntry {
   name: string;

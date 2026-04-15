@@ -56,7 +56,7 @@ export default function NotebookScreen() {
     onSuccess: () => {
       triggerHaptic('success');
       utils.project.list.invalidate();
-      router.back();
+      router.navigate('/(tabs)/vault' as any);
     },
     onError: () => {
       triggerHaptic('error');
@@ -153,7 +153,7 @@ export default function NotebookScreen() {
         <View style={styles.errorContainer}>
           <AlertCircle size={48} color={colors.destructive} />
           <Text style={styles.errorText}>Failed to load idea</Text>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.navigate('/(tabs)/vault' as any)}>
             <Text style={styles.backButtonText}>Go back</Text>
           </TouchableOpacity>
         </View>
@@ -173,7 +173,7 @@ export default function NotebookScreen() {
           <TouchableOpacity
             onPress={() => {
               flush();
-              router.back();
+              router.navigate('/(tabs)/vault' as any);
             }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >

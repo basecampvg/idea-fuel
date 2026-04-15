@@ -61,6 +61,13 @@
         }
       ],
       "./plugins/patch-turbomodule",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Idea Fuel needs access to your photo library to save sketches.",
+          "savePhotosPermission": "Idea Fuel needs permission to save sketches to your photo library."
+        }
+      ],
       "expo-web-browser",
       [
         "expo-build-properties",

@@ -10,18 +10,18 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useQueryClient } from '@tanstack/react-query';
-import { trpc } from '../../../lib/trpc';
-import { useToast } from '../../../contexts/ToastContext';
-import { triggerHaptic, Button } from '../../../components/ui/Button';
-import { PlanCard, TIER_COLORS } from '../../../components/ui/PlanCard';
-import type { PlanCardState } from '../../../components/ui/PlanCard';
-import { PlanPager } from '../../../components/ui/PlanPager';
+import { trpc } from '../../lib/trpc';
+import { useToast } from '../../contexts/ToastContext';
+import { triggerHaptic, Button } from '../../components/ui/Button';
+import { PlanCard, TIER_COLORS } from '../../components/ui/PlanCard';
+import type { PlanCardState } from '../../components/ui/PlanCard';
+import { PlanPager } from '../../components/ui/PlanPager';
 import {
   getOfferings,
   purchasePackage,
   restorePurchases,
   isPurchasesAvailable,
-} from '../../../lib/purchases';
+} from '../../lib/purchases';
 import {
   TIER_RANK,
   MOBILE_IAP_PRICES,
@@ -29,7 +29,7 @@ import {
   MOBILE_IAP_FEATURE_ICONS,
 } from '@forge/shared';
 import type { SubscriptionTier } from '@forge/shared';
-import { colors, fonts } from '../../../lib/theme';
+import { colors, fonts } from '../../lib/theme';
 
 const PURCHASABLE_TIERS: { key: SubscriptionTier; name: string; rcProductSuffix: string; tagline: string }[] = [
   { key: 'MOBILE', name: 'Mobile', rcProductSuffix: 'ideafuel_mobile_monthly', tagline: 'Quick idea validation on the go' },

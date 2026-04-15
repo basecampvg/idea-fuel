@@ -9,8 +9,21 @@ import { common, createLowlight } from 'lowlight';
 import DOMPurify from 'isomorphic-dompurify';
 import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
+import { slugify } from '@/lib/blog-utils';
 
 const lowlight = createLowlight(common);
+
+function addHeadingIds(html: string): string {
+  const seen = new Map<string, number>();
+  return html.replace(/<(h[23])>(.*?)<\/\1>/gs, (_, tag, content) => {
+    const text = content.replace(/<[^>]*>/g, '');
+    let id = slugify(text);
+    const count = seen.get(id) ?? 0;
+    seen.set(id, count + 1);
+    if (count > 0) id = `${id}-${count}`;
+    return `<${tag} id="${id}" class="scroll-mt-24">${content}</${tag}>`;
+  });
+}
 
 interface TipTapRendererProps {
   content: unknown;
@@ -39,7 +52,8 @@ export function TipTapRenderer({ content, className }: TipTapRendererProps) {
 
     try {
       const raw = generateHTML(content as Parameters<typeof generateHTML>[0], extensions);
-      return DOMPurify.sanitize(raw);
+      const withIds = addHeadingIds(raw);
+      return DOMPurify.sanitize(withIds);
     } catch (error) {
       console.error('Failed to render TipTap content:', error);
       return '<p>Failed to render content</p>';

@@ -21,6 +21,7 @@ export default function SketchStackLayout() {
           color: colors.foreground,
         },
         headerShadowVisible: false,
+        headerBackVisible: false,
         contentStyle: {
           backgroundColor: colors.background,
         },
@@ -45,8 +46,7 @@ export default function SketchStackLayout() {
       <Stack.Screen
         name="library"
         options={{
-          title: 'Library',
-          headerBackVisible: false,
+          headerShown: false,
         }}
       />
     </Stack>

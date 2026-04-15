@@ -138,7 +138,7 @@ export function SketchPromptModal({ visible, onClose, onGenerate, isLoading, ini
       referenceImageUri,
       referenceImageMimeType,
     });
-  }, [templateType, description, annotations, referenceImageUri, referenceImageMimeType, isLoading, onGenerate]);
+  }, [templateType, description, features, aspectRatio, annotations, referenceImageUri, referenceImageMimeType, isLoading, onGenerate]);
 
   const processPickerResult = useCallback((result: { canceled: boolean; assets?: Array<{ uri: string; mimeType?: string | null }> | null }) => {
     if (result.canceled || !result.assets?.length) return;

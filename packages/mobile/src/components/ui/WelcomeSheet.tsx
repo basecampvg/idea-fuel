@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  Pressable,
+  Modal,
+  ScrollView,
   StyleSheet,
   Dimensions,
 } from 'react-native';
@@ -12,16 +13,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
   withTiming,
   runOnJS,
-  Easing,
 } from 'react-native-reanimated';
-import { X, Mic, FileText, Vault, TrendingUp } from 'lucide-react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { X, Mic, NotebookPen, Vault, TrendingUp, FlaskConical, Pencil } from 'lucide-react-native';
 import { colors, fonts } from '../../lib/theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SHEET_HEIGHT = SCREEN_HEIGHT * 0.85;
+const DISMISS_THRESHOLD = 100;
 
 interface WelcomeSheetProps {
   onDismiss: () => void;
@@ -34,9 +34,19 @@ const FEATURES = [
     description: 'Speak or type — your ideas are instantly captured and organized',
   },
   {
-    Icon: FileText,
+    Icon: NotebookPen,
     title: 'Notes',
     description: 'Add context, research, and details to flesh out any idea',
+  },
+  {
+    Icon: FlaskConical,
+    title: 'Sandbox',
+    description: 'A space to experiment, iterate, and develop your ideas freely',
+  },
+  {
+    Icon: Pencil,
+    title: 'Sketch',
+    description: 'Generate AI visuals to bring your ideas to life',
   },
   {
     Icon: Vault,
@@ -53,117 +63,151 @@ const FEATURES = [
 export function WelcomeSheet({ onDismiss }: WelcomeSheetProps) {
   const translateY = useSharedValue(SCREEN_HEIGHT);
   const backdropOpacity = useSharedValue(0);
+  const [modalVisible, setModalVisible] = React.useState(true);
+  const startY = useSharedValue(0);
+
+  const dismiss = useCallback(() => {
+    backdropOpacity.value = withTiming(0, { duration: 200 });
+    translateY.value = withTiming(SCREEN_HEIGHT, { duration: 250 }, (finished) => {
+      if (finished) {
+        runOnJS(setModalVisible)(false);
+        runOnJS(onDismiss)();
+      }
+    });
+  }, [onDismiss]);
 
   useEffect(() => {
-    translateY.value = withSpring(0, { damping: 15, stiffness: 90 });
-    backdropOpacity.value = withTiming(1, { duration: 300 });
+    requestAnimationFrame(() => {
+      translateY.value = withTiming(0, { duration: 300 });
+      backdropOpacity.value = withTiming(1, { duration: 300 });
+    });
   }, []);
 
-  const dismiss = () => {
-    backdropOpacity.value = withTiming(0, { duration: 250 });
-    translateY.value = withTiming(
-      SCREEN_HEIGHT,
-      { duration: 250, easing: Easing.in(Easing.ease) },
-      (finished) => {
-        if (finished) runOnJS(onDismiss)();
-      },
-    );
-  };
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      startY.value = translateY.value;
+    })
+    .onUpdate((event) => {
+      const newY = startY.value + event.translationY;
+      translateY.value = Math.max(0, newY);
+      const progress = Math.max(0, 1 - newY / (SCREEN_HEIGHT * 0.4));
+      backdropOpacity.value = progress;
+    })
+    .onEnd((event) => {
+      if (event.translationY > DISMISS_THRESHOLD || event.velocityY > 500) {
+        runOnJS(dismiss)();
+      } else {
+        translateY.value = withTiming(0, { duration: 250 });
+        backdropOpacity.value = withTiming(1, { duration: 200 });
+      }
+    });
 
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
   }));
 
   const backdropStyle = useAnimatedStyle(() => ({
-    opacity: backdropOpacity.value * 0.6,
+    opacity: backdropOpacity.value * 0.3,
   }));
 
+  if (!modalVisible) return null;
+
   return (
-    <View style={styles.overlay}>
-      {/* Backdrop */}
-      <Pressable style={StyleSheet.absoluteFill} onPress={dismiss}>
-        <Animated.View style={[styles.backdrop, backdropStyle]} />
-      </Pressable>
+    <Modal
+      visible
+      transparent
+      animationType="none"
+      statusBarTranslucent
+      onRequestClose={dismiss}
+    >
+      <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
 
-      {/* Sheet */}
-      <Animated.View style={[styles.sheetContainer, sheetStyle]}>
-        <BlurView intensity={40} tint="dark" style={styles.blurFill}>
-          <View style={styles.darkOverlay}>
-            {/* Gradient top border */}
-            <LinearGradient
-              colors={['transparent', colors.brand, 'transparent']}
-              start={{ x: 0, y: 0.5 }}
-              end={{ x: 1, y: 0.5 }}
-              style={styles.topGlow}
-            />
+      <View style={styles.container}>
+        <TouchableOpacity
+          style={StyleSheet.absoluteFill}
+          activeOpacity={1}
+          onPress={dismiss}
+        >
+          <Animated.View style={[styles.backdrop, backdropStyle]} />
+        </TouchableOpacity>
 
-            {/* Handle bar */}
-            <View style={styles.handleContainer}>
-              <View style={styles.handle} />
-            </View>
+        <GestureDetector gesture={panGesture}>
+          <Animated.View style={[styles.sheet, sheetStyle]}>
+            <BlurView intensity={40} tint="dark" style={styles.blurFill}>
+              <View style={styles.darkOverlay}>
+                <LinearGradient
+                  colors={['transparent', colors.brand, 'transparent']}
+                  start={{ x: 0, y: 0.5 }}
+                  end={{ x: 1, y: 0.5 }}
+                  style={styles.topGlow}
+                />
 
-            {/* Close button */}
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={dismiss}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <X size={20} color={colors.muted} />
-            </TouchableOpacity>
+                <View style={styles.handleContainer}>
+                  <View style={styles.handle} />
+                </View>
 
-            {/* Content */}
-            <View style={styles.content}>
-              <Text style={styles.title}>Welcome to IdeaFuel</Text>
-              <Text style={styles.subtitle}>
-                Everything you need to capture and validate ideas
-              </Text>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={dismiss}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <X size={20} color={colors.muted} />
+                </TouchableOpacity>
 
-              <View style={styles.featureList}>
-                {FEATURES.map(({ Icon, title, description }) => (
-                  <View key={title} style={styles.featureCard}>
-                    <View style={styles.featureIcon}>
-                      <Icon size={24} color={colors.brand} />
-                    </View>
-                    <View style={styles.featureText}>
-                      <Text style={styles.featureTitle}>{title}</Text>
-                      <Text style={styles.featureDescription}>{description}</Text>
-                    </View>
+                <ScrollView
+                  style={styles.scrollView}
+                  contentContainerStyle={styles.content}
+                  showsVerticalScrollIndicator={false}
+                >
+                  <Text style={styles.title}>Welcome to IdeaFuel</Text>
+                  <Text style={styles.subtitle}>
+                    Everything you need to capture and validate ideas
+                  </Text>
+
+                  <View style={styles.featureList}>
+                    {FEATURES.map(({ Icon, title, description }) => (
+                      <View key={title} style={styles.featureCard}>
+                        <View style={styles.featureIcon}>
+                          <Icon size={24} color={colors.brand} />
+                        </View>
+                        <View style={styles.featureText}>
+                          <Text style={styles.featureTitle}>{title}</Text>
+                          <Text style={styles.featureDescription}>{description}</Text>
+                        </View>
+                      </View>
+                    ))}
                   </View>
-                ))}
-              </View>
 
-              <TouchableOpacity style={styles.ctaButton} onPress={dismiss}>
-                <Text style={styles.ctaText}>Get Started</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </BlurView>
-      </Animated.View>
-    </View>
+                  <TouchableOpacity style={styles.ctaButton} onPress={dismiss}>
+                    <Text style={styles.ctaText}>Get Started</Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              </View>
+            </BlurView>
+          </Animated.View>
+        </GestureDetector>
+      </View>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
+  container: {
+    flex: 1,
     justifyContent: 'flex-end',
-    zIndex: 1000,
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: '#000',
   },
-  sheetContainer: {
-    height: SHEET_HEIGHT,
+  sheet: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     overflow: 'hidden',
+    maxHeight: SCREEN_HEIGHT * 0.85,
   },
-  blurFill: {
-    flex: 1,
-  },
+  blurFill: {},
   darkOverlay: {
-    flex: 1,
     backgroundColor: 'rgba(10, 10, 10, 0.7)',
   },
   topGlow: {
@@ -175,8 +219,7 @@ const styles = StyleSheet.create({
   },
   handleContainer: {
     alignItems: 'center',
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingVertical: 12,
   },
   handle: {
     width: 40,
@@ -192,8 +235,10 @@ const styles = StyleSheet.create({
     padding: 4,
     zIndex: 1,
   },
+  scrollView: {
+    flexGrow: 0,
+  },
   content: {
-    flex: 1,
     paddingHorizontal: 24,
     paddingTop: 8,
     paddingBottom: 40,
@@ -212,7 +257,6 @@ const styles = StyleSheet.create({
   },
   featureList: {
     gap: 12,
-    flex: 1,
   },
   featureCard: {
     flexDirection: 'row',

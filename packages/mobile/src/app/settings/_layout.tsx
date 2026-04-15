@@ -3,7 +3,7 @@ import { Stack } from 'expo-router';
 import { Pressable } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { colors } from '../../../lib/theme';
+import { colors } from '../../lib/theme';
 
 function BackButton() {
   const router = useRouter();
