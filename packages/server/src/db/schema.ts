@@ -292,6 +292,7 @@ export const sandboxes = thoughtClusters;
 
 export const thoughts = pgTable('Thought', {
   id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  title: text(),
   content: text().default('').notNull(),
   thoughtType: thoughtTypeEnum('thought_type').default('observation').notNull(),
   typeSource: text('type_source').default('ai_auto').notNull(),

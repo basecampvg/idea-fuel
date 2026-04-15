@@ -211,7 +211,10 @@ export const thoughtRouter = router({
 
       await ctx.db
         .update(thoughts)
-        .set({ content: input.content })
+        .set({
+          content: input.content,
+          ...(input.title !== undefined ? { title: input.title } : {}),
+        })
         .where(eq(thoughts.id, input.id));
 
       return { success: true };

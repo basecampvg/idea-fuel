@@ -86,6 +86,8 @@ export default function NoteEditorScreen() {
   const [showPromotedSheet, setShowPromotedSheet] = useState(false);
   const [showOverflow, setShowOverflow] = useState(false);
   const [showClusterPicker, setShowClusterPicker] = useState(false);
+  const [titleText, setTitleText] = useState('');
+  const titleDirty = useRef(false);
   const contentLengthRef = useRef(0);
 
   // Attachment state
@@ -253,6 +255,7 @@ export default function NoteEditorScreen() {
   useEffect(() => {
     if (note && !initialLoaded) {
       setInitialContent(note.content ?? '');
+      setTitleText(note.title ?? '');
       contentLengthRef.current = (note.content ?? '').length;
       setInitialLoaded(true);
     }
@@ -265,6 +268,22 @@ export default function NoteEditorScreen() {
     });
     return unsubscribe;
   }, [navigation, flush]);
+
+  // ── Title auto-save (debounced) ──
+  const titleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const updateTitleMutation = trpc.thought.update.useMutation({
+    onSuccess: () => utils.thought.get.invalidate({ id: id! }),
+  });
+
+  const handleTitleChange = useCallback((text: string) => {
+    setTitleText(text);
+    titleDirty.current = true;
+    if (titleTimer.current) clearTimeout(titleTimer.current);
+    titleTimer.current = setTimeout(() => {
+      updateTitleMutation.mutate({ id: id!, content: note?.content ?? '', title: text || null });
+      titleDirty.current = false;
+    }, 1000);
+  }, [id, note?.content, updateTitleMutation]);
 
   // ── Handlers ──
 
@@ -513,6 +532,16 @@ export default function NoteEditorScreen() {
             />
           </View>
 
+          {/* Title (optional) */}
+          <TextInput
+            style={styles.titleInput}
+            value={titleText}
+            onChangeText={handleTitleChange}
+            placeholder="Add title..."
+            placeholderTextColor={colors.mutedDim}
+            maxLength={200}
+          />
+
           {/* Editor — height scales with content */}
           {initialLoaded && (
             <View style={[styles.editorContainer, { height: Math.max(200, Math.ceil((note.content?.split('\n').length ?? 3) * 24 + 80)) }]}>
@@ -722,6 +751,13 @@ const styles = StyleSheet.create({
   chipSection: {
     paddingHorizontal: 20,
     paddingVertical: 6,
+  },
+  titleInput: {
+    fontSize: 20,
+    ...fonts.outfit.bold,
+    color: colors.foreground,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
   },
   editorContainer: {
     // Height set dynamically based on content line count

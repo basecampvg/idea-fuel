@@ -382,6 +382,7 @@ export type CreateNoteInput = z.infer<typeof createNoteSchema>;
 
 export const updateNoteSchema = z.object({
   id: entityId,
+  title: z.string().max(200).nullable().optional(),
   content: z.string().max(NOTE_CONTENT_MAX, 'Content too long'),
 });
 export type UpdateNoteInput = z.infer<typeof updateNoteSchema>;
