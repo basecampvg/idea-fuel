@@ -8,32 +8,37 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Keyboard,
+  ScrollView,
+  Share,
 } from 'react-native';
 import {
   CloudUpload,
   CheckCircle,
   AlertCircle,
   ChevronLeft,
-  Trash2,
   Rocket,
-  Pin,
-  PinOff,
-  ImagePlus,
-  Camera,
-  Image as ImageIcon,
+  MoreHorizontal,
 } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { Button, triggerHaptic } from '../../../../components/ui/Button';
-import { IdeaCard } from '../../../../components/ui/IdeaCard';
 import { BottomSheet } from '../../../../components/ui/BottomSheet';
 import { MarkdownEditor, type MarkdownEditorRef } from '../../../../components/editor/MarkdownEditor';
 import { ThumbnailStrip, type LocalAttachment } from '../../../../components/ThumbnailStrip';
+import { ClusterPicker } from '../../../../components/ClusterPicker';
+import {
+  PropertyChipBar,
+  SourceLabel,
+  AIRefinementSection,
+  ConnectionsSection,
+  ReactionsRow,
+  ActivityLog,
+  CommentThread,
+  OverflowMenu,
+} from '../../../../components/thought';
 import { useNoteAutoSave, type SaveStatus } from '../../../../hooks/useNoteAutoSave';
 import { trpc } from '../../../../lib/trpc';
 import { useToast } from '../../../../contexts/ToastContext';
 import { colors, fonts } from '../../../../lib/theme';
-import { SandboxPicker } from '../../../../components/SandboxPicker';
 
 // Lazy-load expo-image-picker — has native code that may not be in every build
 let ImagePicker: typeof import('expo-image-picker') | null = null;
@@ -41,6 +46,14 @@ try {
   ImagePicker = require('expo-image-picker');
 } catch {
   // Native module not available in this build
+}
+
+// Lazy-load expo-clipboard — not installed in all builds
+let Clipboard: { setStringAsync: (text: string) => Promise<boolean> } | null = null;
+try {
+  Clipboard = require('expo-clipboard');
+} catch {
+  // Fallback handled in handleCopyText
 }
 
 const MAX_NOTE_ATTACHMENTS = 10;
@@ -71,29 +84,35 @@ export default function NoteEditorScreen() {
   const { showToast } = useToast();
   const editorRef = useRef<MarkdownEditorRef>(null);
   const [initialLoaded, setInitialLoaded] = useState(false);
-  const [cardCollapsed, setCardCollapsed] = useState(false);
   const [showPromotedSheet, setShowPromotedSheet] = useState(false);
-  const [showSandboxPicker, setShowSandboxPicker] = useState(false);
+  const [showOverflow, setShowOverflow] = useState(false);
+  const [showClusterPicker, setShowClusterPicker] = useState(false);
   const contentLengthRef = useRef(0);
 
   // Attachment state
   const [localAttachments, setLocalAttachments] = useState<LocalAttachment[]>([]);
-  const [showPopover, setShowPopover] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Auto-collapse IdeaCard when keyboard appears so editor has room
-  useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => setCardCollapsed(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setCardCollapsed(false));
-    return () => { showSub.remove(); hideSub.remove(); };
-  }, []);
+  // ── Queries ──
 
   const { data: note, isLoading, error } = trpc.thought.get.useQuery(
     { id: id! },
     { enabled: !!id },
   );
 
+  const { data: events, isLoading: eventsLoading } = trpc.thought.listEvents.useQuery(
+    { thoughtId: id! },
+    { enabled: !!id },
+  );
+
+  const { data: connections, isLoading: connectionsLoading } = trpc.thought.listConnections.useQuery(
+    { thoughtId: id! },
+    { enabled: !!id },
+  );
+
   const utils = trpc.useUtils();
+
+  // ── Mutations ──
 
   const deleteMutation = trpc.thought.delete.useMutation({
     onSuccess: () => {
@@ -130,7 +149,6 @@ export default function NoteEditorScreen() {
     onSuccess: () => {
       promotedRef.current = true;
       triggerHaptic('success');
-      // Nuke thought caches — reset forces a fresh fetch next time
       utils.thought.list.reset();
       utils.thought.get.invalidate({ id: id! });
       utils.project.list.invalidate();
@@ -150,7 +168,7 @@ export default function NoteEditorScreen() {
     onSuccess: () => {
       triggerHaptic('success');
       utils.thought.get.invalidate({ id });
-      setShowSandboxPicker(false);
+      setShowClusterPicker(false);
     },
     onError: () => {
       triggerHaptic('error');
@@ -166,6 +184,37 @@ export default function NoteEditorScreen() {
     onError: () => {
       triggerHaptic('error');
       Alert.alert('Error', 'Failed to unpin note.');
+    },
+  });
+
+  const updatePropertiesMutation = trpc.thought.updateProperties.useMutation({
+    onSuccess: () => {
+      utils.thought.get.invalidate({ id: id! });
+      utils.thought.list.invalidate();
+    },
+  });
+
+  const addReactionMutation = trpc.thought.addReaction.useMutation({
+    onSuccess: () => utils.thought.get.invalidate({ id: id! }),
+  });
+
+  const removeReactionMutation = trpc.thought.removeReaction.useMutation({
+    onSuccess: () => utils.thought.get.invalidate({ id: id! }),
+  });
+
+  const addCommentMutation = trpc.thought.addComment.useMutation({
+    onSuccess: () => utils.thought.get.invalidate({ id: id! }),
+  });
+
+  const deleteCommentMutation = trpc.thought.deleteComment.useMutation({
+    onSuccess: () => utils.thought.get.invalidate({ id: id! }),
+  });
+
+  const duplicateMutation = trpc.thought.duplicate.useMutation({
+    onSuccess: (dup) => {
+      triggerHaptic('success');
+      showToast({ message: `Duplicated as T-${dup.thoughtNumber}`, type: 'success' });
+      utils.thought.list.invalidate();
     },
   });
 
@@ -192,7 +241,8 @@ export default function NoteEditorScreen() {
     },
   });
 
-  // Auto-save hook
+  // ── Auto-save hook ──
+
   const {
     saveStatus,
     markDirty,
@@ -225,9 +275,20 @@ export default function NoteEditorScreen() {
     return unsubscribe;
   }, [navigation, flush]);
 
+  // ── Handlers ──
+
   const handleEditorChange = useCallback(() => {
     markDirty();
   }, [markDirty]);
+
+  const handleBack = useCallback(() => {
+    flush();
+    if (fromCluster || fromSandbox) {
+      router.navigate(`/(tabs)/thoughts/cluster/${fromCluster || fromSandbox}` as any);
+    } else {
+      router.back();
+    }
+  }, [flush, fromCluster, fromSandbox, router]);
 
   const handleDelete = useCallback(() => {
     Alert.alert(
@@ -244,15 +305,43 @@ export default function NoteEditorScreen() {
     );
   }, [id, deleteMutation]);
 
-  const handlePromote = useCallback(() => {
-    promoteMutation.mutate({ id: id! });
-  }, [id, promoteMutation]);
+  // PropertyChipBar handlers
+  const handleUpdateMaturity = useCallback((level: string) => {
+    updatePropertiesMutation.mutate({ id: id!, maturityLevel: level as any });
+  }, [id, updatePropertiesMutation]);
+
+  const handleUpdateType = useCallback((type: string) => {
+    updatePropertiesMutation.mutate({ id: id!, thoughtType: type as any });
+  }, [id, updatePropertiesMutation]);
+
+  const handleUpdateConfidence = useCallback((level: string) => {
+    updatePropertiesMutation.mutate({ id: id!, confidenceLevel: level as any });
+  }, [id, updatePropertiesMutation]);
+
+  // OverflowMenu handlers
+  const handleCopyText = useCallback(() => {
+    setShowOverflow(false);
+    if (Clipboard) {
+      Clipboard.setStringAsync(note?.content ?? '');
+    }
+    showToast({ message: 'Copied to clipboard', type: 'success' });
+  }, [note?.content, showToast]);
+
+  const handleShare = useCallback(() => {
+    setShowOverflow(false);
+    Share.share({ message: note?.content ?? '' });
+  }, [note?.content]);
+
+  const handleArchive = useCallback(() => {
+    setShowOverflow(false);
+    // For now, just delete (archive not fully implemented on server)
+    handleDelete();
+  }, [handleDelete]);
 
   // ── Attachment helpers ──
 
   const savedAttachments = note?.attachments ?? [];
   const totalAttachments = savedAttachments.length + localAttachments.length;
-  const attachmentsAtMax = totalAttachments >= MAX_NOTE_ATTACHMENTS;
 
   // Combined display array for ThumbnailStrip
   const combinedAttachments: LocalAttachment[] = [
@@ -264,11 +353,6 @@ export default function NoteEditorScreen() {
     })),
     ...localAttachments,
   ];
-
-  const handleOpenPopover = useCallback(() => {
-    if (attachmentsAtMax) return;
-    setShowPopover(true);
-  }, [attachmentsAtMax]);
 
   const processPickerResult = useCallback((result: { canceled: boolean; assets?: Array<{ uri: string; fileName?: string | null; mimeType?: string | null; fileSize?: number | null }> | null }) => {
     if (result.canceled || !result.assets) return;
@@ -283,51 +367,9 @@ export default function NoteEditorScreen() {
 
     if (newImages.length === 0) return;
 
-    // Add to local state immediately for instant thumbnail display
     setLocalAttachments((prev) => [...prev, ...newImages]);
-
-    // Upload and persist
     uploadAndPersist(newImages);
   }, [totalAttachments]);
-
-  const handleCamera = useCallback(async () => {
-    setShowPopover(false);
-    if (!ImagePicker) {
-      showToast({ message: 'Image picker not available — rebuild required', type: 'error' });
-      return;
-    }
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      showToast({ message: 'Camera permission required', type: 'error' });
-      return;
-    }
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ['images'],
-      quality: 0.8,
-    });
-    processPickerResult(result);
-  }, [showToast, processPickerResult]);
-
-  const handlePhotos = useCallback(async () => {
-    setShowPopover(false);
-    if (!ImagePicker) {
-      showToast({ message: 'Image picker not available — rebuild required', type: 'error' });
-      return;
-    }
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      showToast({ message: 'Photo library permission required', type: 'error' });
-      return;
-    }
-    const remaining = MAX_NOTE_ATTACHMENTS - totalAttachments;
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsMultipleSelection: true,
-      selectionLimit: remaining,
-      quality: 0.8,
-    });
-    processPickerResult(result);
-  }, [showToast, totalAttachments, processPickerResult]);
 
   const uploadAndPersist = useCallback(async (images: LocalAttachment[]) => {
     setIsUploading(true);
@@ -349,7 +391,6 @@ export default function NoteEditorScreen() {
           mimeType: att.mimeType as 'image/jpeg' | 'image/png' | 'image/heic',
         });
 
-        // Upload directly to Supabase Storage
         const response = await fetch(att.uri);
         const blob = await response.blob();
 
@@ -375,11 +416,10 @@ export default function NoteEditorScreen() {
 
       if (attachmentMetadata.length > 0) {
         await addAttachments.mutateAsync({
-          thoughtId: id!,
+          noteId: id!,
           attachments: attachmentMetadata,
         });
       } else {
-        // All uploads failed — clear local state
         setLocalAttachments([]);
       }
     } catch (err) {
@@ -395,24 +435,15 @@ export default function NoteEditorScreen() {
   const handleRemoveThumbnail = useCallback((index: number) => {
     const savedCount = savedAttachments.length;
     if (index < savedCount) {
-      // It's a saved attachment — remove from server
       const attachment = savedAttachments[index];
       removeAttachment.mutate({ attachmentId: attachment.id });
     } else {
-      // It's a local (pending) attachment — just remove from state
       const localIndex = index - savedCount;
       setLocalAttachments((prev) => prev.filter((_, i) => i !== localIndex));
     }
   }, [savedAttachments, removeAttachment]);
 
-  // Determine if refinement is stale
-  const isStale = !!(
-    note?.lastRefinedAt &&
-    note?.updatedAt &&
-    new Date(note.lastRefinedAt).getTime() < new Date(note.updatedAt).getTime()
-  );
-
-  const isPromoted = !!note?.promotedProjectId;
+  // ── Loading / Error states ──
 
   if (isLoading) {
     return (
@@ -448,116 +479,135 @@ export default function NoteEditorScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
-            onPress={() => {
-              flush();
-              if (fromCluster || fromSandbox) {
-                router.navigate(`/(tabs)/thoughts/cluster/${fromCluster || fromSandbox}` as any);
-              } else {
-                router.back();
-              }
-            }}
+            onPress={handleBack}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <ChevronLeft size={24} color={colors.foreground} />
           </TouchableOpacity>
           <SaveIndicator status={saveStatus} />
-          <View style={styles.headerPill}>
-            {note?.sandboxId ? (
-              <TouchableOpacity
-                style={styles.pillButton}
-                onPress={() => unpinMutation.mutate({ thoughtId: id! })}
-              >
-                <PinOff size={18} color={colors.muted} />
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.pillButton}
-                onPress={() => setShowSandboxPicker(true)}
-              >
-                <Pin size={18} color={colors.foreground} />
-              </TouchableOpacity>
-            )}
-            <View style={styles.pillDivider} />
-            <TouchableOpacity
-              style={[styles.pillButton, attachmentsAtMax && { opacity: 0.4 }]}
-              onPress={handleOpenPopover}
-              disabled={attachmentsAtMax}
-            >
-              <ImagePlus size={18} color={colors.foreground} />
-            </TouchableOpacity>
-            <View style={styles.pillDivider} />
-            <TouchableOpacity
-              style={styles.pillButton}
-              onPress={handleDelete}
-            >
-              <Trash2 size={18} color={colors.destructive} />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            onPress={() => setShowOverflow(true)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <MoreHorizontal size={24} color={colors.foreground} />
+          </TouchableOpacity>
         </View>
 
-        {/* Thumbnail strip (saved + local attachments) */}
-        {combinedAttachments.length > 0 && (
-          <View style={styles.thumbnailStripContainer}>
-            <ThumbnailStrip
-              attachments={combinedAttachments}
-              onRemove={handleRemoveThumbnail}
-              maxAttachments={MAX_NOTE_ATTACHMENTS}
+        <ScrollView
+          style={styles.scrollBody}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Thought ID */}
+          <Text style={styles.thoughtId}>T-{note.thoughtNumber}</Text>
+
+          {/* Raw Content Editor */}
+          {initialLoaded && (
+            <MarkdownEditor
+              ref={editorRef}
+              initialContent={note.content ?? ''}
+              placeholder="Dump your thoughts here..."
+              onChange={handleEditorChange}
             />
-            {isUploading && (
-              <ActivityIndicator size="small" color={colors.brand} style={styles.uploadingIndicator} />
-            )}
-          </View>
-        )}
+          )}
 
-        {/* IdeaCard at top when refinement exists */}
-        {note.refinedTitle && (
-          <View style={styles.ideaCardContainer}>
-            {cardCollapsed ? (
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => setCardCollapsed(false)}
-              >
-                <View style={styles.collapsedCard}>
-                  <Text style={styles.collapsedTitle} numberOfLines={1}>
-                    {note.refinedTitle}
-                  </Text>
-                  <Text style={styles.collapsedHint}>Tap to expand</Text>
-                </View>
-              </TouchableOpacity>
-            ) : (
-              <IdeaCard
-                refinedTitle={note.refinedTitle}
-                refinedDescription={note.refinedDescription ?? ''}
-                refinedTags={note.refinedTags ?? []}
-
-                isPromoted={isPromoted}
-                isRefining={refineMutation.isPending}
-                isPromoting={promoteMutation.isPending}
-                onPromote={handlePromote}
-                onCollapse={() => setCardCollapsed(true)}
-              />
-            )}
-          </View>
-        )}
-
-        {/* Refining indicator (first time, no card yet) */}
-        {refineMutation.isPending && !note.refinedTitle && (
-          <View style={styles.refiningIndicator}>
-            <ActivityIndicator size="small" color={colors.brand} />
-            <Text style={styles.refiningText}>AI is refining your idea...</Text>
-          </View>
-        )}
-
-        {/* Rich text editor */}
-        {initialLoaded && (
-          <MarkdownEditor
-            ref={editorRef}
-            initialContent={note.content ?? ''}
-            placeholder="Dump your thoughts here..."
-            onChange={handleEditorChange}
+          {/* Property Chip Bar */}
+          <PropertyChipBar
+            maturityLevel={note.maturityLevel as any}
+            thoughtType={note.thoughtType as any}
+            confidenceLevel={note.confidenceLevel as any}
+            clusterId={note.clusterId ?? null}
+            clusterName={null}
+            clusterColor={null}
+            typeSource={note.typeSource}
+            onUpdateMaturity={handleUpdateMaturity}
+            onUpdateType={handleUpdateType}
+            onUpdateConfidence={handleUpdateConfidence}
+            onAddToCluster={(clusterId) => pinMutation.mutate({ thoughtId: id!, clusterId })}
+            onRemoveFromCluster={() => unpinMutation.mutate({ thoughtId: id! })}
           />
-        )}
+
+          {/* Source Label */}
+          <SourceLabel captureMethod={note.captureMethod} createdAt={note.createdAt} />
+
+          {/* Attachments */}
+          {combinedAttachments.length > 0 && (
+            <View style={styles.attachmentSection}>
+              <ThumbnailStrip
+                attachments={combinedAttachments}
+                onRemove={handleRemoveThumbnail}
+                maxAttachments={MAX_NOTE_ATTACHMENTS}
+              />
+              {isUploading && (
+                <ActivityIndicator size="small" color={colors.brand} style={{ marginLeft: 4 }} />
+              )}
+            </View>
+          )}
+
+          {/* AI Refinement */}
+          <AIRefinementSection
+            refinedTitle={note.refinedTitle}
+            refinedDescription={note.refinedDescription}
+            refinedTags={note.refinedTags}
+            lastRefinedAt={note.lastRefinedAt}
+            isRefining={refineMutation.isPending}
+            onRefine={() => refineMutation.mutate({ id: id! })}
+          />
+
+          {/* Connections */}
+          <ConnectionsSection
+            connections={(connections ?? []) as any}
+            isLoading={connectionsLoading}
+            onViewThought={(thoughtId) => router.push(`/(tabs)/notes/${thoughtId}` as any)}
+            onAddConnection={() => {/* Phase 2 — manual connection picker */}}
+          />
+
+          {/* Reactions */}
+          <ReactionsRow
+            reactions={note.reactions ?? []}
+            onAddReaction={(emoji) => addReactionMutation.mutate({ thoughtId: id!, emoji: emoji as any })}
+            onRemoveReaction={(emoji) => removeReactionMutation.mutate({ thoughtId: id!, emoji: emoji as any })}
+          />
+
+          {/* Activity Log */}
+          <ActivityLog
+            events={((events as any)?.events ?? []) as any}
+            isLoading={eventsLoading}
+            hasMore={!!(events as any)?.nextCursor}
+            onLoadMore={() => {}}
+          />
+
+          {/* Comments */}
+          <CommentThread
+            comments={(note.comments ?? []) as any}
+            onAddComment={(content) => addCommentMutation.mutate({ thoughtId: id!, content })}
+            onDeleteComment={(commentId) => deleteCommentMutation.mutate({ commentId })}
+            isSubmitting={addCommentMutation.isPending}
+          />
+        </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Overflow Menu */}
+      <OverflowMenu
+        visible={showOverflow}
+        onClose={() => setShowOverflow(false)}
+        onRefine={() => refineMutation.mutate({ id: id! })}
+        onAddToCluster={() => setShowClusterPicker(true)}
+        onDuplicate={() => duplicateMutation.mutate({ id: id! })}
+        onArchive={handleArchive}
+        onCopyText={handleCopyText}
+        onShare={handleShare}
+        onDelete={handleDelete}
+        isRefined={!!note.refinedTitle}
+        isArchived={note.isArchived}
+      />
+
+      {/* Cluster Picker */}
+      <ClusterPicker
+        visible={showClusterPicker}
+        onClose={() => setShowClusterPicker(false)}
+        onSelect={(clusterId) => pinMutation.mutate({ thoughtId: id!, clusterId })}
+      />
 
       {/* Promoted success sheet */}
       <BottomSheet
@@ -591,37 +641,6 @@ export default function NoteEditorScreen() {
           </Button>
         </View>
       </BottomSheet>
-
-      <SandboxPicker
-        visible={showSandboxPicker}
-        onClose={() => setShowSandboxPicker(false)}
-        onSelect={(clusterId) => pinMutation.mutate({ thoughtId: id!, clusterId })}
-      />
-
-      {/* Image picker dropdown — anchored top-right below header pill */}
-      {showPopover && (
-        <>
-          <TouchableOpacity
-            style={StyleSheet.absoluteFill}
-            activeOpacity={1}
-            onPress={() => setShowPopover(false)}
-          />
-          <View style={styles.imageDropdown}>
-            <TouchableOpacity style={styles.dropdownRow} onPress={handleCamera} activeOpacity={0.7}>
-              <View style={styles.dropdownIcon}>
-                <Camera size={20} color={colors.foreground} />
-              </View>
-              <Text style={styles.dropdownLabel}>Camera</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.dropdownRow} onPress={handlePhotos} activeOpacity={0.7}>
-              <View style={styles.dropdownIcon}>
-                <ImageIcon size={20} color={colors.foreground} />
-              </View>
-              <Text style={styles.dropdownLabel}>Photos</Text>
-            </TouchableOpacity>
-          </View>
-        </>
-      )}
     </View>
   );
 }
@@ -673,44 +692,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  imageDropdown: {
-    position: 'absolute',
-    top: 52,
-    right: 16,
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 6,
-    width: 180,
-    zIndex: 50,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  dropdownRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-  },
-  dropdownIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dropdownLabel: {
-    fontSize: 15,
-    color: colors.foreground,
-    ...fonts.geist.regular,
-  },
   saveIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -720,55 +701,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     ...fonts.outfit.medium,
   },
-  thumbnailStripContainer: {
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  uploadingIndicator: {
-    marginLeft: 4,
-  },
-  ideaCardContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-  },
-  collapsedCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  collapsedTitle: {
+  scrollBody: {
     flex: 1,
-    fontSize: 14,
-    ...fonts.outfit.semiBold,
-    color: colors.foreground,
-    marginRight: 8,
   },
-  collapsedHint: {
-    fontSize: 12,
-    ...fonts.outfit.regular,
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  thoughtId: {
+    fontSize: 13,
     color: colors.mutedDim,
+    ...fonts.outfit.regular,
+    paddingHorizontal: 20,
+    marginBottom: 4,
   },
-  refiningIndicator: {
+  attachmentSection: {
+    paddingHorizontal: 20,
+    marginVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    padding: 12,
-    backgroundColor: colors.brandMuted,
-    borderRadius: 12,
-  },
-  refiningText: {
-    fontSize: 13,
-    ...fonts.outfit.medium,
-    color: colors.brand,
   },
   promotedSheet: {
     alignItems: 'center',
@@ -800,24 +750,5 @@ const styles = StyleSheet.create({
   promotedButton: {
     width: '100%',
     marginTop: 8,
-  },
-  headerPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.card,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  pillButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pillDivider: {
-    width: 1,
-    height: 20,
-    backgroundColor: colors.border,
   },
 });
