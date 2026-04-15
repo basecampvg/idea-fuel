@@ -30,7 +30,6 @@ import {
   SourceLabel,
   AIRefinementSection,
   ConnectionsSection,
-  ReactionsRow,
   ActivityLog,
   CommentThread,
   OverflowMenu,
@@ -192,14 +191,6 @@ export default function NoteEditorScreen() {
       utils.thought.get.invalidate({ id: id! });
       utils.thought.list.invalidate();
     },
-  });
-
-  const addReactionMutation = trpc.thought.addReaction.useMutation({
-    onSuccess: () => utils.thought.get.invalidate({ id: id! }),
-  });
-
-  const removeReactionMutation = trpc.thought.removeReaction.useMutation({
-    onSuccess: () => utils.thought.get.invalidate({ id: id! }),
   });
 
   const addCommentMutation = trpc.thought.addComment.useMutation({
@@ -569,16 +560,6 @@ export default function NoteEditorScreen() {
               isLoading={connectionsLoading}
               onViewThought={(thoughtId) => router.push(`/(tabs)/notes/${thoughtId}` as any)}
               onAddConnection={() => {}}
-            />
-          </View>
-
-          {/* Reactions */}
-          <View style={styles.divider} />
-          <View style={styles.section}>
-            <ReactionsRow
-              reactions={note.reactions ?? []}
-              onAddReaction={(emoji) => addReactionMutation.mutate({ thoughtId: id!, emoji: emoji as any })}
-              onRemoveReaction={(emoji) => removeReactionMutation.mutate({ thoughtId: id!, emoji: emoji as any })}
             />
           </View>
 
