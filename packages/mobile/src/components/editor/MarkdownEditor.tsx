@@ -266,7 +266,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
 
     const editor = useEditorBridge({
       autofocus: false,
-      avoidIosKeyboard: false,
+      avoidIosKeyboard: true,
       initialContent: initialHtml,
       theme: ideaFuelEditorTheme,
       bridgeExtensions: [

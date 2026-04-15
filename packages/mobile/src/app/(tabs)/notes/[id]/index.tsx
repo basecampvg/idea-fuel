@@ -757,7 +757,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     ...fonts.outfit.bold,
     color: colors.foreground,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 8,
   },
   editorContainer: {
