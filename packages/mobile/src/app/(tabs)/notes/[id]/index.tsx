@@ -743,6 +743,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   editorContainer: {
+    minHeight: 200,
     paddingVertical: 8,
   },
   section: {
