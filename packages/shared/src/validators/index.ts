@@ -369,9 +369,11 @@ export const NOTE_TAG_MAX = 50;
 export const NOTE_TAGS_MAX = 10;
 export const NOTE_REFINE_MIN_CHARS = 50;
 
+/** @deprecated Use thoughtTypeSchema instead */
 export const noteTypeSchema = z.enum(['QUICK', 'AI']);
 export type NoteType = z.infer<typeof noteTypeSchema>;
 
+/** @deprecated Use createThoughtSchema instead */
 export const createNoteSchema = z.object({
   type: noteTypeSchema.optional().default('AI'),
   content: z.string().max(NOTE_CONTENT_MAX).optional(),
@@ -445,18 +447,25 @@ export type ExtractedIdea = z.infer<typeof extractedIdeaSchema>;
 // ============================================
 // Sandbox validators
 // ============================================
+
+/** @deprecated Use CLUSTER_NAME_MAX instead */
 export const SANDBOX_NAME_MAX = 100;
+/** @deprecated Use CLUSTER_MIN_THOUGHTS_FOR_AI instead */
 export const SANDBOX_MIN_NOTES_FOR_AI = 2;
+/** @deprecated Use CLUSTER_MIN_CHARS_FOR_AI instead */
 export const SANDBOX_MIN_CHARS_FOR_AI = 100;
 
+/** @deprecated Use clusterColorSchema instead */
 export const sandboxColorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Must be a hex color like #FF0000').optional();
 
+/** @deprecated Use createClusterSchema instead */
 export const createSandboxSchema = z.object({
   name: z.string().min(1, 'Name is required').max(SANDBOX_NAME_MAX, `Name must be under ${SANDBOX_NAME_MAX} characters`),
   color: sandboxColorSchema,
 });
 export type CreateSandboxInput = z.infer<typeof createSandboxSchema>;
 
+/** @deprecated Use updateClusterSchema instead */
 export const updateSandboxSchema = z.object({
   id: entityId,
   name: z.string().min(1).max(SANDBOX_NAME_MAX).optional(),
@@ -464,31 +473,157 @@ export const updateSandboxSchema = z.object({
 });
 export type UpdateSandboxInput = z.infer<typeof updateSandboxSchema>;
 
+/** @deprecated Use deleteClusterSchema instead */
 export const deleteSandboxSchema = z.object({
   id: entityId,
 });
 export type DeleteSandboxInput = z.infer<typeof deleteSandboxSchema>;
 
+/** @deprecated Use getClusterSchema instead */
 export const getSandboxSchema = z.object({
   id: entityId,
 });
 export type GetSandboxInput = z.infer<typeof getSandboxSchema>;
 
+/** @deprecated Use clusterAiActionSchema instead */
 export const sandboxAiActionSchema = z.object({
   id: entityId,
 });
 export type SandboxAiActionInput = z.infer<typeof sandboxAiActionSchema>;
 
+/** @deprecated Use addToClusterSchema instead */
 export const pinToSandboxSchema = z.object({
   noteId: entityId,
   sandboxId: entityId,
 });
 export type PinToSandboxInput = z.infer<typeof pinToSandboxSchema>;
 
+/** @deprecated Use removeFromClusterSchema instead */
 export const unpinFromSandboxSchema = z.object({
   noteId: entityId,
 });
 export type UnpinFromSandboxInput = z.infer<typeof unpinFromSandboxSchema>;
+
+// ============================================
+// Thought validators (replaces Note validators)
+// ============================================
+export const thoughtTypeSchema = z.enum(['problem', 'solution', 'what_if', 'observation', 'question']);
+export type ThoughtType = z.infer<typeof thoughtTypeSchema>;
+
+export const maturityLevelSchema = z.enum(['spark', 'developing', 'hypothesis', 'conviction']);
+export type MaturityLevel = z.infer<typeof maturityLevelSchema>;
+
+export const thoughtConfidenceLevelSchema = z.enum(['untested', 'researched', 'validated']);
+export type ThoughtConfidenceLevel = z.infer<typeof thoughtConfidenceLevelSchema>;
+
+export const captureMethodSchema = z.enum(['quick_text', 'voice', 'photo', 'share_extension']);
+export type CaptureMethod = z.infer<typeof captureMethodSchema>;
+
+export const reactionEmojiSchema = z.enum(['🔥', '⭐', '🤔', '🚫', '💡']);
+export type ReactionEmoji = z.infer<typeof reactionEmojiSchema>;
+
+export const thoughtEventTypeSchema = z.enum([
+  'created', 'ai_tagged', 'type_changed', 'refined', 'resurfaced',
+  'resurface_action', 'clustered', 'unclustered', 'maturity_changed',
+  'confidence_changed', 'connection_found', 'connection_added',
+  'reaction_added', 'commented', 'crystallized',
+]);
+export type ThoughtEventType = z.infer<typeof thoughtEventTypeSchema>;
+
+export const createThoughtSchema = z.object({
+  content: z.string().max(NOTE_CONTENT_MAX).optional(),
+  thoughtType: thoughtTypeSchema.optional(),
+  captureMethod: captureMethodSchema.optional().default('quick_text'),
+  clusterId: z.string().optional(),
+});
+export type CreateThoughtInput = z.infer<typeof createThoughtSchema>;
+
+export const updateThoughtPropertiesSchema = z.object({
+  id: entityId,
+  maturityLevel: maturityLevelSchema.optional(),
+  thoughtType: thoughtTypeSchema.optional(),
+  confidenceLevel: thoughtConfidenceLevelSchema.optional(),
+  maturityNotes: z.string().max(500).optional(),
+});
+export type UpdateThoughtPropertiesInput = z.infer<typeof updateThoughtPropertiesSchema>;
+
+export const addReactionSchema = z.object({
+  thoughtId: entityId,
+  emoji: reactionEmojiSchema,
+});
+export type AddReactionInput = z.infer<typeof addReactionSchema>;
+
+export const removeReactionSchema = z.object({
+  thoughtId: entityId,
+  emoji: reactionEmojiSchema,
+});
+export type RemoveReactionInput = z.infer<typeof removeReactionSchema>;
+
+export const addThoughtCommentSchema = z.object({
+  thoughtId: entityId,
+  content: z.string().min(1).max(5000),
+});
+export type AddThoughtCommentInput = z.infer<typeof addThoughtCommentSchema>;
+
+export const deleteThoughtCommentSchema = z.object({
+  commentId: entityId,
+});
+export type DeleteThoughtCommentInput = z.infer<typeof deleteThoughtCommentSchema>;
+
+export const listThoughtEventsSchema = z.object({
+  thoughtId: entityId,
+  limit: z.number().int().min(1).max(100).optional().default(20),
+  cursor: z.string().optional(),
+});
+export type ListThoughtEventsInput = z.infer<typeof listThoughtEventsSchema>;
+
+// Thought type classification result (used by auto-classify job)
+export const thoughtClassificationSchema = z.object({
+  thoughtType: thoughtTypeSchema,
+});
+export type ThoughtClassification = z.infer<typeof thoughtClassificationSchema>;
+
+// ============================================
+// Cluster validators (replaces Sandbox validators)
+// ============================================
+export const CLUSTER_NAME_MAX = 100;
+export const CLUSTER_MIN_THOUGHTS_FOR_AI = 2;
+export const CLUSTER_MIN_CHARS_FOR_AI = 100;
+
+export const clusterColorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Must be a hex color like #FF0000').optional();
+
+export const createClusterSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(CLUSTER_NAME_MAX),
+  color: clusterColorSchema,
+});
+export type CreateClusterInput = z.infer<typeof createClusterSchema>;
+
+export const updateClusterSchema = z.object({
+  id: entityId,
+  name: z.string().min(1).max(CLUSTER_NAME_MAX).optional(),
+  color: clusterColorSchema,
+});
+export type UpdateClusterInput = z.infer<typeof updateClusterSchema>;
+
+export const deleteClusterSchema = z.object({ id: entityId });
+export type DeleteClusterInput = z.infer<typeof deleteClusterSchema>;
+
+export const getClusterSchema = z.object({ id: entityId });
+export type GetClusterInput = z.infer<typeof getClusterSchema>;
+
+export const clusterAiActionSchema = z.object({ id: entityId });
+export type ClusterAiActionInput = z.infer<typeof clusterAiActionSchema>;
+
+export const addToClusterSchema = z.object({
+  thoughtId: entityId,
+  clusterId: entityId,
+});
+export type AddToClusterInput = z.infer<typeof addToClusterSchema>;
+
+export const removeFromClusterSchema = z.object({
+  thoughtId: entityId,
+});
+export type RemoveFromClusterInput = z.infer<typeof removeFromClusterSchema>;
 
 // ============================================
 // Assumption validators
