@@ -26,7 +26,7 @@ try {
   // Native module not available in this build
 }
 import { Mic, Square, ArrowUp, Paperclip } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { AttachmentPopover } from '../../components/AttachmentPopover';
 import { CaptureActionMenu } from '../../components/CaptureActionMenu';
 import { ThumbnailStrip, type LocalAttachment } from '../../components/ThumbnailStrip';
@@ -80,6 +80,7 @@ function extractTitleAndDescription(text: string): { title: string; description:
 export default function CaptureScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { linkedThoughtId } = useLocalSearchParams<{ linkedThoughtId?: string }>();
   const { user } = useAuth();
   const { showToast } = useToast();
   const [ideaText, setIdeaText] = useState('');
@@ -306,6 +307,13 @@ export default function CaptureScreen() {
   }, [isListening, showToast]);
 
   const utils = trpc.useUtils();
+
+  // Fetch linked thought when navigated from Revisit "Engage"
+  const { data: linkedThought } = trpc.thought.get.useQuery(
+    { id: linkedThoughtId! },
+    { enabled: !!linkedThoughtId },
+  );
+
   const createProject = trpc.project.create.useMutation({
     onSuccess: (data: { id: string; title: string }) => {
       setIsSubmitting(false);
@@ -335,7 +343,7 @@ export default function CaptureScreen() {
   const getUploadUrl = trpc.attachment.getUploadUrl.useMutation();
 
   const createThought = trpc.thought.create.useMutation({
-    onSuccess: (newThought) => {
+    onSuccess: async (newThought) => {
       triggerHaptic('success');
       utils.thought.list.invalidate();
       setIdeaText('');
@@ -343,6 +351,17 @@ export default function CaptureScreen() {
       setAttachments([]);
       setAiConsent(false);
       setSelectedType(null);
+      // Auto-link if triggered from Revisit "Engage"
+      if (linkedThoughtId) {
+        try {
+          await utils.client.thought.linkThought.mutate({
+            thoughtId: newThought.id,
+            targetThoughtId: linkedThoughtId,
+          });
+        } catch {
+          // Non-critical — thought was still created
+        }
+      }
       // Start collision polling instead of immediate navigation
       setSavedThoughtId(newThought.id);
       setIsPollingCollisions(true);
@@ -566,6 +585,26 @@ export default function CaptureScreen() {
                 onAddToCluster={() => setShowCollisionClusterPicker(true)}
                 onDismiss={() => navigateToThought(savedThoughtId)}
               />
+            </View>
+          )}
+
+          {/* ── Linked thought reference card (from Revisit "Engage") ── */}
+          {linkedThought && (
+            <View style={{
+              backgroundColor: colors.surface,
+              borderRadius: 12,
+              padding: 12,
+              marginHorizontal: 16,
+              marginBottom: 8,
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}>
+              <Text style={{ color: colors.muted, fontSize: 11, marginBottom: 4, ...fonts.text.medium }}>
+                Responding to:
+              </Text>
+              <Text style={{ color: colors.foreground, fontSize: 13, ...fonts.text.regular }} numberOfLines={2}>
+                {linkedThought.content?.slice(0, 100)}
+              </Text>
             </View>
           )}
 
