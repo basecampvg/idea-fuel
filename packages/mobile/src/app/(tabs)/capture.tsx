@@ -44,6 +44,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WelcomeSheet } from '../../components/ui/WelcomeSheet';
 import { useAIConsentGate } from '../../hooks/useAIConsentGate';
 import { ThoughtTypeChips, type ThoughtType } from '../../components/ThoughtTypeChips';
+import { CollisionCard } from '../../components/thought/CollisionCard';
+import { ClusterPicker } from '../../components/ClusterPicker';
 
 // Defer loading expo-speech-recognition until after the initial Fabric mount
 // transaction completes. Loading it eagerly at module level triggers TurboModule
@@ -94,6 +96,14 @@ export default function CaptureScreen() {
   const [popoverAnchorY, setPopoverAnchorY] = useState(200);
   const inputBarRef = useRef<View>(null);
   const [selectedType, setSelectedType] = useState<ThoughtType | null>(null);
+
+  // Collision detection state — set after thought creation, cleared on navigation
+  const [savedThoughtId, setSavedThoughtId] = useState<string | null>(null);
+  const [collisionMatch, setCollisionMatch] = useState<any | null>(null);
+  const [isPollingCollisions, setIsPollingCollisions] = useState(false);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollCountRef = useRef(0);
+  const [showCollisionClusterPicker, setShowCollisionClusterPicker] = useState(false);
 
   const MAX_ATTACHMENTS = 5;
 
@@ -333,7 +343,10 @@ export default function CaptureScreen() {
       setAttachments([]);
       setAiConsent(false);
       setSelectedType(null);
-      router.push(`/(tabs)/thoughts/${newThought.id}` as any);
+      // Start collision polling instead of immediate navigation
+      setSavedThoughtId(newThought.id);
+      setIsPollingCollisions(true);
+      pollCountRef.current = 0;
     },
     onError: () => {
       triggerHaptic('error');
@@ -359,6 +372,57 @@ export default function CaptureScreen() {
       captureMethod: isListening ? 'voice' : 'quick_text',
     });
   }, [ideaText, isListening, createThought, selectedType]);
+
+  const navigateToThought = useCallback((thoughtId: string) => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+    setIsPollingCollisions(false);
+    setSavedThoughtId(null);
+    setCollisionMatch(null);
+    router.push(`/(tabs)/thoughts/${thoughtId}` as any);
+  }, [router]);
+
+  // Poll for collision connections after thought creation
+  useEffect(() => {
+    if (!isPollingCollisions || !savedThoughtId) return;
+
+    const poll = async () => {
+      pollCountRef.current += 1;
+      try {
+        const connections = await utils.thought.listConnections.fetch({ thoughtId: savedThoughtId });
+        if (connections && connections.length > 0) {
+          const best = connections.reduce((a: any, b: any) => (a.strength > b.strength ? a : b));
+          setCollisionMatch(best);
+          setIsPollingCollisions(false);
+          if (pollingRef.current) clearInterval(pollingRef.current);
+          return;
+        }
+      } catch {
+        // Ignore fetch errors during polling
+      }
+      if (pollCountRef.current >= 6) {
+        setIsPollingCollisions(false);
+        if (pollingRef.current) clearInterval(pollingRef.current);
+        navigateToThought(savedThoughtId);
+      }
+    };
+
+    pollingRef.current = setInterval(poll, 5000);
+    poll(); // Run first poll immediately
+
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, [isPollingCollisions, savedThoughtId, utils, navigateToThought]);
+
+  // Clean up polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, []);
 
   const handleShowActionMenu = useCallback(() => {
     setShowActionMenu(true);
@@ -484,6 +548,26 @@ export default function CaptureScreen() {
             )}
 
           </View>
+
+          {/* ── Post-save: Collision detection feedback ── */}
+          {savedThoughtId && !collisionMatch && isPollingCollisions && (
+            <View style={{ alignItems: 'center', paddingTop: 20 }}>
+              <Text style={{ color: colors.muted, fontSize: 14 }}>
+                Thought saved. Checking for connections...
+              </Text>
+            </View>
+          )}
+
+          {savedThoughtId && collisionMatch && (
+            <View style={{ paddingHorizontal: 16 }}>
+              <CollisionCard
+                connection={collisionMatch}
+                onViewTogether={() => navigateToThought(savedThoughtId)}
+                onAddToCluster={() => setShowCollisionClusterPicker(true)}
+                onDismiss={() => navigateToThought(savedThoughtId)}
+              />
+            </View>
+          )}
 
           {/* ── Bottom: Input bar ── */}
           <View style={styles.inputBarWrapper}>
@@ -612,6 +696,17 @@ export default function CaptureScreen() {
       />
       {showWelcome && <WelcomeSheet onDismiss={handleDismissWelcome} />}
       {ConsentGate}
+      {savedThoughtId && (
+        <ClusterPicker
+          visible={showCollisionClusterPicker}
+          onClose={() => setShowCollisionClusterPicker(false)}
+          onSelect={(clusterId: string) => {
+            setShowCollisionClusterPicker(false);
+            utils.client.thought.addToCluster.mutate({ thoughtId: savedThoughtId, clusterId }).catch(() => {});
+            navigateToThought(savedThoughtId);
+          }}
+        />
+      )}
     </View>
   );
 }
