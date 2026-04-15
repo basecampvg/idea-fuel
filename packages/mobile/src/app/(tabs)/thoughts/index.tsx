@@ -29,12 +29,15 @@ import {
   FlaskConical,
 } from 'lucide-react-native';
 import { useRouter, useNavigation } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { triggerHaptic } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { BottomSheet } from '../../../components/ui/BottomSheet';
 import { useShowHelpIcons } from '../../../hooks/useShowHelpIcons';
 import { trpc } from '../../../lib/trpc';
 import { colors, fonts } from '../../../lib/theme';
+import { RevisitSection } from '../../../components/thought/RevisitSection';
+import { ClusterPicker } from '../../../components/ClusterPicker';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Shared helpers
@@ -474,6 +477,38 @@ export default function ThoughtsScreen() {
   const [showHelpIcons] = useShowHelpIcons();
   const [guideVisible, setGuideVisible] = useState(false);
 
+  // ── Resurfacing state ──
+  const [resurfaceCandidates, setResurfaceCandidates] = useState<any[]>([]);
+  const [revisitClusterTarget, setRevisitClusterTarget] = useState<string | null>(null);
+
+  const recordSurfaceAction = trpc.thought.recordSurfaceAction.useMutation();
+
+  // Fetch resurface candidates (debounced to 1hr via AsyncStorage)
+  useEffect(() => {
+    const fetchCandidates = async () => {
+      try {
+        const lastFetch = await AsyncStorage.getItem('lastResurfaceFetch');
+        const now = Date.now();
+        if (lastFetch && now - parseInt(lastFetch, 10) < 3600000) {
+          const cached = await AsyncStorage.getItem('resurfaceCandidates');
+          if (cached) {
+            setResurfaceCandidates(JSON.parse(cached));
+            return;
+          }
+        }
+
+        const result = await utils.thought.getResurfaceCandidates.fetch();
+        setResurfaceCandidates(result.candidates);
+        await AsyncStorage.setItem('lastResurfaceFetch', now.toString());
+        await AsyncStorage.setItem('resurfaceCandidates', JSON.stringify(result.candidates));
+      } catch {
+        // Silently fail — Revisit section just won't show
+      }
+    };
+
+    fetchCandidates();
+  }, [utils]);
+
   // Refetch on screen focus
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -590,6 +625,22 @@ export default function ThoughtsScreen() {
       ],
     );
   }, [clusterDeleteMutation]);
+
+  // ── Revisit action handlers ──
+  const handleRevisitDismiss = useCallback((thoughtId: string) => {
+    setResurfaceCandidates((prev) => prev.filter((c) => c.id !== thoughtId));
+    recordSurfaceAction.mutate({ thoughtId, action: 'dismiss' });
+  }, [recordSurfaceAction]);
+
+  const handleRevisitEngage = useCallback((thoughtId: string) => {
+    setResurfaceCandidates((prev) => prev.filter((c) => c.id !== thoughtId));
+    recordSurfaceAction.mutate({ thoughtId, action: 'engage' });
+    router.push({ pathname: '/(tabs)/capture', params: { linkedThoughtId: thoughtId } } as any);
+  }, [recordSurfaceAction, router]);
+
+  const handleRevisitCluster = useCallback((thoughtId: string) => {
+    setRevisitClusterTarget(thoughtId);
+  }, []);
 
   // ── Stream renderItem ──
   const renderNoteItem = useCallback(({ item, index }: { item: any; index: number }) => {
@@ -763,6 +814,16 @@ export default function ThoughtsScreen() {
           renderItem={renderNoteItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
+          ListHeaderComponent={
+            resurfaceCandidates.length > 0 ? (
+              <RevisitSection
+                candidates={resurfaceCandidates}
+                onDismiss={handleRevisitDismiss}
+                onEngage={handleRevisitEngage}
+                onCluster={handleRevisitCluster}
+              />
+            ) : null
+          }
           ListEmptyComponent={renderStreamEmpty}
           refreshControl={
             <RefreshControl
@@ -833,6 +894,22 @@ export default function ThoughtsScreen() {
         onClose={() => setShowCreateModal(false)}
         onCreate={handleCreateCluster}
         isLoading={clusterCreateMutation.isPending}
+      />
+
+      {/* ClusterPicker for Revisit section */}
+      <ClusterPicker
+        visible={!!revisitClusterTarget}
+        onClose={() => setRevisitClusterTarget(null)}
+        onSelect={(clusterId: string) => {
+          if (!revisitClusterTarget) return;
+          setResurfaceCandidates((prev) => prev.filter((c) => c.id !== revisitClusterTarget));
+          utils.client.thought.addToCluster.mutate({
+            thoughtId: revisitClusterTarget,
+            clusterId,
+          }).catch(() => {});
+          recordSurfaceAction.mutate({ thoughtId: revisitClusterTarget, action: 'cluster' });
+          setRevisitClusterTarget(null);
+        }}
       />
     </View>
   );
