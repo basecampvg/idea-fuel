@@ -66,12 +66,13 @@ export function CollisionCard({ connection, onViewTogether, onAddToCluster, onDi
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#1A1500',
+    backgroundColor: colors.surface,
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#F59E0B33',
-    marginTop: 12,
+    borderColor: colors.border,
+    marginTop: 16,
+    marginBottom: 12,
   },
   header: {
     flexDirection: 'row',
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   headerText: {
-    color: '#F59E0B',
+    color: colors.muted,
     fontSize: 13,
     ...fonts.text.medium,
     flex: 1,
