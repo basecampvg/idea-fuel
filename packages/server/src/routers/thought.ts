@@ -1108,7 +1108,7 @@ export const thoughtRouter = router({
       await ctx.db.insert(thoughtEvents).values({
         thoughtId,
         eventType: 'connected',
-        metadata: { targetThoughtId, connectionType: 'user_linked' },
+        metadata: { targetThoughtId, connectionType: 'user_linked', thoughtNumber: target.thoughtNumber },
       });
 
       return connection;
