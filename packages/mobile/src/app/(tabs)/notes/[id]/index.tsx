@@ -28,6 +28,7 @@ import { BottomSheet } from '../../../../components/ui/BottomSheet';
 import { MarkdownEditor, EditorToolbar, type MarkdownEditorRef } from '../../../../components/editor/MarkdownEditor';
 import { ThumbnailStrip, type LocalAttachment } from '../../../../components/ThumbnailStrip';
 import { ClusterPicker } from '../../../../components/ClusterPicker';
+import { ThoughtPicker } from '../../../../components/ThoughtPicker';
 import {
   PropertyChipBar,
   SourceLabel,
@@ -89,8 +90,10 @@ export default function NoteEditorScreen() {
   const [showPromotedSheet, setShowPromotedSheet] = useState(false);
   const [showOverflow, setShowOverflow] = useState(false);
   const [showClusterPicker, setShowClusterPicker] = useState(false);
+  const [showThoughtPicker, setShowThoughtPicker] = useState(false);
   const [titleText, setTitleText] = useState('');
   const [editorBridge, setEditorBridge] = useState<any>(null);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const titleDirty = useRef(false);
   const contentLengthRef = useRef(0);
 
@@ -207,6 +210,29 @@ export default function NoteEditorScreen() {
     onSuccess: () => utils.thought.get.invalidate({ id: id! }),
   });
 
+  const linkThoughtMutation = trpc.thought.linkThought.useMutation({
+    onSuccess: () => {
+      triggerHaptic('success');
+      showToast({ message: 'Connection added', type: 'success' });
+      utils.thought.listConnections.invalidate({ thoughtId: id! });
+    },
+    onError: (err) => {
+      triggerHaptic('error');
+      if (err.message === 'Connection already exists') {
+        showToast({ message: 'Already connected', type: 'error' });
+      } else {
+        Alert.alert('Error', 'Failed to add connection.');
+      }
+    },
+  });
+
+  const removeConnectionMutation = trpc.thought.removeConnection.useMutation({
+    onSuccess: () => {
+      triggerHaptic('success');
+      utils.thought.listConnections.invalidate({ thoughtId: id! });
+    },
+  });
+
   const duplicateMutation = trpc.thought.duplicate.useMutation({
     onSuccess: (dup) => {
       triggerHaptic('success');
@@ -278,6 +304,15 @@ export default function NoteEditorScreen() {
     });
     return unsubscribe;
   }, [navigation, flush]);
+
+  // Track keyboard visibility
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const showSub = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
+    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
+    return () => { showSub.remove(); hideSub.remove(); };
+  }, []);
 
   // ── Title auto-save (debounced) ──
   const titleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -532,8 +567,8 @@ export default function NoteEditorScreen() {
               thoughtType={note.thoughtType as any}
               confidenceLevel={note.confidenceLevel as any}
               clusterId={note.clusterId ?? null}
-              clusterName={null}
-              clusterColor={null}
+              clusterName={note.cluster?.name ?? null}
+              clusterColor={note.cluster?.color ?? null}
               typeSource={note.typeSource}
               onUpdateMaturity={handleUpdateMaturity}
               onUpdateType={handleUpdateType}
@@ -587,6 +622,7 @@ export default function NoteEditorScreen() {
               refinedDescription={note.refinedDescription}
               refinedTags={note.refinedTags}
               lastRefinedAt={note.lastRefinedAt}
+              updatedAt={note.updatedAt}
               isRefining={refineMutation.isPending}
               onRefine={() => refineMutation.mutate({ id: id! })}
             />
@@ -599,7 +635,8 @@ export default function NoteEditorScreen() {
               connections={(connections ?? []) as any}
               isLoading={connectionsLoading}
               onViewThought={(thoughtId) => router.push(`/(tabs)/notes/${thoughtId}` as any)}
-              onAddConnection={() => {}}
+              onAddConnection={() => setShowThoughtPicker(true)}
+              onRemoveConnection={(connectionId) => removeConnectionMutation.mutate({ connectionId })}
             />
           </View>
 
@@ -626,8 +663,8 @@ export default function NoteEditorScreen() {
           </View>
         </ScrollView>
 
-        {/* Toolbar — pinned above keyboard, outside ScrollView */}
-        {editorBridge && (
+        {/* Toolbar — pinned above keyboard, only visible when keyboard is open */}
+        {editorBridge && keyboardVisible && (
           <View style={styles.toolbarContainer}>
             <View style={styles.toolbarRow}>
               <View style={{ flex: 1 }}>
@@ -669,6 +706,14 @@ export default function NoteEditorScreen() {
         visible={showClusterPicker}
         onClose={() => setShowClusterPicker(false)}
         onSelect={(clusterId) => pinMutation.mutate({ thoughtId: id!, clusterId })}
+      />
+
+      {/* Thought Picker for connections */}
+      <ThoughtPicker
+        visible={showThoughtPicker}
+        onClose={() => setShowThoughtPicker(false)}
+        onSelect={(targetId) => linkThoughtMutation.mutate({ thoughtId: id!, targetThoughtId: targetId })}
+        excludeId={id!}
       />
 
       {/* Promoted success sheet */}
