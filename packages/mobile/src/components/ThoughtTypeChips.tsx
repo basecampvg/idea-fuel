@@ -50,8 +50,9 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     gap: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 8,
+    paddingHorizontal: 4,
+    paddingTop: 0,
+    paddingBottom: 10,
   },
   chip: {
     flexDirection: 'row',

@@ -487,6 +487,9 @@ export default function CaptureScreen() {
 
           {/* ── Bottom: Input bar ── */}
           <View style={styles.inputBarWrapper}>
+            {/* Thought type chips — above the input pane */}
+            <ThoughtTypeChips selected={selectedType} onSelect={setSelectedType} />
+
             <View ref={inputBarRef} onLayout={handleInputBarLayout} style={[
               styles.inputBar,
               (inputFocused || isListening) && styles.inputBarActive,
@@ -512,9 +515,6 @@ export default function CaptureScreen() {
                 multiline
                 maxLength={500}
               />
-
-              {/* Thought type chips */}
-              <ThoughtTypeChips selected={selectedType} onSelect={setSelectedType} />
 
               {/* Thumbnail strip */}
               <ThumbnailStrip
