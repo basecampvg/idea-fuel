@@ -520,14 +520,11 @@ export type ThoughtConfidenceLevel = z.infer<typeof thoughtConfidenceLevelSchema
 export const captureMethodSchema = z.enum(['quick_text', 'voice', 'photo', 'share_extension']);
 export type CaptureMethod = z.infer<typeof captureMethodSchema>;
 
-export const reactionEmojiSchema = z.enum(['🔥', '⭐', '🤔', '🚫', '💡']);
-export type ReactionEmoji = z.infer<typeof reactionEmojiSchema>;
-
 export const thoughtEventTypeSchema = z.enum([
   'created', 'ai_tagged', 'type_changed', 'refined', 'resurfaced',
   'resurface_action', 'clustered', 'unclustered', 'maturity_changed',
   'confidence_changed', 'connection_found', 'connection_added',
-  'reaction_added', 'commented', 'crystallized',
+  'connected', 'commented', 'crystallized',
 ]);
 export type ThoughtEventType = z.infer<typeof thoughtEventTypeSchema>;
 
@@ -539,6 +536,15 @@ export const createThoughtSchema = z.object({
 });
 export type CreateThoughtInput = z.infer<typeof createThoughtSchema>;
 
+export const surfaceActionSchema = z.enum(['dismiss', 'engage', 'cluster']);
+export type SurfaceAction = z.infer<typeof surfaceActionSchema>;
+
+export const recordSurfaceActionSchema = z.object({
+  thoughtId: entityId,
+  action: surfaceActionSchema,
+});
+export type RecordSurfaceActionInput = z.infer<typeof recordSurfaceActionSchema>;
+
 export const updateThoughtPropertiesSchema = z.object({
   id: entityId,
   maturityLevel: maturityLevelSchema.optional(),
@@ -547,18 +553,6 @@ export const updateThoughtPropertiesSchema = z.object({
   maturityNotes: z.string().max(500).optional(),
 });
 export type UpdateThoughtPropertiesInput = z.infer<typeof updateThoughtPropertiesSchema>;
-
-export const addReactionSchema = z.object({
-  thoughtId: entityId,
-  emoji: reactionEmojiSchema,
-});
-export type AddReactionInput = z.infer<typeof addReactionSchema>;
-
-export const removeReactionSchema = z.object({
-  thoughtId: entityId,
-  emoji: reactionEmojiSchema,
-});
-export type RemoveReactionInput = z.infer<typeof removeReactionSchema>;
 
 export const addThoughtCommentSchema = z.object({
   thoughtId: entityId,

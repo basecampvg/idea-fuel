@@ -52,7 +52,7 @@ export const dailyPickStatusEnum = pgEnum('DailyPickStatus', ['ACTIVE', 'ARCHIVE
 export const blogPostStatusEnum = pgEnum('BlogPostStatus', ['DRAFT', 'PUBLISHED', 'ARCHIVED']);
 export const aiClassificationTargetTypeEnum = pgEnum('AIClassificationTargetType', ['QUERY', 'CLUSTER', 'WINNER_REPORT']);
 export const agentConversationStatusEnum = pgEnum('AgentConversationStatus', ['ACTIVE', 'ARCHIVED']);
-export const embeddingSourceTypeEnum = pgEnum('EmbeddingSourceType', ['REPORT', 'RESEARCH', 'INTERVIEW', 'NOTES', 'SERPAPI']);
+export const embeddingSourceTypeEnum = pgEnum('EmbeddingSourceType', ['REPORT', 'RESEARCH', 'INTERVIEW', 'NOTES', 'SERPAPI', 'THOUGHT']);
 
 // Assumptions Engine enums
 export const assumptionCategoryEnum = pgEnum('AssumptionCategory', [
@@ -316,9 +316,12 @@ export const thoughts = pgTable('Thought', {
   lastSurfacedAt: timestamp('last_surfaced_at', { precision: 3, mode: 'date' }),
   surfaceCount: integer('surface_count').default(0).notNull(),
   dismissCount: integer('dismiss_count').default(0).notNull(),
-  reactCount: integer('react_count').default(0).notNull(),
+  engageCount: integer('engage_count').default(0).notNull(),
+  dismissStreak: integer('dismiss_streak').default(0).notNull(),
+  resurfaceExcluded: boolean('resurface_excluded').default(false).notNull(),
   collisionIds: text('collision_ids').array().default([]),
   incubationScore: doublePrecision('incubation_score').default(0).notNull(),
+  nextSurfaceAt: timestamp('next_surface_at', { precision: 3, mode: 'date' }),
   clusterId: text('cluster_id'),
   clusterPosition: integer('cluster_position'),
   sourceThoughtId: text('source_thought_id'),
@@ -331,6 +334,7 @@ export const thoughts = pgTable('Thought', {
   index('Thought_userId_idx').using('btree', table.userId.asc().nullsLast()),
   index('Thought_userId_updatedAt_idx').using('btree', table.userId.asc(), table.updatedAt.desc().nullsLast()),
   index('Thought_clusterId_idx').using('btree', table.clusterId.asc().nullsLast()),
+  index('Thought_resurface_idx').using('btree', table.userId.asc(), table.resurfaceExcluded.asc(), table.nextSurfaceAt.asc().nullsLast()),
   foreignKey({
     columns: [table.userId],
     foreignColumns: [users.id],
@@ -1005,7 +1009,8 @@ export const agentMessages = pgTable('AgentMessage', {
 
 export const embeddings = pgTable('Embedding', {
   id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
-  projectId: text().notNull(),
+  projectId: text(),
+  userId: text('user_id'),
   sourceType: embeddingSourceTypeEnum().notNull(),
   sourceId: text().notNull(),
   chunkIndex: integer().default(0).notNull(),
@@ -1015,6 +1020,7 @@ export const embeddings = pgTable('Embedding', {
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 }, (table) => [
   index('Embedding_projectId_idx').on(table.projectId),
+  index('Embedding_userId_idx').on(table.userId),
   index('Embedding_source_idx').on(table.sourceType, table.sourceId),
   unique('Embedding_source_chunk_key').on(table.sourceType, table.sourceId, table.chunkIndex),
   index('Embedding_vector_idx').using('hnsw', table.embedding.op('vector_cosine_ops')),
@@ -1022,6 +1028,11 @@ export const embeddings = pgTable('Embedding', {
     columns: [table.projectId],
     foreignColumns: [projects.id],
     name: 'Embedding_projectId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+  foreignKey({
+    columns: [table.userId],
+    foreignColumns: [users.id],
+    name: 'Embedding_userId_fkey',
   }).onUpdate('cascade').onDelete('cascade'),
 ]);
 
@@ -1432,6 +1443,7 @@ export const agentMessagesRelations = relations(agentMessages, ({ one }) => ({
 
 export const embeddingsRelations = relations(embeddings, ({ one }) => ({
   project: one(projects, { fields: [embeddings.projectId], references: [projects.id] }),
+  user: one(users, { fields: [embeddings.userId], references: [users.id] }),
 }));
 
 export const assumptionsRelations = relations(assumptions, ({ one, many }) => ({
