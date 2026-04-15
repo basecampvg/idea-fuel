@@ -326,7 +326,7 @@ export default function CaptureScreen() {
     onSuccess: (newNote) => {
       triggerHaptic('success');
       utils.note.list.invalidate();
-      router.push(`/(tabs)/notes/${newNote.id}` as any);
+      router.push(`/(tabs)/thoughts/${newNote.id}` as any);
       setIdeaText('');
       finalizedText.current = '';
       setAttachments([]);

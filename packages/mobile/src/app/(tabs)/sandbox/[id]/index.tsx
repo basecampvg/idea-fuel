@@ -106,7 +106,7 @@ export default function SandboxDetailScreen() {
       triggerHaptic('success');
       utils.sandbox.get.invalidate({ id });
       utils.note.list.invalidate();
-      router.push(`/(tabs)/notes/${newNote.id}?fromSandbox=${id}` as any);
+      router.push(`/(tabs)/thoughts/${newNote.id}?fromCluster=${id}` as any);
     },
     onError: () => {
       triggerHaptic('error');
@@ -175,7 +175,7 @@ export default function SandboxDetailScreen() {
       <Animated.View entering={FadeInUp.delay(index * 60).springify()}>
         <TouchableOpacity
           activeOpacity={0.75}
-          onPress={() => router.push(`/(tabs)/notes/${item.id}?fromSandbox=${id}` as any)}
+          onPress={() => router.push(`/(tabs)/thoughts/${item.id}?fromCluster=${id}` as any)}
         >
           <LinearGradient
             colors={[colors.glassBorderStart, colors.glassBorderEnd]}

@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, Linking, StyleSheet } from 'react-native';
 import { Tabs, Redirect, useRouter } from 'expo-router';
-import { Mic, Vault, NotebookPen, ArrowUpRight, X, FlaskConical, Pencil } from 'lucide-react-native';
+import { Mic, Vault, Lightbulb, ArrowUpRight, X, Pencil } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { useAuth } from '../../contexts/AuthContext';
@@ -24,11 +24,11 @@ function CustomTabBar({ state, descriptors, navigation, insets }: any) {
             ? <Mic size={22} color={color} />
             : route.name === 'vault'
             ? <Vault size={22} color={color} />
-            : route.name === 'notes'
-            ? <NotebookPen size={22} color={color} />
+            : route.name === 'thoughts'
+            ? <Lightbulb size={22} color={color} />
             : route.name === 'sketch'
             ? <Pencil size={22} color={color} />
-            : <FlaskConical size={22} color={color} />;
+            : null;
 
           return (
             <TouchableOpacity
@@ -147,12 +147,16 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
+        name="thoughts"
+        options={{ title: 'Thoughts' }}
+      />
+      <Tabs.Screen
         name="notes"
-        options={{ title: 'Notes' }}
+        options={{ title: 'Notes', href: null }}
       />
       <Tabs.Screen
         name="sandbox"
-        options={{ title: 'Sandbox' }}
+        options={{ title: 'Sandbox', href: null }}
       />
       <Tabs.Screen
         name="capture"

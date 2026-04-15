@@ -65,7 +65,7 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
 }
 
 export default function NoteEditorScreen() {
-  const { id, fromSandbox } = useLocalSearchParams<{ id: string; fromSandbox?: string }>();
+  const { id, fromSandbox, fromCluster } = useLocalSearchParams<{ id: string; fromSandbox?: string; fromCluster?: string }>();
   const router = useRouter();
   const navigation = useNavigation();
   const { showToast } = useToast();
@@ -101,9 +101,10 @@ export default function NoteEditorScreen() {
     onSuccess: () => {
       triggerHaptic('success');
       utils.note.list.invalidate();
-      if (fromSandbox) {
-        utils.sandbox.get.invalidate({ id: fromSandbox });
-        router.navigate(`/(tabs)/sandbox/${fromSandbox}` as any);
+      const clusterId = fromCluster || fromSandbox;
+      if (clusterId) {
+        utils.sandbox.get.invalidate({ id: clusterId });
+        router.navigate(`/(tabs)/thoughts/cluster/${clusterId}` as any);
       } else {
         router.back();
       }
@@ -488,8 +489,8 @@ export default function NoteEditorScreen() {
           <TouchableOpacity
             onPress={() => {
               flush();
-              if (fromSandbox) {
-                router.navigate(`/(tabs)/sandbox/${fromSandbox}` as any);
+              if (fromCluster || fromSandbox) {
+                router.navigate(`/(tabs)/thoughts/cluster/${fromCluster || fromSandbox}` as any);
               } else {
                 router.back();
               }
