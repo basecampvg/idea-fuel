@@ -1,12 +1,14 @@
 import React from 'react';
-import { Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Pencil, Mic, Camera, Link } from 'lucide-react-native';
+import type { LucideIcon } from 'lucide-react-native';
 import { colors, fonts } from '../../lib/theme';
 
-const CAPTURE_METHODS: Record<string, { icon: string; label: string }> = {
-  quick_text: { icon: '✏️', label: 'text' },
-  voice: { icon: '🎙', label: 'voice memo' },
-  photo: { icon: '📷', label: 'photo' },
-  share_extension: { icon: '🔗', label: 'share' },
+const CAPTURE_METHODS: Record<string, { Icon: LucideIcon; label: string }> = {
+  quick_text: { Icon: Pencil, label: 'text' },
+  voice: { Icon: Mic, label: 'voice memo' },
+  photo: { Icon: Camera, label: 'photo' },
+  share_extension: { Icon: Link, label: 'share' },
 };
 
 interface SourceLabelProps {
@@ -43,22 +45,31 @@ function formatRelativeDate(date: Date): string {
 }
 
 export function SourceLabel({ captureMethod, createdAt }: SourceLabelProps) {
-  const method = CAPTURE_METHODS[captureMethod] || { icon: '📝', label: captureMethod };
+  const method = CAPTURE_METHODS[captureMethod] || { Icon: Pencil, label: captureMethod };
   const date = typeof createdAt === 'string' ? new Date(createdAt) : createdAt;
   const formattedDate = formatRelativeDate(date);
+  const IconComponent = method.Icon;
 
   return (
-    <Text style={styles.label}>
-      {method.icon} Captured via {method.label} {'\u00B7'} {formattedDate}
-    </Text>
+    <View style={styles.container}>
+      <IconComponent size={14} color={colors.muted} />
+      <Text style={styles.label}>
+        Captured via {method.label} {'\u00B7'} {formattedDate}
+      </Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 20,
+  },
   label: {
     fontSize: 13,
     ...fonts.geist.regular,
     color: colors.muted,
-    paddingHorizontal: 20,
   },
 });

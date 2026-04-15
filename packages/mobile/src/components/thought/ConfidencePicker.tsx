@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Check } from 'lucide-react-native';
+import { Check, Brain, BookOpen, CheckCircle } from 'lucide-react-native';
+import type { LucideIcon } from 'lucide-react-native';
 import { colors, fonts } from '../../lib/theme';
 import { BottomSheet } from '../ui/BottomSheet';
 
@@ -9,12 +10,13 @@ export type ConfidenceLevel = 'untested' | 'researched' | 'validated';
 const CONFIDENCE_OPTIONS: {
   level: ConfidenceLevel;
   label: string;
-  icon: string;
+  color: string;
+  Icon: LucideIcon;
   description: string;
 }[] = [
-  { level: 'untested', label: 'Untested', icon: '🧠', description: 'Gut feeling. No evidence beyond intuition.' },
-  { level: 'researched', label: 'Researched', icon: '📚', description: 'Looked into it. Read articles, checked competitors.' },
-  { level: 'validated', label: 'Validated', icon: '✅', description: 'External evidence confirms. Interviews, data, tests.' },
+  { level: 'untested', label: 'Untested', color: '#6B7280', Icon: Brain, description: 'Gut feeling. No evidence beyond intuition.' },
+  { level: 'researched', label: 'Researched', color: '#3B82F6', Icon: BookOpen, description: 'Looked into it. Read articles, checked competitors.' },
+  { level: 'validated', label: 'Validated', color: '#10B981', Icon: CheckCircle, description: 'External evidence confirms. Interviews, data, tests.' },
 ];
 
 interface ConfidencePickerProps {
@@ -28,7 +30,7 @@ export function ConfidencePicker({ visible, onClose, current, onSelect }: Confid
   return (
     <BottomSheet visible={visible} onClose={onClose} title="Confidence Level">
       <View style={styles.options}>
-        {CONFIDENCE_OPTIONS.map(({ level, label, icon, description }) => {
+        {CONFIDENCE_OPTIONS.map(({ level, label, color, Icon, description }) => {
           const isSelected = current === level;
           return (
             <TouchableOpacity
@@ -40,7 +42,9 @@ export function ConfidencePicker({ visible, onClose, current, onSelect }: Confid
               }}
               activeOpacity={0.7}
             >
-              <Text style={styles.icon}>{icon}</Text>
+              <View style={styles.iconContainer}>
+                <Icon size={20} color={isSelected ? colors.accent : color} />
+              </View>
               <View style={styles.optionText}>
                 <Text style={[styles.label, isSelected && styles.labelSelected]}>{label}</Text>
                 <Text style={styles.description}>{description}</Text>
@@ -69,10 +73,10 @@ const styles = StyleSheet.create({
   optionSelected: {
     backgroundColor: `${colors.accent}15`,
   },
-  icon: {
-    fontSize: 20,
+  iconContainer: {
     width: 28,
-    textAlign: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   optionText: {
     flex: 1,

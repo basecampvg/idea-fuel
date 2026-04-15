@@ -48,37 +48,37 @@ function getEventDescription(event: ThoughtEvent): string {
 
   switch (event.eventType) {
     case 'created':
-      return `📝 Captured via ${m.captureMethod || 'unknown'}`;
+      return `Captured via ${m.captureMethod || 'unknown'}`;
     case 'ai_tagged':
-      return `🏷 AI auto-tagged as ${m.type || 'unknown'}`;
+      return `AI auto-tagged as ${m.type || 'unknown'}`;
     case 'type_changed':
-      return `🏷 Type changed: ${m.from || '?'} → ${m.to || '?'}`;
+      return `Type changed: ${m.from || '?'} \u2192 ${m.to || '?'}`;
     case 'refined':
-      return '✨ AI refined';
+      return 'AI refined';
     case 'resurfaced':
-      return '🔄 Resurfaced in Revisit';
+      return 'Resurfaced in Revisit';
     case 'resurface_action':
-      return `  ↳ You ${m.action || 'acted'}`;
+      return `You ${m.action || 'acted'}`;
     case 'clustered':
-      return `📁 Added to ${m.clusterName || 'cluster'}`;
+      return `Added to ${m.clusterName || 'cluster'}`;
     case 'unclustered':
-      return `📁 Removed from ${m.clusterName || 'cluster'}`;
+      return `Removed from ${m.clusterName || 'cluster'}`;
     case 'maturity_changed':
-      return `📈 ${m.from || '?'} → ${m.to || '?'}`;
+      return `${m.from || '?'} \u2192 ${m.to || '?'}`;
     case 'confidence_changed':
-      return `🧠 Confidence: ${m.from || '?'} → ${m.to || '?'}`;
+      return `Confidence: ${m.from || '?'} \u2192 ${m.to || '?'}`;
     case 'connection_found':
-      return `🔗 Semantic match found: T-${m.thoughtNumber || '?'}`;
+      return `Semantic match found: T-${m.thoughtNumber || '?'}`;
     case 'connection_added':
-      return `🔗 Linked to T-${m.thoughtNumber || '?'}`;
+      return `Linked to T-${m.thoughtNumber || '?'}`;
     case 'reaction_added':
-      return `👍 Reacted ${m.emoji || ''}`;
+      return `Reacted ${m.emoji || ''}`;
     case 'commented':
-      return '💬 Comment added';
+      return 'Comment added';
     case 'crystallized':
-      return '💎 Included in crystallization';
+      return 'Included in crystallization';
     default:
-      return `📌 ${event.eventType}`;
+      return event.eventType;
   }
 }
 

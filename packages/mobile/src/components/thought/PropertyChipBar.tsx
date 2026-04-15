@@ -1,31 +1,60 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { Plus } from 'lucide-react-native';
+import {
+  Plus,
+  Flame,
+  Lightbulb,
+  Sparkles,
+  Eye,
+  HelpCircle,
+  Brain,
+  BookOpen,
+  CheckCircle,
+} from 'lucide-react-native';
+import type { LucideIcon } from 'lucide-react-native';
 import { colors, fonts } from '../../lib/theme';
 import { MaturityPicker, type MaturityLevel } from './MaturityPicker';
 import { TypePicker, type ThoughtType } from './TypePicker';
 import { ConfidencePicker, type ConfidenceLevel } from './ConfidencePicker';
 import { ClusterPicker } from '../ClusterPicker';
 
-const MATURITY_CONFIG: Record<MaturityLevel, { label: string; color: string; icon: string }> = {
-  spark: { label: 'Spark', color: '#6B7280', icon: '○' },
-  developing: { label: 'Developing', color: '#3B82F6', icon: '◐' },
-  hypothesis: { label: 'Hypothesis', color: '#F59E0B', icon: '●' },
-  conviction: { label: 'Conviction', color: '#10B981', icon: '◉' },
+const MATURITY_CONFIG: Record<MaturityLevel, { label: string; color: string; style: 'hollow' | 'half' | 'filled' | 'ring' }> = {
+  spark: { label: 'Spark', color: '#6B7280', style: 'hollow' },
+  developing: { label: 'Developing', color: '#3B82F6', style: 'half' },
+  hypothesis: { label: 'Hypothesis', color: '#F59E0B', style: 'filled' },
+  conviction: { label: 'Conviction', color: '#10B981', style: 'ring' },
 };
 
-const TYPE_CONFIG: Record<ThoughtType, { label: string; color: string; icon: string }> = {
-  problem: { label: 'Problem', color: '#EF4444', icon: '🔥' },
-  solution: { label: 'Solution', color: '#10B981', icon: '💡' },
-  what_if: { label: 'What If', color: '#8B5CF6', icon: '🤔' },
-  observation: { label: 'Observation', color: '#3B82F6', icon: '🔍' },
-  question: { label: 'Question', color: '#F59E0B', icon: '❓' },
+function MaturityDot({ color, style }: { color: string; style: 'hollow' | 'half' | 'filled' | 'ring' }) {
+  if (style === 'hollow') {
+    return <View style={{ width: 12, height: 12, borderRadius: 6, borderWidth: 1.5, borderColor: color }} />;
+  }
+  if (style === 'half') {
+    return <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: color, opacity: 0.5 }} />;
+  }
+  if (style === 'ring') {
+    return (
+      <View style={{ width: 14, height: 14, borderRadius: 7, borderWidth: 1.5, borderColor: color, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color }} />
+      </View>
+    );
+  }
+  // filled
+  return <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: color }} />;
+}
+
+const TYPE_CONFIG: Record<ThoughtType, { label: string; color: string; Icon: LucideIcon }> = {
+  problem: { label: 'Problem', color: '#EF4444', Icon: Flame },
+  solution: { label: 'Solution', color: '#10B981', Icon: Lightbulb },
+  what_if: { label: 'What If', color: '#8B5CF6', Icon: Sparkles },
+  observation: { label: 'Observation', color: '#3B82F6', Icon: Eye },
+  question: { label: 'Question', color: '#F59E0B', Icon: HelpCircle },
 };
 
-const CONFIDENCE_CONFIG: Record<ConfidenceLevel, { label: string; icon: string }> = {
-  untested: { label: 'Untested', icon: '🧠' },
-  researched: { label: 'Researched', icon: '📚' },
-  validated: { label: 'Validated', icon: '✅' },
+const CONFIDENCE_CONFIG: Record<ConfidenceLevel, { label: string; color: string; Icon: LucideIcon }> = {
+  untested: { label: 'Untested', color: '#6B7280', Icon: Brain },
+  researched: { label: 'Researched', color: '#3B82F6', Icon: BookOpen },
+  validated: { label: 'Validated', color: '#10B981', Icon: CheckCircle },
 };
 
 interface PropertyChipBarProps {
@@ -79,7 +108,7 @@ export function PropertyChipBar({
           onPress={() => setShowMaturity(true)}
           activeOpacity={0.7}
         >
-          <Text style={[styles.chipIcon, { color: maturity.color }]}>{maturity.icon}</Text>
+          <MaturityDot color={maturity.color} style={maturity.style} />
           <Text style={[styles.chipLabel, { color: maturity.color }]}>{maturity.label}</Text>
         </TouchableOpacity>
 
@@ -89,7 +118,7 @@ export function PropertyChipBar({
           onPress={() => setShowType(true)}
           activeOpacity={0.7}
         >
-          <Text style={styles.chipEmoji}>{type.icon}</Text>
+          <type.Icon size={14} color={type.color} />
           <Text style={[styles.chipLabel, { color: type.color }]}>{type.label}</Text>
           {typeSource === 'ai_auto' && (
             <View style={styles.aiLabel}>
@@ -104,8 +133,8 @@ export function PropertyChipBar({
           onPress={() => setShowConfidence(true)}
           activeOpacity={0.7}
         >
-          <Text style={styles.chipEmoji}>{confidence.icon}</Text>
-          <Text style={styles.chipLabel}>{confidence.label}</Text>
+          <confidence.Icon size={14} color={confidence.color} />
+          <Text style={[styles.chipLabel, { color: confidence.color }]}>{confidence.label}</Text>
         </TouchableOpacity>
 
         {/* Cluster chip */}
@@ -188,12 +217,6 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed' as any,
     borderColor: colors.mutedDim,
     backgroundColor: 'transparent',
-  },
-  chipIcon: {
-    fontSize: 14,
-  },
-  chipEmoji: {
-    fontSize: 13,
   },
   chipLabel: {
     fontSize: 13,

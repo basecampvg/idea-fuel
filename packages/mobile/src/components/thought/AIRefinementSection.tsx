@@ -9,6 +9,7 @@ import {
   UIManager,
   Animated,
 } from 'react-native';
+import { Sparkles } from 'lucide-react-native';
 import { colors, fonts } from '../../lib/theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -86,7 +87,10 @@ export function AIRefinementSection({
         onPress={onRefine}
         activeOpacity={0.7}
       >
-        <Text style={styles.ctaText}>✨ Refine with AI</Text>
+        <View style={styles.ctaContent}>
+          <Sparkles size={16} color={colors.accent} />
+          <Text style={styles.ctaText}>Refine with AI</Text>
+        </View>
       </TouchableOpacity>
     );
   }
@@ -95,7 +99,10 @@ export function AIRefinementSection({
   if (isRefining) {
     return (
       <Animated.View style={[styles.container, { opacity: shimmerOpacity }]}>
-        <Text style={styles.refiningText}>✨ Refining...</Text>
+        <View style={styles.refiningContent}>
+          <Sparkles size={16} color={colors.accent} />
+          <Text style={styles.refiningText}>Refining...</Text>
+        </View>
       </Animated.View>
     );
   }
@@ -113,7 +120,10 @@ export function AIRefinementSection({
         onPress={toggleExpanded}
         activeOpacity={0.7}
       >
-        <Text style={styles.headerTitle}>✨ AI Refinement</Text>
+        <View style={styles.headerTitleRow}>
+          <Sparkles size={16} color={colors.accent} />
+          <Text style={styles.headerTitle}>AI Refinement</Text>
+        </View>
         <Text style={styles.toggleText}>{expanded ? 'Hide' : 'Show'}</Text>
       </TouchableOpacity>
 
@@ -161,6 +171,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  ctaContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   ctaText: {
     color: colors.foreground,
     fontSize: 14,
@@ -173,6 +188,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  refiningContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   refiningText: {
     color: colors.muted,
     fontSize: 14,
@@ -182,6 +202,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   headerTitle: {
     color: colors.foreground,

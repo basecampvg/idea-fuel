@@ -74,7 +74,7 @@ export function CommentThread({
   return (
     <View style={styles.container}>
       <Text style={styles.sectionHeader}>
-        💬 Comments{comments.length > 0 ? ` (${comments.length})` : ''}
+        Comments{comments.length > 0 ? ` (${comments.length})` : ''}
       </Text>
 
       {comments.length === 0 && (

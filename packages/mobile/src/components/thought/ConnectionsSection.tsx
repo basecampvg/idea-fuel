@@ -8,6 +8,8 @@ import {
   Platform,
   UIManager,
 } from 'react-native';
+import { Waypoints, Zap, AlertTriangle, Link } from 'lucide-react-native';
+import type { LucideIcon } from 'lucide-react-native';
 import { colors, fonts } from '../../lib/theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -35,19 +37,36 @@ interface ConnectionsSectionProps {
   onAddConnection: () => void;
 }
 
-const CONNECTION_TYPE_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
-  semantic: { label: 'Semantic match', icon: '🤝', color: '#3B82F6' },
-  collision: { label: 'Collision', icon: '💥', color: '#F59E0B' },
-  contradiction: { label: 'Tension', icon: '⚡', color: '#EF4444' },
-  user_linked: { label: 'You linked', icon: '🤝', color: '#6B7280' },
+const CONNECTION_TYPE_CONFIG: Record<string, { label: string; Icon: LucideIcon; color: string }> = {
+  semantic: { label: 'Semantic match', Icon: Waypoints, color: '#3B82F6' },
+  collision: { label: 'Collision', Icon: Zap, color: '#F59E0B' },
+  contradiction: { label: 'Tension', Icon: AlertTriangle, color: '#EF4444' },
+  user_linked: { label: 'You linked', Icon: Link, color: '#6B7280' },
 };
 
-const MATURITY_ICONS: Record<string, string> = {
-  spark: '○',
-  developing: '◐',
-  hypothesis: '●',
-  conviction: '◉',
-};
+function MaturityDot({ level }: { level: string }) {
+  const config: Record<string, { color: string; style: 'hollow' | 'half' | 'filled' | 'ring' }> = {
+    spark: { color: '#6B7280', style: 'hollow' },
+    developing: { color: '#3B82F6', style: 'half' },
+    hypothesis: { color: '#F59E0B', style: 'filled' },
+    conviction: { color: '#10B981', style: 'ring' },
+  };
+  const c = config[level] || config.spark;
+  if (c.style === 'hollow') {
+    return <View style={{ width: 8, height: 8, borderRadius: 4, borderWidth: 1, borderColor: c.color }} />;
+  }
+  if (c.style === 'half') {
+    return <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c.color, opacity: 0.5 }} />;
+  }
+  if (c.style === 'ring') {
+    return (
+      <View style={{ width: 10, height: 10, borderRadius: 5, borderWidth: 1, borderColor: c.color, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: c.color }} />
+      </View>
+    );
+  }
+  return <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c.color }} />;
+}
 
 function formatRelativeDate(dateStr: string): string {
   const d = new Date(dateStr);
@@ -85,9 +104,12 @@ export function ConnectionsSection({
   return (
     <View style={styles.section}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>
-          🔗 {validConnections.length} Connection{validConnections.length !== 1 ? 's' : ''}
-        </Text>
+        <View style={styles.headerTitleRow}>
+          <Link size={16} color={colors.muted} />
+          <Text style={styles.headerTitle}>
+            {validConnections.length} Connection{validConnections.length !== 1 ? 's' : ''}
+          </Text>
+        </View>
         <TouchableOpacity onPress={onAddConnection} activeOpacity={0.7}>
           <Text style={styles.addButton}>+ Add</Text>
         </TouchableOpacity>
@@ -102,10 +124,10 @@ export function ConnectionsSection({
           {displayConnections.map((connection) => {
             const config = CONNECTION_TYPE_CONFIG[connection.connectionType] || CONNECTION_TYPE_CONFIG.semantic;
             const thought = connection.linkedThought!;
-            const maturityIcon = MATURITY_ICONS[thought.maturityLevel] || '○';
             const preview = thought.content.length > 80
               ? thought.content.slice(0, 80) + '...'
               : thought.content;
+            const TypeIcon = config.Icon;
 
             return (
               <TouchableOpacity
@@ -116,8 +138,9 @@ export function ConnectionsSection({
               >
                 <View style={styles.typeBadgeRow}>
                   <View style={[styles.typeBadge, { backgroundColor: config.color + '20' }]}>
+                    <TypeIcon size={12} color={config.color} />
                     <Text style={[styles.typeBadgeText, { color: config.color }]}>
-                      {config.icon} {config.label}
+                      {config.label}
                       {connection.connectionType === 'semantic'
                         ? ` (${connection.strength.toFixed(2)})`
                         : ''}
@@ -128,9 +151,12 @@ export function ConnectionsSection({
                   {preview}
                 </Text>
                 <View style={styles.metaRow}>
-                  <Text style={styles.metaText}>
-                    {maturityIcon} {thought.thoughtType} · T-{thought.thoughtNumber}
-                  </Text>
+                  <View style={styles.metaLeft}>
+                    <MaturityDot level={thought.maturityLevel} />
+                    <Text style={styles.metaText}>
+                      {thought.thoughtType} · T-{thought.thoughtNumber}
+                    </Text>
+                  </View>
                   <Text style={styles.metaDate}>
                     {formatRelativeDate(thought.createdAt)}
                   </Text>
@@ -162,6 +188,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   headerTitle: {
     color: colors.foreground,
     fontSize: 15,
@@ -191,6 +222,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   typeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -210,6 +244,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  metaLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   metaText: {
     color: colors.muted,

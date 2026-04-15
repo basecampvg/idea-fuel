@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Check } from 'lucide-react-native';
+import { Check, Flame, Lightbulb, Sparkles, Eye, HelpCircle } from 'lucide-react-native';
+import type { LucideIcon } from 'lucide-react-native';
 import { colors, fonts } from '../../lib/theme';
 import { BottomSheet } from '../ui/BottomSheet';
 
@@ -10,14 +11,14 @@ const TYPE_OPTIONS: {
   type: ThoughtType;
   label: string;
   color: string;
-  icon: string;
+  Icon: LucideIcon;
   description: string;
 }[] = [
-  { type: 'problem', label: 'Problem', color: '#EF4444', icon: '🔥', description: 'A pain point, frustration, or inefficiency.' },
-  { type: 'solution', label: 'Solution', color: '#10B981', icon: '💡', description: 'A proposed approach or mechanism.' },
-  { type: 'what_if', label: 'What If', color: '#8B5CF6', icon: '🤔', description: 'Speculative or hypothetical. Exploratory.' },
-  { type: 'observation', label: 'Observation', color: '#3B82F6', icon: '🔍', description: 'A trend, behavior, or market signal.' },
-  { type: 'question', label: 'Question', color: '#F59E0B', icon: '❓', description: 'An open question to research further.' },
+  { type: 'problem', label: 'Problem', color: '#EF4444', Icon: Flame, description: 'A pain point, frustration, or inefficiency.' },
+  { type: 'solution', label: 'Solution', color: '#10B981', Icon: Lightbulb, description: 'A proposed approach or mechanism.' },
+  { type: 'what_if', label: 'What If', color: '#8B5CF6', Icon: Sparkles, description: 'Speculative or hypothetical. Exploratory.' },
+  { type: 'observation', label: 'Observation', color: '#3B82F6', Icon: Eye, description: 'A trend, behavior, or market signal.' },
+  { type: 'question', label: 'Question', color: '#F59E0B', Icon: HelpCircle, description: 'An open question to research further.' },
 ];
 
 interface TypePickerProps {
@@ -31,7 +32,7 @@ export function TypePicker({ visible, onClose, current, onSelect }: TypePickerPr
   return (
     <BottomSheet visible={visible} onClose={onClose} title="Thought Type">
       <View style={styles.options}>
-        {TYPE_OPTIONS.map(({ type, label, color, icon, description }) => {
+        {TYPE_OPTIONS.map(({ type, label, color, Icon, description }) => {
           const isSelected = current === type;
           return (
             <TouchableOpacity
@@ -43,7 +44,9 @@ export function TypePicker({ visible, onClose, current, onSelect }: TypePickerPr
               }}
               activeOpacity={0.7}
             >
-              <Text style={styles.icon}>{icon}</Text>
+              <View style={styles.iconContainer}>
+                <Icon size={20} color={color} />
+              </View>
               <View style={styles.optionText}>
                 <Text style={[styles.label, { color }]}>{label}</Text>
                 <Text style={styles.description}>{description}</Text>
@@ -69,10 +72,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
   },
-  icon: {
-    fontSize: 20,
+  iconContainer: {
     width: 28,
-    textAlign: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   optionText: {
     flex: 1,

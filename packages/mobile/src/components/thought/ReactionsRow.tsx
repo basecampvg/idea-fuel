@@ -9,6 +9,7 @@ import {
   Platform,
   UIManager,
 } from 'react-native';
+import { SmilePlus } from 'lucide-react-native';
 import { colors, fonts } from '../../lib/theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -65,7 +66,7 @@ export function ReactionsRow({
           onPress={togglePicker}
           activeOpacity={0.7}
         >
-          <Text style={styles.addButtonText}>+ React</Text>
+          <SmilePlus size={16} color={colors.muted} />
         </TouchableOpacity>
       </View>
 
@@ -123,11 +124,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderWidth: 1,
     borderColor: colors.border,
-  },
-  addButtonText: {
-    color: colors.muted,
-    fontSize: 13,
-    ...fonts.text.medium,
   },
   pickerRow: {
     flexDirection: 'row',

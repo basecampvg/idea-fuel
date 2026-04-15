@@ -10,14 +10,32 @@ const MATURITY_OPTIONS: {
   level: MaturityLevel;
   label: string;
   color: string;
-  icon: string;
+  dotStyle: 'hollow' | 'half' | 'filled' | 'ring';
   description: string;
 }[] = [
-  { level: 'spark', label: 'Spark', color: '#6B7280', icon: '○', description: 'Raw, unexamined. Just captured.' },
-  { level: 'developing', label: 'Developing', color: '#3B82F6', icon: '◐', description: 'Engaged with at least once. Some refinement.' },
-  { level: 'hypothesis', label: 'Hypothesis', color: '#F59E0B', icon: '●', description: 'Testable proposition. Enough to validate.' },
-  { level: 'conviction', label: 'Conviction', color: '#10B981', icon: '◉', description: 'High confidence. Backed by evidence.' },
+  { level: 'spark', label: 'Spark', color: '#6B7280', dotStyle: 'hollow', description: 'Raw, unexamined. Just captured.' },
+  { level: 'developing', label: 'Developing', color: '#3B82F6', dotStyle: 'half', description: 'Engaged with at least once. Some refinement.' },
+  { level: 'hypothesis', label: 'Hypothesis', color: '#F59E0B', dotStyle: 'filled', description: 'Testable proposition. Enough to validate.' },
+  { level: 'conviction', label: 'Conviction', color: '#10B981', dotStyle: 'ring', description: 'High confidence. Backed by evidence.' },
 ];
+
+function MaturityDot({ color, style }: { color: string; style: 'hollow' | 'half' | 'filled' | 'ring' }) {
+  if (style === 'hollow') {
+    return <View style={{ width: 16, height: 16, borderRadius: 8, borderWidth: 2, borderColor: color }} />;
+  }
+  if (style === 'half') {
+    return <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: color, opacity: 0.5 }} />;
+  }
+  if (style === 'ring') {
+    return (
+      <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: color, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: color }} />
+      </View>
+    );
+  }
+  // filled
+  return <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: color }} />;
+}
 
 interface MaturityPickerProps {
   visible: boolean;
@@ -30,7 +48,7 @@ export function MaturityPicker({ visible, onClose, current, onSelect }: Maturity
   return (
     <BottomSheet visible={visible} onClose={onClose} title="Maturity Level">
       <View style={styles.options}>
-        {MATURITY_OPTIONS.map(({ level, label, color, icon, description }) => {
+        {MATURITY_OPTIONS.map(({ level, label, color, dotStyle, description }) => {
           const isSelected = current === level;
           return (
             <TouchableOpacity
@@ -42,7 +60,9 @@ export function MaturityPicker({ visible, onClose, current, onSelect }: Maturity
               }}
               activeOpacity={0.7}
             >
-              <Text style={[styles.icon, { color }]}>{icon}</Text>
+              <View style={styles.iconContainer}>
+                <MaturityDot color={color} style={dotStyle} />
+              </View>
               <View style={styles.optionText}>
                 <Text style={[styles.label, { color }]}>{label}</Text>
                 <Text style={styles.description}>{description}</Text>
@@ -68,10 +88,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
   },
-  icon: {
-    fontSize: 20,
+  iconContainer: {
     width: 28,
-    textAlign: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   optionText: {
     flex: 1,
