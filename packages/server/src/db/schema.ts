@@ -81,7 +81,8 @@ export const templateCategoryEnum = pgEnum('TemplateCategory', [
   'TECH', 'SERVICES', 'RETAIL', 'FOOD', 'CONSTRUCTION',
   'HEALTHCARE', 'REAL_ESTATE', 'MANUFACTURING', 'NONPROFIT', 'FREELANCER',
 ]);
-export const noteTypeEnum = pgEnum('NoteType', ['QUICK', 'AI']);
+export const noteTypeEnum = pgEnum('NoteType', ['QUICK', 'AI']); // Keep for migration compat
+export const thoughtTypeEnum = pgEnum('ThoughtType', ['problem', 'solution', 'what_if', 'observation', 'question']);
 
 // TypeScript types derived from enums
 export type SubscriptionTier = (typeof subscriptionTierEnum.enumValues)[number];
@@ -112,6 +113,7 @@ export type FinancialModelStatus = (typeof financialModelStatusEnum.enumValues)[
 export type ERPProvider = (typeof erpProviderEnum.enumValues)[number];
 export type ERPConnectionStatus = (typeof erpConnectionStatusEnum.enumValues)[number];
 export type SnapshotAction = (typeof snapshotActionEnum.enumValues)[number];
+export type ThoughtType = (typeof thoughtTypeEnum.enumValues)[number];
 export type TemplateCategory = (typeof templateCategoryEnum.enumValues)[number];
 
 // =============================================================================
@@ -253,102 +255,212 @@ export const projectAttachmentsRelations = relations(projectAttachments, ({ one 
 }));
 
 // =============================================================================
-// SANDBOXES (Note Collections)
+// THOUGHT CLUSTERS (Thought Collections)
 // =============================================================================
 
-export const sandboxes = pgTable('Sandbox', {
+export const thoughtClusters = pgTable('ThoughtCluster', {
   id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
   name: text().notNull(),
   color: text(),
+  description: text(),
+  themes: jsonb().$type<any[]>().default([]),
+  tensions: jsonb().$type<any[]>().default([]),
+  gaps: jsonb().$type<any[]>().default([]),
+  synthesis: text(),
+  clusterMaturity: text('cluster_maturity').default('exploring').notNull(),
+  readinessScore: doublePrecision('readiness_score'),
+  dimensionCoverage: jsonb('dimension_coverage'),
+  projectId: text('project_id'),
   userId: text().notNull(),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull().$onUpdate(() => new Date()),
 }, (table) => [
-  index('Sandbox_userId_updatedAt_idx').using('btree', table.userId.asc(), table.updatedAt.desc().nullsLast()),
+  index('ThoughtCluster_userId_updatedAt_idx').using('btree', table.userId.asc(), table.updatedAt.desc().nullsLast()),
   foreignKey({
     columns: [table.userId],
     foreignColumns: [users.id],
-    name: 'Sandbox_userId_fkey',
+    name: 'ThoughtCluster_userId_fkey',
   }).onUpdate('cascade').onDelete('cascade'),
 ]);
 
+// Backwards compat alias
+export const sandboxes = thoughtClusters;
+
 // =============================================================================
-// NOTES (Brain Dump + AI Refinement)
+// THOUGHTS (Brain Dump + AI Refinement)
 // =============================================================================
 
-export const notes = pgTable('Note', {
+export const thoughts = pgTable('Thought', {
   id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
   content: text().default('').notNull(),
-  type: noteTypeEnum().default('AI').notNull(),
-  sourceNoteId: text('source_note_id'),
-  sandboxId: text('sandbox_id'),
+  thoughtType: thoughtTypeEnum('thought_type').default('observation').notNull(),
+  typeSource: text('type_source').default('ai_auto').notNull(),
+  tags: text().array().default([]),
+  aiTags: text('ai_tags').array().default([]),
+  maturityLevel: text('maturity_level').default('spark').notNull(),
+  maturityNotes: text('maturity_notes'),
+  maturityHistory: jsonb('maturity_history').$type<any[]>().default([]),
+  confidenceLevel: text('confidence_level').default('untested').notNull(),
+  thoughtNumber: integer('thought_number').notNull(),
+  reactions: jsonb().$type<any[]>().default([]),
+  captureMethod: text('capture_method').default('quick_text').notNull(),
+  voiceMemoUrl: text('voice_memo_url'),
+  transcription: text(),
+  captureSource: text('capture_source'),
+  aiRefinement: text('ai_refinement'),
   refinedTitle: text('refined_title'),
   refinedDescription: text('refined_description'),
   refinedTags: jsonb('refined_tags').$type<string[]>(),
   lastRefinedAt: timestamp('last_refined_at', { precision: 3, mode: 'date' }),
+  lastSurfacedAt: timestamp('last_surfaced_at', { precision: 3, mode: 'date' }),
+  surfaceCount: integer('surface_count').default(0).notNull(),
+  dismissCount: integer('dismiss_count').default(0).notNull(),
+  reactCount: integer('react_count').default(0).notNull(),
+  collisionIds: text('collision_ids').array().default([]),
+  incubationScore: doublePrecision('incubation_score').default(0).notNull(),
+  clusterId: text('cluster_id'),
+  clusterPosition: integer('cluster_position'),
+  sourceThoughtId: text('source_thought_id'),
   promotedProjectId: text('promoted_project_id'),
+  isArchived: boolean('is_archived').default(false).notNull(),
   userId: text().notNull(),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
 }, (table) => [
-  index('Note_userId_idx').using('btree', table.userId.asc().nullsLast()),
-  index('Note_userId_updatedAt_idx').using('btree', table.userId.asc(), table.updatedAt.desc().nullsLast()),
+  index('Thought_userId_idx').using('btree', table.userId.asc().nullsLast()),
+  index('Thought_userId_updatedAt_idx').using('btree', table.userId.asc(), table.updatedAt.desc().nullsLast()),
+  index('Thought_clusterId_idx').using('btree', table.clusterId.asc().nullsLast()),
   foreignKey({
     columns: [table.userId],
     foreignColumns: [users.id],
-    name: 'Note_userId_fkey',
+    name: 'Thought_userId_fkey',
   }).onUpdate('cascade').onDelete('cascade'),
   foreignKey({
     columns: [table.promotedProjectId],
     foreignColumns: [projects.id],
-    name: 'Note_promotedProjectId_fkey',
+    name: 'Thought_promotedProjectId_fkey',
   }).onUpdate('cascade').onDelete('set null'),
   foreignKey({
-    columns: [table.sourceNoteId],
+    columns: [table.sourceThoughtId],
     foreignColumns: [table.id],
-    name: 'Note_sourceNoteId_fkey',
+    name: 'Thought_sourceThoughtId_fkey',
   }).onUpdate('cascade').onDelete('set null'),
-  index('Note_sandboxId_idx').using('btree', table.sandboxId.asc().nullsLast()),
   foreignKey({
-    columns: [table.sandboxId],
-    foreignColumns: [sandboxes.id],
-    name: 'Note_sandboxId_fkey',
+    columns: [table.clusterId],
+    foreignColumns: [thoughtClusters.id],
+    name: 'Thought_clusterId_fkey',
   }).onUpdate('cascade').onDelete('set null'),
 ]);
 
+// Backwards compat alias
+export const notes = thoughts;
+
 // =============================================================================
-// NOTE ATTACHMENTS (Images attached to notes)
+// THOUGHT ATTACHMENTS (Images attached to thoughts)
 // =============================================================================
 
-export const noteAttachments = pgTable('NoteAttachment', {
+export const thoughtAttachments = pgTable('ThoughtAttachment', {
   id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
   storagePath: text('storage_path').notNull(),
   fileName: text('file_name').notNull(),
   mimeType: text('mime_type').notNull(),
   sizeBytes: integer('size_bytes').notNull(),
   order: integer().default(0).notNull(),
-  noteId: text('note_id').notNull(),
+  thoughtId: text('thought_id').notNull(),
   userId: text('user_id').notNull(),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 }, (table) => [
-  index('NoteAttachment_noteId_idx').using('btree', table.noteId.asc().nullsLast()),
-  index('NoteAttachment_userId_idx').using('btree', table.userId.asc().nullsLast()),
+  index('ThoughtAttachment_thoughtId_idx').using('btree', table.thoughtId.asc().nullsLast()),
+  index('ThoughtAttachment_userId_idx').using('btree', table.userId.asc().nullsLast()),
   foreignKey({
-    columns: [table.noteId],
-    foreignColumns: [notes.id],
-    name: 'NoteAttachment_noteId_fkey',
+    columns: [table.thoughtId],
+    foreignColumns: [thoughts.id],
+    name: 'ThoughtAttachment_thoughtId_fkey',
   }).onUpdate('cascade').onDelete('cascade'),
   foreignKey({
     columns: [table.userId],
     foreignColumns: [users.id],
-    name: 'NoteAttachment_userId_fkey',
+    name: 'ThoughtAttachment_userId_fkey',
   }).onUpdate('cascade').onDelete('cascade'),
 ]);
 
-export const noteAttachmentsRelations = relations(noteAttachments, ({ one }) => ({
-  note: one(notes, { fields: [noteAttachments.noteId], references: [notes.id] }),
-  user: one(users, { fields: [noteAttachments.userId], references: [users.id] }),
-}));
+// Backwards compat alias
+export const noteAttachments = thoughtAttachments;
+
+// =============================================================================
+// THOUGHT CONNECTIONS
+// =============================================================================
+export const thoughtConnections = pgTable('ThoughtConnection', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  thoughtAId: text('thought_a_id').notNull(),
+  thoughtBId: text('thought_b_id').notNull(),
+  connectionType: text('connection_type').notNull(),
+  strength: doublePrecision().default(0).notNull(),
+  createdBy: text('created_by').notNull(),
+  surfacedAt: timestamp('surfaced_at', { precision: 3, mode: 'date' }),
+  userAction: text('user_action'),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('ThoughtConnection_thoughtAId_idx').using('btree', table.thoughtAId.asc()),
+  index('ThoughtConnection_thoughtBId_idx').using('btree', table.thoughtBId.asc()),
+  foreignKey({ columns: [table.thoughtAId], foreignColumns: [thoughts.id], name: 'ThoughtConnection_thoughtAId_fkey' }).onUpdate('cascade').onDelete('cascade'),
+  foreignKey({ columns: [table.thoughtBId], foreignColumns: [thoughts.id], name: 'ThoughtConnection_thoughtBId_fkey' }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
+// THOUGHT EVENTS (Activity Log)
+// =============================================================================
+export const thoughtEvents = pgTable('ThoughtEvent', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  thoughtId: text('thought_id').notNull(),
+  eventType: text('event_type').notNull(),
+  metadata: jsonb().default({}),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('ThoughtEvent_thoughtId_idx').using('btree', table.thoughtId.asc(), table.createdAt.desc()),
+  foreignKey({ columns: [table.thoughtId], foreignColumns: [thoughts.id], name: 'ThoughtEvent_thoughtId_fkey' }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
+// THOUGHT COMMENTS
+// =============================================================================
+export const thoughtComments = pgTable('ThoughtComment', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  thoughtId: text('thought_id').notNull(),
+  userId: text('user_id').notNull(),
+  content: text().notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
+}, (table) => [
+  index('ThoughtComment_thoughtId_idx').using('btree', table.thoughtId.asc(), table.createdAt.asc()),
+  foreignKey({ columns: [table.thoughtId], foreignColumns: [thoughts.id], name: 'ThoughtComment_thoughtId_fkey' }).onUpdate('cascade').onDelete('cascade'),
+  foreignKey({ columns: [table.userId], foreignColumns: [users.id], name: 'ThoughtComment_userId_fkey' }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
+// CRYSTALLIZED IDEAS
+// =============================================================================
+export const crystallizedIdeas = pgTable('CrystallizedIdea', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull(),
+  clusterId: text('cluster_id'),
+  projectId: text('project_id').notNull(),
+  problemStatement: text('problem_statement'),
+  targetAudience: text('target_audience'),
+  proposedSolution: text('proposed_solution'),
+  uniqueAngle: text('unique_angle'),
+  pricingHypothesis: text('pricing_hypothesis'),
+  sparkAnswers: jsonb('spark_answers'),
+  sparkSessionId: text('spark_session_id'),
+  sourceThoughtIds: text('source_thought_ids').array().default([]),
+  crystallizedAt: timestamp('crystallized_at', { precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  crystallizedBy: text('crystallized_by').notNull(),
+}, (table) => [
+  index('CrystallizedIdea_userId_idx').using('btree', table.userId.asc()),
+  foreignKey({ columns: [table.userId], foreignColumns: [users.id], name: 'CrystallizedIdea_userId_fkey' }).onUpdate('cascade').onDelete('cascade'),
+  foreignKey({ columns: [table.clusterId], foreignColumns: [thoughtClusters.id], name: 'CrystallizedIdea_clusterId_fkey' }).onUpdate('cascade').onDelete('set null'),
+  foreignKey({ columns: [table.projectId], foreignColumns: [projects.id], name: 'CrystallizedIdea_projectId_fkey' }).onUpdate('cascade').onDelete('cascade'),
+]);
 
 // =============================================================================
 // INTERVIEW
@@ -1208,21 +1320,54 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   agentInsights: many(agentInsights),
   embeddings: many(embeddings),
   financialModels: many(financialModels),
-  promotedNotes: many(notes),
+  promotedNotes: many(thoughts),
   attachments: many(projectAttachments),
   customerInterviews: many(customerInterviews),
 }));
 
-export const notesRelations = relations(notes, ({ one, many }) => ({
-  user: one(users, { fields: [notes.userId], references: [users.id] }),
-  promotedProject: one(projects, { fields: [notes.promotedProjectId], references: [projects.id] }),
-  sandbox: one(sandboxes, { fields: [notes.sandboxId], references: [sandboxes.id] }),
-  attachments: many(noteAttachments),
+export const thoughtsRelations = relations(thoughts, ({ one, many }) => ({
+  user: one(users, { fields: [thoughts.userId], references: [users.id] }),
+  promotedProject: one(projects, { fields: [thoughts.promotedProjectId], references: [projects.id] }),
+  cluster: one(thoughtClusters, { fields: [thoughts.clusterId], references: [thoughtClusters.id] }),
+  sourceThought: one(thoughts, { fields: [thoughts.sourceThoughtId], references: [thoughts.id], relationName: 'sourceThought' }),
+  attachments: many(thoughtAttachments),
+  events: many(thoughtEvents),
+  comments: many(thoughtComments),
+}));
+// Keep old name for compat
+export const notesRelations = thoughtsRelations;
+
+export const thoughtClustersRelations = relations(thoughtClusters, ({ one, many }) => ({
+  user: one(users, { fields: [thoughtClusters.userId], references: [users.id] }),
+  thoughts: many(thoughts),
+  crystallizedIdeas: many(crystallizedIdeas),
+}));
+// Keep old name for compat
+export const sandboxesRelations = thoughtClustersRelations;
+
+export const thoughtAttachmentsRelations = relations(thoughtAttachments, ({ one }) => ({
+  thought: one(thoughts, { fields: [thoughtAttachments.thoughtId], references: [thoughts.id] }),
+  user: one(users, { fields: [thoughtAttachments.userId], references: [users.id] }),
 }));
 
-export const sandboxesRelations = relations(sandboxes, ({ one, many }) => ({
-  user: one(users, { fields: [sandboxes.userId], references: [users.id] }),
-  notes: many(notes),
+export const thoughtConnectionsRelations = relations(thoughtConnections, ({ one }) => ({
+  thoughtA: one(thoughts, { fields: [thoughtConnections.thoughtAId], references: [thoughts.id], relationName: 'connectionsA' }),
+  thoughtB: one(thoughts, { fields: [thoughtConnections.thoughtBId], references: [thoughts.id], relationName: 'connectionsB' }),
+}));
+
+export const thoughtEventsRelations = relations(thoughtEvents, ({ one }) => ({
+  thought: one(thoughts, { fields: [thoughtEvents.thoughtId], references: [thoughts.id] }),
+}));
+
+export const thoughtCommentsRelations = relations(thoughtComments, ({ one }) => ({
+  thought: one(thoughts, { fields: [thoughtComments.thoughtId], references: [thoughts.id] }),
+  user: one(users, { fields: [thoughtComments.userId], references: [users.id] }),
+}));
+
+export const crystallizedIdeasRelations = relations(crystallizedIdeas, ({ one }) => ({
+  user: one(users, { fields: [crystallizedIdeas.userId], references: [users.id] }),
+  cluster: one(thoughtClusters, { fields: [crystallizedIdeas.clusterId], references: [thoughtClusters.id] }),
+  project: one(projects, { fields: [crystallizedIdeas.projectId], references: [projects.id] }),
 }));
 
 export const interviewsRelations = relations(interviews, ({ one }) => ({
