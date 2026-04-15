@@ -1,5 +1,5 @@
 /**
- * Thought Router — CRUD + properties + reactions + comments + events
+ * Thought Router — CRUD + properties + comments + events + connections
  *
  * Replaces the note router with the new Thought data model.
  *
@@ -17,22 +17,21 @@
  * - addAttachments:    Add image attachments to a thought
  * - removeAttachment:  Remove a single attachment
  * - updateProperties:  Update maturityLevel, thoughtType, confidenceLevel
- * - addReaction:       Add/toggle emoji reaction
- * - removeReaction:    Remove emoji reaction
  * - addComment:        Add a comment to a thought
  * - deleteComment:     Delete a comment (ownership check)
  * - listEvents:        List thought events with cursor pagination
+ * - listConnections:   List connections for a thought
+ * - linkThought:       Create a manual user_linked connection
  */
 
 import { eq, and, desc, isNull, count, max, lt, sql, or } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
+import { enqueueThoughtCollision } from '../jobs/queues';
 import {
   createThoughtSchema,
   updateThoughtPropertiesSchema,
-  addReactionSchema,
-  removeReactionSchema,
   addThoughtCommentSchema,
   deleteThoughtCommentSchema,
   listThoughtEventsSchema,
@@ -92,7 +91,7 @@ export const thoughtRouter = router({
     .query(async ({ ctx, input }) => {
       const thought = await ctx.db.query.thoughts.findFirst({
         where: and(eq(thoughts.id, input.id), eq(thoughts.userId, ctx.userId)),
-        with: { attachments: true, comments: true },
+        with: { attachments: true, comments: true, cluster: true },
       });
 
       if (!thought) {
@@ -186,6 +185,13 @@ export const thoughtRouter = router({
         } catch {
           /* Queue not set up yet */
         }
+      }
+
+      // Enqueue collision detection (fire-and-forget)
+      try {
+        await enqueueThoughtCollision({ thoughtId: thought.id });
+      } catch {
+        // Non-critical — don't fail thought creation if queue is down
       }
 
       return thought;
@@ -782,84 +788,6 @@ export const thoughtRouter = router({
     }),
 
   /**
-   * Add an emoji reaction to a thought.
-   * Reads current reactions array, adds emoji if not present, updates reactCount.
-   */
-  addReaction: protectedProcedure
-    .input(addReactionSchema)
-    .mutation(async ({ ctx, input }) => {
-      const thought = await ctx.db.query.thoughts.findFirst({
-        where: and(eq(thoughts.id, input.thoughtId), eq(thoughts.userId, ctx.userId)),
-        columns: { id: true, reactions: true, reactCount: true },
-      });
-
-      if (!thought) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'THOUGHT_NOT_FOUND',
-        });
-      }
-
-      const currentReactions = (thought.reactions as string[]) ?? [];
-
-      // Only add if not already present
-      if (!currentReactions.includes(input.emoji)) {
-        const updatedReactions = [...currentReactions, input.emoji];
-        await ctx.db
-          .update(thoughts)
-          .set({
-            reactions: updatedReactions,
-            reactCount: (thought.reactCount ?? 0) + 1,
-          })
-          .where(eq(thoughts.id, input.thoughtId));
-
-        // Create 'reaction_added' event
-        await ctx.db.insert(thoughtEvents).values({
-          thoughtId: input.thoughtId,
-          eventType: 'reaction_added',
-          metadata: { emoji: input.emoji },
-        });
-      }
-
-      return { success: true };
-    }),
-
-  /**
-   * Remove an emoji reaction from a thought.
-   * Removes emoji from reactions array and decrements reactCount.
-   */
-  removeReaction: protectedProcedure
-    .input(removeReactionSchema)
-    .mutation(async ({ ctx, input }) => {
-      const thought = await ctx.db.query.thoughts.findFirst({
-        where: and(eq(thoughts.id, input.thoughtId), eq(thoughts.userId, ctx.userId)),
-        columns: { id: true, reactions: true, reactCount: true },
-      });
-
-      if (!thought) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'THOUGHT_NOT_FOUND',
-        });
-      }
-
-      const currentReactions = (thought.reactions as string[]) ?? [];
-      const updatedReactions = currentReactions.filter((r) => r !== input.emoji);
-
-      if (updatedReactions.length !== currentReactions.length) {
-        await ctx.db
-          .update(thoughts)
-          .set({
-            reactions: updatedReactions,
-            reactCount: Math.max(0, (thought.reactCount ?? 0) - 1),
-          })
-          .where(eq(thoughts.id, input.thoughtId));
-      }
-
-      return { success: true };
-    }),
-
-  /**
    * Add a comment to a thought.
    * Creates ThoughtEvent 'commented'.
    */
@@ -1026,6 +954,45 @@ export const thoughtRouter = router({
     }),
 
   /**
+   * Remove a connection between two thoughts.
+   */
+  removeConnection: protectedProcedure
+    .input(z.object({ connectionId: entityId }))
+    .mutation(async ({ ctx, input }) => {
+      const connection = await ctx.db
+        .select()
+        .from(thoughtConnections)
+        .where(eq(thoughtConnections.id, input.connectionId))
+        .limit(1);
+
+      if (!connection[0]) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Connection not found' });
+      }
+
+      // Verify the user owns at least one side of the connection
+      const ownsThought = await ctx.db.query.thoughts.findFirst({
+        where: and(
+          eq(thoughts.userId, ctx.userId),
+          or(
+            eq(thoughts.id, connection[0].thoughtAId),
+            eq(thoughts.id, connection[0].thoughtBId),
+          ),
+        ),
+        columns: { id: true },
+      });
+
+      if (!ownsThought) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Connection not found' });
+      }
+
+      await ctx.db
+        .delete(thoughtConnections)
+        .where(eq(thoughtConnections.id, input.connectionId));
+
+      return { success: true };
+    }),
+
+  /**
    * Duplicate a thought, resetting maturityLevel to 'spark' and confidenceLevel to 'untested'.
    */
   duplicate: protectedProcedure
@@ -1075,5 +1042,74 @@ export const thoughtRouter = router({
       });
 
       return duplicate;
+    }),
+
+  /**
+   * Create a manual (user_linked) connection between two thoughts.
+   */
+  linkThought: protectedProcedure
+    .input(z.object({ thoughtId: entityId, targetThoughtId: entityId }))
+    .mutation(async ({ ctx, input }) => {
+      const { thoughtId, targetThoughtId } = input;
+
+      if (thoughtId === targetThoughtId) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot link a thought to itself' });
+      }
+
+      // Verify both thoughts belong to the user
+      const [source, target] = await Promise.all([
+        ctx.db.query.thoughts.findFirst({
+          where: and(eq(thoughts.id, thoughtId), eq(thoughts.userId, ctx.userId)),
+        }),
+        ctx.db.query.thoughts.findFirst({
+          where: and(eq(thoughts.id, targetThoughtId), eq(thoughts.userId, ctx.userId)),
+        }),
+      ]);
+
+      if (!source || !target) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'THOUGHT_NOT_FOUND' });
+      }
+
+      // Check for existing connection in either direction
+      const existing = await ctx.db
+        .select()
+        .from(thoughtConnections)
+        .where(
+          or(
+            and(
+              eq(thoughtConnections.thoughtAId, thoughtId),
+              eq(thoughtConnections.thoughtBId, targetThoughtId),
+            ),
+            and(
+              eq(thoughtConnections.thoughtAId, targetThoughtId),
+              eq(thoughtConnections.thoughtBId, thoughtId),
+            ),
+          ),
+        )
+        .limit(1);
+
+      if (existing.length > 0) {
+        throw new TRPCError({ code: 'CONFLICT', message: 'Connection already exists' });
+      }
+
+      const [connection] = await ctx.db
+        .insert(thoughtConnections)
+        .values({
+          thoughtAId: thoughtId,
+          thoughtBId: targetThoughtId,
+          connectionType: 'user_linked',
+          strength: 1,
+          createdBy: ctx.userId,
+        })
+        .returning();
+
+      // Log event
+      await ctx.db.insert(thoughtEvents).values({
+        thoughtId,
+        eventType: 'connected',
+        metadata: { targetThoughtId, connectionType: 'user_linked' },
+      });
+
+      return connection;
     }),
 });
