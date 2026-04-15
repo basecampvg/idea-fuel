@@ -8,6 +8,23 @@ import {
   Platform,
   UIManager,
 } from 'react-native';
+import {
+  Sparkles,
+  ArrowRightLeft,
+  Repeat,
+  Hand,
+  Layers,
+  TrendingUp,
+  BarChart3,
+  Link,
+  MessageCircle,
+  Gem,
+  Mic,
+  Tag,
+  Plus,
+  Heart,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { colors, fonts } from '../../lib/theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -57,8 +74,10 @@ function getEventDescription(event: ThoughtEvent): string {
       return 'AI refined';
     case 'resurfaced':
       return 'Resurfaced in Revisit';
-    case 'resurface_action':
-      return `You ${m.action || 'acted'}`;
+    case 'resurface_action': {
+      const actionLabels: Record<string, string> = { dismiss: 'Dismissed from Revisit', engage: 'Engaged via Revisit', cluster: 'Clustered via Revisit' };
+      return actionLabels[m.action] || 'Revisit action';
+    }
     case 'clustered':
       return `Added to ${m.clusterName || 'cluster'}`;
     case 'unclustered':
@@ -68,17 +87,55 @@ function getEventDescription(event: ThoughtEvent): string {
     case 'confidence_changed':
       return `Confidence: ${m.from || '?'} \u2192 ${m.to || '?'}`;
     case 'connection_found':
-      return `Semantic match found: T-${m.thoughtNumber || '?'}`;
+      return m.thoughtNumber ? `Semantic match found: T-${m.thoughtNumber}` : 'Semantic match found';
     case 'connection_added':
-      return `Linked to T-${m.thoughtNumber || '?'}`;
-    case 'reaction_added':
-      return `Reacted ${m.emoji || ''}`;
+    case 'connected':
+      return m.thoughtNumber ? `Linked to T-${m.thoughtNumber}` : 'Linked to thought';
     case 'commented':
       return 'Comment added';
     case 'crystallized':
       return 'Included in crystallization';
     default:
       return event.eventType;
+  }
+}
+
+function getEventIcon(eventType: string): LucideIcon {
+  switch (eventType) {
+    case 'created':
+      return Plus;
+    case 'ai_tagged':
+      return Tag;
+    case 'type_changed':
+      return ArrowRightLeft;
+    case 'refined':
+      return Sparkles;
+    case 'resurfaced':
+      return Repeat;
+    case 'resurface_action':
+      return Hand;
+    case 'clustered':
+      return Layers;
+    case 'unclustered':
+      return Layers;
+    case 'maturity_changed':
+      return TrendingUp;
+    case 'confidence_changed':
+      return BarChart3;
+    case 'connection_found':
+    case 'connection_added':
+    case 'connected':
+      return Link;
+    case 'commented':
+      return MessageCircle;
+    case 'crystallized':
+      return Gem;
+    case 'reaction_added':
+      return Heart;
+    case 'voice_captured':
+      return Mic;
+    default:
+      return Sparkles;
   }
 }
 
@@ -119,15 +176,17 @@ export function ActivityLog({
             const isSub = isSubEvent(event.eventType);
             const isLast = index === displayEvents.length - 1;
 
+            const Icon = getEventIcon(event.eventType);
+
             return (
               <View key={event.id} style={styles.eventRow}>
-                {/* Timeline line + dot */}
+                {/* Timeline line + icon */}
                 <View style={styles.timelineColumn}>
-                  <View
-                    style={[
-                      styles.timelineDot,
-                      isSub && styles.timelineDotSub,
-                    ]}
+                  <Icon
+                    size={isSub ? 10 : 12}
+                    color={isSub ? colors.mutedDim : colors.muted}
+                    strokeWidth={2}
+                    style={{ marginTop: 3 }}
                   />
                   {!isLast && <View style={styles.timelineLine} />}
                 </View>
@@ -200,19 +259,6 @@ const styles = StyleSheet.create({
   timelineColumn: {
     width: 20,
     alignItems: 'center',
-  },
-  timelineDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.muted,
-    marginTop: 4,
-  },
-  timelineDotSub: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.mutedDim,
   },
   timelineLine: {
     width: 1,
