@@ -138,10 +138,13 @@ export async function logOutPurchases(): Promise<void> {
   if (!sdkAvailable()) return;
 
   try {
-    await Purchases!.logOut();
-    console.log('[purchases] Logged out');
-  } catch (error) {
-    console.error('[purchases] logOut() failed:', error);
+    const customerInfo = await Purchases!.getCustomerInfo();
+    if (!customerInfo.originalAppUserId.startsWith('$RCAnonymousID:')) {
+      await Purchases!.logOut();
+      console.log('[purchases] Logged out');
+    }
+  } catch {
+    // Silently ignore — user may not have been logged in to purchases
   }
 }
 
