@@ -43,6 +43,7 @@ import { colors, fonts } from '../../lib/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WelcomeSheet } from '../../components/ui/WelcomeSheet';
 import { useAIConsentGate } from '../../hooks/useAIConsentGate';
+import { ThoughtTypeChips, type ThoughtType } from '../../components/ThoughtTypeChips';
 
 // Defer loading expo-speech-recognition until after the initial Fabric mount
 // transaction completes. Loading it eagerly at module level triggers TurboModule
@@ -92,6 +93,7 @@ export default function CaptureScreen() {
   const [aiConsent, setAiConsent] = useState(false);
   const [popoverAnchorY, setPopoverAnchorY] = useState(200);
   const inputBarRef = useRef<View>(null);
+  const [selectedType, setSelectedType] = useState<ThoughtType | null>(null);
 
   const MAX_ATTACHMENTS = 5;
 
@@ -322,23 +324,24 @@ export default function CaptureScreen() {
 
   const getUploadUrl = trpc.attachment.getUploadUrl.useMutation();
 
-  const createNote = trpc.note.create.useMutation({
-    onSuccess: (newNote) => {
+  const createThought = trpc.thought.create.useMutation({
+    onSuccess: (newThought) => {
       triggerHaptic('success');
-      utils.note.list.invalidate();
-      router.push(`/(tabs)/thoughts/${newNote.id}` as any);
+      utils.thought.list.invalidate();
       setIdeaText('');
       finalizedText.current = '';
       setAttachments([]);
       setAiConsent(false);
+      setSelectedType(null);
+      router.push(`/(tabs)/thoughts/${newThought.id}` as any);
     },
     onError: () => {
       triggerHaptic('error');
-      showToast({ message: 'Failed to create note', type: 'error' });
+      showToast({ message: 'Failed to create thought', type: 'error' });
     },
   });
 
-  const handleNoteCapture = useCallback((type: 'QUICK' | 'AI') => {
+  const handleThoughtCapture = useCallback(() => {
     const trimmed = ideaText.trim();
     if (!trimmed) return;
 
@@ -350,8 +353,12 @@ export default function CaptureScreen() {
 
     Keyboard.dismiss();
     setShowActionMenu(false);
-    createNote.mutate({ type, content: trimmed });
-  }, [ideaText, isListening, createNote]);
+    createThought.mutate({
+      content: trimmed,
+      thoughtType: selectedType ?? undefined,
+      captureMethod: isListening ? 'voice' : 'quick_text',
+    });
+  }, [ideaText, isListening, createThought, selectedType]);
 
   const handleShowActionMenu = useCallback(() => {
     setShowActionMenu(true);
@@ -506,6 +513,9 @@ export default function CaptureScreen() {
                 maxLength={500}
               />
 
+              {/* Thought type chips */}
+              <ThoughtTypeChips selected={selectedType} onSelect={setSelectedType} />
+
               {/* Thumbnail strip */}
               <ThumbnailStrip
                 attachments={attachments}
@@ -586,8 +596,7 @@ export default function CaptureScreen() {
       <CaptureActionMenu
         visible={showActionMenu}
         onClose={() => setShowActionMenu(false)}
-        onQuickNote={() => handleNoteCapture('QUICK')}
-        onAINote={() => handleNoteCapture('AI')}
+        onThought={handleThoughtCapture}
         onIdea={() => {
           setShowActionMenu(false);
           handleCapture();
