@@ -198,9 +198,8 @@ export function PropertyChipBar({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
   },
   chip: {
     flexDirection: 'row',

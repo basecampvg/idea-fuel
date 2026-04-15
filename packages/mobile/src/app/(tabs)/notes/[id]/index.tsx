@@ -502,30 +502,34 @@ export default function NoteEditorScreen() {
           <Text style={styles.thoughtId}>T-{note.thoughtNumber}</Text>
 
           {/* Raw Content Editor */}
-          {initialLoaded && (
-            <MarkdownEditor
-              ref={editorRef}
-              initialContent={note.content ?? ''}
-              placeholder="Dump your thoughts here..."
-              onChange={handleEditorChange}
-            />
-          )}
+          <View style={styles.editorContainer}>
+            {initialLoaded && (
+              <MarkdownEditor
+                ref={editorRef}
+                initialContent={note.content ?? ''}
+                placeholder="Dump your thoughts here..."
+                onChange={handleEditorChange}
+              />
+            )}
+          </View>
 
           {/* Property Chip Bar */}
-          <PropertyChipBar
-            maturityLevel={note.maturityLevel as any}
-            thoughtType={note.thoughtType as any}
-            confidenceLevel={note.confidenceLevel as any}
-            clusterId={note.clusterId ?? null}
-            clusterName={null}
-            clusterColor={null}
-            typeSource={note.typeSource}
-            onUpdateMaturity={handleUpdateMaturity}
-            onUpdateType={handleUpdateType}
-            onUpdateConfidence={handleUpdateConfidence}
-            onAddToCluster={(clusterId) => pinMutation.mutate({ thoughtId: id!, clusterId })}
-            onRemoveFromCluster={() => unpinMutation.mutate({ thoughtId: id! })}
-          />
+          <View style={styles.section}>
+            <PropertyChipBar
+              maturityLevel={note.maturityLevel as any}
+              thoughtType={note.thoughtType as any}
+              confidenceLevel={note.confidenceLevel as any}
+              clusterId={note.clusterId ?? null}
+              clusterName={null}
+              clusterColor={null}
+              typeSource={note.typeSource}
+              onUpdateMaturity={handleUpdateMaturity}
+              onUpdateType={handleUpdateType}
+              onUpdateConfidence={handleUpdateConfidence}
+              onAddToCluster={(clusterId) => pinMutation.mutate({ thoughtId: id!, clusterId })}
+              onRemoveFromCluster={() => unpinMutation.mutate({ thoughtId: id! })}
+            />
+          </View>
 
           {/* Source Label */}
           <SourceLabel captureMethod={note.captureMethod} createdAt={note.createdAt} />
@@ -545,45 +549,60 @@ export default function NoteEditorScreen() {
           )}
 
           {/* AI Refinement */}
-          <AIRefinementSection
-            refinedTitle={note.refinedTitle}
-            refinedDescription={note.refinedDescription}
-            refinedTags={note.refinedTags}
-            lastRefinedAt={note.lastRefinedAt}
-            isRefining={refineMutation.isPending}
-            onRefine={() => refineMutation.mutate({ id: id! })}
-          />
+          <View style={styles.divider} />
+          <View style={styles.section}>
+            <AIRefinementSection
+              refinedTitle={note.refinedTitle}
+              refinedDescription={note.refinedDescription}
+              refinedTags={note.refinedTags}
+              lastRefinedAt={note.lastRefinedAt}
+              isRefining={refineMutation.isPending}
+              onRefine={() => refineMutation.mutate({ id: id! })}
+            />
+          </View>
 
           {/* Connections */}
-          <ConnectionsSection
-            connections={(connections ?? []) as any}
-            isLoading={connectionsLoading}
-            onViewThought={(thoughtId) => router.push(`/(tabs)/notes/${thoughtId}` as any)}
-            onAddConnection={() => {/* Phase 2 — manual connection picker */}}
-          />
+          <View style={styles.divider} />
+          <View style={styles.section}>
+            <ConnectionsSection
+              connections={(connections ?? []) as any}
+              isLoading={connectionsLoading}
+              onViewThought={(thoughtId) => router.push(`/(tabs)/notes/${thoughtId}` as any)}
+              onAddConnection={() => {}}
+            />
+          </View>
 
           {/* Reactions */}
-          <ReactionsRow
-            reactions={note.reactions ?? []}
-            onAddReaction={(emoji) => addReactionMutation.mutate({ thoughtId: id!, emoji: emoji as any })}
-            onRemoveReaction={(emoji) => removeReactionMutation.mutate({ thoughtId: id!, emoji: emoji as any })}
-          />
+          <View style={styles.divider} />
+          <View style={styles.section}>
+            <ReactionsRow
+              reactions={note.reactions ?? []}
+              onAddReaction={(emoji) => addReactionMutation.mutate({ thoughtId: id!, emoji: emoji as any })}
+              onRemoveReaction={(emoji) => removeReactionMutation.mutate({ thoughtId: id!, emoji: emoji as any })}
+            />
+          </View>
 
           {/* Activity Log */}
-          <ActivityLog
-            events={((events as any)?.events ?? []) as any}
-            isLoading={eventsLoading}
-            hasMore={!!(events as any)?.nextCursor}
-            onLoadMore={() => {}}
-          />
+          <View style={styles.divider} />
+          <View style={styles.section}>
+            <ActivityLog
+              events={((events as any)?.events ?? []) as any}
+              isLoading={eventsLoading}
+              hasMore={!!(events as any)?.nextCursor}
+              onLoadMore={() => {}}
+            />
+          </View>
 
           {/* Comments */}
-          <CommentThread
-            comments={(note.comments ?? []) as any}
-            onAddComment={(content) => addCommentMutation.mutate({ thoughtId: id!, content })}
-            onDeleteComment={(commentId) => deleteCommentMutation.mutate({ commentId })}
-            isSubmitting={addCommentMutation.isPending}
-          />
+          <View style={styles.divider} />
+          <View style={styles.section}>
+            <CommentThread
+              comments={(note.comments ?? []) as any}
+              onAddComment={(content) => addCommentMutation.mutate({ thoughtId: id!, content })}
+              onDeleteComment={(commentId) => deleteCommentMutation.mutate({ commentId })}
+              isSubmitting={addCommentMutation.isPending}
+            />
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -705,14 +724,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 60,
   },
   thoughtId: {
     fontSize: 13,
     color: colors.mutedDim,
-    ...fonts.outfit.regular,
+    ...fonts.geist.regular,
     paddingHorizontal: 20,
-    marginBottom: 4,
+    marginBottom: 8,
+  },
+  editorContainer: {
+    minHeight: 120,
+    paddingBottom: 8,
+  },
+  section: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginHorizontal: 20,
   },
   attachmentSection: {
     paddingHorizontal: 20,
