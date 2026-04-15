@@ -24,8 +24,9 @@
  * - listEvents:        List thought events with cursor pagination
  */
 
-import { eq, and, desc, isNull, count, max, lt, sql } from 'drizzle-orm';
+import { eq, and, desc, isNull, count, max, lt, sql, or } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import {
   createThoughtSchema,
@@ -46,6 +47,7 @@ import {
   removeNoteAttachmentSchema,
   NOTE_REFINE_MIN_CHARS,
   NOTE_EXTRACT_MIN_CHARS,
+  entityId,
 } from '@forge/shared';
 import {
   thoughts,
@@ -53,6 +55,7 @@ import {
   thoughtAttachments,
   thoughtEvents,
   thoughtComments,
+  thoughtConnections,
   projects,
   users,
   projectAttachments,
@@ -89,7 +92,7 @@ export const thoughtRouter = router({
     .query(async ({ ctx, input }) => {
       const thought = await ctx.db.query.thoughts.findFirst({
         where: and(eq(thoughts.id, input.id), eq(thoughts.userId, ctx.userId)),
-        with: { attachments: true },
+        with: { attachments: true, comments: true },
       });
 
       if (!thought) {
@@ -960,5 +963,114 @@ export const thoughtRouter = router({
         events,
         nextCursor,
       };
+    }),
+
+  /**
+   * List all connections for a thought, enriched with the linked thought's summary.
+   */
+  listConnections: protectedProcedure
+    .input(z.object({ thoughtId: entityId }))
+    .query(async ({ ctx, input }) => {
+      const { thoughtId } = input;
+
+      // Verify ownership
+      const thought = await ctx.db.query.thoughts.findFirst({
+        where: and(eq(thoughts.id, thoughtId), eq(thoughts.userId, ctx.userId)),
+        columns: { id: true },
+      });
+
+      if (!thought) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'THOUGHT_NOT_FOUND' });
+      }
+
+      // Get connections where this thought is either side
+      const connections = await ctx.db
+        .select()
+        .from(thoughtConnections)
+        .where(
+          or(
+            eq(thoughtConnections.thoughtAId, thoughtId),
+            eq(thoughtConnections.thoughtBId, thoughtId),
+          ),
+        )
+        .orderBy(desc(thoughtConnections.createdAt));
+
+      // For each connection, fetch the OTHER thought's summary
+      const enriched = await Promise.all(
+        connections.map(async (conn) => {
+          const otherId = conn.thoughtAId === thoughtId ? conn.thoughtBId : conn.thoughtAId;
+          const [other] = await ctx.db
+            .select({
+              id: thoughts.id,
+              content: thoughts.content,
+              thoughtType: thoughts.thoughtType,
+              maturityLevel: thoughts.maturityLevel,
+              thoughtNumber: thoughts.thoughtNumber,
+              createdAt: thoughts.createdAt,
+            })
+            .from(thoughts)
+            .where(eq(thoughts.id, otherId))
+            .limit(1);
+
+          return {
+            ...conn,
+            linkedThought: other ?? null,
+          };
+        }),
+      );
+
+      return enriched;
+    }),
+
+  /**
+   * Duplicate a thought, resetting maturityLevel to 'spark' and confidenceLevel to 'untested'.
+   */
+  duplicate: protectedProcedure
+    .input(z.object({ id: entityId }))
+    .mutation(async ({ ctx, input }) => {
+      const original = await ctx.db.query.thoughts.findFirst({
+        where: and(eq(thoughts.id, input.id), eq(thoughts.userId, ctx.userId)),
+      });
+
+      if (!original) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'THOUGHT_NOT_FOUND' });
+      }
+
+      // Get next thoughtNumber
+      const [maxResult] = await ctx.db
+        .select({ maxNum: max(thoughts.thoughtNumber) })
+        .from(thoughts)
+        .where(eq(thoughts.userId, ctx.userId));
+      const nextNumber = (maxResult?.maxNum ?? 0) + 1;
+
+      const [duplicate] = await ctx.db
+        .insert(thoughts)
+        .values({
+          userId: ctx.userId,
+          content: original.content,
+          thoughtType: original.thoughtType,
+          typeSource: original.typeSource,
+          tags: original.tags,
+          maturityLevel: 'spark', // Always reset to spark
+          confidenceLevel: 'untested', // Always reset
+          captureMethod: original.captureMethod,
+          thoughtNumber: nextNumber,
+          sourceThoughtId: original.id,
+          updatedAt: new Date(),
+        })
+        .returning();
+
+      if (!duplicate) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to duplicate thought' });
+      }
+
+      // Log event on the duplicate
+      await ctx.db.insert(thoughtEvents).values({
+        thoughtId: duplicate.id,
+        eventType: 'created',
+        metadata: { captureMethod: 'duplicate', sourceThoughtId: original.id },
+      });
+
+      return duplicate;
     }),
 });
