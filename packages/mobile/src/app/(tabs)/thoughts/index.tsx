@@ -59,7 +59,7 @@ function deriveTitle(note: any): string {
   if (note.content && note.content.length > 0) {
     return note.content.substring(0, 50) + (note.content.length > 50 ? '...' : '');
   }
-  return 'Untitled Note';
+  return 'Untitled Thought';
 }
 
 const THOUGHT_TYPE_COLORS: Record<string, string> = {
@@ -329,7 +329,7 @@ function SwipeableClusterCard({
                     {cluster.name}
                   </Text>
                   <Text style={styles.clusterCardMeta}>
-                    {cluster.noteCount === 1 ? '1 note' : `${cluster.noteCount} notes`}
+                    {cluster.thoughtCount === 1 ? '1 thought' : `${cluster.thoughtCount} thoughts`}
                   </Text>
                 </View>
                 <Text style={styles.cardTime}>
@@ -511,7 +511,7 @@ export default function ThoughtsScreen() {
     },
     onError: () => {
       triggerHaptic('error');
-      Alert.alert('Error', 'Failed to create note. Please try again.');
+      Alert.alert('Error', 'Failed to create thought. Please try again.');
     },
   });
 
@@ -522,7 +522,7 @@ export default function ThoughtsScreen() {
     },
     onError: () => {
       triggerHaptic('error');
-      Alert.alert('Error', 'Failed to delete note. Please try again.');
+      Alert.alert('Error', 'Failed to delete thought. Please try again.');
     },
   });
 
@@ -558,7 +558,7 @@ export default function ThoughtsScreen() {
 
   const handleDeleteNote = useCallback((noteId: string, title: string) => {
     Alert.alert(
-      'Delete this note?',
+      'Delete this thought?',
       "This can't be undone.",
       [
         { text: 'Cancel', style: 'cancel' },
@@ -579,7 +579,7 @@ export default function ThoughtsScreen() {
   const handleDeleteCluster = useCallback((clusterId: string, clusterName: string) => {
     Alert.alert(
       'Delete cluster?',
-      `"${clusterName}" and all its pinned notes will be removed. This can't be undone.`,
+      `"${clusterName}" and all its thoughts will be removed. This can't be undone.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -625,7 +625,7 @@ export default function ThoughtsScreen() {
         <View style={styles.emptyIcon}>
           <NotebookPen size={36} color={colors.muted} />
         </View>
-        <Text style={styles.emptyTitle}>No notes yet</Text>
+        <Text style={styles.emptyTitle}>No thoughts yet</Text>
         <Text style={styles.emptyDescription}>
           Capture a raw thought and let AI refine it into a business idea.
         </Text>
@@ -635,7 +635,7 @@ export default function ThoughtsScreen() {
           activeOpacity={0.7}
         >
           <Plus size={18} color={colors.white} />
-          <Text style={styles.emptyCtaText}>New Note</Text>
+          <Text style={styles.emptyCtaText}>New Thought</Text>
         </TouchableOpacity>
       </View>
     );
@@ -651,7 +651,7 @@ export default function ThoughtsScreen() {
         </View>
         <Text style={styles.emptyTitle}>No clusters yet</Text>
         <Text style={styles.emptyDescription}>
-          Group your notes into clusters to unlock AI-powered insights and idea synthesis.
+          Group your thoughts into clusters to unlock AI-powered insights and idea synthesis.
         </Text>
         <TouchableOpacity
           style={styles.emptyCta}
@@ -673,20 +673,20 @@ export default function ThoughtsScreen() {
       </Text>
 
       <View style={{ gap: 8 }}>
-        <Text style={{ fontSize: 14, color: colors.muted, ...fonts.display.semiBold }}>Two types of notes</Text>
+        <Text style={{ fontSize: 14, color: colors.muted, ...fonts.display.semiBold }}>How thoughts work</Text>
         <Text style={{ fontSize: 14, color: colors.foreground, lineHeight: 20 }}>
-          {'\u2022'} Quick Note — a plain brain dump. Just get the idea out of your head, no AI involved.
+          {'\u2022'} Capture raw thoughts — AI auto-classifies them by type (Problem, Solution, What If, etc.)
         </Text>
         <Text style={{ fontSize: 14, color: colors.foreground, lineHeight: 20 }}>
-          {'\u2022'} AI Note — writes itself up as you go. The AI auto-refines your raw thought into a structured idea.
+          {'\u2022'} Thoughts mature over time from sparks to convictions as you refine them.
         </Text>
       </View>
 
       <View style={{ gap: 8 }}>
         <Text style={{ fontSize: 14, color: colors.muted, ...fonts.display.semiBold }}>Best practices</Text>
         <Text style={{ fontSize: 14, color: colors.foreground, lineHeight: 20 }}>
-          {'\u2022'} Jot notes as they come — don't overthink it{'\n'}
-          {'\u2022'} Pin the ones that keep nagging you{'\n'}
+          {'\u2022'} Jot thoughts as they come — don't overthink it{'\n'}
+          {'\u2022'} Group related ones into clusters{'\n'}
           {'\u2022'} Revisit regularly to spot patterns
         </Text>
       </View>
