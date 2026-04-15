@@ -74,9 +74,7 @@ export default function NoteEditorScreen() {
   const [cardCollapsed, setCardCollapsed] = useState(false);
   const [showPromotedSheet, setShowPromotedSheet] = useState(false);
   const [showSandboxPicker, setShowSandboxPicker] = useState(false);
-  const autoRefineTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contentLengthRef = useRef(0);
-  const noteTypeRef = useRef<string | undefined>(undefined);
 
   // Attachment state
   const [localAttachments, setLocalAttachments] = useState<LocalAttachment[]>([]);
@@ -90,20 +88,20 @@ export default function NoteEditorScreen() {
     return () => { showSub.remove(); hideSub.remove(); };
   }, []);
 
-  const { data: note, isLoading, error } = trpc.note.get.useQuery(
+  const { data: note, isLoading, error } = trpc.thought.get.useQuery(
     { id: id! },
     { enabled: !!id },
   );
 
   const utils = trpc.useUtils();
 
-  const deleteMutation = trpc.note.delete.useMutation({
+  const deleteMutation = trpc.thought.delete.useMutation({
     onSuccess: () => {
       triggerHaptic('success');
-      utils.note.list.invalidate();
+      utils.thought.list.invalidate();
       const clusterId = fromCluster || fromSandbox;
       if (clusterId) {
-        utils.sandbox.get.invalidate({ id: clusterId });
+        utils.cluster.get.invalidate({ id: clusterId });
         router.navigate(`/(tabs)/thoughts/cluster/${clusterId}` as any);
       } else {
         router.back();
@@ -115,11 +113,11 @@ export default function NoteEditorScreen() {
     },
   });
 
-  const refineMutation = trpc.note.refine.useMutation({
+  const refineMutation = trpc.thought.refine.useMutation({
     onSuccess: () => {
       triggerHaptic('success');
-      utils.note.get.invalidate({ id: id! });
-      utils.note.list.invalidate();
+      utils.thought.get.invalidate({ id: id! });
+      utils.thought.list.invalidate();
     },
     onError: () => {
       // Silent fail — auto-refine will retry on next typing pause
@@ -128,18 +126,13 @@ export default function NoteEditorScreen() {
 
   const promotedRef = useRef(false);
 
-  const promoteMutation = trpc.note.promote.useMutation({
+  const promoteMutation = trpc.thought.promote.useMutation({
     onSuccess: () => {
       promotedRef.current = true;
       triggerHaptic('success');
-      // Kill pending auto-refine so it doesn't fire on a deleted note
-      if (autoRefineTimer.current) {
-        clearTimeout(autoRefineTimer.current);
-        autoRefineTimer.current = null;
-      }
-      // Nuke note caches — reset forces a fresh fetch next time
-      utils.note.list.reset();
-      utils.note.get.invalidate({ id: id! });
+      // Nuke thought caches — reset forces a fresh fetch next time
+      utils.thought.list.reset();
+      utils.thought.get.invalidate({ id: id! });
       utils.project.list.invalidate();
       setShowPromotedSheet(true);
     },
@@ -153,10 +146,10 @@ export default function NoteEditorScreen() {
     },
   });
 
-  const pinMutation = trpc.note.pinToSandbox.useMutation({
+  const pinMutation = trpc.thought.addToCluster.useMutation({
     onSuccess: () => {
       triggerHaptic('success');
-      utils.note.get.invalidate({ id });
+      utils.thought.get.invalidate({ id });
       setShowSandboxPicker(false);
     },
     onError: () => {
@@ -165,10 +158,10 @@ export default function NoteEditorScreen() {
     },
   });
 
-  const unpinMutation = trpc.note.unpinFromSandbox.useMutation({
+  const unpinMutation = trpc.thought.removeFromCluster.useMutation({
     onSuccess: () => {
       triggerHaptic('success');
-      utils.note.get.invalidate({ id });
+      utils.thought.get.invalidate({ id });
     },
     onError: () => {
       triggerHaptic('error');
@@ -177,10 +170,10 @@ export default function NoteEditorScreen() {
   });
 
   const getUploadUrl = trpc.attachment.getUploadUrl.useMutation();
-  const addAttachments = trpc.note.addAttachments.useMutation({
+  const addAttachments = trpc.thought.addAttachments.useMutation({
     onSuccess: () => {
       setLocalAttachments([]);
-      utils.note.get.invalidate({ id: id! });
+      utils.thought.get.invalidate({ id: id! });
     },
     onError: () => {
       triggerHaptic('error');
@@ -188,10 +181,10 @@ export default function NoteEditorScreen() {
     },
   });
 
-  const removeAttachment = trpc.note.removeAttachment.useMutation({
+  const removeAttachment = trpc.thought.removeAttachment.useMutation({
     onSuccess: () => {
       triggerHaptic('success');
-      utils.note.get.invalidate({ id: id! });
+      utils.thought.get.invalidate({ id: id! });
     },
     onError: () => {
       triggerHaptic('error');
@@ -220,7 +213,6 @@ export default function NoteEditorScreen() {
     if (note && !initialLoaded) {
       setInitialContent(note.content ?? '');
       contentLengthRef.current = (note.content ?? '').length;
-      noteTypeRef.current = note.type;
       setInitialLoaded(true);
     }
   }, [note, initialLoaded, setInitialContent]);
@@ -233,40 +225,9 @@ export default function NoteEditorScreen() {
     return unsubscribe;
   }, [navigation, flush]);
 
-  // Auto-refine after 3s of no typing, if content is long enough
-  const scheduleAutoRefine = useCallback(() => {
-    if (noteTypeRef.current === 'QUICK') return;
-    if (autoRefineTimer.current) clearTimeout(autoRefineTimer.current);
-    autoRefineTimer.current = setTimeout(async () => {
-      if (noteTypeRef.current === 'QUICK') return;
-      if (!editorRef.current || refineMutation.isPending || promotedRef.current) return;
-      const md = await editorRef.current.getMarkdown();
-      contentLengthRef.current = md.length;
-      if (md.length < 50) return;
-      // Flush save first, then refine once save settles
-      flush();
-      let attempts = 0;
-      const interval = setInterval(() => {
-        attempts++;
-        if (saveStatus !== 'saving' || attempts >= 15) {
-          clearInterval(interval);
-          refineMutation.mutate({ id: id! });
-        }
-      }, 200);
-    }, 3000);
-  }, [refineMutation, flush, saveStatus, id]);
-
-  // Clean up auto-refine timer
-  useEffect(() => {
-    return () => {
-      if (autoRefineTimer.current) clearTimeout(autoRefineTimer.current);
-    };
-  }, []);
-
   const handleEditorChange = useCallback(() => {
     markDirty();
-    scheduleAutoRefine();
-  }, [markDirty, scheduleAutoRefine]);
+  }, [markDirty]);
 
   const handleDelete = useCallback(() => {
     Alert.alert(
@@ -414,7 +375,7 @@ export default function NoteEditorScreen() {
 
       if (attachmentMetadata.length > 0) {
         await addAttachments.mutateAsync({
-          noteId: id!,
+          thoughtId: id!,
           attachments: attachmentMetadata,
         });
       } else {
@@ -504,7 +465,7 @@ export default function NoteEditorScreen() {
             {note?.sandboxId ? (
               <TouchableOpacity
                 style={styles.pillButton}
-                onPress={() => unpinMutation.mutate({ noteId: id! })}
+                onPress={() => unpinMutation.mutate({ thoughtId: id! })}
               >
                 <PinOff size={18} color={colors.muted} />
               </TouchableOpacity>
@@ -548,8 +509,8 @@ export default function NoteEditorScreen() {
           </View>
         )}
 
-        {/* IdeaCard at top when refinement exists — only for AI notes */}
-        {note.type !== 'QUICK' && note.refinedTitle && (
+        {/* IdeaCard at top when refinement exists */}
+        {note.refinedTitle && (
           <View style={styles.ideaCardContainer}>
             {cardCollapsed ? (
               <TouchableOpacity
@@ -579,8 +540,8 @@ export default function NoteEditorScreen() {
           </View>
         )}
 
-        {/* Refining indicator (first time, no card yet) — only for AI notes */}
-        {note.type !== 'QUICK' && refineMutation.isPending && !note.refinedTitle && (
+        {/* Refining indicator (first time, no card yet) */}
+        {refineMutation.isPending && !note.refinedTitle && (
           <View style={styles.refiningIndicator}>
             <ActivityIndicator size="small" color={colors.brand} />
             <Text style={styles.refiningText}>AI is refining your idea...</Text>
@@ -592,10 +553,7 @@ export default function NoteEditorScreen() {
           <MarkdownEditor
             ref={editorRef}
             initialContent={note.content ?? ''}
-            placeholder={note.type === 'QUICK'
-              ? "Dump your thoughts here..."
-              : "Brain dump your idea here. Once you pause typing, AI will refine it into something sharp..."
-            }
+            placeholder="Dump your thoughts here..."
             onChange={handleEditorChange}
           />
         )}
@@ -637,7 +595,7 @@ export default function NoteEditorScreen() {
       <SandboxPicker
         visible={showSandboxPicker}
         onClose={() => setShowSandboxPicker(false)}
-        onSelect={(sandboxId) => pinMutation.mutate({ noteId: id!, sandboxId })}
+        onSelect={(clusterId) => pinMutation.mutate({ thoughtId: id!, clusterId })}
       />
 
       {/* Image picker dropdown — anchored top-right below header pill */}

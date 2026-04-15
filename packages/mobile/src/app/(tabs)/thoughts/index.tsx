@@ -22,18 +22,15 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   NotebookPen,
-  CheckCircle,
   Plus,
   Trash2,
   ChevronRight,
-  Sparkles,
   HelpCircle,
   FlaskConical,
 } from 'lucide-react-native';
 import { useRouter, useNavigation } from 'expo-router';
 import { triggerHaptic } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
-import { NoteTypePopover } from '../../../components/NoteTypePopover';
 import { BottomSheet } from '../../../components/ui/BottomSheet';
 import { useShowHelpIcons } from '../../../hooks/useShowHelpIcons';
 import { trpc } from '../../../lib/trpc';
@@ -65,38 +62,24 @@ function deriveTitle(note: any): string {
   return 'Untitled Note';
 }
 
-function getNoteMeta(note: any) {
-  if (note.promotedProjectId) {
+const THOUGHT_TYPE_COLORS: Record<string, string> = {
+  problem: '#EF4444',
+  solution: '#10B981',
+  what_if: '#8B5CF6',
+  observation: '#3B82F6',
+  question: '#F59E0B',
+};
+
+function getThoughtMeta(thought: any) {
+  if (thought.promotedProjectId) {
     return {
-      icon: CheckCircle,
-      iconColor: colors.success,
-      iconBg: 'rgba(3, 147, 248, 0.15)',
+      dotColor: colors.success,
       badgeVariant: 'success' as const,
       badgeLabel: 'Promoted',
     };
   }
-  if (note.type === 'QUICK') {
-    return {
-      icon: NotebookPen,
-      iconColor: colors.accent,
-      iconBg: 'rgba(20, 184, 166, 0.15)',
-      badgeVariant: 'accent' as const,
-      badgeLabel: 'Quick',
-    };
-  }
-  if (note.refinedTitle) {
-    return {
-      icon: Sparkles,
-      iconColor: colors.brand,
-      iconBg: colors.brandMuted,
-      badgeVariant: 'primary' as const,
-      badgeLabel: 'Refined',
-    };
-  }
   return {
-    icon: Sparkles,
-    iconColor: colors.mutedDim,
-    iconBg: '#262422',
+    dotColor: THOUGHT_TYPE_COLORS[thought.thoughtType] ?? colors.mutedDim,
     badgeVariant: null,
     badgeLabel: null,
   };
@@ -135,8 +118,7 @@ function SwipeableNoteCard({
   onDelete: () => void;
 }) {
   const translateX = useSharedValue(0);
-  const meta = getNoteMeta(note);
-  const IconComponent = meta.icon;
+  const meta = getThoughtMeta(note);
   const title = deriveTitle(note);
 
   const panGesture = Gesture.Pan()
@@ -216,9 +198,7 @@ function SwipeableNoteCard({
           >
             <View style={styles.noteCard}>
               <View style={styles.noteCardTop}>
-                <View style={[styles.noteCardIcon, { backgroundColor: meta.iconBg }]}>
-                  <IconComponent size={20} color={meta.iconColor} />
-                </View>
+                <View style={[{ width: 10, height: 10, borderRadius: 5, backgroundColor: meta.dotColor, marginTop: 4 }]} />
                 <View style={styles.cardText}>
                   <Text style={styles.noteCardTitle} numberOfLines={1}>
                     {title}
@@ -238,9 +218,6 @@ function SwipeableNoteCard({
                 <View style={styles.badgeRow}>
                   {meta.badgeVariant && meta.badgeLabel && (
                     <Badge variant={meta.badgeVariant}>{meta.badgeLabel}</Badge>
-                  )}
-                  {note.sandboxId && (
-                    <Badge variant="accent">Pinned</Badge>
                   )}
                 </View>
               </View>
@@ -485,12 +462,11 @@ export default function ThoughtsScreen() {
   const [activeView, setActiveView] = useState<ThoughtsView>('stream');
 
   // ── Stream (Notes) state ──
-  const { data: notes, isLoading: notesLoading, refetch: refetchNotes } = trpc.note.list.useQuery();
+  const { data: notes, isLoading: notesLoading, refetch: refetchNotes } = trpc.thought.list.useQuery();
   const [isNotesRefreshing, setIsNotesRefreshing] = useState(false);
-  const [showTypePopover, setShowTypePopover] = useState(false);
 
   // ── Clusters (Sandboxes) state ──
-  const { data: clusters, isLoading: clustersLoading, refetch: refetchClusters } = trpc.sandbox.list.useQuery();
+  const { data: clusters, isLoading: clustersLoading, refetch: refetchClusters } = trpc.cluster.list.useQuery();
   const [isClustersRefreshing, setIsClustersRefreshing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
@@ -501,8 +477,8 @@ export default function ThoughtsScreen() {
   // Refetch on screen focus
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      utils.note.list.invalidate();
-      utils.sandbox.list.invalidate();
+      utils.thought.list.invalidate();
+      utils.cluster.list.invalidate();
     });
     return unsubscribe;
   }, [navigation, utils]);
@@ -527,10 +503,10 @@ export default function ThoughtsScreen() {
   }, [refetchClusters]);
 
   // ── Note mutations ──
-  const noteCreateMutation = trpc.note.create.useMutation({
+  const thoughtCreateMutation = trpc.thought.create.useMutation({
     onSuccess: (newNote) => {
       triggerHaptic('success');
-      utils.note.list.invalidate();
+      utils.thought.list.invalidate();
       router.push(`/(tabs)/thoughts/${newNote.id}` as any);
     },
     onError: () => {
@@ -539,10 +515,10 @@ export default function ThoughtsScreen() {
     },
   });
 
-  const noteDeleteMutation = trpc.note.delete.useMutation({
+  const thoughtDeleteMutation = trpc.thought.delete.useMutation({
     onSuccess: () => {
       triggerHaptic('success');
-      utils.note.list.invalidate();
+      utils.thought.list.invalidate();
     },
     onError: () => {
       triggerHaptic('error');
@@ -551,10 +527,10 @@ export default function ThoughtsScreen() {
   });
 
   // ── Cluster mutations ──
-  const clusterCreateMutation = trpc.sandbox.create.useMutation({
+  const clusterCreateMutation = trpc.cluster.create.useMutation({
     onSuccess: (newCluster) => {
       triggerHaptic('success');
-      utils.sandbox.list.invalidate();
+      utils.cluster.list.invalidate();
       setShowCreateModal(false);
       router.push(`/(tabs)/thoughts/cluster/${newCluster.id}` as any);
     },
@@ -564,10 +540,10 @@ export default function ThoughtsScreen() {
     },
   });
 
-  const clusterDeleteMutation = trpc.sandbox.delete.useMutation({
+  const clusterDeleteMutation = trpc.cluster.delete.useMutation({
     onSuccess: () => {
       triggerHaptic('success');
-      utils.sandbox.list.invalidate();
+      utils.cluster.list.invalidate();
     },
     onError: () => {
       triggerHaptic('error');
@@ -575,20 +551,10 @@ export default function ThoughtsScreen() {
     },
   });
 
-  // ── Note action handlers ──
-  const handleNewNote = useCallback(() => {
-    setShowTypePopover(true);
-  }, []);
-
-  const handleCreateQuickNote = useCallback(() => {
-    setShowTypePopover(false);
-    noteCreateMutation.mutate({ type: 'QUICK' });
-  }, [noteCreateMutation]);
-
-  const handleCreateAINote = useCallback(() => {
-    setShowTypePopover(false);
-    noteCreateMutation.mutate({ type: 'AI' });
-  }, [noteCreateMutation]);
+  // ── Thought action handlers ──
+  const handleNewThought = useCallback(() => {
+    thoughtCreateMutation.mutate({});
+  }, [thoughtCreateMutation]);
 
   const handleDeleteNote = useCallback((noteId: string, title: string) => {
     Alert.alert(
@@ -599,11 +565,11 @@ export default function ThoughtsScreen() {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => noteDeleteMutation.mutate({ id: noteId }),
+          onPress: () => thoughtDeleteMutation.mutate({ id: noteId }),
         },
       ],
     );
-  }, [noteDeleteMutation]);
+  }, [thoughtDeleteMutation]);
 
   // ── Cluster action handlers ──
   const handleCreateCluster = useCallback((name: string, color: string) => {
@@ -665,7 +631,7 @@ export default function ThoughtsScreen() {
         </Text>
         <TouchableOpacity
           style={styles.emptyCta}
-          onPress={handleNewNote}
+          onPress={handleNewThought}
           activeOpacity={0.7}
         >
           <Plus size={18} color={colors.white} />
@@ -673,7 +639,7 @@ export default function ThoughtsScreen() {
         </TouchableOpacity>
       </View>
     );
-  }, [notesLoading, handleNewNote]);
+  }, [notesLoading, handleNewThought]);
 
   // ── Clusters empty state ──
   const renderClustersEmpty = useCallback(() => {
@@ -834,9 +800,9 @@ export default function ThoughtsScreen() {
       {activeView === 'stream' && (notes ?? []).length > 0 && (
         <TouchableOpacity
           style={styles.fab}
-          onPress={handleNewNote}
+          onPress={handleNewThought}
           activeOpacity={0.8}
-          disabled={noteCreateMutation.isPending}
+          disabled={thoughtCreateMutation.isPending}
         >
           <Plus size={24} color={colors.white} />
         </TouchableOpacity>
@@ -860,15 +826,6 @@ export default function ThoughtsScreen() {
       >
         {guideContent}
       </BottomSheet>
-
-      {/* Note type popover (Stream view) */}
-      <NoteTypePopover
-        visible={showTypePopover}
-        onClose={() => setShowTypePopover(false)}
-        onQuickNote={handleCreateQuickNote}
-        onAINote={handleCreateAINote}
-        anchorY={88}
-      />
 
       {/* Create cluster modal (Clusters view) */}
       <CreateClusterModal

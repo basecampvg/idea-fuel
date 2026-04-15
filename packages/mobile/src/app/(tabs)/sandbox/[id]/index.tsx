@@ -74,11 +74,11 @@ export default function SandboxDetailScreen() {
   const [showResultSheet, setShowResultSheet] = useState(false);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
-  const { data, isLoading, refetch } = trpc.sandbox.get.useQuery({ id });
+  const { data, isLoading, refetch } = trpc.cluster.get.useQuery({ id });
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      utils.sandbox.get.invalidate({ id });
+      utils.cluster.get.invalidate({ id });
     });
     return unsubscribe;
   }, [navigation, utils, id]);
@@ -93,19 +93,19 @@ export default function SandboxDetailScreen() {
   }, [refetch]);
 
   // AI mutations
-  const summarizeMutation = trpc.sandbox.summarize.useMutation();
-  const extractTodosMutation = trpc.sandbox.extractTodos.useMutation();
-  const promoteToIdeaMutation = trpc.sandbox.promoteToIdea.useMutation();
-  const identifyGapsMutation = trpc.sandbox.identifyGaps.useMutation();
-  const generateBriefMutation = trpc.sandbox.generateBrief.useMutation();
-  const findContradictionsMutation = trpc.sandbox.findContradictions.useMutation();
+  const summarizeMutation = trpc.cluster.summarize.useMutation();
+  const extractTodosMutation = trpc.cluster.extractTodos.useMutation();
+  const promoteToIdeaMutation = trpc.cluster.promoteToIdea.useMutation();
+  const identifyGapsMutation = trpc.cluster.identifyGaps.useMutation();
+  const generateBriefMutation = trpc.cluster.generateBrief.useMutation();
+  const findContradictionsMutation = trpc.cluster.findContradictions.useMutation();
 
   // Create note mutation
-  const createNoteMutation = trpc.note.create.useMutation({
+  const createNoteMutation = trpc.thought.create.useMutation({
     onSuccess: (newNote) => {
       triggerHaptic('success');
-      utils.sandbox.get.invalidate({ id });
-      utils.note.list.invalidate();
+      utils.cluster.get.invalidate({ id });
+      utils.thought.list.invalidate();
       router.push(`/(tabs)/thoughts/${newNote.id}?fromCluster=${id}` as any);
     },
     onError: () => {
