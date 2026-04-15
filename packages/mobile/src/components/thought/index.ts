@@ -3,3 +3,7 @@ export { MaturityPicker } from './MaturityPicker';
 export { TypePicker } from './TypePicker';
 export { ConfidencePicker } from './ConfidencePicker';
 export { SourceLabel } from './SourceLabel';
+export { AIRefinementSection } from './AIRefinementSection';
+export { ConnectionsSection } from './ConnectionsSection';
+export { ReactionsRow } from './ReactionsRow';
+export { ActivityLog } from './ActivityLog';
