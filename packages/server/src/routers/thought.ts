@@ -44,6 +44,7 @@ import {
   extractIdeasSchema,
   addNoteAttachmentsSchema,
   removeNoteAttachmentSchema,
+  recordSurfaceActionSchema,
   NOTE_REFINE_MIN_CHARS,
   NOTE_EXTRACT_MIN_CHARS,
   entityId,
@@ -1111,5 +1112,269 @@ export const thoughtRouter = router({
       });
 
       return connection;
+    }),
+
+  /**
+   * Return the top 3 thoughts eligible for resurfacing, scored by the incubation formula.
+   */
+  getResurfaceCandidates: protectedProcedure.query(async ({ ctx }) => {
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+
+    // Fetch eligible thoughts (limit 100, ordered by updatedAt desc)
+    const eligibleThoughts = await ctx.db
+      .select({
+        id: thoughts.id,
+        content: thoughts.content,
+        thoughtType: thoughts.thoughtType,
+        maturityLevel: thoughts.maturityLevel,
+        thoughtNumber: thoughts.thoughtNumber,
+        createdAt: thoughts.createdAt,
+        lastSurfacedAt: thoughts.lastSurfacedAt,
+        nextSurfaceAt: thoughts.nextSurfaceAt,
+        surfaceCount: thoughts.surfaceCount,
+        engageCount: thoughts.engageCount,
+        dismissCount: thoughts.dismissCount,
+      })
+      .from(thoughts)
+      .where(
+        and(
+          eq(thoughts.userId, ctx.userId),
+          lt(thoughts.createdAt, twentyFourHoursAgo),
+          eq(thoughts.isArchived, false),
+          isNull(thoughts.promotedProjectId),
+          eq(thoughts.resurfaceExcluded, false),
+          or(
+            isNull(thoughts.nextSurfaceAt),
+            lt(thoughts.nextSurfaceAt, now),
+          ),
+          or(
+            isNull(thoughts.lastSurfacedAt),
+            lt(thoughts.lastSurfacedAt, oneHourAgo),
+          ),
+        ),
+      )
+      .orderBy(desc(thoughts.updatedAt))
+      .limit(100);
+
+    if (eligibleThoughts.length === 0) {
+      return { candidates: [] };
+    }
+
+    const thoughtIds = eligibleThoughts.map((t) => t.id);
+
+    // Fetch connection counts per thought in batch (connections where thought is either side)
+    const connectionCountsA = await ctx.db
+      .select({
+        thoughtId: thoughtConnections.thoughtAId,
+        cnt: count(),
+      })
+      .from(thoughtConnections)
+      .where(sql`${thoughtConnections.thoughtAId} = ANY(ARRAY[${sql.join(thoughtIds.map((id) => sql`${id}::uuid`), sql`, `)}])`)
+      .groupBy(thoughtConnections.thoughtAId);
+
+    const connectionCountsB = await ctx.db
+      .select({
+        thoughtId: thoughtConnections.thoughtBId,
+        cnt: count(),
+      })
+      .from(thoughtConnections)
+      .where(sql`${thoughtConnections.thoughtBId} = ANY(ARRAY[${sql.join(thoughtIds.map((id) => sql`${id}::uuid`), sql`, `)}])`)
+      .groupBy(thoughtConnections.thoughtBId);
+
+    // Merge connection counts
+    const connMap = new Map<string, number>();
+    for (const row of connectionCountsA) {
+      connMap.set(row.thoughtId, (connMap.get(row.thoughtId) ?? 0) + Number(row.cnt));
+    }
+    for (const row of connectionCountsB) {
+      connMap.set(row.thoughtId, (connMap.get(row.thoughtId) ?? 0) + Number(row.cnt));
+    }
+
+    // Determine max_connections across corpus
+    const maxConnections = Math.max(...Array.from(connMap.values()), 0);
+
+    // Fetch type diversity: for each thought, check if any connected thought has a different thoughtType
+    // We need the type of each thought and its connections
+    const thoughtTypeMap = new Map<string, string>();
+    for (const t of eligibleThoughts) {
+      thoughtTypeMap.set(t.id, t.thoughtType);
+    }
+
+    // Get all connected thought types for our eligible thoughts
+    const connectedTypesA = await ctx.db
+      .select({
+        sourceId: thoughtConnections.thoughtAId,
+        connectedType: thoughts.thoughtType,
+      })
+      .from(thoughtConnections)
+      .innerJoin(thoughts, eq(thoughts.id, thoughtConnections.thoughtBId))
+      .where(sql`${thoughtConnections.thoughtAId} = ANY(ARRAY[${sql.join(thoughtIds.map((id) => sql`${id}::uuid`), sql`, `)}])`);
+
+    const connectedTypesB = await ctx.db
+      .select({
+        sourceId: thoughtConnections.thoughtBId,
+        connectedType: thoughts.thoughtType,
+      })
+      .from(thoughtConnections)
+      .innerJoin(thoughts, eq(thoughts.id, thoughtConnections.thoughtAId))
+      .where(sql`${thoughtConnections.thoughtBId} = ANY(ARRAY[${sql.join(thoughtIds.map((id) => sql`${id}::uuid`), sql`, `)}])`);
+
+    // Build diversity map: thoughtId -> { hasDifferentType, hasSameType }
+    const diversityMap = new Map<string, { hasDifferentType: boolean; hasSameType: boolean }>();
+    const processDiversityRow = (sourceId: string, connectedType: string) => {
+      const sourceType = thoughtTypeMap.get(sourceId);
+      if (!sourceType) return;
+      const current = diversityMap.get(sourceId) ?? { hasDifferentType: false, hasSameType: false };
+      if (connectedType !== sourceType) {
+        current.hasDifferentType = true;
+      } else {
+        current.hasSameType = true;
+      }
+      diversityMap.set(sourceId, current);
+    };
+    for (const row of connectedTypesA) {
+      processDiversityRow(row.sourceId, row.connectedType);
+    }
+    for (const row of connectedTypesB) {
+      processDiversityRow(row.sourceId, row.connectedType);
+    }
+
+    // Calculate scores in-memory
+    const scored = eligibleThoughts.map((thought) => {
+      const connectionCount = connMap.get(thought.id) ?? 0;
+
+      // recency_factor: Gaussian centered at 48h ago, sigma=24h
+      const referenceDate = thought.lastSurfacedAt ?? thought.createdAt;
+      const hoursSinceLastView = (now.getTime() - referenceDate.getTime()) / (60 * 60 * 1000);
+      const recencyFactor = Math.exp(-0.5 * Math.pow((hoursSinceLastView - 48) / 24, 2));
+
+      // connection_density
+      const connectionDensity = connectionCount === 0
+        ? 0
+        : connectionCount / Math.max(maxConnections, 1);
+
+      // type_diversity_bonus
+      const diversity = diversityMap.get(thought.id);
+      let typeDiversityBonus: number;
+      if (!diversity) {
+        typeDiversityBonus = 0.0;
+      } else if (diversity.hasDifferentType) {
+        typeDiversityBonus = 1.0;
+      } else {
+        typeDiversityBonus = 0.5;
+      }
+
+      // engagement_signal
+      const surfaceCount = thought.surfaceCount ?? 0;
+      const engageCount = thought.engageCount ?? 0;
+      const dismissCount = thought.dismissCount ?? 0;
+      const engagementSignal = (engageCount - dismissCount) / Math.max(surfaceCount, 1);
+
+      const score =
+        0.4 * recencyFactor +
+        0.3 * connectionDensity +
+        0.15 * typeDiversityBonus +
+        0.15 * engagementSignal;
+
+      const daysSinceCapture = (now.getTime() - thought.createdAt.getTime()) / (24 * 60 * 60 * 1000);
+
+      return {
+        id: thought.id,
+        content: thought.content,
+        thoughtType: thought.thoughtType,
+        maturityLevel: thought.maturityLevel,
+        thoughtNumber: thought.thoughtNumber,
+        createdAt: thought.createdAt,
+        score,
+        daysSinceCapture,
+        connectionCount,
+      };
+    });
+
+    // Return top 3 sorted by score descending
+    scored.sort((a, b) => b.score - a.score);
+    const candidates = scored.slice(0, 3);
+
+    return { candidates };
+  }),
+
+  /**
+   * Record a user action (dismiss, engage, cluster) on a resurfaced thought.
+   */
+  recordSurfaceAction: protectedProcedure
+    .input(recordSurfaceActionSchema)
+    .mutation(async ({ ctx, input }) => {
+      const thought = await ctx.db.query.thoughts.findFirst({
+        where: and(eq(thoughts.id, input.thoughtId), eq(thoughts.userId, ctx.userId)),
+        columns: {
+          id: true,
+          resurfaceExcluded: true,
+          surfaceCount: true,
+          dismissCount: true,
+          engageCount: true,
+          dismissStreak: true,
+          lastSurfacedAt: true,
+        },
+      });
+
+      if (!thought) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'THOUGHT_NOT_FOUND' });
+      }
+
+      // No-op if already excluded
+      if (thought.resurfaceExcluded) {
+        return { success: true as const, alreadyExcluded: true as const };
+      }
+
+      const now = new Date();
+      const newSurfaceCount = (thought.surfaceCount ?? 0) + 1;
+
+      const updates: Record<string, unknown> = {
+        lastSurfacedAt: now,
+        surfaceCount: newSurfaceCount,
+      };
+
+      let newDismissStreak = thought.dismissStreak ?? 0;
+
+      if (input.action === 'dismiss') {
+        const newDismissCount = (thought.dismissCount ?? 0) + 1;
+        newDismissStreak = newDismissStreak + 1;
+        updates.dismissCount = newDismissCount;
+        updates.dismissStreak = newDismissStreak;
+
+        if (newDismissStreak >= 4) {
+          updates.resurfaceExcluded = true;
+          updates.nextSurfaceAt = null;
+        } else {
+          // Backoff: streak 1 = 3 days, streak 2 = 7 days, streak 3 = 14 days
+          const backoffDays = newDismissStreak === 1 ? 3 : newDismissStreak === 2 ? 7 : 14;
+          updates.nextSurfaceAt = new Date(now.getTime() + backoffDays * 24 * 60 * 60 * 1000);
+        }
+      } else {
+        // engage or cluster
+        updates.engageCount = (thought.engageCount ?? 0) + 1;
+        updates.dismissStreak = 0;
+        newDismissStreak = 0;
+      }
+
+      await ctx.db
+        .update(thoughts)
+        .set(updates)
+        .where(eq(thoughts.id, input.thoughtId));
+
+      await ctx.db.insert(thoughtEvents).values({
+        thoughtId: input.thoughtId,
+        eventType: 'resurface_action',
+        metadata: { action: input.action },
+      });
+
+      return {
+        success: true as const,
+        surfaceCount: newSurfaceCount,
+        dismissStreak: newDismissStreak,
+        lastSurfacedAt: now,
+      };
     }),
 });
