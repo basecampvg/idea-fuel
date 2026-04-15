@@ -23,7 +23,7 @@ import {
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { Button, triggerHaptic } from '../../../../components/ui/Button';
 import { BottomSheet } from '../../../../components/ui/BottomSheet';
-import { MarkdownEditor, type MarkdownEditorRef } from '../../../../components/editor/MarkdownEditor';
+import { MarkdownEditor, EditorToolbar, type MarkdownEditorRef } from '../../../../components/editor/MarkdownEditor';
 import { ThumbnailStrip, type LocalAttachment } from '../../../../components/ThumbnailStrip';
 import { ClusterPicker } from '../../../../components/ClusterPicker';
 import {
@@ -88,6 +88,7 @@ export default function NoteEditorScreen() {
   const [showOverflow, setShowOverflow] = useState(false);
   const [showClusterPicker, setShowClusterPicker] = useState(false);
   const [titleText, setTitleText] = useState('');
+  const [editorBridge, setEditorBridge] = useState<any>(null);
   const titleDirty = useRef(false);
   const contentLengthRef = useRef(0);
 
@@ -259,6 +260,12 @@ export default function NoteEditorScreen() {
       setTitleText(note.title ?? '');
       contentLengthRef.current = (note.content ?? '').length;
       setInitialLoaded(true);
+      // Grab editor bridge for external toolbar after a tick
+      setTimeout(() => {
+        if (editorRef.current) {
+          setEditorBridge(editorRef.current.getEditorBridge());
+        }
+      }, 100);
     }
   }, [note, initialLoaded, setInitialContent]);
 
@@ -615,6 +622,13 @@ export default function NoteEditorScreen() {
             />
           </View>
         </ScrollView>
+
+        {/* Toolbar — pinned above keyboard, outside ScrollView */}
+        {editorBridge && (
+          <View style={styles.toolbarContainer}>
+            <EditorToolbar editor={editorBridge} />
+          </View>
+        )}
       </KeyboardAvoidingView>
 
       {/* Overflow Menu */}
@@ -762,6 +776,10 @@ const styles = StyleSheet.create({
   },
   editorContainer: {
     // Height set dynamically based on content line count
+  },
+  toolbarContainer: {
+    paddingHorizontal: 8,
+    paddingBottom: 4,
   },
   section: {
     paddingHorizontal: 20,

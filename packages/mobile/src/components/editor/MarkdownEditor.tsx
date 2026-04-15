@@ -194,6 +194,7 @@ function markdownToHtml(md: string): string {
 export interface MarkdownEditorRef {
   getMarkdown: () => Promise<string>;
   setMarkdown: (md: string) => void;
+  getEditorBridge: () => EditorBridge;
 }
 
 interface MarkdownEditorProps {
@@ -207,7 +208,7 @@ interface MarkdownEditorProps {
  * Custom toolbar that mirrors TenTap's Toolbar but with
  * showsHorizontalScrollIndicator={false} to hide the scrollbar.
  */
-function IdeaFuelToolbar({ editor }: { editor: EditorBridge }) {
+export function EditorToolbar({ editor }: { editor: EditorBridge }) {
   const editorState = useBridgeState(editor);
   const args = { editor, editorState, setToolbarContext: () => {}, toolbarContext: 'main' as any };
   const isVisible = editorState.isFocused;
@@ -289,27 +290,13 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
       setMarkdown: (md: string) => {
         editor.setContent(markdownToHtml(md));
       },
+      getEditorBridge: () => editor,
     }), [editor]);
 
     return (
       <View style={styles.container}>
         <View style={styles.editorWrapper}>
           <RichText editor={editor} />
-        </View>
-        <View style={styles.toolbarRow}>
-          <View style={styles.toolbarWrapper}>
-            <IdeaFuelToolbar editor={editor} />
-          </View>
-          {keyboardVisible && (
-            <TouchableOpacity
-              style={styles.dismissButton}
-              onPress={() => editor.blur()}
-              activeOpacity={0.6}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <KeyboardIcon size={20} color={colors.muted} />
-            </TouchableOpacity>
-          )}
         </View>
       </View>
     );
