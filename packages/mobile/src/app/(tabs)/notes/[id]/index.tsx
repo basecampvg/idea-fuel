@@ -11,12 +11,14 @@ import {
   ScrollView,
   Share,
   TextInput,
+  Keyboard,
 } from 'react-native';
 import {
   CloudUpload,
   CheckCircle,
   AlertCircle,
   ChevronLeft,
+  ChevronDown,
   Rocket,
   MoreHorizontal,
 } from 'lucide-react-native';
@@ -515,6 +517,7 @@ export default function NoteEditorScreen() {
           style={styles.scrollBody}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         >
           {/* Thought ID + timestamp row */}
           <View style={styles.idRow}>
@@ -626,7 +629,22 @@ export default function NoteEditorScreen() {
         {/* Toolbar — pinned above keyboard, outside ScrollView */}
         {editorBridge && (
           <View style={styles.toolbarContainer}>
-            <EditorToolbar editor={editorBridge} />
+            <View style={styles.toolbarRow}>
+              <View style={{ flex: 1 }}>
+                <EditorToolbar editor={editorBridge} />
+              </View>
+              <TouchableOpacity
+                style={styles.dismissButton}
+                onPress={() => {
+                  editorBridge.blur();
+                  Keyboard.dismiss();
+                }}
+                activeOpacity={0.6}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <ChevronDown size={20} color={colors.muted} />
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       </KeyboardAvoidingView>
@@ -780,6 +798,19 @@ const styles = StyleSheet.create({
   toolbarContainer: {
     paddingHorizontal: 8,
     paddingBottom: 4,
+  },
+  toolbarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dismissButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#2D2B28',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
   },
   section: {
     paddingHorizontal: 20,
