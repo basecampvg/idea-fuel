@@ -493,62 +493,63 @@ export default function NoteEditorScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* ── Top bar: ID + chips + refine (non-scrolling) ── */}
-        <View style={styles.idRow}>
-          <Text style={styles.thoughtId}>T-{note.thoughtNumber}</Text>
-          <SourceLabel captureMethod={note.captureMethod} createdAt={note.createdAt} />
-        </View>
-
-        <View style={styles.chipSection}>
-          <PropertyChipBar
-            maturityLevel={note.maturityLevel as any}
-            thoughtType={note.thoughtType as any}
-            confidenceLevel={note.confidenceLevel as any}
-            clusterId={note.clusterId ?? null}
-            clusterName={null}
-            clusterColor={null}
-            typeSource={note.typeSource}
-            onUpdateMaturity={handleUpdateMaturity}
-            onUpdateType={handleUpdateType}
-            onUpdateConfidence={handleUpdateConfidence}
-            onAddToCluster={(clusterId) => pinMutation.mutate({ thoughtId: id!, clusterId })}
-            onRemoveFromCluster={() => unpinMutation.mutate({ thoughtId: id! })}
-          />
-        </View>
-
-        {/* ── Editor: flex fills remaining space ── */}
-        {initialLoaded && (
-          <View style={styles.editorContainer}>
-            <MarkdownEditor
-              ref={editorRef}
-              initialContent={note.content ?? ''}
-              placeholder="Dump your thoughts here..."
-              onChange={handleEditorChange}
-            />
-          </View>
-        )}
-
-        {/* Attachments */}
-        {combinedAttachments.length > 0 && (
-          <View style={styles.attachmentSection}>
-            <ThumbnailStrip
-              attachments={combinedAttachments}
-              onRemove={handleRemoveThumbnail}
-              maxAttachments={MAX_NOTE_ATTACHMENTS}
-            />
-            {isUploading && (
-              <ActivityIndicator size="small" color={colors.brand} style={{ marginLeft: 4 }} />
-            )}
-          </View>
-        )}
-
-        {/* ── Metadata sections (scrollable) ── */}
         <ScrollView
           style={styles.scrollBody}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Thought ID + timestamp row */}
+          <View style={styles.idRow}>
+            <Text style={styles.thoughtId}>T-{note.thoughtNumber}</Text>
+            <SourceLabel captureMethod={note.captureMethod} createdAt={note.createdAt} />
+          </View>
+
+          {/* Property Chip Bar */}
+          <View style={styles.chipSection}>
+            <PropertyChipBar
+              maturityLevel={note.maturityLevel as any}
+              thoughtType={note.thoughtType as any}
+              confidenceLevel={note.confidenceLevel as any}
+              clusterId={note.clusterId ?? null}
+              clusterName={null}
+              clusterColor={null}
+              typeSource={note.typeSource}
+              onUpdateMaturity={handleUpdateMaturity}
+              onUpdateType={handleUpdateType}
+              onUpdateConfidence={handleUpdateConfidence}
+              onAddToCluster={(clusterId) => pinMutation.mutate({ thoughtId: id!, clusterId })}
+              onRemoveFromCluster={() => unpinMutation.mutate({ thoughtId: id! })}
+            />
+          </View>
+
+          {/* Editor — height scales with content */}
+          {initialLoaded && (
+            <View style={[styles.editorContainer, { height: Math.max(200, Math.ceil((note.content?.split('\n').length ?? 3) * 24 + 80)) }]}>
+              <MarkdownEditor
+                ref={editorRef}
+                initialContent={note.content ?? ''}
+                placeholder="Dump your thoughts here..."
+                onChange={handleEditorChange}
+              />
+            </View>
+          )}
+
+          {/* Attachments */}
+          {combinedAttachments.length > 0 && (
+            <View style={styles.attachmentSection}>
+              <ThumbnailStrip
+                attachments={combinedAttachments}
+                onRemove={handleRemoveThumbnail}
+                maxAttachments={MAX_NOTE_ATTACHMENTS}
+              />
+              {isUploading && (
+                <ActivityIndicator size="small" color={colors.brand} style={{ marginLeft: 4 }} />
+              )}
+            </View>
+          )}
+
           {/* AI Refinement */}
+          <View style={styles.divider} />
           <View style={styles.section}>
             <AIRefinementSection
               refinedTitle={note.refinedTitle}
@@ -742,8 +743,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   editorContainer: {
-    flex: 1,
-    minHeight: 150,
+    // Height set dynamically based on content line count
   },
   section: {
     paddingHorizontal: 20,
