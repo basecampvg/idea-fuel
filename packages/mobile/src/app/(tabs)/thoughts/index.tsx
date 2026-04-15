@@ -27,6 +27,8 @@ import {
   ChevronRight,
   HelpCircle,
   FlaskConical,
+  Link,
+  Layers,
 } from 'lucide-react-native';
 import { useRouter, useNavigation } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -64,6 +66,14 @@ function deriveTitle(note: any): string {
   }
   return 'Untitled Thought';
 }
+
+const THOUGHT_TYPE_LABELS: Record<string, string> = {
+  problem: 'Problem',
+  solution: 'Solution',
+  what_if: 'What If',
+  observation: 'Observation',
+  question: 'Question',
+};
 
 const THOUGHT_TYPE_COLORS: Record<string, string> = {
   problem: '#EF4444',
@@ -221,6 +231,18 @@ function SwipeableNoteCard({
                 <View style={styles.badgeRow}>
                   {meta.badgeVariant && meta.badgeLabel && (
                     <Badge variant={meta.badgeVariant}>{meta.badgeLabel}</Badge>
+                  )}
+                  <Text style={styles.cardMetaChip}>
+                    {THOUGHT_TYPE_LABELS[note.thoughtType] || note.thoughtType}
+                  </Text>
+                  {note.clusterId && (
+                    <Layers size={11} color={colors.mutedDim} />
+                  )}
+                  {(note.connectionCount ?? 0) > 0 && (
+                    <View style={styles.cardMetaRow}>
+                      <Link size={11} color={colors.mutedDim} />
+                      <Text style={styles.cardMetaChip}>{note.connectionCount}</Text>
+                    </View>
                   )}
                 </View>
               </View>
@@ -1060,6 +1082,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+  },
+  cardMetaChip: {
+    fontSize: 11,
+    color: colors.mutedDim,
+    ...fonts.text.regular,
+  },
+  cardMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
   },
 
   // ── Cluster card ──

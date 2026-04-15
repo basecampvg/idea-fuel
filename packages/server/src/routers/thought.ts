@@ -81,7 +81,25 @@ export const thoughtRouter = router({
       )
       .orderBy(desc(thoughts.updatedAt));
 
-    return results;
+    // Fetch connection counts per thought in batch
+    const thoughtIds = results.map((t) => t.id);
+    const connCounts = new Map<string, number>();
+    if (thoughtIds.length > 0) {
+      const countsA = await ctx.db
+        .select({ thoughtId: thoughtConnections.thoughtAId, cnt: count() })
+        .from(thoughtConnections)
+        .where(inArray(thoughtConnections.thoughtAId, thoughtIds))
+        .groupBy(thoughtConnections.thoughtAId);
+      const countsB = await ctx.db
+        .select({ thoughtId: thoughtConnections.thoughtBId, cnt: count() })
+        .from(thoughtConnections)
+        .where(inArray(thoughtConnections.thoughtBId, thoughtIds))
+        .groupBy(thoughtConnections.thoughtBId);
+      for (const r of countsA) connCounts.set(r.thoughtId, (connCounts.get(r.thoughtId) ?? 0) + Number(r.cnt));
+      for (const r of countsB) connCounts.set(r.thoughtId, (connCounts.get(r.thoughtId) ?? 0) + Number(r.cnt));
+    }
+
+    return results.map((t) => ({ ...t, connectionCount: connCounts.get(t.id) ?? 0 }));
   }),
 
   /**
