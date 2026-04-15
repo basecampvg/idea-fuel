@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   ScrollView,
   Share,
+  TextInput,
 } from 'react-native';
 import {
   CloudUpload,
