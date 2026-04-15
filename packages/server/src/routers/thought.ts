@@ -1278,7 +1278,7 @@ export const thoughtRouter = router({
         0.15 * typeDiversityBonus +
         0.15 * engagementSignal;
 
-      const daysSinceCapture = (now.getTime() - thought.createdAt.getTime()) / (24 * 60 * 60 * 1000);
+      const daysSinceCapture = Math.floor((now.getTime() - thought.createdAt.getTime()) / (24 * 60 * 60 * 1000));
 
       return {
         id: thought.id,
