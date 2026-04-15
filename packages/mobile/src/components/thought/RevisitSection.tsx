@@ -19,6 +19,7 @@ interface ResurfaceCandidate {
 
 interface RevisitSectionProps {
   candidates: ResurfaceCandidate[];
+  onPress: (thoughtId: string) => void;
   onDismiss: (thoughtId: string) => void;
   onEngage: (thoughtId: string) => void;
   onCluster: (thoughtId: string) => void;
@@ -64,6 +65,7 @@ function RevisitCard({
   onCluster,
 }: {
   candidate: ResurfaceCandidate;
+  onPress: () => void;
   onDismiss: () => void;
   onEngage: () => void;
   onCluster: () => void;
@@ -74,6 +76,7 @@ function RevisitCard({
 
   return (
     <Animated.View exiting={FadeOut.duration(200)} style={styles.card}>
+      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <View style={styles.cardMeta}>
         <MaturityDot level={candidate.maturityLevel} />
         <Text style={styles.typeChip}>
@@ -88,6 +91,7 @@ function RevisitCard({
       <Text style={styles.cardTime}>
         {candidate.daysSinceCapture === 1 ? '1 day ago' : `${candidate.daysSinceCapture} days ago`}
       </Text>
+      </TouchableOpacity>
 
       <View style={styles.cardActions}>
         <TouchableOpacity
@@ -121,7 +125,7 @@ function RevisitCard({
   );
 }
 
-export function RevisitSection({ candidates, onDismiss, onEngage, onCluster }: RevisitSectionProps) {
+export function RevisitSection({ candidates, onPress, onDismiss, onEngage, onCluster }: RevisitSectionProps) {
   if (candidates.length === 0) return null;
 
   return (
@@ -140,6 +144,7 @@ export function RevisitSection({ candidates, onDismiss, onEngage, onCluster }: R
           <RevisitCard
             key={candidate.id}
             candidate={candidate}
+            onPress={() => onPress(candidate.id)}
             onDismiss={() => onDismiss(candidate.id)}
             onEngage={() => onEngage(candidate.id)}
             onCluster={() => onCluster(candidate.id)}

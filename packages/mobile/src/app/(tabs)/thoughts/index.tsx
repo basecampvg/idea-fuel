@@ -832,6 +832,7 @@ export default function ThoughtsScreen() {
             resurfaceCandidates.length > 0 ? (
               <RevisitSection
                 candidates={resurfaceCandidates}
+                onPress={(id) => router.push(`/(tabs)/thoughts/${id}` as any)}
                 onDismiss={handleRevisitDismiss}
                 onEngage={handleRevisitEngage}
                 onCluster={handleRevisitCluster}
