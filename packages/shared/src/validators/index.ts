@@ -508,14 +508,17 @@ export type UnpinFromSandboxInput = z.infer<typeof unpinFromSandboxSchema>;
 // ============================================
 // Thought validators (replaces Note validators)
 // ============================================
-export const thoughtTypeSchema = z.enum(['problem', 'solution', 'what_if', 'observation', 'question']);
+export const thoughtTypeSchema = z.enum(['problem', 'solution', 'what_if', 'observation', 'question']).nullable();
 export type ThoughtType = z.infer<typeof thoughtTypeSchema>;
 
-export const maturityLevelSchema = z.enum(['spark', 'developing', 'hypothesis', 'conviction']);
+export const maturityLevelSchema = z.enum(['spark', 'developing', 'hypothesis', 'conviction']).nullable();
 export type MaturityLevel = z.infer<typeof maturityLevelSchema>;
 
-export const thoughtConfidenceLevelSchema = z.enum(['untested', 'researched', 'validated']);
+export const thoughtConfidenceLevelSchema = z.enum(['untested', 'researched', 'validated']).nullable();
 export type ThoughtConfidenceLevel = z.infer<typeof thoughtConfidenceLevelSchema>;
+
+export const purposeSchema = z.enum(['idea', 'note']);
+export type Purpose = z.infer<typeof purposeSchema>;
 
 export const captureMethodSchema = z.enum(['quick_text', 'voice', 'photo', 'share_extension']);
 export type CaptureMethod = z.infer<typeof captureMethodSchema>;
@@ -533,6 +536,7 @@ export const createThoughtSchema = z.object({
   thoughtType: thoughtTypeSchema.optional(),
   captureMethod: captureMethodSchema.optional().default('quick_text'),
   clusterId: z.string().optional(),
+  purpose: purposeSchema.optional().default('idea'),
 });
 export type CreateThoughtInput = z.infer<typeof createThoughtSchema>;
 
@@ -551,8 +555,34 @@ export const updateThoughtPropertiesSchema = z.object({
   thoughtType: thoughtTypeSchema.optional(),
   confidenceLevel: thoughtConfidenceLevelSchema.optional(),
   maturityNotes: z.string().max(500).optional(),
+  purpose: purposeSchema.optional(),
 });
 export type UpdateThoughtPropertiesInput = z.infer<typeof updateThoughtPropertiesSchema>;
+
+export const updateLabelsSchema = z.object({
+  thoughtId: entityId,
+  labels: z.array(z.string().max(50)).max(20),
+});
+export type UpdateLabelsInput = z.infer<typeof updateLabelsSchema>;
+
+export const createUserLabelSchema = z.object({
+  name: z.string().min(1).max(50),
+  color: z.string().max(10).optional(),
+});
+export type CreateUserLabelInput = z.infer<typeof createUserLabelSchema>;
+
+export const PREDEFINED_LABELS = [
+  { name: 'bug', color: '#EF4444' },
+  { name: 'feature', color: '#10B981' },
+  { name: 'task', color: '#F59E0B' },
+  { name: 'reference', color: '#3B82F6' },
+  { name: 'research', color: '#8B5CF6' },
+] as const;
+
+export const LABEL_PALETTE = [
+  '#EF4444', '#10B981', '#F59E0B', '#3B82F6', '#8B5CF6',
+  '#EC4899', '#14B8A6', '#F97316', '#6366F1', '#84CC16',
+] as const;
 
 export const addThoughtCommentSchema = z.object({
   thoughtId: entityId,

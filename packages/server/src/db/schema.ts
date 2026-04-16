@@ -293,15 +293,16 @@ export const sandboxes = thoughtClusters;
 export const thoughts = pgTable('Thought', {
   id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
   title: text(),
+  purpose: text('purpose').default('idea').notNull(),
   content: text().default('').notNull(),
-  thoughtType: thoughtTypeEnum('thought_type').default('observation').notNull(),
+  thoughtType: thoughtTypeEnum('thought_type'),
   typeSource: text('type_source').default('ai_auto').notNull(),
   tags: text().array().default([]),
   aiTags: text('ai_tags').array().default([]),
-  maturityLevel: text('maturity_level').default('spark').notNull(),
+  maturityLevel: text('maturity_level'),
   maturityNotes: text('maturity_notes'),
   maturityHistory: jsonb('maturity_history').$type<any[]>().default([]),
-  confidenceLevel: text('confidence_level').default('untested').notNull(),
+  confidenceLevel: text('confidence_level'),
   thoughtNumber: integer('thought_number').notNull(),
   reactions: jsonb().$type<any[]>().default([]),
   captureMethod: text('capture_method').default('quick_text').notNull(),
@@ -411,6 +412,29 @@ export const thoughtConnections = pgTable('ThoughtConnection', {
   foreignKey({ columns: [table.thoughtAId], foreignColumns: [thoughts.id], name: 'ThoughtConnection_thoughtAId_fkey' }).onUpdate('cascade').onDelete('cascade'),
   foreignKey({ columns: [table.thoughtBId], foreignColumns: [thoughts.id], name: 'ThoughtConnection_thoughtBId_fkey' }).onUpdate('cascade').onDelete('cascade'),
 ]);
+
+// =============================================================================
+// USER LABELS
+// =============================================================================
+
+export const userLabels = pgTable('UserLabel', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull(),
+  name: text().notNull(),
+  color: text().notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('UserLabel_userId_idx').using('btree', table.userId.asc()),
+  foreignKey({
+    columns: [table.userId],
+    foreignColumns: [users.id],
+    name: 'UserLabel_userId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+export const userLabelsRelations = relations(userLabels, ({ one }) => ({
+  user: one(users, { fields: [userLabels.userId], references: [users.id] }),
+}));
 
 // =============================================================================
 // THOUGHT EVENTS (Activity Log)
