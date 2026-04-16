@@ -44,6 +44,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WelcomeSheet } from '../../components/ui/WelcomeSheet';
 import { useAIConsentGate } from '../../hooks/useAIConsentGate';
 import { ThoughtTypeChips, type ThoughtType } from '../../components/ThoughtTypeChips';
+import { PurposeChips, type Purpose } from '../../components/PurposeChips';
 import { CollisionCard } from '../../components/thought/CollisionCard';
 import { ClusterPicker } from '../../components/ClusterPicker';
 
@@ -97,6 +98,7 @@ export default function CaptureScreen() {
   const [popoverAnchorY, setPopoverAnchorY] = useState(200);
   const inputBarRef = useRef<View>(null);
   const [selectedType, setSelectedType] = useState<ThoughtType | null>(null);
+  const [purpose, setPurpose] = useState<Purpose>('idea');
 
   // Collision detection state — set after thought creation, cleared on navigation
   const [savedThoughtId, setSavedThoughtId] = useState<string | null>(null);
@@ -351,6 +353,7 @@ export default function CaptureScreen() {
       setAttachments([]);
       setAiConsent(false);
       setSelectedType(null);
+      setPurpose('idea');
       // Auto-link if triggered from Revisit "Engage"
       if (linkedThoughtId) {
         try {
@@ -389,8 +392,9 @@ export default function CaptureScreen() {
       content: trimmed,
       thoughtType: selectedType ?? undefined,
       captureMethod: isListening ? 'voice' : 'quick_text',
+      purpose,
     });
-  }, [ideaText, isListening, createThought, selectedType]);
+  }, [ideaText, isListening, createThought, selectedType, purpose]);
 
   const navigateToThought = useCallback((thoughtId: string) => {
     if (pollingRef.current) {
@@ -610,6 +614,8 @@ export default function CaptureScreen() {
 
           {/* ── Bottom: Input bar ── */}
           <View style={styles.inputBarWrapper}>
+            {/* Purpose chips — above thought type chips */}
+            <PurposeChips selected={purpose} onSelect={setPurpose} />
             {/* Thought type chips — above the input pane */}
             <ThoughtTypeChips selected={selectedType} onSelect={setSelectedType} />
 
