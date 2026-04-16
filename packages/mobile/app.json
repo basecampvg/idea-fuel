@@ -87,6 +87,8 @@
     },
     "extra": {
       "apiUrl": "https://app.ideafuel.ai",
+      "privacyPolicyUrl": "https://ideafuel.ai/privacy",
+      "termsOfServiceUrl": "https://ideafuel.ai/terms",
       "googleWebClientId": "117953471324-40im20410td9hoan1drsgj2sfpj797lu.apps.googleusercontent.com",
       "googleIosClientId": "117953471324-n6ufvodls46kvk9ekagd3jfoagbnn7aj.apps.googleusercontent.com",
       "googleAndroidClientId": "",

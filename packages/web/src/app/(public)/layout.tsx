@@ -64,10 +64,10 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             &copy; {new Date().getFullYear()} Idea Fuel. All rights reserved.
           </p>
           <div className="flex gap-6">
-            <Link href="#" className="text-sm text-[#928e87] transition-colors hover:text-white">
+            <Link href="/privacy" className="text-sm text-[#928e87] transition-colors hover:text-white">
               Privacy
             </Link>
-            <Link href="#" className="text-sm text-[#928e87] transition-colors hover:text-white">
+            <Link href="/terms" className="text-sm text-[#928e87] transition-colors hover:text-white">
               Terms
             </Link>
           </div>
