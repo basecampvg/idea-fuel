@@ -777,7 +777,7 @@ export const blogPosts = pgTable('BlogPost', {
   readingTime: text(),
   wordCount: integer().default(0).notNull(),
   tags: text().array().default(sql`'{}'::text[]`).notNull(),
-  authorId: text().notNull(),
+  authorId: text(),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
 }, (table) => [
@@ -789,7 +789,7 @@ export const blogPosts = pgTable('BlogPost', {
     columns: [table.authorId],
     foreignColumns: [users.id],
     name: 'BlogPost_authorId_fkey',
-  }).onUpdate('cascade').onDelete('restrict'),
+  }).onUpdate('cascade').onDelete('set null'),
 ]);
 
 // =============================================================================
