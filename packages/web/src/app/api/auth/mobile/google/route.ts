@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, schema } from '@forge/server';
+import { db, schema, hashSessionToken } from '@forge/server';
 import { eq, and } from 'drizzle-orm';
 import { randomBytes } from 'crypto';
 
@@ -104,13 +104,14 @@ export async function POST(request: NextRequest) {
         .where(eq(schema.accounts.id, existingAccount.id));
     }
 
-    // Generate a session token for mobile
+    // Generate a session token for mobile. Raw token goes to the client;
+    // the DB only ever stores the HMAC hash so a DB dump can't be replayed.
     const sessionToken = randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
-    // Create session in database
+    // Create session in database (token hashed for storage)
     await db.insert(schema.sessions).values({
-      sessionToken,
+      sessionToken: hashSessionToken(sessionToken),
       userId: user.id,
       expires,
     });

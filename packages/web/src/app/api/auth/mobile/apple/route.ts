@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, schema } from '@forge/server';
+import { db, schema, hashSessionToken } from '@forge/server';
 import { eq, and } from 'drizzle-orm';
 import { randomBytes, createPublicKey, verify as verifySignature } from 'crypto';
 
@@ -252,11 +252,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Mint a 30-day session token. Same format as the Google mobile flow.
+    // Raw token goes to the client; DB stores HMAC hash only.
     const sessionToken = randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
     await db.insert(schema.sessions).values({
-      sessionToken,
+      sessionToken: hashSessionToken(sessionToken),
       userId: user.id,
       expires,
     });
