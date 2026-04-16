@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Geist_Mono } from 'next/font/google';
 import localFont from 'next/font/local';
 import { SessionProvider } from 'next-auth/react';
+import { Toaster } from 'sonner';
 import { TRPCProvider } from '@/lib/trpc/provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { ConsentBanner } from '@/components/consent-banner';
@@ -122,6 +123,7 @@ export default function RootLayout({
           </SessionProvider>
         </ThemeProvider>
         <ConsentBanner />
+        <Toaster theme="dark" position="bottom-right" />
       </body>
     </html>
   );
