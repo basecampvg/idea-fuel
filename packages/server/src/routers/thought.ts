@@ -302,7 +302,7 @@ export const thoughtRouter = router({
     .mutation(async ({ ctx, input }) => {
       const thought = await ctx.db.query.thoughts.findFirst({
         where: and(eq(thoughts.id, input.id), eq(thoughts.userId, ctx.userId)),
-        columns: { id: true, content: true, lastRefinedAt: true },
+        columns: { id: true, content: true, lastRefinedAt: true, purpose: true, tags: true },
       });
 
       if (!thought) {
@@ -353,7 +353,11 @@ export const thoughtRouter = router({
 
       let refinement;
       try {
-        refinement = await refineNote(thought.content, imageUrls);
+        refinement = await refineNote(
+          thought.content,
+          { purpose: thought.purpose ?? undefined, labels: thought.tags ?? [] },
+          imageUrls,
+        );
       } catch (error) {
         console.error(
           '[ThoughtRouter] Refinement failed:',

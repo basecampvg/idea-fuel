@@ -56,12 +56,19 @@ async function getClusterThoughtsForAi(
   }
 
   const clusterThoughts = await db
-    .select({ content: thoughts.content })
+    .select({ content: thoughts.content, purpose: thoughts.purpose, tags: thoughts.tags })
     .from(thoughts)
     .where(and(eq(thoughts.clusterId, clusterId), isNull(thoughts.promotedProjectId)));
 
   const contents = clusterThoughts
-    .map((n: { content: string }) => n.content)
+    .map((n: { content: string; purpose: string | null; tags: string[] | null }) => {
+      if (n.content.length === 0) return '';
+      const meta = [];
+      if (n.purpose) meta.push(`Purpose: ${n.purpose}`);
+      if (n.tags?.length) meta.push(`Labels: ${n.tags.join(', ')}`);
+      const prefix = meta.length > 0 ? `[${meta.join(' | ')}]\n` : '';
+      return `${prefix}${n.content}`;
+    })
     .filter((c: string) => c.length > 0);
 
   if (contents.length < CLUSTER_MIN_THOUGHTS_FOR_AI) {
