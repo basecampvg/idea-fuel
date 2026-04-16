@@ -84,6 +84,75 @@ export async function searchProjectEmbeddings(
   }));
 }
 
+// ---------------------------------------------------------------------------
+// Thought-scoped vector search (for collision detection)
+// ---------------------------------------------------------------------------
+
+export interface ThoughtSearchOptions {
+  userId: string;
+  embedding: number[];
+  threshold?: number;
+  limit?: number;
+  excludeThoughtId?: string;
+}
+
+export interface ThoughtSearchResult {
+  id: string;
+  sourceId: string;
+  content: string;
+  similarity: number;
+}
+
+/**
+ * Search thought embeddings by semantic similarity, scoped to a user.
+ *
+ * Unlike searchProjectEmbeddings which is project-scoped, this filters by
+ * userId and sourceType='THOUGHT'. Used by the collision detection worker
+ * to find similar thoughts for the same user.
+ */
+export async function searchThoughtEmbeddings(
+  options: ThoughtSearchOptions
+): Promise<ThoughtSearchResult[]> {
+  const {
+    userId,
+    embedding,
+    threshold = 0.7,
+    limit: maxResults = 10,
+    excludeThoughtId,
+  } = options;
+
+  // Build the similarity expression: 1 - cosineDistance
+  const similarity = sql<number>`1 - (${cosineDistance(embeddings.embedding, embedding)})`;
+
+  // Build WHERE conditions
+  const conditions = [
+    eq(embeddings.userId, userId),
+    eq(embeddings.sourceType, 'THOUGHT'),
+    gt(similarity, threshold),
+  ];
+
+  if (excludeThoughtId) {
+    conditions.push(sql`${embeddings.sourceId} != ${excludeThoughtId}`);
+  }
+
+  const results = await db
+    .select({
+      id: embeddings.id,
+      sourceId: embeddings.sourceId,
+      content: embeddings.content,
+      similarity,
+    })
+    .from(embeddings)
+    .where(and(...conditions))
+    .orderBy(desc(similarity))
+    .limit(maxResults);
+
+  return results.map(r => ({
+    ...r,
+    similarity: Number(r.similarity),
+  }));
+}
+
 /**
  * Get all embedding chunk counts grouped by source type for a project.
  * Useful for the agent to understand what data is available.

@@ -127,6 +127,34 @@
       "when": 1775231816481,
       "tag": "0017_slippery_satana",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1776256334536,
+      "tag": "0018_thought-cluster-schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1776276545281,
+      "tag": "0019_fast_sway",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1776283776705,
+      "tag": "0020_smiling_whirlwind",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1776297628866,
+      "tag": "0021_chubby_runaways",
+      "breakpoints": true
     }
   ]
 }

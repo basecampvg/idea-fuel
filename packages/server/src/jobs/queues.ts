@@ -13,6 +13,7 @@ export const QUEUE_NAMES = {
   EMBEDDING_GENERATION: 'embedding-generation',
   SECTION_REGEN: 'section-regen',
   BUSINESS_PLAN: 'business-plan',
+  THOUGHT_COLLISION: 'thought-collision',
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -103,6 +104,13 @@ export interface BusinessPlanJobData {
   userId: string;
 }
 
+/**
+ * Thought Collision Detection Job Data
+ */
+export interface ThoughtCollisionJobData {
+  thoughtId: string;
+}
+
 // ============================================================================
 // QUEUE INSTANCES (lazy-initialized to avoid Redis connections at import time)
 // ============================================================================
@@ -115,6 +123,7 @@ let _emailSyncQueue: Queue<EmailSyncJobData> | null = null;
 let _embeddingGenerationQueue: Queue<EmbeddingGenerationJobData> | null = null;
 let _sectionRegenQueue: Queue<SectionRegenJobData> | null = null;
 let _businessPlanQueue: Queue<BusinessPlanJobData> | null = null;
+let _thoughtCollisionQueue: Queue<ThoughtCollisionJobData> | null = null;
 
 export function getReportGenerationQueue(): Queue<ReportGenerationJobData> {
   if (!_reportGenerationQueue) {
@@ -388,6 +397,42 @@ export async function enqueueBusinessPlan(
 }
 
 /**
+ * Get the thought collision queue (lazy-initialized)
+ */
+export function getThoughtCollisionQueue(): Queue<ThoughtCollisionJobData> {
+  if (!_thoughtCollisionQueue) {
+    _thoughtCollisionQueue = new Queue<ThoughtCollisionJobData>(
+      QUEUE_NAMES.THOUGHT_COLLISION,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 5000 },
+          removeOnComplete: { count: 200, age: 24 * 60 * 60 },
+          removeOnFail: { count: 500, age: 7 * 24 * 60 * 60 },
+        },
+      }
+    );
+  }
+  return _thoughtCollisionQueue;
+}
+
+/**
+ * Add a thought collision detection job to the queue
+ */
+export async function enqueueThoughtCollision(
+  data: ThoughtCollisionJobData
+): Promise<string> {
+  const jobId = `collision-${data.thoughtId}-${Date.now()}`;
+  const job = await getThoughtCollisionQueue().add(
+    `collision-${data.thoughtId}`,
+    data,
+    { jobId }
+  );
+  return job.id || '';
+}
+
+/**
  * Get queue stats for monitoring
  */
 export async function getQueueStats(queueName: QueueName) {
@@ -400,6 +445,7 @@ export async function getQueueStats(queueName: QueueName) {
     [QUEUE_NAMES.EMBEDDING_GENERATION]: getEmbeddingGenerationQueue,
     [QUEUE_NAMES.SECTION_REGEN]: getSectionRegenQueue,
     [QUEUE_NAMES.BUSINESS_PLAN]: getBusinessPlanQueue,
+    [QUEUE_NAMES.THOUGHT_COLLISION]: getThoughtCollisionQueue,
   };
 
   const getQueue = getters[queueName];

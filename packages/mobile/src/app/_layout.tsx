@@ -20,7 +20,19 @@ export default function RootLayout() {
     installGlobalHandlers();
   }, []);
   const [fontsLoaded] = useFonts({
-    'Outfit-Black': require('../../assets/fonts/Outfit-Black.ttf'),
+    'SFProDisplay-Regular': require('../../assets/fonts/SF-Pro-Display-Regular.otf'),
+    'SFProDisplay-Medium': require('../../assets/fonts/SF-Pro-Display-Medium.otf'),
+    'SFProDisplay-Semibold': require('../../assets/fonts/SF-Pro-Display-Semibold.otf'),
+    'SFProDisplay-Bold': require('../../assets/fonts/SF-Pro-Display-Bold.otf'),
+    'SFProDisplay-Heavy': require('../../assets/fonts/SF-Pro-Display-Heavy.otf'),
+    'SFProDisplay-Black': require('../../assets/fonts/SF-Pro-Display-Black.otf'),
+    'SFProText-Regular': require('../../assets/fonts/SF-Pro-Text-Regular.otf'),
+    'SFProText-Medium': require('../../assets/fonts/SF-Pro-Text-Medium.otf'),
+    'SFProText-Semibold': require('../../assets/fonts/SF-Pro-Text-Semibold.otf'),
+    'SFProText-Bold': require('../../assets/fonts/SF-Pro-Text-Bold.otf'),
+    'SFProText-Light': require('../../assets/fonts/SF-Pro-Text-Light.otf'),
+    'GeistMono-Regular': require('../../assets/fonts/GeistMono-Regular.ttf'),
+    'GeistMono-Medium': require('../../assets/fonts/GeistMono-Medium.ttf'),
   });
 
   if (!fontsLoaded) return null;

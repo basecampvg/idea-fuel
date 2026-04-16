@@ -22,7 +22,7 @@ import { NotebookPen, CheckCircle, Plus, Trash2, ChevronRight, Sparkles, HelpCir
 import { useRouter, useNavigation } from 'expo-router';
 import { triggerHaptic } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
-import { NoteTypePopover } from '../../../components/NoteTypePopover';
+// NoteTypePopover removed — this tab is hidden, thoughts tab replaces it
 import { trpc } from '../../../lib/trpc';
 import { colors, fonts } from '../../../lib/theme';
 import { BottomSheet } from '../../../components/ui/BottomSheet';
@@ -229,7 +229,6 @@ export default function NotesListScreen() {
   const utils = trpc.useUtils();
   const { data: notes, isLoading, refetch } = trpc.note.list.useQuery();
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
-  const [showTypePopover, setShowTypePopover] = useState(false);
   const [filter, setFilter] = useState<NoteFilter>('all');
   const [showHelpIcons] = useShowHelpIcons();
   const [guideVisible, setGuideVisible] = useState(false);
@@ -285,17 +284,7 @@ export default function NotesListScreen() {
   });
 
   const handleNewNote = useCallback(() => {
-    setShowTypePopover(true);
-  }, []);
-
-  const handleCreateQuickNote = useCallback(() => {
-    setShowTypePopover(false);
-    createMutation.mutate({ type: 'QUICK' });
-  }, [createMutation]);
-
-  const handleCreateAINote = useCallback(() => {
-    setShowTypePopover(false);
-    createMutation.mutate({ type: 'AI' });
+    createMutation.mutate({});
   }, [createMutation]);
 
   const handleDelete = useCallback((noteId: string, title: string) => {
@@ -449,13 +438,6 @@ export default function NotesListScreen() {
         </View>
       </BottomSheet>
 
-      <NoteTypePopover
-        visible={showTypePopover}
-        onClose={() => setShowTypePopover(false)}
-        onQuickNote={handleCreateQuickNote}
-        onAINote={handleCreateAINote}
-        anchorY={88}
-      />
     </View>
   );
 }

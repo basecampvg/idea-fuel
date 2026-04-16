@@ -35,7 +35,7 @@ export default function SplashScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text style={{
             fontSize: 24,
-            fontFamily: 'Outfit-Black',
+            fontFamily: 'SFProDisplay-Black',
             fontWeight: '900',
             letterSpacing: 3,
             color: '#BCBCBC',
@@ -44,7 +44,7 @@ export default function SplashScreen() {
           </Text>
           <Text style={{
             fontSize: 24,
-            fontFamily: 'Outfit-Black',
+            fontFamily: 'SFProDisplay-Black',
             fontWeight: '900',
             letterSpacing: 3,
             color: '#E32B1A',

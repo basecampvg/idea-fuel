@@ -12,7 +12,8 @@ export type PlanCardState =
   | 'current'      // user is on this plan
   | 'web-active'   // user has this tier via Stripe
   | 'lower-tier'   // tier is below user's current
-  | 'loading';     // purchase in progress
+  | 'loading'      // purchase in progress
+  | 'coming-soon'; // not yet available for purchase
 
 interface PlanCardProps {
   tierKey: string;
@@ -42,6 +43,7 @@ export function PlanCard({
 }: PlanCardProps) {
   const accentColor = TIER_COLORS[tierKey] || colors.brand;
   const isLowerTier = state === 'lower-tier';
+  const isComingSoon = state === 'coming-soon';
 
   // Current plan gets an accent-tinted gradient; others get standard glass
   const gradientColors: [string, string] = state === 'current'
@@ -56,7 +58,7 @@ export function PlanCard({
   return (
     <Animated.View
       entering={FadeIn.delay(150).duration(400)}
-      style={[isLowerTier && styles.dimmed]}
+      style={[(isLowerTier || isComingSoon) && styles.dimmed]}
     >
       <LinearGradient
         colors={gradientColors}
@@ -73,6 +75,9 @@ export function PlanCard({
             )}
             {state === 'web-active' && (
               <Badge variant="info">Active via Web</Badge>
+            )}
+            {isComingSoon && (
+              <Badge variant="default">Coming Soon</Badge>
             )}
           </View>
 

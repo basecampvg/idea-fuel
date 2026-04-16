@@ -4,7 +4,7 @@
  *
  * Brand colors extracted from phone/ideafuellogo.svg and landing page mockup.
  */
-import { Platform, type TextStyle } from 'react-native';
+import { type TextStyle } from 'react-native';
 
 export const colors = {
   // ── Surfaces ──
@@ -48,44 +48,59 @@ export const colors = {
 export type ThemeColors = typeof colors;
 
 /**
- * Font system — SF Pro on iOS (system font), Roboto on Android.
+ * Font system — SF Pro (loaded explicitly for cross-platform consistency).
  *
  * Each font token is a partial TextStyle object containing fontFamily +
- * fontWeight. Spread into styles: { ...fonts.outfit.bold, fontSize: 28 }
+ * fontWeight. Spread into styles: { ...fonts.display.bold, fontSize: 28 }
  *
- * The legacy API (fonts.outfit.bold as a string) is preserved via toString()
- * so existing code using `fontFamily: fonts.outfit.bold` continues to compile
- * and render with the system font — weight just comes from fontWeight now.
+ * The legacy API (fonts.display.bold as a string) is preserved via toString()
+ * so existing code using `fontFamily: fonts.display.bold` continues to compile.
  */
-const sf = Platform.OS === 'ios' ? 'System' : undefined;
-const mono = Platform.OS === 'ios' ? 'SF Mono' : 'monospace';
-
 type FontToken = TextStyle & { toString(): string };
 
-function token(family: string | undefined, weight: TextStyle['fontWeight']): FontToken {
-  const value = family ?? '';
+function token(family: string, weight: TextStyle['fontWeight']): FontToken {
   return {
     fontFamily: family,
     fontWeight: weight,
-    toString: () => value,
+    toString: () => family,
   } as FontToken;
 }
 
 export const fonts = {
-  outfit: {
-    regular:  token(sf, '400'),
-    medium:   token(sf, '500'),
-    semiBold: token(sf, '600'),
-    bold:     token(sf, '700'),
-    black:    token('Outfit-Black', '900'),
+  /** SF Pro Display — headings & large text (replaces Outfit) */
+  display: {
+    regular:  token('SFProDisplay-Regular', '400'),
+    medium:   token('SFProDisplay-Medium', '500'),
+    semiBold: token('SFProDisplay-Semibold', '600'),
+    bold:     token('SFProDisplay-Bold', '700'),
+    heavy:    token('SFProDisplay-Heavy', '800'),
+    black:    token('SFProDisplay-Black', '900'),
   },
-  geist: {
-    regular:  token(sf, '400'),
-    medium:   token(sf, '500'),
-    semiBold: token(sf, '600'),
+  /** SF Pro Text — body copy & UI labels (replaces Geist) */
+  text: {
+    light:    token('SFProText-Light', '300'),
+    regular:  token('SFProText-Regular', '400'),
+    medium:   token('SFProText-Medium', '500'),
+    semiBold: token('SFProText-Semibold', '600'),
+    bold:     token('SFProText-Bold', '700'),
   },
+  /** Monospace — code & data */
   mono: {
-    regular: token(mono, '400'),
-    medium:  token(mono, '500'),
+    regular: token('GeistMono-Regular', '400'),
+    medium:  token('GeistMono-Medium', '500'),
+  },
+  /** @deprecated Use fonts.display instead */
+  outfit: {
+    regular:  token('SFProDisplay-Regular', '400'),
+    medium:   token('SFProDisplay-Medium', '500'),
+    semiBold: token('SFProDisplay-Semibold', '600'),
+    bold:     token('SFProDisplay-Bold', '700'),
+    black:    token('SFProDisplay-Black', '900'),
+  },
+  /** @deprecated Use fonts.text instead */
+  geist: {
+    regular:  token('SFProText-Regular', '400'),
+    medium:   token('SFProText-Medium', '500'),
+    semiBold: token('SFProText-Semibold', '600'),
   },
 } as const;

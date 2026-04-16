@@ -224,13 +224,13 @@ ${input.features.map((f, i) => `${i + 1}. ${f}`).join('\n')}`,
         });
       }
 
-      // Create a note inside the sandbox to hold this sketch
+      // Create a thought inside the cluster to hold this sketch
       const [note] = await ctx.db
         .insert(notes)
         .values({
           userId: ctx.userId,
-          type: 'AI',
-          sandboxId: input.targetId,
+          thoughtNumber: 0,
+          clusterId: input.targetId,
           content: '',
           updatedAt: new Date(),
         })
@@ -246,7 +246,7 @@ ${input.features.map((f, i) => `${i + 1}. ${f}`).join('\n')}`,
       const fileName = input.storagePath.split('/').pop() ?? 'sketch.png';
 
       await ctx.db.insert(noteAttachments).values({
-        noteId: note.id,
+        thoughtId: note.id,
         userId: ctx.userId,
         storagePath: input.storagePath,
         fileName,

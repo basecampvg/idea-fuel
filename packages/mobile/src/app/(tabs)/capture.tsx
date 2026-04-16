@@ -26,7 +26,7 @@ try {
   // Native module not available in this build
 }
 import { Mic, Square, ArrowUp, Paperclip } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { AttachmentPopover } from '../../components/AttachmentPopover';
 import { CaptureActionMenu } from '../../components/CaptureActionMenu';
 import { ThumbnailStrip, type LocalAttachment } from '../../components/ThumbnailStrip';
@@ -37,12 +37,13 @@ import { useAuth } from '../../contexts/AuthContext';
 import { IdeaFuelLogo } from '../../components/IdeaFuelLogo';
 import { SloganSVG } from '../../components/SloganSVG';
 import { OrbAnimation, type OrbState } from '../../components/OrbAnimation';
-import { NeuralBackground } from '../../components/NeuralBackground';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts } from '../../lib/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WelcomeSheet } from '../../components/ui/WelcomeSheet';
 import { useAIConsentGate } from '../../hooks/useAIConsentGate';
+import { CollisionCard } from '../../components/thought/CollisionCard';
+import { ClusterPicker } from '../../components/ClusterPicker';
 
 // Defer loading expo-speech-recognition until after the initial Fabric mount
 // transaction completes. Loading it eagerly at module level triggers TurboModule
@@ -77,6 +78,7 @@ function extractTitleAndDescription(text: string): { title: string; description:
 export default function CaptureScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { linkedThoughtId } = useLocalSearchParams<{ linkedThoughtId?: string }>();
   const { user } = useAuth();
   const { showToast } = useToast();
   const [ideaText, setIdeaText] = useState('');
@@ -92,6 +94,13 @@ export default function CaptureScreen() {
   const [aiConsent, setAiConsent] = useState(false);
   const [popoverAnchorY, setPopoverAnchorY] = useState(200);
   const inputBarRef = useRef<View>(null);
+  // Collision detection state — set after thought creation, cleared on navigation
+  const [savedThoughtId, setSavedThoughtId] = useState<string | null>(null);
+  const [collisionMatch, setCollisionMatch] = useState<any | null>(null);
+  const [isPollingCollisions, setIsPollingCollisions] = useState(false);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollCountRef = useRef(0);
+  const [showCollisionClusterPicker, setShowCollisionClusterPicker] = useState(false);
 
   const MAX_ATTACHMENTS = 5;
 
@@ -294,6 +303,13 @@ export default function CaptureScreen() {
   }, [isListening, showToast]);
 
   const utils = trpc.useUtils();
+
+  // Fetch linked thought when navigated from Revisit "Engage"
+  const { data: linkedThought } = trpc.thought.get.useQuery(
+    { id: linkedThoughtId! },
+    { enabled: !!linkedThoughtId },
+  );
+
   const createProject = trpc.project.create.useMutation({
     onSuccess: (data: { id: string; title: string }) => {
       setIsSubmitting(false);
@@ -322,23 +338,37 @@ export default function CaptureScreen() {
 
   const getUploadUrl = trpc.attachment.getUploadUrl.useMutation();
 
-  const createNote = trpc.note.create.useMutation({
-    onSuccess: (newNote) => {
+  const createThought = trpc.thought.create.useMutation({
+    onSuccess: async (newThought) => {
       triggerHaptic('success');
-      utils.note.list.invalidate();
-      router.push(`/(tabs)/notes/${newNote.id}` as any);
+      utils.thought.list.invalidate();
       setIdeaText('');
       finalizedText.current = '';
       setAttachments([]);
       setAiConsent(false);
+      // Auto-link if triggered from Revisit "Engage"
+      if (linkedThoughtId) {
+        try {
+          await utils.client.thought.linkThought.mutate({
+            thoughtId: newThought.id,
+            targetThoughtId: linkedThoughtId,
+          });
+        } catch {
+          // Non-critical — thought was still created
+        }
+      }
+      // Start collision polling instead of immediate navigation
+      setSavedThoughtId(newThought.id);
+      setIsPollingCollisions(true);
+      pollCountRef.current = 0;
     },
     onError: () => {
       triggerHaptic('error');
-      showToast({ message: 'Failed to create note', type: 'error' });
+      showToast({ message: 'Failed to create thought', type: 'error' });
     },
   });
 
-  const handleNoteCapture = useCallback((type: 'QUICK' | 'AI') => {
+  const handleThoughtCapture = useCallback(() => {
     const trimmed = ideaText.trim();
     if (!trimmed) return;
 
@@ -350,8 +380,62 @@ export default function CaptureScreen() {
 
     Keyboard.dismiss();
     setShowActionMenu(false);
-    createNote.mutate({ type, content: trimmed });
-  }, [ideaText, isListening, createNote]);
+    createThought.mutate({
+      content: trimmed,
+      captureMethod: isListening ? 'voice' : 'quick_text',
+    });
+  }, [ideaText, isListening, createThought]);
+
+  const navigateToThought = useCallback((thoughtId: string) => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+    setIsPollingCollisions(false);
+    setSavedThoughtId(null);
+    setCollisionMatch(null);
+    router.push(`/(tabs)/thoughts/${thoughtId}` as any);
+  }, [router]);
+
+  // Poll for collision connections after thought creation
+  useEffect(() => {
+    if (!isPollingCollisions || !savedThoughtId) return;
+
+    const poll = async () => {
+      pollCountRef.current += 1;
+      try {
+        const connections = await utils.thought.listConnections.fetch({ thoughtId: savedThoughtId });
+        if (connections && connections.length > 0) {
+          const best = connections.reduce((a: any, b: any) => (a.strength > b.strength ? a : b));
+          setCollisionMatch(best);
+          setIsPollingCollisions(false);
+          if (pollingRef.current) clearInterval(pollingRef.current);
+          return;
+        }
+      } catch {
+        // Ignore fetch errors during polling
+      }
+      if (pollCountRef.current >= 6) {
+        setIsPollingCollisions(false);
+        if (pollingRef.current) clearInterval(pollingRef.current);
+        navigateToThought(savedThoughtId);
+      }
+    };
+
+    pollingRef.current = setInterval(poll, 5000);
+    poll(); // Run first poll immediately
+
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, [isPollingCollisions, savedThoughtId, utils, navigateToThought]);
+
+  // Clean up polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, []);
 
   const handleShowActionMenu = useCallback(() => {
     setShowActionMenu(true);
@@ -438,7 +522,11 @@ export default function CaptureScreen() {
 
   return (
     <View style={styles.safeArea}>
-      <NeuralBackground />
+      <LinearGradient
+        colors={['#1a1a1a', '#111111', '#0A0A0A']}
+        locations={[0, 0.5, 1]}
+        style={StyleSheet.absoluteFill}
+      />
       {speechReady && (
         <SpeechListeners
           finalizedText={finalizedText}
@@ -477,6 +565,46 @@ export default function CaptureScreen() {
             )}
 
           </View>
+
+          {/* ── Post-save: Collision detection feedback ── */}
+          {savedThoughtId && !collisionMatch && isPollingCollisions && (
+            <View style={{ alignItems: 'center', paddingTop: 20 }}>
+              <Text style={{ color: colors.muted, fontSize: 14 }}>
+                Thought saved. Checking for connections...
+              </Text>
+            </View>
+          )}
+
+          {savedThoughtId && collisionMatch && (
+            <View style={{ paddingHorizontal: 16 }}>
+              <CollisionCard
+                connection={collisionMatch}
+                onViewTogether={() => navigateToThought(savedThoughtId)}
+                onAddToCluster={() => setShowCollisionClusterPicker(true)}
+                onDismiss={() => navigateToThought(savedThoughtId)}
+              />
+            </View>
+          )}
+
+          {/* ── Linked thought reference card (from Revisit "Engage") ── */}
+          {linkedThought && (
+            <View style={{
+              backgroundColor: colors.surface,
+              borderRadius: 12,
+              padding: 12,
+              marginHorizontal: 16,
+              marginBottom: 8,
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}>
+              <Text style={{ color: colors.muted, fontSize: 11, marginBottom: 4, ...fonts.text.medium }}>
+                Responding to:
+              </Text>
+              <Text style={{ color: colors.foreground, fontSize: 13, ...fonts.text.regular }} numberOfLines={2}>
+                {linkedThought.content?.slice(0, 100)}
+              </Text>
+            </View>
+          )}
 
           {/* ── Bottom: Input bar ── */}
           <View style={styles.inputBarWrapper}>
@@ -586,8 +714,7 @@ export default function CaptureScreen() {
       <CaptureActionMenu
         visible={showActionMenu}
         onClose={() => setShowActionMenu(false)}
-        onQuickNote={() => handleNoteCapture('QUICK')}
-        onAINote={() => handleNoteCapture('AI')}
+        onThought={handleThoughtCapture}
         onIdea={() => {
           setShowActionMenu(false);
           handleCapture();
@@ -603,6 +730,17 @@ export default function CaptureScreen() {
       />
       {showWelcome && <WelcomeSheet onDismiss={handleDismissWelcome} />}
       {ConsentGate}
+      {savedThoughtId && (
+        <ClusterPicker
+          visible={showCollisionClusterPicker}
+          onClose={() => setShowCollisionClusterPicker(false)}
+          onSelect={(clusterId: string) => {
+            setShowCollisionClusterPicker(false);
+            utils.client.thought.addToCluster.mutate({ thoughtId: savedThoughtId, clusterId }).catch(() => {});
+            navigateToThought(savedThoughtId);
+          }}
+        />
+      )}
     </View>
   );
 }

@@ -50,9 +50,9 @@ module.exports = {
       },
 
       fontFamily: {
-        sans: ['Geist', 'System'],
+        sans: ['SFProText-Regular', 'System'],
         mono: ['GeistMono', 'monospace'],
-        display: ['Outfit', 'System'],
+        display: ['SFProDisplay-Regular', 'System'],
       },
 
       borderRadius: {
