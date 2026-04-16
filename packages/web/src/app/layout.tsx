@@ -4,6 +4,7 @@ import localFont from 'next/font/local';
 import { SessionProvider } from 'next-auth/react';
 import { TRPCProvider } from '@/lib/trpc/provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
+import { ConsentBanner } from '@/components/consent-banner';
 import './globals.css';
 
 const sfPro = localFont({
@@ -79,36 +80,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={`${sfPro.variable} ${sfProDisplay.variable} ${geistMono.variable}`}>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: `
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '2377129659366978');
-fbq('track', 'PageView');
-        `}} />
-        <noscript>
-          <img height="1" width="1" style={{ display: 'none' }}
-            src="https://www.facebook.com/tr?id=2377129659366978&ev=PageView&noscript=1"
-            alt=""
-          />
-        </noscript>
-        {/* Google tag (gtag.js) */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-P91R7RYB92"></script>
-        <script dangerouslySetInnerHTML={{ __html: `
-window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'G-P91R7RYB92');
-        `}} />
-        {/* Figma capture script — temporary */}
-        <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
-      </head>
+      <head />
+      {/* Analytics (GA4 + Meta Pixel) moved to <ConsentBanner /> below —
+          nothing loads until the user accepts. Figma capture.js removed
+          (was "temporary", shipping to real users, CSP-blocked anyway). */}
       <body className="antialiased" suppressHydrationWarning>
         <script
           type="application/ld+json"
@@ -146,6 +121,7 @@ gtag('config', 'G-P91R7RYB92');
             </TRPCProvider>
           </SessionProvider>
         </ThemeProvider>
+        <ConsentBanner />
       </body>
     </html>
   );
