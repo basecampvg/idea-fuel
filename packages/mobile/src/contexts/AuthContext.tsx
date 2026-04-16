@@ -36,15 +36,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
 
-  // Google OAuth configuration
+  // Google OAuth configuration. `openid` scope is required so the provider
+  // returns an id_token (JWT with aud/iss/exp claims we verify server-side).
   const [request, response, promptAsync] = Google.useAuthRequest({
     clientId: AUTH_CONFIG.google.webClientId,
     iosClientId: AUTH_CONFIG.google.iosClientId,
     androidClientId: AUTH_CONFIG.google.androidClientId,
+    scopes: ['openid', 'profile', 'email'],
   });
 
-  // Exchange Google token for our session token
-  const exchangeToken = useCallback(async (googleToken: string) => {
+  // Exchange a Google ID token for our session token. ID token (not access
+  // token) is required — it carries a verifiable `aud` claim bound to one
+  // of our Google OAuth client IDs.
+  const exchangeToken = useCallback(async (googleIdToken: string) => {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
@@ -53,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ token: googleToken }),
+        body: JSON.stringify({ idToken: googleIdToken }),
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
@@ -79,14 +83,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Handle Google OAuth response
+  // Handle Google OAuth response. Prefer idToken; expo-auth-session includes
+  // it when `openid` scope is requested (default for Google provider).
   useEffect(() => {
-    if (response?.type === 'success' && response.authentication?.accessToken) {
-      exchangeToken(response.authentication.accessToken).catch((err) => {
-        console.error('Google token exchange failed:', err);
-        setUser(null);
-      });
+    if (response?.type !== 'success') return;
+    const idToken =
+      response.authentication?.idToken ??
+      (response.params && typeof response.params.id_token === 'string'
+        ? response.params.id_token
+        : undefined);
+    if (!idToken) {
+      console.error('Google OAuth succeeded but no id_token returned');
+      setUser(null);
+      return;
     }
+    exchangeToken(idToken).catch((err) => {
+      console.error('Google token exchange failed:', err);
+      setUser(null);
+    });
   }, [response, exchangeToken]);
 
   // Check for existing session on mount
