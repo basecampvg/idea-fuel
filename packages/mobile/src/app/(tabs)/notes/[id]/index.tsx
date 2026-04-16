@@ -368,15 +368,15 @@ export default function NoteEditorScreen() {
   }, [id, deleteMutation]);
 
   // PropertyChipBar handlers
-  const handleUpdateMaturity = useCallback((level: string) => {
+  const handleUpdateMaturity = useCallback((level: string | null) => {
     updatePropertiesMutation.mutate({ id: id!, maturityLevel: level as any });
   }, [id, updatePropertiesMutation]);
 
-  const handleUpdateType = useCallback((type: string) => {
+  const handleUpdateType = useCallback((type: string | null) => {
     updatePropertiesMutation.mutate({ id: id!, thoughtType: type as any });
   }, [id, updatePropertiesMutation]);
 
-  const handleUpdateConfidence = useCallback((level: string) => {
+  const handleUpdateConfidence = useCallback((level: string | null) => {
     updatePropertiesMutation.mutate({ id: id!, confidenceLevel: level as any });
   }, [id, updatePropertiesMutation]);
 
