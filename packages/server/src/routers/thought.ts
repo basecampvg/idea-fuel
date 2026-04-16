@@ -45,6 +45,10 @@ import {
   addNoteAttachmentsSchema,
   removeNoteAttachmentSchema,
   recordSurfaceActionSchema,
+  updateLabelsSchema,
+  createUserLabelSchema,
+  PREDEFINED_LABELS,
+  LABEL_PALETTE,
   NOTE_REFINE_MIN_CHARS,
   NOTE_EXTRACT_MIN_CHARS,
   entityId,
@@ -59,6 +63,7 @@ import {
   projects,
   users,
   projectAttachments,
+  userLabels,
 } from '../db/schema';
 import { refineNote, extractIdeasFromNote } from '../services/note-ai';
 import { supabase, ATTACHMENT_BUCKET } from '../lib/supabase';
@@ -178,6 +183,7 @@ export const thoughtRouter = router({
           captureMethod: input.captureMethod ?? 'quick_text',
           thoughtNumber: nextNumber,
           clusterId: input.clusterId ?? null,
+          purpose: input.purpose ?? 'idea',
           updatedAt: new Date(),
         })
         .returning();
@@ -206,11 +212,13 @@ export const thoughtRouter = router({
         }
       }
 
-      // Enqueue collision detection (fire-and-forget)
-      try {
-        await enqueueThoughtCollision({ thoughtId: thought.id });
-      } catch {
-        // Non-critical — don't fail thought creation if queue is down
+      // Enqueue collision detection (fire-and-forget) — ideas only
+      if ((input.purpose ?? 'idea') === 'idea') {
+        try {
+          await enqueueThoughtCollision({ thoughtId: thought.id });
+        } catch {
+          // Non-critical — don't fail thought creation if queue is down
+        }
       }
 
       return thought;
@@ -742,6 +750,7 @@ export const thoughtRouter = router({
           maturityLevel: true,
           thoughtType: true,
           confidenceLevel: true,
+          purpose: true,
         },
       });
 
@@ -756,7 +765,7 @@ export const thoughtRouter = router({
       const updates: Record<string, unknown> = {};
       const events: { eventType: string; metadata: Record<string, unknown> }[] = [];
 
-      if (input.maturityLevel && input.maturityLevel !== thought.maturityLevel) {
+      if (input.maturityLevel !== undefined && input.maturityLevel !== thought.maturityLevel) {
         updates.maturityLevel = input.maturityLevel;
         events.push({
           eventType: 'maturity_changed',
@@ -764,7 +773,7 @@ export const thoughtRouter = router({
         });
       }
 
-      if (input.thoughtType && input.thoughtType !== thought.thoughtType) {
+      if (input.thoughtType !== undefined && input.thoughtType !== thought.thoughtType) {
         updates.thoughtType = input.thoughtType;
         updates.typeSource = 'user';
         events.push({
@@ -773,11 +782,19 @@ export const thoughtRouter = router({
         });
       }
 
-      if (input.confidenceLevel && input.confidenceLevel !== thought.confidenceLevel) {
+      if (input.confidenceLevel !== undefined && input.confidenceLevel !== thought.confidenceLevel) {
         updates.confidenceLevel = input.confidenceLevel;
         events.push({
           eventType: 'confidence_changed',
           metadata: { from: thought.confidenceLevel, to: input.confidenceLevel },
+        });
+      }
+
+      if (input.purpose !== undefined && input.purpose !== thought.purpose) {
+        updates.purpose = input.purpose;
+        events.push({
+          eventType: 'type_changed',
+          metadata: { field: 'purpose', from: thought.purpose, to: input.purpose },
         });
       }
 
@@ -1163,6 +1180,7 @@ export const thoughtRouter = router({
           eq(thoughts.isArchived, false),
           isNull(thoughts.promotedProjectId),
           eq(thoughts.resurfaceExcluded, false),
+          eq(thoughts.purpose, 'idea'),
           or(
             isNull(thoughts.nextSurfaceAt),
             lt(thoughts.nextSurfaceAt, now),
@@ -1394,5 +1412,74 @@ export const thoughtRouter = router({
         dismissStreak: newDismissStreak,
         lastSurfacedAt: now,
       };
+    }),
+
+  /**
+   * Update labels (tags) on a thought.
+   */
+  updateLabels: protectedProcedure
+    .input(updateLabelsSchema)
+    .mutation(async ({ ctx, input }) => {
+      const thought = await ctx.db.query.thoughts.findFirst({
+        where: and(eq(thoughts.id, input.thoughtId), eq(thoughts.userId, ctx.userId)),
+        columns: { id: true, tags: true },
+      });
+
+      if (!thought) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'THOUGHT_NOT_FOUND' });
+      }
+
+      await ctx.db
+        .update(thoughts)
+        .set({ tags: input.labels })
+        .where(eq(thoughts.id, input.thoughtId));
+
+      await ctx.db.insert(thoughtEvents).values({
+        thoughtId: input.thoughtId,
+        eventType: 'type_changed',
+        metadata: { field: 'labels', from: thought.tags, to: input.labels },
+      });
+
+      return { success: true, labels: input.labels };
+    }),
+
+  /**
+   * List user's custom labels merged with predefined labels.
+   */
+  listUserLabels: protectedProcedure
+    .query(async ({ ctx }) => {
+      const custom = await ctx.db
+        .select()
+        .from(userLabels)
+        .where(eq(userLabels.userId, ctx.userId))
+        .orderBy(desc(userLabels.createdAt));
+
+      return { predefined: PREDEFINED_LABELS, custom };
+    }),
+
+  /**
+   * Create a custom label for the user.
+   */
+  createUserLabel: protectedProcedure
+    .input(createUserLabelSchema)
+    .mutation(async ({ ctx, input }) => {
+      const existingCount = await ctx.db
+        .select({ cnt: count() })
+        .from(userLabels)
+        .where(eq(userLabels.userId, ctx.userId));
+
+      const colorIndex = Number(existingCount[0]?.cnt ?? 0) % LABEL_PALETTE.length;
+      const color = input.color ?? LABEL_PALETTE[colorIndex];
+
+      const [label] = await ctx.db
+        .insert(userLabels)
+        .values({
+          userId: ctx.userId,
+          name: input.name.toLowerCase().trim(),
+          color,
+        })
+        .returning();
+
+      return label;
     }),
 });
