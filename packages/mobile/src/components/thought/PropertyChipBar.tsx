@@ -10,6 +10,8 @@ import {
   Brain,
   BookOpen,
   CheckCircle,
+  FileText,
+  Tag,
 } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import { colors, fonts } from '../../lib/theme';
@@ -17,6 +19,8 @@ import { MaturityPicker, type MaturityLevel } from './MaturityPicker';
 import { TypePicker, type ThoughtType } from './TypePicker';
 import { ConfidencePicker, type ConfidenceLevel } from './ConfidencePicker';
 import { ClusterPicker } from '../ClusterPicker';
+import { PurposePicker, type Purpose } from './PurposePicker';
+import { LabelPicker } from './LabelPicker';
 
 const MATURITY_CONFIG: Record<MaturityLevel, { label: string; color: string; style: 'hollow' | 'half' | 'filled' | 'ring' }> = {
   spark: { label: 'Spark', color: '#6B7280', style: 'hollow' },
@@ -58,16 +62,20 @@ const CONFIDENCE_CONFIG: Record<ConfidenceLevel, { label: string; color: string;
 };
 
 interface PropertyChipBarProps {
-  maturityLevel: MaturityLevel;
-  thoughtType: ThoughtType;
-  confidenceLevel: ConfidenceLevel;
+  maturityLevel: MaturityLevel | null;
+  thoughtType: ThoughtType | null;
+  confidenceLevel: ConfidenceLevel | null;
+  purpose: string;
+  labels: string[];
   clusterId: string | null;
   clusterName?: string | null;
   clusterColor?: string | null;
   typeSource: string;
-  onUpdateMaturity: (level: MaturityLevel) => void;
-  onUpdateType: (type: ThoughtType) => void;
-  onUpdateConfidence: (level: ConfidenceLevel) => void;
+  onUpdateMaturity: (level: MaturityLevel | null) => void;
+  onUpdateType: (type: ThoughtType | null) => void;
+  onUpdateConfidence: (level: ConfidenceLevel | null) => void;
+  onUpdatePurpose: (purpose: Purpose) => void;
+  onUpdateLabels: (labels: string[]) => void;
   onAddToCluster: (clusterId: string) => void;
   onRemoveFromCluster: () => void;
 }
@@ -76,6 +84,8 @@ export function PropertyChipBar({
   maturityLevel,
   thoughtType,
   confidenceLevel,
+  purpose,
+  labels,
   clusterId,
   clusterName,
   clusterColor,
@@ -83,6 +93,8 @@ export function PropertyChipBar({
   onUpdateMaturity,
   onUpdateType,
   onUpdateConfidence,
+  onUpdatePurpose,
+  onUpdateLabels,
   onAddToCluster,
   onRemoveFromCluster,
 }: PropertyChipBarProps) {
@@ -90,10 +102,12 @@ export function PropertyChipBar({
   const [showType, setShowType] = useState(false);
   const [showConfidence, setShowConfidence] = useState(false);
   const [showCluster, setShowCluster] = useState(false);
+  const [showPurpose, setShowPurpose] = useState(false);
+  const [showLabels, setShowLabels] = useState(false);
 
-  const maturity = MATURITY_CONFIG[maturityLevel];
-  const type = TYPE_CONFIG[thoughtType];
-  const confidence = CONFIDENCE_CONFIG[confidenceLevel];
+  const maturity = maturityLevel ? MATURITY_CONFIG[maturityLevel] : null;
+  const type = thoughtType ? TYPE_CONFIG[thoughtType] : null;
+  const confidence = confidenceLevel ? CONFIDENCE_CONFIG[confidenceLevel] : null;
 
   return (
     <>
@@ -102,40 +116,89 @@ export function PropertyChipBar({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.container}
       >
-        {/* Maturity chip */}
+        {/* Purpose chip */}
         <TouchableOpacity
-          style={[styles.chip, { borderColor: `${maturity.color}40` }]}
-          onPress={() => setShowMaturity(true)}
+          style={[styles.chip, { borderColor: purpose === 'idea' ? '#F59E0B40' : `${colors.mutedDim}40` }]}
+          onPress={() => setShowPurpose(true)}
           activeOpacity={0.7}
         >
-          <MaturityDot color={maturity.color} style={maturity.style} />
-          <Text style={[styles.chipLabel, { color: maturity.color }]}>{maturity.label}</Text>
+          {purpose === 'idea' ? (
+            <Lightbulb size={14} color="#F59E0B" />
+          ) : (
+            <FileText size={14} color={colors.mutedDim} />
+          )}
+          <Text style={[styles.chipLabel, { color: purpose === 'idea' ? '#F59E0B' : colors.mutedDim }]}>
+            {purpose === 'idea' ? 'Idea' : 'Note'}
+          </Text>
         </TouchableOpacity>
+
+        {/* Maturity chip */}
+        {maturityLevel && maturity ? (
+          <TouchableOpacity
+            style={[styles.chip, { borderColor: `${maturity.color}40` }]}
+            onPress={() => setShowMaturity(true)}
+            activeOpacity={0.7}
+          >
+            <MaturityDot color={maturity.color} style={maturity.style} />
+            <Text style={[styles.chipLabel, { color: maturity.color }]}>{maturity.label}</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.chip, styles.ghostChip]}
+            onPress={() => setShowMaturity(true)}
+            activeOpacity={0.7}
+          >
+            <Plus size={14} color={colors.mutedDim} />
+            <Text style={[styles.chipLabel, styles.ghostLabel]}>Maturity</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Type chip */}
-        <TouchableOpacity
-          style={[styles.chip, { borderColor: `${type.color}40` }]}
-          onPress={() => setShowType(true)}
-          activeOpacity={0.7}
-        >
-          <type.Icon size={14} color={type.color} />
-          <Text style={[styles.chipLabel, { color: type.color }]}>{type.label}</Text>
-          {typeSource === 'ai_auto' && (
-            <View style={styles.aiLabel}>
-              <Text style={styles.aiLabelText}>AI</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        {thoughtType && type ? (
+          <TouchableOpacity
+            style={[styles.chip, { borderColor: `${type.color}40` }]}
+            onPress={() => setShowType(true)}
+            activeOpacity={0.7}
+          >
+            <type.Icon size={14} color={type.color} />
+            <Text style={[styles.chipLabel, { color: type.color }]}>{type.label}</Text>
+            {typeSource === 'ai_auto' && (
+              <View style={styles.aiLabel}>
+                <Text style={styles.aiLabelText}>AI</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.chip, styles.ghostChip]}
+            onPress={() => setShowType(true)}
+            activeOpacity={0.7}
+          >
+            <Plus size={14} color={colors.mutedDim} />
+            <Text style={[styles.chipLabel, styles.ghostLabel]}>Type</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Confidence chip */}
-        <TouchableOpacity
-          style={styles.chip}
-          onPress={() => setShowConfidence(true)}
-          activeOpacity={0.7}
-        >
-          <confidence.Icon size={14} color={confidence.color} />
-          <Text style={[styles.chipLabel, { color: confidence.color }]}>{confidence.label}</Text>
-        </TouchableOpacity>
+        {confidenceLevel && confidence ? (
+          <TouchableOpacity
+            style={styles.chip}
+            onPress={() => setShowConfidence(true)}
+            activeOpacity={0.7}
+          >
+            <confidence.Icon size={14} color={confidence.color} />
+            <Text style={[styles.chipLabel, { color: confidence.color }]}>{confidence.label}</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.chip, styles.ghostChip]}
+            onPress={() => setShowConfidence(true)}
+            activeOpacity={0.7}
+          >
+            <Plus size={14} color={colors.mutedDim} />
+            <Text style={[styles.chipLabel, styles.ghostLabel]}>Confidence</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Cluster chip */}
         {clusterId ? (
@@ -158,6 +221,30 @@ export function PropertyChipBar({
           >
             <Plus size={14} color={colors.mutedDim} />
             <Text style={[styles.chipLabel, styles.ghostLabel]}>Cluster</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Labels chip */}
+        {labels.length > 0 ? (
+          <TouchableOpacity
+            style={styles.chip}
+            onPress={() => setShowLabels(true)}
+            onLongPress={() => onUpdateLabels([])}
+            activeOpacity={0.7}
+          >
+            <Tag size={14} color={colors.muted} />
+            <Text style={styles.chipLabel} numberOfLines={1}>
+              {labels[0]}{labels.length > 1 ? ` +${labels.length - 1}` : ''}
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.chip, styles.ghostChip]}
+            onPress={() => setShowLabels(true)}
+            activeOpacity={0.7}
+          >
+            <Plus size={14} color={colors.mutedDim} />
+            <Text style={[styles.chipLabel, styles.ghostLabel]}>Labels</Text>
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -190,6 +277,20 @@ export function PropertyChipBar({
           onAddToCluster(id);
           setShowCluster(false);
         }}
+      />
+
+      <PurposePicker
+        visible={showPurpose}
+        onClose={() => setShowPurpose(false)}
+        current={purpose as Purpose}
+        onSelect={onUpdatePurpose}
+      />
+
+      <LabelPicker
+        visible={showLabels}
+        onClose={() => setShowLabels(false)}
+        currentLabels={labels}
+        onUpdateLabels={onUpdateLabels}
       />
     </>
   );
