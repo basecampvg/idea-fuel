@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Alert, StyleSheet } from 'react-native';
+import { View, Text, Alert, StyleSheet, Platform } from 'react-native';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -17,8 +18,17 @@ import { TypewriterText } from '../../components/TypewriterText';
 import { colors, fonts } from '../../lib/theme';
 
 export default function SignInScreen() {
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, signInWithApple } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+    AppleAuthentication.isAvailableAsync()
+      .then(setAppleAvailable)
+      .catch(() => setAppleAvailable(false));
+  }, []);
 
   // Staggered entrance animations
   const logoOpacity = useSharedValue(0);
@@ -80,6 +90,24 @@ export default function SignInScreen() {
     }
   };
 
+  const handleAppleSignIn = async () => {
+    try {
+      setIsAppleLoading(true);
+      await signInWithApple();
+    } catch (error) {
+      const err = error as { code?: string; message?: string };
+      // User cancelled — no alert needed
+      if (err?.code === 'ERR_REQUEST_CANCELED') return;
+      Alert.alert(
+        'Sign In Failed',
+        err?.message || 'Unable to sign in with Apple. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsAppleLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <StarField />
@@ -103,9 +131,24 @@ export default function SignInScreen() {
 
         {/* Bottom buttons */}
         <Animated.View style={[styles.bottomSection, buttonsStyle]}>
+          {appleAvailable && (
+            <AppleAuthentication.AppleAuthenticationButton
+              buttonType={
+                AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
+              }
+              buttonStyle={
+                AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
+              }
+              cornerRadius={999}
+              style={styles.appleButton}
+              onPress={handleAppleSignIn}
+            />
+          )}
+
           <Button
             onPress={handleGoogleSignIn}
             isLoading={isLoading}
+            disabled={isAppleLoading}
             size="lg"
             leftIcon={<Ionicons name="logo-google" size={20} color="#fff" />}
           >
@@ -153,6 +196,11 @@ const styles = StyleSheet.create({
   bottomSection: {
     paddingHorizontal: 24,
     paddingBottom: 24,
+  },
+  appleButton: {
+    width: '100%',
+    height: 52,
+    marginBottom: 12,
   },
   terms: {
     fontSize: 12,

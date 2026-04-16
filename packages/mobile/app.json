@@ -16,6 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ideafuel.mobile",
+      "usesAppleSignIn": true,
       "config": {
         "usesNonExemptEncryption": false
       },

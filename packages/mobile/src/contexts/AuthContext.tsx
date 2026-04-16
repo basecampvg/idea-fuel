@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, Platform } from 'react-native';
 import * as Google from 'expo-auth-session/providers/google';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import * as WebBrowser from 'expo-web-browser';
 import { useQueryClient } from '@tanstack/react-query';
 import { secureStorage } from '../lib/storage';
@@ -22,6 +23,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
   devSignIn?: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -140,6 +142,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await promptAsync();
   }, [request, promptAsync]);
 
+  const signInWithApple = useCallback(async () => {
+    if (Platform.OS !== 'ios') {
+      throw new Error('Sign in with Apple is only available on iOS');
+    }
+
+    const isAvailable = await AppleAuthentication.isAvailableAsync();
+    if (!isAvailable) {
+      throw new Error('Sign in with Apple is not available on this device');
+    }
+
+    const credential = await AppleAuthentication.signInAsync({
+      requestedScopes: [
+        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+      ],
+    });
+
+    if (!credential.identityToken) {
+      throw new Error('Apple did not return an identity token');
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    try {
+      const res = await fetch(`${API_URL}/api/auth/mobile/apple`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identityToken: credential.identityToken,
+          fullName: credential.fullName
+            ? {
+                givenName: credential.fullName.givenName ?? undefined,
+                familyName: credential.fullName.familyName ?? undefined,
+              }
+            : null,
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        const err = await res
+          .json()
+          .catch(() => ({ error: 'Apple sign-in failed' }));
+        throw new Error(err.error || 'Apple sign-in failed');
+      }
+
+      const data = await res.json();
+      await secureStorage.setToken(data.token);
+      setUser(data.user);
+      InteractionManager.runAfterInteractions(() => {
+        initPurchases(data.user.id).catch(() => {});
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }, []);
+
   // Dev-only sign in — bypasses Google OAuth (stripped from production builds)
   const devSignIn = __DEV__
     ? async (email: string) => {
@@ -219,6 +279,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isAuthenticated: !!user,
         signInWithGoogle,
+        signInWithApple,
         devSignIn,
         signOut,
         refreshUser,
