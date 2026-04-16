@@ -219,15 +219,19 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - ExpoAppleAuthentication (55.0.13):
+    - ExpoModulesCore
   - ExpoAsset (55.0.10):
     - ExpoModulesCore
   - ExpoBlur (55.0.10):
+    - ExpoModulesCore
+  - ExpoClipboard (55.0.13):
     - ExpoModulesCore
   - ExpoCrypto (55.0.10):
     - ExpoModulesCore
   - ExpoDomWebView (55.0.3):
     - ExpoModulesCore
-  - ExpoFileSystem (55.0.12):
+  - ExpoFileSystem (55.0.14):
     - ExpoModulesCore
   - ExpoFont (55.0.4):
     - ExpoModulesCore
@@ -251,6 +255,9 @@ PODS:
   - ExpoLinking (55.0.9):
     - ExpoModulesCore
   - ExpoLogBox (55.0.8):
+    - React-Core
+  - ExpoMediaLibrary (55.0.12):
+    - ExpoModulesCore
     - React-Core
   - ExpoModulesCore (55.0.18):
     - boost
@@ -3333,11 +3340,13 @@ DEPENDENCIES:
   - "expo-dev-launcher (from `../../../node_modules/.pnpm/expo-dev-launcher@55.0.20_expo@55.0.9_typescript@5.9.3/node_modules/expo-dev-launcher`)"
   - "expo-dev-menu (from `../../../node_modules/.pnpm/expo-dev-menu@55.0.17_expo@55.0.9/node_modules/expo-dev-menu`)"
   - "expo-dev-menu-interface (from `../../../node_modules/.pnpm/expo-dev-menu-interface@55.0.1_expo@55.0.9/node_modules/expo-dev-menu-interface/ios`)"
+  - "ExpoAppleAuthentication (from `../../../node_modules/.pnpm/expo-apple-authentication@55.0.13_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxv_quwzflemvbw4jydf6rfp3o3ssu/node_modules/expo-apple-authentication/ios`)"
   - "ExpoAsset (from `../../../node_modules/.pnpm/expo-asset@55.0.10_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdany_@bab_t677jw2na7k7gpihaim2gpe5be/node_modules/expo-asset/ios`)"
   - "ExpoBlur (from `../../../node_modules/.pnpm/expo-blur@55.0.10_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdany_@babe_cclh7ocsv5bmf3bqu4rytmaylu/node_modules/expo-blur/ios`)"
+  - "ExpoClipboard (from `../../../node_modules/.pnpm/expo-clipboard@55.0.13_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdany__w6xwxa5iji7qagvsi6bsmvujhm/node_modules/expo-clipboard/ios`)"
   - "ExpoCrypto (from `../../../node_modules/.pnpm/expo-crypto@55.0.10_expo@55.0.9/node_modules/expo-crypto/ios`)"
   - "ExpoDomWebView (from `../../../node_modules/.pnpm/@expo+dom-webview@55.0.3_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdan_kcweuxwpknfpdzcxlro6z7xxz4/node_modules/@expo/dom-webview/ios`)"
-  - "ExpoFileSystem (from `../../../node_modules/.pnpm/expo-file-system@55.0.12_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdan_jocgeplvriu3wmvb77jcxxh2ke/node_modules/expo-file-system/ios`)"
+  - "ExpoFileSystem (from `../../../node_modules/.pnpm/expo-file-system@55.0.14_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdan_fhmkmin47upvuaervhs7vllxem/node_modules/expo-file-system/ios`)"
   - "ExpoFont (from `../../../node_modules/.pnpm/expo-font@55.0.4_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdany_@babel_r7tdskzl5bz4464rysr64743eu/node_modules/expo-font/ios`)"
   - "ExpoGlassEffect (from `../../../node_modules/.pnpm/expo-glass-effect@55.0.8_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdan_rlnpuhqenu34aqxmqcdip5janm/node_modules/expo-glass-effect/ios`)"
   - "ExpoHaptics (from `../../../node_modules/.pnpm/expo-haptics@55.0.9_expo@55.0.9/node_modules/expo-haptics/ios`)"
@@ -3347,6 +3356,7 @@ DEPENDENCIES:
   - "ExpoLinearGradient (from `../../../node_modules/.pnpm/expo-linear-gradient@55.0.9_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xw_67rgrag26cteipgzoficab5jju/node_modules/expo-linear-gradient/ios`)"
   - "ExpoLinking (from `../../../node_modules/.pnpm/expo-linking@55.0.9_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdany_@ba_raqum5yebznrh7cxb363xyqk3y/node_modules/expo-linking/ios`)"
   - "ExpoLogBox (from `../../../node_modules/.pnpm/@expo+log-box@55.0.8_@expo+dom-webview@55.0.3_expo@55.0.9_react-native@0.83.2_patch_hash=ag67_gwyfcqm22lbzszciqql5molxyi/node_modules/@expo/log-box`)"
+  - "ExpoMediaLibrary (from `../../../node_modules/.pnpm/expo-media-library@55.0.12_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwd_pe6hadnmvkbbffg56e3tpyi7wu/node_modules/expo-media-library/ios`)"
   - "ExpoModulesCore (from `../../../node_modules/.pnpm/expo-modules-core@55.0.18_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdany_@babel+co_r2b3ds5kw5bgklzadndajhsejq/node_modules/expo-modules-core`)"
   - "ExpoModulesJSI (from `../../../node_modules/.pnpm/expo-modules-core@55.0.18_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdany_@babel+co_r2b3ds5kw5bgklzadndajhsejq/node_modules/expo-modules-core`)"
   - "ExpoRouter (from `../../../node_modules/.pnpm/expo-router@55.0.8_vwqahuqxrxv43dwvu4uboprzrm/node_modules/expo-router/ios`)"
@@ -3485,16 +3495,20 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/.pnpm/expo-dev-menu@55.0.17_expo@55.0.9/node_modules/expo-dev-menu"
   expo-dev-menu-interface:
     :path: "../../../node_modules/.pnpm/expo-dev-menu-interface@55.0.1_expo@55.0.9/node_modules/expo-dev-menu-interface/ios"
+  ExpoAppleAuthentication:
+    :path: "../../../node_modules/.pnpm/expo-apple-authentication@55.0.13_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxv_quwzflemvbw4jydf6rfp3o3ssu/node_modules/expo-apple-authentication/ios"
   ExpoAsset:
     :path: "../../../node_modules/.pnpm/expo-asset@55.0.10_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdany_@bab_t677jw2na7k7gpihaim2gpe5be/node_modules/expo-asset/ios"
   ExpoBlur:
     :path: "../../../node_modules/.pnpm/expo-blur@55.0.10_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdany_@babe_cclh7ocsv5bmf3bqu4rytmaylu/node_modules/expo-blur/ios"
+  ExpoClipboard:
+    :path: "../../../node_modules/.pnpm/expo-clipboard@55.0.13_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdany__w6xwxa5iji7qagvsi6bsmvujhm/node_modules/expo-clipboard/ios"
   ExpoCrypto:
     :path: "../../../node_modules/.pnpm/expo-crypto@55.0.10_expo@55.0.9/node_modules/expo-crypto/ios"
   ExpoDomWebView:
     :path: "../../../node_modules/.pnpm/@expo+dom-webview@55.0.3_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdan_kcweuxwpknfpdzcxlro6z7xxz4/node_modules/@expo/dom-webview/ios"
   ExpoFileSystem:
-    :path: "../../../node_modules/.pnpm/expo-file-system@55.0.12_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdan_jocgeplvriu3wmvb77jcxxh2ke/node_modules/expo-file-system/ios"
+    :path: "../../../node_modules/.pnpm/expo-file-system@55.0.14_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdan_fhmkmin47upvuaervhs7vllxem/node_modules/expo-file-system/ios"
   ExpoFont:
     :path: "../../../node_modules/.pnpm/expo-font@55.0.4_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdany_@babel_r7tdskzl5bz4464rysr64743eu/node_modules/expo-font/ios"
   ExpoGlassEffect:
@@ -3513,6 +3527,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/.pnpm/expo-linking@55.0.9_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdany_@ba_raqum5yebznrh7cxb363xyqk3y/node_modules/expo-linking/ios"
   ExpoLogBox:
     :path: "../../../node_modules/.pnpm/@expo+log-box@55.0.8_@expo+dom-webview@55.0.3_expo@55.0.9_react-native@0.83.2_patch_hash=ag67_gwyfcqm22lbzszciqql5molxyi/node_modules/@expo/log-box"
+  ExpoMediaLibrary:
+    :path: "../../../node_modules/.pnpm/expo-media-library@55.0.12_expo@55.0.9_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwd_pe6hadnmvkbbffg56e3tpyi7wu/node_modules/expo-media-library/ios"
   ExpoModulesCore:
     :path: "../../../node_modules/.pnpm/expo-modules-core@55.0.18_react-native@0.83.2_patch_hash=ag67twtw3vq2atxvgwk6xwdany_@babel+co_r2b3ds5kw5bgklzadndajhsejq/node_modules/expo-modules-core"
   ExpoModulesJSI:
@@ -3720,11 +3736,13 @@ SPEC CHECKSUMS:
   expo-dev-launcher: 14093f9599497d371dabfd62c14c270c42ca9af1
   expo-dev-menu: a5e97749a968624558cbe45f4a193c83711af402
   expo-dev-menu-interface: bf6f816d29b45bec038080790963c635e8d588c2
+  ExpoAppleAuthentication: 08b3d0e502f46731abdf4c59203769fb685f66c8
   ExpoAsset: 4efd0227e808dfa84d286aa3663ded641ef73479
   ExpoBlur: 8508f5b62611b228eee65f242563ac70856eb4bd
+  ExpoClipboard: 5d1b0cd2686406f21e616f2d9b3431259dee2e6a
   ExpoCrypto: 33a6c4fb9ccac7a4d784954d0db6c3ba292123e9
   ExpoDomWebView: f101fb3db4b6eec4163fca51f7507189b7e48661
-  ExpoFileSystem: 4ed8ccc90671813c861f212fba3668fe133b7e68
+  ExpoFileSystem: 05e8c679738bd90263f9ed32bfa221f7b52ebbe5
   ExpoFont: 1aa465cf9f8ac6b670405becba8b15473581b2dd
   ExpoGlassEffect: 42361543f2c0c383df0cb779e3cd2496b47a585e
   ExpoHaptics: bc44f72943e785c2fdb912738a3665142569472d
@@ -3734,6 +3752,7 @@ SPEC CHECKSUMS:
   ExpoLinearGradient: 2e52067758a25f9b51e3fc3f4077851c0756c81c
   ExpoLinking: 1f0d112b2777e73eef2bb580b13283fc8c85ff08
   ExpoLogBox: 393a66b37ef3005c2890eb8b4468329db20bee51
+  ExpoMediaLibrary: cf3fb09e0c12337e393fc641d39e379f68419542
   ExpoModulesCore: e50086f89e526dfd2d00ebfb4401700b45792713
   ExpoModulesJSI: 92db390c19eb21af69005d94f430793c7ca7aec7
   ExpoRouter: 3e3ecbfd6baf14fc1a5c17fe840645b2db7559c5
@@ -3842,6 +3861,6 @@ SPEC CHECKSUMS:
   tentap: f11bd82f1afb77eb418639248230868d7484c867
   Yoga: 3d56e80930898685da43cbf53b5843932df8e765
 
-PODFILE CHECKSUM: 5a9ea5348ce091bedd1b716c301acc1e230c9ff7
+PODFILE CHECKSUM: ce60c07124aa9f5864f80ebadf85aa0be85de740
 
 COCOAPODS: 1.16.2

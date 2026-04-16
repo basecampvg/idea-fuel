@@ -66,6 +66,7 @@
         }
       ],
       "./plugins/patch-turbomodule",
+      "./plugins/patch-fmt",
       [
         "expo-media-library",
         {
