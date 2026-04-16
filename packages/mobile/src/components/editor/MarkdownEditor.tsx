@@ -268,6 +268,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
     const editor = useEditorBridge({
       autofocus: false,
       avoidIosKeyboard: false,
+      dynamicHeight: true,
       initialContent: initialHtml,
       theme: ideaFuelEditorTheme,
       bridgeExtensions: [
@@ -307,10 +308,11 @@ MarkdownEditor.displayName = 'MarkdownEditor';
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    width: '100%',
+    minHeight: 160,
   },
   editorWrapper: {
-    flex: 1,
+    width: '100%',
   },
   toolbarRow: {
     flexDirection: 'row',

@@ -91,6 +91,10 @@ export default function NoteEditorScreen() {
   const [showOverflow, setShowOverflow] = useState(false);
   const [showClusterPicker, setShowClusterPicker] = useState(false);
   const [showThoughtPicker, setShowThoughtPicker] = useState(false);
+  // Pending modal to open once the overflow sheet has fully dismissed. iOS
+  // silently drops the second Modal if presentation races with the first's
+  // native teardown, so we gate opening until the BottomSheet is gone.
+  const pendingOverflowAction = useRef<'cluster' | null>(null);
   const [titleText, setTitleText] = useState('');
   const [editorBridge, setEditorBridge] = useState<any>(null);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -320,6 +324,20 @@ export default function NoteEditorScreen() {
     const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
     return () => { showSub.remove(); hideSub.remove(); };
   }, []);
+
+  // Process pending overflow-menu actions once the BottomSheet has closed.
+  // Waiting on `showOverflow === false` alone isn't enough — iOS needs a
+  // frame or two past React's unmount for native Modal teardown to finish,
+  // otherwise presenting the next Modal gets dropped silently.
+  useEffect(() => {
+    if (showOverflow || !pendingOverflowAction.current) return;
+    const action = pendingOverflowAction.current;
+    pendingOverflowAction.current = null;
+    const t = setTimeout(() => {
+      if (action === 'cluster') setShowClusterPicker(true);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [showOverflow]);
 
   // ── Title auto-save (debounced) ──
   const titleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -571,7 +589,7 @@ export default function NoteEditorScreen() {
         >
           {/* Thought ID + timestamp row */}
           <View style={styles.idRow}>
-            <Text style={styles.thoughtId}>T-{note.thoughtNumber}</Text>
+            <Text style={styles.thoughtId}>[ T-{note.thoughtNumber} ]</Text>
             <SourceLabel captureMethod={note.captureMethod} createdAt={note.createdAt} />
           </View>
 
@@ -607,9 +625,9 @@ export default function NoteEditorScreen() {
             maxLength={200}
           />
 
-          {/* Editor — height scales with content */}
+          {/* Editor — tentap dynamicHeight sizes the WebView to content */}
           {initialLoaded && (
-            <View style={[styles.editorContainer, { height: Math.max(200, Math.ceil((note.content?.split('\n').length ?? 3) * 24 + 80)) }]}>
+            <View style={styles.editorContainer}>
               <MarkdownEditor
                 ref={editorRef}
                 initialContent={note.content ?? ''}
@@ -710,7 +728,9 @@ export default function NoteEditorScreen() {
         visible={showOverflow}
         onClose={() => setShowOverflow(false)}
         onRefine={() => refineMutation.mutate({ id: id! })}
-        onAddToCluster={() => setShowClusterPicker(true)}
+        onAddToCluster={() => {
+          pendingOverflowAction.current = 'cluster';
+        }}
         onDuplicate={() => duplicateMutation.mutate({ id: id! })}
         onArchive={handleArchive}
         onCopyText={handleCopyText}
@@ -843,7 +863,7 @@ const styles = StyleSheet.create({
   thoughtId: {
     fontSize: 13,
     color: colors.mutedDim,
-    ...fonts.geist.regular,
+    ...fonts.mono.regular,
   },
   chipSection: {
     paddingHorizontal: 20,
@@ -853,10 +873,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     ...fonts.outfit.bold,
     color: colors.foreground,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 8,
   },
   editorContainer: {
+    // 4px + the editor WebView's own 16px body padding = 20px, matching
+    // the rest of the page's horizontal inset.
+    paddingHorizontal: 4,
     // Height set dynamically based on content line count
   },
   toolbarContainer: {
@@ -868,13 +891,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dismissButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#2D2B28',
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 4,
+    // Matches toolbarBody's marginBottom so both shift up the same amount
+    // relative to their shared flex row, keeping them visually centered.
+    marginBottom: 8,
   },
   section: {
     paddingHorizontal: 20,

@@ -104,7 +104,23 @@ export const thoughtRouter = router({
       for (const r of countsB) connCounts.set(r.thoughtId, (connCounts.get(r.thoughtId) ?? 0) + Number(r.cnt));
     }
 
-    return results.map((t) => ({ ...t, connectionCount: connCounts.get(t.id) ?? 0 }));
+    // Fetch cluster name+color for thoughts that belong to a cluster
+    const clusterIds = [...new Set(results.map((t) => t.clusterId).filter(Boolean))] as string[];
+    const clusterMap = new Map<string, { name: string; color: string | null }>();
+    if (clusterIds.length > 0) {
+      const clusterRows = await ctx.db
+        .select({ id: thoughtClusters.id, name: thoughtClusters.name, color: thoughtClusters.color })
+        .from(thoughtClusters)
+        .where(inArray(thoughtClusters.id, clusterIds));
+      for (const c of clusterRows) clusterMap.set(c.id, { name: c.name, color: c.color });
+    }
+
+    return results.map((t) => ({
+      ...t,
+      connectionCount: connCounts.get(t.id) ?? 0,
+      clusterName: t.clusterId ? clusterMap.get(t.clusterId)?.name ?? null : null,
+      clusterColor: t.clusterId ? clusterMap.get(t.clusterId)?.color ?? null : null,
+    }));
   }),
 
   /**

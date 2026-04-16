@@ -37,14 +37,11 @@ import { useAuth } from '../../contexts/AuthContext';
 import { IdeaFuelLogo } from '../../components/IdeaFuelLogo';
 import { SloganSVG } from '../../components/SloganSVG';
 import { OrbAnimation, type OrbState } from '../../components/OrbAnimation';
-import { NeuralBackground } from '../../components/NeuralBackground';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts } from '../../lib/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WelcomeSheet } from '../../components/ui/WelcomeSheet';
 import { useAIConsentGate } from '../../hooks/useAIConsentGate';
-import { ThoughtTypeChips, type ThoughtType } from '../../components/ThoughtTypeChips';
-import { PurposeChips, type Purpose } from '../../components/PurposeChips';
 import { CollisionCard } from '../../components/thought/CollisionCard';
 import { ClusterPicker } from '../../components/ClusterPicker';
 
@@ -97,9 +94,6 @@ export default function CaptureScreen() {
   const [aiConsent, setAiConsent] = useState(false);
   const [popoverAnchorY, setPopoverAnchorY] = useState(200);
   const inputBarRef = useRef<View>(null);
-  const [selectedType, setSelectedType] = useState<ThoughtType | null>(null);
-  const [purpose, setPurpose] = useState<Purpose>('idea');
-
   // Collision detection state — set after thought creation, cleared on navigation
   const [savedThoughtId, setSavedThoughtId] = useState<string | null>(null);
   const [collisionMatch, setCollisionMatch] = useState<any | null>(null);
@@ -352,8 +346,6 @@ export default function CaptureScreen() {
       finalizedText.current = '';
       setAttachments([]);
       setAiConsent(false);
-      setSelectedType(null);
-      setPurpose('idea');
       // Auto-link if triggered from Revisit "Engage"
       if (linkedThoughtId) {
         try {
@@ -390,11 +382,9 @@ export default function CaptureScreen() {
     setShowActionMenu(false);
     createThought.mutate({
       content: trimmed,
-      thoughtType: selectedType ?? undefined,
       captureMethod: isListening ? 'voice' : 'quick_text',
-      purpose,
     });
-  }, [ideaText, isListening, createThought, selectedType, purpose]);
+  }, [ideaText, isListening, createThought]);
 
   const navigateToThought = useCallback((thoughtId: string) => {
     if (pollingRef.current) {
@@ -532,7 +522,11 @@ export default function CaptureScreen() {
 
   return (
     <View style={styles.safeArea}>
-      <NeuralBackground />
+      <LinearGradient
+        colors={['#1a1a1a', '#111111', '#0A0A0A']}
+        locations={[0, 0.5, 1]}
+        style={StyleSheet.absoluteFill}
+      />
       {speechReady && (
         <SpeechListeners
           finalizedText={finalizedText}
@@ -614,11 +608,6 @@ export default function CaptureScreen() {
 
           {/* ── Bottom: Input bar ── */}
           <View style={styles.inputBarWrapper}>
-            {/* Purpose chips — above thought type chips */}
-            <PurposeChips selected={purpose} onSelect={setPurpose} />
-            {/* Thought type chips — above the input pane */}
-            <ThoughtTypeChips selected={selectedType} onSelect={setSelectedType} />
-
             <View ref={inputBarRef} onLayout={handleInputBarLayout} style={[
               styles.inputBar,
               (inputFocused || isListening) && styles.inputBarActive,

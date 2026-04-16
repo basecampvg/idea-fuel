@@ -21,6 +21,7 @@ import {
   FileText,
   AlertTriangle,
   NotebookPen,
+  Link,
 } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { triggerHaptic } from '../../../../components/ui/Button';
@@ -53,6 +54,22 @@ function formatRelativeTime(date: Date): string {
   if (diffDays < 7) return `${diffDays}d ago`;
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
+
+const THOUGHT_TYPE_LABELS: Record<string, string> = {
+  problem: 'Problem',
+  solution: 'Solution',
+  what_if: 'What If',
+  observation: 'Observation',
+  question: 'Question',
+};
+
+const THOUGHT_TYPE_COLORS: Record<string, string> = {
+  problem: '#EF4444',
+  solution: '#10B981',
+  what_if: '#8B5CF6',
+  observation: '#3B82F6',
+  question: '#F59E0B',
+};
 
 function deriveTitle(note: any): string {
   if (note.refinedTitle) return note.refinedTitle;
@@ -170,6 +187,8 @@ export default function SandboxDetailScreen() {
   const renderItem = useCallback(({ item, index }: { item: any; index: number }) => {
     const title = deriveTitle(item);
     const hasRefined = !!item.refinedTitle;
+    const typeLabel = THOUGHT_TYPE_LABELS[item.thoughtType] || item.thoughtType;
+    const dotColor = THOUGHT_TYPE_COLORS[item.thoughtType] ?? colors.mutedDim;
 
     return (
       <Animated.View entering={FadeInUp.delay(index * 60).springify()}>
@@ -185,9 +204,7 @@ export default function SandboxDetailScreen() {
           >
             <View style={styles.card}>
               <View style={styles.cardTop}>
-                <View style={[styles.cardIcon, { backgroundColor: hasRefined ? colors.brandMuted : '#262422' }]}>
-                  <NotebookPen size={20} color={hasRefined ? colors.brand : colors.mutedDim} />
-                </View>
+                <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: dotColor, marginTop: 4 }} />
                 <View style={styles.cardText}>
                   <Text style={styles.cardTitle} numberOfLines={1}>
                     {title}
@@ -199,13 +216,25 @@ export default function SandboxDetailScreen() {
                   ) : null}
                 </View>
               </View>
+              <View style={styles.cardDivider} />
               <View style={styles.cardFooter}>
                 <Text style={styles.cardTime}>
                   {formatRelativeTime(new Date(item.updatedAt))}
                 </Text>
-                {hasRefined && (
-                  <Badge variant="primary">Refined</Badge>
-                )}
+                <View style={styles.badgeRow}>
+                  {hasRefined && (
+                    <Badge variant="primary">Refined</Badge>
+                  )}
+                  {typeLabel && (
+                    <Text style={styles.cardMetaChip}>{typeLabel}</Text>
+                  )}
+                  {(item.connectionCount ?? 0) > 0 && (
+                    <View style={styles.cardMetaRow}>
+                      <Link size={11} color={colors.mutedDim} />
+                      <Text style={styles.cardMetaChip}>{item.connectionCount}</Text>
+                    </View>
+                  )}
+                </View>
               </View>
             </View>
           </LinearGradient>
@@ -221,16 +250,16 @@ export default function SandboxDetailScreen() {
         <View style={styles.emptyIcon}>
           <NotebookPen size={36} color={colors.muted} />
         </View>
-        <Text style={styles.emptyTitle}>No notes pinned</Text>
+        <Text style={styles.emptyTitle}>No thoughts pinned</Text>
         <Text style={styles.emptyDescription}>
-          Tap + to add a new note directly to this sandbox.
+          Tap + to add a new thought directly to this cluster.
         </Text>
       </View>
     );
   }, [isLoading]);
 
   const sandbox = data;
-  const sandboxNotes = data?.notes ?? [];
+  const sandboxNotes = data?.thoughts ?? [];
   const dotColor = sandbox?.color ?? '#6C5CE7';
 
   return (
@@ -260,7 +289,7 @@ export default function SandboxDetailScreen() {
         <View style={styles.headerRight}>
           {sandbox ? (
             <Text style={styles.noteCount}>
-              {sandboxNotes.length === 1 ? '1 note' : `${sandboxNotes.length} notes`}
+              {sandboxNotes.length === 1 ? '1 thought' : `${sandboxNotes.length} thoughts`}
             </Text>
           ) : null}
         </View>
@@ -429,7 +458,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     padding: 16,
-    paddingBottom: 12,
+    paddingBottom: 14,
     gap: 14,
   },
   cardIcon: {
@@ -456,12 +485,34 @@ const styles = StyleSheet.create({
     color: colors.muted,
     lineHeight: 18,
   },
+  cardDivider: {
+    height: 1,
+    backgroundColor: colors.glassBorderStart,
+    marginHorizontal: 16,
+    opacity: 0.5,
+  },
   cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingTop: 10,
+    paddingBottom: 14,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  cardMetaChip: {
+    fontSize: 11,
+    color: colors.mutedDim,
+    ...fonts.text.regular,
+  },
+  cardMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
   },
   cardTime: {
     fontSize: 12,

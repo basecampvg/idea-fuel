@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   Plus,
   Flame,
@@ -111,12 +112,14 @@ export function PropertyChipBar({
 
   return (
     <>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.container}
+      <LinearGradient
+        colors={[colors.glassBorderStart, colors.glassBorderEnd]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.glassBorder}
       >
-        {/* Purpose chip */}
+        <View style={styles.container}>
+          {/* Purpose chip */}
         <TouchableOpacity
           style={[styles.chip, { borderColor: purpose === 'idea' ? '#F59E0B40' : `${colors.mutedDim}40` }]}
           onPress={() => setShowPurpose(true)}
@@ -247,7 +250,8 @@ export function PropertyChipBar({
             <Text style={[styles.chipLabel, styles.ghostLabel]}>Labels</Text>
           </TouchableOpacity>
         )}
-      </ScrollView>
+        </View>
+      </LinearGradient>
 
       <MaturityPicker
         visible={showMaturity}
@@ -297,10 +301,17 @@ export function PropertyChipBar({
 }
 
 const styles = StyleSheet.create({
+  glassBorder: {
+    borderRadius: 17,
+    padding: 1,
+  },
   container: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 10,
   },
   chip: {
     flexDirection: 'row',

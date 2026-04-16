@@ -7,6 +7,7 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  Alert,
 } from 'react-native';
 import { Waypoints, Zap, AlertTriangle, Link } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
@@ -35,6 +36,7 @@ interface ConnectionsSectionProps {
   isLoading: boolean;
   onViewThought: (thoughtId: string) => void;
   onAddConnection: () => void;
+  onRemoveConnection?: (connectionId: string) => void;
 }
 
 const CONNECTION_TYPE_CONFIG: Record<string, { label: string; Icon: LucideIcon; color: string }> = {
@@ -88,6 +90,7 @@ export function ConnectionsSection({
   isLoading,
   onViewThought,
   onAddConnection,
+  onRemoveConnection,
 }: ConnectionsSectionProps) {
   const [showAll, setShowAll] = useState(false);
 
@@ -99,6 +102,14 @@ export function ConnectionsSection({
   const toggleShowAll = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setShowAll(!showAll);
+  };
+
+  const handleLongPress = (connectionId: string) => {
+    if (!onRemoveConnection) return;
+    Alert.alert('Remove Connection', 'Remove this connection?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Remove', style: 'destructive', onPress: () => onRemoveConnection(connectionId) },
+    ]);
   };
 
   return (
@@ -134,6 +145,8 @@ export function ConnectionsSection({
                 key={connection.id}
                 style={styles.connectionCard}
                 onPress={() => onViewThought(thought.id)}
+                onLongPress={() => handleLongPress(connection.id)}
+                delayLongPress={500}
                 activeOpacity={0.7}
               >
                 <View style={styles.typeBadgeRow}>

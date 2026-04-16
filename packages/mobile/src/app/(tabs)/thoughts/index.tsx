@@ -28,7 +28,6 @@ import {
   HelpCircle,
   FlaskConical,
   Link,
-  Layers,
 } from 'lucide-react-native';
 import { useRouter, useNavigation } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -235,8 +234,11 @@ function SwipeableNoteCard({
                   <Text style={styles.cardMetaChip}>
                     {THOUGHT_TYPE_LABELS[note.thoughtType] || note.thoughtType}
                   </Text>
-                  {note.clusterId && (
-                    <Layers size={11} color={colors.mutedDim} />
+                  {note.clusterId && note.clusterName && (
+                    <View style={styles.cardMetaRow}>
+                      <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: note.clusterColor ?? CLUSTER_COLORS[0] }} />
+                      <Text style={styles.cardMetaChip} numberOfLines={1}>{note.clusterName}</Text>
+                    </View>
                   )}
                   {(note.connectionCount ?? 0) > 0 && (
                     <View style={styles.cardMetaRow}>

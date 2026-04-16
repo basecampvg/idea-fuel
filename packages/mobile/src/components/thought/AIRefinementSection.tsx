@@ -21,6 +21,7 @@ interface AIRefinementSectionProps {
   refinedDescription: string | null;
   refinedTags: string[] | null;
   lastRefinedAt: Date | string | null;
+  updatedAt: Date | string | null;
   isRefining: boolean;
   onRefine: () => void;
 }
@@ -45,6 +46,7 @@ export function AIRefinementSection({
   refinedDescription,
   refinedTags,
   lastRefinedAt,
+  updatedAt,
   isRefining,
   onRefine,
 }: AIRefinementSectionProps) {
@@ -52,6 +54,13 @@ export function AIRefinementSection({
   const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   const isRefined = !!(refinedTitle || refinedDescription);
+
+  const isStale = (() => {
+    if (!isRefined || !lastRefinedAt || !updatedAt) return false;
+    const refined = typeof lastRefinedAt === 'string' ? new Date(lastRefinedAt) : lastRefinedAt;
+    const updated = typeof updatedAt === 'string' ? new Date(updatedAt) : updatedAt;
+    return updated.getTime() > refined.getTime();
+  })();
 
   useEffect(() => {
     if (isRefining) {
@@ -157,6 +166,17 @@ export function AIRefinementSection({
           ) : null}
         </View>
       )}
+
+      {isStale && (
+        <TouchableOpacity
+          style={styles.reRefineButton}
+          onPress={onRefine}
+          activeOpacity={0.7}
+        >
+          <Sparkles size={14} color={colors.accent} />
+          <Text style={styles.reRefineText}>Re-refine with AI</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -261,5 +281,20 @@ const styles = StyleSheet.create({
     color: colors.mutedDim,
     fontSize: 12,
     ...fonts.text.regular,
+  },
+  reRefineButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 12,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  reRefineText: {
+    color: colors.accent,
+    fontSize: 13,
+    ...fonts.text.medium,
   },
 });
