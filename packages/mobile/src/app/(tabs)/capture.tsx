@@ -370,7 +370,7 @@ export default function CaptureScreen() {
 
   const handleThoughtCapture = useCallback(() => {
     const trimmed = ideaText.trim();
-    if (!trimmed) return;
+    if (!trimmed || createThought.isPending) return;
 
     if (isListening) {
       SpeechModule?.stop();
