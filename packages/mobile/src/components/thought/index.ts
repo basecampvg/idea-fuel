@@ -10,3 +10,4 @@ export { CommentThread } from './CommentThread';
 export { OverflowMenu } from './OverflowMenu';
 export { CollisionCard } from './CollisionCard';
 export { RevisitSection } from './RevisitSection';
+export { LabelPicker } from './LabelPicker';
