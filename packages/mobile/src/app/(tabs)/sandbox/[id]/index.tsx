@@ -181,7 +181,7 @@ export default function SandboxDetailScreen() {
   }, [id, summarizeMutation, extractTodosMutation, promoteToIdeaMutation, identifyGapsMutation, generateBriefMutation, findContradictionsMutation]);
 
   const handleAddNote = useCallback(() => {
-    createNoteMutation.mutate({ type: 'QUICK', sandboxId: id });
+    createNoteMutation.mutate({ captureMethod: 'quick_text', clusterId: id });
   }, [createNoteMutation, id]);
 
   const renderItem = useCallback(({ item, index }: { item: any; index: number }) => {

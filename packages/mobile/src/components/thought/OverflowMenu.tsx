@@ -66,22 +66,26 @@ export function OverflowMenu({
   return (
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={styles.container}>
-        {ACTIONS.map(({ key, Icon, label, color }) => (
-          <TouchableOpacity
-            key={key}
-            style={styles.row}
-            activeOpacity={0.7}
-            onPress={() => {
-              handlers[key]();
-              onClose();
-            }}
-          >
-            <Icon size={20} color={color} />
-            <Text style={[styles.label, { color }]}>
-              {getLabel(key, label ?? key)}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {ACTIONS.map((action) => {
+          const { key, Icon, color } = action;
+          const label = 'label' in action ? action.label : undefined;
+          return (
+            <TouchableOpacity
+              key={key}
+              style={styles.row}
+              activeOpacity={0.7}
+              onPress={() => {
+                handlers[key]();
+                onClose();
+              }}
+            >
+              <Icon size={20} color={color} />
+              <Text style={[styles.label, { color }]}>
+                {getLabel(key, label ?? key)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
 
         <View style={styles.separator} />
 

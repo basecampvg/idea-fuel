@@ -158,7 +158,9 @@ export function installGlobalHandlers() {
         name: error?.name,
         stack: error?.stack?.split('\n').slice(0, 3).join('\n'),
       });
-      if (typeof orig === 'function') orig(event);
+      if (typeof orig === 'function') {
+        (orig as (e: PromiseRejectionEvent) => unknown).call(globalThis, event);
+      }
     };
   }
 }

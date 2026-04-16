@@ -3,9 +3,9 @@
  * Uses ProseMirror document structure.
  */
 
-type Mark = { type: string; attrs?: Record<string, unknown> };
-type TextNode = { type: 'text'; text: string; marks?: Mark[] };
-type ContentNode =
+export type Mark = { type: string; attrs?: Record<string, unknown> };
+export type TextNode = { type: 'text'; text: string; marks?: Mark[] };
+export type ContentNode =
   | TextNode
   | { type: 'heading'; attrs: { level: number }; content: (TextNode | InlineNode)[] }
   | { type: 'paragraph'; content?: (TextNode | InlineNode)[] }
@@ -16,10 +16,10 @@ type ContentNode =
   | { type: 'hardBreak' }
   | ImageNode;
 
-type ImageNode = { type: 'image'; attrs: { src: string; alt: string; title: string | null } };
-type InlineNode = TextNode;
-type ListItemNode = { type: 'listItem'; content: ContentNode[] };
-type Doc = { type: 'doc'; content: ContentNode[] };
+export type ImageNode = { type: 'image'; attrs: { src: string; alt: string; title: string | null } };
+export type InlineNode = TextNode;
+export type ListItemNode = { type: 'listItem'; content: ContentNode[] };
+export type Doc = { type: 'doc'; content: ContentNode[] };
 
 // --- Text helpers ---
 
