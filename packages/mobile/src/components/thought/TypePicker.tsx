@@ -24,14 +24,31 @@ const TYPE_OPTIONS: {
 interface TypePickerProps {
   visible: boolean;
   onClose: () => void;
-  current: ThoughtType;
-  onSelect: (type: ThoughtType) => void;
+  current: ThoughtType | null;
+  onSelect: (type: ThoughtType | null) => void;
 }
 
 export function TypePicker({ visible, onClose, current, onSelect }: TypePickerProps) {
   return (
     <BottomSheet visible={visible} onClose={onClose} title="Thought Type">
       <View style={styles.options}>
+        <TouchableOpacity
+          style={[styles.option, current === null && { backgroundColor: `${colors.mutedDim}15` }]}
+          onPress={() => {
+            onSelect(null);
+            onClose();
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.iconContainer}>
+            <View style={{ width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: colors.mutedDim, borderStyle: 'dashed' }} />
+          </View>
+          <View style={styles.optionText}>
+            <Text style={[styles.label, { color: colors.mutedDim }]}>None</Text>
+            <Text style={styles.description}>No type assigned.</Text>
+          </View>
+          {current === null && <Check size={18} color={colors.mutedDim} />}
+        </TouchableOpacity>
         {TYPE_OPTIONS.map(({ type, label, color, Icon, description }) => {
           const isSelected = current === type;
           return (

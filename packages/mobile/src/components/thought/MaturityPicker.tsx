@@ -40,14 +40,31 @@ function MaturityDot({ color, style }: { color: string; style: 'hollow' | 'half'
 interface MaturityPickerProps {
   visible: boolean;
   onClose: () => void;
-  current: MaturityLevel;
-  onSelect: (level: MaturityLevel) => void;
+  current: MaturityLevel | null;
+  onSelect: (level: MaturityLevel | null) => void;
 }
 
 export function MaturityPicker({ visible, onClose, current, onSelect }: MaturityPickerProps) {
   return (
     <BottomSheet visible={visible} onClose={onClose} title="Maturity Level">
       <View style={styles.options}>
+        <TouchableOpacity
+          style={[styles.option, current === null && { backgroundColor: `${colors.mutedDim}15` }]}
+          onPress={() => {
+            onSelect(null);
+            onClose();
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.iconContainer}>
+            <View style={{ width: 16, height: 16, borderRadius: 8, borderWidth: 1.5, borderColor: colors.mutedDim, borderStyle: 'dashed' }} />
+          </View>
+          <View style={styles.optionText}>
+            <Text style={[styles.label, { color: colors.mutedDim }]}>None</Text>
+            <Text style={styles.description}>No maturity level assigned.</Text>
+          </View>
+          {current === null && <Check size={18} color={colors.mutedDim} />}
+        </TouchableOpacity>
         {MATURITY_OPTIONS.map(({ level, label, color, dotStyle, description }) => {
           const isSelected = current === level;
           return (

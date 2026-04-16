@@ -22,14 +22,31 @@ const CONFIDENCE_OPTIONS: {
 interface ConfidencePickerProps {
   visible: boolean;
   onClose: () => void;
-  current: ConfidenceLevel;
-  onSelect: (level: ConfidenceLevel) => void;
+  current: ConfidenceLevel | null;
+  onSelect: (level: ConfidenceLevel | null) => void;
 }
 
 export function ConfidencePicker({ visible, onClose, current, onSelect }: ConfidencePickerProps) {
   return (
     <BottomSheet visible={visible} onClose={onClose} title="Confidence Level">
       <View style={styles.options}>
+        <TouchableOpacity
+          style={[styles.option, current === null && { backgroundColor: `${colors.mutedDim}15` }]}
+          onPress={() => {
+            onSelect(null);
+            onClose();
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.iconContainer}>
+            <View style={{ width: 16, height: 16, borderRadius: 8, borderWidth: 1.5, borderColor: colors.mutedDim, borderStyle: 'dashed' }} />
+          </View>
+          <View style={styles.optionText}>
+            <Text style={[styles.label, { color: colors.mutedDim }]}>None</Text>
+            <Text style={styles.description}>No confidence level assigned.</Text>
+          </View>
+          {current === null && <Check size={18} color={colors.mutedDim} />}
+        </TouchableOpacity>
         {CONFIDENCE_OPTIONS.map(({ level, label, color, Icon, description }) => {
           const isSelected = current === level;
           return (
