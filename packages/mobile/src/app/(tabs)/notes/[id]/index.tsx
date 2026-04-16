@@ -202,6 +202,13 @@ export default function NoteEditorScreen() {
     },
   });
 
+  const updateLabelsMutation = trpc.thought.updateLabels.useMutation({
+    onSuccess: () => {
+      utils.thought.get.invalidate({ id: id! });
+      utils.thought.list.invalidate();
+    },
+  });
+
   const addCommentMutation = trpc.thought.addComment.useMutation({
     onSuccess: () => utils.thought.get.invalidate({ id: id! }),
   });
@@ -372,6 +379,14 @@ export default function NoteEditorScreen() {
   const handleUpdateConfidence = useCallback((level: string) => {
     updatePropertiesMutation.mutate({ id: id!, confidenceLevel: level as any });
   }, [id, updatePropertiesMutation]);
+
+  const handleUpdatePurpose = useCallback((purpose: string) => {
+    updatePropertiesMutation.mutate({ id: id!, purpose: purpose as any });
+  }, [id, updatePropertiesMutation]);
+
+  const handleUpdateLabels = useCallback((labels: string[]) => {
+    updateLabelsMutation.mutate({ thoughtId: id!, labels });
+  }, [id, updateLabelsMutation]);
 
   // OverflowMenu handlers
   const handleCopyText = useCallback(() => {
@@ -566,6 +581,8 @@ export default function NoteEditorScreen() {
               maturityLevel={note.maturityLevel as any}
               thoughtType={note.thoughtType as any}
               confidenceLevel={note.confidenceLevel as any}
+              purpose={note.purpose ?? 'idea'}
+              labels={note.tags ?? []}
               clusterId={note.clusterId ?? null}
               clusterName={note.cluster?.name ?? null}
               clusterColor={note.cluster?.color ?? null}
@@ -573,6 +590,8 @@ export default function NoteEditorScreen() {
               onUpdateMaturity={handleUpdateMaturity}
               onUpdateType={handleUpdateType}
               onUpdateConfidence={handleUpdateConfidence}
+              onUpdatePurpose={handleUpdatePurpose}
+              onUpdateLabels={handleUpdateLabels}
               onAddToCluster={(clusterId) => pinMutation.mutate({ thoughtId: id!, clusterId })}
               onRemoveFromCluster={() => unpinMutation.mutate({ thoughtId: id! })}
             />
