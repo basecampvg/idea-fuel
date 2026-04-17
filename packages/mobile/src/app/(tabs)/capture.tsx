@@ -37,7 +37,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { IdeaFuelLogo } from '../../components/IdeaFuelLogo';
 import { SloganSVG } from '../../components/SloganSVG';
 import { OrbAnimation, type OrbState } from '../../components/OrbAnimation';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts } from '../../lib/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WelcomeSheet } from '../../components/ui/WelcomeSheet';
@@ -76,7 +75,6 @@ function extractTitleAndDescription(text: string): { title: string; description:
 }
 
 export default function CaptureScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { linkedThoughtId } = useLocalSearchParams<{ linkedThoughtId?: string }>();
   const { user } = useAuth();
@@ -522,11 +520,6 @@ export default function CaptureScreen() {
 
   return (
     <View style={styles.safeArea}>
-      <LinearGradient
-        colors={['#2A2A2A', '#222222', '#1A1A1A']}
-        locations={[0, 0.5, 1]}
-        style={StyleSheet.absoluteFill}
-      />
       {speechReady && (
         <SpeechListeners
           finalizedText={finalizedText}
@@ -538,9 +531,9 @@ export default function CaptureScreen() {
       )}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
-          style={[styles.container, { paddingTop: insets.top + 44 }]}
+          style={styles.container}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={0}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
         >
           {/* ── Center: Logo + Slogan / Orb when listening ── */}
           <View style={styles.centerSection}>
@@ -812,7 +805,7 @@ function SpeechListeners({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: colors.background,
   },
   container: {
     flex: 1,

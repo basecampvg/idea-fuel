@@ -373,9 +373,20 @@ export default function SettingsScreen() {
                 </View>
                 <ChevronRight size={20} color={colors.muted} />
               </TouchableOpacity>
+            </View>
+          </LinearGradient>
 
-              <View style={{ height: 1, backgroundColor: colors.glassBorderEnd, marginHorizontal: 16 }} />
+          {/* Destructive actions live in their own card with a gap above so
+              "Delete Account" isn't one accidental tap away from "Sign Out". */}
+          <View style={{ height: 12 }} />
 
+          <LinearGradient
+            colors={[colors.glassBorderStart, colors.glassBorderEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.gradientBorder}
+          >
+            <View style={styles.card}>
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={handleDeleteAccount}
