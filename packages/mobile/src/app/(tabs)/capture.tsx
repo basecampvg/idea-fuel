@@ -523,7 +523,7 @@ export default function CaptureScreen() {
   return (
     <View style={styles.safeArea}>
       <LinearGradient
-        colors={['#1a1a1a', '#111111', '#0A0A0A']}
+        colors={['#2A2A2A', '#222222', '#1A1A1A']}
         locations={[0, 0.5, 1]}
         style={StyleSheet.absoluteFill}
       />

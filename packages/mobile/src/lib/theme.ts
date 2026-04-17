@@ -8,13 +8,13 @@ import { type TextStyle } from 'react-native';
 
 export const colors = {
   // ── Surfaces ──
-  background: '#0A0A0A',
-  card: '#111111',
-  surface: '#161616',
+  background: '#1A1A1A',
+  card: '#242424',
+  surface: '#2A2A2A',
 
   // ── Borders ──
-  border: '#222222',
-  borderSubtle: '#181818',
+  border: '#333333',
+  borderSubtle: '#2A2A2A',
 
   // ── Text ──
   foreground: '#E8E4DC',
