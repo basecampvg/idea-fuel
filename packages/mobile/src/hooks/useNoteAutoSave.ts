@@ -30,7 +30,27 @@ export function useNoteAutoSave({
   const MAX_RETRIES = 2;
 
   const utils = trpc.useUtils();
-  const updateMutation = trpc.note.update.useMutation({
+  // IMPORTANT: use trpc.thought.* here. tRPC cache keys are per-client-path,
+  // not per-server-procedure, so `note.get` vs `thought.get` are DIFFERENT
+  // cache entries even though `note` is a server alias of `thought`.
+  // Callers query `trpc.thought.get`, so we must invalidate that path —
+  // otherwise saved content is not reflected on re-entry until staleTime
+  // (5 min) expires and the query refetches.
+  const updateMutation = trpc.thought.update.useMutation({
+    // Optimistic cache write + snapshot. Writing the new content into
+    // thought.get at mutation-start means re-entering the note before
+    // the network round-trip completes shows the saved content (the
+    // queryClient is configured with staleTime=5min, so without this
+    // the next mount would return the old cache). We snapshot here so
+    // onError can revert — otherwise a failed save leaves the UI lying.
+    onMutate: async (variables) => {
+      await utils.thought.get.cancel({ id: variables.id });
+      const previousThought = utils.thought.get.getData({ id: variables.id });
+      utils.thought.get.setData({ id: variables.id }, (prev) =>
+        prev ? { ...prev, content: variables.content } : prev
+      );
+      return { previousThought };
+    },
     onSuccess: (_data, variables) => {
       hasPendingChanges.current = false;
       retryCount.current = 0;
@@ -38,9 +58,14 @@ export function useNoteAutoSave({
       setSaveStatus('saved');
       if (savedIndicatorTimer.current) clearTimeout(savedIndicatorTimer.current);
       savedIndicatorTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
-      utils.note.get.invalidate({ id: noteId });
+      utils.thought.get.invalidate({ id: noteId });
+      utils.thought.list.invalidate();
     },
-    onError: () => {
+    onError: (_err, variables, context) => {
+      // Revert the optimistic cache write so the UI reflects actual state.
+      if (context?.previousThought !== undefined) {
+        utils.thought.get.setData({ id: variables.id }, context.previousThought);
+      }
       setSaveStatus('error');
       if (retryCount.current < MAX_RETRIES) {
         retryCount.current += 1;
