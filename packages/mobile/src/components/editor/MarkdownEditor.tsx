@@ -1,10 +1,8 @@
-import React, { useImperativeHandle, forwardRef, useCallback, useRef, useState, useEffect } from 'react';
-import { View, FlatList, Image, StyleSheet, Keyboard, TouchableOpacity, Platform } from 'react-native';
-import { Keyboard as KeyboardIcon } from 'lucide-react-native';
+import React, { useImperativeHandle, forwardRef, useRef, useEffect } from 'react';
+import { View, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import {
   RichText,
   useEditorBridge,
-  useEditorContent,
   useBridgeState,
   TenTapStartKit,
   CoreBridge,
@@ -25,31 +23,33 @@ import { colors } from '../../lib/theme';
  * that prevent height/margin from working. We explicitly zero those out
  * so the pill shape actually renders.
  */
-const ideaFuelEditorTheme = {
+export const ideaFuelEditorTheme = {
   toolbar: {
     toolbarBody: {
-      // Override defaults: flex:1 + minWidth:'100%' that stretch the toolbar
+      // Pill shape, iOS dark-keyboard gray.
+      // - marginHorizontal: 12 insets the pill from screen edges.
+      // - marginBottom: 6 gives a small gap between the pill and keyboard top.
+      // - Explicit 0 borders override tentap's defaults that otherwise render
+      //   thin separator strokes above/below the pill.
+      // - flex: 0 + minWidth: 0 are CRITICAL: tentap's default theme sets
+      //   flex:1 and minWidth:'100%' which forced the FlatList to be the
+      //   full parent width, so marginHorizontal:12 then pushed the right
+      //   edge 24pt past the screen. Zero them to reclaim the margin.
+      // All positioning MUST be on this theme style — not on the KAV wrapper
+      // or an extra View, either of which breaks Toolbar's layout entirely.
       flex: 0,
-      flexGrow: 0,
-      flexShrink: 0,
-      flexBasis: 'auto' as any,
       minWidth: 0,
-      // Pill shape
       height: 44,
       maxHeight: 44,
       borderRadius: 22,
-      // Visually lift above the dark background
-      backgroundColor: '#2D2B28',
-      borderWidth: 1,
-      borderColor: '#383634',
-      borderTopWidth: 1,
-      borderBottomWidth: 1,
-      borderTopColor: '#383634',
-      borderBottomColor: '#383634',
-      // Float inward — clipped icons at edge hint at scrollability
+      backgroundColor: '#3A3A3C',
+      borderWidth: 0,
+      borderTopWidth: 0,
+      borderBottomWidth: 0,
       marginHorizontal: 12,
-      marginBottom: 8,
+      marginBottom: 6,
       overflow: 'hidden' as const,
+      paddingHorizontal: 6,
     },
     toolbarButton: {
       backgroundColor: 'transparent',
@@ -59,11 +59,15 @@ const ideaFuelEditorTheme = {
       tintColor: `${colors.mutedDim}80`,
     },
     iconWrapperActive: {
-      backgroundColor: 'rgba(227, 43, 26, 0.15)',
-      borderRadius: 6,
+      // Solid brand red with a consistent rounded pill behind the active
+      // icon. Solid (not translucent) means every icon gets the same visual
+      // weight when active — previously the 15%-alpha red let different
+      // icon shapes show through inconsistently.
+      backgroundColor: colors.brand,
+      borderRadius: 8,
     },
     iconWrapper: {
-      borderRadius: 6,
+      borderRadius: 8,
       backgroundColor: 'transparent',
     },
     icon: {
@@ -72,7 +76,9 @@ const ideaFuelEditorTheme = {
       width: 32,
     },
     iconActive: {
-      tintColor: colors.foreground,
+      // White icon on red background — high contrast, same result for every
+      // icon regardless of its internal alpha/shape.
+      tintColor: '#fff',
     },
     linkBarTheme: {
       addLinkContainer: {
@@ -101,16 +107,50 @@ const ideaFuelEditorTheme = {
 };
 
 /**
+ * Recover from older serializer bugs that stored adjacent task items as
+ * "- [ ] a- [ ] b" (no newline). Splits each mid-line task marker onto
+ * its own line. Loops until stable so triples/quads also recover.
+ *
+ * Group 2 in the regex must NOT include leading whitespace — matching
+ * `\s*-\[...]` would consume the just-inserted `\n` and grow forever.
+ *
+ * Known limitation: a task-marker-shaped string inside a fenced code block
+ * (```) will also be split. Rare in practice; documented rather than coded
+ * around to keep the transform a pure regex.
+ */
+export function healTaskLists(md: string): string {
+  let prev;
+  do {
+    prev = md;
+    md = md.replace(/(-\s*\[[ xX]\][^-\n]*?)(-\s*\[[ xX]\])/g, '$1\n$2');
+  } while (md !== prev);
+  return md;
+}
+
+/**
  * Lightweight HTML→Markdown for ProseMirror output.
  * Avoids TurndownService which requires a browser DOM (`document`).
  */
-function htmlToMarkdown(html: string): string {
+export function htmlToMarkdown(html: string): string {
   let md = html;
 
-  // Task list items (must run before generic <li>)
-  md = md.replace(/<li[^>]*data-checked="true"[^>]*><[^>]*>(?:<p>)?([\s\S]*?)(?:<\/p>)?<\/[^>]*><\/li>/gi, '- [x] $1');
-  md = md.replace(/<li[^>]*data-checked="false"[^>]*><[^>]*>(?:<p>)?([\s\S]*?)(?:<\/p>)?<\/[^>]*><\/li>/gi, '- [ ] $1');
-  md = md.replace(/<li[^>]*data-type="taskItem"[^>]*>(?:<p>)?([\s\S]*?)(?:<\/p>)?<\/li>/gi, '- [ ] $1');
+  // Task list items (must run before generic <li>).
+  // Tentap emits: <li data-type="taskItem" data-checked="..."><label>...</label><div><p>TEXT</p></div></li>
+  // Grab the inner <p>TEXT</p> directly and append a newline so adjacent
+  // items don't mash together (e.g. "- [ ] a- [ ] b").
+  md = md.replace(
+    /<li[^>]*data-checked="true"[^>]*>[\s\S]*?<p>([\s\S]*?)<\/p>[\s\S]*?<\/li>/gi,
+    '- [x] $1\n'
+  );
+  md = md.replace(
+    /<li[^>]*data-checked="false"[^>]*>[\s\S]*?<p>([\s\S]*?)<\/p>[\s\S]*?<\/li>/gi,
+    '- [ ] $1\n'
+  );
+  // Fallback for taskItem without the data-checked attribute (treat as unchecked).
+  md = md.replace(
+    /<li[^>]*data-type="taskItem"[^>]*>[\s\S]*?<p>([\s\S]*?)<\/p>[\s\S]*?<\/li>/gi,
+    '- [ ] $1\n'
+  );
 
   // Code blocks (before inline code)
   md = md.replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/gi, '\n```\n$1\n```\n');
@@ -167,7 +207,9 @@ function htmlToMarkdown(html: string): string {
  * `marked` outputs standard HTML checkboxes, but TenTap expects
  * `data-type="taskList"` / `data-type="taskItem"` attributes.
  */
-function markdownToHtml(md: string): string {
+export function markdownToHtml(md: string): string {
+  md = healTaskLists(md);
+
   let html = marked.parse(md) as string;
 
   // Convert marked's checkbox list items into TenTap taskItem format
@@ -201,7 +243,7 @@ interface MarkdownEditorProps {
   initialContent?: string;
   placeholder?: string;
   onChange?: () => void;
-  editable?: boolean;
+  autofocus?: boolean;
 }
 
 /**
@@ -250,25 +292,17 @@ export function EditorToolbar({ editor }: { editor: EditorBridge }) {
 }
 
 export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>(
-  ({ initialContent = '', placeholder = 'Start writing...', onChange, editable = true }, ref) => {
+  ({ initialContent = '', placeholder = 'Start writing...', onChange, autofocus = false }, ref) => {
     const initialHtml = initialContent ? markdownToHtml(initialContent) : '';
-    const [keyboardVisible, setKeyboardVisible] = useState(false);
-
-    useEffect(() => {
-      const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-      const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-      const showSub = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
-      const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
-      return () => {
-        showSub.remove();
-        hideSub.remove();
-      };
-    }, []);
 
     const editor = useEditorBridge({
-      autofocus: false,
-      avoidIosKeyboard: false,
-      dynamicHeight: true,
+      autofocus,
+      // Per tentap docs, the blessed pattern pairs `avoidIosKeyboard: true`
+      // with `<Toolbar>` wrapped in `<KeyboardAvoidingView>`. The RichText
+      // content shifts to stay above the keyboard; the Toolbar pins to
+      // keyboard top via KAV. Do NOT set dynamicHeight — it races with
+      // bridge init and renders the editor at 0 height.
+      avoidIosKeyboard: true,
       initialContent: initialHtml,
       theme: ideaFuelEditorTheme,
       bridgeExtensions: [
@@ -283,6 +317,23 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
       },
     });
 
+    // Defensive: TenTap's `initialContent` can race with bridge/extension
+    // setup, leaving the editor empty even when content was provided. Once
+    // the bridge reports ready, re-set the content if it's still missing.
+    const didHydrate = useRef(false);
+    const editorState = useBridgeState(editor);
+    useEffect(() => {
+      if (didHydrate.current || !initialHtml || !editorState.isReady) return;
+      didHydrate.current = true;
+      (async () => {
+        const current = await editor.getHTML();
+        const isEmpty = !current || current === '<p></p>' || current.trim() === '';
+        if (isEmpty) {
+          editor.setContent(initialHtml);
+        }
+      })();
+    }, [editor, editorState.isReady, initialHtml]);
+
     useImperativeHandle(ref, () => ({
       getMarkdown: async () => {
         const html = await editor.getHTML();
@@ -296,9 +347,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
 
     return (
       <View style={styles.container}>
-        <View style={styles.editorWrapper}>
-          <RichText editor={editor} scrollEnabled={false} />
-        </View>
+        <RichText editor={editor} />
       </View>
     );
   }
@@ -308,29 +357,6 @@ MarkdownEditor.displayName = 'MarkdownEditor';
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
-    minHeight: 160,
-  },
-  editorWrapper: {
-    width: '100%',
-  },
-  toolbarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  toolbarWrapper: {
     flex: 1,
-  },
-  dismissButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#2D2B28',
-    borderWidth: 1,
-    borderColor: '#383634',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-    marginBottom: 8,
   },
 });
