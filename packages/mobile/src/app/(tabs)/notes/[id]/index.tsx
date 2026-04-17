@@ -101,6 +101,24 @@ export default function NoteEditorScreen() {
   const [initialLoaded, setInitialLoaded] = useState(false);
   const [showPromotedSheet, setShowPromotedSheet] = useState(false);
   const [showOverflow, setShowOverflow] = useState(false);
+  const overflowAnchorRef = useRef<View>(null);
+  const [overflowAnchor, setOverflowAnchor] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
+
+  // Pre-measure the trigger on mount / any layout change. By the time the
+  // user taps, the position is already in state, so opening the menu is
+  // synchronous — no coupling between "open menu" and "measurement fired".
+  const measureOverflowAnchor = useCallback(() => {
+    overflowAnchorRef.current?.measureInWindow((x, y, width, height) => {
+      if (typeof x === 'number' && width > 0) {
+        setOverflowAnchor({ x, y, width, height });
+      }
+    });
+  }, []);
   const [showClusterPicker, setShowClusterPicker] = useState(false);
   const [showThoughtPicker, setShowThoughtPicker] = useState(false);
   // Pending modal to open once the overflow sheet has fully dismissed. iOS
@@ -361,12 +379,20 @@ export default function NoteEditorScreen() {
 
   const handleBack = useCallback(() => {
     flush();
-    if (fromCluster || fromSandbox) {
-      router.navigate(`/(tabs)/thoughts/cluster/${fromCluster || fromSandbox}` as any);
-    } else {
+    // Natural pop preserves the real stack (e.g. cluster → thought → back
+    // returns to the same cluster screen, not a freshly-pushed duplicate).
+    if (navigation.canGoBack()) {
       router.back();
+      return;
     }
-  }, [flush, fromCluster, fromSandbox, router]);
+    // Deep-link fallback: no history means we landed here directly.
+    const clusterId = fromCluster || fromSandbox;
+    if (clusterId) {
+      router.navigate(`/(tabs)/thoughts/cluster/${clusterId}` as any);
+    } else {
+      router.navigate('/(tabs)/thoughts' as any);
+    }
+  }, [flush, fromCluster, fromSandbox, router, navigation]);
 
   const handleDelete = useCallback(() => {
     Alert.alert(
@@ -571,12 +597,18 @@ export default function NoteEditorScreen() {
             <ChevronLeft size={24} color={colors.foreground} />
           </TouchableOpacity>
           <SaveIndicator status={saveStatus} />
-          <TouchableOpacity
-            onPress={() => setShowOverflow(true)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          <View
+            ref={overflowAnchorRef}
+            collapsable={false}
+            onLayout={measureOverflowAnchor}
           >
-            <MoreHorizontal size={24} color={colors.foreground} />
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setShowOverflow(true)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MoreHorizontal size={24} color={colors.foreground} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView
@@ -726,6 +758,7 @@ export default function NoteEditorScreen() {
       <OverflowMenu
         visible={showOverflow}
         onClose={() => setShowOverflow(false)}
+        anchor={overflowAnchor}
         onRefine={() => refineMutation.mutate({ id: id! })}
         onAddToCluster={() => {
           pendingOverflowAction.current = 'cluster';
