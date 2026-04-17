@@ -34,11 +34,17 @@ export async function POST(request: NextRequest) {
     try {
       googleUser = await verifyGoogleIdToken(idToken);
     } catch (err) {
-      console.error('[mobile/google] ID token verification failed:', err);
-      return NextResponse.json(
-        { error: 'Invalid Google ID token' },
-        { status: 401 }
-      );
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('[mobile/google] ID token verification failed:', msg);
+      // Surface a hint about *why* verification failed so the client can
+      // distinguish expiry/audience/signature issues during debugging.
+      let userMessage = 'Google sign-in token was rejected. Please try again.';
+      if (/expired|exp/i.test(msg)) {
+        userMessage = 'Google sign-in token expired. Please try again.';
+      } else if (/audience|aud/i.test(msg)) {
+        userMessage = 'Google sign-in was issued to a different app. Reinstall may be required.';
+      }
+      return NextResponse.json({ error: userMessage }, { status: 401 });
     }
 
     if (!googleUser.emailVerified) {
