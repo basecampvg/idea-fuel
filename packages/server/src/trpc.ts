@@ -1,6 +1,7 @@
 import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
 import type { Context } from './context';
+import { checkAiMutationRateLimit } from './lib/agent-rate-limit';
 
 /**
  * Initialize tRPC with context and transformer
@@ -149,3 +150,50 @@ const isSuperAdmin = middleware(async ({ ctx, next }) => {
  * Super admin procedure - requires SUPER_ADMIN role
  */
 export const superAdminProcedure = t.procedure.use(isSuperAdmin);
+
+/**
+ * Middleware: per-user rate limit for tRPC AI mutations.
+ * Buckets per-user by subscription tier (Redis sliding window). Queries the
+ * user's tier once, cached for the duration of the request. If Redis is
+ * unreachable the request is allowed — rate limiting is not a hard dependency.
+ */
+const aiRateLimited = middleware(async ({ ctx, next }) => {
+  if (!ctx.session?.user || !ctx.userId) {
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'You must be logged in to perform this action',
+    });
+  }
+
+  const { eq } = await import('drizzle-orm');
+  const { users } = await import('./db/schema');
+  const user = await ctx.db.query.users.findFirst({
+    where: eq(users.id, ctx.userId),
+    columns: { subscription: true },
+  });
+  const tier = user?.subscription ?? 'FREE';
+
+  const result = await checkAiMutationRateLimit(ctx.userId, tier);
+  if (!result.allowed) {
+    const retryAfterSec = Math.max(1, Math.ceil((result.resetAt.getTime() - Date.now()) / 1000));
+    throw new TRPCError({
+      code: 'TOO_MANY_REQUESTS',
+      message: `AI rate limit reached. Try again in ${retryAfterSec}s.`,
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
+      session: ctx.session,
+      userId: ctx.userId,
+    },
+  });
+});
+
+/**
+ * AI procedure - authenticated + per-user AI rate-limited.
+ * Use for any mutation that directly invokes a paid LLM API
+ * (sparkCard.chat/validate, interview AI turns, note AI, etc.).
+ */
+export const aiProcedure = t.procedure.use(isAuthenticated).use(aiRateLimited);

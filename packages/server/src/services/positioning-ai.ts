@@ -303,7 +303,14 @@ Respond ONLY with the JSON object. No markdown code fences, no explanation.`;
     jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
   }
 
-  const parsed = JSON.parse(jsonText) as PositioningReport;
+  let parsed: PositioningReport;
+  try {
+    parsed = JSON.parse(jsonText) as PositioningReport;
+  } catch (err) {
+    throw new Error(
+      `Positioning model returned non-JSON: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
 
   // Validate required fields
   if (!parsed.positioningStatement || !parsed.competitiveAlternatives) {

@@ -840,7 +840,14 @@ function parseSparkResultLegacy(
     jsonStr = jsonStr.slice(jsonStart, jsonEnd + 1);
   }
 
-  const parsed = JSON.parse(jsonStr);
+  let parsed: Record<string, any>;
+  try {
+    parsed = JSON.parse(jsonStr);
+  } catch (err) {
+    throw new Error(
+      `Legacy spark result returned non-JSON: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
 
   const parsedKeywords = parsed.keywords || {};
   const mergedKeywords = {

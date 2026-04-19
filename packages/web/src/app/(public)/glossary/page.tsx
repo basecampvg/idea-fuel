@@ -3,7 +3,10 @@ import type { Metadata } from 'next';
 import { getAllTerms } from '@/lib/glossary';
 import { GlossaryIndexClient } from '@/components/glossary/glossary-index-client';
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.AUTH_URL || 'http://localhost:3006';
+const baseUrl =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  process.env.AUTH_URL ||
+  (process.env.NODE_ENV === 'production' ? 'https://ideafuel.ai' : 'http://localhost:3006');
 
 export const metadata: Metadata = {
   title: 'Startup & Marketing Glossary | IdeaFuel',

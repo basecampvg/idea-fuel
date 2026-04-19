@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, schema } from '@forge/server';
+import { db, schema, hashSessionToken, verifyGoogleIdToken } from '@forge/server';
 import { eq, and } from 'drizzle-orm';
 import { randomBytes } from 'crypto';
 
@@ -7,45 +7,50 @@ export const dynamic = 'force-dynamic';
 
 /**
  * POST /api/auth/mobile/google
- * Exchange a Google OAuth access token for a session token
+ * Exchange a Google ID token for an IdeaFuel session token.
  *
- * This endpoint is called by the mobile app after successful Google OAuth.
- * It verifies the Google token, creates/updates the user, and returns a session token.
+ * Called by the mobile app after successful Google OAuth. Verifies the
+ * ID token's signature + audience + expiry against Google's JWKS, then
+ * creates/updates the user and returns a session token.
+ *
+ * Prior versions accepted a raw access_token and called /userinfo, which
+ * trusted any Google access token regardless of which app requested it.
+ * ID token verification binds the sign-in to our specific client IDs.
  */
 export async function POST(request: NextRequest) {
   try {
-    const { token } = await request.json();
+    const body = await request.json();
+    const idToken: string | undefined = body.idToken ?? body.token;
 
-    if (!token) {
+    if (!idToken) {
       return NextResponse.json(
-        { error: 'Missing Google token' },
+        { error: 'Missing Google ID token' },
         { status: 400 }
       );
     }
 
-    // Verify the Google token by fetching user info
-    const googleUserInfoResponse = await fetch(
-      'https://www.googleapis.com/oauth2/v3/userinfo',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    // Verify signature, audience, issuer, expiry
+    let googleUser;
+    try {
+      googleUser = await verifyGoogleIdToken(idToken);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('[mobile/google] ID token verification failed:', msg);
+      // Surface a hint about *why* verification failed so the client can
+      // distinguish expiry/audience/signature issues during debugging.
+      let userMessage = 'Google sign-in token was rejected. Please try again.';
+      if (/expired|exp/i.test(msg)) {
+        userMessage = 'Google sign-in token expired. Please try again.';
+      } else if (/audience|aud/i.test(msg)) {
+        userMessage = 'Google sign-in was issued to a different app. Reinstall may be required.';
       }
-    );
-
-    if (!googleUserInfoResponse.ok) {
-      return NextResponse.json(
-        { error: 'Invalid Google token' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: userMessage }, { status: 401 });
     }
 
-    const googleUser = await googleUserInfoResponse.json();
-
-    if (!googleUser.email) {
+    if (!googleUser.emailVerified) {
       return NextResponse.json(
-        { error: 'Email not available from Google' },
-        { status: 400 }
+        { error: 'Google account email not verified' },
+        { status: 401 }
       );
     }
 
@@ -60,8 +65,8 @@ export async function POST(request: NextRequest) {
         .insert(schema.users)
         .values({
           email: googleUser.email,
-          name: googleUser.name || null,
-          image: googleUser.picture || null,
+          name: googleUser.name,
+          image: googleUser.picture,
           updatedAt: new Date(),
         })
         .returning();
@@ -95,22 +100,23 @@ export async function POST(request: NextRequest) {
         type: 'oauth',
         provider: 'google',
         providerAccountId: googleUser.sub,
-        access_token: token,
+        id_token: idToken,
       });
     } else {
       await db
         .update(schema.accounts)
-        .set({ access_token: token })
+        .set({ id_token: idToken })
         .where(eq(schema.accounts.id, existingAccount.id));
     }
 
-    // Generate a session token for mobile
+    // Generate a session token for mobile. Raw token goes to the client;
+    // the DB only ever stores the HMAC hash so a DB dump can't be replayed.
     const sessionToken = randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
-    // Create session in database
+    // Create session in database (token hashed for storage)
     await db.insert(schema.sessions).values({
-      sessionToken,
+      sessionToken: hashSessionToken(sessionToken),
       userId: user.id,
       expires,
     });

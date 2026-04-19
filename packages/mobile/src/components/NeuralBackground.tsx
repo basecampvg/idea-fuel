@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   },
   webview: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: '#1A1A1A',
   },
 });
 
@@ -62,7 +62,7 @@ const NEURAL_HTML = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <style>
 * { margin: 0; padding: 0; }
-html, body { width: 100vw; height: 100vh; overflow: hidden; background: #0A0A0A; }
+html, body { width: 100vw; height: 100vh; overflow: hidden; background: #1A1A1A; }
 canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; }
 </style>
 </head>
@@ -128,7 +128,7 @@ function getSize() {
 const { w: W, h: H } = getSize();
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#0A0A0A');
+scene.background = new THREE.Color('#1A1A1A');
 
 const camera = new THREE.PerspectiveCamera(55, W / H, 0.1, 300);
 camera.position.set(0, 0, 40);

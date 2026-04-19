@@ -242,7 +242,14 @@ Respond ONLY with the JSON object. No markdown code fences, no explanation.`;
     jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
   }
 
-  const parsed = JSON.parse(jsonText) as BusinessPlanProse;
+  let parsed: BusinessPlanProse;
+  try {
+    parsed = JSON.parse(jsonText) as BusinessPlanProse;
+  } catch (err) {
+    throw new Error(
+      `Business plan model returned non-JSON: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
 
   // Validate required fields
   if (!parsed.executiveSummary || !parsed.financialProjections) {

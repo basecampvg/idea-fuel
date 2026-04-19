@@ -65,6 +65,7 @@ target 'IdeaFuel' do
     # ── patch-turbomodule: fix iOS 26 SIGABRT in performVoidMethodInvocation ──
     system('ruby', File.join(__dir__, 'patch-turbomodule.rb'), installer.sandbox.root.to_s)
 
+
     # ── patch-fmt: fix Xcode 26 consteval error in fmt library ──
     system('ruby', File.join(__dir__, 'patch-fmt.rb'), installer.sandbox.root.to_s)
 

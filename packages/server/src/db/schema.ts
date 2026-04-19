@@ -28,6 +28,8 @@ import {
 export const subscriptionTierEnum = pgEnum('SubscriptionTier', ['FREE', 'PRO', 'ENTERPRISE', 'TESTER', 'MOBILE', 'SCALE']);
 export const userRoleEnum = pgEnum('UserRole', ['USER', 'EDITOR', 'ADMIN', 'SUPER_ADMIN']);
 export const projectStatusEnum = pgEnum('ProjectStatus', ['CAPTURED', 'INTERVIEWING', 'RESEARCHING', 'COMPLETE']);
+export const projectModeEnum = pgEnum('ProjectMode', ['LAUNCH', 'EXPAND']);
+export const creditTransactionTypeEnum = pgEnum('CreditTransactionType', ['PURCHASE', 'CONSUME', 'REFUND', 'GRANT']);
 export const interviewModeEnum = pgEnum('InterviewMode', ['SPARK', 'LIGHT', 'IN_DEPTH']);
 export const interviewStatusEnum = pgEnum('InterviewStatus', ['IN_PROGRESS', 'COMPLETE', 'ABANDONED']);
 export const researchStatusEnum = pgEnum('ResearchStatus', ['PENDING', 'IN_PROGRESS', 'COMPLETE', 'FAILED']);
@@ -136,6 +138,8 @@ export const users = pgTable('User', {
   stripeSubscriptionId: text('stripe_subscription_id'),
   stripePriceId: text('stripe_price_id'),
   stripeCurrentPeriodEnd: timestamp('stripe_current_period_end', { precision: 3, mode: 'date' }),
+  // Credit system (pay-as-you-go balance)
+  creditBalance: integer('credit_balance').default(0).notNull(),
   // Mobile quick validation card fields
   freeCardUsed: boolean('free_card_used').default(false).notNull(),
   mobileCardCount: integer('mobile_card_count').default(0).notNull(),
@@ -201,6 +205,9 @@ export const projects = pgTable('Project', {
   description: text().notNull(),
   notes: text(),
   status: projectStatusEnum().default('CAPTURED').notNull(),
+  // Expand Mode (LAUNCH = 0->1 validation, EXPAND = existing business optimization)
+  mode: projectModeEnum().default('LAUNCH').notNull(),
+  businessContext: jsonb('business_context'),
   userId: text().notNull(),
   // Mobile quick validation card fields
   promoted: boolean().default(false).notNull(),
@@ -510,6 +517,8 @@ export const interviews = pgTable('Interview', {
   resumeContext: text(),
   isExpired: boolean().default(false).notNull(),
   researchEngine: text('research_engine').default('OPENAI').notNull(),
+  // Expand Mode interview progress tracking
+  expandTrackProgress: jsonb('expand_track_progress'),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
   projectId: text().notNull(),
@@ -592,6 +601,10 @@ export const research = pgTable('Research', {
   errorPhase: researchPhaseEnum(),
   retryCount: integer().default(0).notNull(),
   notesSnapshot: text(),
+  // Expand Mode research outputs
+  expandResearchData: jsonb('expand_research_data'),
+  expandOpportunityEngine: jsonb('expand_opportunity_engine'),
+  expandMoatAudit: jsonb('expand_moat_audit'),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
   projectId: text().notNull(),
@@ -679,6 +692,31 @@ export const configAuditLogs = pgTable('ConfigAuditLog', {
 ]);
 
 // =============================================================================
+// CREDIT TRANSACTIONS (pay-as-you-go credit ledger)
+// =============================================================================
+
+export const creditTransactions = pgTable('CreditTransaction', {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull(),
+  amount: integer().notNull(),
+  type: creditTransactionTypeEnum().notNull(),
+  operation: text(),
+  relatedEntityId: text('related_entity_id'),
+  stripeSessionId: text('stripe_session_id'),
+  balanceAfter: integer('balance_after').notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('CreditTransaction_createdAt_idx').using('btree', table.createdAt.desc().nullsLast()),
+  index('CreditTransaction_stripeSessionId_idx').using('btree', table.stripeSessionId),
+  index('CreditTransaction_userId_idx').using('btree', table.userId),
+  foreignKey({
+    columns: [table.userId],
+    foreignColumns: [users.id],
+    name: 'CreditTransaction_userId_fkey',
+  }).onUpdate('cascade').onDelete('cascade'),
+]);
+
+// =============================================================================
 // TOKEN USAGE TRACKING
 // =============================================================================
 
@@ -739,7 +777,7 @@ export const blogPosts = pgTable('BlogPost', {
   readingTime: text(),
   wordCount: integer().default(0).notNull(),
   tags: text().array().default(sql`'{}'::text[]`).notNull(),
-  authorId: text().notNull(),
+  authorId: text(),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
 }, (table) => [
@@ -751,7 +789,7 @@ export const blogPosts = pgTable('BlogPost', {
     columns: [table.authorId],
     foreignColumns: [users.id],
     name: 'BlogPost_authorId_fkey',
-  }).onUpdate('cascade').onDelete('restrict'),
+  }).onUpdate('cascade').onDelete('set null'),
 ]);
 
 // =============================================================================

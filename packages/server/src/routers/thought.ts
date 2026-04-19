@@ -1255,6 +1255,7 @@ export const thoughtRouter = router({
     // We need the type of each thought and its connections
     const thoughtTypeMap = new Map<string, string>();
     for (const t of eligibleThoughts) {
+      if (t.thoughtType == null) continue;
       thoughtTypeMap.set(t.id, t.thoughtType);
     }
 
@@ -1291,9 +1292,11 @@ export const thoughtRouter = router({
       diversityMap.set(sourceId, current);
     };
     for (const row of connectedTypesA) {
+      if (row.connectedType == null) continue;
       processDiversityRow(row.sourceId, row.connectedType);
     }
     for (const row of connectedTypesB) {
+      if (row.connectedType == null) continue;
       processDiversityRow(row.sourceId, row.connectedType);
     }
 

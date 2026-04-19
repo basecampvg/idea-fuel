@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, TouchableOpacity, Linking, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Linking, StyleSheet, Image } from 'react-native';
 import { Tabs, Redirect, useRouter } from 'expo-router';
 import { Mic, Vault, Lightbulb, ArrowUpRight, X, Pencil } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -79,7 +79,9 @@ const headerTitle = () => (
 function AvatarButton() {
   const router = useRouter();
   const { user } = useAuth();
+  const [imageFailed, setImageFailed] = useState(false);
   const initial = (user?.name ?? user?.email ?? '?')[0].toUpperCase();
+  const showImage = !!user?.image && !imageFailed;
 
   return (
     <TouchableOpacity
@@ -87,7 +89,15 @@ function AvatarButton() {
       style={headerStyles.avatar}
       activeOpacity={0.7}
     >
-      <Text style={headerStyles.avatarText}>{initial}</Text>
+      {showImage ? (
+        <Image
+          source={{ uri: user!.image! }}
+          style={headerStyles.avatarImage}
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <Text style={headerStyles.avatarText}>{initial}</Text>
+      )}
     </TouchableOpacity>
   );
 }
@@ -164,14 +174,7 @@ export default function TabsLayout() {
       />
       <Tabs.Screen
         name="capture"
-        options={{
-          title: 'Capture',
-          headerTransparent: true,
-          headerStyle: { backgroundColor: 'transparent' },
-          headerBackground: () => (
-            <BlurView intensity={40} tint="dark" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(10,10,10,0.92)' }]} />
-          ),
-        }}
+        options={{ title: 'Capture' }}
       />
       <Tabs.Screen
         name="sketch"
@@ -235,6 +238,12 @@ const headerStyles = StyleSheet.create({
     backgroundColor: colors.brand,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
+    overflow: 'hidden' as const,
+  },
+  avatarImage: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
   },
   avatarText: {
     color: '#FFFFFF',

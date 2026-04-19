@@ -26,6 +26,13 @@ export async function classifyThought(content: string): Promise<ThoughtClassific
   });
 
   const text = response.content[0].type === 'text' ? response.content[0].text : '';
-  const parsed = JSON.parse(text);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch (err) {
+    throw new Error(
+      `Thought classifier returned non-JSON: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
   return thoughtClassificationSchema.parse(parsed);
 }

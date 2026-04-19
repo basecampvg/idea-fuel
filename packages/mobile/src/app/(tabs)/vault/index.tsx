@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -31,6 +31,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { triggerHaptic } from '../../../components/ui/Button';
 import { BottomSheet } from '../../../components/ui/BottomSheet';
+import { Popover, type AnchorRect } from '../../../components/ui/PopoverMenu';
 import { useShowHelpIcons } from '../../../hooks/useShowHelpIcons';
 import { trpc } from '../../../lib/trpc';
 import { colors, fonts } from '../../../lib/theme';
@@ -129,6 +130,17 @@ export default function VaultScreen() {
   const [filterVerdict, setFilterVerdict] = useState<'all' | 'proceed' | 'watchlist' | 'drop'>('all');
 
   const hasActiveFilters = filterStatus !== 'all' || filterVerdict !== 'all';
+
+  // Pre-measure the filter trigger so the popover can anchor synchronously.
+  const filterAnchorRef = useRef<View>(null);
+  const [filterAnchor, setFilterAnchor] = useState<AnchorRect | null>(null);
+  const measureFilterAnchor = useCallback(() => {
+    filterAnchorRef.current?.measureInWindow((x, y, width, height) => {
+      if (typeof x === 'number' && width > 0) {
+        setFilterAnchor({ x, y, width, height });
+      }
+    });
+  }, []);
 
   const { data, isLoading, refetch } = trpc.project.list.useQuery({});
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
@@ -414,12 +426,18 @@ export default function VaultScreen() {
             clearButtonMode="while-editing"
           />
         </View>
-        <TouchableOpacity
-          style={[styles.filterButton, hasActiveFilters && styles.filterButtonActive]}
-          onPress={() => setShowFilters(true)}
+        <View
+          ref={filterAnchorRef}
+          collapsable={false}
+          onLayout={measureFilterAnchor}
         >
-          <SlidersHorizontal size={18} color={hasActiveFilters ? colors.brand : colors.mutedDim} />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterButton, hasActiveFilters && styles.filterButtonActive]}
+            onPress={() => setShowFilters(true)}
+          >
+            <SlidersHorizontal size={18} color={hasActiveFilters ? colors.brand : colors.mutedDim} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* List */}
@@ -470,11 +488,13 @@ export default function VaultScreen() {
         </View>
       </BottomSheet>
 
-      {/* Filter Overlay */}
-      <BottomSheet
+      {/* Filter Popover */}
+      <Popover
         visible={showFilters}
         onClose={() => setShowFilters(false)}
-        title="Filter"
+        anchor={filterAnchor}
+        width={300}
+        contentStyle={styles.filterPopoverContent}
       >
         {/* Status Section */}
         <Text style={styles.filterSectionLabel}>Status</Text>
@@ -523,7 +543,7 @@ export default function VaultScreen() {
             <Text style={styles.filterApplyText}>View</Text>
           </TouchableOpacity>
         </View>
-      </BottomSheet>
+      </Popover>
     </View>
   );
 }
@@ -692,7 +712,7 @@ const styles = StyleSheet.create({
   },
   statPillValue: {
     fontSize: 15,
-    ...fonts.mono.medium,
+    ...fonts.text.medium,
     color: colors.foreground,
   },
   cardFooter: {
@@ -764,21 +784,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   // ── Filter content ──
+  filterPopoverContent: {
+    padding: 16,
+  },
   filterSectionLabel: {
-    fontSize: 14,
-    ...fonts.outfit.medium,
-    color: colors.muted,
-    marginBottom: 12,
+    fontSize: 12,
+    ...fonts.text.semiBold,
+    color: colors.mutedDim,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 10,
   },
   filterChipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 24,
+    gap: 8,
+    marginBottom: 16,
   },
   filterChip: {
-    paddingHorizontal: 18,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 99,
     backgroundColor: colors.surface,
     borderWidth: 1,
@@ -789,8 +814,8 @@ const styles = StyleSheet.create({
     borderColor: colors.foreground,
   },
   filterChipText: {
-    fontSize: 14,
-    ...fonts.geist.medium,
+    fontSize: 13,
+    ...fonts.text.medium,
     color: colors.muted,
   },
   filterChipTextActive: {
@@ -803,26 +828,26 @@ const styles = StyleSheet.create({
   },
   filterResetButton: {
     flex: 1,
-    paddingVertical: 16,
+    paddingVertical: 11,
     borderRadius: 99,
     backgroundColor: colors.surface,
     alignItems: 'center',
   },
   filterResetText: {
-    fontSize: 16,
-    ...fonts.geist.medium,
+    fontSize: 14,
+    ...fonts.text.medium,
     color: colors.muted,
   },
   filterApplyButton: {
     flex: 1,
-    paddingVertical: 16,
+    paddingVertical: 11,
     borderRadius: 99,
     backgroundColor: colors.foreground,
     alignItems: 'center',
   },
   filterApplyText: {
-    fontSize: 16,
-    ...fonts.geist.medium,
+    fontSize: 14,
+    ...fonts.text.medium,
     color: colors.background,
   },
 });

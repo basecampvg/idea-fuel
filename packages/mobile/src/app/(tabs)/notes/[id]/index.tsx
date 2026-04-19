@@ -11,21 +11,20 @@ import {
   ScrollView,
   Share,
   TextInput,
-  Keyboard,
 } from 'react-native';
 import {
   CloudUpload,
   CheckCircle,
   AlertCircle,
   ChevronLeft,
-  ChevronDown,
   Rocket,
   MoreHorizontal,
 } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
+import Markdown from 'react-native-markdown-display';
 import { Button, triggerHaptic } from '../../../../components/ui/Button';
 import { BottomSheet } from '../../../../components/ui/BottomSheet';
-import { MarkdownEditor, EditorToolbar, type MarkdownEditorRef } from '../../../../components/editor/MarkdownEditor';
+import { BodyEditorSheet } from '../../../../components/editor/BodyEditorSheet';
 import { ThumbnailStrip, type LocalAttachment } from '../../../../components/ThumbnailStrip';
 import { ClusterPicker } from '../../../../components/ClusterPicker';
 import { ThoughtPicker } from '../../../../components/ThoughtPicker';
@@ -42,6 +41,20 @@ import { useNoteAutoSave, type SaveStatus } from '../../../../hooks/useNoteAutoS
 import { trpc } from '../../../../lib/trpc';
 import { useToast } from '../../../../contexts/ToastContext';
 import { colors, fonts } from '../../../../lib/theme';
+import { healTaskLists } from '../../../../components/editor/MarkdownEditor';
+
+// react-native-markdown-display uses markdown-it without the task-lists plugin,
+// so GFM checkboxes (`- [ ]`) render as literal `[ ]` text. Map to bare unicode
+// glyphs (no bullet prefix) so the preview shows clean checkboxes. The heal
+// pass is shared with markdownToHtml via healTaskLists to prevent drift.
+function renderableBody(md: string): string {
+  // Drop the `- ` bullet so checkbox lines aren't rendered as bullet-list
+  // items (user doesn't want the dot). Lookahead for [ \t]|$ keeps us from
+  // consuming the newline, and $ handles empty-body checkboxes.
+  return healTaskLists(md)
+    .replace(/^(\s*)-\s*\[[xX]\](?=[ \t]|$)/gm, '$1☑')
+    .replace(/^(\s*)-\s*\[ \](?=[ \t]|$)/gm, '$1☐');
+}
 
 // Lazy-load expo-image-picker — has native code that may not be in every build
 let ImagePicker: typeof import('expo-image-picker') | null = null;
@@ -85,10 +98,27 @@ export default function NoteEditorScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const { showToast } = useToast();
-  const editorRef = useRef<MarkdownEditorRef>(null);
   const [initialLoaded, setInitialLoaded] = useState(false);
   const [showPromotedSheet, setShowPromotedSheet] = useState(false);
   const [showOverflow, setShowOverflow] = useState(false);
+  const overflowAnchorRef = useRef<View>(null);
+  const [overflowAnchor, setOverflowAnchor] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
+
+  // Pre-measure the trigger on mount / any layout change. By the time the
+  // user taps, the position is already in state, so opening the menu is
+  // synchronous — no coupling between "open menu" and "measurement fired".
+  const measureOverflowAnchor = useCallback(() => {
+    overflowAnchorRef.current?.measureInWindow((x, y, width, height) => {
+      if (typeof x === 'number' && width > 0) {
+        setOverflowAnchor({ x, y, width, height });
+      }
+    });
+  }, []);
   const [showClusterPicker, setShowClusterPicker] = useState(false);
   const [showThoughtPicker, setShowThoughtPicker] = useState(false);
   // Pending modal to open once the overflow sheet has fully dismissed. iOS
@@ -96,8 +126,8 @@ export default function NoteEditorScreen() {
   // native teardown, so we gate opening until the BottomSheet is gone.
   const pendingOverflowAction = useRef<'cluster' | null>(null);
   const [titleText, setTitleText] = useState('');
-  const [editorBridge, setEditorBridge] = useState<any>(null);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [bodyText, setBodyText] = useState('');
+  const [showBodyEditor, setShowBodyEditor] = useState(false);
   const titleDirty = useRef(false);
   const contentLengthRef = useRef(0);
 
@@ -277,6 +307,9 @@ export default function NoteEditorScreen() {
 
   // ── Auto-save hook ──
 
+  const bodyTextRef = useRef('');
+  useEffect(() => { bodyTextRef.current = bodyText; }, [bodyText]);
+
   const {
     saveStatus,
     markDirty,
@@ -284,10 +317,7 @@ export default function NoteEditorScreen() {
     setInitialContent,
   } = useNoteAutoSave({
     noteId: id!,
-    getContent: async () => {
-      if (!editorRef.current) return '';
-      return await editorRef.current.getMarkdown();
-    },
+    getContent: () => bodyTextRef.current,
     debounceMs: 1500,
     maxIntervalMs: 30000,
   });
@@ -297,14 +327,9 @@ export default function NoteEditorScreen() {
     if (note && !initialLoaded) {
       setInitialContent(note.content ?? '');
       setTitleText(note.title ?? '');
+      setBodyText(note.content ?? '');
       contentLengthRef.current = (note.content ?? '').length;
       setInitialLoaded(true);
-      // Grab editor bridge for external toolbar after a tick
-      setTimeout(() => {
-        if (editorRef.current) {
-          setEditorBridge(editorRef.current.getEditorBridge());
-        }
-      }, 100);
     }
   }, [note, initialLoaded, setInitialContent]);
 
@@ -315,15 +340,6 @@ export default function NoteEditorScreen() {
     });
     return unsubscribe;
   }, [navigation, flush]);
-
-  // Track keyboard visibility
-  useEffect(() => {
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-    const showSub = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
-    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
-    return () => { showSub.remove(); hideSub.remove(); };
-  }, []);
 
   // Process pending overflow-menu actions once the BottomSheet has closed.
   // Waiting on `showOverflow === false` alone isn't enough — iOS needs a
@@ -363,12 +379,20 @@ export default function NoteEditorScreen() {
 
   const handleBack = useCallback(() => {
     flush();
-    if (fromCluster || fromSandbox) {
-      router.navigate(`/(tabs)/thoughts/cluster/${fromCluster || fromSandbox}` as any);
-    } else {
+    // Natural pop preserves the real stack (e.g. cluster → thought → back
+    // returns to the same cluster screen, not a freshly-pushed duplicate).
+    if (navigation.canGoBack()) {
       router.back();
+      return;
     }
-  }, [flush, fromCluster, fromSandbox, router]);
+    // Deep-link fallback: no history means we landed here directly.
+    const clusterId = fromCluster || fromSandbox;
+    if (clusterId) {
+      router.navigate(`/(tabs)/thoughts/cluster/${clusterId}` as any);
+    } else {
+      router.navigate('/(tabs)/thoughts' as any);
+    }
+  }, [flush, fromCluster, fromSandbox, router, navigation]);
 
   const handleDelete = useCallback(() => {
     Alert.alert(
@@ -573,12 +597,18 @@ export default function NoteEditorScreen() {
             <ChevronLeft size={24} color={colors.foreground} />
           </TouchableOpacity>
           <SaveIndicator status={saveStatus} />
-          <TouchableOpacity
-            onPress={() => setShowOverflow(true)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          <View
+            ref={overflowAnchorRef}
+            collapsable={false}
+            onLayout={measureOverflowAnchor}
           >
-            <MoreHorizontal size={24} color={colors.foreground} />
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setShowOverflow(true)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MoreHorizontal size={24} color={colors.foreground} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView
@@ -625,16 +655,24 @@ export default function NoteEditorScreen() {
             maxLength={200}
           />
 
-          {/* Editor — tentap dynamicHeight sizes the WebView to content */}
+          {/* Body — tap to open the dedicated editor sheet. Editing inline
+              caused keyboard/toolbar glitches (toolbar popped in/out, ScrollView
+              ancestor raced with the keyboard); Linear-style slide-up modal
+              keeps the editor isolated. */}
           {initialLoaded && (
-            <View style={styles.editorContainer}>
-              <MarkdownEditor
-                ref={editorRef}
-                initialContent={note.content ?? ''}
-                placeholder="Dump your thoughts here..."
-                onChange={handleEditorChange}
-              />
-            </View>
+            <TouchableOpacity
+              style={styles.bodyPreview}
+              onPress={() => setShowBodyEditor(true)}
+              activeOpacity={0.7}
+            >
+              {bodyText ? (
+                <Markdown style={markdownStyles}>
+                  {renderableBody(bodyText)}
+                </Markdown>
+              ) : (
+                <Text style={styles.bodyPreviewPlaceholder}>Dump your thoughts here...</Text>
+              )}
+            </TouchableOpacity>
           )}
 
           {/* Attachments */}
@@ -700,33 +738,27 @@ export default function NoteEditorScreen() {
           </View>
         </ScrollView>
 
-        {/* Toolbar — pinned above keyboard, only visible when keyboard is open */}
-        {editorBridge && keyboardVisible && (
-          <View style={styles.toolbarContainer}>
-            <View style={styles.toolbarRow}>
-              <View style={{ flex: 1 }}>
-                <EditorToolbar editor={editorBridge} />
-              </View>
-              <TouchableOpacity
-                style={styles.dismissButton}
-                onPress={() => {
-                  editorBridge.blur();
-                  Keyboard.dismiss();
-                }}
-                activeOpacity={0.6}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <ChevronDown size={20} color={colors.muted} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+
       </KeyboardAvoidingView>
+
+      {/* Dedicated body editor (slides up over the page) */}
+      <BodyEditorSheet
+        visible={showBodyEditor}
+        initialValue={bodyText}
+        title="Edit note"
+        placeholder="Dump your thoughts here..."
+        onClose={() => setShowBodyEditor(false)}
+        onSave={(value) => {
+          setBodyText(value);
+          handleEditorChange();
+        }}
+      />
 
       {/* Overflow Menu */}
       <OverflowMenu
         visible={showOverflow}
         onClose={() => setShowOverflow(false)}
+        anchor={overflowAnchor}
         onRefine={() => refineMutation.mutate({ id: id! })}
         onAddToCluster={() => {
           pendingOverflowAction.current = 'cluster';
@@ -876,31 +908,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 8,
   },
-  editorContainer: {
-    // 4px + the editor WebView's own 16px body padding = 20px, matching
-    // the rest of the page's horizontal inset.
-    paddingHorizontal: 4,
-    // Height set dynamically based on content line count
+  bodyPreview: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 16,
+    minHeight: 140,
   },
-  toolbarContainer: {
-    paddingHorizontal: 8,
-    paddingBottom: 4,
-  },
-  toolbarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dismissButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#2D2B28',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 4,
-    // Matches toolbarBody's marginBottom so both shift up the same amount
-    // relative to their shared flex row, keeping them visually centered.
-    marginBottom: 8,
+  bodyPreviewPlaceholder: {
+    fontSize: 16,
+    ...fonts.geist.regular,
+    color: colors.mutedDim,
+    lineHeight: 24,
   },
   section: {
     paddingHorizontal: 20,
@@ -947,5 +965,86 @@ const styles = StyleSheet.create({
   promotedButton: {
     width: '100%',
     marginTop: 8,
+  },
+});
+
+const markdownStyles = StyleSheet.create({
+  body: {
+    fontSize: 16,
+    ...fonts.geist.regular,
+    color: colors.foreground,
+    lineHeight: 24,
+  },
+  heading1: {
+    fontSize: 24,
+    ...fonts.outfit.bold,
+    color: colors.foreground,
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  heading2: {
+    fontSize: 20,
+    ...fonts.outfit.bold,
+    color: colors.foreground,
+    marginTop: 10,
+    marginBottom: 6,
+  },
+  heading3: {
+    fontSize: 18,
+    ...fonts.outfit.semiBold,
+    color: colors.foreground,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  strong: {
+    ...fonts.outfit.bold,
+    color: colors.foreground,
+  },
+  em: {
+    fontStyle: 'italic',
+    color: colors.foreground,
+  },
+  link: {
+    color: colors.brand,
+    textDecorationLine: 'underline',
+  },
+  bullet_list: { marginVertical: 4 },
+  ordered_list: { marginVertical: 4 },
+  list_item: { marginVertical: 2 },
+  code_inline: {
+    backgroundColor: '#1A1816',
+    color: colors.foreground,
+    paddingHorizontal: 4,
+    borderRadius: 4,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 14,
+  },
+  code_block: {
+    backgroundColor: '#1A1816',
+    color: colors.foreground,
+    padding: 10,
+    borderRadius: 8,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 14,
+  },
+  fence: {
+    backgroundColor: '#1A1816',
+    color: colors.foreground,
+    padding: 10,
+    borderRadius: 8,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 14,
+  },
+  blockquote: {
+    borderLeftWidth: 3,
+    borderLeftColor: colors.brand,
+    paddingLeft: 10,
+    marginVertical: 6,
+    color: colors.muted,
+  },
+  hr: {
+    backgroundColor: '#383634',
+    height: 1,
+    marginVertical: 12,
   },
 });

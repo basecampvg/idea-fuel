@@ -2,6 +2,7 @@ import type { NextAuthConfig } from 'next-auth';
 import Google from 'next-auth/providers/google';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { db, schema } from '@forge/server';
+import { withHashedSessions } from './hashed-adapter';
 
 /**
  * Resolve the cookie domain for cross-subdomain sessions.
@@ -25,12 +26,14 @@ export const authConfig: NextAuthConfig = {
   // Our DB uses `id` as PK on Session/Account rather than
   // the adapter's default composite PKs — cast needed for type compatibility.
   // Runtime behavior is identical since the adapter queries by sessionToken/provider.
-  adapter: DrizzleAdapter(db, {
-    usersTable: schema.users,
-    accountsTable: schema.accounts,
-    sessionsTable: schema.sessions as never,
-    verificationTokensTable: schema.verificationTokens,
-  }),
+  adapter: withHashedSessions(
+    DrizzleAdapter(db, {
+      usersTable: schema.users,
+      accountsTable: schema.accounts,
+      sessionsTable: schema.sessions as never,
+      verificationTokensTable: schema.verificationTokens,
+    }),
+  ),
 
   providers: [
     Google({

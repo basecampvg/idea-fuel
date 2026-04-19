@@ -6,12 +6,12 @@ module.exports = {
     extend: {
       colors: {
         // Idea Fuel Design System - Dark Theme
-        background: '#0A0A0A',
+        background: '#1A1A1A',
         foreground: '#E8E4DC',
 
         // Card surfaces
         card: {
-          DEFAULT: '#111111',
+          DEFAULT: '#242424',
           foreground: '#E8E4DC',
         },
 
@@ -35,12 +35,12 @@ module.exports = {
 
         // Muted colors
         muted: {
-          DEFAULT: '#1A1A1A',
+          DEFAULT: '#2A2A2A',
           foreground: '#8A8680',
         },
 
         // Borders
-        border: '#222222',
+        border: '#333333',
 
         // Status colors
         success: '#22C55E',

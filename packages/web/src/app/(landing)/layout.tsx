@@ -81,13 +81,13 @@ export default function LandingLayout({
           </p>
           <div className="flex gap-6">
             <Link
-              href="#"
+              href="/privacy"
               className="text-sm text-[#928e87] transition-colors hover:text-white"
             >
               Privacy
             </Link>
             <Link
-              href="#"
+              href="/terms"
               className="text-sm text-[#928e87] transition-colors hover:text-white"
             >
               Terms
