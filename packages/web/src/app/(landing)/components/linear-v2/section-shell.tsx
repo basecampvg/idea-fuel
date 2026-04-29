@@ -79,7 +79,7 @@ export function SectionShell({
         </summary>
         <div className="pt-2">
           {scienceBody}{' '}
-          <span style={{ color: '#3D3D3B' }}>&mdash; {scienceCitation}</span>
+          <span style={{ color: '#3D3D3B' }}> ({scienceCitation})</span>
         </div>
       </details>
 

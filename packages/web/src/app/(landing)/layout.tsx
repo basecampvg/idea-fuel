@@ -3,7 +3,7 @@ import { SiteHeader } from '@/components/layout/site-header';
 import { SiteFooter } from '@/components/layout/site-footer';
 
 export const metadata: Metadata = {
-  title: 'IdeaFuel — Turn Your Ideas into Validated Businesses',
+  title: 'IdeaFuel: Turn Your Ideas into Validated Businesses',
   description:
     'AI-powered business idea validation. Capture ideas on mobile, let AI research your market, and get a full business plan in days, not months. Built on 100 years of creativity research.',
   metadataBase: new URL('https://ideafuel.ai'),
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     'validate startup idea',
   ],
   openGraph: {
-    title: 'IdeaFuel — Turn Your Ideas into Validated Businesses',
+    title: 'IdeaFuel: Turn Your Ideas into Validated Businesses',
     description:
       'AI-powered business idea validation. Capture ideas on mobile, research your market with AI, and get a validated business plan in days.',
     url: 'https://ideafuel.ai',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'IdeaFuel — Turn Your Ideas into Validated Businesses',
+    title: 'IdeaFuel: Turn Your Ideas into Validated Businesses',
     description:
       'AI-powered business idea validation. Capture ideas on mobile, research your market with AI, and get a validated business plan in days.',
   },

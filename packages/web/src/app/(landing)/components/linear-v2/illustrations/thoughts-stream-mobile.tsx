@@ -23,7 +23,7 @@ type Note = {
 const notes: Note[] = [
   {
     title: 'Voice memos for fly fishing trips',
-    desc: 'What if you could narrate the flies you tied that day, what worked, what didn\'t — geo-tagged.',
+    desc: 'What if you could narrate the flies you tied that day, what worked, what didn\'t. All geo-tagged.',
     time: '2m ago',
     dotColor: '#E32B1A',
     cluster: { name: 'Outdoor SaaS', color: '#E32B1A' },
@@ -39,7 +39,7 @@ const notes: Note[] = [
   },
   {
     title: 'AI for golf course superintendents',
-    desc: 'Soil moisture, weather, mowing schedule — solo operator, $80k/yr, drowning in spreadsheets.',
+    desc: 'Soil moisture, weather, mowing schedule. Solo operator, $80k/yr, drowning in spreadsheets.',
     time: '3h ago',
     dotColor: '#0393F8',
   },

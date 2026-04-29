@@ -74,7 +74,7 @@ export function HeroSection() {
           }}
         >
           Capture raw thoughts by voice or text, let AI cluster and connect them, then crystallize
-          the best ones into validated business concepts &mdash; deep research, business plan, and
+          the best ones into validated business concepts. Deep research, business plan, and
           financial model included.
         </p>
 
