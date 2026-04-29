@@ -831,6 +831,103 @@ p {
   background-clip: text;
 }
 
+/* ===== LINEAR-STYLE LANDING PAGE PRIMITIVES =====
+   Used by the (landing) route components for Linear-quality polish:
+   - illus-container: outer wrapper with mask-image fade-to-black at bottom
+   - illus-panel: rounded-top container with inset border
+   - grain-inner: noise texture overlay
+   - illus-glow: radial light glow with mix-blend-mode lighten
+*/
+
+.illus-container {
+  position: relative;
+  padding: 8px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
+}
+
+.illus-panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+  background: #111111;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.illus-panel .grain-inner {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px;
+}
+
+.illus-glow {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, transparent 50%);
+  mix-blend-mode: lighten;
+}
+
+.illus-glow-tl { top: 0; left: 0; transform: translate(-50%, -50%); }
+.illus-glow-tr { top: 0; right: 0; transform: translate(50%, -50%); }
+.illus-glow-center { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+/* Page-level grain overlay */
+.page-grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px;
+}
+
+/* Hero text blur-in animation */
+@keyframes blurIn {
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+.hero-word {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(10px);
+  transform: translateY(20%);
+  animation: blurIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Logo marquee */
+@keyframes marquee-scroll {
+  to { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  display: flex;
+  gap: 48px;
+  width: max-content;
+  animation: marquee-scroll 35s linear infinite;
+}
+.marquee-track:hover { animation-play-state: paused; }
+
+/* Pulse dot */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.6); }
+}
+.pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
 /* ===== FOCUS STATES ===== */
 
 .focus-ring {
@@ -1070,4 +1167,138 @@ p {
   .font-display {
     font-family: var(--font-display);
   }
+}
+
+/* ===== MEGA MENU (Linear-inspired Radix NavigationMenu) ===== */
+.mega-trigger,
+.mega-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #A8A8A6;
+  background: transparent;
+  border: 0;
+  border-radius: 9999px;
+  cursor: pointer;
+  outline: none;
+  transition: color 160ms ease, background-color 160ms ease;
+  user-select: none;
+}
+.mega-trigger:hover,
+.mega-link:hover,
+.mega-trigger[data-state='open'] {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.04);
+}
+.mega-trigger[data-state='open'] .mega-caret {
+  transform: rotate(180deg);
+}
+.mega-caret {
+  color: currentColor;
+  transition: transform 200ms ease;
+}
+
+/* Content panel — animates slide+fade. Must have intrinsic width so Radix
+   can measure it for the viewport size. */
+.mega-content {
+  width: max-content;
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.mega-content[data-motion='from-start'] {
+  animation-name: mega-slide-in-left;
+}
+.mega-content[data-motion='from-end'] {
+  animation-name: mega-slide-in-right;
+}
+.mega-content[data-motion='to-start'] {
+  animation-name: mega-slide-out-left;
+}
+.mega-content[data-motion='to-end'] {
+  animation-name: mega-slide-out-right;
+}
+
+@keyframes mega-slide-in-left {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes mega-slide-in-right {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes mega-slide-out-left {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-12px); }
+}
+@keyframes mega-slide-out-right {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(12px); }
+}
+
+/* Viewport — the morphing card behind the dropdown contents */
+.mega-viewport {
+  position: relative;
+  margin-top: 8px;
+  width: var(--radix-navigation-menu-viewport-width);
+  height: var(--radix-navigation-menu-viewport-height);
+  background: rgba(10, 10, 10, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.7),
+    0 2px 0 0 rgba(255, 255, 255, 0.02) inset;
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  overflow: hidden;
+  transform-origin: top center;
+  transition:
+    width 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    height 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.mega-viewport[data-state='open'] {
+  animation: mega-viewport-in 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.mega-viewport[data-state='closed'] {
+  animation: mega-viewport-out 160ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+@keyframes mega-viewport-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes mega-viewport-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(-4px) scale(0.98); }
+}
+
+/* Indicator — subtle arrow that follows the active trigger */
+.mega-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: 8px;
+  top: 100%;
+  z-index: 1;
+  overflow: hidden;
+  transition: width 250ms ease, transform 250ms ease;
+}
+.mega-indicator[data-state='hidden'] {
+  opacity: 0;
+}
+.mega-indicator-arrow {
+  position: relative;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  background: rgba(14, 14, 14, 0.92);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  transform: rotate(45deg);
+  border-top-left-radius: 2px;
+}
+
+.perspective-\[2000px\] {
+  perspective: 2000px;
 }
