@@ -25,7 +25,7 @@ export function MobilePageClient() {
           'Voice memos with on-device transcription',
           'One-tap quick notes & sketches',
           'Auto-tagging and capture streaks to build the habit',
-          'Works offline — syncs the second you reconnect',
+          'Works offline. Syncs the second you reconnect.',
         ]}
         illustration={<CaptureThreadIllustration />}
       />
@@ -60,12 +60,12 @@ export function MobilePageClient() {
       <FeatureSection
         eyebrow="04 · Crystallize & Validate"
         title={<>From thought<br />to validated business<br />on the same device.</>}
-        description="A 10-minute Spark interview validates the strongest clusters into a full report — verdict, problem severity, market signal, TAM. Then turn it into a customer interview anyone can fill out, gated however you want."
+        description="A 10-minute Spark interview validates the strongest clusters into a full report: verdict, problem severity, market signal, and TAM. Then turn it into a customer interview anyone can fill out, gated however you want."
         bullets={[
           'Validation report with verdict, severity, market signal, TAM',
           'Talk to customers: AI-generated discovery questions in seconds',
-          'Gated sharing — Public, Password, or NDA',
-          'Deep research, business plan, financial model — all on mobile',
+          'Gated sharing: Public, Password, or NDA',
+          'Deep research, business plan, financial model. All on mobile.',
         ]}
         illustration={<DualPhoneShowcase />}
         reverse
@@ -156,7 +156,7 @@ function Hero() {
           }}
         >
           Most great ideas show up in the car, on the trail, in the shower. We built a mobile app
-          for that exact moment &mdash; and the entire pipeline that comes after it.
+          for that exact moment, and the entire pipeline that comes after it.
         </p>
 
         <div
@@ -236,7 +236,7 @@ function WhyMobile() {
 
         <p className="mb-4 leading-[1.7]" style={{ fontSize: '1.0625rem', color: '#A8A8A6' }}>
           The walk to the coffee shop. The drive home. The five minutes before bed. That&apos;s
-          where the connections happen &mdash; and that&apos;s exactly when desktop tools fail you.
+          where the connections happen, and that&apos;s exactly when desktop tools fail you.
           A keyboard takes too long. A notes app loses the context. By the time you&apos;ve typed
           it, the spark is gone.
         </p>
@@ -263,7 +263,7 @@ function WhyMobile() {
 
         <p className="leading-[1.7]" style={{ fontSize: '1.0625rem', color: '#A8A8A6' }}>
           Capture is just where the pipeline starts. Resurfacing, clustering, crystallizing,
-          validating &mdash; the entire workflow runs on your phone. Catch a thought on a Tuesday
+          validating: the entire workflow runs on your phone. Catch a thought on a Tuesday
           morning, validate the business by Friday afternoon, all from the same device.
         </p>
       </div>

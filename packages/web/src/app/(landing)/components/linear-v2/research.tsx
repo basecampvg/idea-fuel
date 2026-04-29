@@ -24,7 +24,7 @@ const research = [
     author: 'Vandenbroucke & Pearce',
     title: 'PMC: From Ideas to Studies',
     finding:
-      'Systematic thought recording dramatically improves idea quality. "Fringe thoughts" — the offhand observations — produce breakthroughs.',
+      'Systematic thought recording dramatically improves idea quality. "Fringe thoughts," the offhand observations, produce breakthroughs.',
     application:
       'Justifies voice capture, type-tagging, and resurfacing of half-forgotten thoughts.',
   },
@@ -33,7 +33,7 @@ const research = [
     author: 'ACM SIGCHI',
     title: 'Creative Search Processes Study',
     finding:
-      'Creative work has four interconnected, non-linear stages. Process is iterative — thoughts flow backward between stages, not just forward.',
+      'Creative work has four interconnected, non-linear stages. Process is iterative: thoughts flow backward between stages, not just forward.',
     application:
       'Validates non-linear UX. Thoughts can move backward between stages in Cluster.',
   },

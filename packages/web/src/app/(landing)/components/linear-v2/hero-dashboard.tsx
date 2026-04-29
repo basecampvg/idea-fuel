@@ -286,7 +286,7 @@ function ProjectHeader() {
             style={{ color: 'hsl(0, 0%, 91%, 0.8)' }}
           >
             A meal planning app that builds backward from your budget, learns your family&apos;s
-            actual eating patterns, and outputs the grocery list directly &mdash; for busy parents
+            actual eating patterns, and outputs the grocery list directly. For busy parents
             who don&apos;t know how to cook.
           </p>
         </div>
@@ -573,7 +573,7 @@ function AgentInsightsBlock() {
     {
       title: 'Pricing power lives in the budget tier',
       body:
-        'The $9 Pro tier is too cheap relative to the value delivered. Strong willingness to pay $15&ndash;$19 for the family-shared plan based on conversations with parents managing $200&mdash;$300/wk grocery budgets.',
+        'The $9 Pro tier is too cheap relative to the value delivered. Strong willingness to pay $15 to $19 for the family-shared plan based on conversations with parents managing $200 to $300/wk grocery budgets.',
     },
     {
       title: 'Distribution: parenting communities, not app stores',

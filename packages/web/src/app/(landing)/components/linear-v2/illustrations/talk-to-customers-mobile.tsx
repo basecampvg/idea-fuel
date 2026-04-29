@@ -124,7 +124,7 @@ export function TalkToCustomersMobileIllustration({ width }: { width?: number })
             margin: 0,
           }}
         >
-          Biological Age Health Audit &mdash; Customer Discovery
+          Biological Age Health Audit: Customer Discovery
         </h1>
       </div>
 
@@ -161,7 +161,7 @@ export function TalkToCustomersMobileIllustration({ width }: { width?: number })
 
           {/* Question previews */}
           {[
-            'What does your current longevity routine look like &mdash; what do you actually do every week?',
+            'What does your current longevity routine look like? What do you actually do every week?',
             'When you got your last bloodwork or wearable insight, what did you do with the results?',
             'How much have you spent in the last year trying to understand your biological age?',
           ].map((q, i) => (
@@ -193,7 +193,7 @@ export function TalkToCustomersMobileIllustration({ width }: { width?: number })
             </div>
           ))}
           <div style={{ paddingTop: 8 }}>
-            <span style={{ fontSize: 12, color: m.mutedDim }}>+4 more questions &mdash; tap to expand</span>
+            <span style={{ fontSize: 12, color: m.mutedDim }}>+4 more questions, tap to expand</span>
           </div>
         </div>
       </div>

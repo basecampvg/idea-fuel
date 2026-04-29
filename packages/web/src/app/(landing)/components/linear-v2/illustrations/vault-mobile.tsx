@@ -57,7 +57,7 @@ export function VaultMobileIllustration() {
       <div style={{ paddingLeft: 20, paddingRight: 20 }}>
         <ConceptCard
           title="AI ops assistant for golf supers"
-          desc="Soil moisture, weather, mowing — solo $80k/yr ops, drowning in spreadsheets."
+          desc="Soil moisture, weather, mowing. Solo $80k/yr ops, drowning in spreadsheets."
           stats={null}
         />
       </div>

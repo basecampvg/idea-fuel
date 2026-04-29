@@ -15,8 +15,8 @@ export function NarrativeSection() {
           className="mb-5 font-medium leading-[1.35] tracking-[-0.025em] text-white"
           style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)' }}
         >
-          Most tools wait until you have an idea. <em>IdeaFuel helps you find one</em>
-          &mdash; then validates it.
+          Most tools wait until you have an idea. <em>IdeaFuel helps you find one</em>,
+          then validates it.
         </h2>
 
         <p
@@ -25,7 +25,7 @@ export function NarrativeSection() {
         >
           Capture raw thoughts the moment they hit. The app resurfaces them when your subconscious
           has had time to chew. AI clusters scattered notes into themes, surfaces collisions
-          across them, then crystallizes the strongest into a structured business concept &mdash;
+          across them, then crystallizes the strongest into a structured business concept,
           complete with deep research, a business plan, and a financial model.
         </p>
 
@@ -45,7 +45,7 @@ export function NarrativeSection() {
           className="mb-4 leading-[1.7]"
           style={{ fontSize: '1.0625rem', color: '#A8A8A6' }}
         >
-          Every competitor treats ideation as a completed event &mdash; you show up with an idea,
+          Every competitor treats ideation as a completed event. You show up with an idea,
           they help you plan it. IdeaFuel is the only platform that treats ideation as a{' '}
           <strong className="text-white font-medium">
             process that can be engineered, accelerated, and optimized.
@@ -55,8 +55,8 @@ export function NarrativeSection() {
           className="mt-2 text-[12px] italic"
           style={{ color: '#6B6B69' }}
         >
-          Grounded in 100+ years of creativity research &mdash; Wallas (1926), Guilford (1950),
-          ACM SIGCHI (2022), APA Monitor (2022)
+          Grounded in 100+ years of creativity research: Wallas (1926), Guilford (1950),
+          ACM SIGCHI (2022), APA Monitor (2022).
         </p>
       </div>
     </section>

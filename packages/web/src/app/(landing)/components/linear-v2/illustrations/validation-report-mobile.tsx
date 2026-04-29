@@ -270,9 +270,9 @@ export function ValidationReportMobileIllustration({ width }: { width?: number }
                 margin: 0,
               }}
             >
-              Health-conscious professionals in their 40s&ndash;60s seek longevity optimization
+              Health-conscious professionals in their 40s to 60s seek longevity optimization
               but rely on fragmented data from wearables and basic bloodwork. High engagement in
-              biological age test reviews and consumer spending on $99&ndash;$499 kits indicate
+              biological age test reviews and consumer spending on $99 to $499 kits indicate
               active interest.
             </p>
           </div>
@@ -305,7 +305,7 @@ export function ValidationReportMobileIllustration({ width }: { width?: number }
                 margin: 0,
               }}
             >
-              Fresh 2025&ndash;2026 &lsquo;best of&rsquo; lists from Generation Lab, Longevity
+              Fresh 2025 and 2026 &lsquo;best of&rsquo; lists from Generation Lab, Longevity
               Advice, and mindbodygreen&hellip;
             </p>
           </div>
