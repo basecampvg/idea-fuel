@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy — Idea Fuel',
+  title: 'Privacy Policy, Idea Fuel',
   description:
     'How Idea Fuel collects, uses, shares, and protects your data, plus how to exercise your rights.',
 };
@@ -95,18 +95,18 @@ export default function PrivacyPage() {
           only the data needed to do its job.
         </p>
         <ul className="list-disc space-y-2 pl-6">
-          <li><strong>Supabase</strong> (database + storage) — hosts your idea content and account.</li>
-          <li><strong>Vercel</strong> (web hosting) — serves the app and landing site.</li>
-          <li><strong>Railway</strong> (background workers) — runs AI research jobs.</li>
-          <li><strong>Upstash</strong> (Redis) — queue coordination.</li>
-          <li><strong>Stripe</strong> (payments) — web subscription payments.</li>
-          <li><strong>RevenueCat + Apple In-App Purchase</strong> — iOS subscription payments.</li>
-          <li><strong>Google Cloud Console</strong> — OAuth sign-in.</li>
-          <li><strong>Apple</strong> — Sign in with Apple on iOS.</li>
-          <li><strong>Anthropic (Claude), OpenAI (GPT), Google (Gemini), Perplexity</strong> — AI research and writing. Your prompts and any attached content are sent to these providers to generate responses. We do not allow them to train on your data. See each provider&rsquo;s policy for their own retention windows.</li>
-          <li><strong>Brave Search, SerpAPI, DataForSEO</strong> — web search used during AI research.</li>
-          <li><strong>Google Analytics 4, Meta Pixel</strong> — web analytics (consent-gated, web only).</li>
-          <li><strong>Cloudflare Turnstile</strong> — bot protection on public forms.</li>
+          <li><strong>Supabase</strong> (database + storage), hosts your idea content and account.</li>
+          <li><strong>Vercel</strong> (web hosting), serves the app and landing site.</li>
+          <li><strong>Railway</strong> (background workers), runs AI research jobs.</li>
+          <li><strong>Upstash</strong> (Redis), queue coordination.</li>
+          <li><strong>Stripe</strong> (payments), web subscription payments.</li>
+          <li><strong>RevenueCat + Apple In-App Purchase</strong>, iOS subscription payments.</li>
+          <li><strong>Google Cloud Console</strong>, OAuth sign-in.</li>
+          <li><strong>Apple</strong>, Sign in with Apple on iOS.</li>
+          <li><strong>Anthropic (Claude), OpenAI (GPT), Google (Gemini), Perplexity</strong>, AI research and writing. Your prompts and any attached content are sent to these providers to generate responses. We do not allow them to train on your data. See each provider&rsquo;s policy for their own retention windows.</li>
+          <li><strong>Brave Search, SerpAPI, DataForSEO</strong>, web search used during AI research.</li>
+          <li><strong>Google Analytics 4, Meta Pixel</strong>, web analytics (consent-gated, web only).</li>
+          <li><strong>Cloudflare Turnstile</strong>, bot protection on public forms.</li>
         </ul>
         <p>
           We sign data-processing agreements with providers that handle
@@ -130,12 +130,12 @@ export default function PrivacyPage() {
           .
         </p>
         <ul className="list-disc space-y-2 pl-6">
-          <li><strong>Access</strong> — download a copy of your data.</li>
-          <li><strong>Correction</strong> — fix anything inaccurate in your profile.</li>
-          <li><strong>Deletion</strong> — delete your account and all data. Use Settings &rarr; Delete Account in the app. This is permanent.</li>
-          <li><strong>Portability</strong> — receive your data in a structured, machine-readable format (JSON export, coming soon; for now, email us).</li>
-          <li><strong>Objection / restriction</strong> — object to certain uses or ask us to limit processing.</li>
-          <li><strong>Withdrawal of consent</strong> — revoke cookie consent via the banner at any time.</li>
+          <li><strong>Access</strong>, download a copy of your data.</li>
+          <li><strong>Correction</strong>, fix anything inaccurate in your profile.</li>
+          <li><strong>Deletion</strong>, delete your account and all data. Use Settings &rarr; Delete Account in the app. This is permanent.</li>
+          <li><strong>Portability</strong>, receive your data in a structured, machine-readable format (JSON export, coming soon; for now, email us).</li>
+          <li><strong>Objection / restriction</strong>, object to certain uses or ask us to limit processing.</li>
+          <li><strong>Withdrawal of consent</strong>, revoke cookie consent via the banner at any time.</li>
         </ul>
       </section>
 
