@@ -3,7 +3,7 @@ title: "Subscription Plans & Pricing"
 description: "Compare IdeaFuel's FREE, PRO, and ENTERPRISE plans. Understand report quotas, financial model limits, AI quality tiers, and billing details."
 keywords: "IdeaFuel pricing plans, business idea validation pricing, IdeaFuel subscription, IdeaFuel PRO, IdeaFuel ENTERPRISE"
 category: "Plans & Billing"
-og:title: "IdeaFuel Pricing Plans — FREE, PRO & ENTERPRISE Compared"
+og:title: "IdeaFuel Pricing Plans, FREE, PRO & ENTERPRISE Compared"
 og:description: "Find the right IdeaFuel plan for your needs. Compare features, report quotas, financial model limits, and AI quality across all tiers."
 structured_data: "Product"
 canonical: "/docs/user-guide/subscription-plans"
@@ -77,7 +77,7 @@ Your plan determines which AI model powers your analysis:
 
 | Plan | AI Quality | What it means |
 |---|---|---|
-| FREE | Standard | Baseline AI analysis — functional but less nuanced |
+| FREE | Standard | Baseline AI analysis, functional but less nuanced |
 | PRO | Enhanced | More sophisticated reasoning, better market data synthesis, richer competitive analysis |
 | ENTERPRISE | Premium | Highest-quality AI with the deepest analytical capabilities, most current data sources, and most detailed outputs |
 
@@ -93,7 +93,7 @@ Upgrading takes less than a minute and your new quotas are available immediately
 
 1. Click your **profile icon** in the top-right corner.
 2. Select **Subscription** from the dropdown menu.
-3. Choose the plan you want — **PRO** or **ENTERPRISE**.
+3. Choose the plan you want, **PRO** or **ENTERPRISE**.
 4. Click **Upgrade**.
 5. You are redirected to a secure **Stripe checkout** page. Enter your payment details.
 6. Once payment is confirmed, you are redirected back to IdeaFuel with your new plan active.

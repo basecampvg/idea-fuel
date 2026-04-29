@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     template: '%s | Idea Fuel Docs',
   },
   description:
-    'Learn how to validate your business idea with IdeaFuel — AI-powered interviews, market research, financial modeling, and business plan generation.',
+    'Learn how to validate your business idea with IdeaFuel, AI-powered interviews, market research, financial modeling, and business plan generation.',
   openGraph: {
     title: 'IdeaFuel Documentation',
     description:

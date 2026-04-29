@@ -4,7 +4,7 @@ description: "Generate a comprehensive, investor-ready business plan PDF that pu
 keywords: "AI business plan generator, business plan PDF, investor-ready business plan, startup business plan"
 category: "Business Plan"
 og:title: "AI Business Plan Generator | IdeaFuel"
-og:description: "Turn your IdeaFuel research, reports, and financial models into a professional business plan PDF — ready for investors, banks, and accelerators."
+og:description: "Turn your IdeaFuel research, reports, and financial models into a professional business plan PDF, ready for investors, banks, and accelerators."
 structured_data:
   type: "HowTo"
 canonical: "/docs/user-guide/business-plan-pdf"
@@ -12,9 +12,9 @@ canonical: "/docs/user-guide/business-plan-pdf"
 
 # Business Plan PDF
 
-**A startup business plan should include an executive summary, market analysis (TAM/SAM/SOM), competitive landscape, business model, go-to-market strategy, financial projections, team overview, and risk assessment.** IdeaFuel generates all of these sections automatically from your project research, reports, and financial models — producing a 20-40 page investor-ready PDF backed by real market data rather than generic templates.
+**A startup business plan should include an executive summary, market analysis (TAM/SAM/SOM), competitive landscape, business model, go-to-market strategy, financial projections, team overview, and risk assessment.** IdeaFuel generates all of these sections automatically from your project research, reports, and financial models, producing a 20-40 page investor-ready PDF backed by real market data rather than generic templates.
 
-> One click turns weeks of research and analysis into a polished business plan. Every section is backed by the data IdeaFuel gathered for your specific idea — no filler, no fluff.
+> One click turns weeks of research and analysis into a polished business plan. Every section is backed by the data IdeaFuel gathered for your specific idea, no filler, no fluff.
 
 > **Comparing AI plan generators?** See [AI Business Plan Generators Compared](/docs/learn/ai-business-plan-generator) for a side-by-side comparison of IdeaFuel, ChatGPT, LivePlan, and more.
 
@@ -28,7 +28,7 @@ The document is formatted for professional presentation with consistent typograp
 
 Before you can generate a business plan PDF, your project must meet one requirement:
 
-- **Research status must be COMPLETE.** The research phase must be fully finished — all interviews conducted and all research data gathered. You cannot generate a plan from partial research.
+- **Research status must be COMPLETE.** The research phase must be fully finished, all interviews conducted and all research data gathered. You cannot generate a plan from partial research.
 
 > **Tip:** You do not need reports or a financial model to generate a plan, but the document will be significantly richer if you have them. At minimum, complete your research and generate at least one report before creating your PDF.
 
@@ -36,12 +36,12 @@ Before you can generate a business plan PDF, your project must meet one requirem
 
 Choose from **4 cover styles** when generating your plan:
 
-1. **Classic** — Clean, traditional layout with your project name and date. Best for bank loan applications and formal presentations.
-2. **Modern** — Bold typography with accent colors. Well-suited for startup pitch decks and accelerator applications.
-3. **Minimal** — Stripped-down design with plenty of whitespace. Works well when the content should speak for itself.
-4. **Bold** — High-contrast design with strong visual hierarchy. Stands out in a stack of applications.
+1. **Classic**: Clean, traditional layout with your project name and date. Best for bank loan applications and formal presentations.
+2. **Modern**: Bold typography with accent colors. Well-suited for startup pitch decks and accelerator applications.
+3. **Minimal**: Stripped-down design with plenty of whitespace. Works well when the content should speak for itself.
+4. **Bold**: High-contrast design with strong visual hierarchy. Stands out in a stack of applications.
 
-All four styles produce the same content — only the visual presentation differs.
+All four styles produce the same content, only the visual presentation differs.
 
 ## Sections included
 
@@ -53,7 +53,7 @@ Your project name, business tagline, your name, and the generation date. Styled 
 
 ### Executive Summary
 
-A concise overview of the entire plan — the problem, your solution, the market opportunity, your business model, and key financial highlights. This section is generated last (internally) so it can summarize everything that follows.
+A concise overview of the entire plan, the problem, your solution, the market opportunity, your business model, and key financial highlights. This section is generated last (internally) so it can summarize everything that follows.
 
 ### Company Overview
 
@@ -73,7 +73,7 @@ Key competitors, their strengths and weaknesses, your differentiation, and posit
 
 ### Business Model
 
-How you make money — revenue streams, pricing strategy, unit economics, and cost structure. Connects your financial model assumptions to the market context from your reports.
+How you make money, revenue streams, pricing strategy, unit economics, and cost structure. Connects your financial model assumptions to the market context from your reports.
 
 ### Go-to-Market Strategy
 
@@ -81,7 +81,7 @@ Customer acquisition channels, launch strategy, early traction plans, and growth
 
 ### Financial Projections
 
-Revenue forecasts, expense breakdowns, cash flow projections, and key metrics — all pulled directly from your financial model. Includes charts and tables.
+Revenue forecasts, expense breakdowns, cash flow projections, and key metrics, all pulled directly from your financial model. Includes charts and tables.
 
 ### Team
 
@@ -123,8 +123,8 @@ Once generation is complete, you can preview the plan in-browser before download
 
 After generation, you have two options:
 
-- **Download PDF** — Save the file to your device. The filename follows the format `[Project Name] - Business Plan.pdf`.
-- **Copy share link** — Generate a shareable link that allows anyone with the URL to view (but not edit) your business plan. Useful for sending to advisors or co-founders for review.
+- **Download PDF**: Save the file to your device. The filename follows the format `[Project Name] - Business Plan.pdf`.
+- **Copy share link**: Generate a shareable link that allows anyone with the URL to view (but not edit) your business plan. Useful for sending to advisors or co-founders for review.
 
 > **Note:** Share links do not require the viewer to have an IdeaFuel account.
 
@@ -170,7 +170,7 @@ Even if you are not raising money, the plan serves as an internal strategy docum
 
 ## Related docs
 
-- [Reports](/docs/user-guide/reports/) — The reports that feed into your business plan
-- [Financial Modeling](/docs/user-guide/financial-modeling/) — How your projections are built
-- [AI Agent](/docs/user-guide/ai-agent) — Refine your idea before generating the plan
-- [Account Settings](/docs/user-guide/account-settings) — Update your founder profile to improve the Team section
+- [Reports](/docs/user-guide/reports/), The reports that feed into your business plan
+- [Financial Modeling](/docs/user-guide/financial-modeling/), How your projections are built
+- [AI Agent](/docs/user-guide/ai-agent), Refine your idea before generating the plan
+- [Account Settings](/docs/user-guide/account-settings), Update your founder profile to improve the Team section

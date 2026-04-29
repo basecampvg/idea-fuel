@@ -12,9 +12,9 @@ canonical: "/docs/user-guide/financial-modeling/creating-a-model/"
 
 # Creating a Financial Model
 
-**Creating a financial model** in IdeaFuel means defining the key inputs — revenue drivers, cost structure, and growth assumptions — that generate your projected financial statements. The guided wizard walks you through the process regardless of your finance experience.
+**Creating a financial model** in IdeaFuel means defining the key inputs, revenue drivers, cost structure, and growth assumptions, that generate your projected financial statements. The guided wizard walks you through the process regardless of your finance experience.
 
-> "In a nutshell" — Pick a starting point (project or template), choose your knowledge level, answer a handful of questions, and IdeaFuel produces a full five-year forecast you can refine and share.
+> "In a nutshell", Pick a starting point (project or template), choose your knowledge level, answer a handful of questions, and IdeaFuel produces a full five-year forecast you can refine and share.
 
 ## Step-by-Step: Build Your First Model
 
@@ -22,8 +22,8 @@ canonical: "/docs/user-guide/financial-modeling/creating-a-model/"
 
 You have two options:
 
-- **From a project** — Open an existing IdeaFuel project and select **Add Financial Model**. Research data you have already gathered (market size, pricing benchmarks, customer segments) will auto-seed your assumptions.
-- **Standalone** — From the dashboard, click **New Financial Model** and select an industry template.
+- **From a project**: Open an existing IdeaFuel project and select **Add Financial Model**. Research data you have already gathered (market size, pricing benchmarks, customer segments) will auto-seed your assumptions.
+- **Standalone**: From the dashboard, click **New Financial Model** and select an industry template.
 
 IdeaFuel offers 11 industry templates: SaaS, E-commerce, Professional Services, Restaurant/Food, Retail, Construction, Healthcare, Real Estate, Manufacturing, Non-profit, and Freelancer/Solo. Each template pre-configures revenue line items, cost categories, and growth rates typical for that industry.
 
@@ -33,9 +33,9 @@ IdeaFuel offers 11 industry templates: SaaS, E-commerce, Professional Services, 
 
 Choose the level that matches your comfort with financial planning:
 
-- **Beginner** — Roughly 10 guided inputs. IdeaFuel fills remaining assumptions with AI estimates.
-- **Standard** — All common assumptions are visible, each with a plain-language explanation.
-- **Expert** — Full line-item control, including custom formulas and dependency editing.
+- **Beginner**: Roughly 10 guided inputs. IdeaFuel fills remaining assumptions with AI estimates.
+- **Standard**: All common assumptions are visible, each with a plain-language explanation.
+- **Expert**: Full line-item control, including custom formulas and dependency editing.
 
 You can switch levels later without losing any data.
 
@@ -49,13 +49,13 @@ Set the **start date** for your projections. IdeaFuel defaults to the current mo
 
 The wizard presents [assumption categories](/docs/user-guide/financial-modeling/assumptions/) one at a time:
 
-1. **Pricing** — Define your products, price points, and billing frequency.
-2. **Acquisition** — Estimate how you will attract customers and at what cost.
-3. **Retention** — Set churn rates and expansion revenue expectations.
-4. **Market** — Confirm your addressable market size and growth rate.
-5. **Costs** — Enter fixed costs (rent, salaries) and variable costs (COGS, transaction fees).
-6. **Funding** — Specify any investment rounds, loans, or grants.
-7. **Timeline** — Set launch date, hiring milestones, and expansion triggers.
+1. **Pricing**: Define your products, price points, and billing frequency.
+2. **Acquisition**: Estimate how you will attract customers and at what cost.
+3. **Retention**: Set churn rates and expansion revenue expectations.
+4. **Market**: Confirm your addressable market size and growth rate.
+5. **Costs**: Enter fixed costs (rent, salaries) and variable costs (COGS, transaction fees).
+6. **Funding**: Specify any investment rounds, loans, or grants.
+7. **Timeline**: Set launch date, hiring milestones, and expansion triggers.
 
 At each step, IdeaFuel shows contextual tips and industry benchmarks so you can validate your numbers.
 
@@ -67,7 +67,7 @@ If you started from a project, review the assumptions that were pulled from your
 
 ### 6. Generate Your Model
 
-Click **Generate Model**. IdeaFuel calculates your [financial statements](/docs/user-guide/financial-modeling/statements/) — P&L, Cash Flow, and Balance Sheet — and runs a [break-even analysis](/docs/user-guide/financial-modeling/break-even/).
+Click **Generate Model**. IdeaFuel calculates your [financial statements](/docs/user-guide/financial-modeling/statements/), P&L, Cash Flow, and Balance Sheet, and runs a [break-even analysis](/docs/user-guide/financial-modeling/break-even/).
 
 You land on the model dashboard where you can:
 

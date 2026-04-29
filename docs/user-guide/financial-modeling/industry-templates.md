@@ -1,6 +1,6 @@
 ---
 title: "Industry Financial Model Templates"
-description: "Pre-built financial model templates for 11 industries — SaaS, e-commerce, restaurants, and more. Start with expert assumptions and customize to fit your business."
+description: "Pre-built financial model templates for 11 industries, SaaS, e-commerce, restaurants, and more. Start with expert assumptions and customize to fit your business."
 keywords: "industry financial model templates, SaaS financial model, e-commerce financial model, restaurant financial model, business plan templates"
 category: "Financial Modeling"
 og:title: "Industry Financial Model Templates | IdeaFuel"
@@ -12,7 +12,7 @@ canonical: "/docs/user-guide/financial-modeling/industry-templates"
 
 # Industry Financial Model Templates
 
-**Industry financial model templates** are pre-built sets of assumptions, line items, and revenue structures tailored to specific business types. Instead of starting from a blank spreadsheet, you select a template that already speaks your industry's language — then adjust the numbers to match your vision.
+**Industry financial model templates** are pre-built sets of assumptions, line items, and revenue structures tailored to specific business types. Instead of starting from a blank spreadsheet, you select a template that already speaks your industry's language, then adjust the numbers to match your vision.
 
 > Start with proven assumptions for your industry, then make them yours. Templates give you the structure; you supply the strategy.
 
@@ -110,11 +110,11 @@ Once your base case looks right, create alternative scenarios to stress-test you
 
 > **Pro Feature:** FREE plan users get 1 financial model. PRO subscribers ($29/mo) get up to 10 models, and ENTERPRISE subscribers ($99/mo) get up to 50 models across all their projects.
 
-> **Note:** If your business spans multiple industries — say, a SaaS platform for restaurants — pick the template that best matches your revenue model (SaaS in this case) and add relevant line items from the other industry manually.
+> **Note:** If your business spans multiple industries, say, a SaaS platform for restaurants, pick the template that best matches your revenue model (SaaS in this case) and add relevant line items from the other industry manually.
 
 ## Related docs
 
-- [Financial Modeling Overview](/docs/user-guide/financial-modeling/) — How the modeling engine works
-- [AI Agent](/docs/user-guide/ai-agent) — Ask the AI Agent to help refine your assumptions
-- [Reports](/docs/user-guide/reports/) — See how financial projections feed into your reports
-- [Business Plan PDF](/docs/user-guide/business-plan-pdf) — Export your model into a comprehensive business plan
+- [Financial Modeling Overview](/docs/user-guide/financial-modeling/), How the modeling engine works
+- [AI Agent](/docs/user-guide/ai-agent), Ask the AI Agent to help refine your assumptions
+- [Reports](/docs/user-guide/reports/), See how financial projections feed into your reports
+- [Business Plan PDF](/docs/user-guide/business-plan-pdf), Export your model into a comprehensive business plan

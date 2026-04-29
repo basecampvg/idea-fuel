@@ -171,7 +171,7 @@ export default async function BlogPage({
         {featured && (
           <Link href={`/blog/${featured.slug}`} className="group block mb-12">
             <article className="grid md:grid-cols-2 gap-0 rounded-2xl overflow-hidden border border-[#222222] bg-[#1c1b19] transition-all duration-300 hover:border-[#E8513D]/30 hover:shadow-[0_0_60px_-15px_rgba(232,81,61,0.15)]">
-              {/* Cover — no text overlay, info panel handles it */}
+              {/* Cover, no text overlay, info panel handles it */}
               <div className="relative overflow-hidden">
                 {featured.coverImage ? (
                   <img

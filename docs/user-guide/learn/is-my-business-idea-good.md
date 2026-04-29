@@ -33,7 +33,7 @@ Good ideas solve problems people experience regularly and find genuinely painful
 
 ### Signal 2: The market is large enough
 
-A viable business needs enough potential customers to sustain revenue. This does not mean your TAM needs to be billions — many excellent businesses serve niche markets. But you need to quantify it.
+A viable business needs enough potential customers to sustain revenue. This does not mean your TAM needs to be billions, many excellent businesses serve niche markets. But you need to quantify it.
 
 | Market size | Viability | Example |
 |-------------|-----------|---------|
@@ -44,13 +44,13 @@ A viable business needs enough potential customers to sustain revenue. This does
 
 ### Signal 3: You have a defensible difference
 
-A good idea is not just a good product — it is a good product that competitors cannot easily replicate. Your differentiation must create a structural advantage:
+A good idea is not just a good product, it is a good product that competitors cannot easily replicate. Your differentiation must create a structural advantage:
 
-- **Better data or proprietary technology** — something competitors cannot buy off the shelf
-- **Network effects** — the product gets better as more people use it
-- **Switching costs** — once customers adopt, leaving is painful
-- **Distribution advantage** — you have a channel competitors cannot access
-- **Cost structure** — you can deliver the same value at significantly lower cost
+- **Better data or proprietary technology**: something competitors cannot buy off the shelf
+- **Network effects**: the product gets better as more people use it
+- **Switching costs**: once customers adopt, leaving is painful
+- **Distribution advantage**: you have a channel competitors cannot access
+- **Cost structure**: you can deliver the same value at significantly lower cost
 
 **Red flag:** "We will execute better" is not a defensible difference. Neither is "we will have better customer service."
 
@@ -87,16 +87,16 @@ Use this rubric to score your idea across all five signals. Rate each dimension 
 | Timing | No catalyst | Moderate tailwinds | Strong technology or market shift | 10% |
 
 **Score interpretation:**
-- **4.0 - 5.0:** Strong idea — proceed to building an MVP
-- **3.0 - 3.9:** Promising but has gaps — address weak dimensions before building
-- **2.0 - 2.9:** Significant concerns — pivot or shelve unless you can dramatically improve weak areas
-- **Below 2.0:** Do not pursue — fundamental viability problems
+- **4.0 - 5.0:** Strong idea, proceed to building an MVP
+- **3.0 - 3.9:** Promising but has gaps, address weak dimensions before building
+- **2.0 - 2.9:** Significant concerns, pivot or shelve unless you can dramatically improve weak areas
+- **Below 2.0:** Do not pursue, fundamental viability problems
 
 ---
 
 ## How IdeaFuel helps
 
-IdeaFuel evaluates your idea across all five signals automatically. After a structured interview about your concept, it researches market size, analyzes competitors, assesses demand signals, and generates a scored validation report. You get a data-backed assessment of whether your idea is worth pursuing — in under 15 minutes instead of weeks.
+IdeaFuel evaluates your idea across all five signals automatically. After a structured interview about your concept, it researches market size, analyzes competitors, assesses demand signals, and generates a scored validation report. You get a data-backed assessment of whether your idea is worth pursuing, in under 15 minutes instead of weeks.
 
 ---
 
@@ -104,7 +104,7 @@ IdeaFuel evaluates your idea across all five signals automatically. After a stru
 
 ### How do I know if my startup idea is viable?
 
-A viable startup idea meets three criteria: (1) a large enough market with measurable demand, (2) a differentiated solution that competitors cannot easily replicate, and (3) unit economics that work — meaning you can acquire customers for less than they generate in revenue over their lifetime. If any of these three is missing, the idea is not viable at startup scale.
+A viable startup idea meets three criteria: (1) a large enough market with measurable demand, (2) a differentiated solution that competitors cannot easily replicate, and (3) unit economics that work, meaning you can acquire customers for less than they generate in revenue over their lifetime. If any of these three is missing, the idea is not viable at startup scale.
 
 ### Is there a quiz or tool that tells me if my idea is good?
 
@@ -112,7 +112,7 @@ Several tools exist. IdeaFuel is an AI-powered validation platform that scores y
 
 ### What are the most common reasons business ideas fail?
 
-The top five: (1) no market need — 42% of startups fail because nobody wants the product, (2) ran out of cash before finding traction, (3) wrong team for the problem, (4) got outcompeted by a better-funded or faster-executing rival, (5) pricing or cost model was wrong. Most of these are detectable through proper validation before building.
+The top five: (1) no market need, 42% of startups fail because nobody wants the product, (2) ran out of cash before finding traction, (3) wrong team for the problem, (4) got outcompeted by a better-funded or faster-executing rival, (5) pricing or cost model was wrong. Most of these are detectable through proper validation before building.
 
 ### Should I pursue an idea if the market is small?
 
@@ -124,4 +124,4 @@ Validate 3-5 ideas in parallel if possible. Comparing validation scores across m
 
 ### Can a good idea fail and a bad idea succeed?
 
-Yes to both, but the base rates strongly favor validated ideas. Execution matters enormously, but execution on a validated idea outperforms execution on a bad one almost every time. Validation is not a guarantee of success — it is a way to shift the odds dramatically in your favor.
+Yes to both, but the base rates strongly favor validated ideas. Execution matters enormously, but execution on a validated idea outperforms execution on a bad one almost every time. Validation is not a guarantee of success, it is a way to shift the odds dramatically in your favor.

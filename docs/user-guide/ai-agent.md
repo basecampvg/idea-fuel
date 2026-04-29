@@ -1,9 +1,9 @@
 ---
 title: "AI Agent"
-description: "Your per-project AI business idea assistant. Ask research questions, refine your idea, clarify reports, and brainstorm — all grounded in your actual project data."
+description: "Your per-project AI business idea assistant. Ask research questions, refine your idea, clarify reports, and brainstorm, all grounded in your actual project data."
 keywords: "AI business idea assistant, AI research assistant, business idea chatbot, idea validation AI"
 category: "AI Agent"
-og:title: "AI Agent — Your Context-Aware Business Assistant | IdeaFuel"
+og:title: "AI Agent, Your Context-Aware Business Assistant | IdeaFuel"
 og:description: "Chat with an AI that knows your research, reports, financials, and interviews. Get answers grounded in your project data, not generic advice."
 structured_data:
   type: "SoftwareApplication"
@@ -14,7 +14,7 @@ canonical: "/docs/user-guide/ai-agent"
 
 **The AI Agent** is a per-project conversational assistant that has full context on your research, reports, interviews, and financial data. Unlike generic AI chatbots, every answer it gives is grounded in the specific data IdeaFuel has gathered and generated for your project.
 
-> Think of the AI Agent as a co-founder who has read every report, studied every interview transcript, and memorized your financial model — and is always available to talk through your next move.
+> Think of the AI Agent as a co-founder who has read every report, studied every interview transcript, and memorized your financial model, and is always available to talk through your next move.
 
 ## What you can ask
 
@@ -46,7 +46,7 @@ The AI Agent uses retrieval-augmented generation (RAG) over all of your project 
 
 1. **Your question goes in.** You type a question or prompt in the agent chat panel within your project.
 2. **Relevant context gets retrieved.** The system searches across your research results, interview transcripts, generated reports, and financial model data to find the most relevant pieces of information.
-3. **The AI generates a grounded answer.** The language model produces a response that references and builds on your actual project data — not generic internet knowledge.
+3. **The AI generates a grounded answer.** The language model produces a response that references and builds on your actual project data, not generic internet knowledge.
 4. **Sources are cited.** When the agent references specific data, it tells you where that data came from (e.g., "According to your LIGHT report's competitive analysis..." or "Based on your interview responses about pricing...").
 
 > **Note:** The agent only has access to data within the current project. It cannot see other projects in your account or data from other users.
@@ -95,15 +95,15 @@ Instead of "Tell me about my market," try "What's the average customer acquisiti
 
 ### Reference report sections
 
-Point the agent to particular sections of your reports. "In the competitive landscape section of my IN_DEPTH report, you mention a gap in enterprise pricing — can you elaborate on how I could exploit that?" gives the agent a clear anchor point.
+Point the agent to particular sections of your reports. "In the competitive landscape section of my IN_DEPTH report, you mention a gap in enterprise pricing, can you elaborate on how I could exploit that?" gives the agent a clear anchor point.
 
 ### Ask follow-ups
 
-The agent remembers the full conversation within a session. Build on previous answers: "You mentioned three customer segments — which one has the highest willingness to pay based on my interview data?"
+The agent remembers the full conversation within a session. Build on previous answers: "You mentioned three customer segments, which one has the highest willingness to pay based on my interview data?"
 
 ### Challenge assumptions
 
-Push back on the agent's answers. "That churn estimate seems low — what would happen to my unit economics if churn were 2x higher?" The agent will recalculate and adjust its reasoning.
+Push back on the agent's answers. "That churn estimate seems low, what would happen to my unit economics if churn were 2x higher?" The agent will recalculate and adjust its reasoning.
 
 ### Keep questions within scope
 
@@ -121,7 +121,7 @@ When the AI Agent surfaces a useful insight, you can save it directly to your re
 
 ## Related docs
 
-- [Reports](/docs/user-guide/reports/) — Understand the reports the agent draws from
-- [Financial Modeling](/docs/user-guide/financial-modeling/) — Learn about the financial data the agent can reference
-- [Interview Modes](/docs/user-guide/interview-modes) — How interviews feed into the agent's knowledge base
-- [Business Plan PDF](/docs/user-guide/business-plan-pdf) — Generate a full business plan after refining your idea with the agent
+- [Reports](/docs/user-guide/reports/), Understand the reports the agent draws from
+- [Financial Modeling](/docs/user-guide/financial-modeling/), Learn about the financial data the agent can reference
+- [Interview Modes](/docs/user-guide/interview-modes), How interviews feed into the agent's knowledge base
+- [Business Plan PDF](/docs/user-guide/business-plan-pdf), Generate a full business plan after refining your idea with the agent

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service — Idea Fuel',
+  title: 'Terms of Service, Idea Fuel',
   description:
     'The agreement governing your use of Idea Fuel, including acceptable use, billing, and liability.',
 };

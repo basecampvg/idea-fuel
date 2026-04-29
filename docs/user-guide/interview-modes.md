@@ -1,21 +1,21 @@
 ---
-title: "Interview Modes — SPARK, LIGHT & IN_DEPTH"
+title: "Interview Modes, SPARK, LIGHT & IN_DEPTH"
 description: "Choose the right IdeaFuel interview mode to validate your business idea. Compare SPARK, LIGHT, and IN_DEPTH interviews by depth, time, and output."
 keywords: "AI business idea validation tool, idea interview, SPARK mode, LIGHT mode, IN_DEPTH mode, startup validation"
 category: "User Guide"
-og:title: "Interview Modes — SPARK, LIGHT & IN_DEPTH | IdeaFuel"
+og:title: "Interview Modes, SPARK, LIGHT & IN_DEPTH | IdeaFuel"
 og:description: "Pick the right interview depth for your business idea. From a 30-second SPARK to a comprehensive IN_DEPTH session, IdeaFuel meets you where you are."
 structured_data: "HowTo"
 canonical: "/docs/user-guide/interview-modes"
 ---
 
-# Interview Modes — SPARK, LIGHT & IN_DEPTH
+# Interview Modes, SPARK, LIGHT & IN_DEPTH
 
-**The best way to validate a startup idea quickly is through a structured AI interview that extracts the right data points from your concept and feeds them into automated market research.** IdeaFuel offers three interview modes — SPARK (instant, 30 seconds), LIGHT (10 turns, 5-10 minutes), and IN_DEPTH (18+ turns, 20-30 minutes) — each producing progressively deeper validation reports, competitive analysis, and financial projections. Think of it as a structured brainstorming session with an investor who already knows your industry.
+**The best way to validate a startup idea quickly is through a structured AI interview that extracts the right data points from your concept and feeds them into automated market research.** IdeaFuel offers three interview modes, SPARK (instant, 30 seconds), LIGHT (10 turns, 5-10 minutes), and IN_DEPTH (18+ turns, 20-30 minutes), each producing progressively deeper validation reports, competitive analysis, and financial projections. Think of it as a structured brainstorming session with an investor who already knows your industry.
 
-> The interview captures up to 43 data points about your idea — covering everything from the problem you solve to your go-to-market plan — and feeds them directly into the [research engine](/docs/user-guide/research-engine) that scores and analyzes your concept.
+> The interview captures up to 43 data points about your idea, covering everything from the problem you solve to your go-to-market plan, and feeds them directly into the [research engine](/docs/user-guide/research-engine) that scores and analyzes your concept.
 
-> **In a nutshell:** IdeaFuel offers three interview modes — SPARK (instant), LIGHT (10 turns), and IN_DEPTH (18+ turns). The deeper you go, the richer your research results and reports. Choose the mode that matches how much you already know about your idea.
+> **In a nutshell:** IdeaFuel offers three interview modes, SPARK (instant), LIGHT (10 turns), and IN_DEPTH (18+ turns). The deeper you go, the richer your research results and reports. Choose the mode that matches how much you already know about your idea.
 
 ---
 
@@ -29,11 +29,11 @@ If you give vague or generic responses, the AI has less to work with and your [r
 
 ## How does SPARK Mode work?
 
-SPARK is the fastest way to get a read on your idea. You write a short description of your concept and IdeaFuel instantly generates a preliminary analysis — no back-and-forth required.
+SPARK is the fastest way to get a read on your idea. You write a short description of your concept and IdeaFuel instantly generates a preliminary analysis, no back-and-forth required.
 
 **Best for:** Early-stage brainstorming, comparing multiple raw ideas quickly, or getting a gut-check before committing time to a deeper session.
 
-**What you get:** SPARK triggers a streamlined research pipeline that completes in roughly 5 minutes. You receive baseline scores and BASIC-tier reports — enough to tell whether an idea is worth exploring further.
+**What you get:** SPARK triggers a streamlined research pipeline that completes in roughly 5 minutes. You receive baseline scores and BASIC-tier reports, enough to tell whether an idea is worth exploring further.
 
 **Limitations:** Because SPARK relies solely on your initial description, it captures fewer data points than the conversational modes. Your scores and reports will be directional rather than precise. You won't receive insights on differentiation, revenue models, or founder-market fit unless you mention them yourself.
 
@@ -51,20 +51,20 @@ LIGHT Mode is a focused 10-turn conversation. IdeaFuel walks you through 6 scrip
 
 ### What question blocks does LIGHT cover?
 
-1. **Problem & Customer** — What pain point are you solving and for whom?
-2. **Pain Severity** — How badly does the target customer feel this problem today?
-3. **Solution** — What does your product or service actually do?
-4. **Differentiation** — Why would someone choose you over existing alternatives?
-5. **Revenue Model** — How do you plan to make money?
-6. **Go-to-Market** — How will you reach your first customers?
+1. **Problem & Customer**: What pain point are you solving and for whom?
+2. **Pain Severity**: How badly does the target customer feel this problem today?
+3. **Solution**: What does your product or service actually do?
+4. **Differentiation**: Why would someone choose you over existing alternatives?
+5. **Revenue Model**: How do you plan to make money?
+6. **Go-to-Market**: How will you reach your first customers?
 
 After the scripted blocks, the AI may ask up to 4 additional follow-up questions to fill in anything you missed or to probe areas where your answers were vague.
 
 **Best for:** Founders who have a clear concept and want solid validation without a lengthy time commitment. LIGHT hits the sweet spot between speed and depth.
 
-**What you get:** LIGHT triggers the full deep research pipeline (30–60 minutes). You receive detailed scores and access to PRO-tier report sections — significantly richer than SPARK output.
+**What you get:** LIGHT triggers the full deep research pipeline (30–60 minutes). You receive detailed scores and access to PRO-tier report sections, significantly richer than SPARK output.
 
-> **Tip:** If the AI asks a follow-up you aren't sure about, say so honestly. "I haven't figured that out yet" is more useful than a vague guess — it helps IdeaFuel flag that area as a risk in your reports.
+> **Tip:** If the AI asks a follow-up you aren't sure about, say so honestly. "I haven't figured that out yet" is more useful than a vague guess, it helps IdeaFuel flag that area as a risk in your reports.
 
 ### Example
 
@@ -78,18 +78,18 @@ IN_DEPTH Mode is the most comprehensive interview available. It covers 10 script
 
 ### What question blocks does IN_DEPTH cover?
 
-1. **Problem & Customer** — The core pain point and who feels it most acutely.
-2. **Pain Severity** — How the customer currently copes and what that costs them.
-3. **Target Customer** — Demographics, psychographics, and where to find them.
-4. **Solution** — Your product's features, form factor, and delivery method.
-5. **Differentiation** — What sets you apart from direct and indirect competitors.
-6. **Why Now** — Market timing, trends, or catalysts that make this the right moment.
-7. **Revenue Model** — Pricing strategy, unit economics, and monetization approach.
-8. **Go-to-Market** — Channels, partnerships, and launch strategy.
-9. **Validation & Traction** — Any evidence you already have (waitlists, LOIs, prototypes, conversations).
-10. **Risks, Moats & Founder Background** — Biggest threats, defensibility, and why you are the right person to build this.
+1. **Problem & Customer**: The core pain point and who feels it most acutely.
+2. **Pain Severity**: How the customer currently copes and what that costs them.
+3. **Target Customer**: Demographics, psychographics, and where to find them.
+4. **Solution**: Your product's features, form factor, and delivery method.
+5. **Differentiation**: What sets you apart from direct and indirect competitors.
+6. **Why Now**: Market timing, trends, or catalysts that make this the right moment.
+7. **Revenue Model**: Pricing strategy, unit economics, and monetization approach.
+8. **Go-to-Market**: Channels, partnerships, and launch strategy.
+9. **Validation & Traction**: Any evidence you already have (waitlists, LOIs, prototypes, conversations).
+10. **Risks, Moats & Founder Background**: Biggest threats, defensibility, and why you are the right person to build this.
 
-The AI adapts its follow-ups based on confidence scoring — if it detects low confidence in a particular area, it digs deeper. Expect the conversation to feel natural rather than mechanical.
+The AI adapts its follow-ups based on confidence scoring, if it detects low confidence in a particular area, it digs deeper. Expect the conversation to feel natural rather than mechanical.
 
 **Best for:** Founders who are seriously evaluating an idea they plan to pursue. If you are about to invest significant time or money, IN_DEPTH gives you the most defensible data to make that decision.
 
@@ -117,7 +117,7 @@ During the Risks & Moats block, the AI asks: *"What would a well-funded competit
 | **Best for** | Quick gut-checks | Solid validation | Maximum depth |
 | **Subscription required** | Free | Free | Pro or Enterprise |
 
-> **Note:** Research time is in addition to your interview time. After you finish the conversation, the pipeline runs in the background — you can close the tab and come back later.
+> **Note:** Research time is in addition to your interview time. After you finish the conversation, the pipeline runs in the background, you can close the tab and come back later.
 
 ---
 
@@ -127,7 +127,7 @@ The interview is a conversational exchange between you and IdeaFuel's AI. Each q
 
 Behind the scenes, every answer you give is evaluated with a confidence score. Low-confidence answers (vague, off-topic, or contradictory) trigger additional probing. High-confidence answers let the AI advance to the next topic efficiently.
 
-You type your answers in plain language — no forms, no dropdowns, no character limits. Write as much or as little as you want, though more detail generally produces better results.
+You type your answers in plain language, no forms, no dropdowns, no character limits. Write as much or as little as you want, though more detail generally produces better results.
 
 ---
 
@@ -135,9 +135,9 @@ You type your answers in plain language — no forms, no dropdowns, no character
 
 1. **Be specific.** "College students" is okay. "STEM undergrads at mid-size US universities struggling with foundational courses" is much better.
 2. **Use numbers when you can.** "A large market" tells the AI almost nothing. "There are 20 million college students in the US, and 40% report struggling with at least one STEM course" gives it something to verify.
-3. **Admit what you don't know.** Saying "I haven't validated pricing yet" is more useful than guessing "$10/month" — it flags pricing as a risk the research engine should investigate.
+3. **Admit what you don't know.** Saying "I haven't validated pricing yet" is more useful than guessing "$10/month", it flags pricing as a risk the research engine should investigate.
 4. **Describe real conversations.** If you have talked to potential customers, share what they said. Direct quotes and anecdotes produce stronger Customer Profile and Problem Score outputs.
-5. **Think about timing.** The "Why Now" question trips up many founders. Consider what has changed recently — new technology, regulation, cultural shift, pandemic aftereffects — that makes your idea viable today when it wasn't five years ago.
+5. **Think about timing.** The "Why Now" question trips up many founders. Consider what has changed recently, new technology, regulation, cultural shift, pandemic aftereffects, that makes your idea viable today when it wasn't five years ago.
 
 > **Tip:** You can always re-run an interview on the same idea. If your thinking evolves after reading your first set of reports, start a new LIGHT or IN_DEPTH session to capture your updated perspective.
 
@@ -150,6 +150,6 @@ The moment your interview ends, IdeaFuel automatically triggers the appropriate 
 - **SPARK** kicks off the fast pipeline. Expect results in about 5 minutes.
 - **LIGHT and IN_DEPTH** kick off the full deep research pipeline. Expect results in 30–60 minutes.
 
-You do not need to stay on the page. IdeaFuel emails you when your research is complete and your [reports](/docs/user-guide/reports/) are ready. You can also track progress in real time from your dashboard — see [How to track research progress](/docs/user-guide/research-engine#how-can-i-track-research-progress) for details.
+You do not need to stay on the page. IdeaFuel emails you when your research is complete and your [reports](/docs/user-guide/reports/) are ready. You can also track progress in real time from your dashboard, see [How to track research progress](/docs/user-guide/research-engine#how-can-i-track-research-progress) for details.
 
 Once research finishes, your [scores](/docs/user-guide/research-engine#how-do-i-understand-my-scores) and reports are available immediately. Start with the [recommended reading order](/docs/user-guide/reports/#which-reports-should-i-read-first) to get the most value from your results.

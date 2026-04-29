@@ -1,9 +1,9 @@
 ---
 title: "Frequently Asked Questions"
-description: "Answers to common questions about IdeaFuel — getting started, reports, financial modeling, the AI Agent, billing, and technical details."
+description: "Answers to common questions about IdeaFuel, getting started, reports, financial modeling, the AI Agent, billing, and technical details."
 keywords: "IdeaFuel FAQ, IdeaFuel help, IdeaFuel questions, idea validation FAQ"
 category: "Support"
-og:title: "IdeaFuel FAQ — Frequently Asked Questions"
+og:title: "IdeaFuel FAQ, Frequently Asked Questions"
 og:description: "Find answers to the most common questions about IdeaFuel, from getting started to billing and technical details."
 structured_data:
   type: "FAQPage"
@@ -14,7 +14,7 @@ canonical: "/docs/user-guide/faq"
 
 **This FAQ** covers the most common questions IdeaFuel users ask, organized by category. If your question is not answered here, reach out through the in-app support chat or email support@ideafuel.com.
 
-> Quick answers to real questions — from "how long does research take?" to "what happens if I downgrade?" Find what you need by category below.
+> Quick answers to real questions, from "how long does research take?" to "what happens if I downgrade?" Find what you need by category below.
 
 ---
 
@@ -30,9 +30,9 @@ After the interview phase, background research runs automatically and usually co
 
 It depends on how well-formed your idea is:
 
-- **Quick Chat** — Best when you have a clear concept and want fast validation. Gets to the point quickly.
-- **Guided** — Best for most users. Walks you through structured questions that cover all the angles the AI needs for thorough analysis.
-- **Deep Dive** — Best when your idea is complex, spans multiple markets, or you want the richest possible data for your reports.
+- **Quick Chat**: Best when you have a clear concept and want fast validation. Gets to the point quickly.
+- **Guided**: Best for most users. Walks you through structured questions that cover all the angles the AI needs for thorough analysis.
+- **Deep Dive**: Best when your idea is complex, spans multiple markets, or you want the richest possible data for your reports.
 
 See [Interview Modes](/docs/user-guide/interview-modes) for a detailed comparison.
 
@@ -68,15 +68,15 @@ Reports require complete research data to populate every section. The most commo
 
 Report depth depends on your subscription tier:
 
-- **FREE** — No reports included. Upgrade to PRO or ENTERPRISE to generate reports.
-- **PRO ($29/mo)** — Access to SPARK (quick overview), LIGHT (moderate depth), and IN_DEPTH (comprehensive) reports within your monthly limits.
-- **ENTERPRISE ($99/mo)** — Higher limits on all report tiers with premium AI quality for deeper analysis.
+- **FREE**: No reports included. Upgrade to PRO or ENTERPRISE to generate reports.
+- **PRO ($29/mo)**: Access to SPARK (quick overview), LIGHT (moderate depth), and IN_DEPTH (comprehensive) reports within your monthly limits.
+- **ENTERPRISE ($99/mo)**: Higher limits on all report tiers with premium AI quality for deeper analysis.
 
 > **Note:** IN_DEPTH reports use the most quota (1 per month on PRO, 2 on ENTERPRISE) but provide the most comprehensive analysis including detailed competitive research, financial benchmarking, and strategic recommendations.
 
 ### Can I edit or customize reports?
 
-Reports themselves are read-only — you cannot edit the AI-generated content directly. However, you can:
+Reports themselves are read-only, you cannot edit the AI-generated content directly. However, you can:
 
 - **Save AI Agent insights** to any report section, adding your own context and refinements.
 - **Use the AI Agent** to ask follow-up questions about specific report findings.
@@ -103,7 +103,7 @@ Not currently. Financial models in IdeaFuel are forward-looking projection tools
 
 ### What formulas does the Excel export include?
 
-The Excel export preserves all formulas and cell references from your IdeaFuel model. Revenue calculations, expense rollups, cash flow formulas, and summary metrics are all live formulas — not hard-coded values. You can modify assumptions in the exported spreadsheet and watch projections update automatically.
+The Excel export preserves all formulas and cell references from your IdeaFuel model. Revenue calculations, expense rollups, cash flow formulas, and summary metrics are all live formulas, not hard-coded values. You can modify assumptions in the exported spreadsheet and watch projections update automatically.
 
 > **Tip:** The exported Excel file includes a "Model Guide" tab that documents each formula and assumption, making it easy for accountants or advisors to review your work.
 
@@ -202,18 +202,18 @@ For the best experience, use Chrome or Firefox. Internet Explorer is not support
 
 ### Is there a mobile app?
 
-Not yet. IdeaFuel is a web application optimized for desktop and tablet browsers. The interface is responsive and works on mobile devices, but the full experience — especially financial modeling and report review — is best on a larger screen. A dedicated mobile app is on the roadmap.
+Not yet. IdeaFuel is a web application optimized for desktop and tablet browsers. The interface is responsive and works on mobile devices, but the full experience, especially financial modeling and report review, is best on a larger screen. A dedicated mobile app is on the roadmap.
 
 ### How is my data secured?
 
 IdeaFuel takes data security seriously:
 
-- **Encryption in transit** — All connections use TLS 1.3.
-- **Encryption at rest** — All stored data is encrypted with AES-256.
-- **Data isolation** — Each account's data is logically isolated. No cross-account access is possible.
-- **AI provider policies** — AI model providers do not retain your data for training.
-- **Compliance** — SOC 2 Type II certified.
-- **Regular audits** — Independent security audits and penetration testing are conducted regularly.
+- **Encryption in transit**: All connections use TLS 1.3.
+- **Encryption at rest**: All stored data is encrypted with AES-256.
+- **Data isolation**: Each account's data is logically isolated. No cross-account access is possible.
+- **AI provider policies**: AI model providers do not retain your data for training.
+- **Compliance**: SOC 2 Type II certified.
+- **Regular audits**: Independent security audits and penetration testing are conducted regularly.
 
 See [Account Settings > Data & Privacy](/docs/user-guide/account-settings#data--privacy) for more details.
 
@@ -232,12 +232,12 @@ The export is generated within a few minutes and provided as a ZIP file download
 
 ## Related docs
 
-- [Getting Started](/docs/user-guide/getting-started) — Create your first project
-- [Interview Modes](/docs/user-guide/interview-modes) — Choose the right interview approach
-- [Reports](/docs/user-guide/reports/) — Understand report tiers and content
-- [Financial Modeling](/docs/user-guide/financial-modeling/) — Build and customize projections
-- [Industry Templates](/docs/user-guide/financial-modeling/industry-templates) — Pre-built models for 11 industries
-- [AI Agent](/docs/user-guide/ai-agent) — Your context-aware research assistant
-- [Business Plan PDF](/docs/user-guide/business-plan-pdf) — Generate investor-ready documents
-- [Daily Trend Pick](/docs/user-guide/daily-trend-pick) — Discover emerging opportunities
-- [Account Settings](/docs/user-guide/account-settings) — Manage your account
+- [Getting Started](/docs/user-guide/getting-started), Create your first project
+- [Interview Modes](/docs/user-guide/interview-modes), Choose the right interview approach
+- [Reports](/docs/user-guide/reports/), Understand report tiers and content
+- [Financial Modeling](/docs/user-guide/financial-modeling/), Build and customize projections
+- [Industry Templates](/docs/user-guide/financial-modeling/industry-templates), Pre-built models for 11 industries
+- [AI Agent](/docs/user-guide/ai-agent), Your context-aware research assistant
+- [Business Plan PDF](/docs/user-guide/business-plan-pdf), Generate investor-ready documents
+- [Daily Trend Pick](/docs/user-guide/daily-trend-pick), Discover emerging opportunities
+- [Account Settings](/docs/user-guide/account-settings), Manage your account

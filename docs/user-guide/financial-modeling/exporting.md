@@ -14,7 +14,7 @@ canonical: "/docs/user-guide/financial-modeling/exporting/"
 
 **Exporting** lets you download your IdeaFuel financial model as a standalone file you can share with investors, advisors, co-founders, or your accountant. IdeaFuel supports two export formats: Excel and PDF.
 
-> "In a nutshell" — Use Excel when you want an interactive workbook your audience can explore and modify. Use PDF when you need a polished, read-only report for presentations. Both formats include all scenarios and your break-even analysis.
+> "In a nutshell", Use Excel when you want an interactive workbook your audience can explore and modify. Use PDF when you need a polished, read-only report for presentations. Both formats include all scenarios and your break-even analysis.
 
 ## Excel Export
 
@@ -22,10 +22,10 @@ The Excel export produces a professional workbook that goes far beyond a static 
 
 ### What You Get
 
-- **Real formulas** — Every cell contains a live formula, not a hard-coded value. Change an assumption and the entire workbook recalculates, just like it does inside IdeaFuel.
-- **Named ranges** — Key inputs and outputs use descriptive named ranges (e.g., `MonthlyChurnRate`, `TotalRevenue_Y1`) so formulas are easy to read and audit.
-- **Scenario toggle sheets** — A dedicated sheet lets you switch between your base, optimistic, pessimistic, and custom [scenarios](/docs/user-guide/financial-modeling/scenarios/). The financial statements update automatically when you select a different scenario.
-- **Structured tabs** — Separate worksheets for Assumptions, P&L, Cash Flow, Balance Sheet, and Break-Even so everything is organized.
+- **Real formulas**: Every cell contains a live formula, not a hard-coded value. Change an assumption and the entire workbook recalculates, just like it does inside IdeaFuel.
+- **Named ranges**: Key inputs and outputs use descriptive named ranges (e.g., `MonthlyChurnRate`, `TotalRevenue_Y1`) so formulas are easy to read and audit.
+- **Scenario toggle sheets**: A dedicated sheet lets you switch between your base, optimistic, pessimistic, and custom [scenarios](/docs/user-guide/financial-modeling/scenarios/). The financial statements update automatically when you select a different scenario.
+- **Structured tabs**: Separate worksheets for Assumptions, P&L, Cash Flow, Balance Sheet, and Break-Even so everything is organized.
 
 ### How to Export Excel
 
@@ -42,10 +42,10 @@ The PDF export creates a presentation-ready document designed for readability ra
 
 ### What You Get
 
-- **Formatted statements** — Your P&L, Cash Flow, and Balance Sheet rendered in clean, print-friendly tables.
-- **Charts and graphs** — Revenue growth, cash runway, and break-even visualizations embedded directly in the report.
-- **AI narrative summaries** — IdeaFuel's AI writes plain-language analysis of each statement, highlighting key trends, risks, and milestones. This saves you from having to interpret every number for your audience.
-- **Scenario comparison** — A summary page comparing key metrics across all your scenarios.
+- **Formatted statements**: Your P&L, Cash Flow, and Balance Sheet rendered in clean, print-friendly tables.
+- **Charts and graphs**: Revenue growth, cash runway, and break-even visualizations embedded directly in the report.
+- **AI narrative summaries**: IdeaFuel's AI writes plain-language analysis of each statement, highlighting key trends, risks, and milestones. This saves you from having to interpret every number for your audience.
+- **Scenario comparison**: A summary page comparing key metrics across all your scenarios.
 
 ### How to Export PDF
 
@@ -60,11 +60,11 @@ The PDF export creates a presentation-ready document designed for readability ra
 
 | Situation | Recommended Format |
 |---|---|
-| Investor due diligence | Excel — they will want to explore and stress-test |
-| Pitch deck appendix | PDF — clean and self-contained |
-| Board meeting | PDF — easy to present on screen or print |
-| Working with your accountant or CFO | Excel — they can integrate with their own tools |
-| Quick share with a co-founder | Either — PDF for a summary, Excel for collaboration |
+| Investor due diligence | Excel, they will want to explore and stress-test |
+| Pitch deck appendix | PDF, clean and self-contained |
+| Board meeting | PDF, easy to present on screen or print |
+| Working with your accountant or CFO | Excel, they can integrate with their own tools |
+| Quick share with a co-founder | Either, PDF for a summary, Excel for collaboration |
 
 ## Sharing Best Practices
 
