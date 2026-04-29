@@ -1,5 +1,7 @@
 'use client';
 
+import { WaitlistFormHero } from './waitlist-form-hero';
+
 export function FinalCtaSection() {
   return (
     <section className="relative px-6 py-24 text-center">
@@ -31,26 +33,13 @@ export function FinalCtaSection() {
           days, not months.
         </p>
         <div className="mb-4 flex flex-wrap items-center justify-center gap-3">
-          <a
-            href="#"
-            className="inline-flex items-center justify-center rounded-full px-8 py-3.5 text-[15px] font-medium text-white transition-all hover:brightness-[1.15] active:scale-[0.97]"
-            style={{ background: '#E32B1A' }}
-          >
-            Start capturing ideas
-          </a>
+          <WaitlistFormHero />
           <a
             href="#pricing"
-            className="inline-flex items-center justify-center rounded-full border px-8 py-3.5 text-[15px] font-medium text-white transition-all hover:bg-[#222222] active:scale-[0.97]"
+            className="inline-flex h-[52px] items-center justify-center rounded-full border px-7 text-[15px] font-medium text-white transition-all hover:bg-[#222222] active:scale-[0.97]"
             style={{ background: '#1A1A1A', borderColor: 'rgba(255,255,255,0.08)' }}
           >
             See pricing
-          </a>
-          <a
-            href="#"
-            className="inline-flex items-center justify-center rounded-full px-4 py-3.5 text-[15px] font-medium transition-colors"
-            style={{ color: '#A8A8A6' }}
-          >
-            Read the science
           </a>
         </div>
         <p className="text-[12px]" style={{ color: '#3D3D3B' }}>
