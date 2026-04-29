@@ -2,6 +2,7 @@
 
 import { Fragment } from 'react';
 import { HeroDashboard } from './hero-dashboard';
+import { WaitlistFormHero } from './waitlist-form-hero';
 
 const titleWords = ['Stop', 'waiting', 'for', 'lightning.', 'Start', 'building', 'the', 'storm.'];
 
@@ -99,16 +100,10 @@ export function HeroSection() {
             animation: 'blurIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 1s forwards',
           }}
         >
-          <a
-            href="#pricing"
-            className="inline-flex items-center justify-center rounded-full px-8 py-3.5 text-[15px] font-medium text-white transition-all hover:brightness-[1.15] active:scale-[0.97]"
-            style={{ background: '#E32B1A' }}
-          >
-            Start capturing ideas
-          </a>
+          <WaitlistFormHero />
           <a
             href="#capture"
-            className="inline-flex items-center justify-center rounded-full border px-8 py-3.5 text-[15px] font-medium text-white transition-all hover:bg-[#222222] active:scale-[0.97]"
+            className="inline-flex h-[52px] items-center justify-center rounded-full border px-7 text-[15px] font-medium text-white transition-all hover:bg-[#222222] active:scale-[0.97]"
             style={{
               background: '#1A1A1A',
               borderColor: 'rgba(255,255,255,0.08)',
