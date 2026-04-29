@@ -13,7 +13,7 @@ import {
   Switch,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Lock, LogOut, ChevronRight, Crown, Info, Eye } from 'lucide-react-native';
+import { Lock, LogOut, ChevronRight, Crown, Info, Eye, Trash2 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { trpc } from '../../lib/trpc';
 import { useAuth } from '../../contexts/AuthContext';
@@ -89,9 +89,77 @@ export default function SettingsScreen() {
       {
         text: 'Sign Out',
         style: 'destructive',
-        onPress: signOut,
+        onPress: async () => {
+          await signOut();
+          router.replace('/(auth)/signin' as any);
+        },
       },
     ]);
+  };
+
+  const deleteAccount = trpc.user.delete.useMutation({
+    onSuccess: async () => {
+      await signOut();
+    },
+    onError: (err) => {
+      Alert.alert(
+        'Could not delete account',
+        err.message || 'Something went wrong. Please try again or contact support.',
+      );
+    },
+  });
+
+  const handleDeleteAccount = () => {
+    const email = user?.email ?? '';
+
+    // Alert.prompt is iOS-only. On Android, route users to the web settings
+    // page for the typed-email confirmation step. The server-side mutation
+    // is the same.
+    if (Platform.OS !== 'ios') {
+      Alert.alert(
+        'Delete Account',
+        `To delete your account, open app.ideafuel.ai/settings on the web and use the Delete Account button there. (Typed-email confirmation isn't supported in this Android alert.)`,
+        [{ text: 'OK' }],
+      );
+      return;
+    }
+
+    Alert.alert(
+      'Delete Account?',
+      'This permanently removes your projects, ideas, interviews, reports, and billing data. Blog posts you authored stay published anonymously. Any active subscription is canceled. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Continue',
+          style: 'destructive',
+          onPress: () => {
+            Alert.prompt(
+              'Type your email to confirm',
+              `Enter ${email} exactly to delete your account.`,
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete',
+                  style: 'destructive',
+                  onPress: (input?: string) => {
+                    const provided = (input ?? '').trim().toLowerCase();
+                    const expected = email.trim().toLowerCase();
+                    if (provided !== expected) {
+                      Alert.alert('Email did not match. Nothing was deleted.');
+                      return;
+                    }
+                    deleteAccount.mutate({ emailConfirmation: input ?? '' });
+                  },
+                },
+              ],
+              'plain-text',
+              '',
+              'email-address',
+            );
+          },
+        },
+      ],
+    );
   };
 
   if (userLoading) {
@@ -302,6 +370,37 @@ export default function SettingsScreen() {
                 <View style={styles.menuContent}>
                   <Text style={styles.menuTitle}>Sign Out</Text>
                   <Text style={styles.menuSubtitle}>Sign out of your account</Text>
+                </View>
+                <ChevronRight size={20} color={colors.muted} />
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
+
+          {/* Destructive actions live in their own card with a gap above so
+              "Delete Account" isn't one accidental tap away from "Sign Out". */}
+          <View style={{ height: 12 }} />
+
+          <LinearGradient
+            colors={[colors.glassBorderStart, colors.glassBorderEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.gradientBorder}
+          >
+            <View style={styles.card}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={handleDeleteAccount}
+                activeOpacity={0.7}
+                disabled={deleteAccount.isPending}
+              >
+                <View style={[styles.menuIconContainer, { backgroundColor: colors.destructiveMuted }]}>
+                  <Trash2 size={20} color={colors.destructive} />
+                </View>
+                <View style={styles.menuContent}>
+                  <Text style={[styles.menuTitle, { color: colors.destructive }]}>
+                    {deleteAccount.isPending ? 'Deleting…' : 'Delete Account'}
+                  </Text>
+                  <Text style={styles.menuSubtitle}>Permanently remove your account and data</Text>
                 </View>
                 <ChevronRight size={20} color={colors.muted} />
               </TouchableOpacity>

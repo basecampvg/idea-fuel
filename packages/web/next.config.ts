@@ -21,6 +21,16 @@ const nextConfig: NextConfig = {
   },
   // Required for monorepo: tells Next.js to trace files from the monorepo root
   outputFileTracingRoot: path.join(__dirname, '../../'),
+  // Explicitly bundle filesystem data read by the sitemap route at runtime.
+  // Next.js's static tracer can't see dynamic fs.readdirSync calls, so without
+  // this the /sitemap.xml serverless function can't find docs or glossary terms
+  // and silently drops them (leaving only static pages + DB blog posts).
+  outputFileTracingIncludes: {
+    '/sitemap.xml': [
+      '../../docs/user-guide/**/*.md',
+      './src/data/glossary/terms/**/*.json',
+    ],
+  },
   serverExternalPackages: [
     'postgres',
     'drizzle-orm',

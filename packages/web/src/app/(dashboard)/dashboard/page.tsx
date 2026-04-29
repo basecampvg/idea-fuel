@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc/client';
 import { useSubscription } from '@/components/subscription/use-subscription';
 import { LoadingScreen } from '@/components/ui/spinner';
@@ -377,6 +378,7 @@ export default function DashboardPage() {
       router.push(`/projects/${currentProjectId}`);
     } catch (error) {
       console.error('Failed to complete interview:', error);
+      toast.error("Couldn't finish the interview. Try again in a moment.");
     }
   };
 

@@ -125,7 +125,14 @@ export class OpenAIProvider implements AIProvider {
 
     // Parse response
     const content = this.extractResponseContent(response);
-    const rawJson = JSON.parse(content);
+    let rawJson: unknown;
+    try {
+      rawJson = JSON.parse(content);
+    } catch (err) {
+      throw new Error(
+        `OpenAI returned non-JSON with response_format=json_object: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
 
     // Validate with Zod schema
     return schema.parse(rawJson);

@@ -312,11 +312,11 @@ export default function AboutScreen() {
                     </View>
                     <Text style={styles.logCategory}>{entry.category}</Text>
                     <Text style={styles.logMessage} numberOfLines={3}>{entry.message}</Text>
-                    {entry.meta?.stack && (
+                    {entry.meta?.stack ? (
                       <Text style={styles.logStack} numberOfLines={3}>
-                        {String(entry.meta.stack)}
+                        {String(entry.meta.stack ?? '')}
                       </Text>
-                    )}
+                    ) : null}
                   </View>
                 ))
               )}

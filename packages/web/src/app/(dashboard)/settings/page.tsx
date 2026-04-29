@@ -19,8 +19,27 @@ export default function SettingsPage() {
   const { data: session, update: updateSession } = useSession();
   const [name, setName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const { data: user, isLoading: userLoading } = trpc.user.me.useQuery();
+
+  const deleteAccount = trpc.user.delete.useMutation({
+    onSuccess: async () => {
+      // Clear all client state then sign out. The server has already
+      // deleted the session; signOut redirects home.
+      await signOut({ callbackUrl: '/' });
+    },
+    onError: (error) => {
+      setDeleteError(error.message);
+    },
+  });
+
+  const handleDeleteAccount = () => {
+    setDeleteError(null);
+    deleteAccount.mutate({ emailConfirmation: deleteConfirmation });
+  };
 
   // Sync name state when user data loads
   useEffect(() => {
@@ -264,16 +283,83 @@ export default function SettingsPage() {
             </Button>
           </div>
 
-          <div className="flex items-center justify-between rounded-lg border border-destructive/20 bg-destructive/5 p-4">
-            <div>
-              <p className="font-medium text-destructive">Delete Account</p>
-              <p className="text-sm text-destructive/80">
-                Permanently delete your account and all data
-              </p>
-            </div>
-            <Button variant="danger" disabled>
-              Delete (Contact Support)
-            </Button>
+          <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+            {!showDeleteDialog ? (
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-destructive">Delete Account</p>
+                  <p className="text-sm text-destructive/80">
+                    Permanently delete your account and all data
+                  </p>
+                </div>
+                <Button
+                  variant="danger"
+                  onClick={() => {
+                    setDeleteError(null);
+                    setDeleteConfirmation('');
+                    setShowDeleteDialog(true);
+                  }}
+                >
+                  Delete Account
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <p className="font-medium text-destructive">
+                    Are you sure? This cannot be undone.
+                  </p>
+                  <p className="mt-1 text-sm text-destructive/80">
+                    Deleting your account permanently removes your projects,
+                    ideas, interviews, reports, and billing data. Any blog
+                    posts you've authored stay published with the author set
+                    to &ldquo;Deleted user.&rdquo; If you have an active
+                    subscription, it&rsquo;s canceled.
+                  </p>
+                  <p className="mt-2 text-sm text-destructive/80">
+                    Type your email (<span className="font-mono">{user?.email}</span>) to
+                    confirm:
+                  </p>
+                </div>
+                <Input
+                  type="email"
+                  value={deleteConfirmation}
+                  onChange={(e) => setDeleteConfirmation(e.target.value)}
+                  placeholder="your-email@example.com"
+                  autoComplete="off"
+                  disabled={deleteAccount.isPending}
+                />
+                {deleteError && (
+                  <p className="text-sm text-destructive">{deleteError}</p>
+                )}
+                <div className="flex gap-2">
+                  <Button
+                    variant="danger"
+                    onClick={handleDeleteAccount}
+                    disabled={
+                      deleteAccount.isPending ||
+                      deleteConfirmation.trim().toLowerCase() !==
+                        (user?.email ?? '').trim().toLowerCase()
+                    }
+                  >
+                    {deleteAccount.isPending
+                      ? 'Deleting…'
+                      : 'Yes, permanently delete my account'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowDeleteDialog(false);
+                      setDeleteConfirmation('');
+                      setDeleteError(null);
+                    }}
+                    disabled={deleteAccount.isPending}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

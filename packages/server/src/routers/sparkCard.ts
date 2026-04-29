@@ -9,7 +9,7 @@
 
 import { eq, and, sql, gt } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
-import { router, protectedProcedure } from '../trpc';
+import { router, protectedProcedure, aiProcedure } from '../trpc';
 import {
   chatCardSchema,
   validateCardSchema,
@@ -31,7 +31,7 @@ export const sparkCardRouter = router({
    * Turn 0-2: return the corresponding question.
    * Turn 3: return { complete: true } signaling the chat is done.
    */
-  chat: protectedProcedure
+  chat: aiProcedure
     .input(chatCardSchema)
     .mutation(async ({ ctx, input }) => {
       const { projectId, turn } = input;
@@ -88,7 +88,7 @@ export const sparkCardRouter = router({
    *
    * On API failure (steps 4-5): refund the card and throw.
    */
-  validate: protectedProcedure
+  validate: aiProcedure
     .input(validateCardSchema)
     .mutation(async ({ ctx, input }) => {
       const { projectId, chatMessages, isRefine } = input;

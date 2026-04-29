@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, schema } from '@forge/server';
+import { db, schema, hashSessionToken } from '@forge/server';
 import { eq } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
@@ -22,10 +22,11 @@ export async function GET(request: NextRequest) {
     }
 
     const sessionToken = authHeader.replace('Bearer ', '');
+    const hashedToken = hashSessionToken(sessionToken);
 
-    // Find session with user
+    // Find session with user (look up by HMAC hash, not raw token)
     const session = await db.query.sessions.findFirst({
-      where: eq(schema.sessions.sessionToken, sessionToken),
+      where: eq(schema.sessions.sessionToken, hashedToken),
       with: { user: true },
     });
 
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
       // Delete expired session
       await db
         .delete(schema.sessions)
-        .where(eq(schema.sessions.sessionToken, sessionToken));
+        .where(eq(schema.sessions.sessionToken, hashedToken));
 
       return NextResponse.json(
         { error: 'Session expired' },

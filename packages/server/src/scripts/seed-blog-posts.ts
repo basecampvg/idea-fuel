@@ -90,7 +90,7 @@ async function seedPosts(authorId: string) {
 
   const now = new Date();
   let inserted = 0;
-  let skipped = 0;
+  const skipped = 0;
 
   // Spread posts evenly over the last 60 days (oldest first, most recent = today)
   const SPREAD_DAYS = 60;

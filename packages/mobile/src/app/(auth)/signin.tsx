@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Alert, StyleSheet } from 'react-native';
+import { View, Text, Alert, StyleSheet, Platform } from 'react-native';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -17,8 +18,28 @@ import { TypewriterText } from '../../components/TypewriterText';
 import { colors, fonts } from '../../lib/theme';
 
 export default function SignInScreen() {
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, signInWithApple, authError, clearAuthError } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
+
+  // The Google exchange happens in a separate effect in AuthContext, so
+  // its failure can't be caught by `handleGoogleSignIn`. Watch `authError`
+  // and surface it via Alert once it appears.
+  useEffect(() => {
+    if (!authError) return;
+    Alert.alert('Sign In Failed', authError, [
+      { text: 'OK', onPress: clearAuthError },
+    ]);
+    setIsLoading(false);
+  }, [authError, clearAuthError]);
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+    AppleAuthentication.isAvailableAsync()
+      .then(setAppleAvailable)
+      .catch(() => setAppleAvailable(false));
+  }, []);
 
   // Staggered entrance animations
   const logoOpacity = useSharedValue(0);
@@ -68,15 +89,39 @@ export default function SignInScreen() {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
+      clearAuthError();
       await signInWithGoogle();
     } catch (error) {
+      const err = error as { message?: string };
       Alert.alert(
         'Sign In Failed',
-        'Unable to sign in with Google. Please try again.',
+        err?.message || 'Unable to sign in with Google. Please try again.',
         [{ text: 'OK' }]
       );
     } finally {
+      // `signInWithGoogle` resolves as soon as the OAuth browser closes.
+      // The token exchange runs afterward in AuthContext — its result is
+      // surfaced via `authError` (handled by the effect above) or by
+      // `isAuthenticated` flipping true (splash screen redirects).
       setIsLoading(false);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    try {
+      setIsAppleLoading(true);
+      await signInWithApple();
+    } catch (error) {
+      const err = error as { code?: string; message?: string };
+      // User cancelled — no alert needed
+      if (err?.code === 'ERR_REQUEST_CANCELED') return;
+      Alert.alert(
+        'Sign In Failed',
+        err?.message || 'Unable to sign in with Apple. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsAppleLoading(false);
     }
   };
 
@@ -103,9 +148,24 @@ export default function SignInScreen() {
 
         {/* Bottom buttons */}
         <Animated.View style={[styles.bottomSection, buttonsStyle]}>
+          {appleAvailable && (
+            <AppleAuthentication.AppleAuthenticationButton
+              buttonType={
+                AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
+              }
+              buttonStyle={
+                AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
+              }
+              cornerRadius={999}
+              style={styles.appleButton}
+              onPress={handleAppleSignIn}
+            />
+          )}
+
           <Button
             onPress={handleGoogleSignIn}
             isLoading={isLoading}
+            disabled={isAppleLoading}
             size="lg"
             leftIcon={<Ionicons name="logo-google" size={20} color="#fff" />}
           >
@@ -153,6 +213,11 @@ const styles = StyleSheet.create({
   bottomSection: {
     paddingHorizontal: 24,
     paddingBottom: 24,
+  },
+  appleButton: {
+    width: '100%',
+    height: 52,
+    marginBottom: 12,
   },
   terms: {
     fontSize: 12,

@@ -8,7 +8,7 @@ export const editorDarkThemeCSS = `
   }
 
   body {
-    background-color: #0A0A0A;
+    background-color: #1A1A1A;
     color: #E8E4DC;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     font-size: 16px;

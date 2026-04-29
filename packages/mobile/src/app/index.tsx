@@ -24,7 +24,7 @@ export default function SplashScreen() {
   }, [isLoading, isAuthenticated, router]);
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0A0A0A' }}>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#1A1A1A' }}>
       <View style={{ alignItems: 'center' }}>
         {/* Flame logo */}
         <View style={{ marginBottom: 20 }}>
@@ -35,7 +35,7 @@ export default function SplashScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text style={{
             fontSize: 24,
-            fontFamily: 'Outfit-Black',
+            fontFamily: 'SFProDisplay-Black',
             fontWeight: '900',
             letterSpacing: 3,
             color: '#BCBCBC',
@@ -44,7 +44,7 @@ export default function SplashScreen() {
           </Text>
           <Text style={{
             fontSize: 24,
-            fontFamily: 'Outfit-Black',
+            fontFamily: 'SFProDisplay-Black',
             fontWeight: '900',
             letterSpacing: 3,
             color: '#E32B1A',

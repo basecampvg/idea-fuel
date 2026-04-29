@@ -299,7 +299,7 @@ const uBgColor = gl.getUniformLocation(prog, 'bgColor');
 
 // No hue shift — brand colors are baked into the shader
 gl.uniform1f(uHue, 0.0);
-gl.uniform3f(uBgColor, 0.039, 0.039, 0.039); // #0A0A0A
+gl.uniform3f(uBgColor, 0.102, 0.102, 0.102); // #1A1A1A
 
 gl.enable(gl.BLEND);
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);

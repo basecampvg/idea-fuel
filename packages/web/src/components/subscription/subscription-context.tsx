@@ -68,7 +68,11 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
 
   // Derive values from fetched data
   // Override tier via NEXT_PUBLIC_FORCE_TIER env var for testing (e.g. NEXT_PUBLIC_FORCE_TIER=ENTERPRISE)
-  const forceTier = process.env.NEXT_PUBLIC_FORCE_TIER as SubscriptionTier | undefined;
+  // Disabled in production so a leaked/misconfigured env var can't silently grant paid features.
+  const forceTier =
+    process.env.NODE_ENV !== 'production'
+      ? (process.env.NEXT_PUBLIC_FORCE_TIER as SubscriptionTier | undefined)
+      : undefined;
   const tier: SubscriptionTier = forceTier || (subscriptionData?.tier ?? 'FREE');
   const isSuperAdmin = subscriptionData?.isSuperAdmin ?? false;
   const features: SubscriptionFeatures = SUBSCRIPTION_FEATURES[tier];

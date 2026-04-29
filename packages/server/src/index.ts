@@ -24,3 +24,9 @@ export { configService, DEFAULT_CONFIGS, type ConfigDefinition } from './service
 export { createAgentTools } from './services/agent-tools';
 export { checkAgentRateLimit } from './lib/agent-rate-limit';
 export type { AgentMessageRow } from './db/schema';
+
+// Session token hashing (defense-in-depth against DB dumps)
+export { hashSessionToken } from './lib/session-token';
+
+// Google ID token verification for mobile sign-in
+export { verifyGoogleIdToken, type VerifiedGoogleIdToken } from './lib/google-auth';

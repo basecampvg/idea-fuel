@@ -14,7 +14,9 @@ import {
   createSparkPipelineWorker,
   createReportGenerationWorker,
   createBusinessPlanWorker,
+  createThoughtCollisionWorker,
 } from './jobs/workers';
+import { createThoughtClassifyWorker } from './jobs/thought-classify';
 
 /** Track rate-limit hits to pause workers instead of hammering Redis */
 let rateLimitPauseUntil = 0;
@@ -50,7 +52,9 @@ async function main() {
   const cancelWorker = createResearchCancelWorker();
   const reportWorker = createReportGenerationWorker();
   const businessPlanWorker = createBusinessPlanWorker();
-  const allWorkers = [researchWorker, sparkWorker, cancelWorker, reportWorker, businessPlanWorker];
+  const classifyWorker = createThoughtClassifyWorker();
+  const collisionWorker = createThoughtCollisionWorker();
+  const allWorkers = [researchWorker, sparkWorker, cancelWorker, reportWorker, businessPlanWorker, classifyWorker, collisionWorker];
 
   // Attach rate-limit detection to all workers
   for (const w of allWorkers) {
@@ -65,6 +69,8 @@ async function main() {
   console.log('  - Research Cancel (concurrency: 5, drainDelay: 60s)');
   console.log('  - Report Generation (concurrency: 3, drainDelay: 60s)');
   console.log('  - Business Plan (concurrency: 2, drainDelay: 60s)');
+  console.log('  - Thought Classify (concurrency: 5)');
+  console.log('  - Thought Collision (concurrency: 5)');
   console.log('[Worker] Waiting for jobs...');
 
   // Health check server for Railway

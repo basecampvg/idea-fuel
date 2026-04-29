@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { eq, and, desc } from 'drizzle-orm';
-import { router, protectedProcedure } from '../trpc';
+import { router, protectedProcedure, aiProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { INTERVIEW_SESSION, INTERVIEW_RESUME_MESSAGES } from '@forge/shared';
 import type { ChatMessage, InterviewDataPoints, InterviewMode } from '@forge/shared';
@@ -269,7 +269,7 @@ export const interviewRouter = router({
    * Chat endpoint - sends user message and gets AI response
    * This combines addMessage + AI generation + addAssistantMessage in one call
    */
-  chat: protectedProcedure
+  chat: aiProcedure
     .input(
       z.object({
         interviewId: z.string().min(1),

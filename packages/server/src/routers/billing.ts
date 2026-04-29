@@ -57,7 +57,9 @@ export const billingRouter = router({
       }
 
       const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.NEXTAUTH_URL ||
+        (process.env.NODE_ENV === 'production' ? 'https://ideafuel.ai' : 'http://localhost:3000');
 
       const sessionParams: Stripe.Checkout.SessionCreateParams = {
         mode: 'subscription',

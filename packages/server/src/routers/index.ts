@@ -15,6 +15,8 @@ import { snapshotRouter } from './snapshot';
 import { exportRouter } from './export';
 import { billingRouter } from './billing';
 import { sparkCardRouter } from './sparkCard';
+import { thoughtRouter } from './thought';
+import { clusterRouter } from './cluster';
 import { noteRouter } from './note';
 import { attachmentRouter } from './attachment';
 import { customerInterviewRouter } from './customerInterview';
@@ -42,6 +44,8 @@ export const appRouter = router({
   export: exportRouter,
   billing: billingRouter,
   sparkCard: sparkCardRouter,
+  thought: thoughtRouter,
+  cluster: clusterRouter,
   note: noteRouter,
   attachment: attachmentRouter,
   customerInterview: customerInterviewRouter,

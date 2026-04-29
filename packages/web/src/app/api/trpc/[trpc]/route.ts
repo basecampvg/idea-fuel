@@ -1,5 +1,5 @@
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
-import { appRouter, createContext, db, schema } from '@forge/server';
+import { appRouter, createContext, db, schema, hashSessionToken } from '@forge/server';
 import type { Session } from '@forge/server';
 import { auth } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
@@ -13,7 +13,7 @@ async function resolveBearer(req: Request): Promise<Session | null> {
 
   const token = header.slice(7);
   const row = await db.query.sessions.findFirst({
-    where: eq(schema.sessions.sessionToken, token),
+    where: eq(schema.sessions.sessionToken, hashSessionToken(token)),
     with: { user: true },
   });
 

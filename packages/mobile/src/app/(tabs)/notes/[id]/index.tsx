@@ -8,32 +8,53 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Keyboard,
+  ScrollView,
+  Share,
+  TextInput,
 } from 'react-native';
 import {
   CloudUpload,
   CheckCircle,
   AlertCircle,
   ChevronLeft,
-  Trash2,
   Rocket,
-  Pin,
-  PinOff,
-  ImagePlus,
-  Camera,
-  Image as ImageIcon,
+  MoreHorizontal,
 } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
+import Markdown from 'react-native-markdown-display';
 import { Button, triggerHaptic } from '../../../../components/ui/Button';
-import { IdeaCard } from '../../../../components/ui/IdeaCard';
 import { BottomSheet } from '../../../../components/ui/BottomSheet';
-import { MarkdownEditor, type MarkdownEditorRef } from '../../../../components/editor/MarkdownEditor';
+import { BodyEditorSheet } from '../../../../components/editor/BodyEditorSheet';
 import { ThumbnailStrip, type LocalAttachment } from '../../../../components/ThumbnailStrip';
+import { ClusterPicker } from '../../../../components/ClusterPicker';
+import { ThoughtPicker } from '../../../../components/ThoughtPicker';
+import {
+  PropertyChipBar,
+  SourceLabel,
+  AIRefinementSection,
+  ConnectionsSection,
+  ActivityLog,
+  CommentThread,
+  OverflowMenu,
+} from '../../../../components/thought';
 import { useNoteAutoSave, type SaveStatus } from '../../../../hooks/useNoteAutoSave';
 import { trpc } from '../../../../lib/trpc';
 import { useToast } from '../../../../contexts/ToastContext';
 import { colors, fonts } from '../../../../lib/theme';
-import { SandboxPicker } from '../../../../components/SandboxPicker';
+import { healTaskLists } from '../../../../components/editor/MarkdownEditor';
+
+// react-native-markdown-display uses markdown-it without the task-lists plugin,
+// so GFM checkboxes (`- [ ]`) render as literal `[ ]` text. Map to bare unicode
+// glyphs (no bullet prefix) so the preview shows clean checkboxes. The heal
+// pass is shared with markdownToHtml via healTaskLists to prevent drift.
+function renderableBody(md: string): string {
+  // Drop the `- ` bullet so checkbox lines aren't rendered as bullet-list
+  // items (user doesn't want the dot). Lookahead for [ \t]|$ keeps us from
+  // consuming the newline, and $ handles empty-body checkboxes.
+  return healTaskLists(md)
+    .replace(/^(\s*)-\s*\[[xX]\](?=[ \t]|$)/gm, '$1☑')
+    .replace(/^(\s*)-\s*\[ \](?=[ \t]|$)/gm, '$1☐');
+}
 
 // Lazy-load expo-image-picker — has native code that may not be in every build
 let ImagePicker: typeof import('expo-image-picker') | null = null;
@@ -41,6 +62,14 @@ try {
   ImagePicker = require('expo-image-picker');
 } catch {
   // Native module not available in this build
+}
+
+// Lazy-load expo-clipboard — not installed in all builds
+let Clipboard: { setStringAsync: (text: string) => Promise<boolean> } | null = null;
+try {
+  Clipboard = require('expo-clipboard');
+} catch {
+  // Fallback handled in handleCopyText
 }
 
 const MAX_NOTE_ATTACHMENTS = 10;
@@ -65,45 +94,76 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
 }
 
 export default function NoteEditorScreen() {
-  const { id, fromSandbox } = useLocalSearchParams<{ id: string; fromSandbox?: string }>();
+  const { id, fromSandbox, fromCluster } = useLocalSearchParams<{ id: string; fromSandbox?: string; fromCluster?: string }>();
   const router = useRouter();
   const navigation = useNavigation();
   const { showToast } = useToast();
-  const editorRef = useRef<MarkdownEditorRef>(null);
   const [initialLoaded, setInitialLoaded] = useState(false);
-  const [cardCollapsed, setCardCollapsed] = useState(false);
   const [showPromotedSheet, setShowPromotedSheet] = useState(false);
-  const [showSandboxPicker, setShowSandboxPicker] = useState(false);
-  const autoRefineTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showOverflow, setShowOverflow] = useState(false);
+  const overflowAnchorRef = useRef<View>(null);
+  const [overflowAnchor, setOverflowAnchor] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
+
+  // Pre-measure the trigger on mount / any layout change. By the time the
+  // user taps, the position is already in state, so opening the menu is
+  // synchronous — no coupling between "open menu" and "measurement fired".
+  const measureOverflowAnchor = useCallback(() => {
+    overflowAnchorRef.current?.measureInWindow((x, y, width, height) => {
+      if (typeof x === 'number' && width > 0) {
+        setOverflowAnchor({ x, y, width, height });
+      }
+    });
+  }, []);
+  const [showClusterPicker, setShowClusterPicker] = useState(false);
+  const [showThoughtPicker, setShowThoughtPicker] = useState(false);
+  // Pending modal to open once the overflow sheet has fully dismissed. iOS
+  // silently drops the second Modal if presentation races with the first's
+  // native teardown, so we gate opening until the BottomSheet is gone.
+  const pendingOverflowAction = useRef<'cluster' | null>(null);
+  const [titleText, setTitleText] = useState('');
+  const [bodyText, setBodyText] = useState('');
+  const [showBodyEditor, setShowBodyEditor] = useState(false);
+  const titleDirty = useRef(false);
   const contentLengthRef = useRef(0);
-  const noteTypeRef = useRef<string | undefined>(undefined);
 
   // Attachment state
   const [localAttachments, setLocalAttachments] = useState<LocalAttachment[]>([]);
-  const [showPopover, setShowPopover] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Auto-collapse IdeaCard when keyboard appears so editor has room
-  useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => setCardCollapsed(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setCardCollapsed(false));
-    return () => { showSub.remove(); hideSub.remove(); };
-  }, []);
+  // ── Queries ──
 
-  const { data: note, isLoading, error } = trpc.note.get.useQuery(
+  const { data: note, isLoading, error } = trpc.thought.get.useQuery(
     { id: id! },
+    { enabled: !!id },
+  );
+
+  const { data: events, isLoading: eventsLoading } = trpc.thought.listEvents.useQuery(
+    { thoughtId: id! },
+    { enabled: !!id },
+  );
+
+  const { data: connections, isLoading: connectionsLoading } = trpc.thought.listConnections.useQuery(
+    { thoughtId: id! },
     { enabled: !!id },
   );
 
   const utils = trpc.useUtils();
 
-  const deleteMutation = trpc.note.delete.useMutation({
+  // ── Mutations ──
+
+  const deleteMutation = trpc.thought.delete.useMutation({
     onSuccess: () => {
       triggerHaptic('success');
-      utils.note.list.invalidate();
-      if (fromSandbox) {
-        utils.sandbox.get.invalidate({ id: fromSandbox });
-        router.navigate(`/(tabs)/sandbox/${fromSandbox}` as any);
+      utils.thought.list.invalidate();
+      const clusterId = fromCluster || fromSandbox;
+      if (clusterId) {
+        utils.cluster.get.invalidate({ id: clusterId });
+        router.navigate(`/(tabs)/thoughts/cluster/${clusterId}` as any);
       } else {
         router.back();
       }
@@ -114,11 +174,11 @@ export default function NoteEditorScreen() {
     },
   });
 
-  const refineMutation = trpc.note.refine.useMutation({
+  const refineMutation = trpc.thought.refine.useMutation({
     onSuccess: () => {
       triggerHaptic('success');
-      utils.note.get.invalidate({ id: id! });
-      utils.note.list.invalidate();
+      utils.thought.get.invalidate({ id: id! });
+      utils.thought.list.invalidate();
     },
     onError: () => {
       // Silent fail — auto-refine will retry on next typing pause
@@ -127,18 +187,12 @@ export default function NoteEditorScreen() {
 
   const promotedRef = useRef(false);
 
-  const promoteMutation = trpc.note.promote.useMutation({
+  const promoteMutation = trpc.thought.promote.useMutation({
     onSuccess: () => {
       promotedRef.current = true;
       triggerHaptic('success');
-      // Kill pending auto-refine so it doesn't fire on a deleted note
-      if (autoRefineTimer.current) {
-        clearTimeout(autoRefineTimer.current);
-        autoRefineTimer.current = null;
-      }
-      // Nuke note caches — reset forces a fresh fetch next time
-      utils.note.list.reset();
-      utils.note.get.invalidate({ id: id! });
+      utils.thought.list.reset();
+      utils.thought.get.invalidate({ id: id! });
       utils.project.list.invalidate();
       setShowPromotedSheet(true);
     },
@@ -152,11 +206,11 @@ export default function NoteEditorScreen() {
     },
   });
 
-  const pinMutation = trpc.note.pinToSandbox.useMutation({
+  const pinMutation = trpc.thought.addToCluster.useMutation({
     onSuccess: () => {
       triggerHaptic('success');
-      utils.note.get.invalidate({ id });
-      setShowSandboxPicker(false);
+      utils.thought.get.invalidate({ id });
+      setShowClusterPicker(false);
     },
     onError: () => {
       triggerHaptic('error');
@@ -164,10 +218,10 @@ export default function NoteEditorScreen() {
     },
   });
 
-  const unpinMutation = trpc.note.unpinFromSandbox.useMutation({
+  const unpinMutation = trpc.thought.removeFromCluster.useMutation({
     onSuccess: () => {
       triggerHaptic('success');
-      utils.note.get.invalidate({ id });
+      utils.thought.get.invalidate({ id });
     },
     onError: () => {
       triggerHaptic('error');
@@ -175,11 +229,64 @@ export default function NoteEditorScreen() {
     },
   });
 
+  const updatePropertiesMutation = trpc.thought.updateProperties.useMutation({
+    onSuccess: () => {
+      utils.thought.get.invalidate({ id: id! });
+      utils.thought.list.invalidate();
+    },
+  });
+
+  const updateLabelsMutation = trpc.thought.updateLabels.useMutation({
+    onSuccess: () => {
+      utils.thought.get.invalidate({ id: id! });
+      utils.thought.list.invalidate();
+    },
+  });
+
+  const addCommentMutation = trpc.thought.addComment.useMutation({
+    onSuccess: () => utils.thought.get.invalidate({ id: id! }),
+  });
+
+  const deleteCommentMutation = trpc.thought.deleteComment.useMutation({
+    onSuccess: () => utils.thought.get.invalidate({ id: id! }),
+  });
+
+  const linkThoughtMutation = trpc.thought.linkThought.useMutation({
+    onSuccess: () => {
+      triggerHaptic('success');
+      showToast({ message: 'Connection added', type: 'success' });
+      utils.thought.listConnections.invalidate({ thoughtId: id! });
+    },
+    onError: (err) => {
+      triggerHaptic('error');
+      if (err.message === 'Connection already exists') {
+        showToast({ message: 'Already connected', type: 'error' });
+      } else {
+        Alert.alert('Error', 'Failed to add connection.');
+      }
+    },
+  });
+
+  const removeConnectionMutation = trpc.thought.removeConnection.useMutation({
+    onSuccess: () => {
+      triggerHaptic('success');
+      utils.thought.listConnections.invalidate({ thoughtId: id! });
+    },
+  });
+
+  const duplicateMutation = trpc.thought.duplicate.useMutation({
+    onSuccess: (dup) => {
+      triggerHaptic('success');
+      showToast({ message: `Duplicated as T-${dup.thoughtNumber}`, type: 'success' });
+      utils.thought.list.invalidate();
+    },
+  });
+
   const getUploadUrl = trpc.attachment.getUploadUrl.useMutation();
-  const addAttachments = trpc.note.addAttachments.useMutation({
+  const addAttachments = trpc.thought.addAttachments.useMutation({
     onSuccess: () => {
       setLocalAttachments([]);
-      utils.note.get.invalidate({ id: id! });
+      utils.thought.get.invalidate({ id: id! });
     },
     onError: () => {
       triggerHaptic('error');
@@ -187,10 +294,10 @@ export default function NoteEditorScreen() {
     },
   });
 
-  const removeAttachment = trpc.note.removeAttachment.useMutation({
+  const removeAttachment = trpc.thought.removeAttachment.useMutation({
     onSuccess: () => {
       triggerHaptic('success');
-      utils.note.get.invalidate({ id: id! });
+      utils.thought.get.invalidate({ id: id! });
     },
     onError: () => {
       triggerHaptic('error');
@@ -198,7 +305,11 @@ export default function NoteEditorScreen() {
     },
   });
 
-  // Auto-save hook
+  // ── Auto-save hook ──
+
+  const bodyTextRef = useRef('');
+  useEffect(() => { bodyTextRef.current = bodyText; }, [bodyText]);
+
   const {
     saveStatus,
     markDirty,
@@ -206,10 +317,7 @@ export default function NoteEditorScreen() {
     setInitialContent,
   } = useNoteAutoSave({
     noteId: id!,
-    getContent: async () => {
-      if (!editorRef.current) return '';
-      return await editorRef.current.getMarkdown();
-    },
+    getContent: () => bodyTextRef.current,
     debounceMs: 1500,
     maxIntervalMs: 30000,
   });
@@ -218,8 +326,9 @@ export default function NoteEditorScreen() {
   useEffect(() => {
     if (note && !initialLoaded) {
       setInitialContent(note.content ?? '');
+      setTitleText(note.title ?? '');
+      setBodyText(note.content ?? '');
       contentLengthRef.current = (note.content ?? '').length;
-      noteTypeRef.current = note.type;
       setInitialLoaded(true);
     }
   }, [note, initialLoaded, setInitialContent]);
@@ -232,40 +341,58 @@ export default function NoteEditorScreen() {
     return unsubscribe;
   }, [navigation, flush]);
 
-  // Auto-refine after 3s of no typing, if content is long enough
-  const scheduleAutoRefine = useCallback(() => {
-    if (noteTypeRef.current === 'QUICK') return;
-    if (autoRefineTimer.current) clearTimeout(autoRefineTimer.current);
-    autoRefineTimer.current = setTimeout(async () => {
-      if (noteTypeRef.current === 'QUICK') return;
-      if (!editorRef.current || refineMutation.isPending || promotedRef.current) return;
-      const md = await editorRef.current.getMarkdown();
-      contentLengthRef.current = md.length;
-      if (md.length < 50) return;
-      // Flush save first, then refine once save settles
-      flush();
-      let attempts = 0;
-      const interval = setInterval(() => {
-        attempts++;
-        if (saveStatus !== 'saving' || attempts >= 15) {
-          clearInterval(interval);
-          refineMutation.mutate({ id: id! });
-        }
-      }, 200);
-    }, 3000);
-  }, [refineMutation, flush, saveStatus, id]);
-
-  // Clean up auto-refine timer
+  // Process pending overflow-menu actions once the BottomSheet has closed.
+  // Waiting on `showOverflow === false` alone isn't enough — iOS needs a
+  // frame or two past React's unmount for native Modal teardown to finish,
+  // otherwise presenting the next Modal gets dropped silently.
   useEffect(() => {
-    return () => {
-      if (autoRefineTimer.current) clearTimeout(autoRefineTimer.current);
-    };
-  }, []);
+    if (showOverflow || !pendingOverflowAction.current) return;
+    const action = pendingOverflowAction.current;
+    pendingOverflowAction.current = null;
+    const t = setTimeout(() => {
+      if (action === 'cluster') setShowClusterPicker(true);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [showOverflow]);
+
+  // ── Title auto-save (debounced) ──
+  const titleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const updateTitleMutation = trpc.thought.update.useMutation({
+    onSuccess: () => utils.thought.get.invalidate({ id: id! }),
+  });
+
+  const handleTitleChange = useCallback((text: string) => {
+    setTitleText(text);
+    titleDirty.current = true;
+    if (titleTimer.current) clearTimeout(titleTimer.current);
+    titleTimer.current = setTimeout(() => {
+      updateTitleMutation.mutate({ id: id!, content: note?.content ?? '', title: text || null });
+      titleDirty.current = false;
+    }, 1000);
+  }, [id, note?.content, updateTitleMutation]);
+
+  // ── Handlers ──
 
   const handleEditorChange = useCallback(() => {
     markDirty();
-    scheduleAutoRefine();
-  }, [markDirty, scheduleAutoRefine]);
+  }, [markDirty]);
+
+  const handleBack = useCallback(() => {
+    flush();
+    // Natural pop preserves the real stack (e.g. cluster → thought → back
+    // returns to the same cluster screen, not a freshly-pushed duplicate).
+    if (navigation.canGoBack()) {
+      router.back();
+      return;
+    }
+    // Deep-link fallback: no history means we landed here directly.
+    const clusterId = fromCluster || fromSandbox;
+    if (clusterId) {
+      router.navigate(`/(tabs)/thoughts/cluster/${clusterId}` as any);
+    } else {
+      router.navigate('/(tabs)/thoughts' as any);
+    }
+  }, [flush, fromCluster, fromSandbox, router, navigation]);
 
   const handleDelete = useCallback(() => {
     Alert.alert(
@@ -282,15 +409,51 @@ export default function NoteEditorScreen() {
     );
   }, [id, deleteMutation]);
 
-  const handlePromote = useCallback(() => {
-    promoteMutation.mutate({ id: id! });
-  }, [id, promoteMutation]);
+  // PropertyChipBar handlers
+  const handleUpdateMaturity = useCallback((level: string | null) => {
+    updatePropertiesMutation.mutate({ id: id!, maturityLevel: level as any });
+  }, [id, updatePropertiesMutation]);
+
+  const handleUpdateType = useCallback((type: string | null) => {
+    updatePropertiesMutation.mutate({ id: id!, thoughtType: type as any });
+  }, [id, updatePropertiesMutation]);
+
+  const handleUpdateConfidence = useCallback((level: string | null) => {
+    updatePropertiesMutation.mutate({ id: id!, confidenceLevel: level as any });
+  }, [id, updatePropertiesMutation]);
+
+  const handleUpdatePurpose = useCallback((purpose: string) => {
+    updatePropertiesMutation.mutate({ id: id!, purpose: purpose as any });
+  }, [id, updatePropertiesMutation]);
+
+  const handleUpdateLabels = useCallback((labels: string[]) => {
+    updateLabelsMutation.mutate({ thoughtId: id!, labels });
+  }, [id, updateLabelsMutation]);
+
+  // OverflowMenu handlers
+  const handleCopyText = useCallback(() => {
+    setShowOverflow(false);
+    if (Clipboard) {
+      Clipboard.setStringAsync(note?.content ?? '');
+    }
+    showToast({ message: 'Copied to clipboard', type: 'success' });
+  }, [note?.content, showToast]);
+
+  const handleShare = useCallback(() => {
+    setShowOverflow(false);
+    Share.share({ message: note?.content ?? '' });
+  }, [note?.content]);
+
+  const handleArchive = useCallback(() => {
+    setShowOverflow(false);
+    // For now, just delete (archive not fully implemented on server)
+    handleDelete();
+  }, [handleDelete]);
 
   // ── Attachment helpers ──
 
   const savedAttachments = note?.attachments ?? [];
   const totalAttachments = savedAttachments.length + localAttachments.length;
-  const attachmentsAtMax = totalAttachments >= MAX_NOTE_ATTACHMENTS;
 
   // Combined display array for ThumbnailStrip
   const combinedAttachments: LocalAttachment[] = [
@@ -302,11 +465,6 @@ export default function NoteEditorScreen() {
     })),
     ...localAttachments,
   ];
-
-  const handleOpenPopover = useCallback(() => {
-    if (attachmentsAtMax) return;
-    setShowPopover(true);
-  }, [attachmentsAtMax]);
 
   const processPickerResult = useCallback((result: { canceled: boolean; assets?: Array<{ uri: string; fileName?: string | null; mimeType?: string | null; fileSize?: number | null }> | null }) => {
     if (result.canceled || !result.assets) return;
@@ -321,51 +479,9 @@ export default function NoteEditorScreen() {
 
     if (newImages.length === 0) return;
 
-    // Add to local state immediately for instant thumbnail display
     setLocalAttachments((prev) => [...prev, ...newImages]);
-
-    // Upload and persist
     uploadAndPersist(newImages);
   }, [totalAttachments]);
-
-  const handleCamera = useCallback(async () => {
-    setShowPopover(false);
-    if (!ImagePicker) {
-      showToast({ message: 'Image picker not available — rebuild required', type: 'error' });
-      return;
-    }
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      showToast({ message: 'Camera permission required', type: 'error' });
-      return;
-    }
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ['images'],
-      quality: 0.8,
-    });
-    processPickerResult(result);
-  }, [showToast, processPickerResult]);
-
-  const handlePhotos = useCallback(async () => {
-    setShowPopover(false);
-    if (!ImagePicker) {
-      showToast({ message: 'Image picker not available — rebuild required', type: 'error' });
-      return;
-    }
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      showToast({ message: 'Photo library permission required', type: 'error' });
-      return;
-    }
-    const remaining = MAX_NOTE_ATTACHMENTS - totalAttachments;
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsMultipleSelection: true,
-      selectionLimit: remaining,
-      quality: 0.8,
-    });
-    processPickerResult(result);
-  }, [showToast, totalAttachments, processPickerResult]);
 
   const uploadAndPersist = useCallback(async (images: LocalAttachment[]) => {
     setIsUploading(true);
@@ -387,7 +503,6 @@ export default function NoteEditorScreen() {
           mimeType: att.mimeType as 'image/jpeg' | 'image/png' | 'image/heic',
         });
 
-        // Upload directly to Supabase Storage
         const response = await fetch(att.uri);
         const blob = await response.blob();
 
@@ -417,7 +532,6 @@ export default function NoteEditorScreen() {
           attachments: attachmentMetadata,
         });
       } else {
-        // All uploads failed — clear local state
         setLocalAttachments([]);
       }
     } catch (err) {
@@ -433,24 +547,15 @@ export default function NoteEditorScreen() {
   const handleRemoveThumbnail = useCallback((index: number) => {
     const savedCount = savedAttachments.length;
     if (index < savedCount) {
-      // It's a saved attachment — remove from server
       const attachment = savedAttachments[index];
       removeAttachment.mutate({ attachmentId: attachment.id });
     } else {
-      // It's a local (pending) attachment — just remove from state
       const localIndex = index - savedCount;
       setLocalAttachments((prev) => prev.filter((_, i) => i !== localIndex));
     }
   }, [savedAttachments, removeAttachment]);
 
-  // Determine if refinement is stale
-  const isStale = !!(
-    note?.lastRefinedAt &&
-    note?.updatedAt &&
-    new Date(note.lastRefinedAt).getTime() < new Date(note.updatedAt).getTime()
-  );
-
-  const isPromoted = !!note?.promotedProjectId;
+  // ── Loading / Error states ──
 
   if (isLoading) {
     return (
@@ -486,119 +591,201 @@ export default function NoteEditorScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
-            onPress={() => {
-              flush();
-              if (fromSandbox) {
-                router.navigate(`/(tabs)/sandbox/${fromSandbox}` as any);
-              } else {
-                router.back();
-              }
-            }}
+            onPress={handleBack}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <ChevronLeft size={24} color={colors.foreground} />
           </TouchableOpacity>
           <SaveIndicator status={saveStatus} />
-          <View style={styles.headerPill}>
-            {note?.sandboxId ? (
-              <TouchableOpacity
-                style={styles.pillButton}
-                onPress={() => unpinMutation.mutate({ noteId: id! })}
-              >
-                <PinOff size={18} color={colors.muted} />
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.pillButton}
-                onPress={() => setShowSandboxPicker(true)}
-              >
-                <Pin size={18} color={colors.foreground} />
-              </TouchableOpacity>
-            )}
-            <View style={styles.pillDivider} />
+          <View
+            ref={overflowAnchorRef}
+            collapsable={false}
+            onLayout={measureOverflowAnchor}
+          >
             <TouchableOpacity
-              style={[styles.pillButton, attachmentsAtMax && { opacity: 0.4 }]}
-              onPress={handleOpenPopover}
-              disabled={attachmentsAtMax}
+              onPress={() => setShowOverflow(true)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <ImagePlus size={18} color={colors.foreground} />
-            </TouchableOpacity>
-            <View style={styles.pillDivider} />
-            <TouchableOpacity
-              style={styles.pillButton}
-              onPress={handleDelete}
-            >
-              <Trash2 size={18} color={colors.destructive} />
+              <MoreHorizontal size={24} color={colors.foreground} />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Thumbnail strip (saved + local attachments) */}
-        {combinedAttachments.length > 0 && (
-          <View style={styles.thumbnailStripContainer}>
-            <ThumbnailStrip
-              attachments={combinedAttachments}
-              onRemove={handleRemoveThumbnail}
-              maxAttachments={MAX_NOTE_ATTACHMENTS}
+        <ScrollView
+          style={styles.scrollBody}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
+          {/* Thought ID + timestamp row */}
+          <View style={styles.idRow}>
+            <Text style={styles.thoughtId}>[ T-{note.thoughtNumber} ]</Text>
+            <SourceLabel captureMethod={note.captureMethod} createdAt={note.createdAt} />
+          </View>
+
+          {/* Property Chip Bar */}
+          <View style={styles.chipSection}>
+            <PropertyChipBar
+              maturityLevel={note.maturityLevel as any}
+              thoughtType={note.thoughtType as any}
+              confidenceLevel={note.confidenceLevel as any}
+              purpose={note.purpose ?? 'idea'}
+              labels={note.tags ?? []}
+              clusterId={note.clusterId ?? null}
+              clusterName={note.cluster?.name ?? null}
+              clusterColor={note.cluster?.color ?? null}
+              typeSource={note.typeSource}
+              onUpdateMaturity={handleUpdateMaturity}
+              onUpdateType={handleUpdateType}
+              onUpdateConfidence={handleUpdateConfidence}
+              onUpdatePurpose={handleUpdatePurpose}
+              onUpdateLabels={handleUpdateLabels}
+              onAddToCluster={(clusterId) => pinMutation.mutate({ thoughtId: id!, clusterId })}
+              onRemoveFromCluster={() => unpinMutation.mutate({ thoughtId: id! })}
             />
-            {isUploading && (
-              <ActivityIndicator size="small" color={colors.brand} style={styles.uploadingIndicator} />
-            )}
           </View>
-        )}
 
-        {/* IdeaCard at top when refinement exists — only for AI notes */}
-        {note.type !== 'QUICK' && note.refinedTitle && (
-          <View style={styles.ideaCardContainer}>
-            {cardCollapsed ? (
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => setCardCollapsed(false)}
-              >
-                <View style={styles.collapsedCard}>
-                  <Text style={styles.collapsedTitle} numberOfLines={1}>
-                    {note.refinedTitle}
-                  </Text>
-                  <Text style={styles.collapsedHint}>Tap to expand</Text>
-                </View>
-              </TouchableOpacity>
-            ) : (
-              <IdeaCard
-                refinedTitle={note.refinedTitle}
-                refinedDescription={note.refinedDescription ?? ''}
-                refinedTags={note.refinedTags ?? []}
-
-                isPromoted={isPromoted}
-                isRefining={refineMutation.isPending}
-                isPromoting={promoteMutation.isPending}
-                onPromote={handlePromote}
-                onCollapse={() => setCardCollapsed(true)}
-              />
-            )}
-          </View>
-        )}
-
-        {/* Refining indicator (first time, no card yet) — only for AI notes */}
-        {note.type !== 'QUICK' && refineMutation.isPending && !note.refinedTitle && (
-          <View style={styles.refiningIndicator}>
-            <ActivityIndicator size="small" color={colors.brand} />
-            <Text style={styles.refiningText}>AI is refining your idea...</Text>
-          </View>
-        )}
-
-        {/* Rich text editor */}
-        {initialLoaded && (
-          <MarkdownEditor
-            ref={editorRef}
-            initialContent={note.content ?? ''}
-            placeholder={note.type === 'QUICK'
-              ? "Dump your thoughts here..."
-              : "Brain dump your idea here. Once you pause typing, AI will refine it into something sharp..."
-            }
-            onChange={handleEditorChange}
+          {/* Title (optional) */}
+          <TextInput
+            style={styles.titleInput}
+            value={titleText}
+            onChangeText={handleTitleChange}
+            placeholder="Add title..."
+            placeholderTextColor={colors.mutedDim}
+            maxLength={200}
           />
-        )}
+
+          {/* Body — tap to open the dedicated editor sheet. Editing inline
+              caused keyboard/toolbar glitches (toolbar popped in/out, ScrollView
+              ancestor raced with the keyboard); Linear-style slide-up modal
+              keeps the editor isolated. */}
+          {initialLoaded && (
+            <TouchableOpacity
+              style={styles.bodyPreview}
+              onPress={() => setShowBodyEditor(true)}
+              activeOpacity={0.7}
+            >
+              {bodyText ? (
+                <Markdown style={markdownStyles}>
+                  {renderableBody(bodyText)}
+                </Markdown>
+              ) : (
+                <Text style={styles.bodyPreviewPlaceholder}>Dump your thoughts here...</Text>
+              )}
+            </TouchableOpacity>
+          )}
+
+          {/* Attachments */}
+          {combinedAttachments.length > 0 && (
+            <View style={styles.attachmentSection}>
+              <ThumbnailStrip
+                attachments={combinedAttachments}
+                onRemove={handleRemoveThumbnail}
+                maxAttachments={MAX_NOTE_ATTACHMENTS}
+              />
+              {isUploading && (
+                <ActivityIndicator size="small" color={colors.brand} style={{ marginLeft: 4 }} />
+              )}
+            </View>
+          )}
+
+          {/* AI Refinement */}
+          <View style={styles.divider} />
+          <View style={styles.section}>
+            <AIRefinementSection
+              refinedTitle={note.refinedTitle}
+              refinedDescription={note.refinedDescription}
+              refinedTags={note.refinedTags}
+              lastRefinedAt={note.lastRefinedAt}
+              updatedAt={note.updatedAt}
+              isRefining={refineMutation.isPending}
+              onRefine={() => refineMutation.mutate({ id: id! })}
+            />
+          </View>
+
+          {/* Connections */}
+          <View style={styles.divider} />
+          <View style={styles.section}>
+            <ConnectionsSection
+              connections={(connections ?? []) as any}
+              isLoading={connectionsLoading}
+              onViewThought={(thoughtId) => router.push(`/(tabs)/notes/${thoughtId}` as any)}
+              onAddConnection={() => setShowThoughtPicker(true)}
+              onRemoveConnection={(connectionId) => removeConnectionMutation.mutate({ connectionId })}
+            />
+          </View>
+
+          {/* Activity Log */}
+          <View style={styles.divider} />
+          <View style={styles.section}>
+            <ActivityLog
+              events={((events as any)?.events ?? []) as any}
+              isLoading={eventsLoading}
+              hasMore={!!(events as any)?.nextCursor}
+              onLoadMore={() => {}}
+            />
+          </View>
+
+          {/* Comments */}
+          <View style={styles.divider} />
+          <View style={styles.section}>
+            <CommentThread
+              comments={(note.comments ?? []) as any}
+              onAddComment={(content) => addCommentMutation.mutate({ thoughtId: id!, content })}
+              onDeleteComment={(commentId) => deleteCommentMutation.mutate({ commentId })}
+              isSubmitting={addCommentMutation.isPending}
+            />
+          </View>
+        </ScrollView>
+
+
       </KeyboardAvoidingView>
+
+      {/* Dedicated body editor (slides up over the page) */}
+      <BodyEditorSheet
+        visible={showBodyEditor}
+        initialValue={bodyText}
+        title="Edit note"
+        placeholder="Dump your thoughts here..."
+        onClose={() => setShowBodyEditor(false)}
+        onSave={(value) => {
+          setBodyText(value);
+          handleEditorChange();
+        }}
+      />
+
+      {/* Overflow Menu */}
+      <OverflowMenu
+        visible={showOverflow}
+        onClose={() => setShowOverflow(false)}
+        anchor={overflowAnchor}
+        onRefine={() => refineMutation.mutate({ id: id! })}
+        onAddToCluster={() => {
+          pendingOverflowAction.current = 'cluster';
+        }}
+        onDuplicate={() => duplicateMutation.mutate({ id: id! })}
+        onArchive={handleArchive}
+        onCopyText={handleCopyText}
+        onShare={handleShare}
+        onDelete={handleDelete}
+        isRefined={!!note.refinedTitle}
+        isArchived={note.isArchived}
+      />
+
+      {/* Cluster Picker */}
+      <ClusterPicker
+        visible={showClusterPicker}
+        onClose={() => setShowClusterPicker(false)}
+        onSelect={(clusterId) => pinMutation.mutate({ thoughtId: id!, clusterId })}
+      />
+
+      {/* Thought Picker for connections */}
+      <ThoughtPicker
+        visible={showThoughtPicker}
+        onClose={() => setShowThoughtPicker(false)}
+        onSelect={(targetId) => linkThoughtMutation.mutate({ thoughtId: id!, targetThoughtId: targetId })}
+        excludeId={id!}
+      />
 
       {/* Promoted success sheet */}
       <BottomSheet
@@ -632,37 +819,6 @@ export default function NoteEditorScreen() {
           </Button>
         </View>
       </BottomSheet>
-
-      <SandboxPicker
-        visible={showSandboxPicker}
-        onClose={() => setShowSandboxPicker(false)}
-        onSelect={(sandboxId) => pinMutation.mutate({ noteId: id!, sandboxId })}
-      />
-
-      {/* Image picker dropdown — anchored top-right below header pill */}
-      {showPopover && (
-        <>
-          <TouchableOpacity
-            style={StyleSheet.absoluteFill}
-            activeOpacity={1}
-            onPress={() => setShowPopover(false)}
-          />
-          <View style={styles.imageDropdown}>
-            <TouchableOpacity style={styles.dropdownRow} onPress={handleCamera} activeOpacity={0.7}>
-              <View style={styles.dropdownIcon}>
-                <Camera size={20} color={colors.foreground} />
-              </View>
-              <Text style={styles.dropdownLabel}>Camera</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.dropdownRow} onPress={handlePhotos} activeOpacity={0.7}>
-              <View style={styles.dropdownIcon}>
-                <ImageIcon size={20} color={colors.foreground} />
-              </View>
-              <Text style={styles.dropdownLabel}>Photos</Text>
-            </TouchableOpacity>
-          </View>
-        </>
-      )}
     </View>
   );
 }
@@ -714,44 +870,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  imageDropdown: {
-    position: 'absolute',
-    top: 52,
-    right: 16,
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 6,
-    width: 180,
-    zIndex: 50,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  dropdownRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-  },
-  dropdownIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dropdownLabel: {
-    fontSize: 15,
-    color: colors.foreground,
-    ...fonts.geist.regular,
-  },
   saveIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -761,55 +879,61 @@ const styles = StyleSheet.create({
     fontSize: 13,
     ...fonts.outfit.medium,
   },
-  thumbnailStripContainer: {
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
+  scrollBody: {
+    flex: 1,
   },
-  uploadingIndicator: {
-    marginLeft: 4,
+  scrollContent: {
+    paddingBottom: 60,
   },
-  ideaCardContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-  },
-  collapsedCard: {
+  idRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingHorizontal: 20,
+    marginBottom: 8,
   },
-  collapsedTitle: {
-    flex: 1,
-    fontSize: 14,
-    ...fonts.outfit.semiBold,
-    color: colors.foreground,
-    marginRight: 8,
-  },
-  collapsedHint: {
-    fontSize: 12,
-    ...fonts.outfit.regular,
+  thoughtId: {
+    fontSize: 13,
     color: colors.mutedDim,
+    ...fonts.mono.regular,
   },
-  refiningIndicator: {
+  chipSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 6,
+  },
+  titleInput: {
+    fontSize: 20,
+    ...fonts.outfit.bold,
+    color: colors.foreground,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
+  bodyPreview: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 16,
+    minHeight: 140,
+  },
+  bodyPreviewPlaceholder: {
+    fontSize: 16,
+    ...fonts.geist.regular,
+    color: colors.mutedDim,
+    lineHeight: 24,
+  },
+  section: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginHorizontal: 20,
+  },
+  attachmentSection: {
+    paddingHorizontal: 20,
+    marginVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    padding: 12,
-    backgroundColor: colors.brandMuted,
-    borderRadius: 12,
-  },
-  refiningText: {
-    fontSize: 13,
-    ...fonts.outfit.medium,
-    color: colors.brand,
   },
   promotedSheet: {
     alignItems: 'center',
@@ -842,23 +966,85 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 8,
   },
-  headerPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.card,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.border,
+});
+
+const markdownStyles = StyleSheet.create({
+  body: {
+    fontSize: 16,
+    ...fonts.geist.regular,
+    color: colors.foreground,
+    lineHeight: 24,
   },
-  pillButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+  heading1: {
+    fontSize: 24,
+    ...fonts.outfit.bold,
+    color: colors.foreground,
+    marginTop: 12,
+    marginBottom: 6,
   },
-  pillDivider: {
-    width: 1,
-    height: 20,
-    backgroundColor: colors.border,
+  heading2: {
+    fontSize: 20,
+    ...fonts.outfit.bold,
+    color: colors.foreground,
+    marginTop: 10,
+    marginBottom: 6,
+  },
+  heading3: {
+    fontSize: 18,
+    ...fonts.outfit.semiBold,
+    color: colors.foreground,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  strong: {
+    ...fonts.outfit.bold,
+    color: colors.foreground,
+  },
+  em: {
+    fontStyle: 'italic',
+    color: colors.foreground,
+  },
+  link: {
+    color: colors.brand,
+    textDecorationLine: 'underline',
+  },
+  bullet_list: { marginVertical: 4 },
+  ordered_list: { marginVertical: 4 },
+  list_item: { marginVertical: 2 },
+  code_inline: {
+    backgroundColor: '#1A1816',
+    color: colors.foreground,
+    paddingHorizontal: 4,
+    borderRadius: 4,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 14,
+  },
+  code_block: {
+    backgroundColor: '#1A1816',
+    color: colors.foreground,
+    padding: 10,
+    borderRadius: 8,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 14,
+  },
+  fence: {
+    backgroundColor: '#1A1816',
+    color: colors.foreground,
+    padding: 10,
+    borderRadius: 8,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 14,
+  },
+  blockquote: {
+    borderLeftWidth: 3,
+    borderLeftColor: colors.brand,
+    paddingLeft: 10,
+    marginVertical: 6,
+    color: colors.muted,
+  },
+  hr: {
+    backgroundColor: '#383634',
+    height: 1,
+    marginVertical: 12,
   },
 });

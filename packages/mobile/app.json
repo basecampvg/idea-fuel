@@ -11,11 +11,12 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0A0A0A"
+      "backgroundColor": "#1A1A1A"
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ideafuel.mobile",
+      "usesAppleSignIn": true,
       "config": {
         "usesNonExemptEncryption": false
       },
@@ -29,12 +30,16 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0A0A0A"
+        "backgroundColor": "#1A1A1A"
       },
       "package": "com.ideafuel.mobile",
       "usesCleartextTraffic": false,
       "permissions": [
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ]
     },
     "web": {
@@ -61,6 +66,7 @@
         }
       ],
       "./plugins/patch-turbomodule",
+      "./plugins/patch-fmt",
       [
         "expo-media-library",
         {
@@ -83,6 +89,8 @@
     },
     "extra": {
       "apiUrl": "https://app.ideafuel.ai",
+      "privacyPolicyUrl": "https://ideafuel.ai/privacy",
+      "termsOfServiceUrl": "https://ideafuel.ai/terms",
       "googleWebClientId": "117953471324-40im20410td9hoan1drsgj2sfpj797lu.apps.googleusercontent.com",
       "googleIosClientId": "117953471324-n6ufvodls46kvk9ekagd3jfoagbnn7aj.apps.googleusercontent.com",
       "googleAndroidClientId": "",

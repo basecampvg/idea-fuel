@@ -27,11 +27,11 @@ interface Props {
 interface SandboxItem {
   id: string;
   name: string;
-  color: string;
+  color: string | null;
   userId: string;
   createdAt: Date;
   updatedAt: Date;
-  noteCount: number;
+  thoughtCount: number;
 }
 
 interface ProjectItem {

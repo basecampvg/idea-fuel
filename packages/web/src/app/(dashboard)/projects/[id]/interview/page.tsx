@@ -3,6 +3,7 @@
 import { use, useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc/client';
 import { LoadingScreen } from '@/components/ui/spinner';
 import { INTERVIEW_MODE_LABELS } from '@forge/shared';
@@ -201,6 +202,7 @@ export default function InterviewPage({
       await completeInterview.mutateAsync({ id: activeInterview.id });
     } catch (error) {
       console.error('Failed to complete interview:', error);
+      toast.error("Couldn't finish the interview. Try again in a moment.");
       setIsSkipping(false);
     }
   };

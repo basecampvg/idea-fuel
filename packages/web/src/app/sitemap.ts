@@ -19,7 +19,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/glossary`, changeFrequency: 'weekly', priority: 0.8 },
   ];
 
-  // Blog posts from DB (try/catch for local builds without DB)
   try {
     const posts = await db.query.blogPosts.findMany({
       where: eq(schema.blogPosts.status, 'PUBLISHED'),
@@ -33,34 +32,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.7,
       });
     }
-  } catch {
-    // DB unavailable (local build) — blog posts omitted
+  } catch (err) {
+    console.error('[sitemap] failed to load blog posts from DB:', err);
   }
 
-  // Docs from filesystem
   try {
-    for (const slugParts of getAllDocSlugs()) {
+    const docSlugs = getAllDocSlugs();
+    for (const slugParts of docSlugs) {
       entries.push({
         url: `${BASE_URL}/docs/${slugParts.join('/')}`,
         changeFrequency: 'monthly',
         priority: 0.7,
       });
     }
-  } catch {
-    // docs directory not found — omitted
+    console.log(`[sitemap] added ${docSlugs.length} docs`);
+  } catch (err) {
+    console.error('[sitemap] failed to load docs:', err);
   }
 
-  // Glossary terms from filesystem
   try {
-    for (const term of getAllTerms()) {
+    const terms = getAllTerms();
+    for (const term of terms) {
       entries.push({
         url: `${BASE_URL}/glossary/${term.slug}`,
         changeFrequency: 'monthly',
         priority: 0.6,
       });
     }
-  } catch {
-    // glossary data not found — omitted
+    console.log(`[sitemap] added ${terms.length} glossary terms`);
+  } catch (err) {
+    console.error('[sitemap] failed to load glossary terms:', err);
   }
 
   return entries;

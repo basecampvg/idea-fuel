@@ -7,14 +7,13 @@ import {
   StyleSheet,
   Text,
 } from 'react-native';
-import { NotebookPen, Sparkles, Lightbulb } from 'lucide-react-native';
+import { NotebookPen, Lightbulb } from 'lucide-react-native';
 import { colors, fonts } from '../lib/theme';
 
 interface CaptureActionMenuProps {
   visible: boolean;
   onClose: () => void;
-  onQuickNote: () => void;
-  onAINote: () => void;
+  onThought: () => void;
   onIdea: () => void;
   anchorY: number;
 }
@@ -22,8 +21,7 @@ interface CaptureActionMenuProps {
 export function CaptureActionMenu({
   visible,
   onClose,
-  onQuickNote,
-  onAINote,
+  onThought,
   onIdea,
   anchorY,
 }: CaptureActionMenuProps) {
@@ -35,22 +33,13 @@ export function CaptureActionMenu({
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
             <View style={[styles.popover, { bottom: anchorY }]}>
-              <TouchableOpacity style={styles.popoverRow} onPress={onQuickNote} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.popoverRow} onPress={onThought} activeOpacity={0.7}>
                 <View style={styles.popoverIcon}>
                   <NotebookPen size={20} color={colors.accent} />
                 </View>
                 <View style={styles.popoverText}>
-                  <Text style={styles.popoverLabel}>Quick Note</Text>
-                  <Text style={styles.popoverSubtitle}>Plain brain dump</Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.popoverRow} onPress={onAINote} activeOpacity={0.7}>
-                <View style={styles.popoverIcon}>
-                  <Sparkles size={20} color={colors.brand} />
-                </View>
-                <View style={styles.popoverText}>
-                  <Text style={styles.popoverLabel}>AI Note</Text>
-                  <Text style={styles.popoverSubtitle}>Auto-refines with AI</Text>
+                  <Text style={styles.popoverLabel}>Thought</Text>
+                  <Text style={styles.popoverSubtitle}>Capture a raw thought</Text>
                 </View>
               </TouchableOpacity>
               <TouchableOpacity style={styles.popoverRow} onPress={onIdea} activeOpacity={0.7}>

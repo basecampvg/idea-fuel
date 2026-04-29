@@ -4,3 +4,7 @@
 
 expo-env.d.ts
 # @end expo-cli
+
+# Android native project — prebuild-regenerated, not tracked until we
+# actually build for Android. iOS is the shipping target today.
+android/

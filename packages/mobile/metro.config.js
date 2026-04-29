@@ -16,9 +16,14 @@ config.resolver.nodeModulesPaths = [
   path.resolve(monorepoRoot, 'node_modules'),
 ];
 
-// Resolve @forge packages from workspace
+// pnpm uses symlinks — Metro needs explicit opt-in to follow them
+config.resolver.unstable_enableSymlinks = true;
+
+// Resolve @forge packages from workspace + pnpm-symlinked native modules
+// that Metro can't follow through the .pnpm store
 config.resolver.extraNodeModules = {
   '@forge/shared': path.resolve(monorepoRoot, 'packages/shared/src'),
+  'expo-apple-authentication': path.resolve(projectRoot, 'node_modules', 'expo-apple-authentication'),
 };
 
 module.exports = withNativeWind(config, { input: './src/global.css' });

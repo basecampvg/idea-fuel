@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, TouchableOpacity, Linking, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Linking, StyleSheet, Image } from 'react-native';
 import { Tabs, Redirect, useRouter } from 'expo-router';
-import { Mic, Vault, NotebookPen, ArrowUpRight, X, FlaskConical, Pencil } from 'lucide-react-native';
+import { Mic, Vault, Lightbulb, ArrowUpRight, X, Pencil } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { useAuth } from '../../contexts/AuthContext';
@@ -17,6 +17,10 @@ function CustomTabBar({ state, descriptors, navigation, insets }: any) {
       ]}>
         {state.routes.map((route: any, index: number) => {
           const { options } = descriptors[route.key];
+
+          // Skip hidden tabs (old Notes/Sandbox replaced by Thoughts)
+          if (route.name === 'notes' || route.name === 'sandbox') return null;
+
           const isFocused = state.index === index;
           const color = isFocused ? colors.brand : colors.white;
 
@@ -24,11 +28,11 @@ function CustomTabBar({ state, descriptors, navigation, insets }: any) {
             ? <Mic size={22} color={color} />
             : route.name === 'vault'
             ? <Vault size={22} color={color} />
-            : route.name === 'notes'
-            ? <NotebookPen size={22} color={color} />
+            : route.name === 'thoughts'
+            ? <Lightbulb size={22} color={color} />
             : route.name === 'sketch'
             ? <Pencil size={22} color={color} />
-            : <FlaskConical size={22} color={color} />;
+            : null;
 
           return (
             <TouchableOpacity
@@ -75,7 +79,9 @@ const headerTitle = () => (
 function AvatarButton() {
   const router = useRouter();
   const { user } = useAuth();
+  const [imageFailed, setImageFailed] = useState(false);
   const initial = (user?.name ?? user?.email ?? '?')[0].toUpperCase();
+  const showImage = !!user?.image && !imageFailed;
 
   return (
     <TouchableOpacity
@@ -83,7 +89,15 @@ function AvatarButton() {
       style={headerStyles.avatar}
       activeOpacity={0.7}
     >
-      <Text style={headerStyles.avatarText}>{initial}</Text>
+      {showImage ? (
+        <Image
+          source={{ uri: user!.image! }}
+          style={headerStyles.avatarImage}
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <Text style={headerStyles.avatarText}>{initial}</Text>
+      )}
     </TouchableOpacity>
   );
 }
@@ -147,23 +161,20 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
+        name="thoughts"
+        options={{ title: 'Thoughts' }}
+      />
+      <Tabs.Screen
         name="notes"
-        options={{ title: 'Notes' }}
+        options={{ title: 'Notes', href: null }}
       />
       <Tabs.Screen
         name="sandbox"
-        options={{ title: 'Sandbox' }}
+        options={{ title: 'Sandbox', href: null }}
       />
       <Tabs.Screen
         name="capture"
-        options={{
-          title: 'Capture',
-          headerTransparent: true,
-          headerStyle: { backgroundColor: 'transparent' },
-          headerBackground: () => (
-            <BlurView intensity={40} tint="dark" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(10,10,10,0.92)' }]} />
-          ),
-        }}
+        options={{ title: 'Capture' }}
       />
       <Tabs.Screen
         name="sketch"
@@ -227,6 +238,12 @@ const headerStyles = StyleSheet.create({
     backgroundColor: colors.brand,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
+    overflow: 'hidden' as const,
+  },
+  avatarImage: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
   },
   avatarText: {
     color: '#FFFFFF',

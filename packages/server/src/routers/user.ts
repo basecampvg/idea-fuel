@@ -1,7 +1,10 @@
 import { router, protectedProcedure } from '../trpc';
 import { updateUserSchema } from '@forge/shared';
 import { eq, count, sql, and } from 'drizzle-orm';
-import { users, projects, interviews, reports, research } from '../db/schema';
+import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
+import { users, projects, interviews, reports, research, tokenUsages } from '../db/schema';
+import { getStripeClient } from '../lib/stripe';
 
 export const userRouter = router({
   /**
@@ -120,4 +123,106 @@ export const userRouter = router({
       isSuperAdmin: user.role === 'SUPER_ADMIN',
     };
   }),
+
+  /**
+   * Self-serve delete account. Required by App Store Guideline 5.1.1(v),
+   * Play Data Deletion policy, GDPR Art. 17, and CCPA.
+   *
+   * User must type their email address as a confirmation. The mutation:
+   *   1. Cancels the user's Stripe subscription (if any) and deletes the
+   *      Stripe customer for GDPR-compliant upstream erasure.
+   *   2. Explicitly deletes TokenUsage rows (the table has no FK to users,
+   *      so CASCADE won't clean them).
+   *   3. Deletes the users row, which cascades to every user-owned table.
+   *      BlogPost.authorId becomes null instead of blocking (set-null FK
+   *      added in migration 0023).
+   *
+   * The caller is signed in at the time of the call. It is the client's
+   * responsibility to sign the user out immediately after a successful
+   * response.
+   */
+  delete: protectedProcedure
+    .input(
+      z.object({
+        emailConfirmation: z
+          .string()
+          .min(1, 'Email confirmation is required')
+          .max(320),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.userId),
+        columns: {
+          id: true,
+          email: true,
+          stripeCustomerId: true,
+          stripeSubscriptionId: true,
+        },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User not found',
+        });
+      }
+
+      const expected = user.email.trim().toLowerCase();
+      const provided = input.emailConfirmation.trim().toLowerCase();
+
+      if (expected !== provided) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Email confirmation does not match the account email',
+        });
+      }
+
+      // Upstream erasure — best-effort. A Stripe outage or a stale
+      // customer/subscription id should not block the user's right to
+      // delete. Log and continue.
+      if (user.stripeCustomerId) {
+        try {
+          const stripe = getStripeClient();
+          if (user.stripeSubscriptionId) {
+            await stripe.subscriptions
+              .cancel(user.stripeSubscriptionId)
+              .catch((e: unknown) => {
+                console.error(
+                  '[user.delete] Stripe subscription cancel failed (ignored):',
+                  e,
+                );
+                return null;
+              });
+          }
+          await stripe.customers.del(user.stripeCustomerId).catch((e: unknown) => {
+            console.error(
+              '[user.delete] Stripe customer delete failed (ignored):',
+              e,
+            );
+            return null;
+          });
+        } catch (err) {
+          console.error('[user.delete] Stripe client unavailable:', err);
+        }
+      }
+
+      // Explicit delete: TokenUsage.userId has no FK, so CASCADE skips it.
+      // GDPR erasure requires us to actually clean it up.
+      await ctx.db.delete(tokenUsages).where(eq(tokenUsages.userId, user.id));
+
+      // Primary delete. CASCADE handles: Account, Session, Project,
+      // ProjectAttachment, Interview, Research, Report, Thought*,
+      // Cluster*, CreditTransaction, AuditLog, FinancialModel,
+      // ERPConnection, CrystallizedIdea, UserLabel, Embedding, Assumption,
+      // AgentConversation, AgentMessage, AgentInsight, CustomerInterview,
+      // InterviewResponse, NdaSignature.
+      // Non-cascading: BlogPost.authorId -> NULL (published posts retained).
+      await ctx.db.delete(users).where(eq(users.id, user.id));
+
+      return {
+        success: true as const,
+        deletedAt: new Date().toISOString(),
+      };
+    }),
 });

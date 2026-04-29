@@ -107,12 +107,16 @@ export default function PlansScreen() {
     [offerings],
   );
 
+  // Tiers that aren't available for purchase yet (web app not ready)
+  const COMING_SOON_TIERS = new Set<SubscriptionTier>(['PRO', 'ENTERPRISE', 'SCALE']);
+
   // Determine card state for each tier
   const getCardState = useCallback(
     (tierKey: SubscriptionTier): PlanCardState => {
       if (purchasingTier === tierKey) return 'loading';
       if (isStripeSubscriber) return 'web-active';
       if (tierKey === currentTier) return 'current';
+      if (COMING_SOON_TIERS.has(tierKey)) return 'coming-soon';
       const tierRank = TIER_RANK[tierKey] ?? 0;
       if (tierRank <= currentTierRank && currentTier !== 'FREE') return 'lower-tier';
       return 'available';
@@ -208,6 +212,8 @@ export default function PlansScreen() {
         return { label: 'Manage on Web', variant: 'outline' as const, disabled: false };
       case 'lower-tier':
         return { label: 'Included in your plan', variant: 'ghost' as const, disabled: true };
+      case 'coming-soon':
+        return { label: 'Coming Soon', variant: 'outline' as const, disabled: true };
       case 'loading':
         return { label: 'Processing...', variant: 'primary' as const, disabled: true };
       default:

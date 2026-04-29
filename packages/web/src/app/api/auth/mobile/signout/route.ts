@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, schema } from '@forge/server';
+import { db, schema, hashSessionToken } from '@forge/server';
 import { eq } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
@@ -21,10 +21,10 @@ export async function POST(request: NextRequest) {
 
     const sessionToken = authHeader.replace('Bearer ', '');
 
-    // Delete the session
+    // Delete the session (look up by HMAC hash, not raw token)
     await db
       .delete(schema.sessions)
-      .where(eq(schema.sessions.sessionToken, sessionToken))
+      .where(eq(schema.sessions.sessionToken, hashSessionToken(sessionToken)))
       .catch(() => {
         // Session may not exist, that's fine
       });

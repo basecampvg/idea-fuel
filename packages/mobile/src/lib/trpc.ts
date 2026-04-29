@@ -65,8 +65,9 @@ export function createQueryClient() {
         refetchOnWindowFocus: false,
       },
       mutations: {
-        // Retry mutations once on failure
-        retry: 1,
+        // Do not retry mutations — most are non-idempotent (create thought,
+        // capture, promote). Retrying could double-fire side effects.
+        retry: 0,
       },
     },
   });

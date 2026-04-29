@@ -14,8 +14,8 @@ function SignInContent() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl });
+  const handleGoogleSignIn = async () => {
+    await signIn('google', { callbackUrl });
   };
 
   // const handleFacebookSignIn = () => {
@@ -26,9 +26,9 @@ function SignInContent() {
   //   signIn('apple', { callbackUrl });
   // };
 
-  const handleEmailSignIn = (e: React.FormEvent) => {
+  const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    signIn('credentials', { email, password, callbackUrl });
+    await signIn('credentials', { email, password, callbackUrl });
   };
 
   return (

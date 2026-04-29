@@ -195,6 +195,17 @@ export default function ValidateScreen() {
   // AI consent gate
   const { checkConsent, ConsentGate } = useAIConsentGate();
 
+  // Clear the 90s validation timeout on unmount so it can't fire setState
+  // after the screen is gone.
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, []);
+
   // tRPC mutations
   const chatMutation = trpc.sparkCard.chat.useMutation();
   const validateMutation = trpc.sparkCard.validate.useMutation();

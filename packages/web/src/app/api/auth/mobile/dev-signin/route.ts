@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, schema } from '@forge/server';
+import { db, schema, hashSessionToken } from '@forge/server';
 import { eq } from 'drizzle-orm';
 import { randomBytes } from 'crypto';
 
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
     await db.insert(schema.sessions).values({
-      sessionToken,
+      sessionToken: hashSessionToken(sessionToken),
       userId: user.id,
       expires,
     });

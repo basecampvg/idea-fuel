@@ -50,10 +50,12 @@ export function BottomSheet({
   const dismiss = useCallback(() => {
     backdropOpacity.value = withTiming(0, { duration: 200 });
     translateY.value = withTiming(SCREEN_HEIGHT, { duration: 250 }, (finished) => {
-      if (finished) {
-        runOnJS(setModalVisible)(false);
-        runOnJS(onClose)();
-      }
+      // Unmount unconditionally — if the animation gets interrupted, `finished`
+      // is false and we'd otherwise leak an invisible Modal that captures every
+      // touch in the app. Only notify the parent when the animation completed
+      // cleanly so a programmatic dismiss doesn't double-fire onClose.
+      runOnJS(setModalVisible)(false);
+      if (finished) runOnJS(onClose)();
     });
   }, [onClose]);
 
@@ -94,7 +96,7 @@ export function BottomSheet({
   }));
 
   const backdropStyle = useAnimatedStyle(() => ({
-    opacity: backdropOpacity.value * 0.3,
+    opacity: backdropOpacity.value * 0.6,
   }));
 
   if (!modalVisible) return null;
@@ -107,7 +109,7 @@ export function BottomSheet({
       statusBarTranslucent
       onRequestClose={dismiss}
     >
-      <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
+      <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
 
       <View style={styles.container}>
         <TouchableOpacity
