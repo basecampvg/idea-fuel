@@ -8,7 +8,7 @@
     "whyItMatters": "Heat maps expose the gap between intention and reality. You might think users are reading your entire homepage, but the heat map shows they're ignoring your key messaging and fixating on irrelevant elements. This visual data drives faster, more confident design decisions than hypothetical reasoning.",
     "howToApply": "Implement heat map tracking on your highest-impact pages: landing pages, signup flow, pricing page, and product dashboard. Look for cold spots where you expected engagement but found none. Test hypotheses: does moving a CTA button to a hot zone increase conversions? Do users actually see your value proposition or skip past it? IdeaFuel's Research Engine helps you correlate heat map patterns with user demographics and segments to understand not just where clicks happen, but why and who's doing the clicking.",
     "commonMistakes": [
-      "Over-interpreting heat maps without testing—correlation is not causation",
+      "Over-interpreting heat maps without testing, correlation is not causation",
       "Focusing on traffic volume without considering user intent or quality",
       "Ignoring mobile heat maps and assuming desktop behavior transfers to smaller screens"
     ],

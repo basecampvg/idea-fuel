@@ -4,7 +4,7 @@ import { DocsCard, DocsCardGroup } from '@/components/docs/docs-card';
 export const metadata: Metadata = {
   title: 'Documentation | Idea Fuel',
   description:
-    'Learn how to validate your business idea with IdeaFuel — AI-powered interviews, market research, financial modeling, and business plan generation.',
+    'Learn how to validate your business idea with IdeaFuel, AI-powered interviews, market research, financial modeling, and business plan generation.',
 };
 
 // --- Icon components ---
@@ -107,7 +107,7 @@ export default function DocsIndexPage() {
           Documentation
         </h1>
         <p className="mt-4 max-w-[560px] text-base leading-relaxed text-[hsl(var(--muted-foreground))]">
-          Learn how to validate your business idea with IdeaFuel — from your first interview to a complete, investor-ready business plan.
+          Learn how to validate your business idea with IdeaFuel, from your first interview to a complete, investor-ready business plan.
         </p>
       </div>
 
@@ -130,7 +130,7 @@ export default function DocsIndexPage() {
       <DocsCardGroup title="Core Features">
         <DocsCard
           title="Interview Modes"
-          description="SPARK, LIGHT, and IN_DEPTH — choose the right validation depth for your idea."
+          description="SPARK, LIGHT, and IN_DEPTH, choose the right validation depth for your idea."
           href="/docs/interview-modes"
           icon={<ChatIcon />}
         />

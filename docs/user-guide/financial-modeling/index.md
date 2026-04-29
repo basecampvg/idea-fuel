@@ -12,16 +12,16 @@ canonical: "/docs/user-guide/financial-modeling/"
 
 # Financial Modeling in IdeaFuel
 
-**Financial modeling for startups is the process of projecting revenue, costs, and cash flow to determine whether a business idea is financially viable before you build it.** IdeaFuel's financial modeling tool combines your market research, pricing strategy, and cost assumptions into five-year projected financial statements — P&L, cash flow, and balance sheet — with scenario analysis and Excel export. It answers the question every founder needs answered: "Can this business actually make money?"
+**Financial modeling for startups is the process of projecting revenue, costs, and cash flow to determine whether a business idea is financially viable before you build it.** IdeaFuel's financial modeling tool combines your market research, pricing strategy, and cost assumptions into five-year projected financial statements, P&L, cash flow, and balance sheet, with scenario analysis and Excel export. It answers the question every founder needs answered: "Can this business actually make money?"
 
-> "In a nutshell" — IdeaFuel turns your business idea into a complete five-year financial forecast. Start from research you have already done or pick an industry template, answer a few questions, and get investor-ready projections in minutes.
+> "In a nutshell", IdeaFuel turns your business idea into a complete five-year financial forecast. Start from research you have already done or pick an industry template, answer a few questions, and get investor-ready projections in minutes.
 
 ## When to Build a Financial Model
 
 You get the most value from financial modeling at two key moments:
 
-- **After research** — Once you have validated your market size, customer segments, and pricing through IdeaFuel's [research tools](/docs/user-guide/research/), feed those findings directly into a model.
-- **Before investor conversations** — Investors expect a P&L, cash flow statement, and break-even analysis. A polished model shows you understand the economics of your business.
+- **After research**: Once you have validated your market size, customer segments, and pricing through IdeaFuel's [research tools](/docs/user-guide/research/), feed those findings directly into a model.
+- **Before investor conversations**: Investors expect a P&L, cash flow statement, and break-even analysis. A polished model shows you understand the economics of your business.
 
 You can also revisit your model at any time to run what-if scenarios or update assumptions as real data comes in.
 
@@ -33,7 +33,7 @@ When you create a financial model from an existing IdeaFuel project, your resear
 
 ### Standalone
 
-If you want to model a quick idea without a full project, choose **New Financial Model** from the dashboard. Pick an industry template — SaaS, E-commerce, Professional Services, Restaurant/Food, Retail, Construction, Healthcare, Real Estate, Manufacturing, Non-profit, or Freelancer/Solo — and IdeaFuel will configure sensible defaults for that business type.
+If you want to model a quick idea without a full project, choose **New Financial Model** from the dashboard. Pick an industry template, SaaS, E-commerce, Professional Services, Restaurant/Food, Retail, Construction, Healthcare, Real Estate, Manufacturing, Non-profit, or Freelancer/Solo, and IdeaFuel will configure sensible defaults for that business type.
 
 ## Choose Your Knowledge Level
 
@@ -53,12 +53,12 @@ You can change your knowledge level at any time without losing data.
 
 Dive deeper into each part of financial modeling:
 
-- [Creating a Model](/docs/user-guide/financial-modeling/creating-a-model/) — Step-by-step guide to building your first model
-- [Assumptions](/docs/user-guide/financial-modeling/assumptions/) — Understand and edit the inputs that drive your projections
-- [Scenarios](/docs/user-guide/financial-modeling/scenarios/) — Compare optimistic, pessimistic, and custom what-if cases
-- [Financial Statements](/docs/user-guide/financial-modeling/statements/) — Read and interpret your P&L, cash flow, and balance sheet
-- [Break-Even Analysis](/docs/user-guide/financial-modeling/break-even/) — Find out when your startup becomes profitable
-- [Exporting](/docs/user-guide/financial-modeling/exporting/) — Share your model as Excel or PDF
+- [Creating a Model](/docs/user-guide/financial-modeling/creating-a-model/), Step-by-step guide to building your first model
+- [Assumptions](/docs/user-guide/financial-modeling/assumptions/), Understand and edit the inputs that drive your projections
+- [Scenarios](/docs/user-guide/financial-modeling/scenarios/), Compare optimistic, pessimistic, and custom what-if cases
+- [Financial Statements](/docs/user-guide/financial-modeling/statements/), Read and interpret your P&L, cash flow, and balance sheet
+- [Break-Even Analysis](/docs/user-guide/financial-modeling/break-even/), Find out when your startup becomes profitable
+- [Exporting](/docs/user-guide/financial-modeling/exporting/), Share your model as Excel or PDF
 
 ## Subscription Limits
 

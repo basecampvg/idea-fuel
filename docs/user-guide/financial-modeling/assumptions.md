@@ -12,9 +12,9 @@ canonical: "/docs/user-guide/financial-modeling/assumptions/"
 
 # Financial Model Assumptions
 
-**Assumptions** are the individual inputs — numbers, rates, and estimates — that drive every calculation in your financial model. Change an assumption and the linked projections update automatically.
+**Assumptions** are the individual inputs, numbers, rates, and estimates, that drive every calculation in your financial model. Change an assumption and the linked projections update automatically.
 
-> "In a nutshell" — Your model is only as good as your assumptions. IdeaFuel organizes them into seven categories, tags each with a confidence level, and cascades changes through linked formulas so your statements always stay consistent.
+> "In a nutshell", Your model is only as good as your assumptions. IdeaFuel organizes them into seven categories, tags each with a confidence level, and cascades changes through linked formulas so your statements always stay consistent.
 
 ## The Seven Assumption Categories
 

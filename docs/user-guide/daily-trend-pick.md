@@ -3,7 +3,7 @@ title: "Daily Trend Pick"
 description: "Discover emerging business opportunities every day. IdeaFuel's Daily Trend Pick uses Google Trends, SERP analysis, and AI to surface ideas worth exploring."
 keywords: "trending business ideas, daily business trends, emerging business opportunities, Google Trends business ideas"
 category: "Discovery"
-og:title: "Daily Trend Pick — Trending Business Ideas | IdeaFuel"
+og:title: "Daily Trend Pick, Trending Business Ideas | IdeaFuel"
 og:description: "Every day, IdeaFuel surfaces a new business opportunity backed by trend data, growth scores, and purchase proof. See what's trending now."
 structured_data:
   type: "WebApplication"
@@ -12,9 +12,9 @@ canonical: "/docs/user-guide/daily-trend-pick"
 
 # Daily Trend Pick
 
-**Daily Trend Pick** is an automated daily discovery feature that surfaces emerging business opportunities by combining Google Trends data, SERP analysis, and AI-powered classification. Every day, you get a new idea backed by real signals — not hunches.
+**Daily Trend Pick** is an automated daily discovery feature that surfaces emerging business opportunities by combining Google Trends data, SERP analysis, and AI-powered classification. Every day, you get a new idea backed by real signals, not hunches.
 
-> Stop scrolling Reddit and Twitter for business ideas. Daily Trend Pick does the discovery work for you — one vetted, data-backed opportunity delivered every day.
+> Stop scrolling Reddit and Twitter for business ideas. Daily Trend Pick does the discovery work for you, one vetted, data-backed opportunity delivered every day.
 
 ## How it works
 
@@ -22,7 +22,7 @@ Daily Trend Pick runs a three-stage pipeline every 24 hours to identify and eval
 
 ### Stage 1: Trend detection
 
-The system monitors Google Trends for search terms showing unusual growth patterns — spikes, sustained increases, or breakout signals across multiple geographies. It filters out noise (celebrity gossip, memes, seasonal patterns) and focuses on terms with commercial intent.
+The system monitors Google Trends for search terms showing unusual growth patterns, spikes, sustained increases, or breakout signals across multiple geographies. It filters out noise (celebrity gossip, memes, seasonal patterns) and focuses on terms with commercial intent.
 
 ### Stage 2: SERP analysis
 
@@ -50,7 +50,7 @@ Evidence that people are already spending money in or around this trend. This mi
 
 ### Pain points
 
-Specific problems or frustrations that searchers and potential customers are expressing. These are identified from forums, review sites, social media, and Q&A platforms. Pain points tell you where the opportunity has the most friction — and therefore the most room for a solution.
+Specific problems or frustrations that searchers and potential customers are expressing. These are identified from forums, review sites, social media, and Q&A platforms. Pain points tell you where the opportunity has the most friction, and therefore the most room for a solution.
 
 ### News spike risk
 
@@ -88,7 +88,7 @@ Measures the trajectory of search interest. A score of 80+ means rapid, accelera
 
 ### Purchase proof (0–100)
 
-Measures evidence that money is already flowing in this space. A score of 80+ means strong commercial activity — ads, products, transactions. A score of 40–60 means some commercial activity but significant gaps. Below 40 means mostly informational interest with limited spending.
+Measures evidence that money is already flowing in this space. A score of 80+ means strong commercial activity, ads, products, transactions. A score of 40–60 means some commercial activity but significant gaps. Below 40 means mostly informational interest with limited spending.
 
 **What drives it:** Paid ad density on related terms, existing product listings, crowdfunding activity, and affiliate content volume.
 
@@ -96,15 +96,15 @@ Measures evidence that money is already flowing in this space. A score of 80+ me
 
 Indicates how much of the trend is driven by a specific news event versus organic interest.
 
-- **Low** — Growth is organic and distributed across time. Safe to build on.
-- **Medium** — Some news-driven activity, but underlying organic interest exists. Proceed with awareness.
-- **High** — Trend is primarily driven by a single news event. Wait to see if interest persists before investing heavily.
+- **Low**: Growth is organic and distributed across time. Safe to build on.
+- **Medium**: Some news-driven activity, but underlying organic interest exists. Proceed with awareness.
+- **High**: Trend is primarily driven by a single news event. Wait to see if interest persists before investing heavily.
 
 > **Note:** A high growth score combined with low news spike risk and strong purchase proof is the strongest signal. Look for picks where all three indicators align.
 
 ## Related docs
 
-- [Getting Started](/docs/user-guide/getting-started) — How to create your first project
-- [Interview Modes](/docs/user-guide/interview-modes) — Choose the right interview mode after starting a trend-based project
-- [Reports](/docs/user-guide/reports/) — Validate a trend with in-depth research reports
-- [AI Agent](/docs/user-guide/ai-agent) — Explore a trend further with the AI Agent
+- [Getting Started](/docs/user-guide/getting-started), How to create your first project
+- [Interview Modes](/docs/user-guide/interview-modes), Choose the right interview mode after starting a trend-based project
+- [Reports](/docs/user-guide/reports/), Validate a trend with in-depth research reports
+- [AI Agent](/docs/user-guide/ai-agent), Explore a trend further with the AI Agent

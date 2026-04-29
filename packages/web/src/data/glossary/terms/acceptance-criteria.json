@@ -6,9 +6,9 @@
   "content": {
     "definition": "Acceptance criteria are the definition of done for a feature. They're the list of 'if this happens, then the feature works' statements that let you and your team agree on what 'complete' means before building starts. Without them, you ship features that half-solve the problem.",
     "whyItMatters": "Vague requirements create endless scope creep. Your designer thinks the feature is done, but your engineer is still adding edge cases. Your customer sees the launch and says 'but I thought it would also do X'. Acceptance criteria prevent this by forcing explicit agreement on what the feature must do.",
-    "howToApply": "For each feature, write acceptance criteria in the format 'Given X, when the user does Y, then Z should happen.' Be specific and testable—not 'the button should look good' but 'the button should be 48px tall, blue, and trigger a POST request when clicked.' Include edge cases. What happens if the user fills in invalid data? What if the network fails? Test the feature against each criterion before calling it done. If the feature fails even one acceptance criterion, it's not shipped.",
+    "howToApply": "For each feature, write acceptance criteria in the format 'Given X, when the user does Y, then Z should happen.' Be specific and testable, not 'the button should look good' but 'the button should be 48px tall, blue, and trigger a POST request when clicked.' Include edge cases. What happens if the user fills in invalid data? What if the network fails? Test the feature against each criterion before calling it done. If the feature fails even one acceptance criterion, it's not shipped.",
     "commonMistakes": [
-      "Writing acceptance criteria that are too vague to measure—'the feature should be user-friendly' doesn't tell engineers what to build",
+      "Writing acceptance criteria that are too vague to measure, 'the feature should be user-friendly' doesn't tell engineers what to build",
       "Ignoring edge cases because you're focused on the happy path",
       "Changing acceptance criteria mid-sprint instead of committing to the original scope"
     ],

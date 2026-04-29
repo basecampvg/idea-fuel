@@ -4,7 +4,7 @@ description: "Manage your IdeaFuel profile, founder background, billing, securit
 keywords: "IdeaFuel account settings, manage subscription, founder profile, billing settings"
 category: "Account"
 og:title: "Account Settings | IdeaFuel"
-og:description: "Update your profile, manage your subscription, configure security, and control your data privacy — all from one place."
+og:description: "Update your profile, manage your subscription, configure security, and control your data privacy, all from one place."
 structured_data:
   type: "WebPage"
 canonical: "/docs/user-guide/account-settings"
@@ -12,7 +12,7 @@ canonical: "/docs/user-guide/account-settings"
 
 # Account Settings
 
-**Account settings** is where you manage everything about your IdeaFuel account — your profile, founder background, subscription, security, and data privacy preferences. Access it by clicking your avatar in the top-right corner and selecting **Settings**.
+**Account settings** is where you manage everything about your IdeaFuel account, your profile, founder background, subscription, security, and data privacy preferences. Access it by clicking your avatar in the top-right corner and selecting **Settings**.
 
 > Your account settings do more than store your name and email. Your founder profile directly shapes the AI's analysis, and your subscription tier determines which features and report depths you can access.
 
@@ -32,7 +32,7 @@ Your profile photo appears in the top-right corner and on shared documents. Uplo
 
 ## Founder profile
 
-Your founder profile is not just a bio — it actively feeds into the AI's analysis across your projects.
+Your founder profile is not just a bio, it actively feeds into the AI's analysis across your projects.
 
 ### Background
 
@@ -40,7 +40,7 @@ Describe your professional background, domain expertise, and relevant experience
 
 ### Skills
 
-List your core skills — technical, business, creative, operational. The AI considers your skill set when evaluating execution risk and identifying gaps in your team section.
+List your core skills, technical, business, creative, operational. The AI considers your skill set when evaluating execution risk and identifying gaps in your team section.
 
 ### Experience
 
@@ -67,7 +67,7 @@ Click **Upgrade** next to any higher tier to switch immediately. You are charged
 
 ### Downgrade your plan
 
-Click **Change Plan** and select a lower tier. The downgrade takes effect at the end of your current billing cycle — you keep access to your current tier's features until then. See the FAQ for details on what happens to your data when you downgrade.
+Click **Change Plan** and select a lower tier. The downgrade takes effect at the end of your current billing cycle, you keep access to your current tier's features until then. See the FAQ for details on what happens to your data when you downgrade.
 
 ### Payment methods
 
@@ -85,7 +85,7 @@ If you signed up with Google, your account is linked to your Google identity. Yo
 
 If you created your account with email and password, you can update your password under **Settings > Security > Change Password**. Passwords must be at least 12 characters. Use a password manager for best security.
 
-> **Tip:** If you signed in with Google OAuth, you do not have a separate IdeaFuel password. Your account security is managed through your Google account — make sure you have two-factor authentication enabled on Google.
+> **Tip:** If you signed in with Google OAuth, you do not have a separate IdeaFuel password. Your account security is managed through your Google account, make sure you have two-factor authentication enabled on Google.
 
 ## Data & privacy
 
@@ -93,16 +93,16 @@ If you created your account with email and password, you can update your passwor
 
 IdeaFuel stores the following data associated with your account:
 
-- **Profile data** — Name, email, avatar, founder profile
-- **Project data** — Research results, interview transcripts, generated reports, financial models, AI Agent conversation history, saved insights
-- **Business plans** — Generated PDFs and share links
-- **Usage data** — Feature usage metrics for plan limit tracking
-- **Billing data** — Subscription tier and payment history (full card details are stored by Stripe, not IdeaFuel)
+- **Profile data**: Name, email, avatar, founder profile
+- **Project data**: Research results, interview transcripts, generated reports, financial models, AI Agent conversation history, saved insights
+- **Business plans**: Generated PDFs and share links
+- **Usage data**: Feature usage metrics for plan limit tracking
+- **Billing data**: Subscription tier and payment history (full card details are stored by Stripe, not IdeaFuel)
 
 ### How your data is secured
 
 - All data is encrypted in transit (TLS 1.3) and at rest (AES-256)
-- Project data is isolated per account — no cross-account data access
+- Project data is isolated per account, no cross-account data access
 - AI model providers do not retain your project data for training purposes
 - Regular security audits and penetration testing
 - SOC 2 Type II compliance
@@ -119,7 +119,7 @@ To permanently delete your account and all associated data, go to **Settings > D
 
 ## Related docs
 
-- [Getting Started](/docs/user-guide/getting-started) — Set up your first project
-- [AI Agent](/docs/user-guide/ai-agent) — How your founder profile influences AI responses
-- [Business Plan PDF](/docs/user-guide/business-plan-pdf) — Your founder profile feeds the Team section
-- [FAQ](/docs/user-guide/faq) — Common billing and account questions
+- [Getting Started](/docs/user-guide/getting-started), Set up your first project
+- [AI Agent](/docs/user-guide/ai-agent), How your founder profile influences AI responses
+- [Business Plan PDF](/docs/user-guide/business-plan-pdf), Your founder profile feeds the Team section
+- [FAQ](/docs/user-guide/faq), Common billing and account questions

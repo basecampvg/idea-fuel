@@ -3,7 +3,7 @@ title: "What Is a Competitive Analysis? (How to Do One for Your Startup)"
 description: "A competitive analysis is a structured evaluation of your competitors' strengths, weaknesses, positioning, and strategies. Learn how to do one in 5 steps with frameworks and templates."
 keywords: "what is a competitive analysis, competitive analysis template, how to do a competitive analysis, competitive analysis for startups, competitive analysis framework"
 category: "Learn"
-og:title: "Competitive Analysis for Startups — 5-Step Guide with Frameworks"
+og:title: "Competitive Analysis for Startups, 5-Step Guide with Frameworks"
 og:description: "Learn how to analyze competitors for your startup. Includes comparison of frameworks (Porter's Five Forces, SWOT, positioning maps) and a step-by-step process."
 structured_data:
   type: "FAQPage"
@@ -24,9 +24,9 @@ canonical: "/docs/learn/competitive-analysis-how-to"
 
 List every company that solves the same problem for the same audience. Include:
 
-- **Direct competitors** — companies offering a similar product to the same customer (e.g., if you are building an AI tutoring app, Chegg and Khanmigo are direct competitors)
-- **Indirect competitors** — companies solving the same problem differently (e.g., human tutors, YouTube tutorials, study groups)
-- **Emerging competitors** — startups or products in adjacent spaces that could expand into yours
+- **Direct competitors**: companies offering a similar product to the same customer (e.g., if you are building an AI tutoring app, Chegg and Khanmigo are direct competitors)
+- **Indirect competitors**: companies solving the same problem differently (e.g., human tutors, YouTube tutorials, study groups)
+- **Emerging competitors**: startups or products in adjacent spaces that could expand into yours
 
 Aim for 5-10 competitors. Fewer than 5 means you have not looked hard enough. More than 15 means you need to narrow your target market.
 
@@ -49,16 +49,16 @@ For each competitor, document:
 
 Map each competitor's position on two dimensions that matter most to your target customer. Common axes:
 
-- **Price vs. depth of service** — are they cheap and simple or expensive and comprehensive?
-- **Self-serve vs. high-touch** — do customers figure it out alone or get personal support?
-- **Speed vs. thoroughness** — do they prioritize fast results or deep analysis?
-- **Generalist vs. specialist** — do they serve everyone or a specific niche?
+- **Price vs. depth of service**: are they cheap and simple or expensive and comprehensive?
+- **Self-serve vs. high-touch**: do customers figure it out alone or get personal support?
+- **Speed vs. thoroughness**: do they prioritize fast results or deep analysis?
+- **Generalist vs. specialist**: do they serve everyone or a specific niche?
 
 The empty space on this map is your opportunity. If every competitor is expensive and comprehensive, there is room for a fast, affordable alternative.
 
 ### Step 4: Identify strengths and weaknesses
 
-For each competitor, list 3-5 strengths and 3-5 weaknesses. Focus on what customers care about, not what you think matters. Read customer reviews religiously — the complaints and praise in reviews tell you exactly what the market values.
+For each competitor, list 3-5 strengths and 3-5 weaknesses. Focus on what customers care about, not what you think matters. Read customer reviews religiously, the complaints and praise in reviews tell you exactly what the market values.
 
 | Competitor | Key strength | Key weakness | Opportunity for you |
 |-----------|-------------|-------------|-------------------|
@@ -70,9 +70,9 @@ For each competitor, list 3-5 strengths and 3-5 weaknesses. Focus on what custom
 
 Based on your analysis, articulate a clear competitive advantage. A strong advantage meets three criteria:
 
-1. **Customers care about it** — it addresses a real weakness in existing solutions
-2. **Competitors cannot easily copy it** — it requires unique technology, data, or expertise
-3. **You can deliver on it today** — it is not aspirational, it is real
+1. **Customers care about it**: it addresses a real weakness in existing solutions
+2. **Competitors cannot easily copy it**: it requires unique technology, data, or expertise
+3. **You can deliver on it today**: it is not aspirational, it is real
 
 Write a single sentence: "We win because [advantage] which matters because [customer need] and competitors cannot match it because [moat]."
 
@@ -95,7 +95,7 @@ For most startups, a **positioning map** combined with a **feature matrix** give
 
 ## How IdeaFuel helps
 
-IdeaFuel's competitive analysis report automatically identifies your real competitors, documents their pricing, features, and positioning, and generates a competitive matrix — all from a single interview about your idea. The report includes a positioning map showing where competitors cluster and where opportunities exist. You get the equivalent of days of manual research delivered in minutes.
+IdeaFuel's competitive analysis report automatically identifies your real competitors, documents their pricing, features, and positioning, and generates a competitive matrix, all from a single interview about your idea. The report includes a positioning map showing where competitors cluster and where opportunities exist. You get the equivalent of days of manual research delivered in minutes.
 
 ---
 
@@ -111,19 +111,19 @@ For startups in fast-moving markets, review quarterly. At minimum, update whenev
 
 ### What is the difference between competitive analysis and market research?
 
-Market research is the broader study of your target market — who the customers are, how big the market is, what trends are shaping demand. Competitive analysis is one component of market research that focuses specifically on the other companies serving that market. You need both: market research tells you the opportunity exists, competitive analysis tells you how to win it.
+Market research is the broader study of your target market, who the customers are, how big the market is, what trends are shaping demand. Competitive analysis is one component of market research that focuses specifically on the other companies serving that market. You need both: market research tells you the opportunity exists, competitive analysis tells you how to win it.
 
 ### Can I do a competitive analysis without paying for tools?
 
-Yes. Use free tools: competitor websites for pricing and features, G2 and Capterra for customer reviews, Crunchbase for funding data, Google for press coverage, and Reddit or Twitter for customer sentiment. The limitation is time — manually gathering and organizing this data takes 1-2 days per competitor. AI tools like IdeaFuel automate this process.
+Yes. Use free tools: competitor websites for pricing and features, G2 and Capterra for customer reviews, Crunchbase for funding data, Google for press coverage, and Reddit or Twitter for customer sentiment. The limitation is time, manually gathering and organizing this data takes 1-2 days per competitor. AI tools like IdeaFuel automate this process.
 
 ### What if I do not have any direct competitors?
 
-You almost certainly do. If no one is selling a similar product, look for indirect competitors — the tools, services, or manual processes your target customers use to solve the same problem today. "No competitors" usually means you have not looked hard enough, or the market does not exist. Truly new categories are extremely rare.
+You almost certainly do. If no one is selling a similar product, look for indirect competitors, the tools, services, or manual processes your target customers use to solve the same problem today. "No competitors" usually means you have not looked hard enough, or the market does not exist. Truly new categories are extremely rare.
 
 ### What is the most common mistake in competitive analysis?
 
-Underestimating competitors. Entrepreneurs tend to focus on what competitors do badly and ignore what they do well. The biggest risk is not that competitors are weak — it is that they are strong in ways you have not considered. Read their positive reviews, not just their negative ones. Study their best features, not just their gaps.
+Underestimating competitors. Entrepreneurs tend to focus on what competitors do badly and ignore what they do well. The biggest risk is not that competitors are weak, it is that they are strong in ways you have not considered. Read their positive reviews, not just their negative ones. Study their best features, not just their gaps.
 
 ### Should my competitive analysis go in my business plan?
 

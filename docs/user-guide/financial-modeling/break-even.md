@@ -12,9 +12,9 @@ canonical: "/docs/user-guide/financial-modeling/break-even/"
 
 # Break-Even Analysis
 
-**Break-even analysis** determines the point at which your startup's total revenue equals its total costs — the month you stop losing money and start generating profit. IdeaFuel calculates this automatically from your financial model.
+**Break-even analysis** determines the point at which your startup's total revenue equals its total costs, the month you stop losing money and start generating profit. IdeaFuel calculates this automatically from your financial model.
 
-> "In a nutshell" — Your break-even month tells you how long you need to fund losses before the business sustains itself. It drives funding decisions, pricing strategy, and investor confidence.
+> "In a nutshell", Your break-even month tells you how long you need to fund losses before the business sustains itself. It drives funding decisions, pricing strategy, and investor confidence.
 
 ## What Break-Even Tells You
 
@@ -41,11 +41,11 @@ Understanding your cost structure is essential to interpreting break-even:
 
 ### Fixed Costs
 
-Expenses that stay constant regardless of sales volume — rent, salaries, software subscriptions, insurance. These create a baseline that revenue must exceed every month.
+Expenses that stay constant regardless of sales volume, rent, salaries, software subscriptions, insurance. These create a baseline that revenue must exceed every month.
 
 ### Variable Costs
 
-Expenses that scale with revenue — cost of goods sold, transaction fees, shipping, sales commissions. Higher revenue brings higher variable costs, which means your break-even point depends on your **gross margin**, not just total revenue.
+Expenses that scale with revenue, cost of goods sold, transaction fees, shipping, sales commissions. Higher revenue brings higher variable costs, which means your break-even point depends on your **gross margin**, not just total revenue.
 
 > **Tip:** Reducing fixed costs moves your break-even earlier. Improving gross margin (by lowering variable costs or raising prices) has the same effect. Test both approaches with [what-if analysis](/docs/user-guide/financial-modeling/scenarios/#running-what-if-analysis).
 
@@ -53,10 +53,10 @@ Expenses that scale with revenue — cost of goods sold, transaction fees, shipp
 
 Your revenue model significantly affects when you break even:
 
-- **Subscription (SaaS)** — Recurring revenue compounds over time, but high upfront acquisition costs can delay break-even. Watch your CAC payback period alongside break-even.
-- **One-time sales (E-commerce, Retail)** — Each sale must individually contribute margin. Break-even depends heavily on volume and repeat purchase rates.
-- **Project-based (Services, Freelancer)** — Revenue is lumpy. Break-even may fluctuate month to month. Focus on the trend rather than a single crossover point.
-- **Marketplace** — Both supply and demand sides have acquisition costs. Break-even often comes later but scales faster once network effects kick in.
+- **Subscription (SaaS)**: Recurring revenue compounds over time, but high upfront acquisition costs can delay break-even. Watch your CAC payback period alongside break-even.
+- **One-time sales (E-commerce, Retail)**: Each sale must individually contribute margin. Break-even depends heavily on volume and repeat purchase rates.
+- **Project-based (Services, Freelancer)**: Revenue is lumpy. Break-even may fluctuate month to month. Focus on the trend rather than a single crossover point.
+- **Marketplace**: Both supply and demand sides have acquisition costs. Break-even often comes later but scales faster once network effects kick in.
 
 > **Note:** IdeaFuel's industry templates pre-configure the revenue model that best fits your business type. You can adjust it in the [assumptions editor](/docs/user-guide/financial-modeling/assumptions/).
 
@@ -65,7 +65,7 @@ Your revenue model significantly affects when you break even:
 Investors will ask about your path to profitability. Here is how to present break-even effectively:
 
 1. **Lead with the number.** "We reach break-even in month 14 under our base scenario."
-2. **Show the range.** Present break-even across your [optimistic, base, and pessimistic scenarios](/docs/user-guide/financial-modeling/scenarios/) — for example, months 10, 14, and 22.
+2. **Show the range.** Present break-even across your [optimistic, base, and pessimistic scenarios](/docs/user-guide/financial-modeling/scenarios/), for example, months 10, 14, and 22.
 3. **Connect it to funding.** "We are raising 18 months of runway, which gives us a 4-month buffer beyond our base-case break-even."
 4. **Explain the drivers.** Highlight the two or three assumptions (price, churn, acquisition cost) that most affect the timeline.
 

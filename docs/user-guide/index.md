@@ -1,9 +1,9 @@
 ---
 title: "IdeaFuel Documentation"
-description: "Official user guide for IdeaFuel — the AI-powered platform that validates your business ideas with real market research, financial modeling, and expert-level analysis."
+description: "Official user guide for IdeaFuel, the AI-powered platform that validates your business ideas with real market research, financial modeling, and expert-level analysis."
 keywords: "IdeaFuel documentation, business idea validation, AI market research, startup validation tool"
 category: "Documentation"
-og:title: "IdeaFuel Documentation — Validate Your Business Ideas with AI"
+og:title: "IdeaFuel Documentation, Validate Your Business Ideas with AI"
 og:description: "Learn how to use IdeaFuel to validate business ideas, generate market research reports, build financial models, and create investor-ready business plans."
 structured_data: "WebPage"
 canonical: "/docs/user-guide"
@@ -13,7 +13,7 @@ canonical: "/docs/user-guide"
 
 **IdeaFuel is an AI-powered business idea validation platform that turns your raw concepts into research-backed reports, financial models, and investor-ready business plans.**
 
-> IdeaFuel combines structured interviews, market research, and financial analysis to help you decide whether your idea is worth pursuing — before you spend months building it. Think of it as a virtual advisor that pressure-tests your concept from every angle.
+> IdeaFuel combines structured interviews, market research, and financial analysis to help you decide whether your idea is worth pursuing, before you spend months building it. Think of it as a virtual advisor that pressure-tests your concept from every angle.
 
 Welcome to the IdeaFuel documentation. Whether you just signed up or you are exploring advanced features, these guides walk you through every step of validating your next business idea.
 
@@ -95,6 +95,6 @@ Stay up to date with new features, improvements, and platform updates.
 
 ---
 
-> **Tip:** New to idea validation? Start with the [Getting Started](/docs/user-guide/getting-started) guide — you can have your first report in hand within 15 minutes.
+> **Tip:** New to idea validation? Start with the [Getting Started](/docs/user-guide/getting-started) guide, you can have your first report in hand within 15 minutes.
 
 See also: [Subscription Plans](/docs/user-guide/subscription-plans) | [Interview Modes](/docs/user-guide/interview-modes) | [FAQs & Troubleshooting](/docs/user-guide/faq)
