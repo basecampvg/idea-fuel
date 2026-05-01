@@ -15,7 +15,7 @@
  * - findContradictions: AI detection of contradictions across thoughts
  */
 
-import { eq, and, desc, count, isNull } from 'drizzle-orm';
+import { eq, and, desc, count } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { router, protectedProcedure } from '../trpc';
 import {
@@ -56,15 +56,14 @@ async function getClusterThoughtsForAi(
   }
 
   const clusterThoughts = await db
-    .select({ content: thoughts.content, purpose: thoughts.purpose, tags: thoughts.tags })
+    .select({ content: thoughts.content, tags: thoughts.tags })
     .from(thoughts)
-    .where(and(eq(thoughts.clusterId, clusterId), isNull(thoughts.promotedProjectId)));
+    .where(and(eq(thoughts.clusterId, clusterId), eq(thoughts.kind, 'thought')));
 
   const contents = clusterThoughts
-    .map((n: { content: string; purpose: string | null; tags: string[] | null }) => {
+    .map((n: { content: string; tags: string[] | null }) => {
       if (n.content.length === 0) return '';
       const meta = [];
-      if (n.purpose) meta.push(`Purpose: ${n.purpose}`);
       if (n.tags?.length) meta.push(`Labels: ${n.tags.join(', ')}`);
       const prefix = meta.length > 0 ? `[${meta.join(' | ')}]\n` : '';
       return `${prefix}${n.content}`;
@@ -102,7 +101,7 @@ export const clusterRouter = router({
         thoughtCount: count(thoughts.id),
       })
       .from(thoughtClusters)
-      .leftJoin(thoughts, and(eq(thoughts.clusterId, thoughtClusters.id), isNull(thoughts.promotedProjectId)))
+      .leftJoin(thoughts, and(eq(thoughts.clusterId, thoughtClusters.id), eq(thoughts.kind, 'thought')))
       .where(eq(thoughtClusters.userId, ctx.userId))
       .groupBy(thoughtClusters.id)
       .orderBy(desc(thoughtClusters.updatedAt));
@@ -127,7 +126,7 @@ export const clusterRouter = router({
       const clusterThoughts = await ctx.db
         .select()
         .from(thoughts)
-        .where(and(eq(thoughts.clusterId, input.id), isNull(thoughts.promotedProjectId)))
+        .where(and(eq(thoughts.clusterId, input.id), eq(thoughts.kind, 'thought')))
         .orderBy(desc(thoughts.updatedAt));
 
       return { ...cluster, thoughts: clusterThoughts };
