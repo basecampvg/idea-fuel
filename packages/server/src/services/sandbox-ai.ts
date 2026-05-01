@@ -97,17 +97,42 @@ function formatNotesForAi(noteContents: string[]): string {
 // Summarize
 // ---------------------------------------------------------------------------
 
-const summarySchema = z.object({
-  summary: z.string().min(1),
+const dimensionCoverageSchema = z.object({
+  problem: z.boolean(),
+  audience: z.boolean(),
+  solution: z.boolean(),
+  angle: z.boolean(),
+  pricing: z.boolean(),
 });
 
-export async function summarizeSandbox(noteContents: string[]): Promise<string> {
+const summarySchema = z.object({
+  summary: z.string().min(1),
+  dimensionCoverage: dimensionCoverageSchema,
+});
+
+export type DimensionCoverage = z.infer<typeof dimensionCoverageSchema>;
+
+export type SummarizeSandboxResult = {
+  summary: string;
+  dimensionCoverage: DimensionCoverage;
+};
+
+export async function summarizeSandbox(noteContents: string[]): Promise<SummarizeSandboxResult> {
   const result = await callHaikuJson(
-    `You synthesize collections of notes into coherent summaries for entrepreneurs. Distill the key themes, decisions, and insights across all notes into a 2-3 paragraph summary. Write in second person ("You've been thinking about..."). Return JSON: { "summary": "..." }`,
+    `You synthesize collections of notes into coherent summaries for entrepreneurs. Distill the key themes, decisions, and insights across all notes into a 2-3 paragraph summary. Write in second person ("You've been thinking about...").
+
+You also assess which of the five business dimensions the notes cover. For each dimension, set true if any note speaks to it, false otherwise:
+- problem: a real pain or unmet need
+- audience: a specific target user/customer segment
+- solution: a proposed product, service, or approach
+- angle: a unique insight, edge, or differentiator
+- pricing: business model, price point, or monetization
+
+Return JSON: { "summary": "...", "dimensionCoverage": { "problem": bool, "audience": bool, "solution": bool, "angle": bool, "pricing": bool } }`,
     `Summarize these notes:\n\n${formatNotesForAi(noteContents)}`,
     summarySchema,
   );
-  return result.summary;
+  return result;
 }
 
 // ---------------------------------------------------------------------------
