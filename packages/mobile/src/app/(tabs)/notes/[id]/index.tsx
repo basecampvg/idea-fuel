@@ -17,7 +17,6 @@ import {
   CheckCircle,
   AlertCircle,
   ChevronLeft,
-  Rocket,
   MoreHorizontal,
 } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
@@ -99,7 +98,6 @@ export default function NoteEditorScreen() {
   const navigation = useNavigation();
   const { showToast } = useToast();
   const [initialLoaded, setInitialLoaded] = useState(false);
-  const [showPromotedSheet, setShowPromotedSheet] = useState(false);
   const [showOverflow, setShowOverflow] = useState(false);
   const overflowAnchorRef = useRef<View>(null);
   const [overflowAnchor, setOverflowAnchor] = useState<{
@@ -182,27 +180,6 @@ export default function NoteEditorScreen() {
     },
     onError: () => {
       // Silent fail — auto-refine will retry on next typing pause
-    },
-  });
-
-  const promotedRef = useRef(false);
-
-  const promoteMutation = trpc.thought.promote.useMutation({
-    onSuccess: () => {
-      promotedRef.current = true;
-      triggerHaptic('success');
-      utils.thought.list.reset();
-      utils.thought.get.invalidate({ id: id! });
-      utils.project.list.invalidate();
-      setShowPromotedSheet(true);
-    },
-    onError: (err) => {
-      triggerHaptic('error');
-      if (err.message === 'NO_REFINEMENT') {
-        Alert.alert('Error', 'Refine this note first before promoting.');
-      } else {
-        Alert.alert('Error', "Couldn't create idea — try again.");
-      }
     },
   });
 
@@ -352,7 +329,7 @@ export default function NoteEditorScreen() {
   // Flush pending saves on navigate away (skip if note was promoted/deleted)
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', () => {
-      if (!promotedRef.current) flush();
+      flush();
     });
     return unsubscribe;
   }, [navigation, flush]);
@@ -801,38 +778,6 @@ export default function NoteEditorScreen() {
         excludeId={id!}
       />
 
-      {/* Promoted success sheet */}
-      <BottomSheet
-        visible={showPromotedSheet}
-        onClose={() => {
-          setShowPromotedSheet(false);
-          router.back();
-          router.navigate('/(tabs)/vault');
-        }}
-        showCloseButton={false}
-      >
-        <View style={styles.promotedSheet}>
-          <View style={styles.promotedIconCircle}>
-            <Rocket size={28} color={colors.brand} />
-          </View>
-          <Text style={styles.promotedTitle}>Idea Created</Text>
-          <Text style={styles.promotedDescription}>
-            Your note has been refined into an idea and promoted to the Vault, where you can validate it and dive deeper.
-          </Text>
-          <Button
-            variant="primary"
-            size="lg"
-            onPress={() => {
-              setShowPromotedSheet(false);
-              router.back();
-              router.navigate('/(tabs)/vault');
-            }}
-            style={styles.promotedButton}
-          >
-            Go to Vault
-          </Button>
-        </View>
-      </BottomSheet>
     </View>
   );
 }
@@ -948,37 +893,6 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  promotedSheet: {
-    alignItems: 'center',
-    gap: 16,
-    paddingTop: 8,
-    paddingBottom: 16,
-  },
-  promotedIconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.brandMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  promotedTitle: {
-    fontSize: 20,
-    ...fonts.outfit.bold,
-    color: colors.foreground,
-  },
-  promotedDescription: {
-    fontSize: 15,
-    ...fonts.geist.regular,
-    color: colors.muted,
-    lineHeight: 22,
-    textAlign: 'center',
-    paddingHorizontal: 8,
-  },
-  promotedButton: {
-    width: '100%',
-    marginTop: 8,
   },
 });
 
