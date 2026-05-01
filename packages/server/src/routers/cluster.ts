@@ -36,6 +36,7 @@ import {
   generateBrief,
   findContradictions,
 } from '../services/sandbox-ai';
+import { recomputeClusterReadiness } from '../services/cluster-readiness';
 
 /** Fetch and validate cluster thoughts for AI actions. Returns thought contents array. */
 async function getClusterThoughtsForAi(
@@ -207,8 +208,13 @@ export const clusterRouter = router({
     .mutation(async ({ ctx, input }) => {
       const contents = await getClusterThoughtsForAi(ctx.db, input.id, ctx.userId);
       try {
-        const summary = await summarizeSandbox(contents);
-        return { summary };
+        const { summary, dimensionCoverage } = await summarizeSandbox(contents);
+        await ctx.db
+          .update(thoughtClusters)
+          .set({ synthesis: summary, dimensionCoverage })
+          .where(eq(thoughtClusters.id, input.id));
+        await recomputeClusterReadiness(ctx.db, input.id);
+        return { summary, dimensionCoverage };
       } catch (error) {
         console.error('[ClusterRouter] Summarize failed:', error instanceof Error ? error.message : error);
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'SUMMARIZE_FAILED', cause: error });
@@ -261,7 +267,13 @@ export const clusterRouter = router({
       const contents = await getClusterThoughtsForAi(ctx.db, input.id, ctx.userId);
       try {
         const gaps = await identifyGaps(contents);
-        return { gaps };
+        const gapRecords = gaps.map((text) => ({ id: crypto.randomUUID(), text }));
+        await ctx.db
+          .update(thoughtClusters)
+          .set({ gaps: gapRecords })
+          .where(eq(thoughtClusters.id, input.id));
+        await recomputeClusterReadiness(ctx.db, input.id);
+        return { gaps: gapRecords };
       } catch (error) {
         console.error('[ClusterRouter] IdentifyGaps failed:', error instanceof Error ? error.message : error);
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'IDENTIFY_GAPS_FAILED', cause: error });
@@ -274,6 +286,11 @@ export const clusterRouter = router({
       const contents = await getClusterThoughtsForAi(ctx.db, input.id, ctx.userId);
       try {
         const brief = await generateBrief(contents);
+        await ctx.db
+          .update(thoughtClusters)
+          .set({ brief })
+          .where(eq(thoughtClusters.id, input.id));
+        await recomputeClusterReadiness(ctx.db, input.id);
         return { brief };
       } catch (error) {
         console.error('[ClusterRouter] GenerateBrief failed:', error instanceof Error ? error.message : error);
@@ -287,7 +304,17 @@ export const clusterRouter = router({
       const contents = await getClusterThoughtsForAi(ctx.db, input.id, ctx.userId);
       try {
         const contradictions = await findContradictions(contents);
-        return { contradictions };
+        const tensionRecords = contradictions.map((text) => ({
+          id: crypto.randomUUID(),
+          text,
+          resolvedAt: null,
+        }));
+        await ctx.db
+          .update(thoughtClusters)
+          .set({ tensions: tensionRecords })
+          .where(eq(thoughtClusters.id, input.id));
+        await recomputeClusterReadiness(ctx.db, input.id);
+        return { contradictions, tensions: tensionRecords };
       } catch (error) {
         console.error('[ClusterRouter] FindContradictions failed:', error instanceof Error ? error.message : error);
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'FIND_CONTRADICTIONS_FAILED', cause: error });
