@@ -17,6 +17,7 @@
 
 import { eq, and, desc, count } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import {
   createClusterSchema,
@@ -319,5 +320,37 @@ export const clusterRouter = router({
         console.error('[ClusterRouter] FindContradictions failed:', error instanceof Error ? error.message : error);
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'FIND_CONTRADICTIONS_FAILED', cause: error });
       }
+    }),
+
+  /**
+   * Mark a tension (contradiction) as resolved. Triggers readiness recompute.
+   */
+  resolveTension: protectedProcedure
+    .input(z.object({ clusterId: z.string(), tensionId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [cluster] = await ctx.db
+        .select()
+        .from(thoughtClusters)
+        .where(
+          and(
+            eq(thoughtClusters.id, input.clusterId),
+            eq(thoughtClusters.userId, ctx.userId),
+          ),
+        );
+      if (!cluster) throw new TRPCError({ code: 'NOT_FOUND', message: 'CLUSTER_NOT_FOUND' });
+
+      const tensions =
+        (cluster.tensions as { id: string; text: string; resolvedAt: Date | null }[]) ?? [];
+      const updated = tensions.map((t) =>
+        t.id === input.tensionId ? { ...t, resolvedAt: new Date() } : t,
+      );
+
+      await ctx.db
+        .update(thoughtClusters)
+        .set({ tensions: updated })
+        .where(eq(thoughtClusters.id, input.clusterId));
+      await recomputeClusterReadiness(ctx.db, input.clusterId);
+
+      return { success: true };
     }),
 });
