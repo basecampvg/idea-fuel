@@ -29,6 +29,7 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import { enqueueThoughtCollision } from '../jobs/queues';
+import { maybeEnqueueClusterSynthesisForCount } from '../jobs/cluster-synthesis';
 import {
   createThoughtSchema,
   updateThoughtPropertiesSchema,
@@ -237,6 +238,19 @@ export const thoughtRouter = router({
         } catch {
           // Non-critical — don't fail thought creation if queue is down
         }
+      }
+
+      // If thought was created directly into a cluster, check milestone count.
+      if (input.clusterId && kind === 'thought') {
+        const [{ thoughtCount }] = await ctx.db
+          .select({ thoughtCount: count(thoughts.id) })
+          .from(thoughts)
+          .where(and(eq(thoughts.clusterId, input.clusterId), eq(thoughts.kind, 'thought')));
+        await maybeEnqueueClusterSynthesisForCount(
+          input.clusterId,
+          ctx.userId,
+          Number(thoughtCount),
+        );
       }
 
       return thought;
@@ -574,6 +588,13 @@ export const thoughtRouter = router({
         eventType: 'clustered',
         metadata: { clusterId: input.clusterId },
       });
+
+      // Check thought count milestone (5/8/12+) and trigger auto-synthesis.
+      const [{ thoughtCount }] = await ctx.db
+        .select({ thoughtCount: count(thoughts.id) })
+        .from(thoughts)
+        .where(and(eq(thoughts.clusterId, input.clusterId), eq(thoughts.kind, 'thought')));
+      await maybeEnqueueClusterSynthesisForCount(input.clusterId, ctx.userId, Number(thoughtCount));
 
       return { success: true };
     }),

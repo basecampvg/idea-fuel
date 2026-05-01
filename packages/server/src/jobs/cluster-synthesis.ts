@@ -79,3 +79,35 @@ export async function enqueueClusterSynthesis(
   });
   return job.id || '';
 }
+
+/**
+ * Map a thought-count milestone to the matching cluster-synthesis trigger.
+ * Returns null if the count isn't a milestone:
+ *   - exactly 5  -> 'thoughts:5'
+ *   - exactly 8  -> 'thoughts:8'
+ *   - 12, 17, 22, 27, ... -> 'thoughts:12+'
+ */
+export function getThoughtCountTrigger(count: number): ClusterSynthesisTrigger | null {
+  if (count === 5) return 'thoughts:5';
+  if (count === 8) return 'thoughts:8';
+  if (count >= 12 && (count - 12) % 5 === 0) return 'thoughts:12+';
+  return null;
+}
+
+/**
+ * Convenience: enqueue if the new thought count crosses a milestone.
+ * Safe to call after any addToCluster / removeFromCluster mutation.
+ */
+export async function maybeEnqueueClusterSynthesisForCount(
+  clusterId: string,
+  userId: string,
+  thoughtCount: number,
+): Promise<void> {
+  const trigger = getThoughtCountTrigger(thoughtCount);
+  if (!trigger) return;
+  try {
+    await enqueueClusterSynthesis({ clusterId, userId, trigger });
+  } catch (err) {
+    console.error('[ClusterSynthesis] enqueue failed:', err);
+  }
+}
