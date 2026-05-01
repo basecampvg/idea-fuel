@@ -44,6 +44,10 @@ export default function SandboxStackLayout() {
         name="[id]/index"
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="[id]/crystallize"
+        options={{ headerShown: false, presentation: 'modal' }}
+      />
     </Stack>
   );
 }
