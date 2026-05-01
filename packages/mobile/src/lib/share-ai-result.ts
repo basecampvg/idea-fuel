@@ -17,7 +17,7 @@ export function formatResultAsPlainText(
     case 'todos':
       return `${header}\n\n${result.data.todos.map((t) => `- ${t}`).join('\n')}`;
     case 'gaps':
-      return `${header}\n\n${result.data.gaps.map((g) => `- ${g}`).join('\n')}`;
+      return `${header}\n\n${result.data.gaps.map((g) => `- ${g.text}`).join('\n')}`;
     case 'contradictions':
       if (result.data.contradictions.length === 0) {
         return `${header}\n\nNo contradictions found across your notes.`;
@@ -46,7 +46,7 @@ export function formatResultAsHtml(
       bodyContent = `<ul>${result.data.todos.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul>`;
       break;
     case 'gaps':
-      bodyContent = `<ul>${result.data.gaps.map((g) => `<li>${escapeHtml(g)}</li>`).join('')}</ul>`;
+      bodyContent = `<ul>${result.data.gaps.map((g) => `<li>${escapeHtml(g.text)}</li>`).join('')}</ul>`;
       break;
     case 'contradictions':
       if (result.data.contradictions.length === 0) {
