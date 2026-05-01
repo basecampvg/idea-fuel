@@ -36,6 +36,12 @@ export const updateProjectSchema = z.object({
   title: z.string().min(1).max(PROJECT_TITLE_MAX).optional(),
   description: z.string().min(PROJECT_DESC_MIN).max(PROJECT_DESC_MAX).optional(),
   notes: z.string().max(50000).nullable().optional(),
+  problemStatement: z.string().max(2000).nullable().optional(),
+  targetAudience: z.string().max(1000).nullable().optional(),
+  proposedSolution: z.string().max(2000).nullable().optional(),
+  uniqueAngle: z.string().max(1000).nullable().optional(),
+  pricingHypothesis: z.string().max(1000).nullable().optional(),
+  validationStatus: z.enum(['draft', 'in_validation', 'validated', 'killed', 'returned']).optional(),
 });
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 

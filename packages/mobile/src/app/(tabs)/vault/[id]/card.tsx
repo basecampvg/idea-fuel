@@ -136,7 +136,7 @@ export default function CardScreen() {
   const [showWebSheet, setShowWebSheet] = useState(false);
 
   // Fetch project data to get cardResult
-  const { data: project, isLoading } = trpc.project.get.useQuery(
+  const { data: project, isLoading } = trpc.idea.get.useQuery(
     { id: id! },
     { enabled: !!id },
   );
