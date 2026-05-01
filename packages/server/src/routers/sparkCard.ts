@@ -342,8 +342,7 @@ export const sparkCardRouter = router({
       await ctx.db
         .update(projects)
         .set({
-          promoted: true,
-          promotedAt: new Date(),
+          validationStatus: 'in_validation',
         })
         .where(eq(projects.id, projectId));
 
