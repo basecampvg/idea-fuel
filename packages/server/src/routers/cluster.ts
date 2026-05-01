@@ -2,17 +2,19 @@
  * Cluster Router — CRUD + AI actions for thought collections.
  *
  * Procedures:
- * - list:              Return user's clusters with thought counts, sorted by updatedAt desc
- * - get:               Return cluster + its thoughts (ownership check)
- * - create:            Create new cluster
- * - update:            Update cluster name/color
- * - delete:            Delete cluster (unpins thoughts via FK set null)
- * - summarize:         AI summary of cluster thoughts
- * - extractTodos:      AI extraction of action items from thoughts
- * - promoteToIdea:     AI synthesis into a new project
- * - identifyGaps:      AI identification of knowledge gaps in thoughts
- * - generateBrief:     AI generation of a structured brief from thoughts
- * - findContradictions: AI detection of contradictions across thoughts
+ * - list:                Return user's clusters with thought counts, sorted by updatedAt desc
+ * - get:                 Return cluster + its thoughts (ownership check)
+ * - create:              Create new cluster
+ * - update:              Update cluster name/color
+ * - delete:              Delete cluster (unpins thoughts via FK set null)
+ * - summarize:           AI summary of cluster thoughts
+ * - extractTodos:        AI extraction of action items from thoughts
+ * - previewCrystallize:  AI extracts the 5 idea fields, returns without inserting
+ * - confirmCrystallize:  Insert (possibly user-edited) fields as a new Idea row
+ * - promoteToIdea:       DEPRECATED one-shot crystallize, kept for mobile compat
+ * - identifyGaps:        AI identification of knowledge gaps in thoughts
+ * - generateBrief:       AI generation of a structured brief from thoughts
+ * - findContradictions:  AI detection of contradictions across thoughts
  */
 
 import { eq, and, desc, count } from 'drizzle-orm';
@@ -28,7 +30,7 @@ import {
   CLUSTER_MIN_THOUGHTS_FOR_AI,
   CLUSTER_MIN_CHARS_FOR_AI,
 } from '@forge/shared';
-import { thoughtClusters, thoughts, projects } from '../db/schema';
+import { thoughtClusters, thoughts, ideas } from '../db/schema';
 import {
   summarizeSandbox,
   extractTodosFromSandbox,
@@ -235,30 +237,153 @@ export const clusterRouter = router({
       }
     }),
 
+  /**
+   * Preview crystallization: runs AI extraction over cluster thoughts and
+   * returns the 5 structured fields. Does NOT insert. Mobile shows these in an
+   * editable preview screen before the user confirms.
+   */
+  previewCrystallize: protectedProcedure
+    .input(clusterAiActionSchema)
+    .mutation(async ({ ctx, input }) => {
+      const [cluster] = await ctx.db
+        .select()
+        .from(thoughtClusters)
+        .where(and(eq(thoughtClusters.id, input.id), eq(thoughtClusters.userId, ctx.userId)));
+      if (!cluster) throw new TRPCError({ code: 'NOT_FOUND' });
+
+      const clusterThoughts = await ctx.db
+        .select({
+          id: thoughts.id,
+          content: thoughts.content,
+        })
+        .from(thoughts)
+        .where(and(eq(thoughts.clusterId, input.id), eq(thoughts.kind, 'thought')));
+
+      if (clusterThoughts.length === 0) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'CLUSTER_EMPTY' });
+      }
+
+      try {
+        const fields = await synthesizeIdea(clusterThoughts.map((t) => t.content));
+        return {
+          ...fields,
+          sourceThoughtIds: clusterThoughts.map((t) => t.id),
+        };
+      } catch (error) {
+        console.error('[ClusterRouter] previewCrystallize failed:', error);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'CRYSTALLIZE_FAILED' });
+      }
+    }),
+
+  /**
+   * Confirm crystallization: takes the (possibly user-edited) fields from the
+   * preview and inserts a new Idea row with provenance. Source cluster and
+   * thoughts are intentionally NOT deleted — a cluster can crystallize multiple
+   * times.
+   */
+  confirmCrystallize: protectedProcedure
+    .input(
+      z.object({
+        clusterId: z.string(),
+        title: z.string().min(1),
+        problemStatement: z.string(),
+        targetAudience: z.string(),
+        proposedSolution: z.string(),
+        uniqueAngle: z.string(),
+        pricingHypothesis: z.string(),
+        sourceThoughtIds: z.array(z.string()),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [cluster] = await ctx.db
+        .select()
+        .from(thoughtClusters)
+        .where(and(eq(thoughtClusters.id, input.clusterId), eq(thoughtClusters.userId, ctx.userId)));
+      if (!cluster) throw new TRPCError({ code: 'NOT_FOUND' });
+
+      const [idea] = await ctx.db
+        .insert(ideas)
+        .values({
+          title: input.title,
+          description: input.problemStatement, // legacy short description gets the problem statement
+          problemStatement: input.problemStatement,
+          targetAudience: input.targetAudience,
+          proposedSolution: input.proposedSolution,
+          uniqueAngle: input.uniqueAngle,
+          pricingHypothesis: input.pricingHypothesis,
+          sourceClusterId: input.clusterId,
+          sourceThoughtIds: input.sourceThoughtIds,
+          crystallizedAt: new Date(),
+          crystallizedBy: ctx.userId,
+          validationStatus: 'draft',
+          userId: ctx.userId,
+        })
+        .returning({ id: ideas.id });
+
+      if (!idea) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'CRYSTALLIZE_FAILED' });
+      }
+
+      return { ideaId: idea.id };
+    }),
+
+  /**
+   * @deprecated Use previewCrystallize + confirmCrystallize instead.
+   * One-shot crystallize kept for mobile clients on the old API. Returns both
+   * `{ projectId }` (legacy) and `{ ideaId }` (new) so existing callers keep
+   * working until mobile migrates. Remove after mobile ships the preview flow.
+   */
   promoteToIdea: protectedProcedure
     .input(clusterAiActionSchema)
     .mutation(async ({ ctx, input }) => {
-      const contents = await getClusterThoughtsForAi(ctx.db, input.id, ctx.userId);
+      const [cluster] = await ctx.db
+        .select()
+        .from(thoughtClusters)
+        .where(and(eq(thoughtClusters.id, input.id), eq(thoughtClusters.userId, ctx.userId)));
+      if (!cluster) throw new TRPCError({ code: 'NOT_FOUND' });
+
+      const clusterThoughts = await ctx.db
+        .select({
+          id: thoughts.id,
+          content: thoughts.content,
+        })
+        .from(thoughts)
+        .where(and(eq(thoughts.clusterId, input.id), eq(thoughts.kind, 'thought')));
+      if (clusterThoughts.length === 0) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'CLUSTER_EMPTY' });
+      }
+
       try {
-        const idea = await synthesizeIdea(contents);
-        const [project] = await ctx.db
-          .insert(projects)
+        const fields = await synthesizeIdea(clusterThoughts.map((t) => t.content));
+        const [idea] = await ctx.db
+          .insert(ideas)
           .values({
-            title: idea.title,
-            description: idea.description,
+            title: fields.title,
+            description: fields.problemStatement,
+            problemStatement: fields.problemStatement,
+            targetAudience: fields.targetAudience,
+            proposedSolution: fields.proposedSolution,
+            uniqueAngle: fields.uniqueAngle,
+            pricingHypothesis: fields.pricingHypothesis,
+            sourceClusterId: input.id,
+            sourceThoughtIds: clusterThoughts.map((t) => t.id),
+            crystallizedAt: new Date(),
+            crystallizedBy: ctx.userId,
+            validationStatus: 'draft',
             userId: ctx.userId,
           })
-          .returning({ id: projects.id });
+          .returning({ id: ideas.id });
 
-        if (!project) {
-          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to create project' });
+        if (!idea) {
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'PROMOTE_FAILED' });
         }
 
-        return { projectId: project.id };
+        // Old API returned { projectId } — keep that shape for mobile compat.
+        return { projectId: idea.id, ideaId: idea.id };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        console.error('[ClusterRouter] PromoteToIdea failed:', error instanceof Error ? error.message : error);
-        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'PROMOTE_FAILED', cause: error });
+        console.error('[ClusterRouter] PromoteToIdea failed:', error);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'PROMOTE_FAILED' });
       }
     }),
 
