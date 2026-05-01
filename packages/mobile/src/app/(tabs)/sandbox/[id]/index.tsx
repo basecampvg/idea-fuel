@@ -30,6 +30,8 @@ import { trpc } from '../../../../lib/trpc';
 import { colors, fonts } from '../../../../lib/theme';
 import { ClusterMaturityDot } from '../../../../components/cluster/ClusterMaturityDot';
 import { CrystallizeCTA } from '../../../../components/cluster/CrystallizeCTA';
+import { SynthesisPanel } from '../../../../components/cluster/SynthesisPanel';
+import { TensionList } from '../../../../components/cluster/TensionList';
 
 // AI actions are split into two visual groups in the menu:
 // Synthesis tools drive cluster readiness; Utility is just a one-shot task.
@@ -309,6 +311,17 @@ export default function SandboxDetailScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={renderEmpty}
+        ListFooterComponent={
+          sandbox ? (
+            <View>
+              <SynthesisPanel cluster={sandbox} />
+              <TensionList
+                clusterId={id}
+                tensions={(sandbox.tensions ?? []) as { id: string; text: string; resolvedAt: Date | string | null }[]}
+              />
+            </View>
+          ) : null
+        }
         refreshControl={
           <RefreshControl
             refreshing={isManualRefreshing}
