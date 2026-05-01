@@ -16,7 +16,6 @@ import {
   Plus,
   Sparkles,
   ListTodo,
-  Rocket,
   Search,
   FileText,
   AlertTriangle,
@@ -29,17 +28,27 @@ import { Badge } from '../../../../components/ui/Badge';
 import { AiActionSheet, type AiActionResult } from '../../../../components/AiActionSheet';
 import { trpc } from '../../../../lib/trpc';
 import { colors, fonts } from '../../../../lib/theme';
+import { ClusterMaturityDot } from '../../../../components/cluster/ClusterMaturityDot';
+import { CrystallizeCTA } from '../../../../components/cluster/CrystallizeCTA';
+import { SynthesisPanel } from '../../../../components/cluster/SynthesisPanel';
+import { TensionList } from '../../../../components/cluster/TensionList';
 
-const AI_ACTIONS = [
+// AI actions are split into two visual groups in the menu:
+// Synthesis tools drive cluster readiness; Utility is just a one-shot task.
+const SYNTHESIS_ACTIONS = [
   { key: 'summarize', label: 'Summarize', icon: FileText, color: '#6C5CE7' },
-  { key: 'extractTodos', label: 'Extract Todos', icon: ListTodo, color: '#00B894' },
-  { key: 'promoteToIdea', label: 'Promote to Idea', icon: Rocket, color: '#E32B1A' },
+  { key: 'findContradictions', label: 'Find Tensions', icon: AlertTriangle, color: '#E17055' },
   { key: 'identifyGaps', label: 'Find Gaps', icon: Search, color: '#0984E3' },
   { key: 'generateBrief', label: 'Generate Brief', icon: FileText, color: '#FDCB6E' },
-  { key: 'findContradictions', label: 'Contradictions', icon: AlertTriangle, color: '#E17055' },
 ] as const;
 
-type AiActionKey = typeof AI_ACTIONS[number]['key'];
+const UTILITY_ACTIONS = [
+  { key: 'extractTodos', label: 'Extract Todos', icon: ListTodo, color: '#00B894' },
+] as const;
+
+type AiActionKey =
+  | typeof SYNTHESIS_ACTIONS[number]['key']
+  | typeof UTILITY_ACTIONS[number]['key'];
 
 function formatRelativeTime(date: Date): string {
   const now = new Date();
@@ -109,10 +118,9 @@ export default function SandboxDetailScreen() {
     }
   }, [refetch]);
 
-  // AI mutations
+  // AI mutations — Crystallize lives in its own preview screen, no longer in this menu
   const summarizeMutation = trpc.cluster.summarize.useMutation();
   const extractTodosMutation = trpc.cluster.extractTodos.useMutation();
-  const promoteToIdeaMutation = trpc.cluster.promoteToIdea.useMutation();
   const identifyGapsMutation = trpc.cluster.identifyGaps.useMutation();
   const generateBriefMutation = trpc.cluster.generateBrief.useMutation();
   const findContradictionsMutation = trpc.cluster.findContradictions.useMutation();
@@ -141,6 +149,7 @@ export default function SandboxDetailScreen() {
         case 'summarize': {
           const result = await summarizeMutation.mutateAsync({ id });
           setAiResult({ type: 'summary', data: result });
+          utils.cluster.get.invalidate({ id });
           break;
         }
         case 'extractTodos': {
@@ -148,24 +157,23 @@ export default function SandboxDetailScreen() {
           setAiResult({ type: 'todos', data: result });
           break;
         }
-        case 'promoteToIdea': {
-          const result = await promoteToIdeaMutation.mutateAsync({ id });
-          setAiResult({ type: 'promoted', data: result });
-          break;
-        }
         case 'identifyGaps': {
           const result = await identifyGapsMutation.mutateAsync({ id });
           setAiResult({ type: 'gaps', data: result });
+          // Re-fetch cluster so SynthesisPanel reflects the new gaps inline
+          utils.cluster.get.invalidate({ id });
           break;
         }
         case 'generateBrief': {
           const result = await generateBriefMutation.mutateAsync({ id });
           setAiResult({ type: 'brief', data: result });
+          utils.cluster.get.invalidate({ id });
           break;
         }
         case 'findContradictions': {
           const result = await findContradictionsMutation.mutateAsync({ id });
           setAiResult({ type: 'contradictions', data: result });
+          utils.cluster.get.invalidate({ id });
           break;
         }
       }
@@ -178,7 +186,7 @@ export default function SandboxDetailScreen() {
     } finally {
       setAiLoading(false);
     }
-  }, [id, summarizeMutation, extractTodosMutation, promoteToIdeaMutation, identifyGapsMutation, generateBriefMutation, findContradictionsMutation]);
+  }, [id, utils, summarizeMutation, extractTodosMutation, identifyGapsMutation, generateBriefMutation, findContradictionsMutation]);
 
   const handleAddNote = useCallback(() => {
     createNoteMutation.mutate({ captureMethod: 'quick_text', clusterId: id });
@@ -282,6 +290,7 @@ export default function SandboxDetailScreen() {
               <Text style={styles.headerTitle} numberOfLines={1}>
                 {sandbox.name}
               </Text>
+              <ClusterMaturityDot status={(sandbox.clusterMaturity ?? 'exploring') as 'exploring' | 'forming' | 'ready'} size={10} />
             </>
           ) : null}
         </View>
@@ -302,6 +311,17 @@ export default function SandboxDetailScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={renderEmpty}
+        ListFooterComponent={
+          sandbox ? (
+            <View>
+              <SynthesisPanel cluster={sandbox} />
+              <TensionList
+                clusterId={id}
+                tensions={(sandbox.tensions ?? []) as { id: string; text: string; resolvedAt: Date | string | null }[]}
+              />
+            </View>
+          ) : null
+        }
         refreshControl={
           <RefreshControl
             refreshing={isManualRefreshing}
@@ -330,10 +350,27 @@ export default function SandboxDetailScreen() {
         />
       )}
 
-      {/* AI action menu */}
+      {/* AI action menu — Synthesis tools (top) and Utility (bottom) groups */}
       {showAiMenu && (
         <View style={styles.aiMenu}>
-          {AI_ACTIONS.map((action) => {
+          {SYNTHESIS_ACTIONS.map((action) => {
+            const IconComponent = action.icon;
+            return (
+              <TouchableOpacity
+                key={action.key}
+                style={styles.aiMenuItem}
+                onPress={() => handleAiAction(action.key)}
+                activeOpacity={0.75}
+              >
+                <View style={[styles.aiMenuIcon, { backgroundColor: `${action.color}22` }]}>
+                  <IconComponent size={18} color={action.color} />
+                </View>
+                <Text style={styles.aiMenuLabel}>{action.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
+          <View style={styles.aiMenuDivider} />
+          {UTILITY_ACTIONS.map((action) => {
             const IconComponent = action.icon;
             return (
               <TouchableOpacity
@@ -351,6 +388,19 @@ export default function SandboxDetailScreen() {
           })}
         </View>
       )}
+
+      {/* Crystallize CTA — appears once cluster reaches 'forming' or 'ready' */}
+      {sandbox ? (
+        <View style={styles.crystallizeContainer} pointerEvents="box-none">
+          <CrystallizeCTA
+            status={(sandbox.clusterMaturity ?? 'exploring') as 'exploring' | 'forming' | 'ready'}
+            onPress={() => {
+              triggerHaptic('medium');
+              router.push(`/(tabs)/sandbox/${id}/crystallize` as any);
+            }}
+          />
+        </View>
+      ) : null}
 
       {/* FABs */}
       <View style={styles.fabContainer}>
@@ -600,6 +650,19 @@ const styles = StyleSheet.create({
     fontSize: 15,
     ...fonts.outfit.medium,
     color: colors.foreground,
+  },
+  aiMenuDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: 4,
+    marginHorizontal: 12,
+  },
+  crystallizeContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 88,
+    zIndex: 35,
   },
   fabContainer: {
     position: 'absolute',

@@ -4,7 +4,7 @@ import { router, protectedProcedure } from '../trpc';
 import { generateReportSchema, updateReportSchema, paginationSchema } from '@forge/shared';
 import { getReportTier, REPORT_TYPE_LABELS } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
-import { reports, projects, users, interviews } from '../db/schema';
+import { reports, ideas, users, interviews } from '../db/schema';
 import type { ReportType, ReportTier } from '../db/schema';
 import { generatePDFBuffer, getPDFFilename } from '../lib/pdf';
 import { logAuditAsync, formatResource } from '../lib/audit';
@@ -106,8 +106,8 @@ export const reportRouter = router({
    */
   generate: protectedProcedure.input(generateReportSchema).mutation(async ({ ctx, input }) => {
     // Verify project ownership and get related data
-    const project = await ctx.db.query.projects.findFirst({
-      where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+    const project = await ctx.db.query.ideas.findFirst({
+      where: and(eq(ideas.id, input.projectId), eq(ideas.userId, ctx.userId)),
       with: {
         research: true,
         interviews: {
@@ -295,8 +295,8 @@ export const reportRouter = router({
    */
   generateAll: protectedProcedure.input(z.object({ projectId: z.string().min(1) })).mutation(async ({ ctx, input }) => {
     // Verify project ownership
-    const project = await ctx.db.query.projects.findFirst({
-      where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+    const project = await ctx.db.query.ideas.findFirst({
+      where: and(eq(ideas.id, input.projectId), eq(ideas.userId, ctx.userId)),
       with: {
         research: true,
         interviews: {
@@ -416,8 +416,8 @@ export const reportRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       // Get project with research data
-      const project = await ctx.db.query.projects.findFirst({
-        where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+      const project = await ctx.db.query.ideas.findFirst({
+        where: and(eq(ideas.id, input.projectId), eq(ideas.userId, ctx.userId)),
         with: { research: true },
       });
 

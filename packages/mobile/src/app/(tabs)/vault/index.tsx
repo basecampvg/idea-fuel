@@ -35,6 +35,30 @@ import { Popover, type AnchorRect } from '../../../components/ui/PopoverMenu';
 import { useShowHelpIcons } from '../../../hooks/useShowHelpIcons';
 import { trpc } from '../../../lib/trpc';
 import { colors, fonts } from '../../../lib/theme';
+import { ValidationStatusBadge, type ValidationStatus } from '../../../components/idea/ValidationStatusBadge';
+
+function formatProvenance(item: {
+  sourceThoughtIds?: string[] | null;
+  crystallizedAt?: string | Date | null;
+  updatedAt?: string | Date;
+}): string | null {
+  const ids = item.sourceThoughtIds;
+  if (!ids || ids.length === 0) return null;
+  if (!item.crystallizedAt) return `${ids.length} thoughts`;
+  const start = new Date(item.crystallizedAt).getTime();
+  const end = new Date(item.updatedAt ?? Date.now()).getTime();
+  const days = Math.max(1, Math.round((end - start) / 86400000));
+  return `${ids.length} thoughts over ${days} day${days === 1 ? '' : 's'}`;
+}
+
+function firstLine(text: string | null | undefined, max = 120): string | null {
+  if (!text) return null;
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+  const firstNewline = trimmed.indexOf('\n');
+  const line = firstNewline === -1 ? trimmed : trimmed.slice(0, firstNewline);
+  return line.length > max ? line.slice(0, max).trimEnd() + '…' : line;
+}
 
 function formatRelativeTime(date: Date): string {
   const now = new Date();
@@ -142,7 +166,7 @@ export default function VaultScreen() {
     });
   }, []);
 
-  const { data, isLoading, refetch } = trpc.project.list.useQuery({});
+  const { data, isLoading, refetch } = trpc.idea.list.useQuery({});
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   const utils = trpc.useUtils();
@@ -151,7 +175,7 @@ export default function VaultScreen() {
   // Use invalidate() so it refetches in the background without triggering RefreshControl
   useFocusEffect(
     useCallback(() => {
-      utils.project.list.invalidate();
+      utils.idea.list.invalidate();
     }, [utils])
   );
 
@@ -163,10 +187,10 @@ export default function VaultScreen() {
       setIsManualRefreshing(false);
     }
   }, [refetch]);
-  const deleteMutation = trpc.project.delete.useMutation({
+  const deleteMutation = trpc.idea.delete.useMutation({
     onSuccess: () => {
       triggerHaptic('success');
-      utils.project.list.invalidate();
+      utils.idea.list.invalidate();
     },
     onError: () => {
       triggerHaptic('error');
@@ -221,6 +245,10 @@ export default function VaultScreen() {
     const IconComponent = meta.icon;
     const hasResult = !!item.cardResult;
     const cardResult = item.cardResult as any;
+    const summary = firstLine(item.problemStatement) ?? firstLine(item.description);
+    const provenance = formatProvenance(item);
+    const validationStatus = (item.validationStatus ?? 'draft') as ValidationStatus;
+    const dateBasis = item.crystallizedAt ?? item.updatedAt;
 
     return (
       <Animated.View
@@ -275,10 +303,16 @@ export default function VaultScreen() {
               <Text style={styles.cardTitle} numberOfLines={1}>
                 {item.title}
               </Text>
-              {item.description ? (
+              {summary ? (
                 <Text style={styles.cardDescription} numberOfLines={2}>
-                  {item.description}
+                  {summary}
                 </Text>
+              ) : null}
+              <View style={styles.cardBadgeRow}>
+                <ValidationStatusBadge status={validationStatus} />
+              </View>
+              {provenance ? (
+                <Text style={styles.provenanceText}>{provenance}</Text>
               ) : null}
             </View>
             <TouchableOpacity
@@ -337,7 +371,7 @@ export default function VaultScreen() {
           <View style={styles.cardFooter}>
             <View style={styles.footerLeft}>
               <Text style={styles.cardTime}>
-                {formatRelativeTime(new Date(item.updatedAt))}
+                {formatRelativeTime(new Date(item.crystallizedAt ?? item.createdAt ?? item.updatedAt))}
               </Text>
               <View style={[styles.badge, { backgroundColor: meta.badgeBg }]}>
                 <Text style={[styles.badgeText, { color: meta.badgeColor }]}>
@@ -381,9 +415,9 @@ export default function VaultScreen() {
     return (
       <View style={styles.emptyState}>
         <Archive size={48} color={colors.mutedDim} />
-        <Text style={styles.emptyTitle}>No ideas yet</Text>
+        <Text style={styles.emptyTitle}>Your crystallized ideas live here.</Text>
         <Text style={styles.emptyDescription}>
-          Tap Capture to save your first idea
+          Start by growing thoughts in the Thoughts tab.
         </Text>
       </View>
     );
@@ -671,6 +705,18 @@ const styles = StyleSheet.create({
     ...fonts.geist.regular,
     color: colors.muted,
     lineHeight: 18,
+  },
+  cardBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+  },
+  provenanceText: {
+    fontSize: 11,
+    ...fonts.geist.regular,
+    color: colors.mutedDim,
+    marginTop: 6,
   },
   validatePrompt: {
     flexDirection: 'row',

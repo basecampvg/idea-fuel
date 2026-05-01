@@ -2,7 +2,7 @@ import { Worker, Job } from 'bullmq';
 import { createRedisConnection } from '../../lib/redis';
 import { db } from '../../db/drizzle';
 import { eq, and } from 'drizzle-orm';
-import { research, projects, projectAttachments } from '../../db/schema';
+import { research, ideas, projectAttachments } from '../../db/schema';
 import { QUEUE_NAMES, SparkPipelineJobData } from '../queues';
 import { SPARK_STATUS_PROGRESS } from '@forge/shared';
 import type { SparkJobStatus } from '@forge/shared';
@@ -99,7 +99,7 @@ export function createSparkPipelineWorker() {
         }).where(eq(research.id, researchId));
 
         // Update project status
-        await db.update(projects).set({ status: 'COMPLETE' }).where(eq(projects.id, projectId));
+        await db.update(ideas).set({ status: 'COMPLETE' }).where(eq(ideas.id, projectId));
 
         console.log(`[SparkWorker] Completed Spark ${researchId} in ${Math.round((Date.now() - startTime) / 1000)}s`);
 
@@ -116,7 +116,7 @@ export function createSparkPipelineWorker() {
         }).where(eq(research.id, researchId));
 
         // Reset project status so user isn't stuck
-        await db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, projectId)).catch(() => {});
+        await db.update(ideas).set({ status: 'CAPTURED' }).where(eq(ideas.id, projectId)).catch(() => {});
 
         throw error; // Re-throw for BullMQ retry
       }

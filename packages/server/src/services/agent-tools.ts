@@ -9,7 +9,7 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { db } from '../db/drizzle';
-import { projects, reports, research, interviews } from '../db/schema';
+import { ideas, reports, research, interviews } from '../db/schema';
 import { searchProjectEmbeddings, getProjectEmbeddingStats } from '../lib/vector-search';
 import { getProductKnowledge } from './agent-knowledge';
 
@@ -70,8 +70,8 @@ export function createAgentTools(projectId: string, userId: string) {
         'Use to understand what data is available before answering questions.',
       inputSchema: z.object({}),
       execute: async () => {
-        const project = await db.query.projects.findFirst({
-          where: eq(projects.id, projectId),
+        const project = await db.query.ideas.findFirst({
+          where: eq(ideas.id, projectId),
           with: {
             reports: {
               columns: { id: true, type: true, tier: true, status: true, title: true },

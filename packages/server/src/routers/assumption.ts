@@ -10,7 +10,7 @@ import {
   updateAggregationSchema,
 } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
-import { assumptions, assumptionHistory, projects, reports, scenarios, financialModels } from '../db/schema';
+import { assumptions, assumptionHistory, ideas, reports, scenarios, financialModels } from '../db/schema';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { DEFAULT_ASSUMPTIONS } from '../services/assumption-defaults';
 import { getTemplate } from '../services/financial-templates';
@@ -29,8 +29,8 @@ async function verifyProjectOwnership(
   projectId: string,
   userId: string,
 ) {
-  const project = await db.query.projects.findFirst({
-    where: and(eq(projects.id, projectId), eq(projects.userId, userId)),
+  const project = await db.query.ideas.findFirst({
+    where: and(eq(ideas.id, projectId), eq(ideas.userId, userId)),
     columns: { id: true },
   });
   if (!project) {
@@ -149,8 +149,8 @@ export const assumptionRouter = router({
       const row = await ctx.db
         .select()
         .from(assumptions)
-        .innerJoin(projects, eq(assumptions.projectId, projects.id))
-        .where(and(eq(assumptions.id, input.id), eq(projects.userId, ctx.userId)))
+        .innerJoin(ideas, eq(assumptions.projectId, ideas.id))
+        .where(and(eq(assumptions.id, input.id), eq(ideas.userId, ctx.userId)))
         .limit(1);
 
       if (row.length === 0) {
@@ -196,8 +196,8 @@ export const assumptionRouter = router({
       const row = await ctx.db
         .select({ projectId: assumptions.projectId })
         .from(assumptions)
-        .innerJoin(projects, eq(assumptions.projectId, projects.id))
-        .where(and(eq(assumptions.id, input.assumptionId), eq(projects.userId, ctx.userId)))
+        .innerJoin(ideas, eq(assumptions.projectId, ideas.id))
+        .where(and(eq(assumptions.id, input.assumptionId), eq(ideas.userId, ctx.userId)))
         .limit(1);
 
       if (row.length === 0) {

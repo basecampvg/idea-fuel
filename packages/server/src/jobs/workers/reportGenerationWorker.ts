@@ -2,7 +2,7 @@ import { Worker, Job } from 'bullmq';
 import { createRedisConnection } from '../../lib/redis';
 import { db } from '../../db/drizzle';
 import { eq } from 'drizzle-orm';
-import { reports, projects, interviews } from '../../db/schema';
+import { reports, ideas, interviews } from '../../db/schema';
 import { QUEUE_NAMES, ReportGenerationJobData } from '../queues';
 import { extractCitations } from '../../services/citation-extractor';
 import { generatePositioningReport } from '../../services/positioning-ai';
@@ -28,8 +28,8 @@ export function createReportGenerationWorker() {
         await db.update(reports).set({ status: 'GENERATING' }).where(eq(reports.id, reportId));
 
         // Get project and research data for context
-        const project = await db.query.projects.findFirst({
-          where: eq(projects.id, projectId),
+        const project = await db.query.ideas.findFirst({
+          where: eq(ideas.id, projectId),
           with: {
             research: true,
             interviews: {

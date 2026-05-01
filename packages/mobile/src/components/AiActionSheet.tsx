@@ -7,11 +7,11 @@ import { triggerHaptic } from './ui/Button';
 import { shareAiResult } from '../lib/share-ai-result';
 
 export type AiActionResult =
-  | { type: 'summary'; data: { summary: string } }
+  | { type: 'summary'; data: { summary: string; dimensionCoverage?: unknown } }
   | { type: 'todos'; data: { todos: string[] } }
-  | { type: 'gaps'; data: { gaps: string[] } }
+  | { type: 'gaps'; data: { gaps: { id: string; text: string }[] } }
   | { type: 'brief'; data: { brief: string } }
-  | { type: 'contradictions'; data: { contradictions: string[] } }
+  | { type: 'contradictions'; data: { contradictions: string[]; tensions?: unknown } }
   | { type: 'promoted'; data: { projectId: string } };
 
 export const TITLES: Record<AiActionResult['type'], string> = {
@@ -64,10 +64,10 @@ export function AiActionSheet({
       case 'gaps':
         return (
           <View style={styles.list}>
-            {result.data.gaps.map((gap, i) => (
-              <View key={i} style={styles.listItem}>
+            {result.data.gaps.map((gap) => (
+              <View key={gap.id} style={styles.listItem}>
                 <Text style={styles.bullet}>-</Text>
-                <Text style={styles.listText}>{gap}</Text>
+                <Text style={styles.listText}>{gap.text}</Text>
               </View>
             ))}
           </View>

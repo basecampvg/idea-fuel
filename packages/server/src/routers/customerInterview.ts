@@ -42,7 +42,7 @@ import {
   interviewResponses,
   ndaSignatures,
   reports,
-  projects,
+  ideas,
   interviews,
 } from '../db/schema';
 import {
@@ -60,8 +60,8 @@ export const customerInterviewRouter = router({
   generate: protectedProcedure
     .input(generateCustomerInterviewSchema)
     .mutation(async ({ ctx, input }) => {
-      const project = await ctx.db.query.projects.findFirst({
-        where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+      const project = await ctx.db.query.ideas.findFirst({
+        where: and(eq(ideas.id, input.projectId), eq(ideas.userId, ctx.userId)),
         with: {
           research: {
             columns: {
@@ -143,8 +143,8 @@ export const customerInterviewRouter = router({
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Can only regenerate questions for draft interviews' });
       }
 
-      const project = await ctx.db.query.projects.findFirst({
-        where: eq(projects.id, ci.projectId),
+      const project = await ctx.db.query.ideas.findFirst({
+        where: eq(ideas.id, ci.projectId),
         with: {
           research: {
             columns: { synthesizedInsights: true, painPoints: true, positioning: true, sparkResult: true },

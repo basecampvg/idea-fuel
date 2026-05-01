@@ -18,13 +18,26 @@ export function createThoughtClassifyWorker() {
       const { thoughtId } = job.data as { thoughtId: string };
 
       const [thought] = await db
-        .select({ id: thoughts.id, content: thoughts.content, typeSource: thoughts.typeSource })
+        .select({
+          id: thoughts.id,
+          content: thoughts.content,
+          typeSource: thoughts.typeSource,
+          kind: thoughts.kind,
+        })
         .from(thoughts)
         .where(eq(thoughts.id, thoughtId))
         .limit(1);
 
-      if (!thought || thought.typeSource === 'user') return;
-      if (!thought.content || thought.content.length < 10) return;
+      if (!thought) return;
+      if (thought.kind !== 'thought') {
+        console.log(`[ThoughtClassify] skipping note ${thoughtId}`);
+        return;
+      }
+      if (thought.typeSource === 'user') return;
+      if (!thought.content || thought.content.length < 20) {
+        console.log(`[ThoughtClassify] skipping short content ${thoughtId}`);
+        return;
+      }
 
       const result = await classifyThought(thought.content);
 

@@ -12,3 +12,4 @@ export { createSparkPipelineWorker } from './sparkPipelineWorker';
 export { createEmbeddingWorker } from './embeddingWorker';
 export { createBusinessPlanWorker } from './businessPlanWorker';
 export { createThoughtCollisionWorker } from './thoughtCollisionWorker';
+export { createClusterSynthesisWorker } from './clusterSynthesisWorker';

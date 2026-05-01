@@ -36,6 +36,12 @@ export const updateProjectSchema = z.object({
   title: z.string().min(1).max(PROJECT_TITLE_MAX).optional(),
   description: z.string().min(PROJECT_DESC_MIN).max(PROJECT_DESC_MAX).optional(),
   notes: z.string().max(50000).nullable().optional(),
+  problemStatement: z.string().max(2000).nullable().optional(),
+  targetAudience: z.string().max(1000).nullable().optional(),
+  proposedSolution: z.string().max(2000).nullable().optional(),
+  uniqueAngle: z.string().max(1000).nullable().optional(),
+  pricingHypothesis: z.string().max(1000).nullable().optional(),
+  validationStatus: z.enum(['draft', 'in_validation', 'validated', 'killed', 'returned']).optional(),
 });
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 
@@ -511,14 +517,14 @@ export type UnpinFromSandboxInput = z.infer<typeof unpinFromSandboxSchema>;
 export const thoughtTypeSchema = z.enum(['problem', 'solution', 'what_if', 'observation', 'question']).nullable();
 export type ThoughtType = z.infer<typeof thoughtTypeSchema>;
 
-export const maturityLevelSchema = z.enum(['spark', 'developing', 'hypothesis', 'conviction']).nullable();
-export type MaturityLevel = z.infer<typeof maturityLevelSchema>;
-
 export const thoughtConfidenceLevelSchema = z.enum(['untested', 'researched', 'validated']).nullable();
 export type ThoughtConfidenceLevel = z.infer<typeof thoughtConfidenceLevelSchema>;
 
-export const purposeSchema = z.enum(['idea', 'note']);
-export type Purpose = z.infer<typeof purposeSchema>;
+export const thoughtKindSchema = z.enum(['thought', 'note']);
+export type ThoughtKind = z.infer<typeof thoughtKindSchema>;
+
+export const validationStatusSchema = z.enum(['draft', 'in_validation', 'validated', 'killed', 'returned']);
+export type ValidationStatus = z.infer<typeof validationStatusSchema>;
 
 export const captureMethodSchema = z.enum(['quick_text', 'voice', 'photo', 'share_extension']);
 export type CaptureMethod = z.infer<typeof captureMethodSchema>;
@@ -536,9 +542,15 @@ export const createThoughtSchema = z.object({
   thoughtType: thoughtTypeSchema.optional(),
   captureMethod: captureMethodSchema.optional().default('quick_text'),
   clusterId: z.string().optional(),
-  purpose: purposeSchema.optional().default('idea'),
+  kind: thoughtKindSchema.optional().default('thought'),
 });
 export type CreateThoughtInput = z.infer<typeof createThoughtSchema>;
+
+export const convertKindSchema = z.object({
+  thoughtId: entityId,
+  kind: thoughtKindSchema,
+});
+export type ConvertKindInput = z.infer<typeof convertKindSchema>;
 
 export const surfaceActionSchema = z.enum(['dismiss', 'engage', 'cluster']);
 export type SurfaceAction = z.infer<typeof surfaceActionSchema>;
@@ -551,11 +563,8 @@ export type RecordSurfaceActionInput = z.infer<typeof recordSurfaceActionSchema>
 
 export const updateThoughtPropertiesSchema = z.object({
   id: entityId,
-  maturityLevel: maturityLevelSchema.optional(),
   thoughtType: thoughtTypeSchema.optional(),
   confidenceLevel: thoughtConfidenceLevelSchema.optional(),
-  maturityNotes: z.string().max(500).optional(),
-  purpose: purposeSchema.optional(),
 });
 export type UpdateThoughtPropertiesInput = z.infer<typeof updateThoughtPropertiesSchema>;
 

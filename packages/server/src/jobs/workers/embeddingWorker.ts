@@ -2,7 +2,7 @@ import { Worker, Job } from 'bullmq';
 import { createRedisConnection } from '../../lib/redis';
 import { db } from '../../db/drizzle';
 import { eq } from 'drizzle-orm';
-import { projects, research, reports, interviews } from '../../db/schema';
+import { ideas, research, reports, interviews } from '../../db/schema';
 import { QUEUE_NAMES, type EmbeddingGenerationJobData } from '../queues';
 import {
   generateAndStoreEmbeddings,
@@ -210,8 +210,8 @@ async function buildNotesInput(
   projectId: string,
   _sourceId: string // sourceId is the projectId for notes
 ): Promise<EmbeddingInput | null> {
-  const record = await db.query.projects.findFirst({
-    where: eq(projects.id, projectId),
+  const record = await db.query.ideas.findFirst({
+    where: eq(ideas.id, projectId),
   });
 
   if (!record?.notes?.trim()) return null;

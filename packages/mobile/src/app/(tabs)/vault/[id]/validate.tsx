@@ -333,7 +333,7 @@ export default function ValidateScreen() {
             // Directly update the cached project with the new cardResult (and
             // refined title/description if this was a refinement) so the card
             // screen renders it immediately.
-            utils.project.get.setData({ id: id! }, (old) => {
+            utils.idea.get.setData({ id: id! }, (old) => {
               if (!old) return old;
               return {
                 ...old,
@@ -342,7 +342,7 @@ export default function ValidateScreen() {
                 ...(data.refinedDescription && { description: data.refinedDescription }),
               };
             });
-            utils.project.list.invalidate();
+            utils.idea.list.invalidate();
             // Navigate to card screen
             router.replace(`/(tabs)/vault/${id}/card` as any);
           },

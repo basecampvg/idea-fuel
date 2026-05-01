@@ -13,7 +13,7 @@ import {
   financialModels,
   scenarios,
   assumptions,
-  projects,
+  ideas,
   users,
   modelModules,
 } from '../db/schema';
@@ -72,8 +72,8 @@ export const financialRouter = router({
     .input(createFinancialModelSchema)
     .mutation(async ({ ctx, input }) => {
       // Verify project ownership
-      const project = await ctx.db.query.projects.findFirst({
-        where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+      const project = await ctx.db.query.ideas.findFirst({
+        where: and(eq(ideas.id, input.projectId), eq(ideas.userId, ctx.userId)),
         columns: { id: true },
       });
       if (!project) {

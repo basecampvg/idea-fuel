@@ -4,7 +4,7 @@ import { router, protectedProcedure, aiProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { INTERVIEW_SESSION, INTERVIEW_RESUME_MESSAGES } from '@forge/shared';
 import type { ChatMessage, InterviewDataPoints, InterviewMode } from '@forge/shared';
-import { interviews, projects, research, users } from '../db/schema';
+import { interviews, ideas, research, users } from '../db/schema';
 import {
   generateNextQuestion,
   extractDataPoints,
@@ -407,7 +407,7 @@ export const interviewRouter = router({
         });
 
         // Update project status to researching
-        await ctx.db.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, interview.projectId));
+        await ctx.db.update(ideas).set({ status: 'RESEARCHING' }).where(eq(ideas.id, interview.projectId));
 
         // Create or update research record (handles re-runs after previous failure)
         const existingChatResearch = await ctx.db.query.research.findFirst({
@@ -458,7 +458,7 @@ export const interviewRouter = router({
             errorMessage: 'Failed to queue research pipeline. Please try again.',
             errorPhase: 'QUEUED',
           }).where(eq(research.id, chatResearchRecord.id));
-          await ctx.db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, interview.projectId)).catch(() => {});
+          await ctx.db.update(ideas).set({ status: 'CAPTURED' }).where(eq(ideas.id, interview.projectId)).catch(() => {});
         }
 
         return {
@@ -520,7 +520,7 @@ export const interviewRouter = router({
     });
 
     // Update project status to researching
-    await ctx.db.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, interview.projectId));
+    await ctx.db.update(ideas).set({ status: 'RESEARCHING' }).where(eq(ideas.id, interview.projectId));
 
     // Create or update research record (handles re-runs after previous failure)
     const existingResearch = await ctx.db.query.research.findFirst({
@@ -578,7 +578,7 @@ export const interviewRouter = router({
         errorMessage: 'Failed to queue research pipeline. Please try again.',
         errorPhase: 'QUEUED',
       }).where(eq(research.id, researchRecord.id));
-      await ctx.db.update(projects).set({ status: 'CAPTURED' }).where(eq(projects.id, interview.projectId)).catch(() => {});
+      await ctx.db.update(ideas).set({ status: 'CAPTURED' }).where(eq(ideas.id, interview.projectId)).catch(() => {});
     }
 
     return updatedInterview;
@@ -615,9 +615,9 @@ export const interviewRouter = router({
 
     // Revert project status to captured (only if still interviewing, not if research started)
     await ctx.db
-      .update(projects)
+      .update(ideas)
       .set({ status: 'CAPTURED' })
-      .where(and(eq(projects.id, interview.projectId), eq(projects.status, 'INTERVIEWING')));
+      .where(and(eq(ideas.id, interview.projectId), eq(ideas.status, 'INTERVIEWING')));
 
     return updatedInterview;
   }),

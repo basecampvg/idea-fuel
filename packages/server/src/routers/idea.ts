@@ -4,7 +4,7 @@ import { router, protectedProcedure } from '../trpc';
 import { createProjectSchema, updateProjectSchema, startInterviewSchema } from '@forge/shared';
 import type { ChatMessage, InterviewMode } from '@forge/shared';
 import { TRPCError } from '@trpc/server';
-import { projects, interviews, reports, research, users, projectAttachments } from '../db/schema';
+import { ideas, interviews, reports, research, users, projectAttachments } from '../db/schema';
 import { generateOpeningQuestion } from '../services/interview-ai';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { enqueueResearchPipeline } from '../jobs';
@@ -22,9 +22,9 @@ const PHASE_STATUS_MAP = {
   active: ['INTERVIEWING', 'RESEARCHING', 'COMPLETE'] as const,
 } as const;
 
-export const projectRouter = router({
+export const ideaRouter = router({
   /**
-   * List all projects for the current user
+   * List all ideas for the current user
    * Supports phase filter: 'draft' (CAPTURED) or 'active' (INTERVIEWING+RESEARCHING+COMPLETE)
    */
   list: protectedProcedure
@@ -41,26 +41,36 @@ export const projectRouter = router({
       const { phase, page = 1, limit = 20 } = input ?? {};
       const skip = (page - 1) * limit;
 
-      const conditions = [eq(projects.userId, ctx.userId)];
+      const conditions = [eq(ideas.userId, ctx.userId)];
       if (phase) {
-        conditions.push(inArray(projects.status, [...PHASE_STATUS_MAP[phase]]));
+        conditions.push(inArray(ideas.status, [...PHASE_STATUS_MAP[phase]]));
       }
       const whereClause = and(...conditions);
 
       const [items, [{ value: total }]] = await Promise.all([
         ctx.db
           .select({
-            id: projects.id,
-            title: projects.title,
-            description: projects.description,
-            notes: projects.notes,
-            status: projects.status,
-            cardResult: projects.cardResult,
-            createdAt: projects.createdAt,
-            updatedAt: projects.updatedAt,
+            id: ideas.id,
+            title: ideas.title,
+            description: ideas.description,
+            notes: ideas.notes,
+            status: ideas.status,
+            cardResult: ideas.cardResult,
+            problemStatement: ideas.problemStatement,
+            targetAudience: ideas.targetAudience,
+            proposedSolution: ideas.proposedSolution,
+            uniqueAngle: ideas.uniqueAngle,
+            pricingHypothesis: ideas.pricingHypothesis,
+            sourceClusterId: ideas.sourceClusterId,
+            sourceThoughtIds: ideas.sourceThoughtIds,
+            crystallizedAt: ideas.crystallizedAt,
+            crystallizedBy: ideas.crystallizedBy,
+            validationStatus: ideas.validationStatus,
+            createdAt: ideas.createdAt,
+            updatedAt: ideas.updatedAt,
             _count: {
-              interviews: sql<number>`(SELECT count(*) FROM "Interview" WHERE "projectId" = ${projects.id})`.mapWith(Number),
-              reports: sql<number>`(SELECT count(*) FROM "Report" WHERE "projectId" = ${projects.id})`.mapWith(Number),
+              interviews: sql<number>`(SELECT count(*) FROM "Interview" WHERE "projectId" = ${ideas.id})`.mapWith(Number),
+              reports: sql<number>`(SELECT count(*) FROM "Report" WHERE "projectId" = ${ideas.id})`.mapWith(Number),
             },
             // Inline research fields via LEFT JOIN subquery (avoids separate query)
             research: {
@@ -69,13 +79,13 @@ export const projectRouter = router({
               progress: research.progress,
             },
           })
-          .from(projects)
-          .leftJoin(research, eq(research.projectId, projects.id))
+          .from(ideas)
+          .leftJoin(research, eq(research.projectId, ideas.id))
           .where(whereClause)
-          .orderBy(desc(projects.updatedAt))
+          .orderBy(desc(ideas.updatedAt))
           .offset(skip)
           .limit(limit),
-        ctx.db.select({ value: count() }).from(projects).where(whereClause),
+        ctx.db.select({ value: count() }).from(ideas).where(whereClause),
       ]);
 
       const itemsWithResearch = items.map((p) => ({
@@ -85,6 +95,16 @@ export const projectRouter = router({
         notes: p.notes,
         status: p.status,
         cardResult: p.cardResult,
+        problemStatement: p.problemStatement,
+        targetAudience: p.targetAudience,
+        proposedSolution: p.proposedSolution,
+        uniqueAngle: p.uniqueAngle,
+        pricingHypothesis: p.pricingHypothesis,
+        sourceClusterId: p.sourceClusterId,
+        sourceThoughtIds: p.sourceThoughtIds,
+        crystallizedAt: p.crystallizedAt,
+        crystallizedBy: p.crystallizedBy,
+        validationStatus: p.validationStatus,
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
         _count: p._count,
@@ -103,11 +123,11 @@ export const projectRouter = router({
     }),
 
   /**
-   * Get a single project by ID with all related data
+   * Get a single idea by ID with all related data
    */
   get: protectedProcedure.input(z.object({ id: z.string().min(1) })).query(async ({ ctx, input }) => {
-    const project = await ctx.db.query.projects.findFirst({
-      where: and(eq(projects.id, input.id), eq(projects.userId, ctx.userId)),
+    const idea = await ctx.db.query.ideas.findFirst({
+      where: and(eq(ideas.id, input.id), eq(ideas.userId, ctx.userId)),
       with: {
         interviews: {
           orderBy: desc(interviews.createdAt),
@@ -137,22 +157,22 @@ export const projectRouter = router({
       },
     });
 
-    if (!project) {
+    if (!idea) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Project not found',
+        message: 'Idea not found',
       });
     }
 
-    return project;
+    return idea;
   }),
 
   /**
-   * Create a new project (starts as a draft idea with status CAPTURED)
+   * Create a new idea (starts as a draft idea with status CAPTURED)
    */
   create: protectedProcedure.input(createProjectSchema).mutation(async ({ ctx, input }) => {
-    const project = await ctx.db.transaction(async (tx) => {
-      const results = await tx.insert(projects).values({
+    const idea = await ctx.db.transaction(async (tx) => {
+      const results = await tx.insert(ideas).values({
         title: input.title,
         description: input.description,
         userId: ctx.userId,
@@ -160,7 +180,7 @@ export const projectRouter = router({
 
       const created = results[0];
       if (!created) {
-        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to create project' });
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to create idea' });
       }
 
       if (input.attachments && input.attachments.length > 0) {
@@ -184,18 +204,18 @@ export const projectRouter = router({
     logAuditAsync({
       userId: ctx.userId,
       action: 'PROJECT_CREATE',
-      resource: formatResource('project', project.id),
+      resource: formatResource('project', idea.id),
       metadata: {
-        title: project.title,
+        title: idea.title,
         attachmentCount: input.attachments?.length ?? 0,
       },
     });
 
-    return project;
+    return idea;
   }),
 
   /**
-   * Update project title, description, or notes
+   * Update idea title, description, or notes
    */
   update: protectedProcedure
     .input(
@@ -205,50 +225,50 @@ export const projectRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const existing = await ctx.db.query.projects.findFirst({
-        where: and(eq(projects.id, input.id), eq(projects.userId, ctx.userId)),
+      const existing = await ctx.db.query.ideas.findFirst({
+        where: and(eq(ideas.id, input.id), eq(ideas.userId, ctx.userId)),
       });
 
       if (!existing) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Project not found',
+          message: 'Idea not found',
         });
       }
 
       const results = await ctx.db
-        .update(projects)
+        .update(ideas)
         .set(input.data)
-        .where(eq(projects.id, input.id))
+        .where(eq(ideas.id, input.id))
         .returning();
 
-      const project = results[0];
-      if (!project) {
-        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to update project' });
+      const idea = results[0];
+      if (!idea) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to update idea' });
       }
 
       logAuditAsync({
         userId: ctx.userId,
         action: 'PROJECT_UPDATE',
-        resource: formatResource('project', project.id),
+        resource: formatResource('project', idea.id),
         metadata: { changes: input.data },
       });
 
-      return project;
+      return idea;
     }),
 
   /**
-   * Delete a project (cascades to interviews, reports, research)
+   * Delete an idea (cascades to interviews, reports, research)
    */
   delete: protectedProcedure.input(z.object({ id: z.string().min(1) })).mutation(async ({ ctx, input }) => {
-    const existing = await ctx.db.query.projects.findFirst({
-      where: and(eq(projects.id, input.id), eq(projects.userId, ctx.userId)),
+    const existing = await ctx.db.query.ideas.findFirst({
+      where: and(eq(ideas.id, input.id), eq(ideas.userId, ctx.userId)),
     });
 
     if (!existing) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Project not found',
+        message: 'Idea not found',
       });
     }
 
@@ -259,20 +279,20 @@ export const projectRouter = router({
       metadata: { title: existing.title },
     });
 
-    await ctx.db.delete(projects).where(eq(projects.id, input.id));
+    await ctx.db.delete(ideas).where(eq(ideas.id, input.id));
 
     return { success: true };
   }),
 
   /**
-   * Start an interview for a project
+   * Start an interview for an idea
    * Supports SPARK, LIGHT, and IN_DEPTH modes
    * SPARK: Skips interview, triggers quick validation pipeline
    * LIGHT/IN_DEPTH: Creates interactive interview with AI-generated opening question
    */
   startInterview: protectedProcedure.input(startInterviewSchema).mutation(async ({ ctx, input }) => {
-    const project = await ctx.db.query.projects.findFirst({
-      where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+    const idea = await ctx.db.query.ideas.findFirst({
+      where: and(eq(ideas.id, input.projectId), eq(ideas.userId, ctx.userId)),
       columns: {
         id: true,
         title: true,
@@ -281,10 +301,10 @@ export const projectRouter = router({
       },
     });
 
-    if (!project) {
+    if (!idea) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Project not found',
+        message: 'Idea not found',
       });
     }
 
@@ -304,11 +324,11 @@ export const projectRouter = router({
           messages: [],
           collectedData: null,
           confidenceScore: 0,
-          summary: 'Spark mode - quick validation from project description.',
+          summary: 'Spark mode - quick validation from idea description.',
           researchEngine: input.researchEngine || 'OPENAI',
         }).returning();
 
-        await tx.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, input.projectId));
+        await tx.update(ideas).set({ status: 'RESEARCHING' }).where(eq(ideas.id, input.projectId));
 
         return created;
       });
@@ -334,7 +354,7 @@ export const projectRouter = router({
     });
     const tier = user?.subscription ?? 'FREE';
 
-    const openingQuestion = await generateOpeningQuestion(project.title, project.description, mode as InterviewMode, tier);
+    const openingQuestion = await generateOpeningQuestion(idea.title, idea.description, mode as InterviewMode, tier);
 
     const openingMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -356,7 +376,7 @@ export const projectRouter = router({
         researchEngine: input.researchEngine || 'OPENAI',
       }).returning();
 
-      await tx.update(projects).set({ status: 'INTERVIEWING' }).where(eq(projects.id, input.projectId));
+      await tx.update(ideas).set({ status: 'INTERVIEWING' }).where(eq(ideas.id, input.projectId));
 
       return created;
     });
@@ -375,12 +395,12 @@ export const projectRouter = router({
   }),
 
   /**
-   * Start research for a project (after interview completion)
+   * Start research for an idea (after interview completion)
    * Creates a Research record, snapshots notes, and queues the pipeline
    */
   startResearch: protectedProcedure.input(z.object({ id: z.string().min(1) })).mutation(async ({ ctx, input }) => {
-    const project = await ctx.db.query.projects.findFirst({
-      where: and(eq(projects.id, input.id), eq(projects.userId, ctx.userId)),
+    const idea = await ctx.db.query.ideas.findFirst({
+      where: and(eq(ideas.id, input.id), eq(ideas.userId, ctx.userId)),
       with: {
         interviews: {
           where: eq(interviews.status, 'COMPLETE'),
@@ -390,42 +410,42 @@ export const projectRouter = router({
       },
     });
 
-    if (!project) {
+    if (!idea) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Project not found',
+        message: 'Idea not found',
       });
     }
 
-    if (project.research) {
+    if (idea.research) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'Research already exists for this project',
+        message: 'Research already exists for this idea',
       });
     }
 
-    if (project.interviews.length === 0) {
+    if (idea.interviews.length === 0) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
         message: 'Complete an interview before starting research',
       });
     }
 
-    const latestInterview = project.interviews[0];
+    const latestInterview = idea.interviews[0];
     const engine = (latestInterview?.researchEngine as 'OPENAI' | 'PERPLEXITY') || 'OPENAI';
 
-    // Create research record and update project status atomically
+    // Create research record and update idea status atomically
     const researchRecord = await ctx.db.transaction(async (tx) => {
       const [created] = await tx.insert(research).values({
         projectId: input.id,
         status: 'PENDING',
         currentPhase: 'QUEUED',
         progress: 0,
-        notesSnapshot: project.notes,
+        notesSnapshot: idea.notes,
         researchEngine: engine,
       }).returning();
 
-      await tx.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, input.id));
+      await tx.update(ideas).set({ status: 'RESEARCHING' }).where(eq(ideas.id, input.id));
 
       return created;
     });

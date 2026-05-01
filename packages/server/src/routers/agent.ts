@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { eq, and, desc, asc, sql } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { router, protectedProcedure } from '../trpc';
-import { agentConversations, agentInsights, agentMessages, projects, reports } from '../db/schema';
+import { agentConversations, agentInsights, agentMessages, ideas, reports } from '../db/schema';
 
 export const agentRouter = router({
   /**
@@ -21,10 +21,10 @@ export const agentRouter = router({
     .input(z.object({ projectId: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
       // Verify project ownership
-      const project = await ctx.db.query.projects.findFirst({
+      const project = await ctx.db.query.ideas.findFirst({
         where: and(
-          eq(projects.id, input.projectId),
-          eq(projects.userId, ctx.userId),
+          eq(ideas.id, input.projectId),
+          eq(ideas.userId, ctx.userId),
         ),
         columns: { id: true },
       });
@@ -99,10 +99,10 @@ export const agentRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       // Verify project ownership
-      const project = await ctx.db.query.projects.findFirst({
+      const project = await ctx.db.query.ideas.findFirst({
         where: and(
-          eq(projects.id, input.projectId),
-          eq(projects.userId, ctx.userId),
+          eq(ideas.id, input.projectId),
+          eq(ideas.userId, ctx.userId),
         ),
         columns: { id: true },
       });
@@ -157,10 +157,10 @@ export const agentRouter = router({
     )
     .query(async ({ ctx, input }) => {
       // Verify project ownership
-      const project = await ctx.db.query.projects.findFirst({
+      const project = await ctx.db.query.ideas.findFirst({
         where: and(
-          eq(projects.id, input.projectId),
-          eq(projects.userId, ctx.userId),
+          eq(ideas.id, input.projectId),
+          eq(ideas.userId, ctx.userId),
         ),
         columns: { id: true },
       });

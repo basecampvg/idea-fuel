@@ -1,0 +1,177 @@
+/**
+ * Cluster Actions Service
+ *
+ * Extracts the cluster AI synthesis steps into plain functions so both the
+ * tRPC procedures and the BullMQ cluster-synthesis worker can call them
+ * without going through tRPC. Each runner:
+ *   - validates the cluster exists + ownership (when userId provided)
+ *   - validates min thoughts/chars
+ *   - calls the underlying AI service
+ *   - persists the result to cluster row
+ *   - calls recomputeClusterReadiness
+ */
+
+import { eq, and } from 'drizzle-orm';
+import { db } from '../db/drizzle';
+import { thoughtClusters, thoughts } from '../db/schema';
+import {
+  CLUSTER_MIN_THOUGHTS_FOR_AI,
+  CLUSTER_MIN_CHARS_FOR_AI,
+} from '@forge/shared';
+import {
+  summarizeSandbox,
+  identifyGaps,
+  findContradictions,
+  generateBrief,
+} from './sandbox-ai';
+import { recomputeClusterReadiness } from './cluster-readiness';
+
+export class ClusterActionError extends Error {
+  constructor(
+    public code: 'CLUSTER_NOT_FOUND' | 'INSUFFICIENT_THOUGHTS' | 'INSUFFICIENT_CONTENT',
+    message: string,
+  ) {
+    super(message);
+    this.name = 'ClusterActionError';
+  }
+}
+
+/**
+ * Fetch + validate cluster thoughts for AI actions. If userId is provided,
+ * also enforces ownership. Returns concatenated content list.
+ */
+async function loadClusterContents(
+  clusterId: string,
+  userId?: string,
+): Promise<string[]> {
+  const where = userId
+    ? and(eq(thoughtClusters.id, clusterId), eq(thoughtClusters.userId, userId))
+    : eq(thoughtClusters.id, clusterId);
+
+  const cluster = await db.query.thoughtClusters.findFirst({
+    where,
+    columns: { id: true },
+  });
+
+  if (!cluster) {
+    throw new ClusterActionError('CLUSTER_NOT_FOUND', 'Cluster not found');
+  }
+
+  const clusterThoughts = await db
+    .select({ content: thoughts.content, tags: thoughts.tags })
+    .from(thoughts)
+    .where(and(eq(thoughts.clusterId, clusterId), eq(thoughts.kind, 'thought')));
+
+  const contents = clusterThoughts
+    .map((n) => {
+      if (n.content.length === 0) return '';
+      const meta: string[] = [];
+      if (n.tags?.length) meta.push(`Labels: ${n.tags.join(', ')}`);
+      const prefix = meta.length > 0 ? `[${meta.join(' | ')}]\n` : '';
+      return `${prefix}${n.content}`;
+    })
+    .filter((c) => c.length > 0);
+
+  if (contents.length < CLUSTER_MIN_THOUGHTS_FOR_AI) {
+    throw new ClusterActionError(
+      'INSUFFICIENT_THOUGHTS',
+      `Need at least ${CLUSTER_MIN_THOUGHTS_FOR_AI} thoughts with content`,
+    );
+  }
+
+  const totalChars = contents.reduce((sum, c) => sum + c.length, 0);
+  if (totalChars < CLUSTER_MIN_CHARS_FOR_AI) {
+    throw new ClusterActionError(
+      'INSUFFICIENT_CONTENT',
+      `Need at least ${CLUSTER_MIN_CHARS_FOR_AI} total characters`,
+    );
+  }
+
+  return contents;
+}
+
+/**
+ * Run summarize: persists summary + dimensionCoverage, recomputes readiness.
+ */
+export async function runSummarize(
+  clusterId: string,
+  userId?: string,
+): Promise<{ summary: string; dimensionCoverage: Record<string, boolean> }> {
+  const contents = await loadClusterContents(clusterId, userId);
+  const { summary, dimensionCoverage } = await summarizeSandbox(contents);
+
+  await db
+    .update(thoughtClusters)
+    .set({ synthesis: summary, dimensionCoverage })
+    .where(eq(thoughtClusters.id, clusterId));
+
+  await recomputeClusterReadiness(db, clusterId);
+
+  return { summary, dimensionCoverage };
+}
+
+/**
+ * Run identify gaps: persists gaps as JSONB array, recomputes readiness.
+ */
+export async function runIdentifyGaps(
+  clusterId: string,
+  userId?: string,
+): Promise<{ gaps: { id: string; text: string }[] }> {
+  const contents = await loadClusterContents(clusterId, userId);
+  const rawGaps = await identifyGaps(contents);
+  const gapRecords = rawGaps.map((text) => ({ id: crypto.randomUUID(), text }));
+
+  await db
+    .update(thoughtClusters)
+    .set({ gaps: gapRecords })
+    .where(eq(thoughtClusters.id, clusterId));
+
+  await recomputeClusterReadiness(db, clusterId);
+
+  return { gaps: gapRecords };
+}
+
+/**
+ * Run find contradictions: persists tensions as JSONB array, recomputes readiness.
+ */
+export async function runFindContradictions(
+  clusterId: string,
+  userId?: string,
+): Promise<{ tensions: { id: string; text: string; resolvedAt: Date | null }[] }> {
+  const contents = await loadClusterContents(clusterId, userId);
+  const rawContradictions = await findContradictions(contents);
+  const tensionRecords = rawContradictions.map((text) => ({
+    id: crypto.randomUUID(),
+    text,
+    resolvedAt: null,
+  }));
+
+  await db
+    .update(thoughtClusters)
+    .set({ tensions: tensionRecords })
+    .where(eq(thoughtClusters.id, clusterId));
+
+  await recomputeClusterReadiness(db, clusterId);
+
+  return { tensions: tensionRecords };
+}
+
+/**
+ * Run generate brief: persists brief markdown, recomputes readiness.
+ */
+export async function runGenerateBrief(
+  clusterId: string,
+  userId?: string,
+): Promise<{ brief: string }> {
+  const contents = await loadClusterContents(clusterId, userId);
+  const brief = await generateBrief(contents);
+
+  await db
+    .update(thoughtClusters)
+    .set({ brief })
+    .where(eq(thoughtClusters.id, clusterId));
+
+  await recomputeClusterReadiness(db, clusterId);
+
+  return { brief };
+}

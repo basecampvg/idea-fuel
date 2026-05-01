@@ -42,6 +42,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WelcomeSheet } from '../../components/ui/WelcomeSheet';
 import { useAIConsentGate } from '../../hooks/useAIConsentGate';
 import { CollisionCard } from '../../components/thought/CollisionCard';
+import { NoteFilingChip } from '../../components/thought/NoteFilingChip';
 import { ClusterPicker } from '../../components/ClusterPicker';
 
 // Defer loading expo-speech-recognition until after the initial Fabric mount
@@ -90,6 +91,10 @@ export default function CaptureScreen() {
   const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
   const [showPopover, setShowPopover] = useState(false);
   const [aiConsent, setAiConsent] = useState(false);
+  // File-as-note affordance — defaults to 'thought' so capture stays
+  // frictionless. User can opt in to notes (utility captures: bug logs,
+  // todos) which skip the idea-engine pipeline.
+  const [isNote, setIsNote] = useState(false);
   const [popoverAnchorY, setPopoverAnchorY] = useState(200);
   const inputBarRef = useRef<View>(null);
   // Collision detection state — set after thought creation, cleared on navigation
@@ -344,6 +349,7 @@ export default function CaptureScreen() {
       finalizedText.current = '';
       setAttachments([]);
       setAiConsent(false);
+      setIsNote(false);
       // Auto-link if triggered from Revisit "Engage"
       if (linkedThoughtId) {
         try {
@@ -381,8 +387,9 @@ export default function CaptureScreen() {
     createThought.mutate({
       content: trimmed,
       captureMethod: isListening ? 'voice' : 'quick_text',
+      kind: isNote ? 'note' : 'thought',
     });
-  }, [ideaText, isListening, createThought]);
+  }, [ideaText, isListening, isNote, createThought]);
 
   const navigateToThought = useCallback((thoughtId: string) => {
     if (pollingRef.current) {
@@ -648,7 +655,7 @@ export default function CaptureScreen() {
 
               {/* Row 2: Action buttons */}
               <View style={styles.inputActionsRow}>
-                {/* Left: Paperclip */}
+                {/* Left: Paperclip + file-as-note chip (quiet position) */}
                 <View style={styles.inputActionsLeft}>
                   <TouchableOpacity
                     style={styles.paperclipButton}
@@ -658,6 +665,7 @@ export default function CaptureScreen() {
                   >
                     <Paperclip size={18} color={attachments.length >= MAX_ATTACHMENTS ? colors.mutedDim : colors.muted} />
                   </TouchableOpacity>
+                  <NoteFilingChip isNote={isNote} onToggle={() => setIsNote(!isNote)} />
                 </View>
 
                 {/* Right: Mic + Send */}

@@ -35,6 +35,7 @@ export function createThoughtCollisionWorker() {
           id: thoughts.id,
           content: thoughts.content,
           userId: thoughts.userId,
+          kind: thoughts.kind,
           collisionIds: thoughts.collisionIds,
         })
         .from(thoughts)
@@ -46,8 +47,13 @@ export function createThoughtCollisionWorker() {
         return { success: false, reason: 'not_found' };
       }
 
-      if (!thought.content || thought.content.length < 10) {
-        console.log(`[CollisionWorker] Thought ${thoughtId} content too short, skipping`);
+      if (thought.kind !== 'thought') {
+        console.log(`[CollisionWorker] skipping note ${thoughtId}`);
+        return { success: false, reason: 'kind_note' };
+      }
+
+      if (!thought.content || thought.content.length < 20) {
+        console.log(`[CollisionWorker] skipping short content ${thoughtId}`);
         return { success: false, reason: 'content_too_short' };
       }
 

@@ -15,6 +15,7 @@ import {
   createReportGenerationWorker,
   createBusinessPlanWorker,
   createThoughtCollisionWorker,
+  createClusterSynthesisWorker,
 } from './jobs/workers';
 import { createThoughtClassifyWorker } from './jobs/thought-classify';
 
@@ -54,7 +55,8 @@ async function main() {
   const businessPlanWorker = createBusinessPlanWorker();
   const classifyWorker = createThoughtClassifyWorker();
   const collisionWorker = createThoughtCollisionWorker();
-  const allWorkers = [researchWorker, sparkWorker, cancelWorker, reportWorker, businessPlanWorker, classifyWorker, collisionWorker];
+  const clusterSynthesisWorker = createClusterSynthesisWorker();
+  const allWorkers = [researchWorker, sparkWorker, cancelWorker, reportWorker, businessPlanWorker, classifyWorker, collisionWorker, clusterSynthesisWorker];
 
   // Attach rate-limit detection to all workers
   for (const w of allWorkers) {
@@ -71,6 +73,7 @@ async function main() {
   console.log('  - Business Plan (concurrency: 2, drainDelay: 60s)');
   console.log('  - Thought Classify (concurrency: 5)');
   console.log('  - Thought Collision (concurrency: 5)');
+  console.log('  - Cluster Synthesis (concurrency: 2, debounce: 5min)');
   console.log('[Worker] Waiting for jobs...');
 
   // Health check server for Railway
