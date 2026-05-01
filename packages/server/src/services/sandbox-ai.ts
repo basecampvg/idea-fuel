@@ -5,8 +5,6 @@
  * Uses Claude Haiku for speed and cost.
  */
 
-import { noteRefinementSchema } from '@forge/shared';
-import type { NoteRefinement } from '@forge/shared';
 import { getAnthropicClient } from '../lib/anthropic';
 import { z } from 'zod';
 
@@ -153,24 +151,34 @@ export async function extractTodosFromSandbox(noteContents: string[]): Promise<s
 }
 
 // ---------------------------------------------------------------------------
-// Promote to Idea
+// Synthesize Idea (cluster crystallization)
 // ---------------------------------------------------------------------------
 
-export async function synthesizeIdea(noteContents: string[]): Promise<NoteRefinement> {
+const crystallizedFieldsSchema = z.object({
+  title: z.string().min(1),
+  problemStatement: z.string().min(1),
+  targetAudience: z.string().min(1),
+  proposedSolution: z.string().min(1),
+  uniqueAngle: z.string().min(1),
+  pricingHypothesis: z.string().min(1),
+});
+
+export type CrystallizedFields = z.infer<typeof crystallizedFieldsSchema>;
+
+export async function synthesizeIdea(contents: string[]): Promise<CrystallizedFields> {
   return callHaikuJson(
-    `You synthesize collections of entrepreneur notes into a single, focused business idea. Across all the notes, identify the strongest business concept and distill it into a structured idea. Return ONLY valid JSON:
-{
-  "title": "Concise, compelling title (max 200 chars)",
-  "description": "Clear 1-3 sentence description of the problem, customer, and solution (max 2000 chars)",
-  "tags": ["tag1", "tag2", "tag3"]
-}
-Rules:
-- title: Specific, not generic. Capture the essence of the strongest idea across all notes.
-- description: Problem, target customer, core solution.
-- tags: 1-10 lowercase tags. Each max 50 chars.`,
-    `Synthesize a business idea from these notes:\n\n${formatNotesForAi(noteContents)}`,
-    noteRefinementSchema,
-    1000,
+    `You are a startup strategist. Given raw thought fragments, extract a structured idea.
+Return JSON with exactly these fields:
+- title: short name for this idea (3-7 words, no punctuation)
+- problemStatement: the core problem being solved (1-2 sentences)
+- targetAudience: who specifically experiences this problem (1 sentence)
+- proposedSolution: how the idea solves it (1-2 sentences)
+- uniqueAngle: what makes this different from existing solutions (1 sentence). If unclear, write "Not yet differentiated."
+- pricingHypothesis: business model hypothesis (1 sentence). If unclear, write "Not yet defined."
+Output strictly the JSON object, no markdown.`,
+    `Synthesize a business idea from these thought fragments:\n\n${formatNotesForAi(contents)}`,
+    crystallizedFieldsSchema,
+    1500,
   );
 }
 
