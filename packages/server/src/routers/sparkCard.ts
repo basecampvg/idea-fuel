@@ -16,7 +16,7 @@ import {
   promoteCardSchema,
 } from '@forge/shared';
 import type { CardResult } from '@forge/shared';
-import { users, projects } from '../db/schema';
+import { users, ideas } from '../db/schema';
 import { db } from '../db/drizzle';
 import { sonarProResearch } from '../providers/perplexity/sonar-pro';
 import { CARD_CHAT_QUESTIONS, buildResearchBrief, extractCardResult, refineProjectDetails, generateSuggestions } from '../services/card-ai';
@@ -42,8 +42,8 @@ export const sparkCardRouter = router({
         // Generate smart suggestions based on the project idea (non-blocking)
         let suggestions: string[] = [];
         try {
-          const project = await ctx.db.query.projects.findFirst({
-            where: and(eq(projects.id, projectId), eq(projects.userId, ctx.userId)),
+          const project = await ctx.db.query.ideas.findFirst({
+            where: and(eq(ideas.id, projectId), eq(ideas.userId, ctx.userId)),
             columns: { title: true, description: true },
           });
 
@@ -227,8 +227,8 @@ export const sparkCardRouter = router({
       // ------------------------------------------------------------------
       // Step 2: Read project
       // ------------------------------------------------------------------
-      const project = await ctx.db.query.projects.findFirst({
-        where: and(eq(projects.id, projectId), eq(projects.userId, ctx.userId)),
+      const project = await ctx.db.query.ideas.findFirst({
+        where: and(eq(ideas.id, projectId), eq(ideas.userId, ctx.userId)),
         columns: { id: true, title: true, description: true },
       });
 
@@ -305,9 +305,9 @@ export const sparkCardRouter = router({
       if (refinedDescription) updateSet.description = refinedDescription;
 
       await ctx.db
-        .update(projects)
+        .update(ideas)
         .set(updateSet)
-        .where(and(eq(projects.id, projectId), eq(projects.userId, ctx.userId)));
+        .where(and(eq(ideas.id, projectId), eq(ideas.userId, ctx.userId)));
 
       console.log(`[SparkCard] Validation complete for project ${projectId}, verdict: ${cardResult.verdict}${isRefine ? ', refined' : ''}`);
 
@@ -330,8 +330,8 @@ export const sparkCardRouter = router({
       const { projectId } = input;
 
       // Verify ownership
-      const project = await ctx.db.query.projects.findFirst({
-        where: and(eq(projects.id, projectId), eq(projects.userId, ctx.userId)),
+      const project = await ctx.db.query.ideas.findFirst({
+        where: and(eq(ideas.id, projectId), eq(ideas.userId, ctx.userId)),
         columns: { id: true },
       });
 
@@ -340,11 +340,11 @@ export const sparkCardRouter = router({
       }
 
       await ctx.db
-        .update(projects)
+        .update(ideas)
         .set({
           validationStatus: 'in_validation',
         })
-        .where(eq(projects.id, projectId));
+        .where(eq(ideas.id, projectId));
 
       return {
         webUrl: `https://app.ideafuel.ai/projects/${projectId}`,

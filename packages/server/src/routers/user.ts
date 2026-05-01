@@ -3,7 +3,7 @@ import { updateUserSchema } from '@forge/shared';
 import { eq, count, sql, and } from 'drizzle-orm';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { users, projects, interviews, reports, research, tokenUsages } from '../db/schema';
+import { users, ideas, interviews, reports, research, tokenUsages } from '../db/schema';
 import { getStripeClient } from '../lib/stripe';
 
 export const userRouter = router({
@@ -66,21 +66,21 @@ export const userRouter = router({
       [{ value: reportsCount }],
       [{ value: activeResearch }],
     ] = await Promise.all([
-      ctx.db.select({ value: count() }).from(projects).where(eq(projects.userId, ctx.userId)),
+      ctx.db.select({ value: count() }).from(ideas).where(eq(ideas.userId, ctx.userId)),
       ctx.db.select({ value: count() }).from(interviews).where(eq(interviews.userId, ctx.userId)),
       ctx.db.select({ value: count() }).from(reports).where(eq(reports.userId, ctx.userId)),
       ctx.db
         .select({ value: count() })
         .from(research)
-        .innerJoin(projects, eq(research.projectId, projects.id))
-        .where(and(eq(projects.userId, ctx.userId), eq(research.status, 'IN_PROGRESS'))),
+        .innerJoin(ideas, eq(research.projectId, ideas.id))
+        .where(and(eq(ideas.userId, ctx.userId), eq(research.status, 'IN_PROGRESS'))),
     ]);
 
     const projectsByStatus = await ctx.db
-      .select({ status: projects.status, count: count() })
-      .from(projects)
-      .where(eq(projects.userId, ctx.userId))
-      .groupBy(projects.status);
+      .select({ status: ideas.status, count: count() })
+      .from(ideas)
+      .where(eq(ideas.userId, ctx.userId))
+      .groupBy(ideas.status);
 
     const reportsByType = await ctx.db
       .select({ type: reports.type, count: count() })

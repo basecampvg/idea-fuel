@@ -2,7 +2,7 @@ import { Worker, Job } from 'bullmq';
 import { createRedisConnection } from '../../lib/redis';
 import { db } from '../../db/drizzle';
 import { eq, sql } from 'drizzle-orm';
-import { research, projects, users, interviews, customerInterviews } from '../../db/schema';
+import { research, ideas, users, interviews, customerInterviews } from '../../db/schema';
 import type { SubscriptionTier } from '../../db/schema';
 import { QUEUE_NAMES, ResearchPipelineJobData } from '../queues';
 import type { ChatMessage, InterviewDataPoints, FounderProfile } from '@forge/shared';
@@ -37,8 +37,8 @@ export function createResearchPipelineWorker() {
 
       try {
         // 1. Load project with interview data
-        const project = await db.query.projects.findFirst({
-          where: eq(projects.id, projectId),
+        const project = await db.query.ideas.findFirst({
+          where: eq(ideas.id, projectId),
           with: {
             research: true,
             interviews: {
@@ -260,7 +260,7 @@ export function createResearchPipelineWorker() {
         }).where(eq(research.id, researchId));
 
         // Update project status to complete
-        await db.update(projects).set({ status: 'COMPLETE' }).where(eq(projects.id, projectId));
+        await db.update(ideas).set({ status: 'COMPLETE' }).where(eq(ideas.id, projectId));
 
         console.log(`[ResearchWorker] Completed research ${researchId} in ${Math.round((Date.now() - startTime) / 1000)}s`);
 

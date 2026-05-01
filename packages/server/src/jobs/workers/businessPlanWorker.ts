@@ -2,7 +2,7 @@ import { Worker, Job } from 'bullmq';
 import { createRedisConnection } from '../../lib/redis';
 import { db } from '../../db/drizzle';
 import { eq } from 'drizzle-orm';
-import { research, projects } from '../../db/schema';
+import { research } from '../../db/schema';
 import { QUEUE_NAMES, BusinessPlanJobData } from '../queues';
 import { generateBusinessPlanProse, summarizeRawResearch } from '../../services/business-plan-ai';
 import { loadFinancialDataForProject } from '../../services/financial-model-loader';

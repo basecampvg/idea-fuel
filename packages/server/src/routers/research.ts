@@ -5,7 +5,7 @@ import { TRPCError } from '@trpc/server';
 import { RESEARCH_PHASE_PROGRESS, SPARK_STATUS_PROGRESS } from '@forge/shared';
 import { logAuditAsync, formatResource } from '../lib/audit';
 import { enqueueResearchCancel, enqueueResearchPipeline, enqueueSparkPipeline, enqueueBusinessPlan, getResearchPipelineQueue } from '../jobs';
-import { research, projects, users, interviews } from '../db/schema';
+import { research, ideas, users, interviews } from '../db/schema';
 import {
   extractInsights,
   extractScores,
@@ -63,8 +63,8 @@ export const researchRouter = router({
    * Get research by project ID
    */
   getByProject: protectedProcedure.input(z.object({ projectId: z.string().min(1) })).query(async ({ ctx, input }) => {
-    const project = await ctx.db.query.projects.findFirst({
-      where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+    const project = await ctx.db.query.ideas.findFirst({
+      where: and(eq(ideas.id, input.projectId), eq(ideas.userId, ctx.userId)),
       with: {
         research: true,
       },
@@ -147,8 +147,8 @@ export const researchRouter = router({
    * Called after interview is complete
    */
   start: protectedProcedure.input(z.object({ projectId: z.string().min(1) })).mutation(async ({ ctx, input }) => {
-    const project = await ctx.db.query.projects.findFirst({
-      where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+    const project = await ctx.db.query.ideas.findFirst({
+      where: and(eq(ideas.id, input.projectId), eq(ideas.userId, ctx.userId)),
       with: {
         research: true,
         interviews: {
@@ -242,7 +242,7 @@ export const researchRouter = router({
     }
 
     // Update project status
-    await ctx.db.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, input.projectId));
+    await ctx.db.update(ideas).set({ status: 'RESEARCHING' }).where(eq(ideas.id, input.projectId));
 
     // Audit log - start research
     logAuditAsync({
@@ -444,7 +444,7 @@ export const researchRouter = router({
 
       // If complete, update project status
       if (input.phase === 'COMPLETE') {
-        await ctx.db.update(projects).set({ status: 'COMPLETE' }).where(eq(projects.id, result.projectId));
+        await ctx.db.update(ideas).set({ status: 'COMPLETE' }).where(eq(ideas.id, result.projectId));
       }
 
       return updatedResearch;
@@ -455,8 +455,8 @@ export const researchRouter = router({
    * This marks the research as FAILED so it can be restarted via the start endpoint
    */
   reset: protectedProcedure.input(z.object({ projectId: z.string().min(1) })).mutation(async ({ ctx, input }) => {
-    const project = await ctx.db.query.projects.findFirst({
-      where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+    const project = await ctx.db.query.ideas.findFirst({
+      where: and(eq(ideas.id, input.projectId), eq(ideas.userId, ctx.userId)),
       with: {
         research: true,
       },
@@ -564,8 +564,8 @@ export const researchRouter = router({
   startSpark: protectedProcedure
     .input(z.object({ projectId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
-      const project = await ctx.db.query.projects.findFirst({
-        where: and(eq(projects.id, input.projectId), eq(projects.userId, ctx.userId)),
+      const project = await ctx.db.query.ideas.findFirst({
+        where: and(eq(ideas.id, input.projectId), eq(ideas.userId, ctx.userId)),
         with: {
           research: true,
           interviews: { orderBy: (i, { desc: d }) => [d(i.createdAt)], limit: 1 },
@@ -628,7 +628,7 @@ export const researchRouter = router({
       }
 
       // Update project status
-      await ctx.db.update(projects).set({ status: 'RESEARCHING' }).where(eq(projects.id, input.projectId));
+      await ctx.db.update(ideas).set({ status: 'RESEARCHING' }).where(eq(ideas.id, input.projectId));
 
       // Audit log - start Spark research
       logAuditAsync({

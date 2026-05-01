@@ -6,7 +6,7 @@ import { SKETCH_TEMPLATE_TYPES } from '@forge/shared/constants';
 import { getGeminiClient } from '../lib/gemini';
 import { buildSketchPrompt } from '../lib/sketch-prompts';
 import { supabase, ATTACHMENT_BUCKET } from '../lib/supabase';
-import { notes, noteAttachments, projectAttachments, projects, sandboxes } from '../db/schema';
+import { notes, noteAttachments, projectAttachments, ideas, sandboxes } from '../db/schema';
 
 const generateSchema = z.object({
   templateType: z.enum(SKETCH_TEMPLATE_TYPES),
@@ -182,8 +182,8 @@ ${input.features.map((f, i) => `${i + 1}. ${f}`).join('\n')}`,
     .mutation(async ({ ctx, input }) => {
       if (input.targetType === 'vault') {
         // Verify the project exists and belongs to this user
-        const project = await ctx.db.query.projects.findFirst({
-          where: and(eq(projects.id, input.targetId), eq(projects.userId, ctx.userId)),
+        const project = await ctx.db.query.ideas.findFirst({
+          where: and(eq(ideas.id, input.targetId), eq(ideas.userId, ctx.userId)),
           columns: { id: true },
         });
 

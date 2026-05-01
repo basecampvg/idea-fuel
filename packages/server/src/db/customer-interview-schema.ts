@@ -12,7 +12,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import type { InterviewQuestion, InterviewAnswer } from '@forge/shared';
-import { users, projects } from './schema';
+import { users, ideas } from './schema';
 
 // =============================================================================
 // ENUMS
@@ -46,7 +46,7 @@ export const customerInterviews = pgTable('CustomerInterview', {
   uniqueIndex('CustomerInterview_uuid_key').using('btree', table.uuid.asc().nullsLast()),
   foreignKey({
     columns: [table.projectId],
-    foreignColumns: [projects.id],
+    foreignColumns: [ideas.id],
     name: 'CustomerInterview_projectId_fkey',
   }).onUpdate('cascade').onDelete('cascade'),
   foreignKey({
