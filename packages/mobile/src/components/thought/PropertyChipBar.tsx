@@ -11,7 +11,6 @@ import {
   Brain,
   BookOpen,
   CheckCircle,
-  FileText,
   Tag,
 } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
@@ -20,7 +19,6 @@ import { MaturityPicker, type MaturityLevel } from './MaturityPicker';
 import { TypePicker, type ThoughtType } from './TypePicker';
 import { ConfidencePicker, type ConfidenceLevel } from './ConfidencePicker';
 import { ClusterPicker } from '../ClusterPicker';
-import { PurposePicker, type Purpose } from './PurposePicker';
 import { LabelPicker } from './LabelPicker';
 
 const MATURITY_CONFIG: Record<MaturityLevel, { label: string; color: string; style: 'hollow' | 'half' | 'filled' | 'ring' }> = {
@@ -66,7 +64,6 @@ interface PropertyChipBarProps {
   maturityLevel: MaturityLevel | null;
   thoughtType: ThoughtType | null;
   confidenceLevel: ConfidenceLevel | null;
-  purpose: string;
   labels: string[];
   clusterId: string | null;
   clusterName?: string | null;
@@ -75,7 +72,6 @@ interface PropertyChipBarProps {
   onUpdateMaturity: (level: MaturityLevel | null) => void;
   onUpdateType: (type: ThoughtType | null) => void;
   onUpdateConfidence: (level: ConfidenceLevel | null) => void;
-  onUpdatePurpose: (purpose: Purpose) => void;
   onUpdateLabels: (labels: string[]) => void;
   onAddToCluster: (clusterId: string) => void;
   onRemoveFromCluster: () => void;
@@ -85,7 +81,6 @@ export function PropertyChipBar({
   maturityLevel,
   thoughtType,
   confidenceLevel,
-  purpose,
   labels,
   clusterId,
   clusterName,
@@ -94,7 +89,6 @@ export function PropertyChipBar({
   onUpdateMaturity,
   onUpdateType,
   onUpdateConfidence,
-  onUpdatePurpose,
   onUpdateLabels,
   onAddToCluster,
   onRemoveFromCluster,
@@ -103,7 +97,6 @@ export function PropertyChipBar({
   const [showType, setShowType] = useState(false);
   const [showConfidence, setShowConfidence] = useState(false);
   const [showCluster, setShowCluster] = useState(false);
-  const [showPurpose, setShowPurpose] = useState(false);
   const [showLabels, setShowLabels] = useState(false);
 
   const maturity = maturityLevel ? MATURITY_CONFIG[maturityLevel] : null;
@@ -119,23 +112,7 @@ export function PropertyChipBar({
         style={styles.glassBorder}
       >
         <View style={styles.container}>
-          {/* Purpose chip */}
-        <TouchableOpacity
-          style={[styles.chip, { borderColor: purpose === 'idea' ? '#F59E0B40' : `${colors.mutedDim}40` }]}
-          onPress={() => setShowPurpose(true)}
-          activeOpacity={0.7}
-        >
-          {purpose === 'idea' ? (
-            <Lightbulb size={14} color="#F59E0B" />
-          ) : (
-            <FileText size={14} color={colors.mutedDim} />
-          )}
-          <Text style={[styles.chipLabel, { color: purpose === 'idea' ? '#F59E0B' : colors.mutedDim }]}>
-            {purpose === 'idea' ? 'Idea' : 'Note'}
-          </Text>
-        </TouchableOpacity>
-
-        {/* Maturity chip */}
+          {/* Maturity chip */}
         {maturityLevel && maturity ? (
           <TouchableOpacity
             style={[styles.chip, { borderColor: `${maturity.color}40` }]}
@@ -281,13 +258,6 @@ export function PropertyChipBar({
           onAddToCluster(id);
           setShowCluster(false);
         }}
-      />
-
-      <PurposePicker
-        visible={showPurpose}
-        onClose={() => setShowPurpose(false)}
-        current={purpose as Purpose}
-        onSelect={onUpdatePurpose}
       />
 
       <LabelPicker

@@ -422,10 +422,6 @@ export default function NoteEditorScreen() {
     updatePropertiesMutation.mutate({ id: id!, confidenceLevel: level as any });
   }, [id, updatePropertiesMutation]);
 
-  const handleUpdatePurpose = useCallback((purpose: string) => {
-    updatePropertiesMutation.mutate({ id: id!, purpose: purpose as any });
-  }, [id, updatePropertiesMutation]);
-
   const handleUpdateLabels = useCallback((labels: string[]) => {
     updateLabelsMutation.mutate({ thoughtId: id!, labels });
   }, [id, updateLabelsMutation]);
@@ -626,10 +622,9 @@ export default function NoteEditorScreen() {
           {/* Property Chip Bar */}
           <View style={styles.chipSection}>
             <PropertyChipBar
-              maturityLevel={note.maturityLevel as any}
+              maturityLevel={(note as any).maturityLevel ?? null}
               thoughtType={note.thoughtType as any}
               confidenceLevel={note.confidenceLevel as any}
-              purpose={note.purpose ?? 'idea'}
               labels={note.tags ?? []}
               clusterId={note.clusterId ?? null}
               clusterName={note.cluster?.name ?? null}
@@ -638,7 +633,6 @@ export default function NoteEditorScreen() {
               onUpdateMaturity={handleUpdateMaturity}
               onUpdateType={handleUpdateType}
               onUpdateConfidence={handleUpdateConfidence}
-              onUpdatePurpose={handleUpdatePurpose}
               onUpdateLabels={handleUpdateLabels}
               onAddToCluster={(clusterId) => pinMutation.mutate({ thoughtId: id!, clusterId })}
               onRemoveFromCluster={() => unpinMutation.mutate({ thoughtId: id! })}
