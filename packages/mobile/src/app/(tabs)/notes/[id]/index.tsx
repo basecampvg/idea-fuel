@@ -282,6 +282,22 @@ export default function NoteEditorScreen() {
     },
   });
 
+  const convertKindMutation = trpc.thought.convertKind.useMutation({
+    onSuccess: (updated) => {
+      triggerHaptic('success');
+      showToast({
+        message: updated.kind === 'note' ? 'Filed as note' : 'Restored as thought',
+        type: 'success',
+      });
+      utils.thought.get.invalidate({ id: id! });
+      utils.thought.list.invalidate();
+    },
+    onError: () => {
+      triggerHaptic('error');
+      showToast({ message: 'Failed to convert', type: 'error' });
+    },
+  });
+
   const getUploadUrl = trpc.attachment.getUploadUrl.useMutation();
   const addAttachments = trpc.thought.addAttachments.useMutation({
     onSuccess: () => {
@@ -410,10 +426,6 @@ export default function NoteEditorScreen() {
   }, [id, deleteMutation]);
 
   // PropertyChipBar handlers
-  const handleUpdateMaturity = useCallback((level: string | null) => {
-    updatePropertiesMutation.mutate({ id: id!, maturityLevel: level as any });
-  }, [id, updatePropertiesMutation]);
-
   const handleUpdateType = useCallback((type: string | null) => {
     updatePropertiesMutation.mutate({ id: id!, thoughtType: type as any });
   }, [id, updatePropertiesMutation]);
@@ -622,7 +634,7 @@ export default function NoteEditorScreen() {
           {/* Property Chip Bar */}
           <View style={styles.chipSection}>
             <PropertyChipBar
-              maturityLevel={(note as any).maturityLevel ?? null}
+              kind={(note.kind ?? 'thought') as 'thought' | 'note'}
               thoughtType={note.thoughtType as any}
               confidenceLevel={note.confidenceLevel as any}
               labels={note.tags ?? []}
@@ -630,7 +642,6 @@ export default function NoteEditorScreen() {
               clusterName={note.cluster?.name ?? null}
               clusterColor={note.cluster?.color ?? null}
               typeSource={note.typeSource}
-              onUpdateMaturity={handleUpdateMaturity}
               onUpdateType={handleUpdateType}
               onUpdateConfidence={handleUpdateConfidence}
               onUpdateLabels={handleUpdateLabels}
@@ -762,6 +773,15 @@ export default function NoteEditorScreen() {
         onCopyText={handleCopyText}
         onShare={handleShare}
         onDelete={handleDelete}
+        onConvertKind={() => {
+          setShowOverflow(false);
+          const currentKind = (note.kind ?? 'thought') as 'thought' | 'note';
+          convertKindMutation.mutate({
+            thoughtId: id!,
+            kind: currentKind === 'thought' ? 'note' : 'thought',
+          });
+        }}
+        kind={(note.kind ?? 'thought') as 'thought' | 'note'}
         isRefined={!!note.refinedTitle}
         isArchived={note.isArchived}
       />

@@ -7,6 +7,8 @@ import {
   ClipboardCopy,
   Share2,
   Trash2,
+  FileText,
+  Lightbulb,
 } from 'lucide-react-native';
 import { PopoverMenu, type PopoverMenuItem, type AnchorRect } from '../ui/PopoverMenu';
 import { colors } from '../../lib/theme';
@@ -23,6 +25,10 @@ interface OverflowMenuProps {
   onCopyText: () => void;
   onShare: () => void;
   onDelete: () => void;
+  /** Convert between kind='thought' and kind='note'. */
+  onConvertKind?: () => void;
+  /** Current kind, used to label the convert action. */
+  kind?: 'thought' | 'note';
   isRefined: boolean;
   isArchived: boolean;
 }
@@ -38,6 +44,8 @@ export function OverflowMenu({
   onCopyText,
   onShare,
   onDelete,
+  onConvertKind,
+  kind,
   isRefined,
   isArchived,
 }: OverflowMenuProps) {
@@ -51,6 +59,15 @@ export function OverflowMenu({
     },
     { key: 'cluster', label: 'Add to Cluster', icon: FolderPlus, onPress: onAddToCluster },
     { key: 'duplicate', label: 'Duplicate', icon: Copy, onPress: onDuplicate },
+    ...(onConvertKind && kind
+      ? [{
+          key: 'convert-kind',
+          label: kind === 'thought' ? 'Convert to note' : 'Convert to thought',
+          icon: kind === 'thought' ? FileText : Lightbulb,
+          color: colors.muted,
+          onPress: onConvertKind,
+        }]
+      : []),
     {
       key: 'archive',
       label: isArchived ? 'Unarchive' : 'Archive',
