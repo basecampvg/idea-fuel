@@ -39,6 +39,7 @@ import { trpc } from '../../../lib/trpc';
 import { colors, fonts } from '../../../lib/theme';
 import { RevisitSection } from '../../../components/thought/RevisitSection';
 import { ClusterPicker } from '../../../components/ClusterPicker';
+import { ClusterMaturityDot } from '../../../components/cluster/ClusterMaturityDot';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Shared helpers
@@ -355,9 +356,12 @@ function SwipeableClusterCard({
               <View style={styles.clusterCardTop}>
                 <View style={[styles.colorDot, { backgroundColor: dotColor }]} />
                 <View style={styles.cardText}>
-                  <Text style={styles.clusterCardTitle} numberOfLines={1}>
-                    {cluster.name}
-                  </Text>
+                  <View style={styles.clusterTitleRow}>
+                    <Text style={styles.clusterCardTitle} numberOfLines={1}>
+                      {cluster.name}
+                    </Text>
+                    <ClusterMaturityDot status={(cluster.clusterMaturity ?? 'exploring') as 'exploring' | 'forming' | 'ready'} size={10} />
+                  </View>
                   <Text style={styles.clusterCardMeta}>
                     {cluster.thoughtCount === 1 ? '1 thought' : `${cluster.thoughtCount} thoughts`}
                   </Text>
@@ -1180,11 +1184,17 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     flexShrink: 0,
   },
+  clusterTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 2,
+  },
   clusterCardTitle: {
     fontSize: 16,
     ...fonts.display.semiBold,
     color: colors.foreground,
-    marginBottom: 2,
+    flexShrink: 1,
   },
   clusterCardMeta: {
     fontSize: 12,

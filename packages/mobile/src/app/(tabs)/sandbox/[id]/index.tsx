@@ -29,6 +29,7 @@ import { Badge } from '../../../../components/ui/Badge';
 import { AiActionSheet, type AiActionResult } from '../../../../components/AiActionSheet';
 import { trpc } from '../../../../lib/trpc';
 import { colors, fonts } from '../../../../lib/theme';
+import { ClusterMaturityDot } from '../../../../components/cluster/ClusterMaturityDot';
 
 const AI_ACTIONS = [
   { key: 'summarize', label: 'Summarize', icon: FileText, color: '#6C5CE7' },
@@ -282,6 +283,7 @@ export default function SandboxDetailScreen() {
               <Text style={styles.headerTitle} numberOfLines={1}>
                 {sandbox.name}
               </Text>
+              <ClusterMaturityDot status={(sandbox.clusterMaturity ?? 'exploring') as 'exploring' | 'forming' | 'ready'} size={10} />
             </>
           ) : null}
         </View>

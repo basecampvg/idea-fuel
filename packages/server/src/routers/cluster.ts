@@ -102,6 +102,8 @@ export const clusterRouter = router({
         userId: thoughtClusters.userId,
         createdAt: thoughtClusters.createdAt,
         updatedAt: thoughtClusters.updatedAt,
+        clusterMaturity: thoughtClusters.clusterMaturity,
+        readinessScore: thoughtClusters.readinessScore,
         thoughtCount: count(thoughts.id),
       })
       .from(thoughtClusters)
