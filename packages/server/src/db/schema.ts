@@ -199,7 +199,7 @@ export const verificationTokens = pgTable('VerificationToken', {
 // PROJECT
 // =============================================================================
 
-export const projects = pgTable('Project', {
+export const ideas = pgTable('Idea', {
   id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
   title: text().notNull(),
   description: text().notNull(),
@@ -209,22 +209,44 @@ export const projects = pgTable('Project', {
   mode: projectModeEnum().default('LAUNCH').notNull(),
   businessContext: jsonb('business_context'),
   userId: text().notNull(),
-  // Mobile quick validation card fields
-  promoted: boolean().default(false).notNull(),
-  promotedAt: timestamp('promoted_at', { precision: 3, mode: 'date' }),
   cardResult: jsonb('card_result'),
+  // Crystallized idea fields (merged from former CrystallizedIdea table)
+  problemStatement: text('problem_statement'),
+  targetAudience: text('target_audience'),
+  proposedSolution: text('proposed_solution'),
+  uniqueAngle: text('unique_angle'),
+  pricingHypothesis: text('pricing_hypothesis'),
+  sparkAnswers: jsonb('spark_answers'),
+  sparkSessionId: text('spark_session_id'),
+  sourceClusterId: text('source_cluster_id'),
+  sourceThoughtIds: text('source_thought_ids').array().default([]),
+  crystallizedAt: timestamp('crystallized_at', { precision: 3, mode: 'date' }),
+  crystallizedBy: text('crystallized_by'),
+  // Workflow status (orthogonal to cardResult.verdict — user workflow vs AI scoring)
+  validationStatus: text('validation_status').default('draft').notNull(),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp({ precision: 3, mode: 'date' }).notNull().$onUpdate(() => new Date()),
 }, (table) => [
-  index('Project_status_idx').using('btree', table.status.asc().nullsLast()),
-  index('Project_userId_idx').using('btree', table.userId.asc().nullsLast()),
-  index('Project_userId_status_idx').using('btree', table.userId.asc(), table.status.asc()),
+  index('Idea_status_idx').using('btree', table.status.asc().nullsLast()),
+  index('Idea_userId_idx').using('btree', table.userId.asc().nullsLast()),
+  index('Idea_userId_status_idx').using('btree', table.userId.asc(), table.status.asc()),
+  index('Idea_sourceClusterId_idx').using('btree', table.sourceClusterId.asc().nullsLast()),
   foreignKey({
     columns: [table.userId],
     foreignColumns: [users.id],
-    name: 'Project_userId_fkey',
+    name: 'Idea_userId_fkey',
   }).onUpdate('cascade').onDelete('cascade'),
+  foreignKey({
+    columns: [table.sourceClusterId],
+    foreignColumns: [thoughtClusters.id],
+    name: 'Idea_sourceClusterId_fkey',
+  }).onUpdate('cascade').onDelete('set null'),
 ]);
+
+// Backwards-compat alias — every internal FK and relation that references
+// `projects` resolves to the same table. Will be removed once all callers
+// migrate to `ideas`.
+export const projects = ideas;
 
 // =============================================================================
 // PROJECT ATTACHMENTS (Images attached at capture time)
@@ -274,6 +296,7 @@ export const thoughtClusters = pgTable('ThoughtCluster', {
   tensions: jsonb().$type<any[]>().default([]),
   gaps: jsonb().$type<any[]>().default([]),
   synthesis: text(),
+  brief: text(),
   clusterMaturity: text('cluster_maturity').default('exploring').notNull(),
   readinessScore: doublePrecision('readiness_score'),
   dimensionCoverage: jsonb('dimension_coverage'),
@@ -462,31 +485,6 @@ export const thoughtComments = pgTable('ThoughtComment', {
   index('ThoughtComment_thoughtId_idx').using('btree', table.thoughtId.asc(), table.createdAt.asc()),
   foreignKey({ columns: [table.thoughtId], foreignColumns: [thoughts.id], name: 'ThoughtComment_thoughtId_fkey' }).onUpdate('cascade').onDelete('cascade'),
   foreignKey({ columns: [table.userId], foreignColumns: [users.id], name: 'ThoughtComment_userId_fkey' }).onUpdate('cascade').onDelete('cascade'),
-]);
-
-// =============================================================================
-// CRYSTALLIZED IDEAS
-// =============================================================================
-export const crystallizedIdeas = pgTable('CrystallizedIdea', {
-  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
-  userId: text('user_id').notNull(),
-  clusterId: text('cluster_id'),
-  projectId: text('project_id').notNull(),
-  problemStatement: text('problem_statement'),
-  targetAudience: text('target_audience'),
-  proposedSolution: text('proposed_solution'),
-  uniqueAngle: text('unique_angle'),
-  pricingHypothesis: text('pricing_hypothesis'),
-  sparkAnswers: jsonb('spark_answers'),
-  sparkSessionId: text('spark_session_id'),
-  sourceThoughtIds: text('source_thought_ids').array().default([]),
-  crystallizedAt: timestamp('crystallized_at', { precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-  crystallizedBy: text('crystallized_by').notNull(),
-}, (table) => [
-  index('CrystallizedIdea_userId_idx').using('btree', table.userId.asc()),
-  foreignKey({ columns: [table.userId], foreignColumns: [users.id], name: 'CrystallizedIdea_userId_fkey' }).onUpdate('cascade').onDelete('cascade'),
-  foreignKey({ columns: [table.clusterId], foreignColumns: [thoughtClusters.id], name: 'CrystallizedIdea_clusterId_fkey' }).onUpdate('cascade').onDelete('set null'),
-  foreignKey({ columns: [table.projectId], foreignColumns: [projects.id], name: 'CrystallizedIdea_projectId_fkey' }).onUpdate('cascade').onDelete('cascade'),
 ]);
 
 // =============================================================================
@@ -1375,20 +1373,22 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, { fields: [sessions.userId], references: [users.id] }),
 }));
 
-export const projectsRelations = relations(projects, ({ one, many }) => ({
-  user: one(users, { fields: [projects.userId], references: [users.id] }),
+export const ideasRelations = relations(ideas, ({ one, many }) => ({
+  user: one(users, { fields: [ideas.userId], references: [users.id] }),
+  sourceCluster: one(thoughtClusters, { fields: [ideas.sourceClusterId], references: [thoughtClusters.id] }),
   interviews: many(interviews),
   reports: many(reports),
-  research: one(research, { fields: [projects.id], references: [research.projectId] }),
+  research: one(research, { fields: [ideas.id], references: [research.projectId] }),
   assumptions: many(assumptions),
   agentConversations: many(agentConversations),
   agentInsights: many(agentInsights),
   embeddings: many(embeddings),
   financialModels: many(financialModels),
-  promotedNotes: many(thoughts),
   attachments: many(projectAttachments),
   customerInterviews: many(customerInterviews),
 }));
+// Backwards-compat alias
+export const projectsRelations = ideasRelations;
 
 export const thoughtsRelations = relations(thoughts, ({ one, many }) => ({
   user: one(users, { fields: [thoughts.userId], references: [users.id] }),
@@ -1404,7 +1404,7 @@ export const notesRelations = thoughtsRelations;
 export const thoughtClustersRelations = relations(thoughtClusters, ({ one, many }) => ({
   user: one(users, { fields: [thoughtClusters.userId], references: [users.id] }),
   thoughts: many(thoughts),
-  crystallizedIdeas: many(crystallizedIdeas),
+  crystallizedIdeas: many(ideas),
 }));
 // Keep old name for compat
 export const sandboxesRelations = thoughtClustersRelations;
@@ -1426,12 +1426,6 @@ export const thoughtEventsRelations = relations(thoughtEvents, ({ one }) => ({
 export const thoughtCommentsRelations = relations(thoughtComments, ({ one }) => ({
   thought: one(thoughts, { fields: [thoughtComments.thoughtId], references: [thoughts.id] }),
   user: one(users, { fields: [thoughtComments.userId], references: [users.id] }),
-}));
-
-export const crystallizedIdeasRelations = relations(crystallizedIdeas, ({ one }) => ({
-  user: one(users, { fields: [crystallizedIdeas.userId], references: [users.id] }),
-  cluster: one(thoughtClusters, { fields: [crystallizedIdeas.clusterId], references: [thoughtClusters.id] }),
-  project: one(projects, { fields: [crystallizedIdeas.projectId], references: [projects.id] }),
 }));
 
 export const interviewsRelations = relations(interviews, ({ one }) => ({
