@@ -10,13 +10,13 @@
  * - update:            Update content by id (ownership check)
  * - delete:            Delete by id (ownership check), clean up storage files
  * - refine:            AI refinement (no type guard). Creates ThoughtEvent 'refined'.
- * - promote:           Promote refined thought to project
+ * - convertKind:       Convert between kind='thought' and kind='note'
  * - extractIdeas:      Extract business ideas (no type restriction)
  * - addToCluster:      Assign thought to a cluster
  * - removeFromCluster: Remove thought from cluster
  * - addAttachments:    Add image attachments to a thought
  * - removeAttachment:  Remove a single attachment
- * - updateProperties:  Update maturityLevel, thoughtType, confidenceLevel
+ * - updateProperties:  Update thoughtType, confidenceLevel
  * - addComment:        Add a comment to a thought
  * - deleteComment:     Delete a comment (ownership check)
  * - listEvents:        List thought events with cursor pagination
@@ -39,7 +39,6 @@ import {
   removeFromClusterSchema,
   updateNoteSchema,
   refineNoteSchema,
-  promoteNoteSchema,
   deleteNoteSchema,
   extractIdeasSchema,
   addNoteAttachmentsSchema,
@@ -47,6 +46,7 @@ import {
   recordSurfaceActionSchema,
   updateLabelsSchema,
   createUserLabelSchema,
+  convertKindSchema,
   PREDEFINED_LABELS,
   LABEL_PALETTE,
   NOTE_REFINE_MIN_CHARS,
@@ -60,9 +60,7 @@ import {
   thoughtEvents,
   thoughtComments,
   thoughtConnections,
-  projects,
   users,
-  projectAttachments,
   userLabels,
 } from '../db/schema';
 import { refineNote, extractIdeasFromNote } from '../services/note-ai';
@@ -71,7 +69,6 @@ import { supabase, ATTACHMENT_BUCKET } from '../lib/supabase';
 export const thoughtRouter = router({
   /**
    * List all non-archived thoughts for the current user, sorted by updatedAt desc.
-   * Excludes promoted thoughts.
    */
   list: protectedProcedure.query(async ({ ctx }) => {
     const results = await ctx.db
@@ -81,7 +78,6 @@ export const thoughtRouter = router({
         and(
           eq(thoughts.userId, ctx.userId),
           eq(thoughts.isArchived, false),
-          isNull(thoughts.promotedProjectId),
         ),
       )
       .orderBy(desc(thoughts.updatedAt));
@@ -188,18 +184,20 @@ export const thoughtRouter = router({
       const nextNumber = (maxResult?.maxNum ?? 0) + 1;
 
       const hasUserType = !!input.thoughtType;
+      const kind = input.kind ?? 'thought';
+      const content = input.content ?? '';
 
       const [thought] = await ctx.db
         .insert(thoughts)
         .values({
           userId: ctx.userId,
-          content: input.content ?? '',
+          content,
           thoughtType: input.thoughtType ?? 'observation',
           typeSource: hasUserType ? 'user' : 'ai_auto',
           captureMethod: input.captureMethod ?? 'quick_text',
           thoughtNumber: nextNumber,
           clusterId: input.clusterId ?? null,
-          purpose: input.purpose ?? 'idea',
+          kind,
           updatedAt: new Date(),
         })
         .returning();
@@ -218,8 +216,12 @@ export const thoughtRouter = router({
         metadata: { captureMethod: input.captureMethod ?? 'quick_text' },
       });
 
-      // Enqueue auto-classify job if no user-provided type
-      if (!hasUserType) {
+      // AI pipeline gates: notes are filed for utility, not ideation.
+      // Short content also doesn't need classification or collision detection.
+      const isAiEligible = kind === 'thought' && content.length >= 20;
+
+      // Enqueue auto-classify job if no user-provided type and content is eligible
+      if (isAiEligible && !hasUserType) {
         try {
           const { getThoughtClassifyQueue } = await import('../jobs/thought-classify');
           await getThoughtClassifyQueue().add('classify', { thoughtId: thought.id });
@@ -228,8 +230,8 @@ export const thoughtRouter = router({
         }
       }
 
-      // Enqueue collision detection (fire-and-forget) — ideas only
-      if ((input.purpose ?? 'idea') === 'idea') {
+      // Enqueue collision detection (fire-and-forget) — thoughts only, eligible content
+      if (isAiEligible) {
         try {
           await enqueueThoughtCollision({ thoughtId: thought.id });
         } catch {
@@ -318,7 +320,7 @@ export const thoughtRouter = router({
     .mutation(async ({ ctx, input }) => {
       const thought = await ctx.db.query.thoughts.findFirst({
         where: and(eq(thoughts.id, input.id), eq(thoughts.userId, ctx.userId)),
-        columns: { id: true, content: true, lastRefinedAt: true, purpose: true, tags: true },
+        columns: { id: true, content: true, lastRefinedAt: true, kind: true, tags: true },
       });
 
       if (!thought) {
@@ -371,7 +373,7 @@ export const thoughtRouter = router({
       try {
         refinement = await refineNote(
           thought.content,
-          { purpose: thought.purpose ?? undefined, labels: thought.tags ?? [] },
+          { purpose: thought.kind ?? undefined, labels: thought.tags ?? [] },
           imageUrls,
         );
       } catch (error) {
@@ -411,95 +413,40 @@ export const thoughtRouter = router({
     }),
 
   /**
-   * Promote a refined thought to a project.
+   * Convert a thought between kind='thought' and kind='note'.
+   * If converting to 'thought' and content is eligible (>=20 chars), re-enqueues
+   * collision detection and (if no user-provided type) auto-classify.
    */
-  promote: protectedProcedure
-    .input(promoteNoteSchema)
+  convertKind: protectedProcedure
+    .input(convertKindSchema)
     .mutation(async ({ ctx, input }) => {
-      const thought = await ctx.db.query.thoughts.findFirst({
-        where: and(eq(thoughts.id, input.id), eq(thoughts.userId, ctx.userId)),
-        columns: {
-          id: true,
-          refinedTitle: true,
-          refinedDescription: true,
-          promotedProjectId: true,
-        },
-      });
+      const [updated] = await ctx.db
+        .update(thoughts)
+        .set({ kind: input.kind })
+        .where(and(eq(thoughts.id, input.thoughtId), eq(thoughts.userId, ctx.userId)))
+        .returning();
 
-      if (!thought) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'THOUGHT_NOT_FOUND',
-        });
+      if (!updated) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'THOUGHT_NOT_FOUND' });
       }
 
-      if (!thought.refinedTitle || !thought.refinedDescription) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'NO_REFINEMENT',
-        });
-      }
-
-      if (thought.promotedProjectId) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Thought has already been promoted',
-        });
-      }
-
-      // Create project + mark thought as promoted atomically
-      const result = await ctx.db.transaction(async (tx) => {
-        const [project] = await tx
-          .insert(projects)
-          .values({
-            title: thought.refinedTitle!,
-            description: thought.refinedDescription!,
-            userId: ctx.userId,
-          })
-          .returning({ id: projects.id });
-
-        if (!project) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to create project',
-          });
+      if (input.kind === 'thought' && updated.content.length >= 20) {
+        try {
+          await enqueueThoughtCollision({ thoughtId: updated.id });
+        } catch {
+          /* Non-critical */
         }
-
-        // Copy up to the first 5 thought attachments as project attachments
-        const thoughtAtts = await tx
-          .select()
-          .from(thoughtAttachments)
-          .where(eq(thoughtAttachments.thoughtId, input.id))
-          .orderBy(thoughtAttachments.order)
-          .limit(5);
-
-        if (thoughtAtts.length > 0) {
-          await tx.insert(projectAttachments).values(
-            thoughtAtts.map((att, idx) => ({
-              projectId: project.id,
-              userId: ctx.userId,
-              storagePath: att.storagePath,
-              fileName: att.fileName,
-              mimeType: att.mimeType,
-              sizeBytes: att.sizeBytes,
-              order: idx,
-            })),
-          );
+        if (!updated.thoughtType || updated.typeSource !== 'user') {
+          try {
+            const { getThoughtClassifyQueue } = await import('../jobs/thought-classify');
+            await getThoughtClassifyQueue().add('classify', { thoughtId: updated.id });
+          } catch {
+            /* Queue not set up yet */
+          }
         }
+      }
 
-        // Mark thought as promoted
-        await tx
-          .update(thoughts)
-          .set({ promotedProjectId: project.id })
-          .where(eq(thoughts.id, input.id));
-
-        return { projectId: project.id };
-      });
-
-      // Delete the thought after the transaction commits
-      await ctx.db.delete(thoughts).where(eq(thoughts.id, input.id));
-
-      return result;
+      return updated;
     }),
 
   /**
@@ -757,7 +704,7 @@ export const thoughtRouter = router({
     }),
 
   /**
-   * Update thought properties: maturityLevel, thoughtType, confidenceLevel.
+   * Update thought properties: thoughtType, confidenceLevel.
    * Creates ThoughtEvent entries for each changed field.
    */
   updateProperties: protectedProcedure
@@ -767,10 +714,8 @@ export const thoughtRouter = router({
         where: and(eq(thoughts.id, input.id), eq(thoughts.userId, ctx.userId)),
         columns: {
           id: true,
-          maturityLevel: true,
           thoughtType: true,
           confidenceLevel: true,
-          purpose: true,
         },
       });
 
@@ -784,14 +729,6 @@ export const thoughtRouter = router({
       // Build the update set
       const updates: Record<string, unknown> = {};
       const events: { eventType: string; metadata: Record<string, unknown> }[] = [];
-
-      if (input.maturityLevel !== undefined && input.maturityLevel !== thought.maturityLevel) {
-        updates.maturityLevel = input.maturityLevel;
-        events.push({
-          eventType: 'maturity_changed',
-          metadata: { from: thought.maturityLevel, to: input.maturityLevel },
-        });
-      }
 
       if (input.thoughtType !== undefined && input.thoughtType !== thought.thoughtType) {
         updates.thoughtType = input.thoughtType;
@@ -808,18 +745,6 @@ export const thoughtRouter = router({
           eventType: 'confidence_changed',
           metadata: { from: thought.confidenceLevel, to: input.confidenceLevel },
         });
-      }
-
-      if (input.purpose !== undefined && input.purpose !== thought.purpose) {
-        updates.purpose = input.purpose;
-        events.push({
-          eventType: 'type_changed',
-          metadata: { field: 'purpose', from: thought.purpose, to: input.purpose },
-        });
-      }
-
-      if (input.maturityNotes !== undefined) {
-        updates.maturityNotes = input.maturityNotes;
       }
 
       if (Object.keys(updates).length > 0) {
@@ -991,7 +916,6 @@ export const thoughtRouter = router({
               id: thoughts.id,
               content: thoughts.content,
               thoughtType: thoughts.thoughtType,
-              maturityLevel: thoughts.maturityLevel,
               thoughtNumber: thoughts.thoughtNumber,
               createdAt: thoughts.createdAt,
             })
@@ -1049,7 +973,7 @@ export const thoughtRouter = router({
     }),
 
   /**
-   * Duplicate a thought, resetting maturityLevel to 'spark' and confidenceLevel to 'untested'.
+   * Duplicate a thought, resetting confidenceLevel to 'untested'.
    */
   duplicate: protectedProcedure
     .input(z.object({ id: entityId }))
@@ -1077,7 +1001,6 @@ export const thoughtRouter = router({
           thoughtType: original.thoughtType,
           typeSource: original.typeSource,
           tags: original.tags,
-          maturityLevel: 'spark', // Always reset to spark
           confidenceLevel: 'untested', // Always reset
           captureMethod: original.captureMethod,
           thoughtNumber: nextNumber,
@@ -1183,7 +1106,6 @@ export const thoughtRouter = router({
         id: thoughts.id,
         content: thoughts.content,
         thoughtType: thoughts.thoughtType,
-        maturityLevel: thoughts.maturityLevel,
         thoughtNumber: thoughts.thoughtNumber,
         createdAt: thoughts.createdAt,
         lastSurfacedAt: thoughts.lastSurfacedAt,
@@ -1198,9 +1120,9 @@ export const thoughtRouter = router({
           eq(thoughts.userId, ctx.userId),
           lt(thoughts.createdAt, twentyFourHoursAgo),
           eq(thoughts.isArchived, false),
-          isNull(thoughts.promotedProjectId),
           eq(thoughts.resurfaceExcluded, false),
-          eq(thoughts.purpose, 'idea'),
+          eq(thoughts.kind, 'thought'),
+          sql`length(${thoughts.content}) >= 20`,
           or(
             isNull(thoughts.nextSurfaceAt),
             lt(thoughts.nextSurfaceAt, now),
@@ -1343,7 +1265,6 @@ export const thoughtRouter = router({
         id: thought.id,
         content: thought.content,
         thoughtType: thought.thoughtType,
-        maturityLevel: thought.maturityLevel,
         thoughtNumber: thought.thoughtNumber,
         createdAt: thought.createdAt,
         score,
