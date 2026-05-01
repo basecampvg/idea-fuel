@@ -71,7 +71,19 @@ export const thoughtRouter = router({
   /**
    * List all non-archived thoughts for the current user, sorted by updatedAt desc.
    */
-  list: protectedProcedure.query(async ({ ctx }) => {
+  list: protectedProcedure
+    .input(
+      z
+        .object({
+          // Optional kind filter — when provided, scopes results to that kind.
+          // Notes are filed for utility (bug logs, todos) and are exempt from
+          // the idea-engine; the Thoughts tab defaults to kind='thought' so
+          // notes don't pollute the idea stream.
+          kind: z.enum(['thought', 'note']).optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ ctx, input }) => {
     const results = await ctx.db
       .select()
       .from(thoughts)
@@ -79,6 +91,7 @@ export const thoughtRouter = router({
         and(
           eq(thoughts.userId, ctx.userId),
           eq(thoughts.isArchived, false),
+          input?.kind ? eq(thoughts.kind, input.kind) : undefined,
         ),
       )
       .orderBy(desc(thoughts.updatedAt));

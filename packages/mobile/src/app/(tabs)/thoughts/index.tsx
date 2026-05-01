@@ -115,6 +115,9 @@ const CLUSTER_COLORS = [
 // ────────────────────────────────────────────────────────────────────────────
 
 type ThoughtsView = 'stream' | 'clusters';
+type KindFilter = 'thought' | 'note' | 'all';
+
+const KIND_FILTER_STORAGE_KEY = 'thoughtsTabKindFilter';
 
 // ────────────────────────────────────────────────────────────────────────────
 // SwipeableNoteCard (Stream view)
@@ -488,8 +491,26 @@ export default function ThoughtsScreen() {
   // ── View toggle ──
   const [activeView, setActiveView] = useState<ThoughtsView>('stream');
 
+  // ── Kind filter (thought | note | all) — defaults to 'thought' so the
+  //    idea stream isn't polluted by utility captures (notes). Persisted via
+  //    AsyncStorage. ──
+  const [kindFilter, setKindFilter] = useState<KindFilter>('thought');
+  useEffect(() => {
+    AsyncStorage.getItem(KIND_FILTER_STORAGE_KEY).then((value) => {
+      if (value === 'thought' || value === 'note' || value === 'all') {
+        setKindFilter(value);
+      }
+    });
+  }, []);
+  const handleKindFilterChange = useCallback((next: KindFilter) => {
+    setKindFilter(next);
+    AsyncStorage.setItem(KIND_FILTER_STORAGE_KEY, next).catch(() => {});
+  }, []);
+
   // ── Stream (Notes) state ──
-  const { data: notes, isLoading: notesLoading, refetch: refetchNotes } = trpc.thought.list.useQuery();
+  const { data: notes, isLoading: notesLoading, refetch: refetchNotes } = trpc.thought.list.useQuery(
+    kindFilter === 'all' ? {} : { kind: kindFilter },
+  );
   const [isNotesRefreshing, setIsNotesRefreshing] = useState(false);
 
   // ── Clusters (Sandboxes) state ──
@@ -847,6 +868,22 @@ export default function ThoughtsScreen() {
 
       {/* Stream view */}
       {activeView === 'stream' && (
+        <>
+          {/* Kind filter — Thoughts / Notes / All */}
+          <View style={styles.kindFilterRow}>
+            {(['thought', 'note', 'all'] as KindFilter[]).map((k) => (
+              <TouchableOpacity
+                key={k}
+                style={[styles.kindFilterChip, kindFilter === k && styles.kindFilterChipActive]}
+                onPress={() => handleKindFilterChange(k)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.kindFilterText, kindFilter === k && styles.kindFilterTextActive]}>
+                  {k === 'thought' ? 'Thoughts' : k === 'note' ? 'Notes' : 'All'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         <FlatList
           data={notes ?? []}
           renderItem={renderNoteItem}
@@ -874,6 +911,7 @@ export default function ThoughtsScreen() {
           showsVerticalScrollIndicator={false}
           ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
         />
+        </>
       )}
 
       {/* Clusters view */}
@@ -1016,6 +1054,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 100,
     flexGrow: 1,
+  },
+
+  // ── Kind filter (Thoughts / Notes / All) ──
+  kindFilterRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    marginBottom: 8,
+    gap: 8,
+  },
+  kindFilterChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: 'transparent',
+  },
+  kindFilterChipActive: {
+    borderColor: colors.brand,
+    backgroundColor: colors.brandMuted,
+  },
+  kindFilterText: {
+    fontSize: 12,
+    ...fonts.text.medium,
+    color: colors.muted,
+  },
+  kindFilterTextActive: {
+    color: colors.brand,
   },
 
   // ── Shared card styles ──
