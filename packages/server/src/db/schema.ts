@@ -300,15 +300,12 @@ export const sandboxes = thoughtClusters;
 export const thoughts = pgTable('Thought', {
   id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
   title: text(),
-  purpose: text('purpose').default('idea').notNull(),
+  kind: text('kind').default('thought').notNull(),
   content: text().default('').notNull(),
   thoughtType: thoughtTypeEnum('thought_type'),
   typeSource: text('type_source').default('ai_auto').notNull(),
   tags: text().array().default([]),
   aiTags: text('ai_tags').array().default([]),
-  maturityLevel: text('maturity_level'),
-  maturityNotes: text('maturity_notes'),
-  maturityHistory: jsonb('maturity_history').$type<any[]>().default([]),
   confidenceLevel: text('confidence_level'),
   thoughtNumber: integer('thought_number').notNull(),
   reactions: jsonb().$type<any[]>().default([]),
@@ -333,7 +330,6 @@ export const thoughts = pgTable('Thought', {
   clusterId: text('cluster_id'),
   clusterPosition: integer('cluster_position'),
   sourceThoughtId: text('source_thought_id'),
-  promotedProjectId: text('promoted_project_id'),
   isArchived: boolean('is_archived').default(false).notNull(),
   userId: text().notNull(),
   createdAt: timestamp({ precision: 3, mode: 'date' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
@@ -348,11 +344,6 @@ export const thoughts = pgTable('Thought', {
     foreignColumns: [users.id],
     name: 'Thought_userId_fkey',
   }).onUpdate('cascade').onDelete('cascade'),
-  foreignKey({
-    columns: [table.promotedProjectId],
-    foreignColumns: [projects.id],
-    name: 'Thought_promotedProjectId_fkey',
-  }).onUpdate('cascade').onDelete('set null'),
   foreignKey({
     columns: [table.sourceThoughtId],
     foreignColumns: [table.id],
@@ -1401,7 +1392,6 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
 
 export const thoughtsRelations = relations(thoughts, ({ one, many }) => ({
   user: one(users, { fields: [thoughts.userId], references: [users.id] }),
-  promotedProject: one(projects, { fields: [thoughts.promotedProjectId], references: [projects.id] }),
   cluster: one(thoughtClusters, { fields: [thoughts.clusterId], references: [thoughtClusters.id] }),
   sourceThought: one(thoughts, { fields: [thoughts.sourceThoughtId], references: [thoughts.id], relationName: 'sourceThought' }),
   attachments: many(thoughtAttachments),
