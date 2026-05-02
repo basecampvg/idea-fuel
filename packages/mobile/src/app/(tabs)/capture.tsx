@@ -78,7 +78,18 @@ function extractTitleAndDescription(text: string): { title: string; description:
 
 export default function CaptureScreen() {
   const router = useRouter();
-  const { linkedThoughtId } = useLocalSearchParams<{ linkedThoughtId?: string }>();
+  const {
+    linkedThoughtId,
+    prompt: promptParam,
+    clusterId: clusterIdParam,
+  } = useLocalSearchParams<{
+    linkedThoughtId?: string;
+    prompt?: string;
+    clusterId?: string;
+  }>();
+  const promptText = typeof promptParam === 'string' && promptParam.length > 0 ? promptParam : null;
+  const incomingClusterId =
+    typeof clusterIdParam === 'string' && clusterIdParam.length > 0 ? clusterIdParam : null;
   const { user } = useAuth();
   const { showToast } = useToast();
   const [ideaText, setIdeaText] = useState('');
@@ -363,7 +374,15 @@ export default function CaptureScreen() {
           // Non-critical — thought was still created
         }
       }
-      // Start collision polling instead of immediate navigation
+      // If this capture was launched from a cluster (e.g. answering a
+      // prompted question), the user expects to return to the cluster
+      // detail with the new thought visible — not the collision flow.
+      if (incomingClusterId) {
+        utils.cluster.get.invalidate({ id: incomingClusterId });
+        router.back();
+        return;
+      }
+      // Otherwise: start collision polling so the CollisionCard can fire
       setSavedThoughtId(newThought.id);
       setIsPollingCollisions(true);
       pollCountRef.current = 0;
@@ -387,10 +406,11 @@ export default function CaptureScreen() {
     Keyboard.dismiss();
     setShowActionMenu(false);
 
-    // Notes and attachment-bearing captures stay as a single thought.
-    // Otherwise, honor explicit thought boundaries the user signaled with
-    // paragraph breaks or bullet/number markers.
-    const canSplit = !isNote && attachments.length === 0;
+    // Notes, attachment-bearing captures, and prompted-question answers stay
+    // as a single thought. Otherwise, honor explicit thought boundaries the
+    // user signaled with paragraph breaks or bullet/number markers.
+    const isPromptedAnswer = !!(incomingClusterId || promptText);
+    const canSplit = !isNote && attachments.length === 0 && !isPromptedAnswer;
     const parts = canSplit ? splitThoughts(trimmed) : [trimmed];
 
     if (parts.length <= 1) {
@@ -398,6 +418,10 @@ export default function CaptureScreen() {
         content: parts[0] ?? trimmed,
         captureMethod: isListening ? 'voice' : 'quick_text',
         kind: isNote ? 'note' : 'thought',
+        clusterId: incomingClusterId ?? undefined,
+        // If the user is answering a prompted question, preserve the question
+        // as the thought's title so the answer keeps its context.
+        title: promptText ?? undefined,
       });
       return;
     }
@@ -433,7 +457,7 @@ export default function CaptureScreen() {
     } finally {
       setBulkProgress(null);
     }
-  }, [ideaText, isListening, isNote, attachments, createThought, bulkProgress, utils, showToast]);
+  }, [ideaText, isListening, isNote, attachments, createThought, bulkProgress, utils, showToast, incomingClusterId, promptText]);
 
   const navigateToThought = useCallback((thoughtId: string) => {
     if (pollingRef.current) {
@@ -627,6 +651,17 @@ export default function CaptureScreen() {
                 onAddToCluster={() => setShowCollisionClusterPicker(true)}
                 onDismiss={() => navigateToThought(savedThoughtId)}
               />
+            </View>
+          )}
+
+          {/* ── Prompted question card (from cluster QuestionsPanel tap) ── */}
+          {promptText && (
+            <View style={styles.promptCard}>
+              <View style={styles.promptIconRow}>
+                <Text style={styles.promptIcon}>?</Text>
+                <Text style={styles.promptLabel}>Question</Text>
+              </View>
+              <Text style={styles.promptText}>{promptText}</Text>
             </View>
           )}
 
@@ -997,5 +1032,44 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.muted,
     ...fonts.geist.regular,
+  },
+  promptCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    padding: 14,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: 6,
+  },
+  promptIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  promptIcon: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    textAlign: 'center',
+    lineHeight: 18,
+    fontSize: 12,
+    color: colors.background,
+    backgroundColor: colors.muted,
+    ...fonts.outfit.bold,
+  },
+  promptLabel: {
+    fontSize: 11,
+    color: colors.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    ...fonts.outfit.bold,
+  },
+  promptText: {
+    fontSize: 15,
+    color: colors.foreground,
+    lineHeight: 21,
+    ...fonts.outfit.regular,
   },
 });
