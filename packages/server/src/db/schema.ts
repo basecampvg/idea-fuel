@@ -295,6 +295,7 @@ export const thoughtClusters = pgTable('ThoughtCluster', {
   themes: jsonb().$type<any[]>().default([]),
   tensions: jsonb().$type<any[]>().default([]),
   gaps: jsonb().$type<any[]>().default([]),
+  questions: jsonb().$type<any[]>().default([]),
   synthesis: text(),
   brief: text(),
   clusterMaturity: text('cluster_maturity').default('exploring').notNull(),
