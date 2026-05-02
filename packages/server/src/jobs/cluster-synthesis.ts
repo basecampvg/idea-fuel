@@ -61,7 +61,11 @@ const DEBOUNCE_MS = 5 * 60 * 1000; // 5 minutes
 export async function enqueueClusterSynthesis(
   data: ClusterSynthesisJobData,
 ): Promise<string> {
-  const jobId = `cluster-synth-${data.clusterId}-${data.trigger}`;
+  // BullMQ rejects custom job IDs containing ':' — the trigger constants
+  // ('thoughts:5', 'readiness:0.5', etc.) embed colons, so sanitize before
+  // composing the deterministic ID.
+  const safeTrigger = data.trigger.replace(/:/g, '-');
+  const jobId = `cluster-synth-${data.clusterId}-${safeTrigger}`;
   const queue = getClusterSynthesisQueue();
 
   // If a job with this id is already waiting/delayed, skip to avoid duplicates.
