@@ -1,13 +1,14 @@
 /**
  * Cluster Synthesis Worker
  *
- * Auto-runs cluster AI synthesis (summarize, identifyGaps, findContradictions,
- * generateBrief) on milestone triggers:
- *   - thoughts:5      -> summarize + identifyGaps
+ * Auto-runs cluster AI synthesis on milestone triggers:
+ *   - thoughts:5      -> summarize + identifyGaps + generateQuestions
  *   - thoughts:8      -> findContradictions
  *   - thoughts:12+    -> re-run summarize
- *   - readiness:0.5   -> generateBrief
- *   - readiness:0.7   -> re-run all four
+ *   - readiness:0.5   -> generateBrief + generateQuestions
+ *   - readiness:0.7   -> re-run summarize/identifyGaps/findContradictions/
+ *                        generateBrief AND refresh generateQuestions for the
+ *                        convergent stage
  *
  * Jobs are debounced ~5min by deterministic jobId + delay; see
  * `enqueueClusterSynthesis` in jobs/cluster-synthesis.ts.
@@ -24,6 +25,7 @@ import {
   runIdentifyGaps,
   runFindContradictions,
   runGenerateBrief,
+  runGenerateQuestions,
   ClusterActionError,
 } from '../../services/cluster-actions';
 
@@ -37,6 +39,8 @@ async function runForTrigger(data: ClusterSynthesisJobData): Promise<string[]> {
       ran.push('summarize');
       await runIdentifyGaps(clusterId);
       ran.push('identifyGaps');
+      await runGenerateQuestions(clusterId);
+      ran.push('generateQuestions');
       break;
 
     case 'thoughts:8':
@@ -52,6 +56,8 @@ async function runForTrigger(data: ClusterSynthesisJobData): Promise<string[]> {
     case 'readiness:0.5':
       await runGenerateBrief(clusterId);
       ran.push('generateBrief');
+      await runGenerateQuestions(clusterId);
+      ran.push('generateQuestions');
       break;
 
     case 'readiness:0.7':
@@ -63,6 +69,8 @@ async function runForTrigger(data: ClusterSynthesisJobData): Promise<string[]> {
       ran.push('findContradictions');
       await runGenerateBrief(clusterId);
       ran.push('generateBrief');
+      await runGenerateQuestions(clusterId);
+      ran.push('generateQuestions');
       break;
 
     default: {
