@@ -206,6 +206,7 @@ export const thoughtRouter = router({
         .values({
           userId: ctx.userId,
           content,
+          title: input.title ?? null,
           thoughtType: input.thoughtType ?? 'observation',
           typeSource: hasUserType ? 'user' : 'ai_auto',
           captureMethod: input.captureMethod ?? 'quick_text',

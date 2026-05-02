@@ -15,6 +15,8 @@
  * - identifyGaps:        AI identification of knowledge gaps in thoughts
  * - generateBrief:       AI generation of a structured brief from thoughts
  * - findContradictions:  AI detection of contradictions across thoughts
+ * - generateQuestions:   AI-generated stage-aware questions to grow the cluster
+ * - resolveTension:      Mark a tension as resolved
  */
 
 import { eq, and, desc, count } from 'drizzle-orm';
@@ -40,6 +42,8 @@ import {
   findContradictions,
 } from '../services/sandbox-ai';
 import { recomputeClusterReadiness } from '../services/cluster-readiness';
+import { runGenerateQuestions } from '../services/cluster-actions';
+import { ClusterActionError } from '../services/cluster-actions';
 
 /** Fetch and validate cluster thoughts for AI actions. Returns thought contents array. */
 async function getClusterThoughtsForAi(
@@ -446,6 +450,36 @@ export const clusterRouter = router({
       } catch (error) {
         console.error('[ClusterRouter] FindContradictions failed:', error instanceof Error ? error.message : error);
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'FIND_CONTRADICTIONS_FAILED', cause: error });
+      }
+    }),
+
+  /**
+   * Generate cluster questions: 4-6 stage-aware questions that, if answered
+   * by capturing a new thought, push the cluster toward a real idea.
+   * Persisted to cluster.questions; client re-reads via cluster.get.
+   */
+  generateQuestions: protectedProcedure
+    .input(clusterAiActionSchema)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const questions = await runGenerateQuestions(input.id, ctx.userId);
+        return { questions };
+      } catch (error) {
+        if (error instanceof ClusterActionError) {
+          if (error.code === 'CLUSTER_NOT_FOUND') {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'CLUSTER_NOT_FOUND' });
+          }
+          throw new TRPCError({ code: 'BAD_REQUEST', message: error.code });
+        }
+        console.error(
+          '[ClusterRouter] GenerateQuestions failed:',
+          error instanceof Error ? error.message : error,
+        );
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'GENERATE_QUESTIONS_FAILED',
+          cause: error,
+        });
       }
     }),
 

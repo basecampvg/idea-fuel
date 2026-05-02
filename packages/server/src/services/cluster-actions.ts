@@ -25,6 +25,12 @@ import {
   generateBrief,
 } from './sandbox-ai';
 import { recomputeClusterReadiness } from './cluster-readiness';
+import {
+  generateClusterQuestions,
+  detectStage,
+  type GeneratedQuestion,
+  type DimensionCoverageInput,
+} from './cluster-questions';
 
 export class ClusterActionError extends Error {
   constructor(
@@ -174,4 +180,84 @@ export async function runGenerateBrief(
   await recomputeClusterReadiness(db, clusterId);
 
   return { brief };
+}
+
+/**
+ * Run generate questions: persists 4-6 stage-aware, research-grounded
+ * questions to cluster.questions. Does NOT recompute readiness — questions
+ * are prompts for new thoughts, not direct readiness signals (the answers
+ * become thoughts, and those drive readiness).
+ *
+ * Unlike the other runners, this one validates ownership and existence
+ * directly (without the min-thoughts/min-chars gate from loadClusterContents)
+ * because the worker can call it on small clusters too — generation will
+ * still produce sensible early-stage questions.
+ */
+export async function runGenerateQuestions(
+  clusterId: string,
+  userId?: string,
+): Promise<GeneratedQuestion[]> {
+  const where = userId
+    ? and(eq(thoughtClusters.id, clusterId), eq(thoughtClusters.userId, userId))
+    : eq(thoughtClusters.id, clusterId);
+
+  const cluster = await db.query.thoughtClusters.findFirst({
+    where,
+    columns: {
+      id: true,
+      readinessScore: true,
+      dimensionCoverage: true,
+      tensions: true,
+    },
+  });
+
+  if (!cluster) {
+    throw new ClusterActionError('CLUSTER_NOT_FOUND', 'Cluster not found');
+  }
+
+  const clusterThoughts = await db
+    .select({
+      content: thoughts.content,
+      thoughtType: thoughts.thoughtType,
+    })
+    .from(thoughts)
+    .where(and(eq(thoughts.clusterId, clusterId), eq(thoughts.kind, 'thought')));
+
+  const filledThoughts = clusterThoughts.filter((t) => t.content && t.content.trim().length > 0);
+
+  if (filledThoughts.length === 0) {
+    throw new ClusterActionError(
+      'INSUFFICIENT_THOUGHTS',
+      'Need at least one thought with content',
+    );
+  }
+
+  const stage = detectStage({
+    thoughtCount: filledThoughts.length,
+    readinessScore: (cluster.readinessScore as number | null) ?? null,
+  });
+
+  const tensions = ((cluster.tensions as { text: string; resolvedAt: Date | string | null }[] | null) ?? [])
+    .filter((t) => !t.resolvedAt)
+    .map((t) => t.text);
+
+  const dimensionCoverage =
+    (cluster.dimensionCoverage as DimensionCoverageInput | null) ?? null;
+
+  const questions = await generateClusterQuestions({
+    thoughts: filledThoughts.map((t) => ({
+      content: t.content,
+      thoughtType: t.thoughtType ?? null,
+    })),
+    dimensionCoverage,
+    unresolvedTensions: tensions,
+    stage,
+  });
+
+  await db
+    .update(thoughtClusters)
+    .set({ questions })
+    .where(eq(thoughtClusters.id, clusterId));
+
+  return questions;
 }

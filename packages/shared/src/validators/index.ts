@@ -539,6 +539,7 @@ export type ThoughtEventType = z.infer<typeof thoughtEventTypeSchema>;
 
 export const createThoughtSchema = z.object({
   content: z.string().max(NOTE_CONTENT_MAX).optional(),
+  title: z.string().max(NOTE_TITLE_MAX).optional(),
   thoughtType: thoughtTypeSchema.optional(),
   captureMethod: captureMethodSchema.optional().default('quick_text'),
   clusterId: z.string().optional(),
