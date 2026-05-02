@@ -44,6 +44,7 @@ import { useAIConsentGate } from '../../hooks/useAIConsentGate';
 import { CollisionCard } from '../../components/thought/CollisionCard';
 import { NoteFilingChip } from '../../components/thought/NoteFilingChip';
 import { ClusterPicker } from '../../components/ClusterPicker';
+import { splitThoughts } from '@forge/shared';
 
 // Defer loading expo-speech-recognition until after the initial Fabric mount
 // transaction completes. Loading it eagerly at module level triggers TurboModule
@@ -101,6 +102,7 @@ export default function CaptureScreen() {
   const [savedThoughtId, setSavedThoughtId] = useState<string | null>(null);
   const [collisionMatch, setCollisionMatch] = useState<any | null>(null);
   const [isPollingCollisions, setIsPollingCollisions] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ saved: number; total: number } | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollCountRef = useRef(0);
   const [showCollisionClusterPicker, setShowCollisionClusterPicker] = useState(false);
@@ -372,9 +374,9 @@ export default function CaptureScreen() {
     },
   });
 
-  const handleThoughtCapture = useCallback(() => {
+  const handleThoughtCapture = useCallback(async () => {
     const trimmed = ideaText.trim();
-    if (!trimmed || createThought.isPending) return;
+    if (!trimmed || createThought.isPending || bulkProgress) return;
 
     if (isListening) {
       SpeechModule?.stop();
@@ -384,12 +386,54 @@ export default function CaptureScreen() {
 
     Keyboard.dismiss();
     setShowActionMenu(false);
-    createThought.mutate({
-      content: trimmed,
-      captureMethod: isListening ? 'voice' : 'quick_text',
-      kind: isNote ? 'note' : 'thought',
-    });
-  }, [ideaText, isListening, isNote, createThought]);
+
+    // Notes and attachment-bearing captures stay as a single thought.
+    // Otherwise, honor explicit thought boundaries the user signaled with
+    // paragraph breaks or bullet/number markers.
+    const canSplit = !isNote && attachments.length === 0;
+    const parts = canSplit ? splitThoughts(trimmed) : [trimmed];
+
+    if (parts.length <= 1) {
+      createThought.mutate({
+        content: parts[0] ?? trimmed,
+        captureMethod: isListening ? 'voice' : 'quick_text',
+        kind: isNote ? 'note' : 'thought',
+      });
+      return;
+    }
+
+    // Bulk path: sequential creates, no collision polling, single toast.
+    setBulkProgress({ saved: 0, total: parts.length });
+    let saved = 0;
+    try {
+      for (const content of parts) {
+        await utils.client.thought.create.mutate({
+          content,
+          captureMethod: isListening ? 'voice' : 'quick_text',
+          kind: 'thought',
+        });
+        saved += 1;
+        setBulkProgress({ saved, total: parts.length });
+      }
+      triggerHaptic('success');
+      setIdeaText('');
+      finalizedText.current = '';
+      setAttachments([]);
+      setAiConsent(false);
+      setIsNote(false);
+      utils.thought.list.invalidate();
+      showToast({ message: `Saved ${saved} thoughts`, type: 'success' });
+    } catch {
+      triggerHaptic('error');
+      utils.thought.list.invalidate();
+      showToast({
+        message: saved > 0 ? `Saved ${saved} of ${parts.length} — tap to retry` : 'Failed to save — tap to retry',
+        type: 'error',
+      });
+    } finally {
+      setBulkProgress(null);
+    }
+  }, [ideaText, isListening, isNote, attachments, createThought, bulkProgress, utils, showToast]);
 
   const navigateToThought = useCallback((thoughtId: string) => {
     if (pollingRef.current) {
@@ -628,10 +672,15 @@ export default function CaptureScreen() {
                 onChangeText={setIdeaText}
                 onFocus={() => setInputFocused(true)}
                 onBlur={() => setInputFocused(false)}
-                placeholder="Capture your idea..."
+                placeholder={
+                  bulkProgress
+                    ? `Saving ${bulkProgress.saved} of ${bulkProgress.total} thoughts…`
+                    : 'Capture your idea...'
+                }
                 placeholderTextColor={colors.mutedDim}
                 multiline
                 maxLength={500}
+                editable={!bulkProgress}
               />
 
               {/* Thumbnail strip */}

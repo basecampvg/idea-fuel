@@ -12,6 +12,8 @@ export {
   type ModeConfig,
 } from './research-journey';
 
+export { splitThoughts } from './split-thoughts';
+
 /**
  * Format a date for display
  */
