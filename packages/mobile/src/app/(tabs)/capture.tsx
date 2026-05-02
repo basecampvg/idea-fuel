@@ -28,7 +28,6 @@ try {
 import { Mic, Square, ArrowUp, Paperclip } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { AttachmentPopover } from '../../components/AttachmentPopover';
-import { CaptureActionMenu } from '../../components/CaptureActionMenu';
 import { ThumbnailStrip, type LocalAttachment } from '../../components/ThumbnailStrip';
 import { triggerHaptic } from '../../components/ui/Button';
 import { trpc } from '../../lib/trpc';
@@ -97,7 +96,6 @@ export default function CaptureScreen() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
-  const [showActionMenu, setShowActionMenu] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
@@ -404,7 +402,6 @@ export default function CaptureScreen() {
     }
 
     Keyboard.dismiss();
-    setShowActionMenu(false);
 
     // Notes, attachment-bearing captures, and prompted-question answers stay
     // as a single thought. Otherwise, honor explicit thought boundaries the
@@ -508,10 +505,6 @@ export default function CaptureScreen() {
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
-  }, []);
-
-  const handleShowActionMenu = useCallback(() => {
-    setShowActionMenu(true);
   }, []);
 
   const handleCapture = useCallback(async () => {
@@ -754,13 +747,14 @@ export default function CaptureScreen() {
 
                 {/* Right: Mic + Send */}
                 <View style={styles.inputActionsRight}>
-                  {canCapture && (
+                  {ideaText.trim().length > 0 && (
                     <TouchableOpacity
                       style={styles.sendButton}
-                      onPress={handleShowActionMenu}
+                      onPress={handleThoughtCapture}
                       activeOpacity={0.7}
+                      disabled={createThought.isPending || !!bulkProgress}
                     >
-                      {isSubmitting ? (
+                      {createThought.isPending || bulkProgress ? (
                         <ActivityIndicator size="small" color="#fff" />
                       ) : (
                         <ArrowUp size={18} color="#fff" strokeWidth={2.5} />
@@ -796,16 +790,6 @@ export default function CaptureScreen() {
           </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
-      <CaptureActionMenu
-        visible={showActionMenu}
-        onClose={() => setShowActionMenu(false)}
-        onThought={handleThoughtCapture}
-        onIdea={() => {
-          setShowActionMenu(false);
-          handleCapture();
-        }}
-        anchorY={popoverAnchorY}
-      />
       <AttachmentPopover
         visible={showPopover}
         onClose={() => setShowPopover(false)}
