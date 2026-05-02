@@ -60,6 +60,10 @@ export function useNoteAutoSave({
       savedIndicatorTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
       utils.thought.get.invalidate({ id: noteId });
       utils.thought.list.invalidate();
+      // Invalidate cluster.get for any cluster — if this thought belongs to one,
+      // its content is part of that cluster's payload. Without this, returning
+      // to a cluster shows stale "Untitled" cards until staleTime expires.
+      utils.cluster.get.invalidate();
     },
     onError: (_err, variables, context) => {
       // Revert the optimistic cache write so the UI reflects actual state.
