@@ -26,13 +26,19 @@ export async function classifyThought(content: string): Promise<ThoughtClassific
   });
 
   const text = response.content[0].type === 'text' ? response.content[0].text : '';
-  let parsed: unknown;
+  return thoughtClassificationSchema.parse(parseHaikuJson(text));
+}
+
+// Haiku occasionally wraps JSON in ```json fences or trailing prose despite the
+// system prompt; mirrors the tolerance pattern used in note-ai.ts.
+function parseHaikuJson(text: string): unknown {
   try {
-    parsed = JSON.parse(text);
-  } catch (err) {
-    throw new Error(
-      `Thought classifier returned non-JSON: ${err instanceof Error ? err.message : String(err)}`,
-    );
+    return JSON.parse(text);
+  } catch {
+    const fenced = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+    if (fenced) return JSON.parse(fenced[1].trim());
+    const obj = text.match(/\{[\s\S]*\}/);
+    if (obj) return JSON.parse(obj[0]);
+    throw new Error(`Thought classifier returned non-JSON: ${text.slice(0, 200)}`);
   }
-  return thoughtClassificationSchema.parse(parsed);
 }

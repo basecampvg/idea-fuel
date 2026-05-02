@@ -239,8 +239,8 @@ export const thoughtRouter = router({
         try {
           const { getThoughtClassifyQueue } = await import('../jobs/thought-classify');
           await getThoughtClassifyQueue().add('classify', { thoughtId: thought.id });
-        } catch {
-          /* Queue not set up yet */
+        } catch (err) {
+          console.error('[thought.create] classify enqueue failed:', err);
         }
       }
 
@@ -248,8 +248,8 @@ export const thoughtRouter = router({
       if (isAiEligible) {
         try {
           await enqueueThoughtCollision({ thoughtId: thought.id });
-        } catch {
-          // Non-critical — don't fail thought creation if queue is down
+        } catch (err) {
+          console.error('[thought.create] collision enqueue failed:', err);
         }
       }
 
@@ -460,15 +460,15 @@ export const thoughtRouter = router({
       if (input.kind === 'thought' && updated.content.length >= 20) {
         try {
           await enqueueThoughtCollision({ thoughtId: updated.id });
-        } catch {
-          /* Non-critical */
+        } catch (err) {
+          console.error('[thought.update] collision enqueue failed:', err);
         }
         if (!updated.thoughtType || updated.typeSource !== 'user') {
           try {
             const { getThoughtClassifyQueue } = await import('../jobs/thought-classify');
             await getThoughtClassifyQueue().add('classify', { thoughtId: updated.id });
-          } catch {
-            /* Queue not set up yet */
+          } catch (err) {
+            console.error('[thought.update] classify enqueue failed:', err);
           }
         }
       }
