@@ -32,6 +32,7 @@ import { ClusterMaturityDot } from '../../../../components/cluster/ClusterMaturi
 import { CrystallizeCTA } from '../../../../components/cluster/CrystallizeCTA';
 import { SynthesisPanel } from '../../../../components/cluster/SynthesisPanel';
 import { TensionList } from '../../../../components/cluster/TensionList';
+import { QuestionsPanel, type Question } from '../../../../components/cluster/QuestionsPanel';
 
 // AI actions are split into two visual groups in the menu:
 // Synthesis tools drive cluster readiness; Utility is just a one-shot task.
@@ -319,8 +320,13 @@ export default function SandboxDetailScreen() {
                 clusterId={id}
                 tensions={(sandbox.tensions ?? []) as { id: string; text: string; resolvedAt: Date | string | null }[]}
               />
+              <QuestionsPanel
+                clusterId={id}
+                questions={((sandbox as any).questions ?? []) as Question[]}
+              />
               {/* Crystallize CTA renders at the end of scrolled content,
-                  so it never overlays the cluster's body as the user scrolls. */}
+                  so it never overlays the cluster's body as the user scrolls.
+                  Order: Synthesis → Tensions → Questions → Crystallize. */}
               <CrystallizeCTA
                 status={(sandbox.clusterMaturity ?? 'exploring') as 'exploring' | 'forming' | 'ready'}
                 onPress={() => {
