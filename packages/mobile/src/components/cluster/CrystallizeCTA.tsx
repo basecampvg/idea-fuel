@@ -6,11 +6,18 @@ import { colors, fonts } from '../../lib/theme';
 type Status = 'exploring' | 'forming' | 'ready';
 
 /**
- * CrystallizeCTA — primary call-to-action at the bottom of cluster detail.
+ * CrystallizeCTA — Crystallize button at the bottom of cluster detail.
  *
- *  exploring: hidden          (cluster too thin to crystallize meaningfully)
- *  forming:   secondary style ('Keep growing') — encourages adding more
- *  ready:     primary style   ('Crystallize')  — the moment of intent
+ * Always visible, always tappable. The user decides when they're ready;
+ * the system never gates the action. Visual prominence varies subtly by
+ * cluster maturity:
+ *
+ *  exploring / forming: outline (secondary) — present but quiet
+ *  ready:               filled red (primary) — clearly the obvious next step
+ *
+ * Brand rationale: ideas are grown, not gated. The user picks the moment
+ * to crystallize. The system surfaces what's missing via the Questions
+ * panel; it doesn't disable the next step.
  */
 export function CrystallizeCTA({
   status,
@@ -19,8 +26,6 @@ export function CrystallizeCTA({
   status: Status;
   onPress: () => void;
 }) {
-  if (status === 'exploring') return null;
-
   const isPrimary = status === 'ready';
   return (
     <TouchableOpacity
@@ -30,7 +35,7 @@ export function CrystallizeCTA({
     >
       <Sparkles size={18} color={isPrimary ? '#FFF' : colors.brand} />
       <Text style={[styles.label, isPrimary ? styles.labelPrimary : styles.labelSecondary]}>
-        {isPrimary ? 'Crystallize' : 'Keep growing'}
+        Crystallize
       </Text>
     </TouchableOpacity>
   );

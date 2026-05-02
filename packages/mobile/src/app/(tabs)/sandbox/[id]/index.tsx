@@ -319,6 +319,15 @@ export default function SandboxDetailScreen() {
                 clusterId={id}
                 tensions={(sandbox.tensions ?? []) as { id: string; text: string; resolvedAt: Date | string | null }[]}
               />
+              {/* Crystallize CTA renders at the end of scrolled content,
+                  so it never overlays the cluster's body as the user scrolls. */}
+              <CrystallizeCTA
+                status={(sandbox.clusterMaturity ?? 'exploring') as 'exploring' | 'forming' | 'ready'}
+                onPress={() => {
+                  triggerHaptic('medium');
+                  router.push(`/(tabs)/sandbox/${id}/crystallize` as any);
+                }}
+              />
             </View>
           ) : null
         }
@@ -388,19 +397,6 @@ export default function SandboxDetailScreen() {
           })}
         </View>
       )}
-
-      {/* Crystallize CTA — appears once cluster reaches 'forming' or 'ready' */}
-      {sandbox ? (
-        <View style={styles.crystallizeContainer} pointerEvents="box-none">
-          <CrystallizeCTA
-            status={(sandbox.clusterMaturity ?? 'exploring') as 'exploring' | 'forming' | 'ready'}
-            onPress={() => {
-              triggerHaptic('medium');
-              router.push(`/(tabs)/sandbox/${id}/crystallize` as any);
-            }}
-          />
-        </View>
-      ) : null}
 
       {/* FABs */}
       <View style={styles.fabContainer}>
@@ -656,13 +652,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
     marginVertical: 4,
     marginHorizontal: 12,
-  },
-  crystallizeContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 88,
-    zIndex: 35,
   },
   fabContainer: {
     position: 'absolute',
