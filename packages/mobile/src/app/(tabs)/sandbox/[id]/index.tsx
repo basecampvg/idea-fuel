@@ -80,12 +80,12 @@ const THOUGHT_TYPE_COLORS: Record<string, string> = {
   question: '#F59E0B',
 };
 
-function deriveTitle(note: any): string {
-  if (note.refinedTitle) return note.refinedTitle;
-  if (note.content && note.content.length > 0) {
-    return note.content.substring(0, 50) + (note.content.length > 50 ? '...' : '');
+function deriveTitle(thought: any): string {
+  if (thought.refinedTitle) return thought.refinedTitle;
+  if (thought.content && thought.content.length > 0) {
+    return thought.content.substring(0, 50) + (thought.content.length > 50 ? '...' : '');
   }
-  return 'Untitled Note';
+  return 'Untitled Thought';
 }
 
 export default function SandboxDetailScreen() {
@@ -125,17 +125,17 @@ export default function SandboxDetailScreen() {
   const generateBriefMutation = trpc.cluster.generateBrief.useMutation();
   const findContradictionsMutation = trpc.cluster.findContradictions.useMutation();
 
-  // Create note mutation
-  const createNoteMutation = trpc.thought.create.useMutation({
-    onSuccess: (newNote) => {
+  // Create thought mutation
+  const createThoughtMutation = trpc.thought.create.useMutation({
+    onSuccess: (newThought) => {
       triggerHaptic('success');
       utils.cluster.get.invalidate({ id });
       utils.thought.list.invalidate();
-      router.push(`/(tabs)/thoughts/${newNote.id}?fromCluster=${id}` as any);
+      router.push(`/(tabs)/thoughts/${newThought.id}?fromCluster=${id}` as any);
     },
     onError: () => {
       triggerHaptic('error');
-      Alert.alert('Error', 'Failed to create note. Please try again.');
+      Alert.alert('Error', 'Failed to create thought. Please try again.');
     },
   });
 
@@ -189,8 +189,8 @@ export default function SandboxDetailScreen() {
   }, [id, utils, summarizeMutation, extractTodosMutation, identifyGapsMutation, generateBriefMutation, findContradictionsMutation]);
 
   const handleAddNote = useCallback(() => {
-    createNoteMutation.mutate({ captureMethod: 'quick_text', clusterId: id });
-  }, [createNoteMutation, id]);
+    createThoughtMutation.mutate({ captureMethod: 'quick_text', clusterId: id });
+  }, [createThoughtMutation, id]);
 
   const renderItem = useCallback(({ item, index }: { item: any; index: number }) => {
     const title = deriveTitle(item);
@@ -409,7 +409,7 @@ export default function SandboxDetailScreen() {
           style={styles.fabSmall}
           onPress={handleAddNote}
           activeOpacity={0.8}
-          disabled={createNoteMutation.isPending}
+          disabled={createThoughtMutation.isPending}
         >
           <Plus size={20} color={colors.white} />
         </TouchableOpacity>
