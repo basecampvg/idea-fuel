@@ -309,8 +309,18 @@ export default function SketchbookScreen() {
       } catch {
         // Local cache failure is non-critical
       }
-    } catch {
-      showToast({ message: 'Sketch generation failed. Please try again.', type: 'error' });
+    } catch (err: any) {
+      const code = err?.data?.code ?? err?.message;
+      const message =
+        code === 'GEMINI_NO_IMAGE_RETURNED'
+          ? 'Sketch was blocked by safety filters. Try a different description.'
+          : code === 'SKETCH_GENERATION_FAILED'
+            ? 'Sketch generation hit an API error. Please try again.'
+            : code === 'SKETCH_UPLOAD_FAILED'
+              ? 'Sketch was generated but failed to upload. Please try again.'
+              : 'Sketch generation failed. Please try again.';
+      console.warn('[Sketch] generate failed:', code, err?.message);
+      showToast({ message, type: 'error' });
       triggerHaptic('error');
     } finally {
       setIsGenerating(false);
