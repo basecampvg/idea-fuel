@@ -1,5 +1,5 @@
 /**
- * Card AI Service — Builds research briefs and extracts CardResult from Sonar Pro output
+ * Card AI Service, Builds research briefs and extracts CardResult from Sonar Pro output
  *
  * Used by the sparkCard router for mobile quick validation cards.
  * - buildResearchBrief: concatenates project + chat answers into a Sonar Pro prompt
@@ -9,6 +9,7 @@
 import { cardResultSchema } from '@forge/shared';
 import type { CardResult, CardChatMessage } from '@forge/shared';
 import { getAnthropicClient } from '../lib/anthropic';
+import { NO_EM_DASH_RULE } from '../lib/ai-style';
 
 // ============================================================================
 // Constants
@@ -46,7 +47,7 @@ export async function generateSuggestions(
       model: HAIKU_MODEL,
       max_tokens: 500,
       temperature: 0.7,
-      system: `You generate short, realistic suggested answers to business validation questions. The user has a business idea and is answering questions about it. Based on their idea, suggest 2-3 plausible answers they might give.
+      system: `${NO_EM_DASH_RULE}\n\nYou generate short, realistic suggested answers to business validation questions. The user has a business idea and is answering questions about it. Based on their idea, suggest 2-3 plausible answers they might give.
 
 Return valid JSON: an array of 2-3 strings. Each string is a concise answer (1-2 sentences max, under 120 characters). Make them specific to THIS idea, not generic.
 
@@ -76,7 +77,7 @@ Return ONLY the JSON array, no markdown wrapping.`,
     }
     return [];
   } catch (error) {
-    // Non-blocking — suggestions are optional
+    // Non-blocking, suggestions are optional
     console.warn('[CardAI] Suggestion generation failed:', error instanceof Error ? error.message : error);
     return [];
   }
@@ -120,7 +121,7 @@ export function buildResearchBrief(
     'Based on this business idea and the founder\'s answers, please research and provide:',
   );
   sections.push('1. How severe is the problem (1-5 scale) and what evidence supports this?');
-  sections.push('2. What are the market signals — is demand rising, flat, or declining?');
+  sections.push('2. What are the market signals, is demand rising, flat, or declining?');
   sections.push('3. What is the rough total addressable market (TAM) range?');
   sections.push('4. Who are the top 1-3 competitors and what is each known for?');
   sections.push('5. What is the single biggest risk for this idea?');
@@ -136,7 +137,7 @@ export function buildResearchBrief(
 
 const EXTRACTION_SYSTEM_PROMPT = `You are a structured data extraction assistant. You extract startup validation data from research text and return it as valid JSON.
 
-Return ONLY valid JSON matching this exact schema — no markdown, no code fences, no commentary:
+Return ONLY valid JSON matching this exact schema, no markdown, no code fences, no commentary:
 
 {
   "verdict": "proceed" | "watchlist" | "drop",
@@ -171,7 +172,7 @@ Rules:
 - citations: include any URLs found in the research text
 - Every non-optional field is REQUIRED
 
-Verdict consistency — derive the verdict from the extracted scores using this rubric:
+Verdict consistency, derive the verdict from the extracted scores using this rubric:
 - "proceed": problemSeverity >= 4 AND marketSignal is "rising" AND competitors array is non-empty
 - "drop": problemSeverity <= 2 OR marketSignal is "declining"
 - "watchlist": everything else (severity 3, flat/unknown market, or mixed signals)
@@ -192,7 +193,7 @@ export async function extractCardResult(
       model: HAIKU_MODEL,
       max_tokens: 2000,
       temperature: 0,
-      system: EXTRACTION_SYSTEM_PROMPT,
+      system: `${NO_EM_DASH_RULE}\n\n${EXTRACTION_SYSTEM_PROMPT}`,
       messages: [
         {
           role: 'user',
@@ -237,10 +238,10 @@ export async function extractCardResult(
       return enforced;
     }
 
-    // Validation failed — log errors and fall back
+    // Validation failed, log errors and fall back
     console.error('[CardAI] Zod validation failed:', result.error.issues.slice(0, 3));
 
-    // Try to salvage what we can — merge with defaults
+    // Try to salvage what we can, merge with defaults
     return buildFallbackCard(sonarResponse, citations);
   } catch (error) {
     console.error('[CardAI] Extraction failed:', error instanceof Error ? error.message : error);
@@ -250,7 +251,7 @@ export async function extractCardResult(
 
 /**
  * Enforce verdict consistency based on extracted scores.
- * This is the single source of truth — LLM-generated verdicts are overridden.
+ * This is the single source of truth, LLM-generated verdicts are overridden.
  *
  * Rubric:
  *   proceed:   severity >= 4 AND market is rising AND has competitors (validated market)
@@ -298,7 +299,7 @@ export async function refineProjectDetails(
       model: HAIKU_MODEL,
       max_tokens: 500,
       temperature: 0,
-      system: `You update a startup idea's title and description based on the founder's refinement request. Return ONLY valid JSON with "title" and "description" fields. The title should be concise (under 80 chars). The description should be 1-3 sentences incorporating the refinement. No markdown, no code fences.`,
+      system: `${NO_EM_DASH_RULE}\n\nYou update a startup idea's title and description based on the founder's refinement request. Return ONLY valid JSON with "title" and "description" fields. The title should be concise (under 80 chars). The description should be 1-3 sentences incorporating the refinement. No markdown, no code fences.`,
       messages: [
         {
           role: 'user',
@@ -334,10 +335,10 @@ function buildFallbackCard(rawText: string, citations: string[]): CardResult {
     tamEstimate: {
       low: 'Unknown',
       high: 'Unknown',
-      basis: 'Extraction failed — see raw response',
+      basis: 'Extraction failed, see raw response',
     },
     competitors: [],
-    biggestRisk: 'Unable to extract — review raw research output',
+    biggestRisk: 'Unable to extract, review raw research output',
     nextExperiment: 'Review the raw research output and identify key findings manually',
     citations,
     rawResponse: rawText,

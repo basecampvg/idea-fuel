@@ -1,5 +1,5 @@
 /**
- * Note AI Service — Refines raw brain-dump content into a structured idea.
+ * Note AI Service, Refines raw brain-dump content into a structured idea.
  *
  * Uses Claude Haiku to extract a title, description, and tags from
  * free-form note content.
@@ -8,6 +8,7 @@
 import { noteRefinementSchema, extractedIdeasArraySchema } from '@forge/shared';
 import type { NoteRefinement, ExtractedIdea } from '@forge/shared';
 import { getAnthropicClient } from '../lib/anthropic';
+import { NO_EM_DASH_RULE } from '../lib/ai-style';
 
 const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
 
@@ -23,9 +24,9 @@ First, determine what type of content the notes represent. Common types include:
 - Project planning or brainstorm
 - General thought or observation
 
-Then refine the notes in a way that matches their actual intent — do NOT force every note into a business idea format.
+Then refine the notes in a way that matches their actual intent, do NOT force every note into a business idea format.
 
-Return ONLY valid JSON matching this exact schema — no markdown, no code fences, no commentary:
+Return ONLY valid JSON matching this exact schema, no markdown, no code fences, no commentary:
 
 {
   "title": "A concise, descriptive title that captures the essence of the note (max 200 chars)",
@@ -34,7 +35,7 @@ Return ONLY valid JSON matching this exact schema — no markdown, no code fence
 }
 
 Rules:
-- title: Concise and specific. Capture what the note is actually about — not what it could become.
+- title: Concise and specific. Capture what the note is actually about, not what it could become.
 - description: Summarize the core content faithfully. For bug reports, describe the issue and context. For ideas, describe the concept. For reflections, distill the insight. Match the tone and purpose of the original.
 - tags: 1-10 lowercase tags describing the topic, domain, or category. Each tag max 50 chars.
 - Every field is REQUIRED.
@@ -85,7 +86,7 @@ export async function refineNote(
     model: HAIKU_MODEL,
     max_tokens: 1000,
     temperature: 0,
-    system: REFINEMENT_SYSTEM_PROMPT,
+    system: `${NO_EM_DASH_RULE}\n\n${REFINEMENT_SYSTEM_PROMPT}`,
     messages: [
       {
         role: 'user',
@@ -134,7 +135,7 @@ export async function refineNote(
 
 const EXTRACTION_SYSTEM_PROMPT = `You are an AI assistant that helps entrepreneurs extract multiple business ideas from raw notes. Given a user's brain dump, identify ALL distinct business ideas mentioned or implied.
 
-Return ONLY valid JSON matching this exact schema — no markdown, no code fences, no commentary:
+Return ONLY valid JSON matching this exact schema, no markdown, no code fences, no commentary:
 
 {
   "ideas": [
@@ -147,7 +148,7 @@ Return ONLY valid JSON matching this exact schema — no markdown, no code fence
 }
 
 Rules:
-- Extract every distinct idea — even tangential ones. Minimum 1, maximum 10.
+- Extract every distinct idea, even tangential ones. Minimum 1, maximum 10.
 - Each idea should stand on its own as a potential business concept.
 - title: Specific, not generic. Capture the essence of each unique idea.
 - description: Explain the problem being solved, the target customer, and the core solution.
@@ -166,7 +167,7 @@ export async function extractIdeasFromNote(content: string): Promise<ExtractedId
     model: HAIKU_MODEL,
     max_tokens: 4000,
     temperature: 0,
-    system: EXTRACTION_SYSTEM_PROMPT,
+    system: `${NO_EM_DASH_RULE}\n\n${EXTRACTION_SYSTEM_PROMPT}`,
     messages: [
       {
         role: 'user',

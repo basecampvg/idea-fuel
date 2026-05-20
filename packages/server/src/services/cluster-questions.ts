@@ -1,7 +1,7 @@
 /**
  * Cluster Questions Service
  *
- * Generates "questions to grow this cluster" — short, sharp questions the
+ * Generates "questions to grow this cluster", short, sharp questions the
  * user can answer (by capturing a new thought) to push a thought-cluster
  * toward a real idea.
  *
@@ -20,9 +20,9 @@
  *     (divergent → convergent thinking by stage).
  *
  * Questions are tiered by stage:
- *   - early   (1-4 thoughts): divergent — open the space.
+ *   - early   (1-4 thoughts): divergent, open the space.
  *   - forming (5-11 thoughts): sharpen the cluster's weak dimensions.
- *   - ready   (readiness >= 0.7): convergent — pressure-test, name the bet,
+ *   - ready   (readiness >= 0.7): convergent, pressure-test, name the bet,
  *     resolve tensions, define what "validated" looks like.
  *
  * Pipeline: a single Haiku generation call returns 4-6 questions, then a
@@ -32,6 +32,7 @@
 
 import { z } from 'zod';
 import { getAnthropicClient } from '../lib/anthropic';
+import { NO_EM_DASH_RULE } from '../lib/ai-style';
 
 const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
 
@@ -204,10 +205,10 @@ function buildSystemPrompt(stage: Stage): string {
     `  - ${STAGE_DESCRIPTIONS[stage]}`,
     "",
     "Source taxonomy (pick the most accurate one for each question):",
-    "  gap_problem | gap_audience | gap_solution | gap_angle | gap_pricing — fills an UNCOVERED dimension",
-    "  depth_problem | depth_audience | depth_solution | depth_angle | depth_pricing — sharpens an already-touched dimension",
-    "  tension_resolution — pushes the user to reconcile a contradiction in their thinking",
-    "  constraint — applies an Eames-style limit (time, money, audience size, channel) to surface a sharper edge",
+    "  gap_problem | gap_audience | gap_solution | gap_angle | gap_pricing, fills an UNCOVERED dimension",
+    "  depth_problem | depth_audience | depth_solution | depth_angle | depth_pricing, sharpens an already-touched dimension",
+    "  tension_resolution, pushes the user to reconcile a contradiction in their thinking",
+    "  constraint, applies an Eames-style limit (time, money, audience size, channel) to surface a sharper edge",
     "",
     "Output STRICT JSON: { \"questions\": [ { \"text\": \"...\", \"source\": \"...\" }, ... ] }. 4 to 6 items. No prose, no markdown fence.",
   ].join('\n');
@@ -318,7 +319,7 @@ async function callHaiku(systemPrompt: string, userMessage: string, maxTokens: n
     model: HAIKU_MODEL,
     max_tokens: maxTokens,
     temperature: 0.2,
-    system: systemPrompt,
+    system: `${NO_EM_DASH_RULE}\n\n${systemPrompt}`,
     messages: [{ role: 'user', content: userMessage }],
   });
   const block = response.content[0];
@@ -374,7 +375,7 @@ export async function generateClusterQuestions(
   }
 
   if (validated.length === 0) {
-    // Validator dropped everything — better to surface the raw generation than nothing.
+    // Validator dropped everything, better to surface the raw generation than nothing.
     validated = candidates;
   }
 

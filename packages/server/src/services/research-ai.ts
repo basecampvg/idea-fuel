@@ -37,6 +37,7 @@ import {
   type SocialSearchResult,
 } from '../providers';
 import { z } from 'zod';
+import { NO_EM_DASH_RULE } from '../lib/ai-style';
 
 // Model for post-processing tasks (interpreting research, generating reports)
 const REPORT_MODEL = 'gpt-5.2';
@@ -429,7 +430,7 @@ Provide specific, actionable insights with citations to help validate this busin
   try {
     const params = createDeepResearchParams({
       model,
-      systemPrompt,
+      systemPrompt: `${NO_EM_DASH_RULE}\n\n${systemPrompt}`,
       userQuery,
       domains: researchDomains,
       background: true, // Use background mode per best practices
@@ -570,7 +571,7 @@ async function rewriteResearchBriefs(
     .map(m => `${m.role}: ${m.content}`)
     .join('\n');
 
-  const chunkList = chunks.map(c => `- ${c.id}: ${c.name} — ${c.focus}`).join('\n');
+  const chunkList = chunks.map(c => `- ${c.id}: ${c.name}, ${c.focus}`).join('\n');
 
   const prompt = `You are a research strategist preparing focused briefs for a market research team.
 
@@ -737,7 +738,7 @@ export async function runChunkedDeepResearch(
   let completedCount = completedChunkIds.length;
   const totalChunks = RESEARCH_CHUNKS.length;
 
-  // Perplexity Tier 0 rate limit is 5 RPM — stagger submissions by 15s each
+  // Perplexity Tier 0 rate limit is 5 RPM, stagger submissions by 15s each
   // OpenAI can fire all chunks truly in parallel
   const PERPLEXITY_STAGGER_MS = 15000;
   const useStagger = engine === 'PERPLEXITY';
@@ -857,7 +858,9 @@ async function runSingleResearchChunk(
   // Use rewritten brief if available, otherwise fall back to default focus
   const researchFocus = rewrittenBrief || chunk.focus;
 
-  const systemPrompt = `You are a market research analyst conducting focused research.
+  const systemPrompt = `${NO_EM_DASH_RULE}
+
+You are a market research analyst conducting focused research.
 
 ## YOUR SPECIFIC TASK
 Research ONLY: ${researchFocus}
@@ -1851,7 +1854,7 @@ Extract comprehensive, detailed insights from the research report. Preserve spec
     "threats": ["<string: describe each threat in 1-2 sentences with specific examples>", ...],
     "marketDynamics": {
       "stage": "emerging" | "growing" | "mature" | "declining",
-      "consolidationLevel": "<string: fragmented/consolidating/concentrated — describe the competitive density>",
+      "consolidationLevel": "<string: fragmented/consolidating/concentrated, describe the competitive density>",
       "entryBarriers": ["<string: specific barrier with context>", ...],
       "regulatoryEnvironment": "<string: key regulations, compliance requirements, or policy trends affecting the market>"
     },
@@ -1980,7 +1983,7 @@ Extract comprehensive, detailed insights from the research report. Preserve spec
   }
 }
 
-Use ONLY information from the research report. Be thorough — include specific dollar figures, percentages, company names, and data points from the research. Longer, more detailed responses are preferred over brief summaries. Output ONLY the JSON object, no markdown or explanation.`;
+Use ONLY information from the research report. Be thorough, include specific dollar figures, percentages, company names, and data points from the research. Longer, more detailed responses are preferred over brief summaries. Output ONLY the JSON object, no markdown or explanation.`;
 
   const extractionProvider = getExtractionProvider(tier);
   console.log('[Extract Insights] Using provider:', extractionProvider.name);
@@ -2104,7 +2107,7 @@ Extract comprehensive market analysis and relevant keywords from the research ab
   }
 }
 
-Use ONLY information from the research data. Be thorough — include specific dollar figures, percentages, and data points. Output ONLY the JSON object.`;
+Use ONLY information from the research data. Be thorough, include specific dollar figures, percentages, and data points. Output ONLY the JSON object.`;
 
   const extractionProvider = getExtractionProvider(tier);
   const { MarketChunkSchema } = await import('./research-schemas');
@@ -2257,7 +2260,7 @@ Return structured JSON matching this EXACT schema:
   ]
 }
 
-Use ONLY information from the research data. Be thorough — include as many distinct pain points as the data supports. Output ONLY the JSON object.`;
+Use ONLY information from the research data. Be thorough, include as many distinct pain points as the data supports. Output ONLY the JSON object.`;
 
   const extractionProvider = getExtractionProvider(tier);
   const { PainPointsChunkSchema } = await import('./research-schemas');
@@ -2394,7 +2397,7 @@ function chunkExtractionRetryable(error: unknown): boolean {
 // PARALLEL EXTRACTION ORCHESTRATOR
 // =============================================================================
 
-/** Default values for failed extractions — enables graceful degradation */
+/** Default values for failed extractions, enables graceful degradation */
 const EMPTY_MARKET_ANALYSIS: SynthesizedInsights['marketAnalysis'] = {
   size: 'Data unavailable',
   growth: 'Data unavailable',
@@ -2433,7 +2436,7 @@ const EMPTY_KEYWORDS: SynthesizedInsights['keywords'] = {
  * Each chunk extracts its relevant schema sections independently,
  * then results are merged into a single SynthesizedInsights object.
  *
- * Falls back gracefully — if a chunk extraction fails, empty defaults
+ * Falls back gracefully, if a chunk extraction fails, empty defaults
  * are used for those sections so downstream functions can still run.
  */
 export async function extractInsightsParallel(
@@ -2524,7 +2527,7 @@ export function isLongContextTier(tier: SubscriptionTier): boolean {
  * cross-domain synthesis (e.g. competitor vulnerabilities vs. market timing windows,
  * pain point severity vs. market gap size).
  *
- * Requires the `anthropic-beta: context-1m-2025-08-07` header — passed automatically
+ * Requires the `anthropic-beta: context-1m-2025-08-07` header, passed automatically
  * via AnthropicProvider when longContext=true.
  *
  * @param chunkResults - All research chunk texts keyed by chunk ID
@@ -2588,7 +2591,7 @@ ${interviewData.founder_unfair_advantage ? `Unfair Advantage: ${interviewData.fo
     ? `## FOUNDER CANVAS NOTES\n${canvasContext}`
     : '';
 
-  const prompt = `You are extracting structured insights from a comprehensive multi-domain market research report. This is a HOLISTIC extraction — you have access to ALL research domains simultaneously. Use this to identify cross-domain insights: how competitor weaknesses align with market timing windows, how pain point severity maps to market gaps, and how social proof validates the research findings.
+  const prompt = `You are extracting structured insights from a comprehensive multi-domain market research report. This is a HOLISTIC extraction, you have access to ALL research domains simultaneously. Use this to identify cross-domain insights: how competitor weaknesses align with market timing windows, how pain point severity maps to market gaps, and how social proof validates the research findings.
 
 ## BUSINESS IDEA
 **Title:** ${ideaTitle}
@@ -2621,7 +2624,7 @@ Preserve specific data points, statistics, dollar figures, company names, and ci
     "threats": ["<string: describe each threat in 1-2 sentences with specific examples>", ...],
     "marketDynamics": {
       "stage": "emerging" | "growing" | "mature" | "declining",
-      "consolidationLevel": "<string: fragmented/consolidating/concentrated — describe the competitive density>",
+      "consolidationLevel": "<string: fragmented/consolidating/concentrated, describe the competitive density>",
       "entryBarriers": ["<string: specific barrier with context>", ...],
       "regulatoryEnvironment": "<string: key regulations, compliance requirements, or policy trends>"
     },
@@ -2894,7 +2897,7 @@ This is pass ${passNumber} - evaluate independently based on the research data.`
     return scorePass as RawScorePass;
   };
 
-  // Run passes in parallel — tolerate individual failures (require >= 2 of 3)
+  // Run passes in parallel, tolerate individual failures (require >= 2 of 3)
   const passResults = await Promise.allSettled(
     Array.from({ length: PASS_COUNT }, (_, i) => runPass(i + 1))
   );
@@ -3460,7 +3463,7 @@ export async function extractMarketSizing(
         () => openai.responses.create(
           createResponsesParams({
             model: REPORT_MODEL,
-            input: prompt,
+            input: `${NO_EM_DASH_RULE}\n\n${prompt}`,
             response_format: { type: 'json_object' },
             max_output_tokens: currentMaxTokens,
           }, aiParams)
@@ -3648,7 +3651,7 @@ export async function extractMarketSizing(
  * Extract SWOT analysis from deep research output.
  * Synthesizes across all research chunks (market, competitors, pain points, timing, sizing)
  * to produce a comprehensive Strengths/Weaknesses/Opportunities/Threats analysis
- * for the specific business idea — not just the market.
+ * for the specific business idea, not just the market.
  *
  * Uses Sonnet for fast structured extraction with enriched prompt.
  */
@@ -3711,7 +3714,7 @@ Strong incumbents, market saturation, regulatory headwinds, economic conditions,
 ## Output Requirements
 - Return 4-6 items per quadrant
 - Each item: 1-2 sentences, citing specific data points from the research
-- Do NOT include generic platitudes — every item must be grounded in evidence from the research data above
+- Do NOT include generic platitudes, every item must be grounded in evidence from the research data above
 - Return valid JSON matching the schema exactly`;
 
   const extractionProvider = getExtractionProvider(tier);
@@ -3878,7 +3881,9 @@ Return your analysis as JSON:
     const model = tier === 'FREE' ? DEEP_RESEARCH_MODEL_MINI : DEEP_RESEARCH_MODEL;
     const researchContext = deepResearch.rawReport.substring(0, 8000);
 
-    const systemPrompt = `You are a social media researcher specializing in finding real discussions about specific pain points.
+    const systemPrompt = `${NO_EM_DASH_RULE}
+
+You are a social media researcher specializing in finding real discussions about specific pain points.
 Your task is to search social platforms and find authentic posts where real people discuss problems, frustrations, or needs related to the given business idea.
 
 ## MARKET RESEARCH CONTEXT
@@ -4061,7 +4066,7 @@ Generate 3-5 specific, actionable queries per category.`;
     () => openai.responses.create(
       createResponsesParams({
         model: REPORT_MODEL,
-        input: prompt,
+        input: `${NO_EM_DASH_RULE}\n\n${prompt}`,
         response_format: { type: 'json_object' },
         max_output_tokens: 8000, // Increased from 4000 for buffer
       }, aiParams)
@@ -4263,7 +4268,7 @@ Be specific and actionable. Use the interview data to inform your analysis.`;
       () => openai.responses.create(
         createResponsesParams({
           model: REPORT_MODEL,
-          input: prompt,
+          input: `${NO_EM_DASH_RULE}\n\n${prompt}`,
           response_format: { type: 'json_object' },
           max_output_tokens: 15000, // Increased from 3000 to prevent truncation
         }, aiParams)
@@ -4396,7 +4401,7 @@ This is scoring pass ${passNumber} - evaluate independently without bias.`;
     () => openai.responses.create(
       createResponsesParams({
         model: REPORT_MODEL,
-        input: prompt,
+        input: `${NO_EM_DASH_RULE}\n\n${prompt}`,
         response_format: { type: 'json_object' },
         max_output_tokens: 8000, // Increased from 4000 for buffer
       }, aiParams)
@@ -4614,7 +4619,7 @@ Be realistic and consider the founder's background if mentioned in the interview
     () => openai.responses.create(
       createResponsesParams({
         model: REPORT_MODEL,
-        input: prompt,
+        input: `${NO_EM_DASH_RULE}\n\n${prompt}`,
         response_format: { type: 'json_object' },
         max_output_tokens: 8000, // Increased from 4000 for buffer
       }, aiParams)
@@ -4690,17 +4695,17 @@ Return EXACTLY this structure with all values as plain strings (NOT objects):
   "problem": "A 2-3 sentence description of the challenge they face",
   "solution": "A 2-3 sentence description of how the product solves their problem",
   "outcome": "A 2-3 sentence description of the positive results achieved",
-  "dayInTheLife": {                          // OPTIONAL — before/after contrast
-    "before": "Describe a typical day BEFORE using the product — specific pain, wasted time, frustration",
-    "after": "Describe the same day AFTER using the product — what changed, how it feels",
+  "dayInTheLife": {                          // OPTIONAL, before/after contrast
+    "before": "Describe a typical day BEFORE using the product, specific pain, wasted time, frustration",
+    "after": "Describe the same day AFTER using the product, what changed, how it feels",
     "timeSaved": "Quantified time/money saved, e.g. '2 hours/day' or '$500/month'"
   },
-  "emotionalArc": {                          // OPTIONAL — emotional journey
+  "emotionalArc": {                          // OPTIONAL, emotional journey
     "frustration": "The specific frustration the user felt before",
-    "discovery": "The moment they found the solution — what triggered it",
+    "discovery": "The moment they found the solution, what triggered it",
     "relief": "The emotional relief and confidence after adopting the product"
   },
-  "quote": "A hypothetical testimonial quote from the protagonist, e.g. 'I used to spend 3 hours on reports — now it takes 10 minutes.'"
+  "quote": "A hypothetical testimonial quote from the protagonist, e.g. 'I used to spend 3 hours on reports, now it takes 10 minutes.'"
 }
 
 CRITICAL: Every field must be a plain string. Do NOT use nested objects or arrays for the top-level fields (scenario, protagonist, problem, solution, outcome, quote). The dayInTheLife and emotionalArc objects contain only string values.
@@ -5021,7 +5026,7 @@ Make prices realistic for the market and value delivered.`;
     () => openai.responses.create(
       createResponsesParams({
         model: REPORT_MODEL,
-        input: prompt,
+        input: `${NO_EM_DASH_RULE}\n\n${prompt}`,
         response_format: { type: 'json_object' },
         max_output_tokens: 8000, // Increased from 2500 - GPT-5.2 reasoning consumes tokens before content
       }, aiParams)
@@ -5109,7 +5114,7 @@ Make prompts immediately usable - specific and actionable.`;
     () => openai.responses.create(
       createResponsesParams({
         model: REPORT_MODEL,
-        input: prompt,
+        input: `${NO_EM_DASH_RULE}\n\n${prompt}`,
         response_format: { type: 'json_object' },
         max_output_tokens: 8000, // Increased from 5000 - GPT-5.2 reasoning consumes tokens before content
       }, aiParams)
@@ -5220,7 +5225,7 @@ Dates should be within the last 6 months.`;
     () => openai.responses.create(
       createResponsesParams({
         model: REPORT_MODEL,
-        input: prompt,
+        input: `${NO_EM_DASH_RULE}\n\n${prompt}`,
         response_format: { type: 'json_object' },
         max_output_tokens: 8000, // Increased from 3000 - GPT-5.2 reasoning consumes tokens before content
       }, aiParams)
@@ -5409,7 +5414,7 @@ IMPORTANT GUIDELINES:
     () => openai.responses.create(
       createResponsesParams({
         model: REPORT_MODEL,
-        input: prompt,
+        input: `${NO_EM_DASH_RULE}\n\n${prompt}`,
         response_format: { type: 'json_object' },
         max_output_tokens: 20000, // Increased from 8000 - GPT-5.2 reasoning consumes significant tokens before content
       }, aiParams)
@@ -5878,7 +5883,7 @@ export async function runResearchPipeline(
     console.log('[Research Pipeline] === PHASE 3: Extraction & Synthesis (GPT-5.2) ===');
 
     // Step 1: Extract structured insights from raw deep research
-    // Three-path extraction — path chosen by tier and feature flag:
+    // Three-path extraction, path chosen by tier and feature flag:
     //   ENTERPRISE/TESTER + longContextExtraction=true → holistic 1M-context call (all chunks + social proof)
     //   chunks available                               → parallel per-chunk extraction (FREE/PRO default)
     //   no chunks (legacy)                             → monolithic fallback
@@ -6015,7 +6020,7 @@ export async function runResearchPipeline(
     socialProof,
     techStack,
     deepResearch, // Include raw research for debugging/display
-    businessPlan: null, // Decoupled from pipeline — generated on-demand
+    businessPlan: null, // Decoupled from pipeline, generated on-demand
     swot,
   };
 }
