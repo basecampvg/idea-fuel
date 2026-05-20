@@ -190,10 +190,44 @@ const gapsSchema = z.object({
   gaps: z.array(z.string().min(1)).min(1).max(10),
 });
 
-export async function identifyGaps(noteContents: string[]): Promise<string[]> {
+export type GapStage = 'early' | 'forming' | 'ready';
+
+const STAGE_GUIDANCE: Record<GapStage, string> = {
+  early: `STAGE: divergent — the user is still opening up the idea space.
+Surface 2-3 OPEN-ENDED THREADS to pull next. Texture > rigor.
+- Focus on: who the user is picturing, what the moment of friction actually looks like, how people handle this today, what would surprise the user about their own thinking.
+- Avoid: monetization, competitive positioning, validation methodology, compliance, market sizing, regulatory questions. None of that helps an idea that hasn't found its shape yet.
+- Voice: curious friend at the bar, not a VC associate.`,
+  forming: `STAGE: sharpening — the user has a recognizable idea. Help them deepen the parts that are still vague.
+Surface 3-4 nudges to make the picture more specific.
+- Focus on: which slice of users feels this most acutely, what behavior change they're betting on, what a "yes" or "no" from a real user would look like, which assumption is loadest-bearing.
+- Voice: thoughtful collaborator, not an examiner.`,
+  ready: `STAGE: convergent — the user is close to a defensible bet. Now you can press a little harder.
+Surface 3-5 places where the idea would meet reality and could fall apart.
+- Focus on: which assumption breaks the whole thing if wrong, what specific real-world test would falsify it, where two notes in the cluster might quietly disagree about who this is for.
+- Voice: trusted advisor before a board meeting — direct but not adversarial.`,
+};
+
+export async function identifyGaps(
+  noteContents: string[],
+  opts: { stage: GapStage } = { stage: 'early' },
+): Promise<string[]> {
+  const systemPrompt = `You help an entrepreneur explore an emerging idea more deeply. You're not auditing for completeness; you're nudging them toward threads worth pulling on next.
+
+${STAGE_GUIDANCE[opts.stage]}
+
+RULES that apply at every stage:
+- Each "gap" is a discovery nudge phrased so it invites curiosity, not a checklist item phrased as a deficiency.
+- Phrase as a question or a soft observation ("It might be worth picturing the first time a coach actually opens this on the sideline — what are they doing in that moment?"). Avoid "No mention of X" or "Missing Y" framings.
+- Ground each nudge in something the cluster's notes actually said. Reference a specific detail when you can.
+- Do NOT prescribe research methodology, validation steps, or business-plan deliverables. The user already has those tools elsewhere; this view is for thinking, not pitching.
+- Keep each gap to one or two sentences. No bullet points inside a gap. No section headers.
+
+Return JSON: { "gaps": ["nudge 1", "nudge 2", ...] }`;
+
   const result = await callHaikuJson(
-    `You analyze collections of entrepreneur notes for completeness. Identify what's MISSING from their thinking — topics they haven't addressed, questions they haven't asked, assumptions they haven't validated. Be specific and actionable. Return JSON: { "gaps": ["gap 1", "gap 2", ...] }. Return 3-5 gaps.`,
-    `Identify gaps in the thinking across these notes:\n\n${formatNotesForAi(noteContents)}`,
+    systemPrompt,
+    `These notes belong to one cluster the entrepreneur is building. Surface the discovery nudges:\n\n${formatNotesForAi(noteContents)}`,
     gapsSchema,
   );
   return result.gaps;

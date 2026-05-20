@@ -124,7 +124,23 @@ export async function runIdentifyGaps(
   userId?: string,
 ): Promise<{ gaps: { id: string; text: string }[] }> {
   const contents = await loadClusterContents(clusterId, userId);
-  const rawGaps = await identifyGaps(contents);
+
+  // Stage-aware tone: early clusters get curious nudges, ready clusters
+  // get more pointed pressure-tests. Same `detectStage` helper used by
+  // the questions generator so the two stay in sync.
+  const [cluster] = await db
+    .select({
+      readinessScore: thoughtClusters.readinessScore,
+    })
+    .from(thoughtClusters)
+    .where(eq(thoughtClusters.id, clusterId))
+    .limit(1);
+  const stage = detectStage({
+    thoughtCount: contents.length,
+    readinessScore: cluster?.readinessScore ?? 0,
+  });
+
+  const rawGaps = await identifyGaps(contents, { stage });
   const gapRecords = rawGaps.map((text) => ({ id: crypto.randomUUID(), text }));
 
   await db
