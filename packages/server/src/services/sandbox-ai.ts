@@ -1,11 +1,12 @@
 /**
- * Sandbox AI Service — AI actions that operate on collections of notes.
+ * Sandbox AI Service, AI actions that operate on collections of notes.
  *
  * Each function takes concatenated note content and returns structured output.
  * Uses Claude Haiku for speed and cost.
  */
 
 import { getAnthropicClient } from '../lib/anthropic';
+import { NO_EM_DASH_RULE } from '../lib/ai-style';
 import { z } from 'zod';
 
 const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
@@ -23,7 +24,7 @@ async function callHaikuJson<T>(
     model: HAIKU_MODEL,
     max_tokens: maxTokens,
     temperature: 0,
-    system: systemPrompt,
+    system: `${NO_EM_DASH_RULE}\n\n${systemPrompt}`,
     messages: [{ role: 'user', content: userMessage }],
   });
 
@@ -72,7 +73,7 @@ async function callHaikuText(
     model: HAIKU_MODEL,
     max_tokens: maxTokens,
     temperature: 0,
-    system: systemPrompt,
+    system: `${NO_EM_DASH_RULE}\n\n${systemPrompt}`,
     messages: [{ role: 'user', content: userMessage }],
   });
 
@@ -143,7 +144,7 @@ const todosSchema = z.object({
 
 export async function extractTodosFromSandbox(noteContents: string[]): Promise<string[]> {
   const result = await callHaikuJson(
-    `You extract action items from collections of entrepreneur notes. Find every explicit and implied task, commitment, or next step across all notes. Return actionable, specific items — not vague intentions. Return JSON: { "todos": ["action item 1", "action item 2", ...] }. Maximum 20 items.`,
+    `You extract action items from collections of entrepreneur notes. Find every explicit and implied task, commitment, or next step across all notes. Return actionable, specific items, not vague intentions. Return JSON: { "todos": ["action item 1", "action item 2", ...] }. Maximum 20 items.`,
     `Extract all action items from these notes:\n\n${formatNotesForAi(noteContents)}`,
     todosSchema,
   );
@@ -193,19 +194,19 @@ const gapsSchema = z.object({
 export type GapStage = 'early' | 'forming' | 'ready';
 
 const STAGE_GUIDANCE: Record<GapStage, string> = {
-  early: `STAGE: divergent — the user is still opening up the idea space.
+  early: `STAGE: divergent, the user is still opening up the idea space.
 Surface 2-3 OPEN-ENDED THREADS to pull next. Texture > rigor.
 - Focus on: who the user is picturing, what the moment of friction actually looks like, how people handle this today, what would surprise the user about their own thinking.
 - Avoid: monetization, competitive positioning, validation methodology, compliance, market sizing, regulatory questions. None of that helps an idea that hasn't found its shape yet.
 - Voice: curious friend at the bar, not a VC associate.`,
-  forming: `STAGE: sharpening — the user has a recognizable idea. Help them deepen the parts that are still vague.
+  forming: `STAGE: sharpening, the user has a recognizable idea. Help them deepen the parts that are still vague.
 Surface 3-4 nudges to make the picture more specific.
 - Focus on: which slice of users feels this most acutely, what behavior change they're betting on, what a "yes" or "no" from a real user would look like, which assumption is loadest-bearing.
 - Voice: thoughtful collaborator, not an examiner.`,
-  ready: `STAGE: convergent — the user is close to a defensible bet. Now you can press a little harder.
+  ready: `STAGE: convergent, the user is close to a defensible bet. Now you can press a little harder.
 Surface 3-5 places where the idea would meet reality and could fall apart.
 - Focus on: which assumption breaks the whole thing if wrong, what specific real-world test would falsify it, where two notes in the cluster might quietly disagree about who this is for.
-- Voice: trusted advisor before a board meeting — direct but not adversarial.`,
+- Voice: trusted advisor before a board meeting, direct but not adversarial.`,
 };
 
 export async function identifyGaps(
@@ -218,7 +219,7 @@ ${STAGE_GUIDANCE[opts.stage]}
 
 RULES that apply at every stage:
 - Each "gap" is a discovery nudge phrased so it invites curiosity, not a checklist item phrased as a deficiency.
-- Phrase as a question or a soft observation ("It might be worth picturing the first time a coach actually opens this on the sideline — what are they doing in that moment?"). Avoid "No mention of X" or "Missing Y" framings.
+- Phrase as a question or a soft observation ("It might be worth picturing the first time a coach actually opens this on the sideline, what are they doing in that moment?"). Avoid "No mention of X" or "Missing Y" framings.
 - Ground each nudge in something the cluster's notes actually said. Reference a specific detail when you can.
 - Do NOT prescribe research methodology, validation steps, or business-plan deliverables. The user already has those tools elsewhere; this view is for thinking, not pitching.
 - Keep each gap to one or two sentences. No bullet points inside a gap. No section headers.
@@ -255,7 +256,7 @@ const contradictionsSchema = z.object({
 
 export async function findContradictions(noteContents: string[]): Promise<string[]> {
   const result = await callHaikuJson(
-    `You analyze collections of entrepreneur notes for internal contradictions and tensions. Find places where the user's thinking conflicts with itself — different notes that say opposite things, evolving positions that haven't been reconciled, or assumptions that contradict each other. Reference which notes the contradiction appears in (e.g., "In Note 2 you said X, but in Note 5 you lean toward Y"). If there are no contradictions, return an empty array. Return JSON: { "contradictions": ["contradiction 1", ...] }`,
+    `You analyze collections of entrepreneur notes for internal contradictions and tensions. Find places where the user's thinking conflicts with itself, different notes that say opposite things, evolving positions that haven't been reconciled, or assumptions that contradict each other. Reference which notes the contradiction appears in (e.g., "In Note 2 you said X, but in Note 5 you lean toward Y"). If there are no contradictions, return an empty array. Return JSON: { "contradictions": ["contradiction 1", ...] }`,
     `Find contradictions across these notes:\n\n${formatNotesForAi(noteContents)}`,
     contradictionsSchema,
   );

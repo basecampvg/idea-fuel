@@ -9,6 +9,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { LoadedFinancialData } from './financial-model-loader';
 import type { StatementData } from '@forge/shared';
+import { NO_EM_DASH_RULE } from '../lib/ai-style';
 
 const SONNET_MODEL = 'claude-sonnet-4-5-20250929';
 
@@ -131,6 +132,7 @@ export async function summarizeRawResearch(rawReport: string): Promise<string> {
       model: SONNET_MODEL,
       max_tokens: 8000,
       temperature: 0.3,
+      system: NO_EM_DASH_RULE,
       messages: [{
         role: 'user',
         content: `You are a research analyst. Summarize the following deep research report into a comprehensive but concise briefing document. Preserve ALL key data points, statistics, market figures, competitor names, and specific findings. Do not lose any quantitative data or named entities. Target ~5000 words.
@@ -164,16 +166,16 @@ export async function generateBusinessPlanProse(
 
   const dataContext = buildDataContext(context);
 
-  const systemPrompt = `You are a senior strategy consultant who has helped raise over $500M in venture funding. You write business plans that close deals. Every sentence must earn its place — if it doesn't move an investor closer to writing a check, cut it.
+  const systemPrompt = `You are a senior strategy consultant who has helped raise over $500M in venture funding. You write business plans that close deals. Every sentence must earn its place, if it doesn't move an investor closer to writing a check, cut it.
 
 Your writing style:
 - Lead with the number, not the narrative. "$4.2B TAM growing at 23% CAGR" beats "The market is large and growing."
 - Use power language: "captures", "dominates", "exploits", "defensible", "asymmetric advantage"
-- Frame everything as an opportunity with urgency — why NOW, why THIS team, why THIS approach wins
+- Frame everything as an opportunity with urgency, why NOW, why THIS team, why THIS approach wins
 - Quantify everything possible. Vague claims destroy credibility.
-- Write like a pitch deck narrative — punchy, confident, data-dense
+- Write like a pitch deck narrative, punchy, confident, data-dense
 
-You MUST respond with a valid JSON object matching the exact schema specified. No markdown, no extra text — only the JSON object.`;
+You MUST respond with a valid JSON object matching the exact schema specified. No markdown, no extra text, only the JSON object.`;
 
   const userPrompt = `Using ALL of the research data provided below, generate a comprehensive, investor-ready business plan for the following business idea.
 
@@ -184,25 +186,25 @@ DESCRIPTION: ${context.ideaDescription}
 ${dataContext}
 === END RESEARCH DATA ===
 
-Respond with a JSON object matching this exact schema. Each narrative section should be 1-2 focused paragraphs — concise, data-rich, zero filler. Every paragraph must contain at least one specific number, metric, or data point. Write to persuade an investor scanning this in 5 minutes.
+Respond with a JSON object matching this exact schema. Each narrative section should be 1-2 focused paragraphs, concise, data-rich, zero filler. Every paragraph must contain at least one specific number, metric, or data point. Write to persuade an investor scanning this in 5 minutes.
 
 VISUAL FORMAT RULES: The frontend renders these as rich visual cards. To maximize visual impact:
 - Use bullet points (with "- " prefix) liberally for lists, comparisons, and key takeaways
 - Use "**bold**" markdown for key metrics, names, and emphasis
 - Structure content so it reads well in short visual blocks, not walls of text
 - Lead each section with the most important insight or number
-- For sections with tables/charts already rendered by the UI (Problem, Market, Competitive, Business Model, Financial), keep prose shorter — the visuals carry the weight
+- For sections with tables/charts already rendered by the UI (Problem, Market, Competitive, Business Model, Financial), keep prose shorter, the visuals carry the weight
 
 {
   "executiveSummary": "1-2 punchy paragraphs: core value prop, target market size, revenue model, why this wins. Should stand alone as a pitch.",
-  "problemNarrative": "1 paragraph + bullet points: articulate the problem with evidence from pain points and demand signals. Keep brief — a pain points table is shown alongside this.",
+  "problemNarrative": "1 paragraph + bullet points: articulate the problem with evidence from pain points and demand signals. Keep brief, a pain points table is shown alongside this.",
   "solutionNarrative": "1-2 paragraphs: how the solution addresses key pain points. Include the user story. Explain the unique approach with bullet points for features.",
-  "marketNarrative": "1 paragraph + bullet points: market analysis, growth drivers, segments. Keep brief — TAM/SAM/SOM cards are shown alongside this.",
-  "competitiveNarrative": "1 paragraph + bullet points: competitive positioning, defensible advantages. Keep brief — a competitor table is shown alongside this.",
+  "marketNarrative": "1 paragraph + bullet points: market analysis, growth drivers, segments. Keep brief, TAM/SAM/SOM cards are shown alongside this.",
+  "competitiveNarrative": "1 paragraph + bullet points: competitive positioning, defensible advantages. Keep brief, a competitor table is shown alongside this.",
   "businessModelNarrative": "1-2 paragraphs + bullet points: revenue model, pricing strategy, unit economics. A pricing tier table is shown alongside this.",
   "gtmStrategy": "1-2 paragraphs with bullet points: launch channels, acquisition strategy, first 90 days, key milestones. Use a numbered list for the phased approach.",
   "customerProfile": "1-2 paragraphs with bullet points: ideal customer segments, demographics, psychographics, buying behavior. Use bullet points for persona attributes.",
-  "financialNarrative": "1 paragraph: brief commentary on projections and key assumptions. Keep short — a financial chart is shown alongside this.",
+  "financialNarrative": "1 paragraph: brief commentary on projections and key assumptions. Keep short, a financial chart is shown alongside this.",
   "financialProjections": {
     "year1": { "revenue": <number in dollars>, "costs": <number>, "profit": <number (can be negative)> },
     "year2": { "revenue": <number>, "costs": <number>, "profit": <number> },
@@ -212,7 +214,7 @@ VISUAL FORMAT RULES: The frontend renders these as rich visual cards. To maximiz
   },
   "productRoadmap": "Use bullet points or numbered phases: MVP scope, 6-month milestones, 12-month vision. List concrete features per phase.",
   "teamOperations": "1 paragraph + bullet points: key roles needed, org structure, operational requirements. List critical hires.",
-  "riskAnalysis": "Use bullet points: top 5 risks, each with severity and mitigation strategy. Format as '**Risk**: description — **Mitigation**: action'.",
+  "riskAnalysis": "Use bullet points: top 5 risks, each with severity and mitigation strategy. Format as '**Risk**: description, **Mitigation**: action'.",
   "fundingRequirements": "1 paragraph + bullet points: funding amount, use of funds breakdown, target milestones. Use a bulleted allocation list.",
   "exitStrategy": "1 paragraph + bullet points: potential exit paths, comparable exits, timeline, target acquirers or IPO scenario."
 }
@@ -227,7 +229,7 @@ Respond ONLY with the JSON object. No markdown code fences, no explanation.`;
     model: SONNET_MODEL,
     max_tokens: 32000,
     temperature: 1.0,
-    system: systemPrompt,
+    system: `${NO_EM_DASH_RULE}\n\n${systemPrompt}`,
     messages: [{ role: 'user', content: userPrompt }],
   });
 
@@ -236,7 +238,7 @@ Respond ONLY with the JSON object. No markdown code fences, no explanation.`;
     throw new Error('No text response from model');
   }
 
-  // Parse the JSON response — strip any markdown code fences if the model adds them
+  // Parse the JSON response, strip any markdown code fences if the model adds them
   let jsonText = textBlock.text.trim();
   if (jsonText.startsWith('```')) {
     jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
@@ -304,7 +306,7 @@ Respond ONLY with the JSON object. No markdown code fences, no explanation.`;
 }
 
 // ============================================================================
-// HELPERS — Annual aggregation from period-level P&L
+// HELPERS, Annual aggregation from period-level P&L
 // ============================================================================
 
 function findLineValue(
@@ -347,7 +349,7 @@ function aggregateAnnualTotals(
 }
 
 // ============================================================================
-// HELPERS — Data context builder
+// HELPERS, Data context builder
 // ============================================================================
 
 function buildDataContext(ctx: ResearchContext): string {
@@ -433,7 +435,7 @@ function buildDataContext(ctx: ResearchContext): string {
       totalSent += toTake.length;
     }
 
-    sections.push(`## FINANCIAL MODEL (COMPUTED — USE THESE NUMBERS)
+    sections.push(`## FINANCIAL MODEL (COMPUTED, USE THESE NUMBERS)
 Template: ${fd.templateSlug}
 Forecast Years: ${fd.forecastYears}
 Revenue Model: ${fd.breakEven.revenueModel}

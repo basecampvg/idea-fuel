@@ -34,6 +34,7 @@ import { runCompetitorResearch, type SparkCompetitorResult } from './spark-compe
 import { expandQueries, getExpandedQueryStrings, formatQueriesForPrompt } from '../lib/query-expansion';
 import { computeSparkQualityScores, qualityReportToPromptContext } from '../lib/quality-scoring';
 import { getAnthropicProvider } from '../providers/anthropic';
+import { NO_EM_DASH_RULE } from '../lib/ai-style';
 import type {
   SparkKeywords,
   SparkResult,
@@ -62,7 +63,7 @@ const KEYWORD_SYSTEM_PROMPT = `You are a keyword research expert specializing in
 
 Your task is to generate a keyword pack for validating a business idea. The output must be:
 1. 6 short keyword phrases (2-4 words each) optimized for Google Trends search volume.
-   These should be what a real person types into Google — broad, common search terms.
+   These should be what a real person types into Google, broad, common search terms.
    GOOD examples: "construction management app", "contractor scheduling software", "project management tool"
    BAD examples: "construction job management app for contractors", "field service invoicing software small crews"
    Think: what terms actually have search volume on Google Trends?
@@ -109,7 +110,7 @@ export async function generateSparkKeywords(
     // Route through Anthropic so the pipeline is fully OpenAI-free
     const anthropic = getAnthropicProvider();
     const result = await anthropic.generate(
-      `${KEYWORD_SYSTEM_PROMPT}\n\n${userPrompt}\n\nReturn ONLY valid JSON matching the schema above.`,
+      `${NO_EM_DASH_RULE}\n\n${KEYWORD_SYSTEM_PROMPT}\n\n${userPrompt}\n\nReturn ONLY valid JSON matching the schema above.`,
       { maxTokens: 3000, temperature: 0.3, task: 'extraction' }
     );
     content = result;
@@ -120,7 +121,7 @@ export async function generateSparkKeywords(
       {
         model: KEYWORD_MODEL,
         input: [
-          { role: 'system', content: KEYWORD_SYSTEM_PROMPT },
+          { role: 'system', content: `${NO_EM_DASH_RULE}\n\n${KEYWORD_SYSTEM_PROMPT}` },
           { role: 'user', content: userPrompt },
         ],
         max_output_tokens: 3000,
@@ -310,7 +311,7 @@ ${competitorResult ? JSON.stringify(competitorResult, null, 2) : 'UNAVAILABLE - 
     // Route through Anthropic so the pipeline is fully OpenAI-free
     const anthropic = getAnthropicProvider();
     const result = await anthropic.generate(
-      `${systemPrompt}\n\n${userPrompt}\n\nReturn ONLY valid JSON.`,
+      `${NO_EM_DASH_RULE}\n\n${systemPrompt}\n\n${userPrompt}\n\nReturn ONLY valid JSON.`,
       { maxTokens: 15000, temperature: 0.4, task: 'extraction' }
     );
     content = result;
@@ -323,7 +324,7 @@ ${competitorResult ? JSON.stringify(competitorResult, null, 2) : 'UNAVAILABLE - 
       {
         model: SYNTHESIS_MODEL,
         input: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: `${NO_EM_DASH_RULE}\n\n${systemPrompt}` },
           { role: 'user', content: userPrompt },
         ],
         max_output_tokens: 15000,
@@ -567,7 +568,7 @@ export async function runSparkPipeline(
   // =========================================================================
   await onStatusChange?.('RUNNING_PARALLEL');
 
-  // Perplexity rate limit (5 RPM on Tier 0) — stagger calls by 15s each
+  // Perplexity rate limit (5 RPM on Tier 0), stagger calls by 15s each
   const PERPLEXITY_STAGGER_MS = 15000;
   const useStagger = engine === 'PERPLEXITY';
 
@@ -780,7 +781,7 @@ Synonyms: ${keywords.synonyms.slice(0, 10).join(', ')}
 
   const params = createDeepResearchParams({
     model: SPARK_RESEARCH_MODEL,
-    systemPrompt: SPARK_RESEARCH_PROMPT_LEGACY,
+    systemPrompt: `${NO_EM_DASH_RULE}\n\n${SPARK_RESEARCH_PROMPT_LEGACY}`,
     userQuery,
     domains: [
       'reddit.com',

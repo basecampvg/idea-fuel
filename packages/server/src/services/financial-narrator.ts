@@ -9,6 +9,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import type { ComputedStatements, StatementData } from '@forge/shared';
+import { NO_EM_DASH_RULE } from '../lib/ai-style';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -135,6 +136,7 @@ export async function generateNarratives(input: NarrativeInput): Promise<Narrati
     const response = await client.messages.create({
       model: 'claude-sonnet-4-5-20250929',
       max_tokens: 2000,
+      system: NO_EM_DASH_RULE,
       messages: [{ role: 'user', content: prompt }],
     });
 

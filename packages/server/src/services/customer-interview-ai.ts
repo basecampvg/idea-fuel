@@ -1,5 +1,5 @@
 /**
- * Customer Interview AI Service — Question Generation & Response Synthesis
+ * Customer Interview AI Service, Question Generation & Response Synthesis
  *
  * Uses Claude Haiku to:
  * 1. Generate 8-12 customer discovery questions tailored to a project
@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { interviewQuestionSchema } from '@forge/shared';
 import type { InterviewQuestion, InterviewAnswer } from '@forge/shared';
 import { getAnthropicClient } from '../lib/anthropic';
+import { NO_EM_DASH_RULE } from '../lib/ai-style';
 
 const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
 
@@ -74,16 +75,16 @@ export type CustomerDiscoverySynthesis = z.infer<typeof synthesisResultSchema>;
 const QUESTION_GENERATION_SYSTEM_PROMPT = `You are an expert customer discovery interviewer helping entrepreneurs validate business ideas. Your goal is to design interview questions that surface real pain, willingness to act, and market opportunity.
 
 Generate 8-12 customer discovery questions following this flow:
-1. Context — Understand the respondent's background and current situation
-2. Problem exploration — Dig into the specific problem the product addresses
-3. Current workarounds — How do they solve this problem today?
-4. Pain severity — How much does this problem affect them?
-5. Willingness to act — Would they change their behavior or pay for a solution?
-6. Commitment — Would they participate further (beta, purchase, referral)?
+1. Context, Understand the respondent's background and current situation
+2. Problem exploration, Dig into the specific problem the product addresses
+3. Current workarounds, How do they solve this problem today?
+4. Pain severity, How much does this problem affect them?
+5. Willingness to act, Would they change their behavior or pay for a solution?
+6. Commitment, Would they participate further (beta, purchase, referral)?
 
 Use a mix of question types: FREE_TEXT for open-ended exploration, SCALE (1-10) for severity/likelihood ratings, MULTIPLE_CHOICE for categorical answers, and YES_NO for commitment checks.
 
-Return ONLY valid JSON matching this exact schema — no markdown, no code fences, no commentary:
+Return ONLY valid JSON matching this exact schema, no markdown, no code fences, no commentary:
 
 {
   "title": "A concise interview title (max 200 chars)",
@@ -139,7 +140,7 @@ Analyze all responses holistically and return insights as a JSON object with the
   "recommendedNextSteps": "2-4 specific, actionable next steps based on the interview findings"
 }
 
-Return ONLY valid JSON — no markdown, no code fences, no commentary. Each value should be formatted as markdown text (use **bold**, bullet points, etc. as appropriate for readability).`;
+Return ONLY valid JSON, no markdown, no code fences, no commentary. Each value should be formatted as markdown text (use **bold**, bullet points, etc. as appropriate for readability).`;
 
 // =============================================================================
 // Helpers
@@ -214,7 +215,7 @@ export async function generateInterviewQuestions(
     model: HAIKU_MODEL,
     max_tokens: 4000,
     temperature: 0,
-    system: QUESTION_GENERATION_SYSTEM_PROMPT,
+    system: `${NO_EM_DASH_RULE}\n\n${QUESTION_GENERATION_SYSTEM_PROMPT}`,
     messages: [
       {
         role: 'user',
@@ -291,7 +292,7 @@ export async function synthesizeResponses(
     model: HAIKU_MODEL,
     max_tokens: 4000,
     temperature: 0,
-    system: SYNTHESIS_SYSTEM_PROMPT,
+    system: `${NO_EM_DASH_RULE}\n\n${SYNTHESIS_SYSTEM_PROMPT}`,
     messages: [
       {
         role: 'user',

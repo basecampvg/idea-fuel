@@ -3,6 +3,7 @@ import type { SubscriptionTier } from '../db/schema';
 import { getInterviewKnowledge } from '../lib/knowledge';
 import type { ChatMessage, InterviewMode, InterviewDataPoints, DataPoint } from '@forge/shared';
 import { trackUsageFromResponse } from '../lib/token-tracker';
+import { NO_EM_DASH_RULE } from '../lib/ai-style';
 
 // ---------------------------------------------------------------------------
 // Data Point Fields
@@ -115,7 +116,7 @@ const SCRIPTED_QUESTIONS: QuestionTemplate[] = [
   {
     id: 6,
     block: 'Why Now',
-    intent: 'Understand market timing — what has changed that makes this the right moment.',
+    intent: 'Understand market timing, what has changed that makes this the right moment.',
     contextHint: 'Ask what has changed recently (tech shift, regulation, behavior change, distribution shift) that creates this opportunity now.',
     dataPoints: ['why_now_triggers', 'market_timing_factors'],
     modes: ['LIGHT', 'IN_DEPTH'],
@@ -372,7 +373,7 @@ ${highlights.map((h) => `- ${h}`).join('\n') || '- (limited data collected)'}
 YOUR TASK:
 1. Briefly summarize 2-3 key insights you learned about their idea (be specific, use their words)
 2. Thank them for their time
-3. Let them know the research phase is next — we'll analyze the market, competitors, and validate demand based on what they shared
+3. Let them know the research phase is next, we'll analyze the market, competitors, and validate demand based on what they shared
 4. Keep it warm and concise (4-5 sentences max)
 - Do NOT ask another question`;
 }
@@ -412,7 +413,7 @@ export async function generateOpeningQuestion(
       createResponsesParams({
         model: INTERVIEW_MODEL,
         input: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: `${NO_EM_DASH_RULE}\n\n${systemPrompt}` },
           {
             role: 'user',
             content: 'Please start the discovery interview with your first question.',
@@ -475,7 +476,7 @@ export async function generateNextQuestion(
       maxTurns,
     );
   } else {
-    // Dynamic phase — find weakest blocks
+    // Dynamic phase, find weakest blocks
     const gaps = scoreBlockQuality(collectedData, mode);
     const thinGaps = gaps.filter((g) => g.quality === 'thin');
     const adequateGaps = gaps.filter((g) => g.quality === 'adequate' && g.missingFields.length > 0);
@@ -494,7 +495,7 @@ export async function generateNextQuestion(
         maxTurns,
       );
     } else {
-      // No gaps — go to closing early
+      // No gaps, go to closing early
       isClosing = true;
       systemPrompt = buildClosingPrompt(ideaTitle, collectedData, currentTurn, maxTurns);
     }
@@ -513,7 +514,7 @@ export async function generateNextQuestion(
       createResponsesParams({
         model: INTERVIEW_MODEL,
         input: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: `${NO_EM_DASH_RULE}\n\n${systemPrompt}` },
           ...conversationHistory,
         ],
         max_output_tokens: 500,
@@ -533,7 +534,7 @@ export async function generateNextQuestion(
         createResponsesParams({
           model: INTERVIEW_MODEL,
           input: [
-            { role: 'system', content: systemPrompt },
+            { role: 'system', content: `${NO_EM_DASH_RULE}\n\n${systemPrompt}` },
             ...conversationHistory,
           ],
           max_output_tokens: 500,
