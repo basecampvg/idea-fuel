@@ -27,7 +27,7 @@ const getMediaLibrary = (): typeof import('expo-media-library') | null => {
     return null;
   }
 };
-import { RefreshCw, Pencil, Pin, Grid3x3, Download, Share2, Trash2, WandSparkles } from 'lucide-react-native';
+import { RefreshCw, Pencil, Pin, Grid3x3, Download, Share2, Trash2, WandSparkles, Plus } from 'lucide-react-native';
 import { colors, fonts } from '../../../lib/theme';
 import { trpc } from '../../../lib/trpc';
 import { triggerHaptic } from '../../../components/ui/Button';
@@ -447,6 +447,13 @@ export default function SketchbookScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Sketchbook</Text>
         <View style={styles.headerPill}>
+          <TouchableOpacity
+            style={styles.pillButton}
+            onPress={handleFabPress}
+          >
+            <Plus size={18} color={colors.brand} />
+          </TouchableOpacity>
+          <View style={styles.pillDivider} />
           <TouchableOpacity
             style={styles.pillButton}
             onPress={handleSave}
